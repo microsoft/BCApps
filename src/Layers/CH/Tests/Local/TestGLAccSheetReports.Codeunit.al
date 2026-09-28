@@ -12,6 +12,7 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
     var
         Assert: Codeunit Assert;
         LibraryCH: Codeunit "Library - CH";
+        LibraryDimension: Codeunit "Library - Dimension";
         LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -1329,6 +1330,97 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('GLAccSheetFCYWithDimFilterRPH')]
+    procedure GLSheetForeignCurrOpeningBalanceRespectsDimensionFilter()
+    var
+        GLAccount: Record "G/L Account";
+        BalGLAccount: Record "G/L Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccountSourceCurrency: Record "G/L Account Source Currency";
+        GLEntry: Record "G/L Entry";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GlobalDimensionValue: Record "Dimension Value";
+        FilteredDimensionValue: Record "Dimension Value";
+        ExcludedDimensionValue: Record "Dimension Value";
+        CurrencyCode: Code[10];
+        FilteredOpeningBalanceFCY: Decimal;
+        PeriodAmountFCY: Decimal;
+    begin
+        // [FEATURE] [SR G/L Acc Sheet Foreign Curr]
+        // [SCENARIO 649969] The FCY opening balance of report 11564 honors the Global Dimension 1 Filter.
+        Initialize();
+
+        // [GIVEN] Two dimension values of the first global dimension.
+        LibraryDimension.GetGlobalDimCodeValue(1, GlobalDimensionValue);
+        LibraryDimension.CreateDimensionValue(FilteredDimensionValue, GlobalDimensionValue."Dimension Code");
+        LibraryDimension.CreateDimensionValue(ExcludedDimensionValue, GlobalDimensionValue."Dimension Code");
+
+        // [GIVEN] A multiple-currency G/L Account with a registered source currency.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(
+            CalcDate('<-1D>', WorkDate()), LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Account Type", GLAccount."Account Type"::Posting);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Validate("Source Currency Posting", GLAccount."Source Currency Posting"::"Multiple Currencies");
+        GLAccount.Modify(true);
+
+        GLAccountSourceCurrency.Init();
+        GLAccountSourceCurrency."G/L Account No." := GLAccount."No.";
+        GLAccountSourceCurrency."Currency Code" := CurrencyCode;
+        GLAccountSourceCurrency.Insert();
+
+        LibraryERM.CreateGLAccount(BalGLAccount);
+
+        // [GIVEN] The additional reporting currency also has a rate before the report period.
+        GeneralLedgerSetup.Get();
+        LibraryERM.CreateExchangeRate(
+            GeneralLedgerSetup."Additional Reporting Currency", CalcDate('<-1D>', WorkDate()),
+            LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
+
+        // [GIVEN] A pre-period entry carrying the dimension value that the report filters on.
+        CreateGenJournalLineWithDimension(
+            GenJournalLine, GLAccount, BalGLAccount."No.", LibraryRandom.RandIntInRange(1000, 2000), CurrencyCode,
+            FilteredDimensionValue.Code, CalcDate('<-1D>', WorkDate()));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.FindFirst();
+        FilteredOpeningBalanceFCY := GLEntry."Source Currency Amount";
+
+        // [GIVEN] A pre-period entry carrying a different dimension value, which must be excluded.
+        CreateGenJournalLineWithDimension(
+            GenJournalLine, GLAccount, BalGLAccount."No.", LibraryRandom.RandIntInRange(1000, 2000), CurrencyCode,
+            ExcludedDimensionValue.Code, CalcDate('<-1D>', WorkDate()));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] An in-period entry carrying the filtered dimension value.
+        CreateGenJournalLineWithDimension(
+            GenJournalLine, GLAccount, BalGLAccount."No.", LibraryRandom.RandIntInRange(1000, 2000), CurrencyCode,
+            FilteredDimensionValue.Code, WorkDate());
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.FindFirst();
+        PeriodAmountFCY := GLEntry."Source Currency Amount";
+
+        // [WHEN] Run report 11564 filtered on the first dimension value.
+        GLAccount.SetRange("No.", GLAccount."No.");
+        LibraryVariableStorage.Enqueue(GLAccount."No.");
+        LibraryVariableStorage.Enqueue(Format(WorkDate()) + '..' + Format(WorkDate()));
+        LibraryVariableStorage.Enqueue(FilteredDimensionValue.Code);
+        RunSRGLAccSheetForeignCurrReport(GLAccount);
+
+        // [THEN] The FCY opening balance excludes the entry posted with the other dimension value.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_GLAccount', GLAccount."No.");
+        LibraryReportDataset.SetRange('DocumentNo_GLEntry', GenJournalLine."Document No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('FcyAcyBalanceFcyAcyAmt', FilteredOpeningBalanceFCY);
+        LibraryReportDataset.AssertCurrentRowValueEquals(
+            'GLEntryFcyAcyBalance', FilteredOpeningBalanceFCY + PeriodAmountFCY);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         GenJnlTemplate: Record "Gen. Journal Template";
@@ -1406,6 +1498,16 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
           GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", GLAccount."No.",
           BalAccType, BalAccNo, Amount);
         GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure CreateGenJournalLineWithDimension(var GenJournalLine: Record "Gen. Journal Line"; GLAccount: Record "G/L Account"; BalAccNo: Code[20]; Amount: Decimal; CurrencyCode: Code[10]; ShortcutDimension1Code: Code[20]; PostingDate: Date)
+    begin
+        CreateGenJournalLine(
+            GenJournalLine, GLAccount, GenJournalLine."Bal. Account Type"::"G/L Account", BalAccNo, Amount, CurrencyCode);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("VAT Reporting Date", PostingDate);
+        GenJournalLine.Validate("Shortcut Dimension 1 Code", ShortcutDimension1Code);
         GenJournalLine.Modify(true);
     end;
 
@@ -1989,6 +2091,22 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         SRGLAccSheetForeignCurr."G/L Account".SetFilter("No.", GLAccountNo);
         SRGLAccSheetForeignCurr."G/L Account".SetFilter("Date Filter", DateFilter);
         SRGLAccSheetForeignCurr.ShowAllAccounts.SetValue(LibraryVariableStorage.DequeueBoolean());
+        SRGLAccSheetForeignCurr.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    procedure GLAccSheetFCYWithDimFilterRPH(var SRGLAccSheetForeignCurr: TestRequestPage "SR G/L Acc Sheet Foreign Curr")
+    var
+        DateFilter: Variant;
+        GLAccountNo: Variant;
+        DimensionValueCode: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(GLAccountNo);
+        LibraryVariableStorage.Dequeue(DateFilter);
+        LibraryVariableStorage.Dequeue(DimensionValueCode);
+        SRGLAccSheetForeignCurr."G/L Account".SetFilter("No.", GLAccountNo);
+        SRGLAccSheetForeignCurr."G/L Account".SetFilter("Date Filter", DateFilter);
+        SRGLAccSheetForeignCurr."G/L Account".SetFilter("Global Dimension 1 Filter", DimensionValueCode);
         SRGLAccSheetForeignCurr.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
