@@ -17,6 +17,7 @@ codeunit 9852 "Effective Permissions Mgt."
 
     var
         UserAccountHelper: DotNet NavUserAccountHelper;
+        AccessControlFilterForUserCache: Dictionary of [Guid, Text];
         DialogFormatMsg: Label 'Reading objects...@1@@@@@@@@@@@@@@@@@@';
         CannotViewEffectivePermissionsForOtherUserErr: Label 'Only users with the SUPER or the SECURITY permission set can view effective permissions for other users.';
         ChangeAffectsOthersMsg: Label 'Your change in permission set %1 will affect other users that the permission set is assigned to.', Comment = '%1 = permission set ID that was changed';
@@ -434,6 +435,10 @@ codeunit 9852 "Effective Permissions Mgt."
         SecurityGroup: Codeunit "Security Group";
         FilterTextBuilder: TextBuilder;
     begin
+        // Resolving security group membership is expensive (calls to Microsoft Entra for every group), so cache the result per user.
+        if AccessControlFilterForUserCache.ContainsKey(UserSecId) then
+            exit(AccessControlFilterForUserCache.Get(UserSecId));
+
         // Consider permissions assigned to the user directly.
         FilterTextBuilder.Append(UserSecId);
 
@@ -446,7 +451,13 @@ codeunit 9852 "Effective Permissions Mgt."
                 FilterTextBuilder.Append(SecurityGroup.GetGroupUserSecurityId(SecurityGroupMemberBuffer."Security Group Code"));
             until SecurityGroupMemberBuffer.Next() = 0;
 
+        AccessControlFilterForUserCache.Set(UserSecId, FilterTextBuilder.ToText());
         exit(FilterTextBuilder.ToText());
+    end;
+
+    internal procedure ClearAccessControlFilterCache()
+    begin
+        Clear(AccessControlFilterForUserCache);
     end;
 
     procedure PopulateEffectivePermissionsBuffer(var Permission: Record Permission; PassedUserID: Guid; PassedCompanyName: Text[50]; PassedObjectType: Integer; PassedObjectId: Integer; ShowAllObjects: Boolean)
