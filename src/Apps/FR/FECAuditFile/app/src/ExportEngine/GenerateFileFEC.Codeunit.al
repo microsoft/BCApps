@@ -380,6 +380,7 @@ codeunit 10826 "Generate File FEC"
 
                         PartyNo := CustLedgerEntry."Customer No.";
                         PartyName := CustLedgerEntry."Customer Name";
+                        OnGetLedgerEntryDataForCustVendOnAfterSetCustomerData(CustLedgerEntry, PartyName);
                         PayRecAccount := GetReceivablesAccount(CustLedgerEntry."Customer Posting Group");
                         CountOfGLEntriesInTransaction := GetTransPayRecEntriesCount(CustLedgerEntry."Transaction No.", PayRecAccount);
                         repeat
@@ -413,6 +414,7 @@ codeunit 10826 "Generate File FEC"
 
                         PartyNo := VendorLedgerEntry."Vendor No.";
                         PartyName := VendorLedgerEntry."Vendor Name";
+                        OnGetLedgerEntryDataForCustVendOnAfterSetVendorData(VendorLedgerEntry, PartyName);
                         PayRecAccount := GetPayablesAccount(VendorLedgerEntry."Vendor Posting Group");
                         CountOfGLEntriesInTransaction := GetTransPayRecEntriesCount(VendorLedgerEntry."Transaction No.", PayRecAccount);
                         repeat
@@ -888,6 +890,7 @@ codeunit 10826 "Generate File FEC"
         else
             CreditAmt := -Amount;
 
+        OnWriteDetailedGLAccountBySourceOnBeforeAppendLine(GLAccountNo);
         AppendLine('00000|' +
           'BALANCE OUVERTURE|' +
           '0|' +
@@ -916,6 +919,7 @@ codeunit 10826 "Generate File FEC"
         else
             CreditAmount := Abs(OpeningBalance);
 
+        OnWriteGLAccountOnBeforeAppendLine(GLAccountNo);
         AppendLine('00000|' +
           'BALANCE OUVERTURE|' +
           '0|' +
@@ -937,6 +941,7 @@ codeunit 10826 "Generate File FEC"
     begin
         GLEntry.CalcFields(GLEntry."G/L Account Name");
 
+        OnWriteGLEntryToFileOnBeforeAppendLine(GLEntry);
         AppendLine(
           GetSourceCode(GLEntry) + '|' +
           GetSourceCodeDesc(GetSourceCode(GLEntry)) + '|' +
@@ -956,6 +961,31 @@ codeunit 10826 "Generate File FEC"
           DataHandlingFEC.GetFormattedDate(GLRegisterCreationDate) + '|' +
           FCYAmount + '|' +
           CurrencyCode);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetLedgerEntryDataForCustVendOnAfterSetCustomerData(CustLedgerEntry: Record "Cust. Ledger Entry"; var PartyName: Text[100])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetLedgerEntryDataForCustVendOnAfterSetVendorData(VendorLedgerEntry: Record "Vendor Ledger Entry"; var PartyName: Text[100])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnWriteDetailedGLAccountBySourceOnBeforeAppendLine(var GLAccountNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnWriteGLAccountOnBeforeAppendLine(var GLAccountNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnWriteGLEntryToFileOnBeforeAppendLine(var GLEntry: Record "G/L Entry")
+    begin
     end;
 
     local procedure AppendLine(LineContent: Text)
