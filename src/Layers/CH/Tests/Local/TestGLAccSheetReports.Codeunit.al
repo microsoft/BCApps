@@ -1348,7 +1348,7 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         PeriodAmountFCY: Decimal;
     begin
         // [FEATURE] [SR G/L Acc Sheet Foreign Curr]
-        // [SCENARIO 649969] The FCY opening balance of report 11564 honors the Global Dimension 1 Filter.
+        // [SCENARIO 651296] The FCY opening balance of report 11564 honors the Global Dimension 1 Filter.
         Initialize();
 
         // [GIVEN] Two dimension values of the first global dimension.
