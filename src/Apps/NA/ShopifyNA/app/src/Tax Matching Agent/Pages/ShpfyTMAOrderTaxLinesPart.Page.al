@@ -87,8 +87,8 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
                     ApplicationArea = All;
                     Caption = 'Tax Detail Rate %';
                     AutoFormatType = 0;
-                    BlankZero = true;
                     Editable = false;
+                    HideValue = BCRateHidden;
                     StyleExpr = RateStyleExpr;
                     ToolTip = 'Specifies the Tax Detail Rate that applies to this line''s item for the assigned Tax Jurisdiction as of the order date. When it differs from Shopify''s rate, the line is highlighted red; approving the order posts using this Tax Detail Rate. It is blank when no Tax Jurisdiction is assigned or no Tax Detail exists yet.';
                 }
@@ -153,6 +153,7 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
         AppliesToItemNo: Code[20];
         AppliesToItemDescription: Text[100];
         BCRatePct: Decimal;
+        BCRateHidden: Boolean;
         RateStyleExpr: Text;
         UseShopifyRateEnabled: Boolean;
         ShippingAppliesToLbl: Label 'Shipping charge: %1', Comment = '%1 = shipping method title';
@@ -209,6 +210,7 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
         TMAMatcher: Codeunit "Shpfy TMA Matcher";
     begin
         Clear(BCRatePct);
+        BCRateHidden := true;
 
         // An unmatched tax line (no Tax Jurisdiction assigned) is highlighted red so the reviewer is
         // drawn to the line they must complete — mirroring the rate-conflict highlight. The order is
@@ -224,6 +226,8 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
             exit;
         end;
 
+        // A Tax Detail exists, so show its rate even when it is 0%.
+        BCRateHidden := false;
         if BCRatePct = Rec."Rate %" then
             RateStyleExpr := 'Favorable'
         else
