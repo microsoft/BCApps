@@ -1,3 +1,8 @@
+namespace Microsoft.Foundation.Company.Test;
+
+using Microsoft.Foundation.Company;
+using System.TestLibraries.Environment;
+
 codeunit 139327 "Create Company Test Init"
 {
     // Runs "Company-Initialize" inside a newly created company, in a background session started by

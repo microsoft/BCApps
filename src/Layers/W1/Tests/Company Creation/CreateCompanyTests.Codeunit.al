@@ -1,3 +1,14 @@
+namespace Microsoft.Foundation.Company.Test;
+
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Setup;
+using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
+using System.Environment;
+
 codeunit 139326 "Create Company Tests"
 {
     // Company-Initialize must run in a freshly created, committed company from a separate session,
