@@ -21,6 +21,7 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense Activity Log API" = X,
                   page "Expense Agent Access Ctrl API" = X,
                   page "Expense Agent Setup API" = X,
+                  page "Exp. Alternate Approvers API" = X,
                   page "Expense Approval Setup API" = X,
                   page "Expense Attachments API" = X,
                   page "Expense Categories API" = X,
