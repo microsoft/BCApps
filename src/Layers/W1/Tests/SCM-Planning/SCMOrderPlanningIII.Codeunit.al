@@ -4754,7 +4754,9 @@ codeunit 137088 "SCM Order Planning - III"
     var
         PlanningErrorLog: Record "Planning Error Log";
     begin
+#pragma warning disable AA0210
         PlanningErrorLog.SetRange("Item No.", Item."No.");
+#pragma warning restore AA0210
         Assert.RecordCount(PlanningErrorLog, 1);
         PlanningErrorLog.FindFirst();
         Assert.AreEqual(
@@ -4787,7 +4789,9 @@ codeunit 137088 "SCM Order Planning - III"
     var
         PlanningErrorLog: Record "Planning Error Log";
     begin
+#pragma warning disable AA0210
         PlanningErrorLog.SetFilter("Item No.", ItemNoFilter);
+#pragma warning restore AA0210
         Assert.RecordCount(PlanningErrorLog, ExpectedRecordCount);
     end;
 
