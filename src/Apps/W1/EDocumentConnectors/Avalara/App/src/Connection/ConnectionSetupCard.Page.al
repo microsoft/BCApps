@@ -98,6 +98,18 @@ page 6372 "Connection Setup Card"
                     ShowMandatory = true;
                     ToolTip = 'Specifies the send mode.';
                 }
+#if not CLEAN27
+                field("Send Mode"; Rec."Send Mode")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ObsoleteReason = 'Use "Avalara Send Mode" instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '27.0';
+                    ShowMandatory = true;
+                    ToolTip = 'Specifies the send mode.';
+                    Visible = false;
+                }
+#endif
             }
         }
     }

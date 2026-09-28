@@ -71,7 +71,6 @@ page 6108 "Inbound E-Doc. Factbox"
         }
     }
 
-
     var
         ImportProcessingStatusVisible: Boolean;
         EDocSystemCreatedAt: DateTime;

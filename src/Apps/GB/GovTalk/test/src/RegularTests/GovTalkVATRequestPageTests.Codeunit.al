@@ -12,6 +12,9 @@ codeunit 148001 "GovTalk VAT Request Page Tests"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+#if not CLEAN27
+    EventSubscriberInstance = Manual;
+#endif
 
     var
         LibraryERM: Codeunit "Library - ERM";
@@ -34,7 +37,101 @@ codeunit 148001 "GovTalk VAT Request Page Tests"
         // [SCENARIO 614191] VAT Report Request Page successfully processes VAT statement with exactly 9 lines
         Initialize();
 
+#if not CLEAN27
+        Bindsubscription(this);
+#endif
         // [GIVEN] VAT statement template "T" and name "N" with 9 VAT statement lines with Box No. 1-9 and 5 VAT statement lines without Box No.
+        CreateVATStatementWithLines(VATStatementName, 9);
+        CreateVATReturn(VATReportHeader);
+        EnqueueVATStatementValues(VATStatementName);
+
+        // [WHEN] VAT Report Request Page is run for VAT return "R"
+        SuggestLines(VATReportHeader);
+
+        // [THEN] VAT return "R" is generated without errors
+        VATStatementReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
+        VATStatementReportLine.SetRange("VAT Report Config. Code", VATReportHeader."VAT Report Config. Code");
+        Assert.RecordCount(VATStatementReportLine, 9);
+
+#if not CLEAN27
+        Unbindsubscription(this);
+#endif
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SuggestLinesRPH')]
+    procedure VATStatementLineCountLessThanNine()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATStatementName: Record "VAT Statement Name";
+    begin
+        // [SCENARIO 614191] VAT Report Request Page fails when VAT statement has less than 9 lines and 5 VAT statement lines without Box No.
+        Initialize();
+#if not CLEAN27
+        Bindsubscription(this);
+#endif
+        // [GIVEN] VAT statement template "T" and name "N" with 8 VAT statement lines with Box No. 1-8
+        CreateVATStatementWithLines(VATStatementName, 8);
+        CreateVATReturn(VATReportHeader);
+        EnqueueVATStatementValues(VATStatementName);
+
+        // [WHEN] VAT Report Request Page is run for VAT return "R"
+        asserterror SuggestLines(VATReportHeader);
+
+        // [THEN] Error is thrown indicating wrong VAT statement setup
+        Assert.ExpectedError(StrSubstNo(WrongVATStatementSetupErr, VATStatementName."Statement Template Name", VATStatementName.Name));
+
+#if not CLEAN27
+        Unbindsubscription(this);
+#endif
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SuggestLinesRPH')]
+    procedure VATStatementLineCountMoreThanNine()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATStatementName: Record "VAT Statement Name";
+    begin
+        // [SCENARIO 614191] VAT Report Request Page fails when VAT statement has more than 9 lines and 5 VAT statement lines without Box No.
+        Initialize();
+#if not CLEAN27
+        Bindsubscription(this);
+#endif
+        // [GIVEN] VAT statement template "T" and name "N" with 10 VAT statement lines with Box No. 1-10
+        CreateVATStatementWithLines(VATStatementName, 10);
+        CreateVATReturn(VATReportHeader);
+        EnqueueVATStatementValues(VATStatementName);
+
+        // [WHEN] VAT Report Request Page is run for VAT return "R"
+        asserterror SuggestLines(VATReportHeader);
+
+        // [THEN] Error is thrown indicating wrong VAT statement setup
+        Assert.ExpectedError(StrSubstNo(WrongVATStatementSetupErr, VATStatementName."Statement Template Name", VATStatementName.Name));
+
+#if not CLEAN27
+        Unbindsubscription(this);
+#endif
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+#if not CLEAN27
+#pragma warning disable AS0018
+    [Test]
+    [HandlerFunctions('SuggestLinesRPH')]
+    [Obsolete('These tests are not required anymore', '27.0')]
+    procedure VATStatementLineCountEqualsNineViaObsoleteEvent()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATStatementName: Record "VAT Statement Name";
+        VATStatementReportLine: Record "VAT Statement Report Line";
+    begin
+        // [SCENARIO 614191] VAT Report Request Page successfully processes VAT statement with exactly 9 lines via obsolete event
+        Initialize();
+
+        // [GIVEN] VAT statement template "T" and name "N" with 9 VAT statement lines with Box No. 1-9 and 5 VAT statement lines without Box No., GovTalk feature is disabled
         CreateVATStatementWithLines(VATStatementName, 9);
         CreateVATReturn(VATReportHeader);
         EnqueueVATStatementValues(VATStatementName);
@@ -52,14 +149,16 @@ codeunit 148001 "GovTalk VAT Request Page Tests"
 
     [Test]
     [HandlerFunctions('SuggestLinesRPH')]
-    procedure VATStatementLineCountLessThanNine()
+    [Obsolete('These tests are not required anymore', '27.0')]
+    procedure VATStatementLineCountLessThanNineViaObsoleteEvent()
     var
         VATReportHeader: Record "VAT Report Header";
         VATStatementName: Record "VAT Statement Name";
     begin
-        // [SCENARIO 614191] VAT Report Request Page fails when VAT statement has less than 9 lines and 5 VAT statement lines without Box No.
+        // [SCENARIO 614191] VAT Report Request Page fails when VAT statement has less than 9 lines via obsolete event
         Initialize();
-        // [GIVEN] VAT statement template "T" and name "N" with 8 VAT statement lines with Box No. 1-8
+
+        // [GIVEN] VAT statement template "T" and name "N" with 8 VAT statement lines with Box No. 1-8 and 5 VAT statement lines without Box No., GovTalk feature is disabled
         CreateVATStatementWithLines(VATStatementName, 8);
         CreateVATReturn(VATReportHeader);
         EnqueueVATStatementValues(VATStatementName);
@@ -75,14 +174,16 @@ codeunit 148001 "GovTalk VAT Request Page Tests"
 
     [Test]
     [HandlerFunctions('SuggestLinesRPH')]
-    procedure VATStatementLineCountMoreThanNine()
+    [Obsolete('These tests are not required anymore', '27.0')]
+    procedure VATStatementLineCountMoreThanNineViaObsoleteEvent()
     var
         VATReportHeader: Record "VAT Report Header";
         VATStatementName: Record "VAT Statement Name";
     begin
-        // [SCENARIO 614191] VAT Report Request Page fails when VAT statement has more than 9 lines and 5 VAT statement lines without Box No.
+        // [SCENARIO 614191] VAT Report Request Page fails when VAT statement has more than 9 lines via obsolete event
         Initialize();
-        // [GIVEN] VAT statement template "T" and name "N" with 10 VAT statement lines with Box No. 1-10
+
+        // [GIVEN] VAT statement template "T" and name "N" with 10 VAT statement lines with Box No. 1-10 and 5 VAT statement lines without Box No., GovTalk feature is disabled
         CreateVATStatementWithLines(VATStatementName, 10);
         CreateVATReturn(VATReportHeader);
         EnqueueVATStatementValues(VATStatementName);
@@ -96,6 +197,13 @@ codeunit 148001 "GovTalk VAT Request Page Tests"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::GovTalk, OnAfterCheckFeatureEnabled, '', false, false)]
+    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
+    begin
+        IsEnabled := true;
+    end;
+#pragma warning restore AS0018
+#endif
 
     local procedure Initialize()
     var

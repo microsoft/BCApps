@@ -13,6 +13,9 @@ using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
+#if not CLEAN27
+using Microsoft.Purchases.Document;
+#endif
 using Microsoft.Utilities;
 using System.Automation;
 using System.IO;
@@ -435,8 +438,14 @@ table 6121 "E-Document"
         EDocExternalReference: Record "E-Doc. External Reference";
         EDocumentMessage: Record "E-Document Message";
         EDocumentServiceStatus: Record "E-Document Service Status";
+#if not CLEAN27
+        PurchaseHeader: Record "Purchase Header";
+#endif
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         IProcessStructuredData: Interface IProcessStructuredData;
+#if not CLEAN27
+        NullGuid: Guid;
+#endif
     begin
         EDocumentErrorHelper.ClearErrorMessages(Rec);
 
@@ -468,10 +477,6 @@ table 6121 "E-Document"
         EDocumentMessage.SetRange("E-Document Entry No.", Rec."Entry No");
         if not EDocumentMessage.IsEmpty() then
             EDocumentMessage.DeleteAll(true);
-
-        EDocExternalReference.SetRange("E-Document Entry No.", Rec."Entry No");
-        if not EDocExternalReference.IsEmpty() then
-            EDocExternalReference.DeleteAll(true);
 
 #if not CLEAN27
         // Version 1 processing cleanup
@@ -699,6 +704,13 @@ table 6121 "E-Document"
         if EDocumentService.Get(GetEDocumentServiceStatus()."E-Document Service Code") then;
     end;
 
+#if not CLEAN27
+    [Obsolete('Use flow field "Import Processing Status"', '27.0')]
+    procedure GetEDocumentImportProcessingStatus(): Enum "Import E-Doc. Proc. Status"
+    begin
+        exit(GetEDocumentServiceStatus()."Import Processing Status");
+    end;
+#endif
     internal procedure ToString(): Text
     begin
         exit(StrSubstNo(ToStringLbl, SystemId, "Document Record ID", "Workflow Step Instance ID", "Job Queue Entry ID"));
