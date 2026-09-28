@@ -1,3 +1,10 @@
+namespace Microsoft.Security.AccessControl.Test;
+
+using System.Azure.Identity;
+using System.Security.AccessControl;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Environment;
+
 codeunit 135801 "Effective Permissions Tests"
 {
     Subtype = Test;
