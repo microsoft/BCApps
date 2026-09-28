@@ -5831,12 +5831,14 @@ codeunit 148305 "Expense Test"
             StrSubstNo(ValueMustBeEqualErr, Expense.FieldCaption("Refundable Amount (LCY)"), ExpectedRefundableAmountLCY, Expense.TableCaption()));
     end;
 
+#if not CLEAN30
     local procedure EnableSaaS(IsSaaS: Boolean)
     var
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
     begin
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(IsSaaS);
     end;
+#endif
 
     local procedure CreateAndUpdateUserWithEmail(UserName: Code[50]; UserEmail: Text[80])
     var
@@ -5885,12 +5887,14 @@ codeunit 148305 "Expense Test"
         NoSeriesList.OK().Invoke();
     end;
 
+#if not CLEAN30
     [ModalPageHandler]
     procedure ExpenseApprovalSetupPageHandler(var ExpenseApprovalSetup: TestPage "Expense Approval Setup")
     begin
         ExpenseApprovalSetup."Approver No.".AssertEquals(LibraryVariableStorage.DequeueText());
         ExpenseApprovalSetup.OK().Invoke();
     end;
+#endif
 
     [ConfirmHandler]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
