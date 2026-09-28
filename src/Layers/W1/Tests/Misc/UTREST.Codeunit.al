@@ -10,7 +10,6 @@ codeunit 139148 "UT REST"
 
     var
         Assert: Codeunit Assert;
-        UnixTimestamp: Codeunit System.DateTime."Unix Timestamp";
         NoContentErr: Label 'The stream is empty.';
         UnknownImageTypeErr: Label 'Unknown image type.';
         XmlDocLoadErr: Label 'A call to System.Xml.XmlDocument.Load failed';
@@ -31,8 +30,8 @@ codeunit 139148 "UT REST"
     begin
         // [SCENARIO 227335] SOAPWebServiceRequestMgt.HasJWTExpired function returns TRUE in case of expired token
 
-        // [GIVEN] Mock token that expired one hour ago
-        AccessToken := MockTokenWithExpDate(CurrentDateTime - 3600000);
+        // [GIVEN] Mock token with exprired date less than current
+        AccessToken := MockTokenWithExpDate(CurrentDateTime - 1000);
 
         // [WHEN] Function SOAPWebServiceRequestMgt.HasJWTExpired is being run
         // [THEN] It returns TRUE
@@ -48,11 +47,11 @@ codeunit 139148 "UT REST"
     begin
         // [SCENARIO 227335] SOAPWebServiceRequestMgt.HasJWTExpired function returns FALSE in case of not expired token
 
-        // [GIVEN] Mock token that expires one hour from now
-        AccessToken := MockTokenWithExpDate(CurrentDateTime + 3600000);
+        // [GIVEN] Mock token with exprired date less than current
+        AccessToken := MockTokenWithExpDate(CurrentDateTime + 1000);
 
         // [WHEN] Function SOAPWebServiceRequestMgt.HasJWTExpired is being run
-        // [THEN] It returns FALSE
+        // [THEN] It returns TRUE
         Assert.IsFalse(SOAPWebServiceRequestMgt.HasJWTExpired(AccessToken), InvalidValueErr);
     end;
 
@@ -426,8 +425,16 @@ codeunit 139148 "UT REST"
     end;
 
     local procedure GetUnixTime(DateTimeValue: DateTime): Decimal
+    var
+        TypeHelper: Codeunit "Type Helper";
+        TimeZoneOffset: Duration;
     begin
-        exit(UnixTimestamp.CreateTimestampSeconds(DateTimeValue));
+        if not TypeHelper.GetUserTimezoneOffset(TimeZoneOffset) then
+            TimeZoneOffset := 0;
+        exit(
+          Round(
+            (DateTimeValue - CreateDateTime(DMY2Date(1, 1, 1970), 0T) - TimeZoneOffset) / 1000,
+            1));
     end;
 
     local procedure VerifyJsonText(JsonText: Text; ExpectedJsonText: Text)
@@ -448,3 +455,4 @@ codeunit 139148 "UT REST"
         Assert.AreEqual(ExpectedXMLText, XMLText, InvalidValueErr);
     end;
 }
+

@@ -152,13 +152,13 @@ codeunit 139196 "CDS Connection Setup Test"
         CDSConnectionSetup.DeleteAll();
         // [GIVEN] CDS Connection Setup page is opened
         CDSConnectionSetupPage.OpenEdit();
-        // [GIVEN] Server Address is a valid Dataverse URL
-        CDSConnectionSetupPage."Server Address".SetValue('https://test.dynamics.com');
+        // [GIVEN] Server Address is "TEST"
+        CDSConnectionSetupPage."Server Address".SetValue('TEST');
 
         // [WHEN] Assisted Setup is invoked
         CDSConnectionSetupPage."Assisted Setup".Invoke();
 
-        // [THEN] CDS Connection Setup wizard is opened with the same Server Address
+        // [THEN] CDS Connection Setup wizard is opened and Server Address = "TEST"
         // Wizard page is opened in AssistedSetupModalHandler
         Assert.ExpectedMessage(CDSConnectionSetupPage."Server Address".Value(), LibraryVariableStorage.DequeueText());
     end;
@@ -176,13 +176,13 @@ codeunit 139196 "CDS Connection Setup Test"
         InitializeSetup(false);
         // [GIVEN] CDS Connection Setup page is opened
         CDSConnectionSetupPage.OpenEdit();
-        // [GIVEN] Server Address is a valid Dataverse URL
-        CDSConnectionSetupPage."Server Address".SetValue('https://test.dynamics.com');
+        // [GIVEN] Server Address is "TEST"
+        CDSConnectionSetupPage."Server Address".SetValue('TEST');
 
         // [WHEN] Assisted Setup is invoked
         CDSConnectionSetupPage."Assisted Setup".Invoke();
 
-        // [THEN] CDS Connection Setup wizard is opened with the same Server Address
+        // [THEN] CDS Connection Setup wizard is opened and Server Address = "TEST"
         // Wizard page is opened in AssistedSetupModalHandler
         Assert.ExpectedMessage(CDSConnectionSetupPage."Server Address".Value(), LibraryVariableStorage.DequeueText());
     end;

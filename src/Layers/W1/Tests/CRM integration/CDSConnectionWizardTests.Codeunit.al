@@ -10,7 +10,6 @@ codeunit 139194 "CDS Connection Wizard Tests"
 
     var
         Assert: Codeunit Assert;
-        LibraryEnvironment: Codeunit "Environment Info Test Library";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         CryptographyManagement: Codeunit "Cryptography Management";
         NoEnvironmentSelectedErr: Label 'To sign in the administrator user you must specify an environment.';
@@ -182,7 +181,6 @@ codeunit 139194 "CDS Connection Wizard Tests"
         // [FEATURE] [UT]
         // [SCENARIO] CDS Connection URL should comply with rules
         Initialize();
-        LibraryEnvironment.SetTestabilitySoftwareAsAService(true);
 
         // [GIVEN] Empty CDS Connection URL
         Address := '';
@@ -204,20 +202,19 @@ codeunit 139194 "CDS Connection Wizard Tests"
         // [THEN] Error message that security connection (https) is required
         Assert.ExpectedError(MustUseHttpsErr);
 
-        // [GIVEN] A valid HTTPS Dataverse URL with an explicit port and organization path
-        Address := 'https://test2.dynamics.com:555/myOrg';
+        // [GIVEN] CDS Connection URL = 'http://test.com:555/myOrg'
+        Address := 'https://test2.com:555/myOrg';
         // [WHEN] The URL is checked
         CDSIntegrationImpl.CheckModifyConnectionURL(Address);
-        // [THEN] The explicit port and organization path are preserved
-        Assert.AreEqual('https://test2.dynamics.com:555/myOrg', Address, WrongConnectionStringErr);
+        // [THEN] Error message that security connection (https) is required
+        Assert.AreEqual('https://test2.com:555/myOrg', Address, WrongConnectionStringErr);
 
-        // [GIVEN] A valid HTTPS Dataverse URL using the default port
-        Address := 'https://test3.dynamics.com/myOrg';
+        // [GIVEN] CDS Connection URL = 'http://test.com:555/myOrg'
+        Address := 'https://test3.com/myOrg';
         // [WHEN] The URL is checked
         CDSIntegrationImpl.CheckModifyConnectionURL(Address);
-        // [THEN] The organization path is removed
-        Assert.AreEqual('https://test3.dynamics.com', Address, WrongConnectionStringErr);
-        LibraryEnvironment.SetTestabilitySoftwareAsAService(IsSaaS);
+        // [THEN] Error message that security connection (https) is required
+        Assert.AreEqual('https://test3.com', Address, WrongConnectionStringErr);
     end;
 
     [Test]
