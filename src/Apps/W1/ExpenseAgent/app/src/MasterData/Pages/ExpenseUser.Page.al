@@ -221,6 +221,21 @@ page 6949 "Expense User"
                     ExpenseApprovalMgmt.OpenApprovalSetupPage(Rec);
                 end;
             }
+            action("Alternate Approvers")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Alternate Approvers';
+                Image = UserSetup;
+                ToolTip = 'Configure planned alternate approvers and their coverage dates.';
+
+                trigger OnAction()
+                var
+                    ExpenseAlternateApprover: Record "Expense Alternate Approver";
+                begin
+                    ExpenseAlternateApprover.SetRange("Primary Approver No.", Rec."No.");
+                    Page.RunModal(Page::"Expense Alternate Approvers", ExpenseAlternateApprover);
+                end;
+            }
         }
 
         area(Promoted)
@@ -242,6 +257,9 @@ page 6949 "Expense User"
                 actionref(SendWelcomeEmail_Promoted; "Send Welcome Email")
                 {
                 }
+            }
+            actionref(AlternateApprovers_Promoted; "Alternate Approvers")
+            {
             }
         }
     }
