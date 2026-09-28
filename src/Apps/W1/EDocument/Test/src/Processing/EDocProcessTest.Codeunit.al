@@ -11,6 +11,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -1387,6 +1388,52 @@ codeunit 139883 "E-Doc Process Test"
 
         Assert.IsTrue(EDocumentSalesDraft.RejectOrder.Visible(), 'Reject Order should be reachable on the inbound sales order draft page.');
         EDocumentSalesDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('RejectOrderConfirmHandler,RejectOrderMessageHandler')]
+    procedure RejectOrderFromInboundSalesOrderDraftCreatesRejectionResponse()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessage: Record "E-Document Message";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocumentSalesDraft: TestPage "E-Document Sales Draft";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Rejecting an inbound order from the sales order draft creates an outgoing rejection response.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+        EDocumentService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
+        EDocumentService.Modify();
+
+        EDocumentSalesDraft.Trap();
+        EDocumentHelper.OpenDraftPage(EDocument);
+        EDocumentSalesDraft.RejectOrder.Invoke();
+        EDocumentSalesDraft.Close();
+
+        EDocumentMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentMessage.SetRange(Direction, "E-Document Direction"::Outgoing);
+        EDocumentMessage.SetRange("Response Type", "E-Doc. Response Type"::Rejected);
+        Assert.IsFalse(EDocumentMessage.IsEmpty(), 'Rejecting the order should create an outgoing rejection response.');
+    end;
+
+    [ConfirmHandler]
+    procedure RejectOrderConfirmHandler(Question: Text; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
+    [MessageHandler]
+    procedure RejectOrderMessageHandler(Message: Text[1024])
+    begin
     end;
 
     [Test]
