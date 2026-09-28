@@ -4765,8 +4765,8 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [GIVEN] A subcontracting purchase order containing the Vendor-Supplied component line
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
-        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
-        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+        CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        CarryOutSubcontractingAction(RequisitionLine);
 
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
 #pragma warning disable AA0210
@@ -4775,8 +4775,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProductionBOMLine.FindFirst();
         ComponentItem.Get(ProductionBOMLine."No.");
 
-        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
-        SubcontractingMgmtLibrary.FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
         PurchaseLineComp.FindFirst();
         PurchaseLineComp.TestField("Subc. Prod. Order No.", ProductionOrder."No.");
 
