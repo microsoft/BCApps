@@ -77,6 +77,7 @@ codeunit 9403 "IPC Provider"
     local procedure OnRetrieveAddressList(ServiceKey: Text; TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary; var TempAddressListNameValueBuffer: Record "Name/Value Buffer" temporary; var IsSuccessful: Boolean; var ErrorMsg: Text)
     var
         TempIPCAddressLookup: Record "IPC Address Lookup" temporary;
+        IPCAddressCache: Codeunit "IPC Address Cache";
         IPCManagement: Codeunit "IPC Management";
         SearchText, ReasonPhrase : Text;
         LastId, StatusCode : Integer;
@@ -99,6 +100,9 @@ codeunit 9403 "IPC Provider"
         if not IPCManagement.SearchAddress(SearchText, TempIPCAddressLookup, StatusCode, ReasonPhrase) then
             exit;
 
+        // The search returns full addresses; keep them so that OnRetrieveAddress does not pay for the selection again.
+        IPCAddressCache.Store(TempIPCAddressLookup);
+
         TempIPCAddressLookup.Reset();
         if TempIPCAddressLookup.FindSet() then
             repeat
@@ -117,29 +121,20 @@ codeunit 9403 "IPC Provider"
     local procedure OnRetrieveAddress(ServiceKey: Text; TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary; TempSelectedAddressNameValueBuffer: Record "Name/Value Buffer" temporary; var TempAutocompleteAddress: Record "Autocomplete Address" temporary; var IsSuccessful: Boolean; var ErrorMsg: Text)
     var
         TempIPCAddressLookup: Record "IPC Address Lookup" temporary;
+        IPCAddressCache: Codeunit "IPC Address Cache";
         IPCManagement: Codeunit "IPC Management";
-        SearchText, ReasonPhrase : Text;
+        ReasonPhrase: Text;
         StatusCode: Integer;
     begin
         if not IsMyServiceKey(ServiceKey) then
             exit;
 
-        // The API has no address-by-id endpoint. Search again for what the user entered and take the
-        // entry that was selected; this also delivers the address with the "Remove Organisation Name"
-        // setting applied, exactly as it was shown in the selection list.
-        if TempEnteredAutocompleteAddress.Postcode <> '' then
-            SearchText := TempEnteredAutocompleteAddress.Postcode
-        else
-            SearchText := TempEnteredAutocompleteAddress.City;
-
-        IsSuccessful := (SearchText <> '') and IPCManagement.SearchAddress(SearchText, TempIPCAddressLookup, StatusCode, ReasonPhrase);
-        if IsSuccessful then begin
-            if TempSelectedAddressNameValueBuffer.Name <> '' then
-                TempIPCAddressLookup.SetRange("Address ID", CopyStr(TempSelectedAddressNameValueBuffer.Name, 1, MaxStrLen(TempIPCAddressLookup."Address ID")))
-            else
-                TempIPCAddressLookup.SetRange("Display Text", TempSelectedAddressNameValueBuffer.Value);
-            IsSuccessful := TempIPCAddressLookup.FindFirst();
-        end;
+        // The selected entry normally comes from the search OnRetrieveAddressList just ran, which already
+        // returned (and billed) the full address with the "Remove Organisation Name" setting applied.
+        // Retrieve it by ID, a billed lookup, only when it did not come from that search.
+        IsSuccessful := IPCAddressCache.TryGet(TempSelectedAddressNameValueBuffer.Name, TempSelectedAddressNameValueBuffer.Value, TempIPCAddressLookup);
+        if not IsSuccessful and (TempSelectedAddressNameValueBuffer.Name <> '') then
+            IsSuccessful := IPCManagement.ResolveAddress(TempSelectedAddressNameValueBuffer.Name, TempIPCAddressLookup, StatusCode, ReasonPhrase);
 
         if not IsSuccessful then begin
             ErrorMsg := RetrieveAddressDetailsErr;
