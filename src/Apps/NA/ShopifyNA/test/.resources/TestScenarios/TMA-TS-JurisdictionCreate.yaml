@@ -208,3 +208,64 @@ tests:
           ratePct: 14.0
       rateConflict: false
       matchResult: true
+
+  - name: JC8-ZeroRateLineIsCreated
+    description: A 0% Shopify tax line (New York County for a New York City address) is auto-created like any other line
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: NEW YORK STATE TAX
+          Country/Region Code: US
+        - Code: NYCTAX
+          Description: NEW YORK CITY CITY TAX
+          Country/Region Code: US
+        - Code: MTATAX
+          Description: METROPOLITAN COMMUTER TRANSPORTATION DISTRICT
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: METROPOLITAN COMMUTER TRANSPORTATION DISTRICT
+              ratePct: 0.375
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 4
+              title: NEW YORK COUNTY TAX
+              ratePct: 0.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: MTATAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: NYCTAX
+        - parentId: 10001
+          lineNo: 3
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 4
+          hasJurisdictionCode: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 0.0
+      rateConflict: false
+      matchResult: true

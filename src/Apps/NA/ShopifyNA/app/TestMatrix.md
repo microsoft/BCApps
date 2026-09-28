@@ -38,6 +38,7 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 | J5 | No defensible match exists | No jurisdiction is invented from untrusted text; the line remains unresolved. |
 | J6 | An order is reprocessed with existing assignments | Existing assignments are retained and combined with newly validated matches. |
 | J7 | A suggested jurisdiction does not exist and creation is disabled | The line remains unresolved and the order is held for review. |
+| J8 | A tax line has a 0% rate, such as a county placeholder line for a city address | The line is matched, or created when allowed, like any other tax line; its 0% rate is never a reason to leave it unresolved. |
 
 ### Tax setup scenarios
 

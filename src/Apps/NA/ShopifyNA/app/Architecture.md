@@ -110,6 +110,7 @@ When Shopify's rate differs from an existing Tax Detail Rate, the jurisdiction c
 
 Canadian HST/TVH jurisdictions are normalized by ship-to province (for example `ONHST` and `NSHST`) when a province-specific jurisdiction exists or the agent is allowed to create one. The province is taken from the ship-to province code, or mapped from the province name through the Shopify Tax Areas. Agent-created generic HST jurisdictions are not reused across provinces; federal GST/TPS remains reusable.
 
+Tax lines with a 0% rate, such as the county placeholder line Shopify sends for New York City addresses, are matched or created like any other tax line. A 0% rate is never a reason to leave a line unresolved.
 Jurisdictions created by the agent remain provisional until they are approved through the review workflow. This prevents newly generated master data from being treated as trusted without human confirmation.
 
 ## Review policy
