@@ -253,7 +253,7 @@ codeunit 4587 "SOA Impl"
     var
         CopilotCapability: Codeunit "Copilot Capability";
         EnvironmentInformation: Codeunit "Environment Information";
-        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2382318', Locked = true;
+        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2281481', Locked = true;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;

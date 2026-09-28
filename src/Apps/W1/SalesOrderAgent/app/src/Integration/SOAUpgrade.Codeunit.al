@@ -113,7 +113,7 @@ codeunit 4589 "SOA Upgrade"
         UpgradeTag: Codeunit "Upgrade Tag";
         CopilotCapability: Codeunit "Copilot Capability";
         EnvironmentInformation: Codeunit "Environment Information";
-        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2382318', Locked = true;
+        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2281481', Locked = true;
     begin
         if not UpgradeTag.HasUpgradeTag(GetAddBillingTypeToSOACapabilityTag()) then begin
             if EnvironmentInformation.IsSaaSInfrastructure() then
