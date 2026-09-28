@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.eServices.EDocument;
 #endif
 using System.Reflection;
@@ -47,7 +47,7 @@ codeunit 13925 "Library - E-Doc DE"
         exit(EDocumentServiceEventCount);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", 'OnAfterFindEDocumentService', '', false, false)]
     local procedure CaptureXRechnungOnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service"; EDocumentFormat: Code[20])
