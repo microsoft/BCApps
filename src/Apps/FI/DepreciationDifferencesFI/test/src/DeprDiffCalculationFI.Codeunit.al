@@ -1,3 +1,13 @@
+namespace Microsoft.FixedAssets.Depreciation;
+
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Setup;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Purchases.Document;
+using System.TestLibraries.Utilities;
+
 codeunit 148152 "Depr. Diff. Calculation FI"
 {
     Subtype = Test;
@@ -39,7 +49,7 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         Book1InGLTxt: Label 'The Depreciation Book Code 1 must be integrated with G/L.';
         Book2NotInGLTxt: Label 'The Depreciation Book Code 2 must not be integrated with G/L.';
         NoDeprDiffPostedTxt: Label 'There is no Depreciation Difference posted for the specified period.';
-        ZeroDifferenceLineErr: Label '''%1'' report contains lines with 0 in difference amount';
+        ZeroDifferenceLineErr: Label '''%1'' report contains lines with 0 in difference amount', Comment = '%1 is the report name.';
         HandledMessage: Text;
         DifferenceAmtErr: Label 'Current row does not have ''DifferenceAmt'' value greater than zero. Value  = <%1>.', Comment = '%1 is the name of the DataSet field, and %2 is the value of that field.';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
@@ -830,7 +840,9 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         FAJournalSetup.Get(DepreciationBookCode, '');
         FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."Gen. Jnl. Template Name");
         FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."Gen. Jnl. Batch Name");
+#pragma warning disable AA0210 // FA Journal Line has no key containing FA No.
         FAJournalLine.SetRange("FA No.", FixedAssetNo);
+#pragma warning restore AA0210
         FAJournalLine.FindSet();
         FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name");
         DocumentNo := NoSeries.PeekNextNo(FAJournalBatch."No. Series");

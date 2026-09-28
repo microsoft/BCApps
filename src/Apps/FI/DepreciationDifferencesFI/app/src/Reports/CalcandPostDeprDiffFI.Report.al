@@ -100,9 +100,9 @@ report 13478 "Calc. and Post Depr. Diff. FI"
 
                 if FAPostingGroup.Get(FADeprBook1."FA Posting Group") then begin
                     if FAPostingGroup."Deprec. Difference Account" = '' then
-                        Error(Text13406, FAPostingGroup.Code);
+                        Error(SpecifyDeprDiffAccountErr, FAPostingGroup.Code);
                     if FAPostingGroup."Deprec. Difference Bal Acct" = '' then
-                        Error(Text13407, FAPostingGroup.Code);
+                        Error(SpecifyDeprDiffBalAccountErr, FAPostingGroup.Code);
 
                     FALedgerEntry.Reset();
                     FALedgerEntry.SetCurrentKey("FA No.", "FA Posting Group", "Depreciation Book Code",
@@ -146,17 +146,17 @@ report 13478 "Calc. and Post Depr. Diff. FI"
             trigger OnPostDataItem()
             begin
                 if PostDeprDiff then begin
-                    DeprDiffPostingBuffer.Reset();
-                    if DeprDiffPostingBuffer.FindSet() then begin
+                    TempDeprDiffPostingBuffer.Reset();
+                    if TempDeprDiffPostingBuffer.FindSet() then begin
                         repeat
-                            PostJournalLines(DeprDiffPostingBuffer);
-                        until DeprDiffPostingBuffer.Next() = 0;
-                        Message(Text13408);
+                            PostJournalLines(TempDeprDiffPostingBuffer);
+                        until TempDeprDiffPostingBuffer.Next() = 0;
+                        Message(DeprDiffPostedMsg);
                     end else
-                        Message(Text13412);
+                        Message(NoDeprDiffPostedMsg);
                 end;
 
-                DeprDiffPostingBuffer.DeleteAll();
+                TempDeprDiffPostingBuffer.DeleteAll();
             end;
 
             trigger OnPreDataItem()
@@ -164,7 +164,7 @@ report 13478 "Calc. and Post Depr. Diff. FI"
                 FixedAsset.SetCurrentKey("FA Posting Group");
 
                 if PostDeprDiff then
-                    if not Confirm(Text13409, false) then
+                    if not Confirm(PostDeprDiffQst, false) then
                         CurrReport.Quit();
             end;
         }
@@ -261,27 +261,27 @@ report 13478 "Calc. and Post Depr. Diff. FI"
 #endif
 
         if (DeprBookCode1 = '') or (DeprBookCode2 = '') then
-            Error(Text13405);
+            Error(SpecifyDeprBooksErr);
         if StartDate = 0D then
-            Error(Text13402);
+            Error(EnterStartingDateErr);
         if EndDate = 0D then
-            Error(Text13403);
+            Error(EnterEndingDateErr);
         if EndDate < StartDate then
-            Error(Text13404);
+            Error(EndingDateBeforeStartingDateErr);
 
         if DeprBook.Get(DeprBookCode1) then
             if not (DeprBook."G/L Integration - Depreciation" and DeprBook."G/L Integration - Acq. Cost") then
-                Error(Text13410);
+                Error(Book1GLIntegrationErr);
 
         if DeprBook.Get(DeprBookCode2) then
             if (DeprBook."G/L Integration - Depreciation") or (DeprBook."G/L Integration - Acq. Cost") then
-                Error(Text13411);
+                Error(Book2GLIntegrationErr);
 
         if PostDeprDiff then begin
             if PostingDate = 0D then
-                Error(Text13400);
+                Error(EnterPostingDateErr);
             if DocNo = '' then
-                Error(Text13401);
+                Error(EnterDocumentNoErr);
         end;
 
         DeprBook.Get(DeprBookCode1);
@@ -293,7 +293,7 @@ report 13478 "Calc. and Post Depr. Diff. FI"
     var
         SourceCodeSetup: Record "Source Code Setup";
         FAPostingGroup: Record "FA Posting Group";
-        DeprDiffPostingBuffer: Record "Depr. Diff. Posting Buffer FI" temporary;
+        TempDeprDiffPostingBuffer: Record "Depr. Diff. Posting Buffer FI" temporary;
         GenJnlLine: Record "Gen. Journal Line";
         FALedgerEntry: Record "FA Ledger Entry";
         FADeprBook1: Record "FA Depreciation Book";
@@ -313,19 +313,19 @@ report 13478 "Calc. and Post Depr. Diff. FI"
         GenJnlNextLineNo: Integer;
         PostDeprDiff: Boolean;
         PrintEmptyLines: Boolean;
-        Text13400: Label 'Please enter the Posting Date.';
-        Text13401: Label 'Please enter the Document No.';
-        Text13402: Label 'Please enter the Starting Date for Depreciation Calculation.';
-        Text13403: Label 'Please enter the Ending Date for Depreciation Calculation.';
-        Text13404: Label 'Ending Date must not be before Starting Date.';
-        Text13405: Label 'Please specify Depreciation Book Code 1 and Depreciation Book Code 2.';
-        Text13406: Label 'You must specify Depr. Difference Acc. in FA posting Group %1.';
-        Text13407: Label 'You must specify Depr. Difference Bal. Acc. in FA posting Group %1.';
-        Text13408: Label 'The Depreciation Difference was successfully posted.';
-        Text13409: Label 'Do you want to post the Depreciation Difference ?';
-        Text13410: Label 'The Depreciation Book Code 1 must be integrated with G/L.';
-        Text13411: Label 'The Depreciation Book Code 2 must not be integrated with G/L.';
-        Text13412: Label 'There is no Depreciation Difference posted for the specified period.';
+        EnterPostingDateErr: Label 'Please enter the Posting Date.';
+        EnterDocumentNoErr: Label 'Please enter the Document No.';
+        EnterStartingDateErr: Label 'Please enter the Starting Date for Depreciation Calculation.';
+        EnterEndingDateErr: Label 'Please enter the Ending Date for Depreciation Calculation.';
+        EndingDateBeforeStartingDateErr: Label 'Ending Date must not be before Starting Date.';
+        SpecifyDeprBooksErr: Label 'Please specify Depreciation Book Code 1 and Depreciation Book Code 2.';
+        SpecifyDeprDiffAccountErr: Label 'You must specify Depr. Difference Acc. in FA posting Group %1.', Comment = '%1 is the FA posting group code.';
+        SpecifyDeprDiffBalAccountErr: Label 'You must specify Depr. Difference Bal. Acc. in FA posting Group %1.', Comment = '%1 is the FA posting group code.';
+        DeprDiffPostedMsg: Label 'The Depreciation Difference was successfully posted.';
+        PostDeprDiffQst: Label 'Do you want to post the Depreciation Difference ?';
+        Book1GLIntegrationErr: Label 'The Depreciation Book Code 1 must be integrated with G/L.';
+        Book2GLIntegrationErr: Label 'The Depreciation Book Code 2 must not be integrated with G/L.';
+        NoDeprDiffPostedMsg: Label 'There is no Depreciation Difference posted for the specified period.';
 #if not CLEAN30
         FeatureNotEnabledErr: Label 'The Depreciation Differences FI feature must be enabled before you can run this report.';
 #endif
@@ -381,12 +381,12 @@ report 13478 "Calc. and Post Depr. Diff. FI"
 
     local procedure InsertDifferenceBuffer()
     begin
-        Clear(DeprDiffPostingBuffer);
-        DeprDiffPostingBuffer."Depr. Difference Acc." := FAPostingGroup."Deprec. Difference Account";
-        DeprDiffPostingBuffer."Depr. Difference Bal. Acc." := FAPostingGroup."Deprec. Difference Bal Acct";
-        DeprDiffPostingBuffer."Depreciation Amount 1" := DeprBookAmt1;
-        DeprDiffPostingBuffer."Depreciation Amount 2" := DeprBookAmt2;
-        DeprDiffPostingBuffer."FA No." := FixedAsset."No.";
-        DeprDiffPostingBuffer.Insert();
+        Clear(TempDeprDiffPostingBuffer);
+        TempDeprDiffPostingBuffer."Depr. Difference Acc." := FAPostingGroup."Deprec. Difference Account";
+        TempDeprDiffPostingBuffer."Depr. Difference Bal. Acc." := FAPostingGroup."Deprec. Difference Bal Acct";
+        TempDeprDiffPostingBuffer."Depreciation Amount 1" := DeprBookAmt1;
+        TempDeprDiffPostingBuffer."Depreciation Amount 2" := DeprBookAmt2;
+        TempDeprDiffPostingBuffer."FA No." := FixedAsset."No.";
+        TempDeprDiffPostingBuffer.Insert();
     end;
 }
