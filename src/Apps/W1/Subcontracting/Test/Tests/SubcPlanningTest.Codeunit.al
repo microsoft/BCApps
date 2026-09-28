@@ -522,6 +522,7 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
+    [HandlerFunctions('ComponentPurchLineMismatchNotificationHandler')]
     procedure MissingVendorSuppliedComponentPurchaseLineDoesNotAbortCarryOut()
     var
         ComponentItem: Record Item;
@@ -551,6 +552,7 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
+    [HandlerFunctions('ComponentPurchLineMismatchNotificationHandler')]
     procedure RemainingVendorSuppliedComponentUpdatesItsOwnPurchaseLine()
     var
         ComponentItem: Record Item;
@@ -735,6 +737,14 @@ codeunit 139996 "Subc. Planning Test"
     procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)
     begin
         Response := ACTION::LookupOK;
+    end;
+
+    [SendNotificationHandler]
+    procedure ComponentPurchLineMismatchNotificationHandler(var Notification: Notification): Boolean
+    begin
+        Assert.ExpectedMessage(
+            'Subcontracting component purchase-line synchronization skipped',
+            Notification.Message);
     end;
 
     var

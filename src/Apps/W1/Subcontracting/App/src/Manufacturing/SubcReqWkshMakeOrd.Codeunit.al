@@ -194,23 +194,22 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
             until ProdOrderComponent.Next() = 0;
 
         TempPurchaseLineComp.Reset();
-        LogComponentPurchaseLineMismatches(MissingComponentPurchLineCount, TempPurchaseLineComp.Count());
+        SendComponentPurchaseLineMismatchNotification(MissingComponentPurchLineCount, TempPurchaseLineComp.Count());
     end;
 
-    local procedure LogComponentPurchaseLineMismatches(MissingComponentPurchLineCount: Integer; OrphanComponentPurchLineCount: Integer)
+    local procedure SendComponentPurchaseLineMismatchNotification(MissingComponentPurchLineCount: Integer; OrphanComponentPurchLineCount: Integer)
     var
-        TelemetryDimensions: Dictionary of [Text, Text];
+        ComponentPurchLineMismatchNotification: Notification;
     begin
         if (MissingComponentPurchLineCount = 0) and (OrphanComponentPurchLineCount = 0) then
             exit;
 
-        TelemetryDimensions.Add('Missing component purchase lines', Format(MissingComponentPurchLineCount));
-        TelemetryDimensions.Add('Orphan component purchase lines', Format(OrphanComponentPurchLineCount));
-        Session.LogMessage(
-            '0000QZ1', ComponentPurchLineMismatchTelemetryMsg, Verbosity::Warning,
-            DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+        ComponentPurchLineMismatchNotification.Scope := NotificationScope::LocalScope;
+        ComponentPurchLineMismatchNotification.Message :=
+            StrSubstNo(ComponentPurchLineMismatchNotificationMsg, MissingComponentPurchLineCount, OrphanComponentPurchLineCount);
+        ComponentPurchLineMismatchNotification.Send();
     end;
 
     var
-        ComponentPurchLineMismatchTelemetryMsg: Label 'Subcontracting component purchase-line synchronization found unmatched records.', Locked = true;
+        ComponentPurchLineMismatchNotificationMsg: Label 'Subcontracting component purchase-line synchronization skipped %1 production components without a matching purchase line and found %2 purchase lines without a matching production component.', Comment = '%1 = Number of unmatched production components, %2 = Number of unmatched purchase lines';
 }
