@@ -504,7 +504,7 @@ page 6910 "Expense Report"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Assign Alternate Approver';
                     Image = UserSetup;
-                    ToolTip = 'Reassign this approval request to an alternate approver without creating a duplicate request.';
+                    ToolTip = 'Assign the alternate approver that is active on the work date for the current final approver.';
                     Visible = AgentEnabled;
                     Enabled = Rec.Status = Rec.Status::"Pending Approval";
 
@@ -868,20 +868,8 @@ page 6910 "Expense Report"
     end;
 
     local procedure AssignAlternateApproverExpenseReport()
-    var
-        ExpenseUserAlternateApprover: Record "Expense User";
-        ExpenseUsers: Page "Expense Users";
     begin
-        ExpenseUserAlternateApprover.SetRange("Can Approve", true);
-        ExpenseUserAlternateApprover.SetFilter("No.", '<>%1&<>%2', Rec."Expense User No.", Rec."Final Approver No.");
-
-        ExpenseUsers.LookupMode(true);
-        ExpenseUsers.SetTableView(ExpenseUserAlternateApprover);
-        if ExpenseUsers.RunModal() <> Action::LookupOK then
-            exit;
-
-        ExpenseUsers.GetRecord(ExpenseUserAlternateApprover);
-        Rec.AssignAlternateApprover(ExpenseUserAlternateApprover."No.");
+        Rec.AssignAlternateApprover();
         CurrPage.Update(false);
     end;
 

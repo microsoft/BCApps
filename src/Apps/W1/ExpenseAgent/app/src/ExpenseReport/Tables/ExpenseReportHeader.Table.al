@@ -1309,6 +1309,13 @@ table 6906 "Expense Report Header"
         ExpenseReportApprovalMgmt.AssignAlternateApprover(Rec, NewApproverExpenseUserNo);
     end;
 
+    procedure AssignAlternateApprover()
+    var
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        ExpenseReportApprovalMgmt.AssignAlternateApprover(Rec);
+    end;
+
     local procedure GetFinalApproverNo(ExpenseUserNo: Code[20]): Code[20]
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
