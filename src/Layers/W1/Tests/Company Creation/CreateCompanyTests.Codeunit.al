@@ -2,7 +2,9 @@ codeunit 139326 "Create Company Tests"
 {
     // Company-Initialize must run in a freshly created, committed company from a separate session,
     // the same way it runs in production. That is why test isolation is disabled here.
+    // Isolation-disabled tests only run in the UnitTest stage (runner 130451), so this app must not be in a legacy bucket.
     Subtype = Test;
+    TestType = UnitTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
