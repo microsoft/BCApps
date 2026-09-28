@@ -50,6 +50,44 @@ codeunit 133100 "Extension Management Test"
         DependingAppId := 'c4123d81-a537-4062-bdd4-7b9882bcc319';
     end;
 
+    local procedure CreateUserWithPermissionSet(RoleId: Code[20]; Company: Text): Guid
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateGuid();
+
+        AggregatePermissionSet.SetRange("Role ID", RoleId);
+        AggregatePermissionSet.FindFirst();
+
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId;
+        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
+        AccessControl."Company Name" := CopyStr(Company, 1, MaxStrLen(AccessControl."Company Name"));
+        AccessControl.Scope := AggregatePermissionSet.Scope;
+        AccessControl."App ID" := AggregatePermissionSet."App ID";
+        AccessControl.Insert();
+
+        exit(UserSecurityId);
+    end;
+
+    local procedure CreateSuperUser(): Guid
+    var
+        AccessControl: Record "Access Control";
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateGuid();
+
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId;
+        AccessControl."Role ID" := 'SUPER';
+        AccessControl.Scope := AccessControl.Scope::System;
+        AccessControl.Insert();
+
+        exit(UserSecurityId);
+    end;
+
     local procedure InitializeExtensions()
     var
         NAVAppInstalledApp: Record "NAV App Installed App";
@@ -60,6 +98,64 @@ codeunit 133100 "Extension Management Test"
             ExtensionManagement.UninstallExtension(NAVAppInstalledApp."Package ID", false);
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure NonAdminCannotManageExtensions()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateUserWithPermissionSet('Ext. Mgt. Nonadmin', '');
+
+        Assert.IsFalse(ExtensionMgtTestLibrary.CanManageExtensions(UserSecurityId), 'A non-admin permission set must not grant extension management permission.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure NonAdminCannotPassExtensionPermissionCheck()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateUserWithPermissionSet('Ext. Mgt. Nonadmin', '');
+
+        asserterror ExtensionMgtTestLibrary.CheckPermissions(UserSecurityId);
+
+        Assert.ExpectedError(NotSufficientPermissionErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ExtensionManagementAdminCanManageExtensions()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateUserWithPermissionSet('Exten. Mgt. - Admin', '');
+
+        Assert.IsTrue(ExtensionMgtTestLibrary.CanManageExtensions(UserSecurityId), 'Exten. Mgt. - Admin must grant extension management permission.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure SuperCanManageExtensions()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateSuperUser();
+
+        Assert.IsTrue(ExtensionMgtTestLibrary.CanManageExtensions(UserSecurityId), 'SUPER must grant extension management permission.');
+    end;
+
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CompanyScopedExtensionManagementAdminCannotManageExtensions()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateUserWithPermissionSet('Exten. Mgt. - Admin', CompanyName());
+
+        Assert.IsFalse(ExtensionMgtTestLibrary.CanManageExtensions(UserSecurityId), 'Company-scoped Exten. Mgt. - Admin must not grant tenant-wide extension management permission.');
+    end;
+    [Test]
     [Test]
     [Scope('OnPrem')]
     procedure InstallUninstallExtension()
@@ -563,4 +659,3 @@ codeunit 133100 "Extension Management Test"
         Reply := true;
     end;
 }
-
