@@ -174,7 +174,7 @@ codeunit 148344 "Policy Evaluations API Test"
         IncludePolicyVersion: Boolean)
     begin
         RequestBody.Add('subjectSystemId', ExpenseReportLine.SystemId);
-        RequestBody.Add('subjectType', 'expenseReportLine');
+        RequestBody.Add('subjectType', 'Expense_x0020_Report_x0020_Line');
         if IncludeSubjectVersion then
             RequestBody.Add('subjectVersion', ExpenseReportLine."Policy Eval Version");
         RequestBody.Add('policySystemId', ExpensePolicy.SystemId);
