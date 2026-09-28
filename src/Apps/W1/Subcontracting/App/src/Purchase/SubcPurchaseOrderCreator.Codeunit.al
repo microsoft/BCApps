@@ -266,7 +266,9 @@ codeunit 20557 "Subc. Purchase Order Creator"
                                 DimensionManagement.GetCombinedDimensionSetID(
                                     DimensionSetIDArr, PurchaseLine."Shortcut Dimension 1 Code", PurchaseLine."Shortcut Dimension 2 Code");
                             PurchaseLine."Subc. Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
-                            PurchaseLine."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+                            PurchaseLine."Subc. Prod. Order Line No." := ProdOrderComponent."Prod. Order Line No.";
+                            PurchaseLine."Subc. Prod. Ord. Comp Line No." := ProdOrderComponent."Line No.";
+                            PurchaseLine."Subc. Prod. Ord. Comp Due Date" := ProdOrderComponent."Due Date";
                             PurchaseLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
                             PurchaseLine."Subc. Rtng Reference No." := ProdOrderRoutingLine."Routing Reference No.";
                             PurchaseLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
