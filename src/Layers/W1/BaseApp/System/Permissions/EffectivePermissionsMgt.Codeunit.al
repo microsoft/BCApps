@@ -555,11 +555,7 @@ codeunit 9852 "Effective Permissions Mgt."
         // Explicit blank permission lines (exclusions) are not stored in Expanded Permission, so read the source
         // permission line directly to detect a specific exclusion that must override the wildcard entry.
         if AccessControl.Scope = AccessControl.Scope::System then begin
-            MetadataPermission.SetRange("App ID", AccessControl."App ID");
-            MetadataPermission.SetRange("Role ID", AccessControl."Role ID");
-            MetadataPermission.SetRange("Object Type", ObjectType);
-            MetadataPermission.SetRange("Object ID", ObjectID);
-            if MetadataPermission.FindFirst() then begin
+            if MetadataPermission.Get(AccessControl."App ID", AccessControl."Role ID", ObjectType, ObjectID) then begin
                 FillPermissionBufferFromMetadataPermission(PermissionBuffer, MetadataPermission);
                 exit(true);
             end;
