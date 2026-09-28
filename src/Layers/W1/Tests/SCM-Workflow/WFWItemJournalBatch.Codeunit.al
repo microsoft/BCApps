@@ -26,10 +26,10 @@ codeunit 139491 "WFW Item Journal Batch"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryERM: Codeunit "Library - ERM";
-        IsInitialized: Boolean;
-        HandleItemJournalLineRestrictions: Boolean;
-        RestrictionCheckBatchId: RecordId;
         BatchRestrictionCheckCount: Integer;
+        HandleItemJournalLineRestrictions: Boolean;
+        IsInitialized: Boolean;
+        RestrictionCheckBatchId: RecordId;
         BogusUserIdTxt: Label 'CONTOSO';
         DynamicRequestPageParametersItemJournalBatchTxt: Label '<?xml version="1.0" encoding="utf-8" standalone="yes"?><ReportParameters><DataItems><DataItem name="Item Journal Line">VERSION(1) SORTING(Field1,Field51,Field2)</DataItem></DataItems></ReportParameters>', Locked = true;
         RecordRestrictedErr: Label 'You cannot use %1 for this action.', Comment = '%1 = Record ID, for example Customer 10000';
@@ -2299,9 +2299,9 @@ codeunit 139491 "WFW Item Journal Batch"
     [Test]
     procedure TestHandledLineAndItemRestrictionsAllowUnrestrictedBatch()
     var
+        Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
-        Item: Record Item;
         RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
         WFWItemJournalBatch: Codeunit "WFW Item Journal Batch";
     begin
@@ -2326,9 +2326,9 @@ codeunit 139491 "WFW Item Journal Batch"
     [Test]
     procedure TestHandledLineAndItemRestrictionsDoNotBypassRestrictedBatch()
     var
+        Item: Record Item;
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
-        Item: Record Item;
         RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
         WFWItemJournalBatch: Codeunit "WFW Item Journal Batch";
     begin
