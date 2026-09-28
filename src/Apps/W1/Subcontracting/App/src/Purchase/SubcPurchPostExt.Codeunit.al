@@ -25,6 +25,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
 #endif
         CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Use the ''Create Corrective Credit Memo'' action to create a credit memo for this invoice.', Comment = '%1 = Posted Purchase Invoice No.';
+        ShowPostedPurchaseInvoiceLbl: Label 'Show Posted Purchase Invoice';
         ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
     local procedure ExcludeSubcontractingLinesOnGetPurchaseOrderLines(var PurchaseLineOrder: Record "Purchase Line"; PurchaseHeaderInvoice: Record "Purchase Header")
@@ -53,8 +54,20 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
         ValueEntry.SetFilter("Item Charge No.", '<>%1', '');
         ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
-        if not ValueEntry.IsEmpty() then
-            Error(CancelNotSupportedErr, PurchInvHeader."No.");
+        if ValueEntry.IsEmpty() then
+            exit;
+
+        Error(CreateCancelNotSupportedErrorInfo(PurchInvHeader));
+    end;
+
+    procedure CreateCancelNotSupportedErrorInfo(PurchInvHeader: Record "Purch. Inv. Header") CancelNotSupportedErrorInfo: ErrorInfo
+    begin
+        CancelNotSupportedErrorInfo.Message := StrSubstNo(CancelNotSupportedErr, PurchInvHeader."No.");
+        CancelNotSupportedErrorInfo.DataClassification := DataClassification::CustomerContent;
+        CancelNotSupportedErrorInfo.ErrorType := ErrorType::Client;
+        CancelNotSupportedErrorInfo.RecordId := PurchInvHeader.RecordId;
+        CancelNotSupportedErrorInfo.PageNo := Page::"Posted Purchase Invoice";
+        CancelNotSupportedErrorInfo.AddNavigationAction(ShowPostedPurchaseInvoiceLbl);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnTestPurchaseLinesOnAfterCalcThrowItemReturnedError, '', false, false)]
