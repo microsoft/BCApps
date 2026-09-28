@@ -157,6 +157,9 @@ codeunit 140012 "Test FAB Platform"
         BindSubscription(PlatformTestSub);
         //[GIVEN] The privacy notice is approved so Start's mandatory consent gate passes
         FabricPrivacyNotice.Approve();
+        //[GIVEN] A company is enabled and a table is selected so Start's precondition checks pass
+        FabricPlatformMgt.AddCompany(CopyStr(CompanyName(), 1, 30));
+        FabricPlatformMgt.AddTable(Database::"Tenant Fabric Setup");
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
