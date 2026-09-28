@@ -7,7 +7,9 @@ namespace Microsoft.Utilities;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.VAT.Reporting;
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 using Microsoft.HumanResources.Absence;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
@@ -34,7 +36,7 @@ codeunit 1752 "Data Class. Eval. Data Country"
         ClassifyEmployeeQualification();
         ClassifyVATReportHeader();
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Vendor Payment Buffer");
-#if not CLEANSCHEMA33
+#if not CLEAN30
 #pragma warning disable AL0432
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Depr. Diff. Posting Buffer");
 #pragma warning restore AL0432

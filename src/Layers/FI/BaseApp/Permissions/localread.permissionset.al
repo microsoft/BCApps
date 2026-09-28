@@ -2,7 +2,9 @@ namespace System.Security.AccessControl;
 
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 
 permissionset 1002 "LOCAL READ"
 {

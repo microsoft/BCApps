@@ -5,6 +5,7 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
+#if not CLEAN30
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -13,7 +14,6 @@ using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.AuditCodes;
 
-#if not CLEAN30
 #pragma warning disable AL0432
 report 13402 "Calc. and Post Depr. Diff."
 {
