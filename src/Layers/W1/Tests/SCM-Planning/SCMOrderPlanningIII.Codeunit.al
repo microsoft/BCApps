@@ -3821,6 +3821,57 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.AreEqual(200, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
     end;
 
+    [Test]
+    procedure PlanningNotStoppedWhenItemIsBlocked()
+    var
+        Item: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
+        Quantity: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 650951] The valid item should produce a planning result even though another demand item is blocked.
+        Initialize();
+        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
+
+        Quantity := LibraryRandom.RandIntInRange(50, 100);
+
+        // [GIVEN] Create two items with Reordering Policy = "Lot-for-Lot".
+        for i := 1 to 2 do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Item[i].Validate("Reordering Policy", Item[i]."Reordering Policy"::"Lot-for-Lot");
+            Item[i].Modify(true);
+        end;
+
+        // [GIVEN] Create Sales Orders for the two items.
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', Item[1]."No.", Quantity, '', WorkDate());
+        CreateSalesLine(SalesHeader, Item[2]."No.", '', WorkDate(), Quantity, Quantity);
+
+        // [GIVEN] Block the second item.
+        Item[2].Get(Item[2]."No.");
+        Item[2].Validate(Blocked, true);
+        Item[2].Modify(true);
+
+        // [WHEN] Calculate Order Plan for Sales.
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+
+        // [THEN] Requisition Line should be created only for the first item and not for the blocked second item.
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.");
+        Assert.RecordCount(RequisitionLine, 1);
+
+        // [THEN] Verify that the requisition line exists for the first item.
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[1]."No.", '');
+
+        // [THEN] Verify that no requisition line exists for the blocked second item.
+        asserterror FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[2]."No.", '');
+
+        // Tear Down.
+        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4744,6 +4795,12 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.IsTrue(
           RequisitionLine.Quantity >= MinExpectedQuantity,
                     StrSubstNo(MinTotalQuantityMismatchErr, MinExpectedQuantity, RequisitionLine.Quantity));
+    end;
+
+    local procedure FindRequisitionLine(var RequisitionLine: Record "Requisition Line"; DemandOrderNo: Code[20])
+    begin
+        RequisitionLine.SetRange("Demand Order No.", DemandOrderNo);
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
     end;
 
     [ModalPageHandler]
