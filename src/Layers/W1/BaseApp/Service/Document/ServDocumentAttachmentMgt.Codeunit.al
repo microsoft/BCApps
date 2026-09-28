@@ -412,6 +412,23 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnBeforeSetDocumentTypeForPostedDocument', '', true, false)]
+    local procedure OnBeforeSetDocumentTypeForPostedDocument(var DocumentAttachment: Record "Document Attachment"; PostedDocumentTableID: Integer; var IsHandled: Boolean)
+    begin
+        case PostedDocumentTableID of
+            Database::"Service Invoice Header":
+                begin
+                    DocumentAttachment.Validate("Document Type", DocumentAttachment."Document Type"::Invoice);
+                    IsHandled := true;
+                end;
+            Database::"Service Cr.Memo Header":
+                begin
+                    DocumentAttachment.Validate("Document Type", DocumentAttachment."Document Type"::"Credit Memo");
+                    IsHandled := true;
+                end;
+        end;
+    end;
+
     #region [Service Management event subscribers]
     [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceItem(var Rec: Record "Service Item"; RunTrigger: Boolean)

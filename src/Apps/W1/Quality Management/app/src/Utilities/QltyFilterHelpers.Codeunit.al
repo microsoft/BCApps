@@ -807,7 +807,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="Input">The table view to clean.</param>
     /// <returns>The WHERE clause limited to 2048 characters, or an empty value when none exists.</returns>
-    internal procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
+    procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
     begin
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
@@ -817,7 +817,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="Input">The table view to clean.</param>
     /// <returns>The view starting at WHERE, or an empty value when no WHERE clause exists.</returns>
-    internal procedure CleanUpWhereClause(Input: Text) ResultText: Text
+    procedure CleanUpWhereClause(Input: Text) ResultText: Text
     var
         FindWhere: Integer;
     begin

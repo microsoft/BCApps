@@ -84,7 +84,7 @@ table 4580 "Ext. SharePoint Account"
         {
             Caption = 'Use legacy REST API';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies whether to use Microsoft Graph API or SharePoint REST API. Microsoft Graph API supports downloading files larger than 150 MB through chunked transfers. Note: Requires Microsoft Graph permissions (Sites.ReadWrite.All) configured in your app registration instead of SharePoint permissions.';
+            ToolTip = 'Specifies whether to use Microsoft Graph API or SharePoint REST API. Microsoft Graph API supports downloading files larger than 150 MB through chunked transfers. The app registration requires the Sites.ReadWrite.All or Sites.Selected Microsoft Graph application permission. With Sites.Selected, a SharePoint administrator must grant the app write access to each site using Microsoft Graph PowerShell, Microsoft 365 CLI, or a Microsoft Graph API call.';
         }
     }
 

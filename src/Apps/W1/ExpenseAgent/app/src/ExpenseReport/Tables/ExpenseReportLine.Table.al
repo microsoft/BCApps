@@ -1115,6 +1115,9 @@ table 6907 "Expense Report Line"
         {
             Clustered = true;
         }
+        key(SpendRequestNo; "Spend Request No.")
+        {
+        }
     }
 
     trigger OnInsert()

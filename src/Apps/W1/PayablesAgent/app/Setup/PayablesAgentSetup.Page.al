@@ -96,7 +96,7 @@ page 3304 "Payables Agent Setup"
 
                             trigger OnDrillDown()
                             begin
-                                PADemoGuide.OpenGuidePage();
+                                OpenDemoGuide();
                             end;
                         }
                     }
@@ -139,7 +139,7 @@ page 3304 "Payables Agent Setup"
 
                             trigger OnDrillDown()
                             begin
-                                PADemoGuide.OpenGuidePage();
+                                OpenDemoGuide();
                             end;
                         }
                     }
@@ -306,7 +306,7 @@ page 3304 "Payables Agent Setup"
 
                         trigger OnDrillDown()
                         begin
-                            PADemoGuide.OpenGuidePage();
+                            OpenDemoGuide();
                         end;
                     }
                 }
@@ -499,12 +499,23 @@ page 3304 "Payables Agent Setup"
 
     local procedure ApplySetup()
     begin
+        BuildSetupConfiguration();
+        PayablesAgentSetup.ApplyPayablesAgentSetup(PASetupConfiguration);
+    end;
+
+    local procedure BuildSetupConfiguration()
+    begin
         CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
         PASetupConfiguration.SetAgentSetupBuffer(TempAgentSetupBuffer);
         PASetupConfiguration.SetPayablesAgentSetup(Rec);
         PASetupConfiguration.SetEDocumentService(TempEDocumentService);
         PASetupConfiguration.SetOutlookSetup(TempOutlookSetup);
-        PayablesAgentSetup.ApplyPayablesAgentSetup(PASetupConfiguration);
+    end;
+
+    local procedure OpenDemoGuide()
+    begin
+        BuildSetupConfiguration();
+        PADemoGuide.OpenGuidePage(PASetupConfiguration);
     end;
 
     local procedure CalcOpenAgentDemoGuideVisible()

@@ -17,13 +17,13 @@ codeunit 30305 "Shpfy Comp. By Default Comp." implements "Shpfy ICompany Mapping
     var
         Shop: Record "Shpfy Shop";
 
-    internal procedure DoMapping(CompanyId: BigInteger; ShopCode: Code[20]; TemplateCode: Code[20]; AllowCreate: Boolean): Code[20]
+    procedure DoMapping(CompanyId: BigInteger; ShopCode: Code[20]; TemplateCode: Code[20]; AllowCreate: Boolean): Code[20]
     begin
         Shop.Get(ShopCode);
         exit(Shop."Default Company No.");
     end;
 
-    internal procedure FindMapping(var ShopifyCompany: Record "Shpfy Company"; var TempShopifyCustomer: Record "Shpfy Customer" temporary): Boolean
+    procedure FindMapping(var ShopifyCompany: Record "Shpfy Company"; var TempShopifyCustomer: Record "Shpfy Customer" temporary): Boolean
     var
         Customer: Record Customer;
         ShopifyCustomer: Record "Shpfy Customer";

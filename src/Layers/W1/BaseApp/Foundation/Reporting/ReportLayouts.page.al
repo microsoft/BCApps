@@ -498,7 +498,7 @@ page 9660 "Report Layouts"
             action(SetApproved)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Set Approved';
+                Caption = 'Set as Approved';
                 ToolTip = 'Mark the selected layouts as approved. Only approved layouts are available for selection on report request pages.';
                 Image = Approve;
                 Enabled = CanModifyStatus;
@@ -512,7 +512,7 @@ page 9660 "Report Layouts"
             action(SetDraft)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Set Draft';
+                Caption = 'Set as Draft';
                 ToolTip = 'Mark the selected layouts as draft. Draft layouts are not available for selection on report request pages.';
                 Image = OpenWorksheet;
                 Enabled = CanModifyStatus;
@@ -526,7 +526,7 @@ page 9660 "Report Layouts"
             action(SetPendingApproval)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Set Pending Approval';
+                Caption = 'Set as Pending Approval';
                 ToolTip = 'Mark the selected layouts as pending approval. Pending layouts are not available for selection on report request pages.';
                 Image = AddWatch;
                 Enabled = CanModifyStatus;
@@ -540,7 +540,7 @@ page 9660 "Report Layouts"
             action(SetRetired)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Set Retired';
+                Caption = 'Set as Retired';
                 ToolTip = 'Mark the selected layouts as retired. Retired layouts are not available for selection on report request pages.';
                 Image = Archive;
                 Enabled = CanModifyStatus;

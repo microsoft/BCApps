@@ -2928,6 +2928,9 @@ codeunit 7312 "Create Pick"
         if CalledFromMoveWksh then begin
             CalcQtyOnToBinsBase(WhseItemTrackingSetup, QtyOnToBinsBase, LocationCode, ItemNo, VariantCode);
 
+            if not IsShipZone(CurrWhseWorksheetLine."Location Code", CurrWhseWorksheetLine."To Zone Code") then
+                MaxPickableQtyInWhse := Maximum(0, MaxPickableQtyInWhse - WarehouseAvailabilityMgt.CalcQtyOnOutboundBins(LocationCode, ItemNo, VariantCode, WhseItemTrackingSetup, true));
+
             // For movement worksheet, MaxPickableQtyInWhse does not contain quantity from RECEIVE bins
             TotalAvailQtyBase += MaxPickableQtyInWhse;
         end

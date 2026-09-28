@@ -195,6 +195,15 @@ page 6133 "E-Document Service"
                     {
                     }
                 }
+                group(ItemChargeMapping)
+                {
+                    ShowCaption = false;
+
+                    field("Item Charge E-Invoice Mapping"; Rec."Item Charge E-Invoice Mapping")
+                    {
+                        Visible = false;
+                    }
+                }
 
             }
             part(EDocumentDataExchDef; "E-Doc. Service Data Exch. Sub")

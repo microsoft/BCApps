@@ -13,7 +13,7 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2206603",
   "propagateDependencies": true,
   "dependencies": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "idRanges": [
     {
       "from": 37200,
