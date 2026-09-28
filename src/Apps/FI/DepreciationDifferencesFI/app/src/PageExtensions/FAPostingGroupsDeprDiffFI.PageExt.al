@@ -17,17 +17,22 @@ pageextension 13473 "FA Posting Groups DeprDiff FI" extends "FA Posting Groups"
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+#if not CLEAN30
                 Visible = DepreciationDifferencesEnabled;
+#endif
             }
             field("Depreciation Difference Bal Acct"; Rec."Depreciation Difference Bal Acct")
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+#if not CLEAN30
                 Visible = DepreciationDifferencesEnabled;
+#endif
             }
         }
     }
 
+#if not CLEAN30
     trigger OnOpenPage()
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
@@ -37,4 +42,5 @@ pageextension 13473 "FA Posting Groups DeprDiff FI" extends "FA Posting Groups"
 
     var
         DepreciationDifferencesEnabled: Boolean;
+#endif
 }

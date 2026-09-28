@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,6 +13,9 @@ codeunit 13467 "Dep Diff FI Subscribers"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'Feature Depreciation Differences FI will be enabled by default in version 33.0.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReportManagement, 'OnAfterSubstituteReport', '', false, false)]
     local procedure OnAfterSubstituteReport(ReportId: Integer; var NewReportId: Integer)
@@ -24,3 +28,4 @@ codeunit 13467 "Dep Diff FI Subscribers"
             NewReportId := Report::"Calc. and Post Depr. Diff. FI";
     end;
 }
+#endif

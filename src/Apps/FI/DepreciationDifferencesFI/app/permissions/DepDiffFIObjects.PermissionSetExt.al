@@ -13,11 +13,10 @@ permissionsetextension 13485 "Dep Diff FI - Objects" extends "D365 BASIC"
         tabledata "Depr. Diff. Posting Buffer FI" = RIMD,
         table "Depr. Diff. Posting Buffer FI" = X,
         report "Calc. and Post Depr. Diff. FI" = X,
-        codeunit "Dep Diff FI Subscribers" = X,
 #if not CLEAN30
+        codeunit "Dep Diff FI Subscribers" = X,
         codeunit "Dep Diff FI Feature Data Upd." = X,
-#endif
-#if CLEAN30
+#else
         codeunit "Upgrade Depreciation Diff. FI" = X,
 #endif
         codeunit "Dep Diff FI Upgrade Tag" = X;

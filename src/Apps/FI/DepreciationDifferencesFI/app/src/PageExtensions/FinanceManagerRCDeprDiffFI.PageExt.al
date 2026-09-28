@@ -19,11 +19,14 @@ pageextension 13480 "Finance Manager RC DeprDiff FI" extends "Finance Manager Ro
                 Caption = 'Calc. and Post Depr. Difference';
                 RunObject = report "Calc. and Post Depr. Diff. FI";
                 ToolTip = 'Calculate and post the difference in accumulated depreciation between two depreciation books for each fixed asset.';
+#if not CLEAN30
                 Visible = DepreciationDifferencesEnabled;
+#endif
             }
         }
     }
 
+#if not CLEAN30
     trigger OnOpenPage()
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
@@ -33,4 +36,5 @@ pageextension 13480 "Finance Manager RC DeprDiff FI" extends "Finance Manager Ro
 
     var
         DepreciationDifferencesEnabled: Boolean;
+#endif
 }

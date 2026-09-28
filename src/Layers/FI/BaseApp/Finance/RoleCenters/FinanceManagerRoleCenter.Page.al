@@ -2630,6 +2630,7 @@ page 8901 "Finance Manager Role Center"
         }
     }
 
+#if not CLEAN30
     trigger OnOpenPage()
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
@@ -2639,4 +2640,5 @@ page 8901 "Finance Manager Role Center"
 
     var
         LegacyDepreciationDifferencesVisible: Boolean;
+#endif
 }

@@ -393,15 +393,19 @@ page 5612 "FA Posting Group Card"
         }
     }
 
+#if not CLEAN30
     trigger OnOpenPage()
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
     begin
         LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
     end;
+#endif
 
     var
+#if not CLEAN30
         LegacyDepreciationDifferencesVisible: Boolean;
+#endif
 #pragma warning disable AA0074
         Text19064976: Label 'Allocated %';
         Text19080001: Label 'Allocated %';

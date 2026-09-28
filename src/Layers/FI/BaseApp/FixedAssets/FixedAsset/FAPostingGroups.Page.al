@@ -360,6 +360,7 @@ page 5613 "FA Posting Groups"
         }
     }
 
+#if not CLEAN30
     trigger OnOpenPage()
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
@@ -369,4 +370,5 @@ page 5613 "FA Posting Groups"
 
     var
         LegacyDepreciationDifferencesVisible: Boolean;
+#endif
 }

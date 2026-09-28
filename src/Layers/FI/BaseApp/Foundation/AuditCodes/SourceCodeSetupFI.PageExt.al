@@ -29,6 +29,7 @@ pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
         }
     }
 
+#if not CLEAN30
     trigger OnOpenPage()
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
@@ -38,4 +39,5 @@ pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
 
     var
         LegacyDepreciationDifferencesVisible: Boolean;
+#endif
 }

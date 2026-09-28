@@ -17,11 +17,14 @@ pageextension 13479 "Source Code Setup DeprDiff Pg" extends "Source Code Setup"
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the source code for posting differences in accumulated depreciation.';
+#if not CLEAN30
                 Visible = DepreciationDifferencesEnabled;
+#endif
             }
         }
     }
 
+#if not CLEAN30
     trigger OnOpenPage()
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
@@ -31,4 +34,5 @@ pageextension 13479 "Source Code Setup DeprDiff Pg" extends "Source Code Setup"
 
     var
         DepreciationDifferencesEnabled: Boolean;
+#endif
 }

@@ -17,7 +17,9 @@ pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group C
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+#if not CLEAN30
                 Visible = DepreciationDifferencesEnabled;
+#endif
             }
         }
         addafter("Maintenance Bal. Acc.")
@@ -26,11 +28,14 @@ pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group C
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+#if not CLEAN30
                 Visible = DepreciationDifferencesEnabled;
+#endif
             }
         }
     }
 
+#if not CLEAN30
     trigger OnOpenPage()
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
@@ -40,4 +45,5 @@ pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group C
 
     var
         DepreciationDifferencesEnabled: Boolean;
+#endif
 }
