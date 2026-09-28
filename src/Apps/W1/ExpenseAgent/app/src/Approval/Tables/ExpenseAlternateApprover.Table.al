@@ -39,8 +39,7 @@ table 6940 "Expense Alternate Approver"
 
             trigger OnValidate()
             begin
-                if ("Effective End Date" <> 0D) and ("Effective Start Date" > "Effective End Date") then
-                    Error(EffectiveStartAfterEndErr, FieldCaption("Effective Start Date"), FieldCaption("Effective End Date"));
+                ValidateDateRange();
             end;
         }
         field(4; "Effective End Date"; Date)
@@ -49,8 +48,7 @@ table 6940 "Expense Alternate Approver"
 
             trigger OnValidate()
             begin
-                if ("Effective End Date" <> 0D) and ("Effective Start Date" > "Effective End Date") then
-                    Error(EffectiveStartAfterEndErr, FieldCaption("Effective Start Date"), FieldCaption("Effective End Date"));
+                ValidateDateRange();
             end;
         }
     }
@@ -68,16 +66,17 @@ table 6940 "Expense Alternate Approver"
 
     trigger OnInsert()
     begin
-        TestField("Primary Approver No.");
-        TestField("Alternate Approver No.");
-        TestField("Effective Start Date");
-        CheckApproverIsEligible("Primary Approver No.");
-        CheckOverlappingCoverage();
+        ValidateCoverage();
     end;
 
     trigger OnModify()
     begin
-        CheckOverlappingCoverage();
+        ValidateCoverage();
+    end;
+
+    trigger OnRename()
+    begin
+        ValidateCoverage();
     end;
 
     procedure IsActive(ReferenceDate: Date): Boolean
@@ -97,6 +96,27 @@ table 6940 "Expense Alternate Approver"
         ExpenseUser.Get(ApproverNo);
         ExpenseUser.TestField("Can Approve", true);
         ExpenseUser.TestField("User Id For Approvals");
+    end;
+
+    local procedure ValidateCoverage()
+    begin
+        TestField("Primary Approver No.");
+        TestField("Alternate Approver No.");
+        TestField("Effective Start Date");
+
+        if "Alternate Approver No." = "Primary Approver No." then
+            Error(ApproverCannotBeSameErr, FieldCaption("Alternate Approver No."), FieldCaption("Primary Approver No."));
+
+        ValidateDateRange();
+        CheckApproverIsEligible("Primary Approver No.");
+        CheckApproverIsEligible("Alternate Approver No.");
+        CheckOverlappingCoverage();
+    end;
+
+    local procedure ValidateDateRange()
+    begin
+        if ("Effective End Date" <> 0D) and ("Effective Start Date" > "Effective End Date") then
+            Error(EffectiveStartAfterEndErr, FieldCaption("Effective Start Date"), FieldCaption("Effective End Date"));
     end;
 
     local procedure CheckOverlappingCoverage()
