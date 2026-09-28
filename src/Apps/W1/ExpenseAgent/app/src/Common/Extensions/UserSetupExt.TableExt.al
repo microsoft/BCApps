@@ -16,6 +16,11 @@ tableextension 6903 "User Setup Ext" extends "User Setup"
         {
             Caption = 'Unlimited Expense Approval';
             DataClassification = CustomerContent;
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteReason = 'Replaced by the Unlimited Approval field on Expense User.';
+            ObsoleteTag = '30.0';
+#endif
         }
         field(6901; "Expense Amount Approval Limit"; Decimal)
         {
@@ -23,12 +28,22 @@ tableextension 6903 "User Setup Ext" extends "User Setup"
             BlankZero = true;
             Caption = 'Expense Amount Approval Limit';
             DataClassification = CustomerContent;
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteReason = 'Replaced by the Approval Limit field on Expense User.';
+            ObsoleteTag = '30.0';
+#endif
         }
         field(6902; "Interim Approver ID"; Code[50])
         {
             Caption = 'Interim Approver ID';
             TableRelation = "User Setup";
             DataClassification = EndUserIdentifiableInformation;
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteReason = 'No longer used.';
+            ObsoleteTag = '30.0';
+#endif
         }
         field(6903; "Employee No."; Code[20])
         {

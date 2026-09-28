@@ -1,5 +1,7 @@
 #pragma warning disable AA0247
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 codeunit 1830 "MigrateQBO Wizard Integration"
+#pragma warning restore AS0011
 {
     var
         MigrationQBMgt: Codeunit "MigrationQB Mgt";

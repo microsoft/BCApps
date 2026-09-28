@@ -5,17 +5,6 @@ codeunit 101084 "Create Acc. Schedule Name"
     begin
         Error('This Object 101084 is subsituted with CU 96010');
 
-        UpdateEvaluationDate();
-        InsertData(XCAMPAIGN, XCampaignAnalysis, XBUDGANALYS, XCAMPAIGN);
-        InsertData(XCASTAFF, XCostAcctPersonnelCosts, '', '');
-        InsertData(XCATRANSFER, XCostAcctTransfer, '', '');
-        InsertData(XCAPROF, XCostAcctSummaryRecordDB, '', '');
-        InsertData(XDEGREE, XCalculationOfCashFlowRatio, XDEGREE, '');
-
-        InsertData(XCASHFLOW, XCalculationOfCashFlow, XCASHFLOW, '');
-
-        InsertData(XANALYSIS, XCapitalStructure, '', '');
-        InsertData(XREVENUE, XRevenues, XBUDGANALYS, '');
     end;
 
     procedure InsertEvaluationData();
@@ -31,36 +20,16 @@ codeunit 101084 "Create Acc. Schedule Name"
         InsertData(XTBTxt, XTrialBalanceTxt, CreateColumnLayoutName.GetBBDRCREBColumnLayoutName(), '');
     end;
 
-    local procedure UpdateEvaluationDate();
-    var
-        AccScheduleName: Record "Acc. Schedule Name";
-    begin
-        if AccScheduleName.get(XREVENUE) then begin
-            AccScheduleName.Validate("Analysis View Name", XREVENUE);
-            AccScheduleName.Modify()
-        end;
-    end;
-
     var
         CreateColumnLayoutName: Codeunit "Create Column Layout Name";
         XANALYSIS: Label 'ANALYSIS';
         XBALONLY: Label 'BAL ONLY';
         XCapitalStructure: Label 'Capital Structure';
-        XCAMPAIGN: Label 'CAMPAIGN';
-        XCampaignAnalysis: Label 'Campaign Analysis';
         XBUDGANALYS: Label 'BUDGANALYS';
         XREVENUE: Label 'REVENUE';
         XRevenues: Label 'Revenues';
         XCASHFLOW: Label 'CASHFLOW', Comment = 'Cashflow is a name of Account Schedule.';
-        XDEGREE: Label 'DEGREE', Comment = 'Degree is a name of Account Schedule.';
         XCalculationOfCashFlow: Label 'Calculation Of Cash Flow';
-        XCalculationOfCashFlowRatio: Label 'Calculation of Cash Flow Ratio';
-        XCASTAFF: Label 'CA-STAFF', Comment = 'Cost Acct. Personnel Costs.';
-        XCostAcctPersonnelCosts: Label 'Cost Acct. Personnel Costs';
-        XCATRANSFER: Label 'CA-TRANS', Comment = 'Cost Acct. Transfer.';
-        XCostAcctTransfer: Label 'Cost Acct. Transfer';
-        XCAPROF: Label 'CA-PROF', Comment = 'Cost Acct. Summary Record DB per CC/CO.';
-        XCostAcctSummaryRecordDB: Label 'Cost Acct. Summary Record DB per CC/CO', Comment = 'It is description of Account Schedule Name. DB means Database, CC means Cost Center and CO means Cost Object.';
         XACCCAT: Label 'ACC-CAT', Comment = 'ACC-CAT is the name of the Account Schedule.';
         XAccCatOverview: Label 'Account Categories overview';
         XPERIODS: Label 'PERIODS';
@@ -119,4 +88,3 @@ codeunit 101084 "Create Acc. Schedule Name"
     end;
 
 }
-

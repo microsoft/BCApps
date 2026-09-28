@@ -3,7 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 codeunit 148021 "Payment Export Sunshine"
+#pragma warning restore AS0011
 {
     // version Test,ERM,DK
 

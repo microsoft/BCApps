@@ -165,29 +165,12 @@ codeunit 134277 "Country/Region UT"
     [Test]
     [Scope('OnPrem')]
     procedure FormatAddressWithCountryRegionTranslationTest()
-    var
-        CountryRegion: Record "Country/Region";
-        CountryRegionTranslation: Record "Country/Region Translation";
-        FormatAddress: Codeunit "Format Address";
-        CountryLineNo: Integer;
-        AddrArray: array[8] of Text[100];
-        WrongValueInAddressArrayErr: Label 'Address Array at position %1', Comment = '%1 = Country/Region Position';
     begin
         exit;
         // [FEATURE] [Country/Region Translation]
         // [SCENARIO] Test Country/Region Translation is used for address formatting in codeunit "Format Address"
 
         // [GIVEN] One Country/Region with one specific translation
-        CreateCountryRegion(CountryRegion);
-        LibraryERM.CreateCountryRegionTranslation(CountryRegion.Code, CountryRegionTranslation);
-
-        // [WHEN] FormatAddress is initialized with one language where a country/region translation exists
-        FormatAddress.SetLanguageCode(CountryRegionTranslation."Language Code");
-        FormatAddress.FormatAddr(AddrArray, 'Name', 'Name2', 'Contact', 'Addr', 'Addr2', 'City', 'PostCode', 'County', CountryRegion.Code);
-
-        // [THEN] Verify that the translation of the country/region name is used
-        CountryLineNo := 8; // Country Name should be at position 8 of the array, since everything is filled
-        Assert.AreEqual(CountryRegionTranslation.Name, AddrArray[CountryLineNo], StrSubstNo(WrongValueInAddressArrayErr, CountryLineNo));
     end;
 
     local procedure CreateCountryRegion(var CountryRegion: Record "Country/Region")
@@ -197,4 +180,3 @@ codeunit 134277 "Country/Region UT"
         CountryRegion.Modify(true);
     end;
 }
-

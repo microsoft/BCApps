@@ -30,24 +30,24 @@ jobs:
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go/Actions/WorkflowInitialize@6958720b2e1ccfda94fab92c83143ee5e093afec
+        uses: microsoft/AL-Go/Actions/WorkflowInitialize@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
           shell: powershell
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@6958720b2e1ccfda94fab92c83143ee5e093afec
+        uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
           shell: powershell
 
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
-        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@6958720b2e1ccfda94fab92c83143ee5e093afec
+        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
           shell: powershell
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@6958720b2e1ccfda94fab92c83143ee5e093afec
+        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@91b96c2b294be6f823277dafe6f03350abfb9d23
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -60,7 +60,7 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Build Reference Documentation
-        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@6958720b2e1ccfda94fab92c83143ee5e093afec
+        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
           shell: powershell
           artifacts: 'latest'
@@ -74,11 +74,11 @@ jobs:
       - name: Deploy to GitHub Pages
         if: steps.DetermineDeploymentEnvironments.outputs.deployALDocArtifact == 1
         id: deployment
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
       - name: Finalize the workflow
         if: always()
-        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@6958720b2e1ccfda94fab92c83143ee5e093afec
+        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@91b96c2b294be6f823277dafe6f03350abfb9d23
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
