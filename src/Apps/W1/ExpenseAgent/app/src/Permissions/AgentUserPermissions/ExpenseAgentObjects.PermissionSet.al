@@ -87,6 +87,7 @@ permissionset 6952 "Expense Agent - Objects"
 
                   table Expense = X,
                   table "Expense Approval Setup" = X,
+                  table "Expense Alternate Approver" = X,
                   table "Expense Capabilities Buffer" = X,
                   table "Expense Activity Log Entry" = X,
                   table "Expense Project Buf" = X,

@@ -188,6 +188,16 @@ page 6928 "Expense Reports API"
                     Caption = 'Interim Approver Name';
                     Editable = false;
                 }
+                field(alternateApproverNo; Rec."Alternate Approver No.")
+                {
+                    Caption = 'Alternate Approver No.';
+                    Editable = false;
+                }
+                field(alternateApproverName; Rec."Alternate Approver Name")
+                {
+                    Caption = 'Alternate Approver Name';
+                    Editable = false;
+                }
                 field(reimbursementCurrencyCode; ReimbursementCurrencyCodeDisplay)
                 {
                     Caption = 'Reimbursement Currency Code';
@@ -535,6 +545,17 @@ page 6928 "Expense Reports API"
     procedure AssignInterimApprover(var ActionContext: WebServiceActionContext; InterimApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
     begin
         Rec.AssignInterimApprover(InterimApproverExpenseUserNo, ActorExpenseUserNo);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure AssignAlternateApprover(var ActionContext: WebServiceActionContext; AlternateApproverExpenseUserNo: Code[20])
+    begin
+        Rec.AssignAlternateApprover(AlternateApproverExpenseUserNo);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");
