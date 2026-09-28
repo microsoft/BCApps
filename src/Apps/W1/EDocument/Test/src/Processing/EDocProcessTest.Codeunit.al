@@ -1391,7 +1391,7 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
-    [HandlerFunctions('RejectOrderConfirmHandler,RejectOrderMessageHandler')]
+    [HandlerFunctions('RejectOrderConfirmHandler')]
     procedure RejectOrderFromInboundSalesOrderDraftCreatesRejectionResponse()
     var
         EDocument: Record "E-Document";
@@ -1429,11 +1429,6 @@ codeunit 139883 "E-Doc Process Test"
     procedure RejectOrderConfirmHandler(Question: Text; var Reply: Boolean)
     begin
         Reply := true;
-    end;
-
-    [MessageHandler]
-    procedure RejectOrderMessageHandler(Message: Text[1024])
-    begin
     end;
 
     [Test]

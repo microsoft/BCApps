@@ -359,7 +359,6 @@ page 6121 "E-Document"
                         if not ConfirmManagement.GetResponseOrDefault(RejectOrderQst, false) then
                             exit;
                         EDocumentHelper.SendOrderRejection(Rec);
-                        Message(OrderRejectedMsg);
                     end;
                 }
                 action(GetBasicInfo)
@@ -692,5 +691,4 @@ page 6121 "E-Document"
         EDocHasErrorOrWarningMsg: Label 'Errors or warnings found for E-Document. Please review below in "Error Messages" section.';
         DocNotCreatedMsg: Label 'Failed to create new %1 from E-Document. Please review errors below.', Comment = '%1 - E-Document Document Type';
         RejectOrderQst: Label 'Do you want to reject this order and notify the sender?';
-        OrderRejectedMsg: Label 'A rejection response has been created for this order.';
 }

@@ -293,7 +293,6 @@ page 6153 "E-Document Sales Draft"
                         if not ConfirmManagement.GetResponseOrDefault(RejectOrderQst, false) then
                             exit;
                         EDocumentProcessing.SendOrderRejection(EDocument);
-                        Message(OrderRejectedMsg);
                     end;
                 }
                 action(ResetDraftDocument)
@@ -483,5 +482,4 @@ page 6153 "E-Document Sales Draft"
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
         ProcessingDocumentMsg: Label 'Processing document...';
         RejectOrderQst: Label 'Do you want to reject this order and notify the sender?';
-        OrderRejectedMsg: Label 'A rejection response has been created for this order.';
 }
