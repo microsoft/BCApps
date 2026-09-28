@@ -1114,6 +1114,7 @@ codeunit 10778 "Verifactu Export"
     var
         NoTaxableEntry: Record "No Taxable Entry";
     begin
+        NoTaxableEntry.SetLoadFields("No Taxable Type");
         NoTaxableEntry.SetRange(Type, NoTaxableEntry.Type::Sale);
         if IsCreditMemo then
             NoTaxableEntry.SetRange("Document Type", NoTaxableEntry."Document Type"::"Credit Memo")
