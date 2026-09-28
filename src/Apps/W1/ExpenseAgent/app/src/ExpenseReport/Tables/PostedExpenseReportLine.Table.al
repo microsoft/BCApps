@@ -482,6 +482,12 @@ table 6916 "Posted Expense Report Line"
         {
             Clustered = true;
         }
+        key(SpendRequestNo; "Spend Request No.")
+        {
+        }
+        key(SpendRequestExpenseUser; "Spend Request No.", "Expense User No.")
+        {
+        }
     }
 
     var

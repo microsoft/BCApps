@@ -316,6 +316,7 @@ codeunit 6908 "Expense Event Subscriber"
     local procedure AutoApproveSpendRequestWhenAgentDisabled(var SpendRequest: Record "Spend Request")
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
         if SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request" then
             exit;
@@ -323,12 +324,11 @@ codeunit 6908 "Expense Event Subscriber"
         if SpendRequest.Status <> SpendRequest.Status::Released then
             exit;
 
-        // Without the agent there is no approver, so a released request is approved right away.
+        // Without the agent there is no approver, so a Releaseted request is approved right away.
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Enable Agent" then
             exit;
 
-        SpendRequest.Status := SpendRequest.Status::Approved;
-        SpendRequest.Modify();
+        TravelRequestApproval.ApproveAutomatically(SpendRequest);
     end;
 }

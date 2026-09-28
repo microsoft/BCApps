@@ -233,12 +233,25 @@ report 114 "Salesperson - Sales Statistics"
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Salesperson Sales Statistics Word';
             Type = Word;
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Reports/SalespersonSalesStatisticsBody.docx';
+            Caption = 'Body-only: Salesperson Sales Statistics Word';
+            Summary = 'Landscape orientated. Shows sales, profit, and adjusted profit in LCY and as a percentage for each salesperson, together with invoice discount, payment discount given, and payment tolerance. Includes column totals.';
         }
     }
 

@@ -85,11 +85,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         SubcCompTransferLeadTime: DateFormula;
         SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
+        SubcontractingBatchName: Code[10];
+        SubcontractingTemplateName: Code[10];
         ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
         CreateProdOrderInfoLine: Boolean;
         SubcDefaultCompLocation: Enum "Components at Location";
-        SubcontractingBatchName: Code[10];
-        SubcontractingTemplateName: Code[10];
     begin
         // [SCENARIO 642233] The setup wizard displays the installed company defaults and the next configuration links.
         Initialize();

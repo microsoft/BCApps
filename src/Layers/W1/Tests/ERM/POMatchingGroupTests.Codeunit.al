@@ -956,22 +956,22 @@ codeunit 134469 "PO Matching Group Tests"
         MatchedOrderLine: Record "Matched Order Line";
         POMatchingGroup: Codeunit "PO Matching Group";
     begin
-        // [SCENARIO] Receipt on Invoice is computed at persist time from the order header, not while building the buffer.
+        // [SCENARIO] Receipt on Invoice is computed at persist time from the order line, not while building the buffer.
         Initialize(Vendor, Item);
         CreateOrderLineWithHeader(Vendor, Item, 100, OrderHeader, OrderLine);
-        OrderHeader."Receipt on Invoice" := true; // enable directly, bypassing setup validations
-        OrderHeader.Modify();
+        OrderLine."Receipt on Invoice" := true; // enable directly on the line, bypassing setup validations
+        OrderLine.Modify();
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
 
         // [WHEN] Adding an invoice-order edge and saving
         POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
         POMatchingGroup.SaveMatchingGroups();
 
-        // [THEN] The persisted budget row's Receipt on Invoice reflects the header
+        // [THEN] The persisted budget row's Receipt on Invoice reflects the order line
         MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
         MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
         Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Budget row should exist');
-        Assert.IsTrue(MatchedOrderLine."Receipt on Invoice", 'Receipt on Invoice should be computed from the header at persist');
+        Assert.IsTrue(MatchedOrderLine."Receipt on Invoice", 'Receipt on Invoice should be computed from the order line at persist');
     end;
     #endregion
 

@@ -58,6 +58,46 @@ class GitHubIssue {
     }
 
     <#
+        Gets the GitHub issue type name (e.g. 'Task', 'Bug', 'Feature') from a raw issue object.
+        Safe to call under Set-StrictMode: returns $null when the issue or its type is not set.
+        .returns
+            The issue type name, or $null if the issue has no type.
+    #>
+    static [string] GetIssueTypeName($Issue) {
+        if (-not $Issue) {
+            return $null
+        }
+
+        if (-not ($Issue.PSObject.Properties.Name -contains "type")) {
+            return $null
+        }
+
+        if (-not $Issue.type) {
+            return $null
+        }
+
+        return $Issue.type.name
+    }
+
+    <#
+        Gets the GitHub issue type name for this issue (e.g. 'Task', 'Bug', 'Feature').
+        .returns
+            The issue type name, or $null if the issue has no type.
+    #>
+    [string] GetIssueType() {
+        return [GitHubIssue]::GetIssueTypeName($this.Issue)
+    }
+
+    <#
+        Returns true if the issue's GitHub issue type matches the provided type, otherwise returns false.
+        .Parameter IssueType
+            The GitHub issue type to compare against (e.g. 'Task').
+    #>
+    [bool] IsOfType([string] $IssueType) {
+        return $this.GetIssueType() -eq $IssueType
+    }
+
+    <#
         Returns true if the issue is open, otherwise returns false.
     #>
     [bool] IsOpen() {

@@ -53,6 +53,9 @@ codeunit 99000777 "Check Prod. Order Status"
         if IsHandled then
             exit;
 
+        if SalesLine.GetSuspendedStatusCheck() then
+            exit;
+
         if SalesLine."Document Type" <> SalesLine."Document Type"::Order then
             exit;
 

@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Subcontracting;
@@ -28,6 +29,856 @@ codeunit 139982 "Subc. Pricing Test"
     trigger OnRun()
     begin
         IsInitialized := false;
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestCheckSubcontractorPriceInFactbox()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: array[2] of Record "Work Center";
+        SubPurchaseLineFactbox: TestPage "Subc. Purchase Line Factbox";
+    begin
+        // [SCENARIO] Create Subcontracting Purchase Order directly from Prod. Order Routing Line
+        // Check if No of SubcontractorPrices is displayed
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+
+        // [GIVEN] Some Parameters for Creation
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN]
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+
+        SubcontractingMgmtLibrary.CreateSubcontractorPrice(Item, WorkCenter[2]."No.", SubcontractorPrice);
+
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+          ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+
+        // [WHEN] Create Subcontracting Purchase Order from Prod. Order Routing
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] Check if Purchase Line exists
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+
+        SubPurchaseLineFactbox.OpenView();
+        SubPurchaseLineFactbox.GoToRecord(PurchaseLine);
+        Assert.AreEqual(SubPurchaseLineFactbox.SubcontractingPrices.Value, Format(SubcontractorPrice.Count()), '');
+    end;
+
+    [Test]
+    procedure CreatedSubcPurchLineUsesPriceForBackwardScheduledOrderDate()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+    begin
+        // [SCENARIO 648535] A new subcontracting purchase line uses the price valid on its backward-scheduled order date
+        Initialize();
+
+        // [GIVEN] A subcontracting operation with adjacent prices before and from WorkDate
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+
+        // [WHEN] A purchase order is created for the subcontracting operation
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+
+        // [THEN] The purchase line uses the earlier price valid on its backward-scheduled order date
+        Assert.IsTrue(PurchaseLine."Order Date" < WorkDate(), 'The purchase line order date must be backward-scheduled before WorkDate.');
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on its order date.');
+    end;
+
+    [Test]
+    procedure ReqWkshCreatedSubcPurchLineUsesPriceForBackwardScheduledOrderDate()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+    begin
+        // [SCENARIO 648535] A worksheet-created subcontracting purchase line uses the price valid on its backward-scheduled order date
+        Initialize();
+
+        // [GIVEN] A subcontracting operation with adjacent prices before and from WorkDate
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+
+        // [WHEN] The worksheet action is carried out for the subcontracting operation
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The purchase line uses the earlier price valid on its backward-scheduled order date
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.IsTrue(PurchaseLine."Order Date" < WorkDate(), 'The purchase line order date must be backward-scheduled before WorkDate.');
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on its order date.');
+    end;
+
+    [Test]
+    procedure ExpectedReceiptDateChangeRepricesBackwardScheduledSubcPurchLine()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        NewExpectedReceiptDate: Date;
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+    begin
+        // [SCENARIO 648535] Rescheduling a subcontracting purchase line reapplies the date-effective price
+        Initialize();
+
+        // [GIVEN] A backward-scheduled subcontracting purchase line using the price valid before WorkDate
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must initially use the earlier subcontractor price.');
+        NewExpectedReceiptDate := CalcDate('<20D>', WorkDate());
+
+        // [WHEN] Expected Receipt Date is moved so Planned Receipt Date backward-schedules Order Date into the later price period
+        PurchaseLine.Validate("Expected Receipt Date", NewExpectedReceiptDate);
+
+        // [THEN] The purchase line uses the later price valid on its rescheduled order date
+        Assert.IsTrue(PurchaseLine."Order Date" >= WorkDate(), 'The rescheduled purchase line order date must be on or after WorkDate.');
+        Assert.AreEqual(LaterPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on its rescheduled order date.');
+    end;
+
+    [Test]
+    procedure PlannedReceiptDateChangeRepricesSubcPurchLine()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        NewPlannedReceiptDate: Date;
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+    begin
+        // [SCENARIO 648535] Changing Planned Receipt Date directly reapplies the price for the resulting order date
+        Initialize();
+
+        // [GIVEN] A backward-scheduled subcontracting purchase line using the price valid before WorkDate
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must initially use the earlier subcontractor price.');
+        NewPlannedReceiptDate := CalcDate('<20D>', WorkDate());
+
+        // [WHEN] Planned Receipt Date is changed directly
+        PurchaseLine.Validate("Planned Receipt Date", NewPlannedReceiptDate);
+
+        // [THEN] The purchase line uses the later price valid on the resulting order date
+        Assert.IsTrue(PurchaseLine."Order Date" >= WorkDate(), 'The resulting purchase line order date must be on or after WorkDate.');
+        Assert.AreEqual(LaterPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on the resulting order date.');
+    end;
+
+    [Test]
+    procedure OrderDateChangeRepricesSubcPurchLine()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+    begin
+        // [SCENARIO 648535] Changing a subcontracting purchase line order date reapplies the date-effective price
+        Initialize();
+
+        // [GIVEN] A backward-scheduled subcontracting purchase line using the price valid before WorkDate
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must initially use the earlier subcontractor price.');
+
+        // [WHEN] Order Date is changed to WorkDate
+        PurchaseLine.Validate("Order Date", WorkDate());
+
+        // [THEN] The purchase line uses the later price valid from WorkDate
+        Assert.AreEqual(LaterPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on its changed order date.');
+    end;
+
+    [Test]
+    procedure NoMatchPriceListPreservesCalculatedWorksheetCostForTimeBasedRouting()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        CalculatedWorksheetCost: Decimal;
+        RoutingRate: Decimal;
+    begin
+        // [SCENARIO 648535] Carry-out preserves the calculated worksheet Direct Unit Cost when
+        // no subcontractor price covers the purchase-line date and the routing has a nontrivial
+        // per-output-unit multiplier, instead of overwriting with the raw routing rate.
+        Initialize();
+
+        // [GIVEN] A subcontracting item whose routing operation has a multi-minute Run Time
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        WorkCenter.Modify(true);
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Run Time", 5);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        // [GIVEN] No subcontractor price entries exist for the operation
+        SubcontractorPrice.SetRange("Vendor No.", Vendor."No.");
+        SubcontractorPrice.SetRange("Work Center No.", WorkCenter."No.");
+        SubcontractorPrice.SetRange("Item No.", Item."No.");
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Test setup expects no subcontractor prices for the operation.');
+
+        // [GIVEN] A released production order whose worksheet line reflects the time-based cost
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+        RoutingRate := ProdOrderRoutingLine."Direct Unit Cost";
+
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        CalculatedWorksheetCost := RequisitionLine."Direct Unit Cost";
+        Assert.AreNotEqual(RoutingRate, CalculatedWorksheetCost, 'Test setup expects the calculated worksheet cost to include the routing multiplier.');
+
+        // [WHEN] The worksheet action is carried out
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The purchase line preserves the calculated worksheet cost instead of falling
+        // back to the raw routing rate
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.AreEqual(CalculatedWorksheetCost, PurchaseLine."Direct Unit Cost",
+            'Carry-out must preserve the worksheet Direct Unit Cost when no subcontractor price matches the purchase-line date.');
+        Assert.AreNotEqual(RoutingRate, PurchaseLine."Direct Unit Cost",
+            'The purchase line must not fall back to the raw routing Direct Unit Cost when a proper worksheet cost was calculated.');
+    end;
+
+    [Test]
+    procedure NoMatchPriceListFallbackUsesCalculatedCostForUnitsAndTime()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        TimeDirectUnitCost: Decimal;
+        UnitsDirectUnitCost: Decimal;
+    begin
+        // [SCENARIO 648535] Direct purchase-line repricing without a matching price uses the
+        // standard subcontracting calculation for both unit- and time-based operations.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Units);
+        UnitsDirectUnitCost := PurchaseLine."Direct Unit Cost";
+        Assert.AreNotEqual(0, UnitsDirectUnitCost, 'Test setup expects a nonzero Units Direct Unit Cost.');
+        PurchaseLine."Direct Unit Cost" := 0;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            UnitsDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            'The Units fallback must match the Direct Unit Cost calculated when the purchase line was created.');
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        TimeDirectUnitCost := PurchaseLine."Direct Unit Cost";
+        Assert.AreNotEqual(0, TimeDirectUnitCost, 'Test setup expects a nonzero Time Direct Unit Cost.');
+        Assert.AreNotEqual(UnitsDirectUnitCost, TimeDirectUnitCost, 'Test setup expects Units and Time calculations to produce different costs.');
+        PurchaseLine."Direct Unit Cost" := 0;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            TimeDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            'The Time fallback must match the Direct Unit Cost calculated when the purchase line was created.');
+    end;
+
+    [Test]
+    procedure FinalPurchaseLineDateAppliesPriceWhenReqLineDateHasNoPrice()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        FinalDatePrice: Decimal;
+    begin
+        // [SCENARIO 648535] An automatically calculated worksheet fallback is repriced when
+        // the final purchase-line date has an applicable subcontractor price.
+        Initialize();
+
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        WorkCenter.Modify(true);
+        Evaluate(Item."Lead Time Calculation", '<5D>');
+        Item.Modify(true);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        RequisitionLine.Validate("Order Date", WorkDate());
+        RequisitionLine.Modify(true);
+        FinalDatePrice := LibraryRandom.RandDecInRange(100, 200, 2);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            CalcDate('<-1M>', WorkDate()), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Ending Date", CalcDate('<-1D>', WorkDate()));
+        SubcontractorPrice.Validate("Direct Unit Cost", FinalDatePrice);
+        SubcontractorPrice.Modify(true);
+
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(
+            PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.IsTrue(
+            PurchaseLine."Order Date" < WorkDate(),
+            'The final purchase-line Order Date must be in the price validity period.');
+        Assert.AreEqual(
+            FinalDatePrice, PurchaseLine."Direct Unit Cost",
+            'The price valid on the final purchase-line date must replace the automatic worksheet fallback.');
+    end;
+
+    [Test]
+    procedure ReqLinePriceAboveMinimumQuantityPreservesCalculatedFallback()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        CalculatedFallbackCost: Decimal;
+    begin
+        // [SCENARIO 648535] A requisition-line price whose minimum quantity is too high does
+        // not replace the standard calculated subcontracting cost with zero.
+        Initialize();
+
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        WorkCenter.Modify(true);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        CalculatedFallbackCost := RequisitionLine."Direct Unit Cost";
+        Assert.AreNotEqual(0, CalculatedFallbackCost, 'Test setup expects a nonzero calculated fallback cost.');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            RequisitionLine."Order Date", RequisitionLine."Unit of Measure Code",
+            RequisitionLine.Quantity + 1, RequisitionLine."Currency Code");
+        SubcontractorPrice.Validate("Direct Unit Cost", CalculatedFallbackCost * 2);
+        SubcontractorPrice.Modify(true);
+
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        Assert.AreEqual(
+            CalculatedFallbackCost, RequisitionLine."Direct Unit Cost",
+            'A requisition-line price above the quantity threshold must preserve the calculated fallback.');
+    end;
+
+    [Test]
+    procedure NoApplicableMinimumQuantityPriceUsesCalculatedFallback()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        CalculatedFallbackCost: Decimal;
+    begin
+        // [SCENARIO 648535] A date-compatible price with a minimum quantity above the purchase
+        // quantity is not an applicable price and must not replace the calculated fallback with zero.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        CalculatedFallbackCost := PurchaseLine."Direct Unit Cost";
+        Assert.AreNotEqual(0, CalculatedFallbackCost, 'Test setup expects a nonzero calculated fallback cost.');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, PurchaseLine."Work Center No.", PurchaseLine."Buy-from Vendor No.",
+            PurchaseLine."No.", '', PurchaseLine."Variant Code", PurchaseLine."Order Date",
+            PurchaseLine."Unit of Measure Code", PurchaseLine.Quantity + 1, PurchaseLine."Currency Code");
+        SubcontractorPrice.Validate("Direct Unit Cost", CalculatedFallbackCost * 2);
+        SubcontractorPrice.Modify(true);
+        PurchaseLine."Direct Unit Cost" := 0;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            CalculatedFallbackCost, PurchaseLine."Direct Unit Cost",
+            'A price above the purchase quantity threshold must not suppress the calculated fallback.');
+    end;
+
+    [Test]
+    procedure ApplicableZeroPriceIsNotReplacedByCalculatedFallback()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+    begin
+        // [SCENARIO 648535] A matched price tier can intentionally have a zero direct unit cost.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        Assert.AreNotEqual(0, PurchaseLine."Direct Unit Cost", 'Test setup expects a nonzero calculated fallback cost.');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, PurchaseLine."Work Center No.", PurchaseLine."Buy-from Vendor No.",
+            PurchaseLine."No.", '', PurchaseLine."Variant Code", PurchaseLine."Order Date",
+            PurchaseLine."Unit of Measure Code", 0, PurchaseLine."Currency Code");
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            0, PurchaseLine."Direct Unit Cost",
+            'An applicable zero price must not be replaced by the calculated fallback.');
+    end;
+
+    [Test]
+    procedure NoMatchPriceListFallbackHandlesZeroExpectedOutputQuantity()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+    begin
+        // [SCENARIO 648535] Time-based fallback pricing returns zero instead of dividing by
+        // zero when the production order has no expected operation output quantity.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        ProdOrderLine.Validate(Quantity, 0);
+        ProdOrderLine.Modify(true);
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            0, PurchaseLine."Direct Unit Cost",
+            'The no-price fallback must be zero when expected operation output quantity is zero.');
+    end;
+
+    [Test]
+    procedure ManualWorksheetDirectUnitCostOverridePreservedOnCarryOut()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+        ManualCost: Decimal;
+    begin
+        // [SCENARIO 648535] Carry-out preserves a manually overridden worksheet Direct Unit
+        // Cost even when a subcontractor price valid on the purchase-line date exists, so
+        // deliberate worksheet values are not silently replaced by the automatic lookup.
+        Initialize();
+
+        // [GIVEN] A subcontracting operation with adjacent price-list entries and a worksheet
+        // line whose Direct Unit Cost has been manually overridden to a distinct value
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        ManualCost := EarlierPrice + LaterPrice;
+        Assert.AreNotEqual(RequisitionLine."Direct Unit Cost", ManualCost, 'Test setup expects the manual override to differ from the automatic price.');
+        RequisitionLine.Validate("Direct Unit Cost", ManualCost);
+        RequisitionLine.Modify(true);
+
+        // [WHEN] The worksheet action is carried out
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The purchase line preserves the manually overridden cost
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.AreEqual(ManualCost, PurchaseLine."Direct Unit Cost",
+            'Carry-out must preserve a manually overridden worksheet Direct Unit Cost.');
+    end;
+
+    [Test]
+    procedure DateEditsOnReleasedSubcPurchOrderLinePreserveFinancialTerms()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+        NewPlannedReceiptDate: Date;
+        OriginalDirectUnitCost: Decimal;
+        OriginalLineDiscount: Decimal;
+    begin
+        // [SCENARIO 648535] Editing Planned Receipt Date and Order Date on a released
+        // subcontracting purchase order line must succeed without a status-open error and must
+        // not silently change financial terms, matching base test coverage in
+        // ERMSalesPurchStatusError CanChangePlannedReceiptDateOnReleasedPurchOrderLine and
+        // CanChangeOrderDateOnReleasedPurchOrderLine.
+        Initialize();
+
+        // [GIVEN] A backward-scheduled subcontracting purchase line then released to the vendor
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        OriginalDirectUnitCost := PurchaseLine."Direct Unit Cost";
+        OriginalLineDiscount := PurchaseLine."Line Discount %";
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+
+        // [WHEN] Planned Receipt Date is edited on the released line to move Order Date into
+        // the later price period
+        NewPlannedReceiptDate := CalcDate('<20D>', WorkDate());
+        PurchaseLine.Validate("Planned Receipt Date", NewPlannedReceiptDate);
+
+        // [THEN] The edit is accepted and the released financial terms are preserved
+        PurchaseLine.TestField("Planned Receipt Date", NewPlannedReceiptDate);
+        Assert.AreEqual(OriginalDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            'Direct Unit Cost must not change when Planned Receipt Date is edited on a released subcontracting line.');
+        Assert.AreEqual(OriginalLineDiscount, PurchaseLine."Line Discount %",
+            'Line Discount % must not change when Planned Receipt Date is edited on a released subcontracting line.');
+
+        // [WHEN] Order Date is edited directly on the released line
+        PurchaseLine.Validate("Order Date", WorkDate());
+
+        // [THEN] The edit is accepted and financial terms remain preserved
+        PurchaseLine.TestField("Order Date", WorkDate());
+        Assert.AreEqual(OriginalDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            'Direct Unit Cost must not change when Order Date is edited on a released subcontracting line.');
+        Assert.AreEqual(OriginalLineDiscount, PurchaseLine."Line Discount %",
+            'Line Discount % must not change when Order Date is edited on a released subcontracting line.');
+    end;
+
+    [Test]
+    procedure LeadTimeCalculationOnlyOrderDateShiftRepricesSubcPurchLine()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        NewLeadTime: DateFormula;
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+        AlignedDate: Date;
+        OriginalPlannedReceiptDate: Date;
+    begin
+        // [SCENARIO 648535] A rescheduling that keeps Planned Receipt Date unchanged but
+        // reassigns Order Date across a price boundary — for example changing Lead Time
+        // Calculation on an open line with nonblank Requested and Planned Receipt Dates and
+        // blank Promised Receipt Date — must reprice the subcontracting purchase line.
+        Initialize();
+
+        // [GIVEN] A backward-scheduled subcontracting purchase line initially using the
+        // earlier price
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'Initial purchase-line Direct Unit Cost must match the earlier subcontractor price.');
+
+        // [GIVEN] Requested Receipt Date is populated and Promised Receipt Date blank so that
+        // the Lead Time Calculation change validates Planned Receipt Date without changing it
+        // and reassigns Order Date directly, and Planned Receipt Date sits in the later price
+        // period so a zero-day lead time places Order Date there.
+        AlignedDate := CalcDate('<20D>', WorkDate());
+        PurchaseLine.Validate("Requested Receipt Date", AlignedDate);
+        PurchaseLine.Validate("Promised Receipt Date", 0D);
+        OriginalPlannedReceiptDate := PurchaseLine."Planned Receipt Date";
+        Assert.IsTrue(OriginalPlannedReceiptDate >= WorkDate(), 'Planned Receipt Date must reach the later price period for this test scenario.');
+
+        // [WHEN] Lead Time Calculation is set to zero so Order Date shifts to Planned Receipt
+        // Date without changing that field
+        Evaluate(NewLeadTime, '<0D>');
+        PurchaseLine.Validate("Lead Time Calculation", NewLeadTime);
+
+        // [THEN] Planned Receipt Date is unchanged, Order Date crossed the boundary and the
+        // line reprices from the resulting Order Date
+        Assert.AreEqual(OriginalPlannedReceiptDate, PurchaseLine."Planned Receipt Date", 'Planned Receipt Date must remain unchanged for a lead-time-only reschedule.');
+        Assert.IsTrue(PurchaseLine."Order Date" >= WorkDate(), 'Order Date must reach the later price period after the lead-time-only reschedule.');
+        Assert.AreEqual(LaterPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must reprice to the subcontractor price valid on the resulting Order Date after a lead-time-only reschedule.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteWorkCenterWithPricesDeletesRelatedPrices()
+    var
+        Item: Record Item;
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        WorkCenterNo: Code[20];
+    begin
+        // [SCENARIO 620643] Deleting a Work Center deletes all associated Subcontractor Prices
+
+        // [GIVEN] A work center with a subcontractor and multiple Subcontractor Prices
+        Initialize();
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        WorkCenterNo := WorkCenter."No.";
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 0, '');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 10, '');
+
+        // [WHEN] The work center is deleted
+        WorkCenter.Delete(true);
+
+        // [THEN] All Subcontractor Prices for the work center are deleted
+        SubcontractorPrice.SetRange("Work Center No.", WorkCenterNo);
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when work center is deleted');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteItemWithPricesDeletesRelatedPrices()
+    var
+        Item: Record Item;
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 620643] Deleting an Item deletes all associated Subcontractor Prices
+
+        // [GIVEN] An item with multiple Subcontractor Prices
+        Initialize();
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        ItemNo := Item."No.";
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 0, '');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 10, '');
+
+        // [WHEN] The item is deleted
+        Item.Delete(true);
+
+        // [THEN] All Subcontractor Prices for the item are deleted
+        SubcontractorPrice.SetRange("Item No.", ItemNo);
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when item is deleted');
+    end;
+
+    [Test]
+    procedure StandardTaskCodePropagatedAndDrivesSubcPriceLookup()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionLineWithStdTask: Record "Requisition Line";
+        RequisitionLineNoStdTask: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        StandardTask: Record "Standard Task";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        LibraryUtility: Codeunit "Library - Utility";
+        PriceWithoutStdTask: Decimal;
+        PriceWithStdTask: Decimal;
+        SecondOperationNo: Code[10];
+    begin
+        // [SCENARIO 633226] Standard Task Code propagates from Routing → Prod. Order Routing → Subcontracting Worksheet,
+        // is editable on the worksheet, and drives Subcontractor Price lookup. Editing or clearing it on a worksheet
+        // line re-applies the matching subcontractor price; carrying out creates Purchase Lines with the correct unit costs.
+
+        Initialize();
+
+        // [GIVEN] Subcontracting setup with a worksheet template
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+
+        // [GIVEN] Work centers and a manufacturing item with routing and BOM
+        //         (helper creates one subcontracting routing line on WorkCenter[2] without a Standard Task)
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] A standard task code
+        LibraryManufacturing.CreateStandardTask(StandardTask);
+
+        // [GIVEN] A second subcontracting routing line on the same work center, with the standard task assigned
+        SecondOperationNo := AddSubcRoutingLineWithStandardTask(Item."Routing No.", WorkCenter[2]."No.", StandardTask.Code);
+
+        // [GIVEN] Two subcontractor prices for the item / work center / vendor:
+        //         - PriceWithoutStdTask, with no Standard Task Code
+        //         - PriceWithStdTask = 2 * PriceWithoutStdTask, tied to StandardTask.Code
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        PriceWithoutStdTask := LibraryRandom.RandIntInRange(50, 200);
+        PriceWithStdTask := PriceWithoutStdTask * 2;
+
+        SubcontractorPrice.Reset();
+        SubcontractorPrice.SetRange("Vendor No.", Vendor."No.");
+        SubcontractorPrice.SetRange("Item No.", Item."No.");
+        SubcontractorPrice.DeleteAll();
+
+        Clear(SubcontractorPrice);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", '', '',
+            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+        SubcontractorPrice."Direct Unit Cost" := PriceWithoutStdTask;
+        SubcontractorPrice.Modify();
+
+        Clear(SubcontractorPrice);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", StandardTask.Code, '',
+            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+        SubcontractorPrice."Direct Unit Cost" := PriceWithStdTask;
+        SubcontractorPrice.Modify();
+
+        // [GIVEN] A released production order
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [THEN] Standard Task Code is propagated from Routing Line to Prod. Order Routing Line on the second operation
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Operation No.", SecondOperationNo);
+        ProdOrderRoutingLine.FindFirst();
+        Assert.AreEqual(
+            StandardTask.Code, ProdOrderRoutingLine."Standard Task Code",
+            'Standard Task Code must be propagated from Routing Line to Prod. Order Routing Line.');
+
+        // [GIVEN] An empty subcontracting worksheet
+        ReqWkshTemplate.Name := SelectRequisitionTemplateName();
+        RequisitionWkshName.Init();
+        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
+        RequisitionWkshName.Validate(
+            Name,
+            CopyStr(
+                LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
+                1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
+        RequisitionWkshName.Insert(true);
+
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+
+        // [WHEN] Calculate Subcontracts is run on the worksheet
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+
+        // [THEN] On the worksheet line for the operation with a standard task, Standard Task Code is populated
+        //        and the standard-task-bound price is applied
+        RequisitionLineWithStdTask.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLineWithStdTask.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLineWithStdTask.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RequisitionLineWithStdTask.SetRange("Operation No.", SecondOperationNo);
+#pragma warning restore AA0210
+        RequisitionLineWithStdTask.FindFirst();
+        Assert.AreEqual(
+            StandardTask.Code, RequisitionLineWithStdTask."Subc. Standard Task Code",
+            'Standard Task Code must be propagated from Prod. Order Routing Line to the Subcontracting Worksheet line.');
+        Assert.AreEqual(
+            PriceWithStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
+            'Subcontractor Price tied to the Standard Task Code must be applied to the worksheet line.');
+
+        // [THEN] On the worksheet line for the operation without a standard task, the un-tagged subcontractor price is applied
+        RequisitionLineNoStdTask.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLineNoStdTask.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLineNoStdTask.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RequisitionLineNoStdTask.SetFilter("Operation No.", '<>%1', SecondOperationNo);
+#pragma warning restore AA0210
+        RequisitionLineNoStdTask.FindFirst();
+        Assert.AreEqual(
+            '', RequisitionLineNoStdTask."Subc. Standard Task Code",
+            'Standard Task Code must be empty on the worksheet line that has no standard task on the routing.');
+        Assert.AreEqual(
+            PriceWithoutStdTask, RequisitionLineNoStdTask."Direct Unit Cost",
+            'Subcontractor Price for the un-tagged combination must be applied to the worksheet line.');
+
+        // [WHEN] User clears Standard Task Code on the worksheet line
+        RequisitionLineWithStdTask.Validate("Subc. Standard Task Code", '');
+        RequisitionLineWithStdTask.Modify(true);
+
+        // [THEN] Direct Unit Cost falls back to the un-tagged subcontractor price
+        Assert.AreEqual(
+            PriceWithoutStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
+            'Clearing Standard Task Code on the worksheet line must re-apply the un-tagged subcontractor price.');
+
+        // [WHEN] User re-sets Standard Task Code on the worksheet line
+        RequisitionLineWithStdTask.Validate("Subc. Standard Task Code", StandardTask.Code);
+        RequisitionLineWithStdTask.Modify(true);
+
+        // [THEN] Direct Unit Cost is restored to the standard-task-bound subcontractor price
+        Assert.AreEqual(
+            PriceWithStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
+            'Re-setting Standard Task Code on the worksheet line must re-apply the standard-task-bound subcontractor price.');
+
+        // [WHEN] Carry Out Action Message creates the Subcontracting Purchase Order from the worksheet
+        Clear(RequisitionLine);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgReq.UseRequestPage(false);
+        CarryOutActionMsgReq.RunModal();
+
+        // [THEN] The purchase line for the operation with a standard task has Direct Unit Cost = PriceWithStdTask
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", Item."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        PurchaseLine.SetRange("Operation No.", SecondOperationNo);
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(
+            PriceWithStdTask, PurchaseLine."Direct Unit Cost",
+            'Subcontracting Purchase Line for the operation with a standard task must use the standard-task-bound subcontractor price.');
+
+        // [THEN] The purchase line for the operation without a standard task has Direct Unit Cost = PriceWithoutStdTask
+        PurchaseLine.SetFilter("Operation No.", '<>%1', SecondOperationNo);
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(
+            PriceWithoutStdTask, PurchaseLine."Direct Unit Cost",
+            'Subcontracting Purchase Line for the operation without a standard task must use the un-tagged subcontractor price.');
     end;
 
     [Test]
@@ -502,6 +1353,92 @@ codeunit 139982 "Subc. Pricing Test"
             'Prod. Order Routing Unit Cost per must use the vendor-currency subcontractor price, not the blank/LCY one.');
     end;
 
+    local procedure CreateDateEffectiveSubcontractingScenario(var Item: Record Item; var ProductionOrder: Record "Production Order"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var EarlierPrice: Decimal; var LaterPrice: Decimal)
+    var
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+    begin
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        Evaluate(Item."Lead Time Calculation", '<5D>');
+        Item.Modify(true);
+
+        EarlierPrice := 100;
+        LaterPrice := 200;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', CalcDate('<-1M>', WorkDate()), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Ending Date", CalcDate('<-1D>', WorkDate()));
+        SubcontractorPrice.Validate("Direct Unit Cost", EarlierPrice);
+        SubcontractorPrice.Modify(true);
+        Clear(SubcontractorPrice);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", LaterPrice);
+        SubcontractorPrice.Modify(true);
+
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+    end;
+
+    local procedure CreateSubcontractingPurchaseLine(var PurchaseLine: Record "Purchase Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ItemNo: Code[20]; ProdOrderNo: Code[20])
+    var
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+    begin
+        SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, ItemNo, ProdOrderNo);
+    end;
+
+    local procedure CreateNoPriceSubcontractingPurchaseLine(var PurchaseLine: Record "Purchase Line"; var ProdOrderLine: Record "Prod. Order Line"; UnitCostCalculationType: Enum "Unit Cost Calculation Type")
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+    begin
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Direct Unit Cost", 10);
+        WorkCenter.Validate("Unit Cost Calculation", UnitCostCalculationType);
+        WorkCenter.Modify(true);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Run Time", 5);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        SubcontractorPrice.SetRange("Vendor No.", Vendor."No.");
+        SubcontractorPrice.SetRange("Work Center No.", WorkCenter."No.");
+        SubcontractorPrice.SetRange("Item No.", Item."No.");
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Test setup expects no subcontractor prices for the operation.');
+
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderLine.FindFirst();
+    end;
+
     local procedure CreateItemVendorAndSubcontractingWorkCenter(var Item: Record Item; var Vendor: Record Vendor; var WorkCenter: Record "Work Center")
     begin
         LibraryInventory.CreateItem(Item);
@@ -556,6 +1493,45 @@ codeunit 139982 "Subc. Pricing Test"
         exit(RoutingHeader."No.");
     end;
 
+    local procedure AddSubcRoutingLineWithStandardTask(RoutingNo: Code[20]; WorkCenterNo: Code[20]; StandardTaskCode: Code[10]) NewOperationNo: Code[10]
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+#pragma warning disable AA0210
+        CapacityUnitOfMeasure.SetRange(Type, CapacityUnitOfMeasure.Type::Minutes);
+#pragma warning restore AA0210
+        CapacityUnitOfMeasure.FindFirst();
+
+        RoutingHeader.Get(RoutingNo);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        // Use a number larger than any existing operation so the certification-time ordering check is satisfied.
+        NewOperationNo := CopyStr(IncStr(FindLastRoutingOperationNo(RoutingNo)), 1, MaxStrLen(NewOperationNo));
+
+        LibraryManufacturing.CreateRoutingLineSetup(
+            RoutingLine, RoutingHeader, WorkCenterNo, NewOperationNo,
+            LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Standard Task Code", StandardTaskCode);
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+    end;
+
+    local procedure FindLastRoutingOperationNo(RoutingNo: Code[20]): Code[10]
+    var
+        RoutingLine: Record "Routing Line";
+    begin
+        RoutingLine.SetRange("Routing No.", RoutingNo);
+        RoutingLine.FindLast();
+        exit(RoutingLine."Operation No.");
+    end;
+
     local procedure StageInSubcontractorPrice(var InSubcontractorPrice: Record "Subcontractor Price"; Vendor: Record Vendor; WorkCenter: Record "Work Center"; Item: Record Item; VariantCode: Code[10]; StandardTaskCode: Code[10])
     begin
         // Mirrors how SetSubcontractorPriceForPriceCalculation stages the lookup record for a routing line.
@@ -583,6 +1559,201 @@ codeunit 139982 "Subc. Pricing Test"
         RequisitionLine."Currency Code" := '';
         RequisitionLine."Order Date" := WorkDate();
         RequisitionLine.Quantity := 1;
+    end;
+
+    [Test]
+    procedure WorksheetDirectUnitCostUsesQtyPerUoMNotBaseQtyForUoMConversion()
+    var
+        Item: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        RequisitionLine: Record "Requisition Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        QtyPerSet: Integer;
+        PriceListUnitCost: Decimal;
+    begin
+        // [SCENARIO 636078] Calculate Subcontracts must compute Direct Unit Cost on the Subcontracting
+        // Worksheet using the per-UoM conversion factor (GetQuantityForUOM()), not the total base
+        // quantity (GetQuantityBase()) of the order.
+
+        // [GIVEN] Item with PCS base UoM and a SET alternative UoM (10 PCS per SET).
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        QtyPerSet := 10;
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, Item."No.", QtyPerSet);
+
+        // [GIVEN] Vendor and Work Center with the vendor as its subcontractor.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A subcontractor price in the blank fallback UoM with Minimum Quantity 1 and Direct
+        // Unit Cost 1000 — the blank-UoM row matches the SET line's '%1|%2' UoM filter and exercises
+        // the cross-UoM conversion (PriceListUOM resolves to the item's base UoM).
+        PriceListUnitCost := 1000;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), '', 1, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", PriceListUnitCost);
+        SubcontractorPrice.Modify(true);
+
+        // [GIVEN] A staged Requisition Line for 3 SET (= 30 PCS in base UoM).
+        RequisitionLine.Init();
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Unit of Measure Code" := ItemUOM.Code;
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 3;
+
+        // [WHEN] The subcontractor price is applied to the requisition line.
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] Direct Unit Cost = price-list cost * Qty-per-UoM (1000 * 10 = 10000),
+        // not price-list cost * total base quantity (1000 * 30 = 30000 — the pre-fix behavior).
+        Assert.AreEqual(
+            PriceListUnitCost * QtyPerSet, RequisitionLine."Direct Unit Cost",
+            'Direct Unit Cost on the Subcontracting Worksheet must be derived from Qty. per Unit of Measure, not from total base quantity.');
+
+        // [WHEN] The same price is applied to a Requisition Line using the base UoM (no conversion needed).
+        Clear(RequisitionLine);
+        RequisitionLine.Init();
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 30;
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] Direct Unit Cost equals the price-list cost (the same-UoM path is unchanged by the fix).
+        Assert.AreEqual(
+            PriceListUnitCost, RequisitionLine."Direct Unit Cost",
+            'Direct Unit Cost must equal the price-list cost when the worksheet UoM matches the price-list UoM.');
+    end;
+
+    [Test]
+    procedure ReqLinePriceUsesOrderUoMWhenFixedUOMIsEmpty()
+    var
+        Item: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        RequisitionLine: Record "Requisition Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        AltUOMCode: Code[10];
+        PcsPrice, SetPrice : Decimal;
+        QtyPerSet: Integer;
+    begin
+        // [SCENARIO 636059] GetSubcPriceForReqLine must filter Subcontractor Prices by the
+        // requisition line's Unit of Measure (with blank fallback) even when the caller passes
+        // FixedUOM = '' — otherwise the alphabetically-last UoM row wins regardless of the line's UoM.
+        Initialize();
+
+        // [GIVEN] Item with Base UoM and an alternative UoM (10 base per alt) whose code sorts after the base.
+        LibraryInventory.CreateItem(Item);
+        QtyPerSet := 10;
+        AltUOMCode := CreateUOMCodeSortingAfter(Item."Base Unit of Measure");
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUOM, Item."No.", AltUOMCode, QtyPerSet);
+
+        // [GIVEN] Vendor and Work Center with the vendor as its subcontractor.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+
+        // [GIVEN] Two subcontractor prices — Base UoM = 1001, alternative UoM = 1004.
+        PcsPrice := 1001;
+        SetPrice := 1004;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", PcsPrice);
+        SubcontractorPrice.Modify(true);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), AltUOMCode, 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", SetPrice);
+        SubcontractorPrice.Modify(true);
+
+        // [GIVEN] A staged Requisition Line in the Base UoM with FixedUOM = ''.
+        RequisitionLine.Init();
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 1;
+
+        // [WHEN] GetSubcPriceForReqLine is called with no FixedUOM.
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] Direct Unit Cost equals the Base UoM price (1001), not the alt-UoM derived 100.40.
+        Assert.AreEqual(
+            PcsPrice, RequisitionLine."Direct Unit Cost",
+            'GetSubcPriceForReqLine must pick the price row matching the line''s Unit of Measure when FixedUOM is empty.');
+    end;
+
+    [Test]
+    procedure NoApplicablePriceTierClearsStalePricelistStateOnReqLine()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        RequisitionLine: Record "Requisition Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        PriceListUnitCost: Decimal;
+    begin
+        // [SCENARIO 648535] When recalculating a requisition line and no subcontractor price
+        // tier applies (every tier's Minimum Quantity exceeds the line quantity), GetSubcPriceForReqLine
+        // must clear any previously populated Subc. Pricelist Cost, Subc. UoM for Pricelist, and
+        // conversion ratios instead of leaving stale price-list state paired with the fallback cost.
+        Initialize();
+
+        // [GIVEN] Item, vendor, and work center linked as a subcontractor.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A subcontractor price with Minimum Quantity 1, applicable to a line with Quantity 5.
+        PriceListUnitCost := 1000;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), '', 1, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", PriceListUnitCost);
+        SubcontractorPrice.Modify(true);
+
+        RequisitionLine.Init();
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 5;
+
+        // [GIVEN] The line is priced once, populating the price-list cost/UoM and conversion ratios.
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+        Assert.AreNotEqual(0, RequisitionLine."Subc. Pricelist Cost", 'Test setup expects a nonzero Subc. Pricelist Cost.');
+        Assert.AreNotEqual('', RequisitionLine."Subc. UoM for Pricelist", 'Test setup expects a populated Subc. UoM for Pricelist.');
+
+        // [GIVEN] The line's quantity drops below every price tier's Minimum Quantity.
+        SubcontractorPrice.Rename(
+            SubcontractorPrice."Vendor No.", SubcontractorPrice."Item No.", SubcontractorPrice."Work Center No.",
+            SubcontractorPrice."Variant Code", SubcontractorPrice."Standard Task Code", SubcontractorPrice."Starting Date",
+            SubcontractorPrice."Unit of Measure Code", 100, SubcontractorPrice."Currency Code");
+        RequisitionLine.Quantity := 1;
+
+        // [WHEN] The requisition line is recalculated and no price tier applies.
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] The stale price-list cost, UoM, and conversion ratios are cleared.
+        Assert.AreEqual(0, RequisitionLine."Subc. Pricelist Cost", 'Subc. Pricelist Cost must be reset when no price tier applies.');
+        Assert.AreEqual('', RequisitionLine."Subc. UoM for Pricelist", 'Subc. UoM for Pricelist must be reset when no price tier applies.');
+        Assert.AreEqual(1, RequisitionLine."Base UM Qty/PL UM Qty", 'Base UM Qty/PL UM Qty must be reset to 1 when no price tier applies.');
+        Assert.AreEqual(1, RequisitionLine."PL UM Qty/Base UM Qty", 'PL UM Qty/Base UM Qty must be reset to 1 when no price tier applies.');
     end;
 
     [Test]
@@ -649,6 +1820,25 @@ codeunit 139982 "Subc. Pricing Test"
         if UnitOfMeasure.Code <= BaseUOMCode then
             Error('Test setup: generated UoM code %1 must sort after base UoM code %2.', UnitOfMeasure.Code, BaseUOMCode);
         exit(UnitOfMeasure.Code);
+    end;
+
+    local procedure SelectRequisitionTemplateName(): Code[10]
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
+        ReqWkshTemplate.SetRange(Recurring, false);
+        if not ReqWkshTemplate.FindFirst() then begin
+            ReqWkshTemplate.Init();
+            ReqWkshTemplate.Validate(
+              Name, LibraryUtility.GenerateRandomCode(ReqWkshTemplate.FieldNo(Name), Database::"Req. Wksh. Template"));
+            ReqWkshTemplate.Insert(true);
+            ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
+            ReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+            ReqWkshTemplate.Modify(true);
+        end;
+        exit(ReqWkshTemplate.Name);
     end;
 
     local procedure Initialize()
@@ -743,6 +1933,20 @@ codeunit 139982 "Subc. Pricing Test"
         // Empty handler used to close the request page. We use default settings.
     end;
 
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        case true of
+            Question.Contains('Do you really want to change Inventory Account although value entries exist?'),
+            Question.Contains('Do you want to create a production order from'),
+            Question.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?'):
+                Reply := true;
+            else
+                Reply := false;
+        end;
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
@@ -750,12 +1954,16 @@ codeunit 139982 "Subc. Pricing Test"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
+        Subcontracting: Boolean;
+        UnitCostCalculation: Option Time,Units;
 }

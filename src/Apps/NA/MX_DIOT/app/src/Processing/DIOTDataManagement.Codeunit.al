@@ -159,15 +159,13 @@ codeunit 27021 "DIOT Data Management"
     var
         DIOTConcept: Record "DIOT Concept";
     begin
-        with DIOTConcept do begin
-            Init();
-            Validate("Concept No.", ConceptNo);
-            Validate("Column No.", Column);
-            Validate("Column Type", ColumnType);
-            Validate(Description, NewDescription);
-            Validate("Non-Deductible Pct", NonDeductiblePct);
-            if Insert(true) then;
-        end;
+        DIOTConcept.Init();
+        DIOTConcept.Validate("Concept No.", ConceptNo);
+        DIOTConcept.Validate("Column No.", Column);
+        DIOTConcept.Validate("Column Type", ColumnType);
+        DIOTConcept.Validate(Description, NewDescription);
+        DIOTConcept.Validate("Non-Deductible Pct", NonDeductiblePct);
+        if DIOTConcept.Insert(true) then;
     end;
 
     procedure GetDIOTSetupGuideTxt(): Text[250]
@@ -261,46 +259,43 @@ codeunit 27021 "DIOT Data Management"
     var
         Vendor: Record Vendor;
     begin
-        with TempDIOTReportVendorBuffer do
-            if not get(VendorNo, DIOTTypeOfOperation) then begin
-                Init();
-                Vendor.Get(VendorNo);
-                "Vendor No." := VendorNo;
-                "Type of Operation" := DIOTTypeOfOperation;
+        if not TempDIOTReportVendorBuffer.Get(VendorNo, DIOTTypeOfOperation) then begin
+            TempDIOTReportVendorBuffer.Init();
+            Vendor.Get(VendorNo);
+            TempDIOTReportVendorBuffer."Vendor No." := VendorNo;
+            TempDIOTReportVendorBuffer."Type of Operation" := DIOTTypeOfOperation;
 
-                "Type of Vendor Text" := GetTypeOfVendorText(Vendor."Country/Region Code");
+            TempDIOTReportVendorBuffer."Type of Vendor Text" := GetTypeOfVendorText(Vendor."Country/Region Code");
 
-                "Type of Operation Text" := GetTypeOfOperationCode(DIOTTypeOfOperation);
+            TempDIOTReportVendorBuffer."Type of Operation Text" := GetTypeOfOperationCode(DIOTTypeOfOperation);
 
-                "RFC Number" := CopyStr(Vendor."RFC No.", 1, MaxStrLen("RFC Number"));
+            TempDIOTReportVendorBuffer."RFC Number" := CopyStr(Vendor."RFC No.", 1, MaxStrLen(TempDIOTReportVendorBuffer."RFC Number"));
 
-                if Vendor."Country/Region Code" <> GetMXCountryCode() then begin
-                    "TAX Registration ID" := CopyStr(Vendor."VAT Registration No.", 1, MaxStrLen("TAX Registration ID"));
-                    "Vendor Name" := CopyStr(ConvertToDIOTVendorName(Vendor.Name), 1, MaxStrLen("Vendor Name"));
-                    "Country/Region Code" := ConvertToDIOTCountryCode(Vendor."Country/Region Code");
-                    if "Country/Region Code" = GetDIOTOtherCountryCode() then
-                        "Tax Jurisdiction Location" := Vendor."Tax Jurisdiction Location";
-                end;
-
-                "Tax Effects Applied" := Vendor."Tax Effects Applied";
-                Insert();
+            if Vendor."Country/Region Code" <> GetMXCountryCode() then begin
+                TempDIOTReportVendorBuffer."TAX Registration ID" := CopyStr(Vendor."VAT Registration No.", 1, MaxStrLen(TempDIOTReportVendorBuffer."TAX Registration ID"));
+                TempDIOTReportVendorBuffer."Vendor Name" := CopyStr(ConvertToDIOTVendorName(Vendor.Name), 1, MaxStrLen(TempDIOTReportVendorBuffer."Vendor Name"));
+                TempDIOTReportVendorBuffer."Country/Region Code" := ConvertToDIOTCountryCode(Vendor."Country/Region Code");
+                if TempDIOTReportVendorBuffer."Country/Region Code" = GetDIOTOtherCountryCode() then
+                    TempDIOTReportVendorBuffer."Tax Jurisdiction Location" := Vendor."Tax Jurisdiction Location";
             end;
+
+            TempDIOTReportVendorBuffer."Tax Effects Applied" := Vendor."Tax Effects Applied";
+            TempDIOTReportVendorBuffer.Insert();
+        end;
     end;
 
     local procedure InsertBufferConditionally(var TempDIOTReportBuffer: Record "DIOT Report Buffer" temporary; VendorNo: Code[20]; TypeOfOperation: Enum "DIOT Type of Operation"; ConceptNo: Integer; Amount: Decimal)
     begin
-        with TempDIOTReportBuffer do
-            if get(VendorNo, TypeOfOperation, ConceptNo) then begin
-                Validate(Value, Value + Amount);
-                Modify(true);
-            end
-            else begin
-                "Vendor No." := VendorNo;
-                "Type of Operation" := TypeOfOperation;
-                "DIOT Concept No." := ConceptNo;
-                Value := Amount;
-                Insert();
-            end;
+        if TempDIOTReportBuffer.Get(VendorNo, TypeOfOperation, ConceptNo) then begin
+            TempDIOTReportBuffer.Validate(Value, TempDIOTReportBuffer.Value + Amount);
+            TempDIOTReportBuffer.Modify(true);
+        end else begin
+            TempDIOTReportBuffer."Vendor No." := VendorNo;
+            TempDIOTReportBuffer."Type of Operation" := TypeOfOperation;
+            TempDIOTReportBuffer."DIOT Concept No." := ConceptNo;
+            TempDIOTReportBuffer.Value := Amount;
+            TempDIOTReportBuffer.Insert();
+        end;
     end;
 
     procedure CollectDIOTDataSet(var TempDIOTReportBuffer: Record "DIOT Report Buffer" temporary; var TempDIOTReportVendorBuffer: Record "DIOT Report Vendor Buffer" temporary; var TempErrorMessage: Record "Error Message" temporary; StartingDate: Date; EndingDate: Date)
@@ -431,19 +426,17 @@ codeunit 27021 "DIOT Data Management"
     var
         DummyVendor: Record Vendor;
     begin
-        with DIOTReportVendorBuffer do begin
-            if ("Type of Operation Text" = '') then
-                LogErrorForVendor(TempErrorMessage, DummyVendor.FieldNo("DIOT Type of Operation"), BlankTypeOfOperationErr, "Vendor No.");
+        if DIOTReportVendorBuffer."Type of Operation Text" = '' then
+            LogErrorForVendor(TempErrorMessage, DummyVendor.FieldNo("DIOT Type of Operation"), BlankTypeOfOperationErr, DIOTReportVendorBuffer."Vendor No.");
 
-            if ("Type of Operation Text" = '06') and ("Type of Vendor Text" = '05') then
-                LogErrorForVendor(TempErrorMessage, DummyVendor.FieldNo("DIOT Type of Operation"), LeaseAndRentNonMXErr, "Vendor No.");
+        if (DIOTReportVendorBuffer."Type of Operation Text" = '06') and (DIOTReportVendorBuffer."Type of Vendor Text" = '05') then
+            LogErrorForVendor(TempErrorMessage, DummyVendor.FieldNo("DIOT Type of Operation"), LeaseAndRentNonMXErr, DIOTReportVendorBuffer."Vendor No.");
 
-            if ("RFC Number" = '') and ("Type of Vendor Text" = '04') then
-                LogErrorForVendor(TempErrorMessage, DummyVendor.FieldNo("RFC No."), MissingRFCNoErr, "Vendor No.");
+        if (DIOTReportVendorBuffer."RFC Number" = '') and (DIOTReportVendorBuffer."Type of Vendor Text" = '04') then
+            LogErrorForVendor(TempErrorMessage, DummyVendor.FieldNo("RFC No."), MissingRFCNoErr, DIOTReportVendorBuffer."Vendor No.");
 
-            if ("Country/Region Code" = '') and ("Type of Vendor Text" = '05') then
-                LogErrorForVendor(TempErrorMessage, DummyVendor.FieldNo("Country/Region Code"), CountryCodeNotValidErr, "Vendor No.");
-        end;
+        if (DIOTReportVendorBuffer."Country/Region Code" = '') and (DIOTReportVendorBuffer."Type of Vendor Text" = '05') then
+            LogErrorForVendor(TempErrorMessage, DummyVendor.FieldNo("Country/Region Code"), CountryCodeNotValidErr, DIOTReportVendorBuffer."Vendor No.");
     end;
 
     local procedure LogErrorForVendor(var TempErrorMessage: Record "Error Message" temporary; FieldNo: Integer; Message: Text; VendorNo: Code[20])
@@ -456,12 +449,11 @@ codeunit 27021 "DIOT Data Management"
 
     local procedure CheckDIOTReportBuffer(var TempDIOTReportBuffer: Record "DIOT Report Buffer"; var TempErrorMessage: Record "Error Message" temporary)
     begin
-        with TempDIOTReportBuffer do
-            if FindSet() then
-                repeat
-                    if Value < 0 then
-                        TempErrorMessage.LogDetailedMessage(TempDIOTReportBuffer, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(NegativeAmountErr, "DIOT Concept No.", "Vendor No."), '', '');
-                until Next() = 0;
+        if TempDIOTReportBuffer.FindSet() then
+            repeat
+                if TempDIOTReportBuffer.Value < 0 then
+                    TempErrorMessage.LogDetailedMessage(TempDIOTReportBuffer, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(NegativeAmountErr, TempDIOTReportBuffer."DIOT Concept No.", TempDIOTReportBuffer."Vendor No."), '', '');
+            until TempDIOTReportBuffer.Next() = 0;
     end;
 
     procedure WriteDIOTFile(var TempDIOTReportBuffer: Record "DIOT Report Buffer" temporary; var TempDIOTReportVendorBuffer: Record "DIOT Report Vendor Buffer" temporary)

@@ -153,6 +153,7 @@ report 114 "Salesperson - Sales Statistics"
     {
         layout(RDLCLayout)
         {
+            Caption = 'Salesperson Sales Statistics RDLC';
             Type = RDLC;
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';

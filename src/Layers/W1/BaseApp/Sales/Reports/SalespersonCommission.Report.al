@@ -298,12 +298,25 @@ report 115 "Salesperson - Commission"
             LayoutFile = './Sales/Reports/SalespersonCommission.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Salesperson Commission Word';
             Type = Word;
             LayoutFile = './Sales/Reports/SalespersonCommission.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Reports/SalespersonCommissionBody.docx';
+            Caption = 'Body-only: Salesperson Commission Word';
+            Summary = 'Landscape orientated. Lists each entry for a salesperson with posting date, document, and customer number, followed by sales, profit, and adjusted profit with the matching commission amounts. Includes subtotals and totals, in LCY.';
         }
     }
 

@@ -48,6 +48,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ApproveActionMustBeVisibleErr: Label 'Approve action must be visible for the assigned approver.';
         RejectActionMustBeVisibleErr: Label 'Reject action must be visible for the assigned approver.';
         ApproveActionMustNotBeVisibleErr: Label 'Approve action must not be visible when the user is not the assigned approver.';
+        MissingExpenseUserMessagePartTxt: Label 'Please configure your user';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
@@ -967,6 +968,71 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
             StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Enable Approval Workflow"), false, ExpenseAgentSetup.TableCaption()));
     end;
 
+    [Test]
+    procedure MissingExpenseUserThrowsActionableErrorForApproval()
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 645040] Resolving the current expense user for approval raises an actionable error when no Expense User is configured.
+        Initialize();
+
+        // [GIVEN] Approval workflow is enabled.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(true);
+
+        // [WHEN] Resolving the current expense user for approval.
+        asserterror ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+
+        // [THEN] The actionable missing-Expense-User error is raised for the current user.
+        Assert.ExpectedError(MissingExpenseUserMessagePartTxt);
+    end;
+
+    [Test]
+    procedure CurrentExpenseUserIsReturnedWhenPresentForApproval()
+    var
+        ExpenseUser: Record "Expense User";
+        UserSetup: Record "User Setup";
+    begin
+        // [SCENARIO 645040] Resolving the current expense user for approval returns the configured record.
+        Initialize();
+
+        // [GIVEN] Approval workflow is enabled.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(true);
+
+        // [GIVEN] The current user has a User Setup record.
+        LibraryDocumentApprovals.CreateOrFindUserSetup(UserSetup, CopyStr(UserId(), 1, 50));
+        Clear(UserSetup);
+
+        // [GIVEN] The current user has an Expense User record.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser.Validate("User Id For Approvals", CopyStr(UserId(), 1, MaxStrLen(ExpenseUser."User Id For Approvals")));
+        ExpenseUser.Modify(true);
+        Clear(ExpenseUser);
+
+        // [WHEN] Resolving the current expense user for approval.
+        ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+
+        // [THEN] The current user's Expense User record is returned without error.
+        ExpenseUser.TestField("User Id For Approvals", CopyStr(UserId(), 1, MaxStrLen(ExpenseUser."User Id For Approvals")));
+    end;
+
+    [Test]
+    procedure ManagerExpenseReportSurfacesMissingExpenseUserError()
+    var
+        ManagerExpenseReportPage: TestPage "Manager Expense Report";
+    begin
+        // [SCENARIO 645040] Opening Manager Expense Report raises the actionable error when approval workflow is enabled and no Expense User is configured.
+        Initialize();
+
+        // [GIVEN] Approval workflow is enabled.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(true);
+
+        // [WHEN] Opening the Manager Expense Report page.
+        asserterror ManagerExpenseReportPage.OpenView();
+
+        // [THEN] The actionable missing-Expense-User error is raised for the current user.
+        Assert.ExpectedError(MissingExpenseUserMessagePartTxt);
+    end;
+
     // [Test] // Disabled - will be re-enabled in work item 629484
     procedure ExpenseApprovalSetup_MissingEntraId_ThrowsError()
     var
@@ -1135,6 +1201,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
         LibraryExpense.UpdateUseRulesInAgentSetup(true);
+        ResetApprovalAndAgentSetup();
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         LibraryWorkflow.DisableAllWorkflows();
@@ -1246,6 +1313,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ExpenseUser[1].Validate("E-mail", UserEmail);
         ExpenseUser[1].Validate("Can Approve", true);
         ExpenseUser[1].Validate("Entra Id", CreateGuid());
+        ExpenseUser[1].Validate("Unlimited Approval", true);
         ExpenseUser[1].Modify();
 
         LibraryDocumentApprovals.CreateMockupUserSetup(FinalApproverUserSetup);
@@ -1257,6 +1325,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ExpenseUser[2].Validate("E-mail", UserEmail);
         ExpenseUser[2].Validate("Can Approve", true);
         ExpenseUser[2].Validate("Entra Id", CreateGuid());
+        ExpenseUser[2].Validate("Unlimited Approval", true);
         ExpenseUser[2].Modify();
 
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser[1]."No.", ExpenseUser[2]."No.");
@@ -1289,6 +1358,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ExpenseUser[2].Validate("Can Approve", true);
         ExpenseUser[2].Validate("Entra Id", CreateGuid());
         ExpenseUser[2]."User Id For Approvals" := CopyStr(UserId(), 1, 50);
+        ExpenseUser[2].Validate("Unlimited Approval", true);
         ExpenseUser[2].Modify();
 
         // Submitter's approver is the current user.
@@ -1302,6 +1372,16 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ExpenseAgentSetup.GetRecordOnce();
         ExpenseAgentSetup."Enable Agent" := Enable;
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure ResetApprovalAndAgentSetup()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAgentSetup."Enable Approval Workflow" := false;
+        ExpenseAgentSetup."Enable Agent" := false;
+        ExpenseAgentSetup.Modify();
     end;
 
     local procedure CreateAndUpdateUserWithEmail(UserName: Code[50]; UserEmail: Text[80])

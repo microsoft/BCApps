@@ -339,24 +339,29 @@ codeunit 139561 "Shpfy Initialize Test"
 
 
     internal procedure CreateVATPostingSetup(BusinessPostingGroup: Code[20]; ProductPostingGroup: Code[20])
+    begin
+        CreateVATPostingSetup(BusinessPostingGroup, ProductPostingGroup, BusinessPostingGroup, ProductPostingGroup);
+    end;
+
+    internal procedure CreateVATPostingSetup(GenBusinessPostingGroup: Code[20]; GenProductPostingGroup: Code[20]; VATBusinessPostingGroup: Code[20]; VATProductPostingGroup: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
         VatPostingSetup: Record "VAT Posting Setup";
     begin
-        if not VatPostingSetup.Get(BusinessPostingGroup, ProductPostingGroup) then begin
+        if not VatPostingSetup.Get(VATBusinessPostingGroup, VATProductPostingGroup) then begin
             Clear(VatPostingSetup);
-            VatPostingSetup."VAT Bus. Posting Group" := BusinessPostingGroup;
-            VatPostingSetup."VAT Prod. Posting Group" := ProductPostingGroup;
+            VatPostingSetup."VAT Bus. Posting Group" := VATBusinessPostingGroup;
+            VatPostingSetup."VAT Prod. Posting Group" := VATProductPostingGroup;
             VatPostingSetup."VAT Identifier" := CopyStr(Any.AlphabeticText(MaxStrLen(VatPostingSetup."VAT Identifier")), 1, MaxStrLen(VatPostingSetup."VAT Identifier"));
             VatPostingSetup."VAT Calculation Type" := "Tax Calculation Type"::"Normal VAT";
             VatPostingSetup."VAT %" := 10;
             VatPostingSetup.Insert();
         end;
 
-        if not GeneralPostingSetup.Get(BusinessPostingGroup, ProductPostingGroup) then begin
+        if not GeneralPostingSetup.Get(GenBusinessPostingGroup, GenProductPostingGroup) then begin
             Clear(GeneralPostingSetup);
-            GeneralPostingSetup."Gen. Bus. Posting Group" := BusinessPostingGroup;
-            GeneralPostingSetup."Gen. Prod. Posting Group" := ProductPostingGroup;
+            GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusinessPostingGroup;
+            GeneralPostingSetup."Gen. Prod. Posting Group" := GenProductPostingGroup;
             GeneralPostingSetup.Insert();
         end;
     end;

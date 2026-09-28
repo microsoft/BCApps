@@ -910,6 +910,7 @@ table 290 "VAT Amount Line"
                                 "VAT Base" := 0;
                                 "VAT Amount" := "VAT Difference" + CalcLineAmount();
                                 "Amount Including VAT" := "VAT Amount";
+                                NonDeductibleVAT.UpdateNonDeductibleAmountsWithDiffInVATAmountLine(Rec, Currency);
                             end;
                         "VAT Calculation Type"::"Sales Tax":
                             begin
@@ -965,6 +966,7 @@ table 290 "VAT Amount Line"
                                 "VAT Base" := 0;
                                 "VAT Amount" := "VAT Difference" + CalcLineAmount();
                                 "Amount Including VAT" := "VAT Amount";
+                                NonDeductibleVAT.UpdateNonDeductibleAmountsWithDiffInVATAmountLine(Rec, Currency);
                             end;
                         "VAT Calculation Type"::"Sales Tax":
                             begin

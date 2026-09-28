@@ -151,7 +151,11 @@ codeunit 6926 "Expense Activity Log Mgt."
         ExpenseActivityLogEntry."Occurred At" := OccurredAt;
         ExpenseActivityLogEntry."Initiated By" := InitiatedBy;
         ExpenseActivityLogEntry."Actor Role" := ActorRole;
-        ExpenseActivityLogEntry.Comment := CopyStr(EventComment, 1, MaxStrLen(ExpenseActivityLogEntry.Comment));
+        if StrLen(EventComment) > MaxStrLen(ExpenseActivityLogEntry.Comment) then
+            ExpenseActivityLogEntry.Comment :=
+                CopyStr(EventComment, 1, MaxStrLen(ExpenseActivityLogEntry.Comment) - 3) + '...'
+        else
+            ExpenseActivityLogEntry.Comment := CopyStr(EventComment, 1, MaxStrLen(ExpenseActivityLogEntry.Comment));
     end;
 
     local procedure InsertExpenseReportEntry(
