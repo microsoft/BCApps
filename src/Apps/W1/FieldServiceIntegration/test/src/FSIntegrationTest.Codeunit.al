@@ -1733,6 +1733,7 @@ codeunit 139204 "FS Integration Test"
 
     local procedure InitializeItemProductSynchronization()
     var
+        CDSCompany: Record "CDS Company";
         CDSConnectionSetup: Record "CDS Connection Setup";
         CRMConnectionSetup: Record "CRM Connection Setup";
     begin
@@ -1746,6 +1747,7 @@ codeunit 139204 "FS Integration Test"
         CRMConnectionSetup.Modify(true);
         CDSConnectionSetup.Get();
         CDSConnectionSetup.SetBaseCurrencyData();
+        LibraryCRMIntegration.EnsureCDSCompany(CDSCompany);
     end;
 
     procedure ResetFSEnvironment()
