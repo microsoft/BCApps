@@ -19,17 +19,12 @@ codeunit 9400 "IPC Management"
         UnsuccessfulAddressSearchTxt: Label 'Unsuccessful address search. Response %1 %2.', Comment = '%1 - Status code, %2 - Reason phrase.', Locked = true;
         SecurityAuditAuthFailedTxt: Label 'IdealPostcodes API rejected the request with status %1 %2.', Locked = true, Comment = '%1 - Status code, %2 - Reason phrase.';
 
-    [NonDebuggable]
     procedure SearchAddress(SearchText: Text; var TempIPCAddressLookup: Record "IPC Address Lookup" temporary; var StatusCode: Integer; var ReasonPhrase: Text): Boolean
     var
         Config: Record "IPC Config";
         TypeHelper: Codeunit "Type Helper";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        AuditLog: Codeunit "Audit Log";
-        HttpClient: HttpClient;
-        HttpResponse: HttpResponseMessage;
         ResponseText: Text;
-        RequestUrl: Text;
     begin
         if not GetConfiguration(Config) then
             Error(ConfigNotSetupErr);
@@ -38,22 +33,61 @@ codeunit 9400 "IPC Management"
             exit(false);
 
         FeatureTelemetry.LogUptake('0000RFE', 'IdealPostcodes', Enum::"Feature Uptake Status"::Used);
-        RequestUrl := Config.APIEndpoint() + '/postcodes/' + TypeHelper.UriEscapeDataString(SearchText);
+        if not SendGetRequest(Config, '/postcodes/' + TypeHelper.UriEscapeDataString(SearchText), ResponseText, StatusCode, ReasonPhrase) then
+            exit(false);
+
+        ParseAddressResponse(ResponseText, TempIPCAddressLookup);
+        exit(not TempIPCAddressLookup.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Retrieves one address by the ID returned in a search result. The API bills this as a lookup,
+    /// so use it only when the address is not already at hand from a search.
+    /// </summary>
+    procedure ResolveAddress(AddressId: Text; var TempIPCAddressLookup: Record "IPC Address Lookup" temporary; var StatusCode: Integer; var ReasonPhrase: Text): Boolean
+    var
+        Config: Record "IPC Config";
+        TypeHelper: Codeunit "Type Helper";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        ResponseText: Text;
+    begin
+        if not GetConfiguration(Config) then
+            Error(ConfigNotSetupErr);
+
+        if not Config.Enabled then
+            exit(false);
+
+        FeatureTelemetry.LogUptake('0000RFF', 'IdealPostcodes', Enum::"Feature Uptake Status"::Used);
+        if not SendGetRequest(Config, '/autocomplete/addresses/' + TypeHelper.UriEscapeDataString(AddressId) + '/gbr', ResponseText, StatusCode, ReasonPhrase) then
+            exit(false);
+
+        ParseResolveResponse(ResponseText, TempIPCAddressLookup);
+        exit(TempIPCAddressLookup.FindFirst());
+    end;
+
+    [NonDebuggable]
+    local procedure SendGetRequest(var Config: Record "IPC Config"; RelativePath: Text; var ResponseText: Text; var StatusCode: Integer; var ReasonPhrase: Text): Boolean
+    var
+        AuditLog: Codeunit "Audit Log";
+        HttpClient: HttpClient;
+        HttpResponse: HttpResponseMessage;
+    begin
         HttpClient.DefaultRequestHeaders().Add('Authorization', SecretStrSubstNo('IDEALPOSTCODES api_key="%1"', Config.GetAPIPasswordAsSecret(Config."API Key")));
         HttpClient.DefaultRequestHeaders().Add('Accept-Encoding', 'utf-8');
         HttpClient.DefaultRequestHeaders().Add('Accept', 'application/json');
 
-        if HttpClient.Get(RequestUrl, HttpResponse) then begin
-            StatusCode := HttpResponse.HttpStatusCode();
-            ReasonPhrase := HttpResponse.ReasonPhrase();
-            if HttpResponse.IsSuccessStatusCode() then begin
-                HttpResponse.Content.ReadAs(ResponseText);
-                ParseAddressResponse(ResponseText, TempIPCAddressLookup);
-                exit(not TempIPCAddressLookup.IsEmpty());
-            end;
-            if StatusCode in [401, 403] then
-                AuditLog.LogAuditMessage(StrSubstNo(SecurityAuditAuthFailedTxt, StatusCode, ReasonPhrase), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
+        if not HttpClient.Get(Config.APIEndpoint() + RelativePath, HttpResponse) then
+            exit(false);
+
+        StatusCode := HttpResponse.HttpStatusCode();
+        ReasonPhrase := HttpResponse.ReasonPhrase();
+        if HttpResponse.IsSuccessStatusCode() then begin
+            HttpResponse.Content.ReadAs(ResponseText);
+            exit(true);
         end;
+
+        if StatusCode in [401, 403] then
+            AuditLog.LogAuditMessage(StrSubstNo(SecurityAuditAuthFailedTxt, StatusCode, ReasonPhrase), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
         exit(false);
     end;
 
@@ -124,6 +158,22 @@ codeunit 9400 "IPC Management"
                     AddAddressToBuffer(JsonToken.AsObject(), TempIPCAddressLookup, i + 1, RemoveOrganisationName);
                 end;
             end;
+    end;
+
+    local procedure ParseResolveResponse(ResponseText: Text; var TempIPCAddressLookup: Record "IPC Address Lookup" temporary)
+    var
+        IPCConfig: Record "IPC Config";
+        JsonObject: JsonObject;
+        JsonToken: JsonToken;
+        RemoveOrganisationName: Boolean;
+    begin
+        TempIPCAddressLookup.DeleteAll();
+        RemoveOrganisationName := GetConfiguration(IPCConfig) and IPCConfig."Remove Organisation Name";
+
+        if JsonObject.ReadFrom(ResponseText) then
+            if JsonObject.Get('result', JsonToken) then
+                if JsonToken.IsObject() then
+                    AddAddressToBuffer(JsonToken.AsObject(), TempIPCAddressLookup, 1, RemoveOrganisationName);
     end;
 
     local procedure AddAddressToBuffer(AddressJson: JsonObject; var TempIPCAddressLookup: Record "IPC Address Lookup" temporary; EntryNo: Integer; RemoveOrganisationName: Boolean)
