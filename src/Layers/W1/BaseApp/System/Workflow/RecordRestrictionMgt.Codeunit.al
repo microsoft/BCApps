@@ -408,6 +408,9 @@ codeunit 1550 "Record Restriction Mgt."
         ItemJournalBatch: Record "Item Journal Batch";
         IsHandled: Boolean;
     begin
+        if ItemJournalBatch.Get(Sender."Journal Template Name", Sender."Journal Batch Name") then
+            CheckRecordHasUsageRestrictions(ItemJournalBatch);
+
         IsHandled := false;
         OnBeforeItemJournalLineCheckItemPostRestrictions(Sender, IsHandled);
         if IsHandled then
@@ -417,9 +420,6 @@ codeunit 1550 "Record Restriction Mgt."
             Item.Get(Sender."Item No.");
             CheckRecordHasUsageRestrictions(Item);
         end;
-
-        if ItemJournalBatch.Get(Sender."Journal Template Name", Sender."Journal Batch Name") then
-            CheckRecordHasUsageRestrictions(ItemJournalBatch);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnCheckGenJournalLinePostRestrictions', '', false, false)]
