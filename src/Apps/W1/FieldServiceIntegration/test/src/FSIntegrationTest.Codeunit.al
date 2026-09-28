@@ -1722,14 +1722,11 @@ codeunit 139204 "FS Integration Test"
     local procedure CreateItemWithCoupledUnitOfMeasure(var Item: Record Item; var CRMUom: Record "CRM Uom")
     var
         ItemUnitOfMeasure: Record "Item Unit of Measure";
-        UnitOfMeasure: Record "Unit of Measure";
-        DefaultCRMUom: Record "CRM Uom";
+        UnitGroup: Record "Unit Group";
         CRMUomschedule: Record "CRM Uomschedule";
     begin
-        LibraryCRMIntegration.CreateCoupledUnitOfMeasureAndUomSchedule(UnitOfMeasure, DefaultCRMUom, CRMUomschedule);
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Base Unit of Measure", UnitOfMeasure.Code);
-        Item.Modify();
+        LibraryCRMIntegration.CreateCoupledItemUnitGroupAndUomSchedule(UnitGroup, CRMUomschedule);
+        Item.GetBySystemId(UnitGroup."Source Id");
         ItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
         LibraryCRMIntegration.CoupleItemUnitOfMeasure(ItemUnitOfMeasure, CRMUomschedule, CRMUom);
     end;
