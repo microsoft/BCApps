@@ -314,7 +314,7 @@ codeunit 1482 "Edit in Excel Impl."
         // Publishing changes to the User table through OData can break user authentication, so Edit in Excel is not allowed for it.
         if not PageMetadata.Get(PageId) then
             exit;
-        if PageMetadata.SourceTable <> Database::User then
+        if not (PageMetadata.SourceTable in [Database::User]) then
             exit;
 
         Session.LogMessage('0000U9E', StrSubstNo(EditInExcelBlockedForUserTableTxt, PageId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
