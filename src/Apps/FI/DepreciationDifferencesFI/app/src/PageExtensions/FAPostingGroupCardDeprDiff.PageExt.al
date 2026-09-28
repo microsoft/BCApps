@@ -5,7 +5,9 @@
 
 namespace Microsoft.FixedAssets.FixedAsset;
 
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 
 pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group Card"
 {

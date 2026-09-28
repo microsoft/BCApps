@@ -6,6 +6,9 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.Foundation.AuditCodes;
 using System.Upgrade;
 
 codeunit 13475 "Upgrade Depreciation Diff. FI"

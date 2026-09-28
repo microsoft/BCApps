@@ -5,7 +5,9 @@
 
 namespace Microsoft.FixedAssets.FixedAsset;
 
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 
 pageextension 13473 "FA Posting Groups DeprDiff FI" extends "FA Posting Groups"
 {

@@ -5,7 +5,9 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 
 pageextension 13479 "Source Code Setup DeprDiff Pg" extends "Source Code Setup"
 {
