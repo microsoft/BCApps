@@ -837,6 +837,56 @@ codeunit 132590 "Type Helper Unit Tests"
         Assert.AreEqual(InputDateTime, TypeHelper.ConvertDateTimeFromUTCToTimeZone(InputDateTime, ''), '');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure EvaluateUnixTimestampReturnsCorrectDateTime()
+    var
+        TypeHelper: Codeunit "Type Helper";
+        ExpectedDateTime: DateTime;
+        UnixTimestamp: BigInteger;
+    begin
+        // [SCENARIO] A Unix timestamp is evaluated to the corresponding UTC DateTime
+        UnixTimestamp := 1789375237L;
+        Evaluate(ExpectedDateTime, '2026-09-14T08:40:37Z', 9);
+
+        Assert.AreEqual(ExpectedDateTime, TypeHelper.EvaluateUnixTimestamp(UnixTimestamp), 'The Unix timestamp was evaluated incorrectly.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EvaluateUnixTimestampIsIndependentOfUserTimeZone()
+    var
+        TypeHelper: Codeunit "Type Helper";
+        CentralEuropeDateTime: DateTime;
+        UTCDateTime: DateTime;
+        UnixTimestamp: BigInteger;
+    begin
+        // [SCENARIO] Evaluating a Unix timestamp is independent of the user's configured time zone
+        UnixTimestamp := 1789375237L;
+
+        SetUserTimeZone('UTC');
+        UTCDateTime := TypeHelper.EvaluateUnixTimestamp(UnixTimestamp);
+
+        SetUserTimeZone('Central Europe Standard Time');
+        CentralEuropeDateTime := TypeHelper.EvaluateUnixTimestamp(UnixTimestamp);
+
+        Assert.AreEqual(UTCDateTime, CentralEuropeDateTime, 'The user time zone changed the evaluated Unix timestamp.');
+    end;
+
+    local procedure SetUserTimeZone(TimeZone: Text[180])
+    var
+        UserPersonalization: Record "User Personalization";
+    begin
+        if not UserPersonalization.Get(UserSecurityId()) then begin
+            UserPersonalization.Init();
+            UserPersonalization."User SID" := UserSecurityId();
+            UserPersonalization.Insert();
+        end;
+
+        UserPersonalization."Time Zone" := TimeZone;
+        UserPersonalization.Modify();
+    end;
+
     local procedure CreateTime(Hour: Integer; Minute: Integer; Second: Integer; Milisecond: Integer): Time
     var
         NewTime: Time;
@@ -990,4 +1040,3 @@ codeunit 132590 "Type Helper Unit Tests"
         Assert.AreEqual(ExpectedTime, DT2Time(DateTime), 'Invalid time');
     end;
 }
-
