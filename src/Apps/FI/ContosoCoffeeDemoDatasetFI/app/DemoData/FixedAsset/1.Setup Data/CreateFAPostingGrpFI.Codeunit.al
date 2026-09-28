@@ -47,7 +47,7 @@ codeunit 13445 "Create FA Posting Grp. FI"
             exit;
         end;
 #endif
-        FAPostingGroup.Validate("Depreciation Difference Account", DeprDifferenceAcc);
-        FAPostingGroup.Validate("Depreciation Difference Bal Acct", DeprDifferenceBalAcc);
+        FAPostingGroup.Validate("Deprec. Difference Account", DeprDifferenceAcc);
+        FAPostingGroup.Validate("Deprec. Difference Bal Acct", DeprDifferenceBalAcc);
     end;
 }
