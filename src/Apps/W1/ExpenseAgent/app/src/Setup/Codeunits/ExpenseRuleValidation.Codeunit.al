@@ -52,8 +52,8 @@ codeunit 6902 "Expense Rule Validation"
         ExpenseReportAlreadyExistErr: Label 'An expense report already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
         EmployeePostingGroupMandatoryErr: Label '%1 is mandatory on %2 %3.', Comment = '%1 = Field Caption, %2 = Table Caption, %3 = Employee No.';
         EmployeePostingGroupMandatoryOnExpenseReportErr: Label '%1 is mandatory on Expense Report No. %2.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
-        ExpenseItemizationFieldRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
-        ExpenseItemizationFieldRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
+        ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
+        ExpenseSubCategoryMustBeRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
 
     procedure ValidateExpenseAgainstRule(var Expense: Record Expense)
     var
@@ -486,7 +486,7 @@ codeunit 6902 "Expense Rule Validation"
             ExpenseRuleViolation.AddRuleViolation(
                 Expense."No.",
                 StrSubstNo(
-                    ExpenseItemizationFieldRequiredInExpenseErr,
+                    ExpenseSubCategoryMustBeRequiredInExpenseErr,
                     ExpenseItemization.FieldCaption("Expense Subcategory Code"),
                     ExpenseItemization."Expense No.",
                     ExpenseItemization."Line No."));
@@ -833,7 +833,7 @@ codeunit 6902 "Expense Rule Validation"
                 ExpenseReportLine."Document No.",
                 ExpenseReportLine."Line No.",
                 StrSubstNo(
-                    ExpenseItemizationFieldRequiredInExpenseReportErr,
+                    ExpenseSubCategoryMustBeRequiredInExpenseReportErr,
                     ExpReportLineItemization.FieldCaption("Expense Subcategory Code"),
                     ExpReportLineItemization."Expense Report No.",
                     ExpReportLineItemization."Expense Report Line No.",
