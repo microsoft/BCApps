@@ -455,11 +455,6 @@ codeunit 9852 "Effective Permissions Mgt."
         exit(FilterTextBuilder.ToText());
     end;
 
-    internal procedure ClearAccessControlFilterCache()
-    begin
-        Clear(AccessControlFilterForUserCache);
-    end;
-
     procedure PopulateEffectivePermissionsBuffer(var Permission: Record Permission; PassedUserID: Guid; PassedCompanyName: Text[50]; PassedObjectType: Integer; PassedObjectId: Integer; ShowAllObjects: Boolean)
     var
         AllObj: Record AllObj;

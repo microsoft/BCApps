@@ -294,7 +294,6 @@ page 9852 "Effective Permissions"
             if (not UserProperty.Get(CurrentUserID)) or (UserProperty."Authentication Object ID" = '') then
                 Error(OnlyAadUsersAllowedErr);
 
-        CurrPage.ByPermissionSet.PAGE.ClearAccessControlFilterCache();
         EffectivePermissionsMgt.PopulateEffectivePermissionsBuffer(Rec,
           CurrentUserID, CurrentCompanyName, CurrentObjectType, CurrentObjectId, ShowAllObjects);
         CurrPage.Update(false);

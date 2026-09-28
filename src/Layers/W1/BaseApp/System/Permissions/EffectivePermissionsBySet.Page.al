@@ -210,10 +210,5 @@ page 9853 "Effective Permissions By Set"
 
         CurrPage.Update(false);
     end;
-
-    internal procedure ClearAccessControlFilterCache()
-    begin
-        EffectivePermissionsMgt.ClearAccessControlFilterCache();
-    end;
 }
 
