@@ -11,13 +11,13 @@ tableextension 13469 "FA Posting Group DeprDiff FI" extends "FA Posting Group"
 {
     fields
     {
-        field(13462; "Depreciation Difference Account"; Code[20])
+        field(13462; "Deprec. Difference Account"; Code[20])
         {
             Caption = 'Depr. Difference Acc.';
             DataClassification = CustomerContent;
             TableRelation = "G/L Account";
         }
-        field(13463; "Depreciation Difference Bal Acct"; Code[20])
+        field(13463; "Deprec. Difference Bal Acct"; Code[20])
         {
             Caption = 'Depr. Difference Bal. Acc.';
             DataClassification = CustomerContent;

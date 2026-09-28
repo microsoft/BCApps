@@ -854,13 +854,13 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         RecRef.SetTable(FAPostingGroup2);
         FAPostingGroup.TransferFields(FAPostingGroup2, false);
         if ClearDeprDifferenceAcc then
-            FAPostingGroup.Validate("Depreciation Difference Account", '')
+            FAPostingGroup.Validate("Deprec. Difference Account", '')
         else
-            FAPostingGroup.Validate("Depreciation Difference Account", LibraryERM.CreateGLAccountNo());
+            FAPostingGroup.Validate("Deprec. Difference Account", LibraryERM.CreateGLAccountNo());
         if ClearDeprDifferenceBalAcc then
-            FAPostingGroup.Validate("Depreciation Difference Bal Acct", '')
+            FAPostingGroup.Validate("Deprec. Difference Bal Acct", '')
         else
-            FAPostingGroup.Validate("Depreciation Difference Bal Acct", LibraryERM.CreateGLAccountNo());
+            FAPostingGroup.Validate("Deprec. Difference Bal Acct", LibraryERM.CreateGLAccountNo());
         FAPostingGroup.Modify(true);
     end;
 

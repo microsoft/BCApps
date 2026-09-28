@@ -13,7 +13,7 @@ pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group C
     {
         addafter("Maintenance Expense Account")
         {
-            field("Depreciation Difference Account"; Rec."Depreciation Difference Account")
+            field("Deprec. Difference Account"; Rec."Deprec. Difference Account")
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
@@ -24,7 +24,7 @@ pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group C
         }
         addafter("Maintenance Bal. Acc.")
         {
-            field("Depreciation Difference Bal Acct"; Rec."Depreciation Difference Bal Acct")
+            field("Deprec. Difference Bal Acct"; Rec."Deprec. Difference Bal Acct")
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';

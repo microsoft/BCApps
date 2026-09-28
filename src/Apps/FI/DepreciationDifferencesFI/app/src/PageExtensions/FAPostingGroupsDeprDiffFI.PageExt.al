@@ -13,7 +13,7 @@ pageextension 13473 "FA Posting Groups DeprDiff FI" extends "FA Posting Groups"
     {
         addafter("Custom 2 Account")
         {
-            field("Depreciation Difference Account"; Rec."Depreciation Difference Account")
+            field("Deprec. Difference Account"; Rec."Deprec. Difference Account")
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
@@ -21,7 +21,7 @@ pageextension 13473 "FA Posting Groups DeprDiff FI" extends "FA Posting Groups"
                 Visible = DepreciationDifferencesEnabled;
 #endif
             }
-            field("Depreciation Difference Bal Acct"; Rec."Depreciation Difference Bal Acct")
+            field("Deprec. Difference Bal Acct"; Rec."Deprec. Difference Bal Acct")
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';

@@ -99,9 +99,9 @@ report 13478 "Calc. and Post Depr. Diff. FI"
                     FADeprBook2.TestField("FA Posting Group", FADeprBook1."FA Posting Group");
 
                 if FAPostingGroup.Get(FADeprBook1."FA Posting Group") then begin
-                    if FAPostingGroup."Depreciation Difference Account" = '' then
+                    if FAPostingGroup."Deprec. Difference Account" = '' then
                         Error(Text13406, FAPostingGroup.Code);
-                    if FAPostingGroup."Depreciation Difference Bal Acct" = '' then
+                    if FAPostingGroup."Deprec. Difference Bal Acct" = '' then
                         Error(Text13407, FAPostingGroup.Code);
 
                     FALedgerEntry.Reset();
@@ -382,8 +382,8 @@ report 13478 "Calc. and Post Depr. Diff. FI"
     local procedure InsertDifferenceBuffer()
     begin
         Clear(DeprDiffPostingBuffer);
-        DeprDiffPostingBuffer."Depr. Difference Acc." := FAPostingGroup."Depreciation Difference Account";
-        DeprDiffPostingBuffer."Depr. Difference Bal. Acc." := FAPostingGroup."Depreciation Difference Bal Acct";
+        DeprDiffPostingBuffer."Depr. Difference Acc." := FAPostingGroup."Deprec. Difference Account";
+        DeprDiffPostingBuffer."Depr. Difference Bal. Acc." := FAPostingGroup."Deprec. Difference Bal Acct";
         DeprDiffPostingBuffer."Depreciation Amount 1" := DeprBookAmt1;
         DeprDiffPostingBuffer."Depreciation Amount 2" := DeprBookAmt2;
         DeprDiffPostingBuffer."FA No." := FixedAsset."No.";
