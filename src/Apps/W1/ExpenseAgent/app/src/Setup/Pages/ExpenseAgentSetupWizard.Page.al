@@ -970,7 +970,7 @@ page 6991 "Expense Agent Setup Wizard"
                 exit(false);
 
         VerifySchedulingMailboxAccess();
-        if AgentBeingDisabled() then
+        if AgentBeingDisabled() and StateChanged() then
             Rec.ConfirmCanScheduleTasks();
         if AgentBeingEnabled() and StateChanged() then
             if not ActivateAgent() then
