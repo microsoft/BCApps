@@ -52,7 +52,7 @@ AI-assisted jurisdiction matching
 Apply and validate tax setup
   |-- Assign validated jurisdictions to tax lines
   |-- Reuse or seed the relevant Tax Details
-  |-- Preserve existing Business Central rates
+  |-- Preserve existing Tax Detail Rates
   |     \-- Rate difference: flag a conflict; do not overwrite
   |-- Reuse an exact Tax Area or create one when configured
   |
@@ -101,14 +101,14 @@ All externally supplied text is treated as untrusted data. The feature uses mana
 Model output is treated as a proposal, not as an instruction:
 
 - The response must have the expected structured shape.
-- Referenced tax lines and jurisdictions must be valid.
-- New jurisdictions are created only when explicitly allowed.
+- Referenced tax lines must be ones sent for matching, and referenced jurisdictions must be valid.
+- New jurisdictions are created only when explicitly allowed; otherwise a line whose jurisdiction does not exist is left unresolved.
 - Unresolved lines are left for a person to complete.
-- Existing Business Central tax rates are not silently overwritten.
+- Existing Tax Detail Rates are not silently overwritten.
 
-When Shopify's rate differs from an existing Business Central Tax Detail, the jurisdiction can still be matched, but the existing rate is preserved and the order is held for review. A reviewer can accept the Business Central rate, select another jurisdiction, or explicitly choose to update tax setup to the Shopify rate.
+When Shopify's rate differs from an existing Tax Detail Rate, the jurisdiction can still be matched, but the existing rate is preserved and the order is held for review. A reviewer can accept the Tax Detail Rate, select another jurisdiction, or explicitly choose to update tax setup to the Shopify rate.
 
-Canadian HST/TVH jurisdictions are normalized by ship-to province (for example `ONHST` and `NSHST`) when a province-specific jurisdiction exists or the agent is allowed to create one. Agent-created generic HST jurisdictions are not reused across provinces; federal GST/TPS remains reusable.
+Canadian HST/TVH jurisdictions are normalized by ship-to province (for example `ONHST` and `NSHST`) when a province-specific jurisdiction exists or the agent is allowed to create one. The province is taken from the ship-to province code, or mapped from the province name through the Shopify Tax Areas. Agent-created generic HST jurisdictions are not reused across provinces; federal GST/TPS remains reusable.
 
 Jurisdictions created by the agent remain provisional until they are approved through the review workflow. This prevents newly generated master data from being treated as trusted without human confirmation.
 
@@ -124,7 +124,7 @@ Each shop selects a review mode:
 
 Rate conflicts and incomplete matches are hard safety gates and are held in every mode.
 
-The review page is the canonical place to inspect and adjust a match. It presents the resolved Tax Area, relevant ship-to context, matched tax lines, and the Shopify and Business Central rates. Approval rebuilds the Tax Area from the final assignments and rechecks conflicts before releasing the order.
+The review page is the canonical place to inspect and adjust a match. It presents the resolved Tax Area, relevant ship-to context, matched tax lines, and the Shopify rates and Tax Detail Rates. Approval rebuilds the Tax Area from the final assignments and rechecks conflicts before releasing the order.
 
 Changes made on the review page are not considered approved until the reviewer completes the approval action. Approval can be undone before a sales document is created.
 

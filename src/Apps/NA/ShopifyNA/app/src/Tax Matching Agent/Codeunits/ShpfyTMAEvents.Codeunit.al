@@ -23,7 +23,7 @@ codeunit 30473 "Shpfy TMA Events"
     var
         StartingMatchMsg: Label 'Starting tax match for order', Locked = true;
         ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the tax match has been approved. Open the order, choose Review Tax Match, and approve the match on the review page — or change the shop''s Tax Match Review Mode.', Comment = '%1 = Shopify Order No.';
-        RateConflictBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because a matched tax rate differs from Business Central. Open the order, choose Review Tax Match, and either approve the match to accept Business Central''s rates or correct the Tax Detail rate or Tax Jurisdiction, on the review page.', Comment = '%1 = Shopify Order No.';
+        RateConflictBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because a matched Shopify rate differs from the Tax Detail Rate. Open the order, choose Review Tax Match, and either approve the match to accept the Tax Detail Rate or update the Tax Detail or Tax Jurisdiction on the review page.', Comment = '%1 = Shopify Order No.';
         IncompleteBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because the Tax Matching Agent could not resolve one or more tax lines to a Tax Jurisdiction. Open the order, choose Review Tax Match, assign a Tax Jurisdiction to every tax line, and approve the match on the review page.', Comment = '%1 = Shopify Order No.';
         SecurityPromptUnavailableMsg: Label 'Security prompt unavailable from Key Vault; tax matching skipped for this order.', Locked = true;
         MarkerSetMsg: Label 'Tax match marker set on order', Locked = true;
@@ -92,8 +92,8 @@ codeunit 30473 "Shpfy TMA Events"
             exit;
 
         // A matched jurisdiction may carry a rate that conflicts with BC (HasRateConflict), or one
-        // or more tax lines may be unresolved (HasUnresolvedLine — the model returned UNKNOWN and
-        // the line was left unmatched). The matched jurisdictions are still correct, so the Tax Area
+        // or more tax lines may be unresolved (HasUnresolvedLine — any line still without a
+        // jurisdiction). The matched jurisdictions are still correct, so the Tax Area
         // is built as usual from them; either flag is recorded on the order so the review gate always
         // holds it — the reviewer accepts BC's rate, corrects the Tax Detail, or assigns the missing
         // Tax Jurisdiction before a Sales Document is created.

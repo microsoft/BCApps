@@ -28,7 +28,7 @@ codeunit 30476 "Shpfy TMA Notify"
         OrderNotificationIdLbl: Label '{a7c3f1e2-9b4d-4c8a-8e6f-2d1b0a9c8e7d}', Locked = true;
         NotifMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order. Review before posting.', Comment = '%1 = Tax Area Code';
         OrderNotifMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order. Review the matched tax jurisdictions.', Comment = '%1 = Tax Area Code';
-        OrderNotifConflictMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order, but one or more tax rates differ from Business Central. Review the highlighted rates before creating the sales document.', Comment = '%1 = Tax Area Code';
+        OrderNotifConflictMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order, but one or more Shopify rates differ from the corresponding Tax Detail Rates. Review the highlighted rates before creating the sales document.', Comment = '%1 = Tax Area Code';
         ShowDecisionsActionLbl: Label 'Show Tax Match Decisions';
         OrderReviewActionLbl: Label 'Review';
         MarkReviewedActionLbl: Label 'Mark as reviewed';

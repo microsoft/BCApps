@@ -24,7 +24,7 @@ codeunit 30477 "Shpfy TMA Activity Log"
     var
         PerLineExplanationLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3.', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code';
         PerLineExplanationWithReasonLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3. %4', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code, %4 = LLM reason';
-        PerLineConflictLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3, but its rate differs from Business Central. %4', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code, %4 = conflict reason';
+        PerLineConflictLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3, but its Shopify rate differs from the Tax Detail Rate. %4', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code, %4 = conflict reason';
         TaxAreaCreatedLbl: Label 'Created new Tax Area %1 from agent-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
         TaxAreaReusedLbl: Label 'Reused existing Tax Area %1 covering agent-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
         TaxJurisdictionTitleLbl: Label 'Tax Jurisdiction %1', Comment = '%1 = jurisdiction code';

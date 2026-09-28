@@ -85,12 +85,12 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
                 field(BCRate; BCRatePct)
                 {
                     ApplicationArea = All;
-                    Caption = 'BC Rate %';
+                    Caption = 'Tax Detail Rate %';
                     AutoFormatType = 0;
                     BlankZero = true;
                     Editable = false;
                     StyleExpr = RateStyleExpr;
-                    ToolTip = 'Specifies the Business Central Tax Detail rate that applies to this line''s item for the assigned Tax Jurisdiction as of the order date. When it differs from Shopify''s rate the line is highlighted red; approving the order posts at this Business Central rate. It is blank when no Tax Jurisdiction is assigned or no Tax Detail exists yet.';
+                    ToolTip = 'Specifies the Tax Detail Rate that applies to this line''s item for the assigned Tax Jurisdiction as of the order date. When it differs from Shopify''s rate, the line is highlighted red; approving the order posts using this Tax Detail Rate. It is blank when no Tax Jurisdiction is assigned or no Tax Detail exists yet.';
                 }
                 field("Channel Liable"; Rec."Channel Liable")
                 {
@@ -102,7 +102,7 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
                 {
                     ApplicationArea = All;
                     StyleExpr = RateStyleExpr;
-                    ToolTip = 'Specifies the Business Central Tax Jurisdiction matched to this Shopify tax line. When it is blank the line is unmatched and highlighted red — assign a Tax Jurisdiction to complete the match. You can change it to correct or complete the match; the Tax Area is rebuilt from these codes when you approve.';
+                    ToolTip = 'Specifies the Tax Jurisdiction matched to this Shopify tax line. When it is blank the line is unmatched and highlighted red — assign a Tax Jurisdiction to complete the match. You can change it to correct or complete the match; the Tax Area is rebuilt from these codes when you approve.';
 
                     trigger OnValidate()
                     begin
@@ -123,7 +123,7 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
                 Caption = 'Use Shopify Rate';
                 Image = Apply;
                 Enabled = UseShopifyRateEnabled;
-                ToolTip = 'Creates or updates a Business Central Tax Detail for this line''s Tax Jurisdiction and tax group, effective the order''s document date, using the rate Shopify charged. This changes your shared Business Central tax setup - it is not limited to this order and affects every document that posts this Tax Jurisdiction and tax group on or after that date, overwriting any existing rate on that date.';
+                ToolTip = 'Creates or updates a Tax Detail for this line''s Tax Jurisdiction and tax group, effective on the order''s document date, using the rate Shopify charged. This changes your shared tax setup - it is not limited to this order and affects every document that posts this Tax Jurisdiction and tax group on or after that date, overwriting any existing rate on that date.';
 
                 trigger OnAction()
                 begin
@@ -157,9 +157,9 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
         UseShopifyRateEnabled: Boolean;
         ShippingAppliesToLbl: Label 'Shipping charge: %1', Comment = '%1 = shipping method title';
         NoJurisdictionErr: Label 'Assign a Tax Jurisdiction to this line before using Shopify''s rate.';
-        UseShopifyRateQst: Label 'This changes your shared Business Central tax setup for Tax Jurisdiction %1, not just this order: it sets the tax rate to Shopify''s %2 %, effective the order''s document date, and affects every document that posts this Tax Jurisdiction and tax group on or after that date. Do you want to continue?', Comment = '%1 = Tax Jurisdiction Code, %2 = Shopify rate percentage';
-        UseShopifyRateDoneMsg: Label 'Business Central will now post %1 %% for Tax Jurisdiction %2 as of the order''s document date. Approve the order to rebuild the Tax Area and clear the rate conflict.', Comment = '%1 = Shopify rate percentage, %2 = Tax Jurisdiction Code';
-        SeedFailedErr: Label 'The Business Central tax rate could not be updated for this tax line.';
+        UseShopifyRateQst: Label 'This changes your shared tax setup for Tax Jurisdiction %1, not just this order: it sets the Tax Detail Rate to Shopify''s %2 %, effective on the order''s document date, and affects every document that posts this Tax Jurisdiction and tax group on or after that date. Do you want to continue?', Comment = '%1 = Tax Jurisdiction Code, %2 = Shopify rate percentage';
+        UseShopifyRateDoneMsg: Label 'The Tax Detail Rate for Tax Jurisdiction %2 is now %1 %% as of the order''s document date. Approve the order to rebuild the Tax Area and clear the rate conflict.', Comment = '%1 = Shopify rate percentage, %2 = Tax Jurisdiction Code';
+        SeedFailedErr: Label 'The Tax Detail Rate could not be updated for this tax line.';
 
     /// <summary>
     /// Scopes the part to the tax lines of a single order. The host passes a filter

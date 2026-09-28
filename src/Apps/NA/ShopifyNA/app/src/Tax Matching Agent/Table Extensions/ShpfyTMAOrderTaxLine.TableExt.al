@@ -23,7 +23,7 @@ tableextension 30480 "Shpfy TMA Order Tax Line" extends "Shpfy Order Tax Line"
             Caption = 'Tax Jurisdiction Code';
             DataClassification = CustomerContent;
             TableRelation = "Tax Jurisdiction";
-            ToolTip = 'Specifies the Business Central Tax Jurisdiction that matches this Shopify tax line. Set by Tax Matching Agent.';
+            ToolTip = 'Specifies the Tax Jurisdiction that matches this Shopify tax line. Set by the Tax Matching Agent.';
         }
     }
 }
