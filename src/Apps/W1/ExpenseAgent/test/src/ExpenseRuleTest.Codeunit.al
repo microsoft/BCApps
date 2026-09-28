@@ -53,8 +53,8 @@ codeunit 148301 "Expense Rule Test"
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
         RequiredSpecificMerchantNotAllowedForMileageErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Mileage value, %4 = Expense Category table caption, %5 = Expense Category Code';
         RequiredSpecificMerchantEnabledMsg: Label 'Required Specific Merchant should be enabled for a non-mileage category.';
-        ExpenseItemizationFieldRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
-        ExpenseItemizationFieldRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
+        ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
+        ExpenseSubCategoryMustBeRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
 
     [Test]
     procedure AmountLCYIsConvertedBasedOnCurrencyInExpense()
@@ -8475,7 +8475,7 @@ codeunit 148301 "Expense Rule Test"
 
         // [THEN] Verify rule violation exists for missing itemization subcategory code.
         ExpenseRuleViolation.SetRange("Expense No.", Expense."No.");
-        ExpenseRuleViolation.SetRange(Description, StrSubstNo(ExpenseItemizationFieldRequiredInExpenseErr, ExpenseItemization.FieldCaption("Expense Subcategory Code"), ExpenseItemization."Expense No.", ExpenseItemization."Line No."));
+        ExpenseRuleViolation.SetRange(Description, StrSubstNo(ExpenseSubCategoryMustBeRequiredInExpenseErr, ExpenseItemization.FieldCaption("Expense Subcategory Code"), ExpenseItemization."Expense No.", ExpenseItemization."Line No."));
         Assert.RecordIsNotEmpty(ExpenseRuleViolation);
     end;
 
@@ -8524,7 +8524,7 @@ codeunit 148301 "Expense Rule Test"
         // [THEN] Verify rule violation exists for missing itemization subcategory code.
         ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportHeader."No.");
         ExpenseReportRuleViolation.SetRange("Report Line No.", ExpenseReportLine."Line No.");
-        ExpenseReportRuleViolation.SetRange(Description, StrSubstNo(ExpenseItemizationFieldRequiredInExpenseReportErr, ExpenseReportLineItem.FieldCaption("Expense Subcategory Code"), ExpenseReportLineItem."Expense Report No.", ExpenseReportLineItem."Expense Report Line No.", ExpenseReportLineItem."Line No."));
+        ExpenseReportRuleViolation.SetRange(Description, StrSubstNo(ExpenseSubCategoryMustBeRequiredInExpenseReportErr, ExpenseReportLineItem.FieldCaption("Expense Subcategory Code"), ExpenseReportLineItem."Expense Report No.", ExpenseReportLineItem."Expense Report Line No.", ExpenseReportLineItem."Line No."));
         Assert.RecordIsNotEmpty(ExpenseReportRuleViolation);
     end;
 
