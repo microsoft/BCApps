@@ -90,13 +90,5 @@ codeunit 144043 "Library - Localization FR"
     begin
         CODEUNIT.Run(CODEUNIT::"Payment Management FR");
     end;
-
-#if not CLEAN28
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Payment Management Feature FR", OnAfterCheckFeatureEnabled, '', false, false)]
-    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
-    begin
-        IsEnabled := true;
-    end;
-#endif
 }
 
