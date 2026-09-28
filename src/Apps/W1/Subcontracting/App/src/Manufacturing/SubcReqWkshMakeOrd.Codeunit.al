@@ -115,6 +115,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLineComp: Record "Purchase Line";
         TempPurchaseLineComp: Record "Purchase Line" temporary;
+        ExactPurchaseLineMatch: Boolean;
+        LegacyPurchaseLineMatch: Boolean;
         PurchaseLineChanged: Boolean;
         MissingComponentPurchLineCount: Integer;
     begin
@@ -137,6 +139,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         PurchaseLineComp.SetRange("Subc. Routing No.", RequisitionLine."Routing No.");
         PurchaseLineComp.SetRange("Subc. Rtng Reference No.", RequisitionLine."Routing Reference No.");
         PurchaseLineComp.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
+        PurchaseLineComp.SetFilter(
+            "Subc. Prod. Order Line No.", '%1|%2', RequisitionLine."Prod. Order Line No.", 0);
         if PurchaseLineComp.FindSet() then
             repeat
                 TempPurchaseLineComp := PurchaseLineComp;
@@ -151,18 +155,23 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Remaining Quantity", "Due Date");
         if ProdOrderComponent.FindSet() then
             repeat
+                Clear(ExactPurchaseLineMatch);
                 Clear(PurchaseLineChanged);
+                Clear(LegacyPurchaseLineMatch);
                 TempPurchaseLineComp.Reset();
                 TempPurchaseLineComp.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
                 TempPurchaseLineComp.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
-                if not TempPurchaseLineComp.FindFirst() then begin
+                ExactPurchaseLineMatch := TempPurchaseLineComp.FindFirst();
+                if not ExactPurchaseLineMatch then begin
                     TempPurchaseLineComp.Reset();
                     TempPurchaseLineComp.SetRange("Subc. Prod. Ord. Comp Line No.", 0);
                     TempPurchaseLineComp.SetRange("No.", ProdOrderComponent."Item No.");
                     TempPurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+                    LegacyPurchaseLineMatch := TempPurchaseLineComp.Count() = 1;
                 end;
 
-                if TempPurchaseLineComp.FindFirst() then begin
+                if (ExactPurchaseLineMatch or LegacyPurchaseLineMatch) and TempPurchaseLineComp.FindFirst()
+                then begin
                     PurchaseLineComp := TempPurchaseLineComp;
                     TempPurchaseLineComp.Delete();
                     if PurchaseLineComp."Subc. Prod. Order Line No." <> ProdOrderComponent."Prod. Order Line No." then begin
@@ -178,14 +187,20 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                         PurchaseLineChanged := true;
                     end;
 
-                    if (ProdOrderComponent."Due Date" <> 0D) and
-                       (PurchaseLineComp."Subc. Prod. Ord. Comp Due Date" <> ProdOrderComponent."Due Date")
+                    if LegacyPurchaseLineMatch and
+                       (PurchaseLineComp."Subc. Prod. Ord. Comp Due Date" = 0D)
                     then begin
-                        PurchaseLineComp.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
-                        PurchaseLineComp."Requested Receipt Date" := PurchaseLineComp."Planned Receipt Date";
                         PurchaseLineComp."Subc. Prod. Ord. Comp Due Date" := ProdOrderComponent."Due Date";
                         PurchaseLineChanged := true;
-                    end;
+                    end else
+                        if (ProdOrderComponent."Due Date" <> 0D) and
+                           (PurchaseLineComp."Subc. Prod. Ord. Comp Due Date" <> ProdOrderComponent."Due Date")
+                        then begin
+                            PurchaseLineComp.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
+                            PurchaseLineComp."Requested Receipt Date" := PurchaseLineComp."Planned Receipt Date";
+                            PurchaseLineComp."Subc. Prod. Ord. Comp Due Date" := ProdOrderComponent."Due Date";
+                            PurchaseLineChanged := true;
+                        end;
 
                     if PurchaseLineChanged then
                         PurchaseLineComp.Modify(true);
@@ -194,6 +209,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
             until ProdOrderComponent.Next() = 0;
 
         TempPurchaseLineComp.Reset();
+        TempPurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
         SendComponentPurchaseLineMismatchNotification(MissingComponentPurchLineCount, TempPurchaseLineComp.Count());
     end;
 
