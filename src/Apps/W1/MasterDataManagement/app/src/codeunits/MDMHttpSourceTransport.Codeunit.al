@@ -30,6 +30,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         InvalidSourceUrlErr: Label 'The source environment URL is not a valid Business Central endpoint.';
         InvalidSourceUrlAuditTxt: Label 'Blocked a cross-environment request: the configured source environment URL host ''%1'' is not a valid Business Central endpoint.', Comment = '%1 = the rejected host';
         HttpErr: Label 'The source environment returned HTTP %1.', Comment = '%1 = HTTP status code';
+        AccessDeniedErr: Label 'The source environment %1 denied access (HTTP %2). On the source environment, assign the registered app the ''Master Data Mgt. - Cross Environment'' permission set and approve the cross-environment privacy notice, then try again.', Comment = '%1 = source environment name, %2 = HTTP status code';
         ServiceNameTok: Label 'MDMCrossEnvSource', Locked = true;
         ScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
         ScopePPETok: Label 'https://api.businesscentral.dynamics-tie.com/.default', Locked = true;
@@ -97,7 +98,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
                     exit(UnwrapODataValue(ResponseBodyText));
                 if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
                     LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
-                    Error(SetupNavigationError(StrSubstNo(HttpErr, ResponseMessage.HttpStatusCode())));
+                    Error(SetupNavigationError(HttpStatusErrorMessage(MasterDataManagementSetup, ResponseMessage.HttpStatusCode())));
                 end;
                 Sleep(RetryAfter);
             end else begin
@@ -109,6 +110,15 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
                 end;
                 Sleep(TransportRetryBackoff());
             end;
+    end;
+
+    // 401/403 is an authorization failure on the SOURCE (missing permission set or unapproved privacy notice), so
+    // return a remedy the source admin can act on; other status codes keep the generic message.
+    local procedure HttpStatusErrorMessage(var MasterDataManagementSetup: Record "Master Data Management Setup"; StatusCode: Integer): Text
+    begin
+        if StatusCode in [401, 403] then
+            exit(StrSubstNo(AccessDeniedErr, MasterDataManagementSetup."Source Environment Name", StatusCode));
+        exit(StrSubstNo(HttpErr, StatusCode));
     end;
 
     local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage)
