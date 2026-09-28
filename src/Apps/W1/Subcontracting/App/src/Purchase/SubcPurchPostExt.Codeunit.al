@@ -60,7 +60,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         Error(CreateCancelNotSupportedErrorInfo(PurchInvHeader));
     end;
 
-    procedure CreateCancelNotSupportedErrorInfo(PurchInvHeader: Record "Purch. Inv. Header") CancelNotSupportedErrorInfo: ErrorInfo
+    internal procedure CreateCancelNotSupportedErrorInfo(PurchInvHeader: Record "Purch. Inv. Header") CancelNotSupportedErrorInfo: ErrorInfo
     begin
         CancelNotSupportedErrorInfo.Message := StrSubstNo(CancelNotSupportedErr, PurchInvHeader."No.");
         CancelNotSupportedErrorInfo.DataClassification := DataClassification::CustomerContent;
