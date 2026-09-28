@@ -4086,6 +4086,7 @@ codeunit 148305 "Expense Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseTeam.FieldCaption("Number Of Team Members"), 2, ExpenseTeam.TableCaption()));
     end;
 
+#if not CLEAN30
     // [Test] // Disabled - will be re-enabled in work item 629484
     procedure EntraIdMustBeRequiredInExpenseUserWhenExpenseApprovalSetupIsCreated()
     var
@@ -4176,6 +4177,7 @@ codeunit 148305 "Expense Test"
 
         // [THEN] Verify that the Approver ID of Team Manager must be automatically flow in Expense Approval Setup Through Handler.
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ExpectedConfirmHandler')]
