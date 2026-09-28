@@ -561,14 +561,14 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CancelSeparateSubcontractingInvoiceReversesCapacityCost()
     begin
         VerifySeparateSubcontractingInvoiceReversal(true);
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CorrectiveCreditMemoForSeparateSubcontractingInvoiceReversesCapacityCost()
     begin
         VerifySeparateSubcontractingInvoiceReversal(false);

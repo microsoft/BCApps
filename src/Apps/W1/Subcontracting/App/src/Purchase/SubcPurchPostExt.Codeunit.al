@@ -57,6 +57,30 @@ codeunit 20535 "Subc. Purch. Post Ext"
             Error(CancelNotSupportedErr, PurchInvHeader."No.");
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnTestPurchaseLinesOnAfterCalcThrowItemReturnedError, '', false, false)]
+    local procedure AllowCapacityOnlySubcontractingInvoiceCancellation(PurchInvHeader: Record "Purch. Inv. Header"; PurchInvLine: Record "Purch. Inv. Line"; var ThrowItemReturnedError: Boolean)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
+        ValueEntry.SetRange("Document Line No.", PurchInvLine."Line No.");
+        ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
+        if ValueEntry.IsEmpty() then
+            exit;
+
+        ValueEntry.SetRange("Capacity Ledger Entry No.");
+        ValueEntry.SetFilter("Item Ledger Entry No.", '<>%1', 0);
+        if ValueEntry.IsEmpty() then
+            ThrowItemReturnedError := false;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
     local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
     begin
