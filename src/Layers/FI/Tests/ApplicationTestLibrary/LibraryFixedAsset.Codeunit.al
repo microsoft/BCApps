@@ -86,7 +86,7 @@ codeunit 131330 "Library - Fixed Asset"
     procedure CreateFAPostingGroup(var FAPostingGroup: Record "FA Posting Group")
 #if not CLEAN30
     var
-        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
 #endif
     begin
         FAPostingGroup.Init();
@@ -128,7 +128,7 @@ codeunit 131330 "Library - Fixed Asset"
         FAPostingGroup.Validate("Book Val. Acc. on Disp. (Loss)", LibraryERM.CreateGLAccountNo());
 #if not CLEAN30
 #pragma warning disable AL0432
-        if not DepreciationDifferencesFIFeature.IsEnabled() then begin
+        if not FeatureManagementFacade.IsEnabled('DepreciationDifferencesFI') then begin
             FAPostingGroup.Validate("Depr. Difference Acc.", LibraryERM.CreateGLAccountNo());
             FAPostingGroup.Validate("Depr. Difference Bal. Acc.", LibraryERM.CreateGLAccountNo());
         end;

@@ -10,7 +10,7 @@ using System.Environment.Configuration;
 
 codeunit 13466 "FI Depreciation Diff. Feature"
 {
-    Access = Public;
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     ObsoleteReason = 'Feature Depreciation Differences FI will be enabled by default in version 33.0.';

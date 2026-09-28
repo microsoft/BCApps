@@ -1752,7 +1752,9 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Calc. and Post Depr. Difference';
                     RunObject = report "Calc. and Post Depr. Diff.";
-                    Visible = LegacyDepreciationDifferencesVisible;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
                 }
 #pragma warning restore AL0432
 #endif
@@ -2629,16 +2631,4 @@ page 8901 "Finance Manager Role Center"
 
         }
     }
-
-#if not CLEAN30
-    trigger OnOpenPage()
-    var
-        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
-    begin
-        LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
-    end;
-
-    var
-        LegacyDepreciationDifferencesVisible: Boolean;
-#endif
 }

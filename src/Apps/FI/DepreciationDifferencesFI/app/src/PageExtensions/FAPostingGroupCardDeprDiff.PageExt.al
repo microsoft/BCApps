@@ -33,6 +33,18 @@ pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group C
 #endif
             }
         }
+#if not CLEAN30
+#pragma warning disable AL0432
+        modify("Depr. Difference Acc.")
+        {
+            Visible = not DepreciationDifferencesEnabled;
+        }
+        modify("Depr. Difference Bal. Acc.")
+        {
+            Visible = not DepreciationDifferencesEnabled;
+        }
+#pragma warning restore AL0432
+#endif
     }
 
 #if not CLEAN30

@@ -19,6 +19,11 @@
       "id": "a6ac48f2-7b89-47fe-bb24-a9f722e6fec0",
       "name": "Depreciation Differences FI Tests",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "5b0a31a1-6b42-4123-a521-2265186cfb31",
+      "name": "Contoso Coffee Demo Dataset (FI)",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],

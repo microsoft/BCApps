@@ -22,6 +22,14 @@ pageextension 13479 "Source Code Setup DeprDiff Pg" extends "Source Code Setup"
 #endif
             }
         }
+#if not CLEAN30
+#pragma warning disable AL0432
+        modify("Depr. Difference")
+        {
+            Visible = not DepreciationDifferencesEnabled;
+        }
+#pragma warning restore AL0432
+#endif
     }
 
 #if not CLEAN30

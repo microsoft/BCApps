@@ -24,6 +24,14 @@ pageextension 13480 "Finance Manager RC DeprDiff FI" extends "Finance Manager Ro
 #endif
             }
         }
+#if not CLEAN30
+#pragma warning disable AL0432
+        modify("Calc. and Post Depr. Differenc")
+        {
+            Visible = not DepreciationDifferencesEnabled;
+        }
+#pragma warning restore AL0432
+#endif
     }
 
 #if not CLEAN30

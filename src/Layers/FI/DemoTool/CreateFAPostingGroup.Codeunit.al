@@ -15,7 +15,7 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group": Record "FA Posting Group";
         CA: Codeunit "Make Adjustments";
 #if not CLEAN30
-        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
 #endif
         XCAR: Label 'CAR';
         XMACHINERY: Label 'MACHINERY';
@@ -45,7 +45,7 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Acquisition Cost Bal. Acc.", CA.Convert("Acquisition Cost Bal. Acc."));
 #if not CLEAN30
 #pragma warning disable AL0432
-        if not DepreciationDifferencesFIFeature.IsEnabled() then begin
+        if not FeatureManagementFacade.IsEnabled('DepreciationDifferencesFI') then begin
             "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert("Depr. Difference Acc."));
             "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert("Depr. Difference Bal. Acc."));
         end;
