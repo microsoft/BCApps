@@ -139,7 +139,9 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Create Expense Report" = X,
                   codeunit "Expense API Currency Helper" = X,
                   codeunit "Expense Agent Privacy Subs." = X,
+#if not CLEAN30
                   codeunit "Expense Approval Helper" = X,
+#endif
                   codeunit "Expense Attachment Mgt." = X,
                   codeunit "Expense Auto Population" = X,
                   codeunit "Expense Capabilities Provider" = X,
