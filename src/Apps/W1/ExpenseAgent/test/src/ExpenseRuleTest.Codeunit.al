@@ -51,10 +51,10 @@ codeunit 148301 "Expense Rule Test"
         AdditionalDetailsLbl: Label 'additional details';
         PerDiemForLbl: Label 'Per Diem for: %1', Comment = '%1 = Date';
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
-        ExpenseItemizationSubcategoryRequiredErr: Label 'Expense Subcategory Code is required on all itemization lines for this expense.';
-        ItemizationSubcategoryRequiredErr: Label 'Expense Subcategory Code is required on all itemization lines for this expense report line.';
         RequiredSpecificMerchantNotAllowedForMileageErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Mileage value, %4 = Expense Category table caption, %5 = Expense Category Code';
         RequiredSpecificMerchantEnabledMsg: Label 'Required Specific Merchant should be enabled for a non-mileage category.';
+        ExpenseItemizationFieldRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
+        ExpenseItemizationFieldRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
 
     [Test]
     procedure AmountLCYIsConvertedBasedOnCurrencyInExpense()
@@ -7879,92 +7879,6 @@ codeunit 148301 "Expense Rule Test"
     end;
 
     [Test]
-    procedure ValidateItemizationSubcategoryRequiredErrorForExpense()
-    var
-        Expense: Record Expense;
-        ExpenseCategory: Record "Expense Category";
-        ExpenseSubCategory: Record "Expense Subcategory";
-        ExpenseUser: Record "Expense User";
-        ExpenseItemization: Record "Expense Itemization";
-        ExpenseRuleViolation: Record "Expense Rule Violation";
-        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
-    begin
-        // [FEATURE] [AI TEST]
-        // [SCENARIO 651059] Verify error is raised when an expense itemization line has blank subcategory code.
-        Initialize();
-
-        // [GIVEN] Create expense user and expense category with itemization.
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
-
-        // [GIVEN] Create a subcategory and an expense.
-        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
-        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', LibraryRandom.RandDec(100, 2));
-
-        // [GIVEN] Create expense itemization and clear subcategory code without validation trigger.
-        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), Expense.Amount, 1);
-        ExpenseItemization."Expense Subcategory Code" := '';
-        ExpenseItemization.Modify(false);
-
-        // [WHEN] Apply rule validation.
-        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
-
-        // [THEN] Verify rule violation exists for missing itemization subcategory code.
-        ExpenseRuleViolation.SetRange("Expense No.", Expense."No.");
-        ExpenseRuleViolation.SetRange(Description, ExpenseItemizationSubcategoryRequiredErr);
-        Assert.RecordIsNotEmpty(ExpenseRuleViolation);
-    end;
-
-    [Test]
-    [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure ValidateItemizationSubcategoryRequiredErrorForExpenseReportLine()
-    var
-        Expense: Record Expense;
-        ExpenseCategory: Record "Expense Category";
-        ExpenseSubCategory: Record "Expense Subcategory";
-        ExpenseUser: Record "Expense User";
-        ExpenseItemization: Record "Expense Itemization";
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportLine: Record "Expense Report Line";
-        ExpenseReportLineItem: Record "Expense Report Line Item";
-        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
-        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
-    begin
-
-        // [SCENARIO 651059] Verify error is raised when an expense report line itemization line has blank subcategory code.
-        Initialize();
-
-        // [GIVEN] Create expense user and expense category with itemization.
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
-
-        // [GIVEN] Create a subcategory, expense and valid itemization.
-        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
-        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', LibraryRandom.RandDec(100, 2));
-        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), Expense.Amount, 1);
-
-        // [GIVEN] Release expense and create expense report.
-        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
-        CreateAndAttachExpenseToExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
-        FindExpenseReportLine(ExpenseReportLine, ExpenseReportHeader."No.");
-        FindExpenseReportLineItemization(ExpenseReportLineItem, ExpenseReportHeader."No.", ExpenseReportLine);
-
-        // [GIVEN] Clear subcategory code on the expense report line itemization without validation trigger.
-        ExpenseReportLineItem."Expense Subcategory Code" := '';
-        ExpenseReportLineItem.Modify(false);
-
-        // [WHEN] Apply rule validation on expense report line.
-        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
-
-        // [THEN] Verify rule violation exists for missing itemization subcategory code.
-        ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportHeader."No.");
-        ExpenseReportRuleViolation.SetRange("Report Line No.", ExpenseReportLine."Line No.");
-        ExpenseReportRuleViolation.SetRange(Description, ItemizationSubcategoryRequiredErr);
-        Assert.RecordIsNotEmpty(ExpenseReportRuleViolation);
-    end;
-
-    [Test]
     procedure ValidateMultipleCategoriesMixedSubcategoryScenario()
     var
         ExpenseWithSubcategory: Record Expense;
@@ -8526,6 +8440,92 @@ codeunit 148301 "Expense Rule Test"
 
         // [THEN] Validation fails because the merchant name must be cleared first.
         Assert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
+    procedure ValidateItemizationSubcategoryRequiredErrorForExpense()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 651059] Verify error is raised when an expense itemization line has blank subcategory code.
+        Initialize();
+
+        // [GIVEN] Create expense user and expense category with itemization.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+
+        // [GIVEN] Create a subcategory and an expense.
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', LibraryRandom.RandDec(100, 2));
+
+        // [GIVEN] Create expense itemization and clear subcategory code without validation trigger.
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), Expense.Amount, 1);
+        ExpenseItemization."Expense Subcategory Code" := '';
+        ExpenseItemization.Modify(false);
+
+        // [WHEN] Apply rule validation.
+        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
+
+        // [THEN] Verify rule violation exists for missing itemization subcategory code.
+        ExpenseRuleViolation.SetRange("Expense No.", Expense."No.");
+        ExpenseRuleViolation.SetRange(Description, StrSubstNo(ExpenseItemizationFieldRequiredInExpenseErr, ExpenseItemization.FieldCaption("Expense Subcategory Code"), ExpenseItemization."Expense No.", ExpenseItemization."Line No."));
+        Assert.RecordIsNotEmpty(ExpenseRuleViolation);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ValidateItemizationSubcategoryRequiredErrorForExpenseReportLine()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 651059] Verify error is raised when an expense report line itemization line has blank subcategory code.
+        Initialize();
+
+        // [GIVEN] Create expense user and expense category with itemization.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+
+        // [GIVEN] Create a subcategory, expense and valid itemization.
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', LibraryRandom.RandDec(100, 2));
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), Expense.Amount, 1);
+
+        // [GIVEN] Release expense and create expense report.
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        CreateAndAttachExpenseToExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        FindExpenseReportLine(ExpenseReportLine, ExpenseReportHeader."No.");
+        FindExpenseReportLineItemization(ExpenseReportLineItem, ExpenseReportHeader."No.", ExpenseReportLine);
+
+        // [GIVEN] Clear subcategory code on the expense report line itemization without validation trigger.
+        ExpenseReportLineItem."Expense Subcategory Code" := '';
+        ExpenseReportLineItem.Modify(false);
+
+        // [WHEN] Apply rule validation on expense report line.
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [THEN] Verify rule violation exists for missing itemization subcategory code.
+        ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportHeader."No.");
+        ExpenseReportRuleViolation.SetRange("Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportRuleViolation.SetRange(Description, StrSubstNo(ExpenseItemizationFieldRequiredInExpenseReportErr, ExpenseReportLineItem.FieldCaption("Expense Subcategory Code"), ExpenseReportLineItem."Expense Report No.", ExpenseReportLineItem."Expense Report Line No.", ExpenseReportLineItem."Line No."));
+        Assert.RecordIsNotEmpty(ExpenseReportRuleViolation);
     end;
 
     local procedure Initialize()
