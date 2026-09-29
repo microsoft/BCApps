@@ -66,11 +66,6 @@ permissionset 36951 "PowerBi Report Basic"
         query "G/L Accounts" = X,
         query "G/L Budget Entries - PBI API" = X,
         query "G/L Budgets" = X,
-#if not CLEAN26
-#pragma warning disable AL0432
-        query "G/L Entries - Income Statement" = X,
-#pragma warning restore AL0432
-#endif
         query "G\L Entries - Balance Sheet" = X,
         query "Inv. Adj. Ent Order - PBI API" = X,
         query "Item Budget Entries - Purch." = X,

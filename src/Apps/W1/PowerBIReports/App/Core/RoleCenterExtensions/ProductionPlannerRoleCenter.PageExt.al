@@ -29,34 +29,6 @@ pageextension 36958 "Production Planner Role Center" extends "Production Planner
                     RunObject = page "Manufacturing Report";
                     Tooltip = 'Open a Power BI Report that offers a consolidated view of all manufacturing report pages, conveniently embedded into a single page for easy access.';
                 }
-#if not CLEAN26
-                action("Current Utilization")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Current Utilization';
-                    Image = "PowerBI";
-                    RunObject = page "Current Utilization";
-                    Tooltip = 'Open a Power BI Report to view the current Weeks Utilization % by comparing Capacity Used to Available Capacity in Hours. View all or some Work Centers to measure throughput and efficiency.';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'The Power BI report has been changed/removed and this is no longer required.';
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
-#if not CLEAN26
-                action("Historical Utilization")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Historical Utilization';
-                    Image = "PowerBI";
-                    RunObject = page "Historical Utilization";
-                    Tooltip = 'Open a Power BI Report to view the historical Utilization % by comparing Capacity Used vs. Available Capacity in Hours viewed over a timeline you can define to see trends. View all or some Work Centers.';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'The Power BI report has been changed/removed and this is no longer required.';
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
                 action("Work Center Load")
                 {
                     ApplicationArea = Basic, Suite;

@@ -53,16 +53,6 @@ page 2680 "Data Search"
                 ApplicationArea = All;
                 UpdatePropagation = Both;
             }
-#if not CLEAN26
-            group(lines)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Unnecessary';
-                ObsoleteTag = '23.0';
-                Visible = false;
-                ShowCaption = false;
-            }
-#endif
         }
     }
 

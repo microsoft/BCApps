@@ -26,36 +26,10 @@ codeunit 6380 Upgrade
     var
 
     begin
-#if not CLEAN26
-        // Upgrade code per company
-        UpdateServiceIntegration();
-#endif
 #if not CLEANSCHEMA30
         UpdateAvalaraDocId();
 #endif
     end;
-
-#if not CLEAN26
-    local procedure UpdateServiceIntegration()
-    var
-        EDocumentService: Record "E-Document Service";
-        UpgradeTag: Codeunit "Upgrade Tag";
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeServiceIntegrationTag()) then
-            exit;
-
-        // 6370 - Avlara Integration
-        EDocumentService.SetRange("Service Integration", 6370);
-        if EDocumentService.FindSet() then
-            repeat
-                EDocumentService."Service Integration V2" := Enum::"Service Integration"::Avalara;
-                EDocumentService."Service Integration" := Enum::"E-Document Integration"::"No Integration";
-                EDocumentService.Modify();
-            until EDocumentService.Next() = 0;
-
-        UpgradeTag.SetUpgradeTag(UpgradeServiceIntegrationTag());
-    end;
-#endif
 
 #if not CLEANSCHEMA30
     local procedure UpdateAvalaraDocId()

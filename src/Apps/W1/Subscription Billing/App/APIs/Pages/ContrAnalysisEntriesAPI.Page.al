@@ -28,15 +28,6 @@ page 8087 "Contr. Analysis Entries API"
                 field(serviceObjectNo; Rec."Subscription Header No.")
                 {
                 }
-#if not CLEAN26
-                field(serviceObjectItemNo; Rec."Service Object Item No.")
-                {
-                    ObsoleteReason = 'Replaced by field Service Object Source No.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
                 field(serviceObjectSourceType; Rec."Sub. Header Source Type")
                 {
                 }

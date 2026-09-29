@@ -40,16 +40,6 @@ page 8059 "Service Objects"
                     ToolTip = 'Specifies whether the Subscription was created by creating a Contract line manually.';
                     Visible = false;
                 }
-#if not CLEAN26
-                field("Item No."; Rec."Item No.")
-                {
-                    ToolTip = 'Specifies the Item No. of the Subscription.';
-                    ObsoleteReason = 'Replaced by field Source No.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies a description of the Subscription.';

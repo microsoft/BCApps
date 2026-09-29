@@ -477,13 +477,7 @@ page 8887 "Email Accounts"
         repeat
             IConnector := EmailAccounts.Connector;
 
-#if not CLEAN26
-#pragma warning disable AL0432
-            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") and not (IConnector is "Email Connector v4") then
-#pragma warning restore AL0432
-#else
             if not (IConnector is "Email Connector v3") then
-#endif
                 EmailAccounts.Delete();
 
         until EmailAccounts.Next() = 0;
@@ -538,18 +532,6 @@ page 8887 "Email Accounts"
     begin
         ShowCreateAccount := Show;
     end;
-
-    /// <summary>
-    /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
-    /// </summary>
-    /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
-#if not CLEAN26
-    [Obsolete('Replaced by FilterConnectorV3Accounts. In addition, this function now returns both v2 and v3 accounts.', '26.0')]
-    procedure FilterConnectorV2Accounts(UseFilter: Boolean)
-    begin
-        V2V3Filter := UseFilter;
-    end;
-#endif
 
     /// <summary>
     /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.

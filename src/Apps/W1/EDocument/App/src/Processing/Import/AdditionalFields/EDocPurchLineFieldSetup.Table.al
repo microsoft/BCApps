@@ -9,16 +9,9 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 table 6109 "EDoc. Purch. Line Field Setup"
 {
     Access = Internal;
-#pragma warning disable AS0072 // this change will be backported - the tag 26.0 is expected
     ObsoleteReason = 'Replaced by "ED Purchase Line Field Setup"';
-#if not CLEAN26
-    ObsoleteState = Pending;
-    ObsoleteTag = '26.0';
-#else
     ObsoleteState = Removed;
-    ObsoleteTag = '29.0';
-#endif
-#pragma warning restore AS0072
+    ObsoleteTag = '30.0';
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;
     ReplicateData = false;
