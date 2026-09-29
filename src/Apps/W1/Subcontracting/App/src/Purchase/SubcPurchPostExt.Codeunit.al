@@ -99,7 +99,11 @@ codeunit 20535 "Subc. Purch. Post Ext"
     local procedure RestoreSubcontractingOutputApplication(var ToPurchLine: Record "Purchase Line"; FromPurchInvLine: Record "Purch. Inv. Line"; ToPurchHeader: Record "Purchase Header")
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        MissingExactCostReversingLink: Boolean;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -122,10 +126,14 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ItemLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
         ItemLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
         ItemLedgerEntry.SetRange(Positive, true);
-        if not ItemLedgerEntry.FindFirst() then
+        if ItemLedgerEntry.IsEmpty() then
             exit;
 
-        ToPurchLine."Appl.-to Item Entry" := ItemLedgerEntry."Entry No.";
+        ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempItemLedgerEntry, ItemLedgerEntry);
+        ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
+            TempItemLedgerEntry, ToPurchLine, true, MissingExactCostReversingLink,
+            ToPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
+        // Keep the copied subcontracting price while retaining the exact per-entry applications created above.
         ToPurchLine.Modify();
     end;
 

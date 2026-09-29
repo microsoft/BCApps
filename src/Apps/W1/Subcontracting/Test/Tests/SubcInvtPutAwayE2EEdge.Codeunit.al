@@ -570,14 +570,21 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CancelSeparateSubcontractingInvoiceReversesCapacityCost()
     begin
-        VerifySeparateSubcontractingInvoiceReversal(true);
+        VerifySeparateSubcontractingInvoiceReversal(true, false);
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CorrectiveCreditMemoForSeparateSubcontractingInvoiceReversesCapacityCost()
     begin
-        VerifySeparateSubcontractingInvoiceReversal(false);
+        VerifySeparateSubcontractingInvoiceReversal(false, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure CorrectiveCreditMemoForTrackedSeparateSubcontractingInvoicePreservesApplications()
+    begin
+        VerifySeparateSubcontractingInvoiceReversal(false, true);
     end;
 
     [Test]
@@ -1463,7 +1470,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         SubcWarehouseLibrary.VerifyNoItemLedgerEntry(Item."No.", Location.Code);
     end;
 
-    local procedure VerifySeparateSubcontractingInvoiceReversal(CancelInvoice: Boolean)
+    local procedure VerifySeparateSubcontractingInvoiceReversal(CancelInvoice: Boolean; TrackOutput: Boolean)
     var
         CancelledDocument: Record "Cancelled Document";
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
@@ -1473,9 +1480,11 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         MachineCenter: array[2] of Record "Machine Center";
         PostedCreditMemoHeader: Record "Purch. Cr. Memo Hdr.";
         PostedInvoiceHeader: Record "Purch. Inv. Header";
+        ProdOrderLine: Record "Prod. Order Line";
         ProductionOrder: Record "Production Order";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         ReasonCode: Record "Reason Code";
+        ReservationEntry: Record "Reservation Entry";
         InvoiceHeader: Record "Purchase Header";
         InvoiceLine: Record "Purchase Line";
         PurchaseHeader: Record "Purchase Header";
@@ -1483,6 +1492,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         ValueEntry: Record "Value Entry";
         Vendor: Record Vendor;
         WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
         WorkCenter: array[2] of Record "Work Center";
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
@@ -1494,9 +1504,15 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         Quantity: Decimal;
     begin
         Initialize();
-        Quantity := LibraryRandom.RandIntInRange(5, 10);
+        if TrackOutput then
+            Quantity := 2
+        else
+            Quantity := LibraryRandom.RandIntInRange(5, 10);
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
-        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        if TrackOutput then
+            SubcWarehouseLibrary.CreateSerialTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter)
+        else
+            SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
         SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
 
@@ -1510,11 +1526,30 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
             ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        if TrackOutput then begin
+            ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+            ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderLine.FindFirst();
+            LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, 'REV-SN1', '', 1);
+            LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, 'REV-SN2', '', 1);
+        end;
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
-        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        if TrackOutput then begin
+            WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+            WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+            WarehouseActivityLine.FindSet();
+            WarehouseActivityLine.Validate("Qty. to Handle", 1);
+            WarehouseActivityLine.Validate("Serial No.", 'REV-SN1');
+            WarehouseActivityLine.Modify(true);
+            WarehouseActivityLine.Next();
+            WarehouseActivityLine.Validate("Qty. to Handle", 1);
+            WarehouseActivityLine.Validate("Serial No.", 'REV-SN2');
+            WarehouseActivityLine.Modify(true);
+        end else
+            LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
         LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
 
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
@@ -1555,10 +1590,19 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
             InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
             InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
             InvoiceLine.FindFirst();
-            Assert.IsTrue(ItemLedgerEntry.Get(InvoiceLine."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
-            Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to the original output Item Ledger Entry.');
-            Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting production order.');
-            Assert.AreEqual(PurchRcptLine."Document No.", ItemLedgerEntry."Document No.", 'The applied output Item Ledger Entry must belong to the subcontracting receipt.');
+            ReservationEntry.SetSourceFilter(
+                Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(), InvoiceLine."Document No.", InvoiceLine."Line No.", false);
+            if TrackOutput then
+                Assert.RecordCount(ReservationEntry, 2)
+            else
+                Assert.RecordCount(ReservationEntry, 1);
+            ReservationEntry.FindSet();
+            repeat
+                Assert.IsTrue(ItemLedgerEntry.Get(ReservationEntry."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
+                Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to an original output Item Ledger Entry.');
+                Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting production order.');
+                Assert.AreEqual(PurchRcptLine."Document No.", ItemLedgerEntry."Document No.", 'The applied output Item Ledger Entry must belong to the subcontracting receipt.');
+            until ReservationEntry.Next() = 0;
             InvoiceHeader.Validate(
                 "Vendor Cr. Memo No.",
                 CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(InvoiceHeader."Vendor Cr. Memo No.")));
