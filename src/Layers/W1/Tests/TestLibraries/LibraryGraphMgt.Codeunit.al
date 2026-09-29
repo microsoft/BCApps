@@ -43,18 +43,12 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure GetValue(Path: Text): Text
     var
+        Json: Codeunit Json;
         ValueToken: JsonToken;
-        JsonText: Text;
     begin
         if not JsonSelectedToken.SelectToken(Path, ValueToken) then
             exit('');
-        if ValueToken.IsValue() then begin
-            if ValueToken.AsValue().IsNull() or ValueToken.AsValue().IsUndefined() then
-                exit('');
-            exit(GetJsonValueText(ValueToken));
-        end;
-        ValueToken.WriteTo(JsonText);
-        exit(JsonText);
+        exit(Json.GetTokenAsText(ValueToken));
     end;
 
     procedure GetCount(): Integer
