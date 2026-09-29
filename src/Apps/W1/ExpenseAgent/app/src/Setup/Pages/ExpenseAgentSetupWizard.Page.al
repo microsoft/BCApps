@@ -961,21 +961,26 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if CloseAction = CloseAction::Cancel then
             exit(true);
+
         if StateChanged() then
             if EAHttpClient.IsCurrentUserGuestUser() then
                 Error(GuestUserErr);
+
         if not ValidateManagementRulesDependencies() then
             exit(false);
 
         UpdateAgentSetupBuffer();
+
         if AgentBeingEnabled() then
             if not ConfirmMissingAccountWarnings() then
                 exit(false);
 
         VerifySchedulingMailboxAccess();
+
         if AgentBeingEnabled() and StateChanged() then
             if not ActivateAgent() then
                 exit(false);
+
         if AgentBeingDisabled() and StateChanged() then
             if not DeactivateAgent() then
                 exit(false);
@@ -1074,6 +1079,7 @@ page 6991 "Expense Agent Setup Wizard"
         IncludeManagementRules := Rec."Management Rules Applied";
         ApplyNoSeries := Rec."No. Series Applied";
         UseCanaryEndpoint := Rec."Use Canary Endpoint";
+
         if IsFirstTimeSetup then begin
             Rec."Use Rules" := true;
             ApplyAccountingDefaultsSelection(true);
@@ -1098,6 +1104,7 @@ page 6991 "Expense Agent Setup Wizard"
             end;
             exit;
         end;
+
         if not NoSeriesLocked then
             ApplyNoSeries := false;
         if not PaymentMethodsLocked then
@@ -1122,6 +1129,7 @@ page 6991 "Expense Agent Setup Wizard"
             end;
             exit;
         end;
+
         if not ExpLocationsLocked then
             ApplyExpLocations := false;
         if not ManagementRulesLocked then
@@ -1193,6 +1201,7 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if ExpenseAgentSetup.Get() then
             AgentUserSecurityID := ExpenseAgentSetup."User Security ID";
+
         if not IsNullGuid(AgentUserSecurityID) then
             if Agent.Get(AgentUserSecurityID) then
                 exit(AgentUserSecurityID);
@@ -1242,6 +1251,7 @@ page 6991 "Expense Agent Setup Wizard"
             ConfirmQst := IncludeCategoriesAndPostingGroupsForRulesQst
         else
             ConfirmQst := IncludeCategoriesForRulesQst;
+
         if not Confirm(ConfirmQst, true) then
             exit(false);
 
@@ -1259,16 +1269,22 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if not ExpenseAgentSetup.Get() then
             exit;
+
         if ApplyNoSeries and not NoSeriesLocked then
             ExpenseAgentSetup.CreateNoSeriesDefaults();
+
         if ApplyPaymentMethods and not PaymentMethodsLocked then
             ExpenseAgentSetup.CreatePaymentMethodsDefaults();
+
         if ApplyPostingGroups and not PostingGroupsLocked then
             ExpenseAgentSetup.CreatePostingGroupsDefaults();
+
         if IncludeExpCategories and not ExpCategoriesLocked then
             ExpenseAgentSetup.CreateExpenseCategoriesDefaults();
+
         if ApplyExpLocations and not ExpLocationsLocked then
             ExpenseAgentSetup.CreateExpenseLocationsDefaults();
+
         if IncludeManagementRules and not ManagementRulesLocked then
             ExpenseAgentSetup.CreateManagementRulesDefaults();
     end;
@@ -1315,6 +1331,7 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if Rec."Full Per-Diem Calculation" = Rec."Full Per-Diem Calculation"::None then
             exit(NotApplicableLbl);
+
         case Rec."Partial Day Rules" of
             Rec."Partial Day Rules"::"Flat Percentage Of Full Rate":
                 exit(StrSubstNo(FlatRateSummaryLbl, FormatPercentage(Rec."Percentage For Partial Day")));
@@ -1427,6 +1444,7 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if ExpPrivacyNoticeReg.IsPrivacyNoticeApproved() then
             exit;
+
         if not ExpPrivacyNoticeReg.ConfirmPrivacyNoticeApproval() then
             Error(PrivacyNoticeNotAcceptedMsg);
     end;
@@ -1476,6 +1494,7 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         ValidatePrivacyNoticeApproval();
         ValidateCapabilityIsEnabled();
+
         if Rec."Enable Approval Workflow" then
             Error(ApprovalWorkflowConflictErr, Rec.FieldCaption("Enable Approval Workflow"));
 
@@ -1554,6 +1573,7 @@ page 6991 "Expense Agent Setup Wizard"
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then
             if Confirm(CapabilityDisabledQst, false, Enum::"Copilot Capability"::"Expense Agent", CopilotAiCapabilities.Caption) then
                 if CopilotAiCapabilities.RunModal() in [Action::OK] then;
+
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then
             Error(CapabilityDisabledErr, Enum::"Copilot Capability"::"Expense Agent");
     end;
@@ -1610,10 +1630,13 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if EnvironmentInfo.IsOnPrem() then
             exit(ExpenseDashboardUrlOnPremTxt);
+
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit('');
+
         if URLHelper.IsTIE() or URLHelper.IsPPE() then
             exit(ExpenseDashboardUrlTieTxt);
+
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit(ExpenseDashboardUrlProdTxt);
 

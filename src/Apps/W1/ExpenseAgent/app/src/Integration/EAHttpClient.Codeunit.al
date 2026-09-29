@@ -113,6 +113,7 @@ codeunit 6941 "EA Http Client"
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
+
         if not IsSuccess then begin
             // Transport-level failure: no HTTP response was received. A last-error call
             // stack is meaningful here, but HTTP status/reason are not available.
@@ -122,6 +123,7 @@ codeunit 6941 "EA Http Client"
             FeatureTelemetry.LogError('0000RIB', ExpenseAgentSetup.GetFeatureName(), SubmitExpenseFailedTxt, SubmitExpenseFailedTxt, GetLastErrorCallStack(), TelemetryDimensions);
             exit(false);
         end;
+
         if ResponseMessage.IsSuccessStatusCode() then begin
             FeatureTelemetry.LogUsage('0000RIF', ExpenseAgentSetup.GetFeatureName(), SubmitExpenseSuccessTxt);
             exit(true);
@@ -168,6 +170,7 @@ codeunit 6941 "EA Http Client"
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
+
         if IsSuccess then
             IsSuccess := ResponseMessage.IsSuccessStatusCode();
 
@@ -220,6 +223,7 @@ codeunit 6941 "EA Http Client"
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
+
         if IsSuccess then
             IsSuccess := ResponseMessage.IsSuccessStatusCode();
 
@@ -267,6 +271,7 @@ codeunit 6941 "EA Http Client"
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
+
         if IsSuccess then
             IsSuccess := ResponseMessage.IsSuccessStatusCode();
 
@@ -388,6 +393,7 @@ codeunit 6941 "EA Http Client"
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit(false);
+
         if not GetProductionBaseUrl(BaseUrl) then
             exit(false);
 
@@ -401,6 +407,7 @@ codeunit 6941 "EA Http Client"
         // Use the non-throwing auth path to avoid block the wizard from opening.
         if not TryAddAuthHeaders(Headers) then
             exit(false);
+
         if not Client.Send(RequestMessage, ResponseMessage) then
             exit(false);
         if not ResponseMessage.IsSuccessStatusCode() then
@@ -510,11 +517,13 @@ codeunit 6941 "EA Http Client"
             Message(FailureError);
             exit(false);
         end;
+
         if not ResponseMessage.IsSuccessStatusCode() then begin
             FeatureTelemetry.LogError('0000RID', ExpenseAgentSetup.GetFeatureName(), StrSubstNo(ErpConfigRequestFailedTxt, HttpMethod), StrSubstNo(ErpConfigRequestFailedTxt, HttpMethod));
             Message(FailureError);
             exit(false);
         end;
+
         if HttpMethod = 'POST' then
             FeatureTelemetry.LogUsage('0000RIG', ExpenseAgentSetup.GetFeatureName(), ErpConfigRegisteredTxt)
         else
@@ -572,6 +581,7 @@ codeunit 6941 "EA Http Client"
     begin
         if not EnvironmentInformation.IsSaaS() then
             exit;
+
         if not TryGetAccessToken(AccessToken) then
             Error(CouldNotGetAccessTokenErr);
         if AccessToken.IsEmpty() then
