@@ -690,6 +690,8 @@ codeunit 139996 "Subc. Planning Test"
             ProdOrderComponent, PurchaseLineComp, RemovedProdOrderComponent, RemovedPurchaseLine);
         RemovedProdOrderComponent.Delete(true);
         RemovedPurchaseLine.Delete(true);
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
         ClearComponentPurchaseLineIdentity(PurchaseLineComp);
         ManuallyAdjustedDate := DMY2Date(20, 10, 2026);
         PurchaseLineComp.Validate("Expected Receipt Date", ManuallyAdjustedDate);
