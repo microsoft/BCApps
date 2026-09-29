@@ -4734,7 +4734,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     procedure VendorSuppliedPurchLineNotCancelledByPlanning()
     var
         ComponentItem: Record Item;
@@ -4751,7 +4750,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         // [SCENARIO 650344] Planning must not cancel a Vendor-Supplied component line on a subcontracting purchase order.
         Initialize();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
