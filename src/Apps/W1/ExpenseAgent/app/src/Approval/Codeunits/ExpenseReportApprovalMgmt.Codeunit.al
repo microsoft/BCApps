@@ -275,6 +275,9 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if NewApproverExpenseUserNo = ExpenseReportHeader."Final Approver No." then
             Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Final Approver No."), ExpenseReportHeader."Final Approver No.");
 
+        if (ExpenseReportHeader."Alternate Approver No." <> '') and (NewApproverExpenseUserNo = ExpenseReportHeader."Alternate Approver No.") then
+            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Alternate Approver No."), ExpenseReportHeader."Alternate Approver No.");
+
         if (ActorExpenseUserNo <> '') and (ActorExpenseUserNo <> ExpenseReportHeader."Expense User No.") then
             Error(InterimApproverActorErr, ExpenseReportHeader."Expense User No.");
 
