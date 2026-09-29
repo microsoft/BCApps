@@ -281,6 +281,19 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         SubcWarehouseLibrary.VerifyCapacityLedgerEntry(WorkCenter[1]."No.", Quantity);
     end;
 
+    [Test]
+    procedure NotLastOperation_DoesNotOverrideHandledSerialInsertion()
+    var
+        SubcInvtPutAwayExt: Codeunit "Subc. Invt. Put-away Ext";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine."Subc. Purchase Line Type" := "Subc. Purchase Line Type"::NotLastOperation;
+
+        Assert.IsFalse(
+            SubcInvtPutAwayExt.ShouldInsertFullQuantityForNotLastOperation(WarehouseActivityLine, true),
+            'A NotLastOperation subscriber must preserve an IsHandled value set by an earlier subscriber.');
+    end;
+
     [HandlerFunctions('MessageHandler')]
     [Test]
     procedure PostLastOperation_BinMandatoryLocation_NoDuplicateWarehouseEntry()
