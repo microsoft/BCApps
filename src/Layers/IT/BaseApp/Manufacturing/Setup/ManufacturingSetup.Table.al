@@ -387,11 +387,11 @@ table 99000765 "Manufacturing Setup"
         field(12180; "Subcontr. Ship. Reason Code"; Code[10])
         {
             Caption = 'Subcontr. Ship. Reason Code';
-#if not CLEAN27
-            TableRelation = "Transport Reason Code";
+#if not CLEAN28
+            TableRelation = Microsoft.Inventory.Setup."Transport Reason Code";
 #endif
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
@@ -402,11 +402,11 @@ table 99000765 "Manufacturing Setup"
         field(12181; "Subcontr. Return Reason Code"; Code[10])
         {
             Caption = 'Subcontr. Return Reason Code';
-#if not CLEAN27
-            TableRelation = "Transport Reason Code";
+#if not CLEAN28
+            TableRelation = Microsoft.Inventory.Setup."Transport Reason Code";
 #endif
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
@@ -450,7 +450,6 @@ table 99000765 "Manufacturing Setup"
     begin
         if (xRec."Finish Order without Output") and (not Rec."Finish Order without Output") then
             Error(NotAllowedDisableFinishOrderWithoutOutputErr, Rec.FieldCaption("Finish Order without Output"));
-
         if not ConfirmManagement.GetResponseOrDefault(
             StrSubstNo(FinishOrderWithoutOutputQst, Rec.FieldCaption("Finish Order without Output")),
             false)
