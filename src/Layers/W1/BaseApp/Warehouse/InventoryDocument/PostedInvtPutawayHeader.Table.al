@@ -89,6 +89,13 @@ table 7340 "Posted Invt. Put-away Header"
             Caption = 'Posting Date';
             ToolTip = 'Specifies the posting date from the inventory put-away.';
         }
+        field(21; "Bin Mandatory"; Boolean)
+        {
+            CalcFormula = lookup(Location."Bin Mandatory" where(Code = field("Location Code")));
+            Caption = 'Bin Mandatory';
+            Editable = false;
+            FieldClass = FlowField;
+        }
         field(7306; "Source No."; Code[20])
         {
             Caption = 'Source No.';
@@ -200,9 +207,9 @@ table 7340 "Posted Invt. Put-away Header"
         if "No." = '' then begin
             TestNoSeries();
             "No. Series" := GetNoSeriesCode();
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
-                "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
+            "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
         end;
         "Registering Date" := WorkDate();
     end;
