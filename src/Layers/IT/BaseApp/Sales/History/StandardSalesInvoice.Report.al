@@ -1033,12 +1033,12 @@ report 1306 "Standard Sales - Invoice"
                 column(PostedPaymentLineDueDate_Lbl; FieldCaption("Due Date"))
                 {
                 }
-                column(PostedPaymentLineAmount; Amount)
+                column(PostedPaymentLineAmount; PostedPaymentLineAmount)
                 {
                     AutoFormatExpression = Header."Currency Code";
                     AutoFormatType = 1;
                 }
-                column(PostedPaymentLineAmountFormatted; Format(Amount, 0, AutoFormat.ResolveAutoFormat(Enum::"Auto Format"::AmountFormat, Header."Currency Code")))
+                column(PostedPaymentLineAmountFormatted; Format(PostedPaymentLineAmount, 0, AutoFormat.ResolveAutoFormat(Enum::"Auto Format"::AmountFormat, Header."Currency Code")))
                 {
                 }
                 column(PostedPaymentLineAmount_Lbl; FieldCaption(Amount))
@@ -1048,10 +1048,36 @@ report 1306 "Standard Sales - Invoice"
                 {
                 }
 
+                trigger OnAfterGetRecord()
+                var
+                    PostedPaymentLines2: Record "Posted Payment Lines";
+                begin
+                    PostedPaymentLines2.Copy(PostedPaymentLine);
+                    if PostedPaymentLines2.Next() = 0 then
+                        PostedPaymentLineAmount := Header."Amount Including VAT" - PostedPaymentLineResidualTotal
+                    else begin
+                        PostedPaymentLineAmount := Round(
+                            "Payment %" * Header."Amount Including VAT" / 100, PostedPaymentLineRoundingPrecision);
+                        PostedPaymentLineResidualTotal += PostedPaymentLineAmount;
+                    end;
+                end;
+
                 trigger OnPreDataItem()
+                var
+                    Currency: Record Currency;
                 begin
                     if PostedPaymentLineCount <= 1 then
                         CurrReport.Break();
+
+                    PostedPaymentLineResidualTotal := 0;
+                    if Header."Currency Code" = '' then begin
+                        Currency.InitRoundingPrecision();
+                        PostedPaymentLineRoundingPrecision := Currency."Amount Rounding Precision";
+                    end else begin
+                        Currency.Get(Header."Currency Code");
+                        Currency.TestField("Amount Rounding Precision");
+                        PostedPaymentLineRoundingPrecision := Currency."Amount Rounding Precision";
+                    end;
                 end;
             }
             dataitem(LeftHeader; "Name/Value Buffer")
@@ -1195,6 +1221,7 @@ report 1306 "Standard Sales - Invoice"
 
                 FormatAddressFields(Header);
                 FormatDocumentFields(Header);
+                CalcFields("Amount Including VAT");
                 SetPostedPaymentScheduleDisplay(Header);
                 if SellToContact.Get("Sell-to Contact No.") then;
                 if BillToContact.Get("Bill-to Contact No.") then;
@@ -1226,7 +1253,6 @@ report 1306 "Standard Sales - Invoice"
 
                 PaymentServiceSetup.CreateReportingArgs(PaymentReportingArgument, Header);
 
-                CalcFields("Amount Including VAT");
                 RemainingAmount := GetRemainingAmount();
                 if RemainingAmount = 0 then
                     RemainingAmountTxt := AlreadyPaidLbl
@@ -1436,6 +1462,9 @@ report 1306 "Standard Sales - Invoice"
         DueDateDisplayText: Text;
         ExchangeRateText: Text;
         PostedPaymentLineCount: Integer;
+        PostedPaymentLineAmount: Decimal;
+        PostedPaymentLineResidualTotal: Decimal;
+        PostedPaymentLineRoundingPrecision: Decimal;
         PrevLineAmount: Decimal;
         SalespersonLbl: Label 'Salesperson';
         CompanyInfoBankAccNoLbl: Label 'Account No.';
