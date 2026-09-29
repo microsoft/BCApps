@@ -78,6 +78,7 @@ permissionset 20501 "Subcontract. - Objs"
         codeunit "Subc. Feature Flag Handler" = X,
 #pragma warning restore AL0432
 #endif
+        codeunit "Subc. Feature Telemetry" = X,
         codeunit "Subc. Upgrade Tag Def. Ext." = X,
         codeunit "Subc. Worksheet Handler" = X,
         codeunit "Subc. Attachment Details Ext." = X,
