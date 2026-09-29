@@ -1019,6 +1019,8 @@ codeunit 148342 "Expense Activity Log Test"
         VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Cleared, 0, 1, 0);
         VerifyUnchangedPolicySnapshot(OriginalEntry);
         SetPolicySnapshotFilter(SubmissionID, Entry);
+        // The same filtered read before reassignment can still be served from the server's result cache.
+        SelectLatestVersion(Database::"Expense Activity Log Entry");
         Entry.FindFirst();
         Assert.AreEqual(Database::"Posted Expense Report Header", Entry."Source Table ID", 'The source table must identify the posted report.');
         Assert.AreEqual(PostedHeader.SystemId, Entry."Source Record System ID", 'The posted source must own the snapshot.');
@@ -1639,8 +1641,9 @@ codeunit 148342 "Expense Activity Log Test"
     var
         Category: Record "Expense Category";
     begin
-        Category.Get(Line."Expense Category");
-        Category.Rename(CategoryCode);
+        // Categories in use cannot be renamed, so move the line to a new category with the requested code.
+        Category.Code := CategoryCode;
+        Category.Insert(false);
         Line.Get(Line."Document No.", Line."Line No.");
         Line."Expense Category" := Category.Code;
         Line.Modify(false);

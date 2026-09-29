@@ -167,6 +167,8 @@ codeunit 6926 "Expense Activity Log Mgt."
         Snapshot.CopyFilters(SubmissionEntry);
         Snapshot.SetRange("Event Type", Snapshot."Event Type"::PolicyEvaluated);
         Snapshot.SetFilter("Entry No.", '>%1', SubmissionEntry."Entry No.");
+        // A locking read bypasses cached query results, which could otherwise hide an existing snapshot and log a duplicate.
+        Snapshot.ReadIsolation := IsolationLevel::UpdLock;
         // Log at most one PolicyEvaluated entry after the latest Submitted/Resubmitted entry.
         // Example (Entry No.): Submitted 100, PolicyEvaluated 101 => skip duplicate.
         // Resubmitted 105 starts a new round; entry 101 remains in history.
