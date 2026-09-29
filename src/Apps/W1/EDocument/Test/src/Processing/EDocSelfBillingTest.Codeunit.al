@@ -16,7 +16,7 @@ using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
-codeunit 139791 "E-Doc. Self-Billing Test"
+codeunit 139783 "E-Doc. Self-Billing Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
