@@ -7161,9 +7161,6 @@
                               <Height>1.1cm</Height>
                               <Width>7cm</Width>
                               <ZIndex>10</ZIndex>
-                              <Visibility>
-                                <Hidden>=IsNothing(Max(Fields!PostedPaymentSchedule_Lbl.Value)) Or Max(Fields!PostedPaymentSchedule_Lbl.Value) = ""</Hidden>
-                              </Visibility>
                               <Style>
                                 <Border>
                                   <Style>None</Style>
