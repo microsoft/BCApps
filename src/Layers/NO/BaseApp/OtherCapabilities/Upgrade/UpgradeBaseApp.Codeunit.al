@@ -3378,7 +3378,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchasesPayablesAndSalesReceivablesSetupsUpgradeTag());
     end;
 
-    local procedure UpgradeRestoreOrderQtyOnReturnInSalesAndPurchasesSetup()
+    internal procedure UpgradeRestoreOrderQtyOnReturnInSalesAndPurchasesSetup()
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
