@@ -25,6 +25,45 @@ codeunit 132970 "SharePoint Client Test"
         IsInitialized: Boolean;
 
     [Test]
+    procedure TestDownloadFileContentByServerRelativePathEscapesHashAndPercent()
+    var
+        FileInStream: InStream;
+        ServerRelativePath: Text;
+        IsSuccess: Boolean;
+    begin
+        // [SCENARIO] ResourcePath-based downloads preserve legal # and % filename characters.
+        Initialize();
+        ServerRelativePath := '/sites/Test/Shared Documents/Invoice #50%.pdf';
+
+        IsSuccess := SharePointClient.DownloadFileContentByServerRelativePath(ServerRelativePath, FileInStream);
+
+        Assert.IsTrue(IsSuccess, 'The ResourcePath-based download should succeed');
+        Assert.IsTrue(
+            SharePointTestLibrary.GetLastRequestUri().Contains(
+                '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/$value/'),
+            'The decodedurl endpoint should preserve the decoded server-relative path');
+    end;
+
+    [Test]
+    procedure TestDeleteFileByServerRelativePathEscapesHashAndPercent()
+    var
+        ServerRelativePath: Text;
+        IsSuccess: Boolean;
+    begin
+        // [SCENARIO] ResourcePath-based deletes preserve legal # and % filename characters.
+        Initialize();
+        ServerRelativePath := '/sites/Test/Shared Documents/Invoice #50%.pdf';
+
+        IsSuccess := SharePointClient.DeleteFileByServerRelativePath(ServerRelativePath);
+
+        Assert.IsTrue(IsSuccess, 'The ResourcePath-based delete should succeed');
+        Assert.IsTrue(
+            SharePointTestLibrary.GetLastRequestUri().Contains(
+                '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/'),
+            'The decodedurl endpoint should preserve the decoded server-relative path');
+    end;
+
+    [Test]
     procedure TestGetLists()
     var
         TempSharePointList: Record "SharePoint List" temporary;

@@ -360,6 +360,18 @@ codeunit 9100 "SharePoint Client"
     end;
 
     /// <summary>
+    /// Downloads a file addressed by a decoded server-relative path.
+    /// Supports paths containing reserved characters such as # and %.
+    /// </summary>
+    /// <param name="ServerRelativePath">Decoded server-relative path of the file to download.</param>
+    /// <param name="FileInStream">The InStream that will be populated with the file content.</param>
+    /// <returns>True if the operation was successful; otherwise, false.</returns>
+    procedure DownloadFileContentByServerRelativePath(ServerRelativePath: Text; var FileInStream: InStream): Boolean
+    begin
+        exit(SharePointClientImpl.DownloadFileContentByServerRelativePath(ServerRelativePath, FileInStream));
+    end;
+
+    /// <summary>
     /// Deletes a file.
     /// </summary>
     /// <param name="OdataId">The odata.id parameter of the file entity.</param>
@@ -377,6 +389,17 @@ codeunit 9100 "SharePoint Client"
     procedure DeleteFileByServerRelativeUrl(ServerRelativeUrl: Text): Boolean
     begin
         exit(SharePointClientImpl.DeleteFileByServerRelativeUrl(ServerRelativeUrl));
+    end;
+
+    /// <summary>
+    /// Deletes a file addressed by a decoded server-relative path.
+    /// Supports paths containing reserved characters such as # and %.
+    /// </summary>
+    /// <param name="ServerRelativePath">Decoded server-relative path of the file to delete.</param>
+    /// <returns>True if the operation was successful; otherwise, false.</returns>
+    procedure DeleteFileByServerRelativePath(ServerRelativePath: Text): Boolean
+    begin
+        exit(SharePointClientImpl.DeleteFileByServerRelativePath(ServerRelativePath));
     end;
 
     /// <summary>

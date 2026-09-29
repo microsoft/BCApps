@@ -19,6 +19,7 @@ codeunit 9110 "SharePoint Uri Builder"
         UriLbl: Label 'https://{server_name}/_api/{namespace}', Locked = true;
         UriAppendTxt: Label '/%1', Comment = '%1 - URI part to append', Locked = true;
         SetMethodTxt: Label '/%1(''%2'')', Comment = '%1 - method name, %2 - method parameter', Locked = true;
+        SetMethodNamedTextTxt: Label '/%1(%2=''%3'')', Comment = '%1 - method name, %2 - parameter name, %3 - text parameter value', Locked = true;
         SetMethodRawTxt: Label '/%1(%2)', Comment = '%1 - method name, %2 - method parameter', Locked = true;
         SetMethodGuidTxt: Label '/%1(guid''%2'')', Comment = '%1 - method name, %2 - method parameter', Locked = true;
         QueryParameters: Dictionary of [Text, Text];
@@ -83,6 +84,12 @@ codeunit 9110 "SharePoint Uri Builder"
     begin
         Parameters.Add(ParameterName, ParameterValue);
         SetMethod(Method, Parameters);
+    end;
+
+    procedure SetMethodWithNamedTextParameter(Method: Text; ParameterName: Text; ParameterValue: Text)
+    begin
+        ParameterValue := ParameterValue.Replace('''', '''''');
+        Uri += StrSubstNo(SetMethodNamedTextTxt, EscapeDataString(Method), EscapeDataString(ParameterName), EscapeDataString(ParameterValue));
     end;
 
     procedure SetMethod(Method: Text; Parameters: Dictionary of [Text, Text])

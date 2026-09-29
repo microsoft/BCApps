@@ -60,7 +60,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
 
-        if not SharePointClient.DownloadFileContentByServerRelativeUrl(Path, TempBlobStream) then
+        if not SharePointClient.DownloadFileContentByServerRelativePath(Path, TempBlobStream) then
             ShowError(SharePointClient);
 
         // Platform fix: For some reason the Stream from DownloadFileContentByServerRelativeUrl dies after leaving the interface
@@ -120,7 +120,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     begin
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if SharePointClient.DeleteFileByServerRelativeUrl(Path) then
+        if SharePointClient.DeleteFileByServerRelativePath(Path) then
             exit;
 
         ShowError(SharePointClient);

@@ -580,6 +580,22 @@ codeunit 9101 "SharePoint Client Impl."
         exit(true);
     end;
 
+    procedure DownloadFileContentByServerRelativePath(ServerRelativePath: Text; var FileInStream: InStream): Boolean
+    begin
+        // GET https://{site_url}/_api/web/GetFileByServerRelativePath(decodedurl='/Folder/File#1%.pdf')/$value
+        SharePointUriBuilder.ResetPath();
+        SharePointUriBuilder.SetMethodWithNamedTextParameter('GetFileByServerRelativePath', 'decodedurl', ServerRelativePath);
+        SharePointUriBuilder.SetObject('$value');
+
+        SharePointRequestHelper.SetAuthorization(Authorization);
+        SharePointOperationResponse := SharePointRequestHelper.Get(SharePointUriBuilder);
+        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
+            exit(false);
+
+        SharePointOperationResponse.GetResultAsStream(FileInStream);
+        exit(true);
+    end;
+
     procedure DeleteFile(OdataId: Text): Boolean
     begin
         //DELETE https://{site_url}/_api/web/GetFileByServerRelativeUrl('/Folder Name/{file_name}')
@@ -598,6 +614,20 @@ codeunit 9101 "SharePoint Client Impl."
         //DELETE https://{site_url}/_api/web/GetFileByServerRelativeUrl('/Folder Name/{file_name}')
         SharePointUriBuilder.ResetPath();
         SharePointUriBuilder.SetMethod('GetFileByServerRelativeUrl', ServerRelativeUrl);
+
+        SharePointRequestHelper.SetAuthorization(Authorization);
+        SharePointOperationResponse := SharePointRequestHelper.Delete(SharePointUriBuilder);
+        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
+            exit(false);
+
+        exit(true);
+    end;
+
+    procedure DeleteFileByServerRelativePath(ServerRelativePath: Text): Boolean
+    begin
+        // DELETE https://{site_url}/_api/web/GetFileByServerRelativePath(decodedurl='/Folder/File#1%.pdf')
+        SharePointUriBuilder.ResetPath();
+        SharePointUriBuilder.SetMethodWithNamedTextParameter('GetFileByServerRelativePath', 'decodedurl', ServerRelativePath);
 
         SharePointRequestHelper.SetAuthorization(Authorization);
         SharePointOperationResponse := SharePointRequestHelper.Delete(SharePointUriBuilder);

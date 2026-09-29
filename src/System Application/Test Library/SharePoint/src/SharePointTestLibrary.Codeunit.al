@@ -14,6 +14,7 @@ codeunit 132973 "SharePoint Test Library"
 
     var
         LastContextInfoRequestUri: Text;
+        LastRequestUri: Text;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Request Helper", 'OnBeforeSendRequest', '', false, false)]
     local procedure RunOnBeforeSendRequest(HttpRequestMessage: HttpRequestMessage; var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; var IsHandled: Boolean; Method: Text)
@@ -34,10 +35,16 @@ codeunit 132973 "SharePoint Test Library"
         IsHandled := true;
 
         Uri := LocalUri.UnescapeDataString(Uri);
+        LastRequestUri := Uri;
 
         if Uri.EndsWith('/_api/contextinfo/') then begin
             LastContextInfoRequestUri := Uri;
             GetContextDigestTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+            exit;
+        end;
+
+        if Uri.Contains('/_api/Web/GetFileByServerRelativePath(decodedurl=') then begin
+            GetFileByServerRelativePathTestResponse(SharePointOperationResponse);
             exit;
         end;
 
@@ -125,6 +132,18 @@ codeunit 132973 "SharePoint Test Library"
     procedure GetLastContextInfoRequestUri(): Text
     begin
         exit(LastContextInfoRequestUri);
+    end;
+
+    procedure GetLastRequestUri(): Text
+    begin
+        exit(LastRequestUri);
+    end;
+
+    local procedure GetFileByServerRelativePathTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        SharePointOperationResponse.SetHttpResponse('Dummy file content', HttpHeaders, 200, true, 'OK');
     end;
 
     local procedure GetContextDigestTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; BaseUrl: Text; ParentUrl: Text)
