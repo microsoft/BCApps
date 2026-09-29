@@ -378,7 +378,10 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
             if Item.Get(SalesShipmentLine."No.") then begin
                 Item.TestField("SAT Item Classification");
                 if Item."SAT Hazardous Material" <> '' then
-                    Item.TestField("SAT Packaging Type");
+                    Item.TestField("SAT Packaging Type")
+                else
+                    if IsHazardousMaterialMandatory(Item."SAT Item Classification") then
+                        Error(HazardousMaterialMandatoryErr, Item."No.", Item."SAT Item Classification");
             end;
 
             if UnitOfMeasure.Get(SalesShipmentLine."Unit of Measure Code") then
@@ -408,7 +411,10 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
             if Item.Get(SalesLine."No.") then begin
                 Item.TestField("SAT Item Classification");
                 if Item."SAT Hazardous Material" <> '' then
-                    Item.TestField("SAT Packaging Type");
+                    Item.TestField("SAT Packaging Type")
+                else
+                    if IsHazardousMaterialMandatory(Item."SAT Item Classification") then
+                        Error(HazardousMaterialMandatoryErr, Item."No.", Item."SAT Item Classification");
             end;
 
             if UnitOfMeasure.Get(SalesLine."Unit of Measure Code") then
@@ -435,7 +441,10 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
             if Item.Get(TransferShipmentLine."Item No.") then begin
                 Item.TestField("SAT Item Classification");
                 if Item."SAT Hazardous Material" <> '' then
-                    Item.TestField("SAT Packaging Type");
+                    Item.TestField("SAT Packaging Type")
+                else
+                    if IsHazardousMaterialMandatory(Item."SAT Item Classification") then
+                        Error(HazardousMaterialMandatoryErr, Item."No.", Item."SAT Item Classification");
             end;
 
             if UnitOfMeasure.Get(TransferShipmentLine."Unit of Measure Code") then
@@ -462,7 +471,10 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
             if Item.Get(TransferLine."Item No.") then begin
                 Item.TestField("SAT Item Classification");
                 if Item."SAT Hazardous Material" <> '' then
-                    Item.TestField("SAT Packaging Type");
+                    Item.TestField("SAT Packaging Type")
+                else
+                    if IsHazardousMaterialMandatory(Item."SAT Item Classification") then
+                        Error(HazardousMaterialMandatoryErr, Item."No.", Item."SAT Item Classification");
             end;
 
             if UnitOfMeasure.Get(TransferLine."Unit of Measure Code") then
@@ -489,8 +501,18 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
         EDocCFDIValidationMX.CheckCertificate(EDocumentService);
     end;
 
+    local procedure IsHazardousMaterialMandatory(SATClassificationCode: Code[10]): Boolean
+    var
+        SATClassification: Record "SAT Classification";
+    begin
+        if not SATClassification.Get(SATClassificationCode) then
+            exit(false);
+        exit(SATClassification."Hazardous Material Mandatory");
+    end;
+
     var
         SourceDocumentNotSupportedErr: Label 'The source document %1 is not supported for Carta Porte validation.', Comment = '%1 = source document caption';
+        HazardousMaterialMandatoryErr: Label 'Item %1 uses SAT classification %2 which requires a hazardous material code. Please fill in the SAT Hazardous Material field on the item card.', Comment = '%1 = Item No., %2 = SAT Classification code';
         MXConnectionSetupMissingErr: Label 'MX Connection Setup does not exist. Please complete the Interfactura setup.';
         EmptySATCatalogErr: Label 'The %1 catalog is empty. Please import the SAT catalogs.', Comment = '%1 = table caption';
         SATAddressNotFoundErr: Label 'SAT Address with Id %1 does not exist.', Comment = '%1 = SAT Address Id';

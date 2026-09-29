@@ -44,8 +44,9 @@ codeunit 3355 "Interfactura Processing"
         SecurityAuditCancelRequestedTxt: Label 'CFDI cancellation request submitted for E-Document %1.', Locked = true, Comment = '%1 - E-Document entry no';
 
 
-    procedure SendEDocument(var TempBlob: Codeunit "Temp Blob"; var EDocument: Record "E-Document"; var SendContext: Codeunit SendContext)
+    procedure SendEDocument(var TempBlob: Codeunit "Temp Blob"; var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var SendContext: Codeunit SendContext)
     var
+        EDocCFDIEmailMX: Codeunit "EDoc CFDI Email MX";
         ErrorText, RequestTxt : Text;
         RequestType: Option "Request Stamp",Cancel,CancelRequest;
     begin
@@ -62,7 +63,7 @@ codeunit 3355 "Interfactura Processing"
 
         Session.LogMessage('0000QX5', StrSubstNo(StampSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         TryProcessAdvanceReverseAfterSettle(EDocument);
-
+        EDocCFDIEmailMX.TrySendStampEmail(EDocument, EDocumentService);
     end;
 
     internal procedure SendPaymentComplement(var TempBlob: Codeunit "Temp Blob"; MessageContext: Codeunit "E-Doc. Message Context")

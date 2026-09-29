@@ -23,6 +23,7 @@ codeunit 3364 "EDoc CFDI Print MX"
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ReportSelections: Record "Report Selections";
+        CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
         EDocCartaPorteReport: Report "EDoc CFDI Carta Porte MX";
         RecordRef: RecordRef;
     begin
@@ -30,6 +31,10 @@ codeunit 3364 "EDoc CFDI Print MX"
             Error(DocumentNotFoundErr);
         if not RecordRef.Get(EDocument."Document Record ID") then
             Error(DocumentNotFoundErr);
+
+        if CFDIWriteBackMX.GetUUIDForDocument(EDocument."Document Record ID") = '' then
+            if not Confirm(PrintNotStampedQst, false) then
+                exit;
 
         case RecordRef.Number of
             Database::"Sales Invoice Header":
@@ -76,4 +81,5 @@ codeunit 3364 "EDoc CFDI Print MX"
     var
         DocumentNotFoundErr: Label 'The source document for this E-Document could not be found.';
         DocumentTypeNotSupportedErr: Label 'Printing CFDI is not supported for document type %1.', Comment = '%1 = document type caption';
+        PrintNotStampedQst: Label 'This CFDI document has not been stamped and does not have a UUID. The printed document will not include the fiscal stamp data. Do you want to continue?';
 }

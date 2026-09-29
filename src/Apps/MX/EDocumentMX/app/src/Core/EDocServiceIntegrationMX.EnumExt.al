@@ -7,7 +7,6 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Integration.Interfaces;
-using Microsoft.eServices.EDocument.Processing.Message;
 
 enumextension 3352 "Service Integration MX" extends "Service Integration"
 {

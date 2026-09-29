@@ -28,7 +28,7 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
             Error(DisabledSetupErr);
 
         TempBlob := SendContext.GetTempBlob();
-        InterfacturaProcessing.SendEDocument(TempBlob, EDocument, SendContext);
+        InterfacturaProcessing.SendEDocument(TempBlob, EDocument, EDocumentService, SendContext);
 
     end;
 
