@@ -60,15 +60,16 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
     procedure UpdateData(FeatureDataUpdateStatus: Record "Feature Data Update Status")
     var
         FeatureDataUpdateMgt: Codeunit "Feature Data Update Mgt.";
+        DepDiffFIHelperProcedures: Codeunit "Dep Diff FI Helper Procedures";
         StartDateTime: DateTime;
         EndDateTime: DateTime;
     begin
         StartDateTime := CurrentDateTime;
         FeatureDataUpdateMgt.LogTask(FeatureDataUpdateStatus, 'Upgrade Depreciation Differences FI', StartDateTime);
-        TransferFields(Database::"FA Posting Group", 13462, 13400);
-        TransferFields(Database::"FA Posting Group", 13463, 13401);
-        TransferFields(Database::"FA Ledger Entry", 13464, 13400);
-        TransferFields(Database::"Source Code Setup", 13465, 13400);
+        DepDiffFIHelperProcedures.TransferFields(Database::"FA Posting Group", 13462, 13400);
+        DepDiffFIHelperProcedures.TransferFields(Database::"FA Posting Group", 13463, 13401);
+        DepDiffFIHelperProcedures.TransferFields(Database::"FA Ledger Entry", 13464, 13400);
+        DepDiffFIHelperProcedures.TransferFields(Database::"Source Code Setup", 13465, 13400);
         EndDateTime := CurrentDateTime;
         FeatureDataUpdateMgt.LogTask(FeatureDataUpdateStatus, 'Upgrade Depreciation Differences FI', EndDateTime);
     end;
@@ -111,22 +112,6 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
         TempDocumentEntry."Table Name" := CopyStr(TableName, 1, MaxStrLen(TempDocumentEntry."Table Name"));
         TempDocumentEntry."No. of Records" := RecordCount;
         TempDocumentEntry.Insert();
-    end;
-
-    local procedure TransferFields(TableId: Integer; TargetFieldNo: Integer; SourceFieldNo: Integer)
-    var
-        RecRef: RecordRef;
-        TargetFieldRef: FieldRef;
-        SourceFieldRef: FieldRef;
-    begin
-        RecRef.Open(TableId, false);
-        SourceFieldRef := RecRef.Field(SourceFieldNo);
-        if RecRef.FindSet() then
-            repeat
-                TargetFieldRef := RecRef.Field(TargetFieldNo);
-                TargetFieldRef.Value := SourceFieldRef.Value;
-                RecRef.Modify(false);
-            until RecRef.Next() = 0;
     end;
 
     local procedure SetUpgradeTag(DataUpgradeExecuted: Boolean)
