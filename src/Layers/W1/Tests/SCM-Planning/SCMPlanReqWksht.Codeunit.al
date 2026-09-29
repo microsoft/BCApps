@@ -5805,6 +5805,7 @@
         LibrarySetupStorage.Restore();
 
         LibraryApplicationArea.EnableEssentialSetup();
+        LibraryApplicationArea.EnablePremiumSetup();
 
         // Lazy Setup.
         if isInitialized then
