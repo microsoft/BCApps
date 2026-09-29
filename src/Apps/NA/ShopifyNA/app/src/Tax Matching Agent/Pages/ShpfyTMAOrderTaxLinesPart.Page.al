@@ -159,7 +159,7 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
         ShippingAppliesToLbl: Label 'Shipping charge: %1', Comment = '%1 = shipping method title';
         NoJurisdictionErr: Label 'Assign a Tax Jurisdiction to this line before using Shopify''s rate.';
         UseShopifyRateQst: Label 'This changes your shared tax setup for Tax Jurisdiction %1, not just this order: it sets the Tax Detail Rate to Shopify''s %2 %, effective on the order''s document date, and affects every document that posts this Tax Jurisdiction and tax group on or after that date. Do you want to continue?', Comment = '%1 = Tax Jurisdiction Code, %2 = Shopify rate percentage';
-        UseShopifyRateDoneMsg: Label 'The Tax Detail Rate for Tax Jurisdiction %2 is now %1 %% as of the order''s document date. Approve the order to rebuild the Tax Area and clear the rate conflict.', Comment = '%1 = Shopify rate percentage, %2 = Tax Jurisdiction Code';
+        UseShopifyRateDoneMsg: Label 'The Tax Detail Rate for Tax Jurisdiction %2 is now %1% as of the order''s document date. Approve the order to rebuild the Tax Area and clear the rate conflict.', Comment = '%1 = Shopify rate percentage, %2 = Tax Jurisdiction Code';
         SeedFailedErr: Label 'The Tax Detail Rate could not be updated for this tax line.';
 
     /// <summary>

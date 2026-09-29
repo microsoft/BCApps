@@ -1,8 +1,8 @@
-# Shopify Tax Matching Agent - Architecture
+# Shopify Tax Matching - Architecture
 
 ## Purpose
 
-Shopify orders contain free-text tax descriptions, while Business Central requires structured Tax Jurisdictions and a Tax Area. The Tax Matching Agent attempts to resolve that gap when the standard address-based tax-area lookup does not find a match.
+Shopify orders contain free-text tax descriptions, while Business Central requires structured Tax Jurisdictions and a Tax Area. Shopify Tax Matching attempts to resolve that gap when the standard address-based tax-area lookup does not find a match.
 
 The feature is part of the Shopify Connector NA app and is currently enabled for supported North American scenarios.
 
@@ -11,6 +11,7 @@ The feature is part of the Shopify Connector NA app and is currently enabled for
 - **Conservative by default**: The feature is disabled until an administrator enables it for a shop.
 - **Preserve the standard flow**: Existing address-based tax mapping runs first and takes precedence.
 - **Fail safely**: If the AI service or its required safeguards are unavailable, matching is skipped and order synchronization continues normally.
+- **Bound automated processing**: A centrally managed processing limit constrains how many orders can use AI matching in a fixed period.
 - **Require explicit creation settings**: New tax jurisdictions and tax areas are created only when the corresponding shop settings allow it.
 - **Keep people in control**: Incomplete, conflicting, or policy-selected matches are held for review before a sales document is created.
 - **Remain auditable**: Applied matches and review decisions are recorded through standard Business Central surfaces.
@@ -26,7 +27,7 @@ Standard order mapping
   |-- Attempt the standard address-based Tax Area lookup
   |
   v
-Tax Matching Agent eligibility checks
+Shopify Tax Matching eligibility checks
   |-- Did order mapping succeed?
   |-- Is the order taxable?
   |-- Is the Tax Area still unresolved?
@@ -38,6 +39,9 @@ Tax Matching Agent eligibility checks
 Prepare the matching request
   |-- Collect unmatched product and shipping tax lines
   |-- Retain existing jurisdiction assignments for reprocessing
+  |-- No unmatched tax lines: skip matching
+  |-- Is the Key Vault processing-limit configuration valid and capacity available?
+  |     \-- No: skip matching and emit operational telemetry
   |-- Include candidate jurisdictions and coarse ship-to geography
   |
   v
@@ -110,10 +114,10 @@ Model output is treated as a proposal, not as an instruction:
 
 When Shopify's rate differs from an existing Tax Detail Rate, the jurisdiction can still be matched, but the existing rate is preserved and the order is held for review. A reviewer can accept the Tax Detail Rate, select another jurisdiction, or explicitly choose to update tax setup to the Shopify rate.
 
-Canadian HST/TVH jurisdictions are normalized by ship-to province (for example `ONHST` and `NSHST`) when a province-specific jurisdiction exists or the agent is allowed to create one. The province is taken from the ship-to province code, or mapped from the province name through the Shopify Tax Areas. Agent-created generic HST jurisdictions are not reused across provinces; federal GST/TPS remains reusable.
+Canadian HST/TVH jurisdictions are normalized by ship-to province (for example `ONHST` and `NSHST`) when a province-specific jurisdiction exists or Shopify Tax Matching is allowed to create one. The province is taken from the ship-to province code, or mapped from the province name through the Shopify Tax Areas. AI-created generic HST jurisdictions are not reused across provinces; federal GST/TPS remains reusable.
 
 Tax lines with a 0% rate, such as the county placeholder line Shopify sends for New York City addresses, are matched or created like any other tax line. A 0% rate is never a reason to leave a line unresolved.
-Jurisdictions created by the agent remain provisional until they are approved through the review workflow. This prevents newly generated master data from being treated as trusted without human confirmation.
+Jurisdictions created by AI remain provisional until they are approved through the review workflow. This prevents newly generated master data from being treated as trusted without human confirmation.
 
 ## Review policy
 
@@ -146,6 +150,17 @@ Customer names, monetary totals, item details, street addresses, and postal code
 
 The Shopify Shop Card contains the feature toggle, creation settings, Tax Area naming preference, and review mode. Settings that depend on another option remain unavailable until their prerequisite is enabled.
 
+The processing limit is stored in Azure Key Vault under `ShopifyTaxMatchingProcessingLimit`:
+
+```json
+{
+  "maxOrders": 100,
+  "periodMinutes": 60
+}
+```
+
+The limit applies per company and counts orders whose latest AI attempt falls in the preceding `periodMinutes`. Set `maxOrders` to `0` to stop new AI matching requests. Missing or invalid configuration fails closed and skips matching.
+
 The main user surfaces are:
 
 - **Tax Match Review**: Review, correct, and approve jurisdiction assignments and rate differences.
@@ -153,6 +168,8 @@ The main user surfaces are:
 - **Sales Order**: Review the originating tax match for orders that were allowed to continue automatically.
 
 Notifications are derived from the current order state and can be disabled by the user through standard notification settings.
+
+Operational telemetry records configuration failures, processing-limit blocks, eligible-order counts, tax-line volume, candidate and matched jurisdiction counts, and match outcomes. The Azure OpenAI platform telemetry supplies request and token measurements for the registered capability.
 
 ## Data and integration boundaries
 
@@ -168,7 +185,7 @@ The feature does not replace the connector's import or document-creation pipelin
 
 ## Installation and upgrades
 
-Feature enablement and automatic jurisdiction creation remain opt-in. Dependent settings receive defaults for new and existing shops without enabling the agent on behalf of the administrator.
+Feature enablement and automatic jurisdiction creation remain opt-in. Dependent settings receive defaults for new and existing shops without enabling Shopify Tax Matching on behalf of the administrator.
 
 Eligible environments can be prompted to install the North America app through the standard extension-management experience.
 

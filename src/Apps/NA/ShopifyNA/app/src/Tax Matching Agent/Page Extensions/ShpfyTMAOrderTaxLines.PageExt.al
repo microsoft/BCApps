@@ -8,7 +8,7 @@ namespace Microsoft.Integration.Shopify;
 /// <summary>
 /// PageExtension Shpfy TMA Order Tax Lines (ID 30478) extends Shpfy Order Tax Lines (page 30168).
 /// Adds the Tax Jurisdiction Code column to the standalone tax lines list — visible only when
-/// the order's shop has Tax Matching Agent enabled. The column lives in the Tax Matching Agent app so
+/// the order's shop has Shopify Tax Matching enabled. The column lives in the Shopify Connector NA app so
 /// the standard connector page is uncluttered for tenants that do not use the feature.
 /// </summary>
 pageextension 30478 "Shpfy TMA Order Tax Lines" extends "Shpfy Order Tax Lines"
