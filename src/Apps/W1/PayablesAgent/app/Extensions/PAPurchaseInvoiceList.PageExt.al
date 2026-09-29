@@ -95,6 +95,14 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
         if not PayablesAgentSetup.GetAgent(Agent) then
             exit;
 
+        // An archived agent is not resolvable in the task pane, so the agent card is opened instead,
+        // which keeps the agent reachable for auditing.
+        if Agent.Substate = Agent.Substate::Archived then begin
+            Agent.SetRecFilter();
+            Page.Run(Page::"Agent Card", Agent);
+            exit;
+        end;
+
         TaskPane.ShowAgent(Agent."User Security ID");
     end;
 

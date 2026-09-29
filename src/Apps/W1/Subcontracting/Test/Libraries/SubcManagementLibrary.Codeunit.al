@@ -15,6 +15,7 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Setup;
@@ -26,6 +27,12 @@ codeunit 139983 "Subc. Management Library"
         CreateSubcontractingManagementSetup();
     end;
 
+    var
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        UseWithFilterOnlyErr: Label 'Prod. Order Routing Line must have filter to be used in this method.';
+        NoJournalSelectedErr: Label 'No Journal Batch is selected.';
+
     procedure CreateSubcontractingManagementSetup()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -34,6 +41,27 @@ codeunit 139983 "Subc. Management Library"
             ManufacturingSetup.Init();
             ManufacturingSetup.Insert(true);
         end;
+    end;
+
+    procedure CreateSubcontractorWithCurrency(CurrencyCode: Code[10]): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        // Create a Subcontractor Vendor.
+        CreateSubcontractor(Vendor);
+        Vendor.Validate("Currency Code", CurrencyCode);
+        Vendor.Modify(true);
+        exit(Vendor."No.");
+    end;
+
+    procedure CreateSubcontractor(var Vendor: Record Vendor)
+    var
+        Location: Record Location;
+    begin
+        LibraryPurchase.CreateSubcontractor(Vendor);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Validate("Subc. Location Code", Location.Code);
+        Vendor.Modify();
     end;
 
     procedure CreateSubContractingPrice(var SubcontractorPrices: Record "Subcontractor Price"; WorkCenterNo: Code[20]; VendorNo: Code[20]; ItemNo: Code[20]; StandardTaskCode: Code[10]; VariantCode: Code[10]; StartDate: Date; UnitOfMeasureCode: Code[10]; MinimumQuantity: Decimal; CurrencyCode: Code[10])
@@ -99,7 +127,6 @@ codeunit 139983 "Subc. Management Library"
     var
         Location: Record Location;
         ProdOrderComp: Record "Prod. Order Component";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
@@ -115,11 +142,10 @@ codeunit 139983 "Subc. Management Library"
     var
         Location: Record Location;
         Vendor: Record Vendor;
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subc. Location Code" := Location.Code;
+        Vendor.Validate("Subc. Location Code", Location.Code);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
@@ -223,7 +249,6 @@ codeunit 139983 "Subc. Management Library"
         ProdOrderComp: Record "Prod. Order Component";
         TransferRoute: Record "Transfer Route";
         Vendor: Record Vendor;
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         Vendor.Get(WorkCenter."Subcontractor No.");
         ProdOrderComp.SetRange(Status, ProductionOrder.Status);
@@ -240,7 +265,6 @@ codeunit 139983 "Subc. Management Library"
     var
         Location: Record Location;
         ManufacturingSetup: Record "Manufacturing Setup";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         ManufacturingSetup.Get();
@@ -296,5 +320,145 @@ codeunit 139983 "Subc. Management Library"
         Item.Get(ItemNo);
         WIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
         WIPLedgerEntry.Insert();
+    end;
+
+    procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        RequisitionLine: Record "Requisition Line";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+    begin
+        ManufacturingSetup.Get();
+        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
+        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
+
+        RequisitionLineForSubcontractOrder(RequisitionLine);
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetTableView(WorkCenter);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
+    end;
+
+    procedure CalculateSubcontractOrderWithProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        RequisitionLine: Record "Requisition Line";
+        TmpProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+    begin
+        ManufacturingSetup.Get();
+        if ProdOrderRoutingLine.HasFilter then
+            TmpProdOrderRoutingLine.CopyFilters(ProdOrderRoutingLine)
+        else
+            Error(UseWithFilterOnlyErr);
+
+        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
+        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
+        RequisitionLineForSubcontractOrder(RequisitionLine);
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetTableView(TmpProdOrderRoutingLine);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
+    end;
+
+    local procedure RequisitionLineForSubcontractOrder(var RequisitionLine: Record "Requisition Line")
+    var
+        ReqJnlManagement: Codeunit ReqJnlManagement;
+        JnlSelected: Boolean;
+        Handled: Boolean;
+    begin
+        ReqJnlManagement.WkshTemplateSelection(Page::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, RequisitionLine, JnlSelected);
+        if not JnlSelected then
+            Error(NoJournalSelectedErr);
+        OnBeforeOpenJournal(RequisitionLine, Handled);
+        if Handled then
+            exit;
+        ReqJnlManagement.OpenJnl(RequisitionLine."Journal Batch Name", RequisitionLine);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOpenJournal(var RequisitionLine: Record "Requisition Line"; var Handled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Updates the component supply method on all components of a production order.
+    /// </summary>
+    /// <param name="ProductionOrder">The production order whose components are updated.</param>
+    /// <param name="ComponentSupplyMethod">The component supply method to assign.</param>
+    procedure UpdateProdOrderComponentWithComponentSupplyMethod(ProductionOrder: Record "Production Order"; ComponentSupplyMethod: Enum "Component Supply Method")
+    var
+        ProdOrderComp: Record "Prod. Order Component";
+    begin
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComp.ModifyAll("Component Supply Method", ComponentSupplyMethod);
+    end;
+
+    /// <summary>
+    /// Calculates subcontracts for a worksheet and finds the line for a production order.
+    /// </summary>
+    /// <param name="RequisitionWkshName">The subcontracting worksheet to calculate.</param>
+    /// <param name="ProdOrderNo">The production order number to find.</param>
+    /// <param name="RequisitionLine">Returns the calculated requisition line.</param>
+    procedure CalculateSubcontractsAndFindReqLine(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
+    var
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+    begin
+        Clear(RequisitionLine);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProdOrderNo);
+#pragma warning restore AA0210
+        RequisitionLine.FindFirst();
+    end;
+
+    /// <summary>
+    /// Carries out the action message for a subcontracting requisition line.
+    /// </summary>
+    /// <param name="RequisitionLine">The requisition line whose action message is carried out.</param>
+    procedure CarryOutSubcontractingAction(var RequisitionLine: Record "Requisition Line")
+    var
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+    begin
+        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgReq.UseRequestPage(false);
+        CarryOutActionMsgReq.RunModal();
+    end;
+
+    /// <summary>
+    /// Finds a subcontracting purchase line for an item and production order.
+    /// </summary>
+    /// <param name="PurchaseLine">Returns the matching purchase line.</param>
+    /// <param name="ItemNo">The item number to find.</param>
+    /// <param name="ProdOrderNo">The production order number to find.</param>
+    procedure FindSubcPurchLineForProdOrder(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20]; ProdOrderNo: Code[20])
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("No.", ItemNo);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderNo);
+        PurchaseLine.FindFirst();
+    end;
+
+    /// <summary>
+    /// Filters purchase lines to a component item on a purchase order.
+    /// </summary>
+    /// <param name="PurchaseLineComp">Returns the filtered purchase-line record.</param>
+    /// <param name="DocumentNo">The purchase order number to filter by.</param>
+    /// <param name="ComponentItemNo">The component item number to filter by.</param>
+    procedure FindComponentPurchLine(var PurchaseLineComp: Record "Purchase Line"; DocumentNo: Code[20]; ComponentItemNo: Code[20])
+    begin
+        PurchaseLineComp.SetRange("Document Type", PurchaseLineComp."Document Type"::Order);
+        PurchaseLineComp.SetRange("Document No.", DocumentNo);
+        PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLineComp.SetRange("No.", ComponentItemNo);
     end;
 }

@@ -6,7 +6,6 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using System.Security.AccessControl;
-using System.Security.User;
 
 codeunit 148342 "Expense Activity Log Test"
 {
@@ -167,7 +166,7 @@ codeunit 148342 "Expense Activity Log Test"
         // [WHEN] The report is submitted, rejected, resubmitted, and approved.
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
         ExpenseReportApprovalMgt.Reject(ExpenseReportHeader, ApproverExpenseUser."No.", 'Please explain the change.');
-        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.", 'Updated the justification.');
         ExpenseReportApprovalMgt.Approve(ExpenseReportHeader, ApproverExpenseUser."No.");
 
         // [THEN] The report has the expected ordered activity entries.
@@ -184,9 +183,121 @@ codeunit 148342 "Expense Activity Log Test"
         Assert.AreEqual('Please explain the change.', ExpenseActivityLogEntry.Comment, 'The rejection entry must preserve the approver comment.');
         ExpenseActivityLogEntry.Next();
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Resubmitted, ExpenseActivityLogEntry."Event Type", 'The fourth entry must record resubmission.');
+        Assert.AreEqual('Updated the justification.', ExpenseActivityLogEntry.Comment, 'The resubmission entry must preserve the submitter comment.');
         ExpenseActivityLogEntry.Next();
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Approved, ExpenseActivityLogEntry."Event Type", 'The fifth entry must record approval.');
         Assert.AreEqual(0, ExpenseActivityLogEntry.Next(), 'No additional approval lifecycle entries are expected.');
+    end;
+
+    [Test]
+    procedure ApprovalConversationKeepsLatestHeaderValuesAndCompleteHistory()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+        RejectedCount: Integer;
+        ResubmittedCount: Integer;
+    begin
+        // [SCENARIO] Header comments keep the latest exchange while activity entries preserve every cycle.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+
+        // [WHEN] The report is rejected and resubmitted twice.
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        ExpenseReportApprovalMgt.Reject(ExpenseReportHeader, ApproverExpenseUser."No.", 'First approver comment.');
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.", 'First submitter response.');
+        ExpenseReportApprovalMgt.Reject(ExpenseReportHeader, ApproverExpenseUser."No.", 'Second approver comment.');
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.", 'Second submitter response.');
+
+        // [THEN] The header exposes only the latest value from each participant.
+        Assert.AreEqual('Second approver comment.', ExpenseReportHeader.GetApproverComment(), 'The header must keep the latest approver comment.');
+        Assert.AreEqual('Second submitter response.', ExpenseReportHeader.GetSubmitterComment(), 'The header must keep the latest submitter comment.');
+
+        // [THEN] Every comment remains in its state-change activity entry.
+        ExpenseActivityLogEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.FindSet();
+        repeat
+            case ExpenseActivityLogEntry."Event Type" of
+                ExpenseActivityLogEntry."Event Type"::Rejected:
+                    begin
+                        RejectedCount += 1;
+                        case RejectedCount of
+                            1:
+                                Assert.AreEqual('First approver comment.', ExpenseActivityLogEntry.Comment, 'The first rejection comment must remain unchanged.');
+                            2:
+                                Assert.AreEqual('Second approver comment.', ExpenseActivityLogEntry.Comment, 'The second rejection comment must be appended.');
+                        end;
+                    end;
+                ExpenseActivityLogEntry."Event Type"::Resubmitted:
+                    begin
+                        ResubmittedCount += 1;
+                        case ResubmittedCount of
+                            1:
+                                Assert.AreEqual('First submitter response.', ExpenseActivityLogEntry.Comment, 'The first submitter response must remain unchanged.');
+                            2:
+                                Assert.AreEqual('Second submitter response.', ExpenseActivityLogEntry.Comment, 'The second submitter response must be appended.');
+                        end;
+                    end;
+            end;
+        until ExpenseActivityLogEntry.Next() = 0;
+        Assert.AreEqual(2, RejectedCount, 'Exactly two rejection comments are expected.');
+        Assert.AreEqual(2, ResubmittedCount, 'Exactly two submitter responses are expected.');
+    end;
+
+    [Test]
+    procedure ResubmissionAllowsBlankComment()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        // [SCENARIO] The conversation-specific submit operation accepts a blank comment.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        ExpenseReportApprovalMgt.Reject(ExpenseReportHeader, ApproverExpenseUser."No.", 'Please explain the change.');
+        Commit();
+
+        // [WHEN] The submitter does not provide a response.
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.", '');
+
+        // [THEN] The report is resubmitted with an empty latest comment.
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'A blank response must not block resubmission.');
+        Assert.AreEqual('', ExpenseReportHeader.GetSubmitterComment(), 'The latest submitter comment must be empty.');
+    end;
+
+    [Test]
+    procedure ActivityCommentTruncationIncludesEllipsis()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        EntryNo: BigInteger;
+    begin
+        // [SCENARIO] An activity comment that exceeds storage capacity is truncated with an ellipsis.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+
+        // [WHEN] An event is logged with more than 2048 characters.
+        EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Rejected,
+            Enum::"Expense Activity Initiator"::User,
+            Enum::"Expense Activity Actor Role"::Approver,
+            ExpenseUser."No.",
+            PadStr('', 2049, 'X'));
+
+        // [THEN] The stored comment fills the field and signals truncation.
+        ExpenseActivityLogEntry.Get(EntryNo);
+        Assert.AreEqual(MaxStrLen(ExpenseActivityLogEntry.Comment), StrLen(ExpenseActivityLogEntry.Comment), 'The truncated comment must fill the storage field.');
+        Assert.AreEqual('...', CopyStr(ExpenseActivityLogEntry.Comment, StrLen(ExpenseActivityLogEntry.Comment) - 2), 'The truncated comment must end with an ellipsis.');
     end;
 
     [Test]
@@ -200,10 +311,10 @@ codeunit 148342 "Expense Activity Log Test"
         EntryCountBeforeRejectedReopen: Integer;
     begin
         // [SCENARIO] Returning a pending report to Open is a recall, while reopening a rejected report is not logged.
-        // [GIVEN] A submitted expense report whose submitter is the current BC user without Unlimited Expense Approval.
+        // [GIVEN] A submitted expense report whose submitter is the current BC user without unlimited approval.
         Initialize();
         CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
-        SetCurrentUserUnlimitedExpenseApproval(false);
+        SetCurrentUserUnlimitedApproval(false);
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
 
         // [WHEN] The pending report is reopened.
@@ -238,11 +349,11 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
     begin
-        // [SCENARIO] A submitter with Unlimited Expense Approval is still classified as the submitter.
+        // [SCENARIO] A submitter with unlimited approval is still classified as the submitter.
         // [GIVEN] A submitted expense report whose submitter is the current unlimited BC user.
         Initialize();
         CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
-        SetCurrentUserUnlimitedExpenseApproval(true);
+        SetCurrentUserUnlimitedApproval(true);
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
 
         // [WHEN] The submitter recalls the pending report.
@@ -253,50 +364,6 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseActivityLogEntry.FindLast();
         Assert.AreEqual(Enum::"Expense Activity Actor Role"::Submitter, ExpenseActivityLogEntry."Actor Role", 'A submitter with unlimited approval must retain the Submitter role.');
         Assert.AreEqual(SubmitterExpenseUser.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'The recall must identify the captured submitter.');
-    end;
-
-    [Test]
-    procedure UnmappedAdministratorRecallLogsBCUser()
-    var
-        SubmitterExpenseUser: Record "Expense User";
-        ApproverExpenseUser: Record "Expense User";
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
-        User: Record User;
-        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
-    begin
-        // [SCENARIO] An unlimited user without an Expense User mapping can administratively recall a submitted report.
-        // [GIVEN] A report submitted by another user and the current user has Unlimited Expense Approval.
-        Initialize();
-        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
-        SetSubmitterToDifferentUser(SubmitterExpenseUser);
-        RemoveCurrentExpenseUserMappings();
-        SetCurrentUserUnlimitedExpenseApproval(true);
-        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
-        User.Get(UserSecurityId());
-
-        // [WHEN] The current user recalls the pending report.
-        ExpenseReportApprovalMgt.ReopenSubmitted(ExpenseReportHeader);
-
-        // [THEN] The recall is attributed to the actual BC User acting as Administrator.
-        Assert.AreEqual(ExpenseReportHeader.Status::Open, ExpenseReportHeader.Status, 'Administrative recall must reopen the report.');
-        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
-        ExpenseActivityLogEntry.FindLast();
-        Assert.AreEqual(Enum::"Expense Activity Event Type"::Recalled, ExpenseActivityLogEntry."Event Type", 'Administrative recall must be recorded.');
-        Assert.AreEqual(Enum::"Expense Activity Actor Role"::Administrator, ExpenseActivityLogEntry."Actor Role", 'An administrative recall must use the Administrator role.');
-        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'An administrative recall must identify a BC User.');
-        Assert.AreEqual(User.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'An administrative recall must identify the current BC User.');
-        Assert.AreNotEqual('', ExpenseActivityLogEntry."Actor Display Name", 'An administrative recall must retain the BC User display name.');
-
-        // [THEN] The administrative event does not make the administrator a submitter or approver participant.
-        ExpenseActivityLogEntry.SetRange("History Actor Table ID Filter", Database::User);
-        ExpenseActivityLogEntry.SetRange("History Actor System ID Filter", User.SystemId);
-        ExpenseActivityLogEntry.SetRange("History Actor Role Filter", Enum::"Expense Activity Actor Role"::Submitter);
-        ExpenseActivityLogEntry.CalcFields("History Subject Match");
-        Assert.IsFalse(ExpenseActivityLogEntry."History Subject Match", 'An administrator must not gain submitter history participation.');
-        ExpenseActivityLogEntry.SetRange("History Actor Role Filter", Enum::"Expense Activity Actor Role"::Approver);
-        ExpenseActivityLogEntry.CalcFields("History Subject Match");
-        Assert.IsFalse(ExpenseActivityLogEntry."History Subject Match", 'An administrator must not gain approver history participation.');
     end;
 
     [Test]
@@ -318,7 +385,7 @@ codeunit 148342 "Expense Activity Log Test"
         LibraryExpense.CreateExpenseUser(AdministratorExpenseUser);
         AdministratorExpenseUser."User Id For Approvals" := CopyStr(UserId(), 1, MaxStrLen(AdministratorExpenseUser."User Id For Approvals"));
         AdministratorExpenseUser.Modify();
-        SetCurrentUserUnlimitedExpenseApproval(true);
+        SetCurrentUserUnlimitedApproval(true);
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
 
         // [WHEN] The mapped current user recalls the pending report.
@@ -338,7 +405,6 @@ codeunit 148342 "Expense Activity Log Test"
         ApproverExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
-        UserSetup: Record "User Setup";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
         EntryCountBeforeRecall: Integer;
     begin
@@ -347,7 +413,7 @@ codeunit 148342 "Expense Activity Log Test"
         Initialize();
         CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
         SetSubmitterToDifferentUser(SubmitterExpenseUser);
-        SetCurrentUserUnlimitedExpenseApproval(false);
+        SetCurrentUserUnlimitedApproval(false);
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         EntryCountBeforeRecall := ExpenseActivityLogEntry.Count();
@@ -357,7 +423,7 @@ codeunit 148342 "Expense Activity Log Test"
         asserterror ExpenseReportApprovalMgt.ReopenSubmitted(ExpenseReportHeader);
 
         // [THEN] The operation is denied before status or history changes.
-        Assert.ExpectedError(UserSetup.FieldCaption("Unlimited Expense Approval"));
+        Assert.ExpectedError('Unlimited Approval');
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'An unauthorized recall must not change the report status.');
         Assert.AreEqual(EntryCountBeforeRecall, ExpenseActivityLogEntry.Count(), 'An unauthorized recall must not append activity.');
@@ -629,18 +695,15 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseUser.ModifyAll("User Id For Approvals", '');
     end;
 
-    local procedure SetCurrentUserUnlimitedExpenseApproval(UnlimitedExpenseApproval: Boolean)
+    local procedure SetCurrentUserUnlimitedApproval(UnlimitedApproval: Boolean)
     var
-        UserSetup: Record "User Setup";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
     begin
-        if not UserSetup.Get(UserId()) then begin
-            UserSetup.Init();
-            UserSetup."User ID" := CopyStr(UserId(), 1, MaxStrLen(UserSetup."User ID"));
-            UserSetup.Insert();
-        end;
-
-        UserSetup."Unlimited Expense Approval" := UnlimitedExpenseApproval;
-        UserSetup.Modify();
+        ExpenseReportApprovalMgt.GetCurrentExpenseUserForApproval(ExpenseUser);
+        ExpenseUser."Can Approve" := true;
+        ExpenseUser."Unlimited Approval" := UnlimitedApproval;
+        ExpenseUser.Modify(true);
     end;
 
     local procedure Initialize()

@@ -17,6 +17,7 @@ using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Posting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
+using System.Telemetry;
 using System.Utilities;
 
 codeunit 6987 "Expense Report-Post"
@@ -38,6 +39,8 @@ codeunit 6987 "Expense Report-Post"
                   TableData "Posted Exp. Rep. Line Per Diem" = rimd,
                   TableData "Posted Exp. Rep. Line Particip" = rimd,
                   TableData "Posted Exp. Rep. Line VAT Spec" = rimd,
+                  TableData "Expense Policy Evaluation" = rd,
+                  TableData "Posted Exp. Policy Evaluation" = i,
                   TableData "Expense Category" = r,
                   TableData "Expense Posting Group" = r,
                   TableData "Expense User" = r;
@@ -60,7 +63,9 @@ codeunit 6987 "Expense Report-Post"
         VATSetup: Record "VAT Setup";
         SourceCodeSetup: Record "Source Code Setup";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         PreviewMode: Boolean;
+        DisableNonDeductibleVATAfterPost: Boolean;
         AmountToEmployee: Decimal;
         AmountToEmployeeLCY: Decimal;
         CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
@@ -71,16 +76,25 @@ codeunit 6987 "Expense Report-Post"
         AgentNotEnabledErr: Label 'Please make sure the Expense Agent is active.';
         CommunicationDisabledErr: Label 'Sending emails to users is turned off. Turn on Communication for the Expense Agent before sending reimbursement notifications.';
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending reimbursement notifications.';
+        NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
+        PendingVATSpecTitleErr: Label 'VAT reclaim status is pending';
+        PendingVATSpecDetailedErr: Label 'Open the VAT specification line and approve or reject the reclaim, and then retry posting the expense report.';
+        RoundingDifferenceTooLargeErr: Label 'The difference between expense report line %1 and its posted amounts exceeds the currency rounding precision. The difference is %2 in reimbursement currency and %3 in local currency.', Comment = '%1 = Expense report line number, %2 = Difference in reimbursement currency, %3 = Difference in local currency';
+        AgentVATSpecificationsPostedLbl: Label 'Agent-authored VAT specifications posted.', Locked = true;
+        ShowItLbl: Label 'Show it';
 
     internal procedure RunWithCheck(var ExpenseReportHeader: Record "Expense Report Header")
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         ReleaseExpenseReport: Codeunit "Release Exp. Report Document";
+        AgentVATSpecificationCount: Integer;
     begin
         SourceCodeSetup.Get();
         SourceCodeSetup.TestField(Expense);
         ExpenseAgentSetup.GetRecordOnce();
+
+        GenJnlPostLine.SetIgnoreJournalTemplNameMandatoryCheck();
 
         if (ExpenseAgentSetup."Enable Approval Workflow") or ExpenseAgentSetup."Enable Agent" then begin
             if not PreviewMode then
@@ -91,16 +105,44 @@ codeunit 6987 "Expense Report-Post"
                 ReleaseExpenseReport.Run(ExpenseReportHeader);
 
         ExpenseReportHeader.Get(ExpenseReportHeader."No."); // Refresh after release
+        AgentVATSpecificationCount := GetAgentVATSpecificationCount(ExpenseReportHeader."No.");
 
         CheckAndCreatePostedDocument(ExpenseReportHeader);
 
         if not PreviewMode then begin
             if TrySendReimbursementNotification(PostedExpenseReportHeader) then;
             ExpenseReportHeader.Delete(true);
+            if DisableNonDeductibleVATAfterPost then begin
+                VATSetup.Get();
+                VATSetup."Enable Non-Deductible VAT" := false;
+                VATSetup.Modify();
+                DisableNonDeductibleVATAfterPost := false;
+            end;
+            LogAgentVATSpecificationUsage(AgentVATSpecificationCount);
         end;
 
         if PreviewMode then
             GenJnlPostPreview.ThrowError();
+    end;
+
+    local procedure GetAgentVATSpecificationCount(ExpenseReportNo: Code[20]): Integer
+    var
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+    begin
+        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportNo);
+        ExpenseReportLineVATSpec.SetRange(Source, ExpenseReportLineVATSpec.Source::Agent);
+        exit(ExpenseReportLineVATSpec.Count());
+    end;
+
+    local procedure LogAgentVATSpecificationUsage(AgentVATSpecificationCount: Integer)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        if AgentVATSpecificationCount = 0 then
+            exit;
+
+        TelemetryDimensions.Add('VATSpecificationCount', Format(AgentVATSpecificationCount));
+        FeatureTelemetry.LogUsage('0000UZ8', ExpenseAgentSetup.GetFeatureName(), AgentVATSpecificationsPostedLbl, TelemetryDimensions);
     end;
 
     internal procedure PostExpenseReport(var ExpenseReportHeader: Record "Expense Report Header")
@@ -193,6 +235,7 @@ codeunit 6987 "Expense Report-Post"
                 PostedExpenseReportLine.Init();
                 PostedExpenseReportLine.TransferFields(ExpenseReportLine);
                 PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
+                PostedExpenseReportLine."Policy Status At Posting" := ExpenseReportLine.GetPolicyStatus();
                 PostedExpenseReportLine.Insert();
 
                 if not PreviewMode then
@@ -202,6 +245,7 @@ codeunit 6987 "Expense Report-Post"
                 InsertPstdExpReportLinePerDiem(PostedExpenseReportLine, ExpenseReportLine);
                 InsertPstdExpReportLineItemization(PostedExpenseReportLine, ExpenseReportLine);
                 InsertPstdExpReportLineVATSpecs(PostedExpenseReportLine, ExpenseReportLine);
+                InsertPostedPolicyEvaluations(PostedExpenseReportLine, ExpenseReportLine);
                 CreateSalesDocument(PostedExpenseReportHeader, PostedExpenseReportLine);
 
                 if PostedExpenseReportLine."Expense No." <> '' then
@@ -243,9 +287,46 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLineVATSpec.SetRange("Document Line No.", ExpenseReportLine."Line No.");
         if ExpenseReportLineVATSpec.FindSet() then
             repeat
+                ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec);
                 if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Pending" then
-                    Error(NotApprovedForVATReclaimErr, ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
+                    Error(GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec));
             until ExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    local procedure ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+    begin
+        if ExpenseReportLineVATSpec."Expense Category" = '' then
+            exit;
+
+        ExpenseCategory.Get(ExpenseReportLineVATSpec."Expense Category");
+        ExpenseCategory.TestField(Inactive, false);
+
+        if ExpenseReportLineVATSpec."Expense Subcategory" <> '' then begin
+            ExpenseSubcategory.Get(ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
+            ExpenseSubcategory.TestField(Inactive, false);
+        end;
+    end;
+
+    local procedure GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec."): ErrorInfo
+    var
+        PendingVATSpecErrorInfo: ErrorInfo;
+    begin
+        if ExpenseReportLineVATSpec."Expense Subcategory" = '' then
+            PendingVATSpecErrorInfo.Message := StrSubstNo(NotApprovedForVATReclaimCategoryErr, ExpenseReportLineVATSpec."Expense Category")
+        else
+            PendingVATSpecErrorInfo.Message := StrSubstNo(NotApprovedForVATReclaimErr, ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
+        PendingVATSpecErrorInfo.Title := PendingVATSpecTitleErr;
+        PendingVATSpecErrorInfo.DetailedMessage := PendingVATSpecDetailedErr;
+        PendingVATSpecErrorInfo.DataClassification := DataClassification::CustomerContent;
+        PendingVATSpecErrorInfo.ErrorType := ErrorType::Client;
+        PendingVATSpecErrorInfo.RecordId := ExpenseReportLineVATSpec.RecordId;
+        PendingVATSpecErrorInfo.FieldNo := ExpenseReportLineVATSpec.FieldNo("Reclaim Status");
+        PendingVATSpecErrorInfo.PageNo := Page::"Expense Report Line VAT Spec.";
+        PendingVATSpecErrorInfo.AddNavigationAction(ShowItLbl);
+        exit(PendingVATSpecErrorInfo);
     end;
 
     local procedure CheckMandatoryFields(var ExpenseReportLine: Record "Expense Report Line")
@@ -397,6 +478,27 @@ codeunit 6987 "Expense Report-Post"
             until ExpenseReportLineItem.Next() = 0;
     end;
 
+    local procedure InsertPostedPolicyEvaluations(PstdExpenseReportLine: Record "Posted Expense Report Line"; ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        PostedExpPolicyEvaluation: Record "Posted Exp. Policy Evaluation";
+    begin
+        // Preserve the policy verdicts that were in effect at posting as an immutable audit
+        // record, re-pointed to the posted line. Only the currently evaluated version is copied;
+        // superseded evaluations are historical noise on the open line.
+        ExpensePolicyEvaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        ExpensePolicyEvaluation.SetRange("Subject Type", ExpensePolicyEvaluation."Subject Type"::"Expense Report Line");
+        ExpensePolicyEvaluation.SetRange("Subject Version", ExpenseReportLine."Evaluated Policy Version");
+        ExpensePolicyEvaluation.SetRange("Is Current", true);
+        if ExpensePolicyEvaluation.FindSet() then
+            repeat
+                PostedExpPolicyEvaluation.Init();
+                PostedExpPolicyEvaluation.TransferFields(ExpensePolicyEvaluation);
+                PostedExpPolicyEvaluation."Subject System Id" := PstdExpenseReportLine.SystemId;
+                PostedExpPolicyEvaluation.Insert();
+            until ExpensePolicyEvaluation.Next() = 0;
+    end;
+
     local procedure DeleteRelatedExpenseReportLines(ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLineParticipants: Record "Expense Report Line Particip.";
@@ -428,7 +530,7 @@ codeunit 6987 "Expense Report-Post"
             exit;
 
         if ExpenseReportLine.Refundable then
-            PostCompanyPaidExpenseJournal(ExpenseReportHeader, ExpenseReportLine, PostedExpReportLine, RefundableAmountLCY);
+            PostCompanyPaidExpenseJournal(ExpenseReportHeader, ExpenseReportLine, PostedExpReportLine, RefundableAmount, RefundableAmountLCY);
 
         if ExpenseReportLine."Reimbursable Amount (LCY)" < 0 then
             PostNonRefundableJnlLine(ExpenseReportHeader, ExpenseReportLine, PostedExpReportLine);
@@ -471,16 +573,19 @@ codeunit 6987 "Expense Report-Post"
         RefundableAmount := GenJournalLine.Amount + GenJournalLine."VAT Amount";
         RefundableAmountLCY := GenJournalLine."Amount (LCY)" + GenJournalLine."VAT Amount (LCY)";
 
-        if ShouldConsiderPostingRoundingDifference(PostedExpenseReportHeader."Reimbursement Currency Code", ExpenseReportLine."Expense Currency Code") then
-            if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Employee Paid" then
-                if Abs(RefundableAmountLCY) <> Abs(ExpenseReportLine."Reimbursable Amount (LCY)") then
-                    PostRoundingDifferenceOnCurrency(GenJournalLine, ExpenseReportLine, ExpenseReportLine."Reimbursable Amount (LCY)" - RefundableAmountLCY);
+        if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Employee Paid" then
+            PostRoundingDifferenceOnCurrency(
+                ExpenseReportHeader, ExpenseReportLine,
+                ExpenseReportLine."Reimbursable Amount" - RefundableAmount,
+                ExpenseReportLine."Reimbursable Amount (LCY)" - RefundableAmountLCY);
     end;
 
     local procedure PostRefundableJnlLineFromSpecs(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpReportLine: Record "Posted Expense Report Line"; var ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec."; var RefundableAmount: Decimal; var RefundableAmountLCY: Decimal)
     var
         GenJournalLine: Record "Gen. Journal Line";
-        JobLedgEntryPosted: Boolean;
+        ProjectGenJournalLine: Record "Gen. Journal Line";
+        ProjectAmountLCY: Decimal;
+        ProjectJournalLineInitialized: Boolean;
         GlobalEntryCopied: Boolean;
     begin
         // Each spec row produces its own Gen. Journal Line and VAT Entry.
@@ -489,12 +594,15 @@ codeunit 6987 "Expense Report-Post"
             Clear(GenJournalLine);
             CreateGenJournalLineFromSpec(GenJournalLine, ExpenseReportHeader, ExpenseReportLine, ExpenseReportLineVATSpec, PostedExpReportLine);
             SetupRefundableAccountForSpec(GenJournalLine, ExpenseReportLine, ExpenseReportLineVATSpec);
+            SetupNonDeductibleVATForSpec(GenJournalLine, ExpenseReportLineVATSpec);
             SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
 
-            if (not JobLedgEntryPosted) and (ExpenseReportLine."Job No." <> '') then begin
-                PostedExpReportLine."Job Ledger Entry No." := PostProjectJnlLine(PostedExpReportLine, PostedExpenseReportHeader, GenJournalLine);
-                PostedExpReportLine.Modify();
-                JobLedgEntryPosted := true;
+            if ExpenseReportLine."Job No." <> '' then begin
+                if not ProjectJournalLineInitialized then begin
+                    ProjectGenJournalLine := GenJournalLine;
+                    ProjectJournalLineInitialized := true;
+                end;
+                ProjectAmountLCY += GenJournalLine."Amount (LCY)";
             end;
 
             if not GlobalEntryCopied then begin
@@ -507,9 +615,15 @@ codeunit 6987 "Expense Report-Post"
             GenJnlPostLine.RunWithCheck(GenJournalLine);
 
             // Accumulate gross (base + VAT) from the spec row for rounding/balance checks.
-            RefundableAmount += ExpenseReportLineVATSpec."VAT Base Amount" + ExpenseReportLineVATSpec."VAT Amount";
+            RefundableAmount += ExpenseReportLineVATSpec."VAT Base Amount (RCY)" + ExpenseReportLineVATSpec."VAT Amount (RCY)";
             RefundableAmountLCY += ExpenseReportLineVATSpec."VAT Base Amount (LCY)" + ExpenseReportLineVATSpec."VAT Amount (LCY)";
         until ExpenseReportLineVATSpec.Next() = 0;
+
+        if ProjectJournalLineInitialized then begin
+            ProjectGenJournalLine."Amount (LCY)" := ProjectAmountLCY;
+            PostedExpReportLine."Job Ledger Entry No." := PostProjectJnlLine(PostedExpReportLine, PostedExpenseReportHeader, ProjectGenJournalLine);
+            PostedExpReportLine.Modify();
+        end;
 
         // Employee paid accumulator: the employee paid the gross reimbursable amount for the whole line.
         if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Employee Paid" then begin
@@ -517,13 +631,14 @@ codeunit 6987 "Expense Report-Post"
             AmountToEmployeeLCY += ExpenseReportLine."Reimbursable Amount (LCY)";
         end;
 
-        if ShouldConsiderPostingRoundingDifference(PostedExpenseReportHeader."Reimbursement Currency Code", ExpenseReportLine."Expense Currency Code") then
-            if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Employee Paid" then
-                if Abs(RefundableAmountLCY) <> Abs(ExpenseReportLine."Reimbursable Amount (LCY)") then
-                    PostRoundingDifferenceOnCurrency(GenJournalLine, ExpenseReportLine, ExpenseReportLine."Reimbursable Amount (LCY)" - RefundableAmountLCY);
+        if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Employee Paid" then
+            PostRoundingDifferenceOnCurrency(
+                ExpenseReportHeader, ExpenseReportLine,
+                ExpenseReportLine."Reimbursable Amount" - RefundableAmount,
+                ExpenseReportLine."Reimbursable Amount (LCY)" - RefundableAmountLCY);
     end;
 
-    local procedure PostCompanyPaidExpenseJournal(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpReportLine: Record "Posted Expense Report Line"; RefundableAmountLCY: Decimal)
+    local procedure PostCompanyPaidExpenseJournal(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpReportLine: Record "Posted Expense Report Line"; RefundableAmount: Decimal; RefundableAmountLCY: Decimal)
     var
         GenJournalLine: Record "Gen. Journal Line";
     begin
@@ -533,15 +648,17 @@ codeunit 6987 "Expense Report-Post"
 
         GenJnlPostLine.RunWithCheck(GenJournalLine);
 
-        if ShouldConsiderPostingRoundingDifference(PostedExpenseReportHeader."Reimbursement Currency Code", ExpenseReportLine."Expense Currency Code") then
-            if Abs(RefundableAmountLCY) <> Abs(GenJournalLine."Amount (LCY)") then
-                PostRoundingDifferenceOnCurrency(GenJournalLine, ExpenseReportLine, Abs(GenJournalLine."Amount (LCY)") - RefundableAmountLCY);
+        PostRoundingDifferenceOnCurrency(
+            ExpenseReportHeader, ExpenseReportLine,
+            Abs(GenJournalLine.Amount) - RefundableAmount,
+            Abs(GenJournalLine."Amount (LCY)") - RefundableAmountLCY);
     end;
 
     local procedure PostNonRefundableJnlLine(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpReportLine: Record "Posted Expense Report Line")
     var
         GenJournalLine: Record "Gen. Journal Line";
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        RefundableAmount: Decimal;
         RefundableLCY: Decimal;
     begin
         ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportLine."Document No.");
@@ -560,16 +677,20 @@ codeunit 6987 "Expense Report-Post"
 
         GenJnlPostLine.RunWithCheck(GenJournalLine);
 
+        RefundableAmount := GenJournalLine.Amount + GenJournalLine."VAT Amount";
         RefundableLCY := GenJournalLine."Amount (LCY)" + GenJournalLine."VAT Amount (LCY)";
-        if ShouldConsiderPostingRoundingDifference(PostedExpenseReportHeader."Reimbursement Currency Code", ExpenseReportLine."Expense Currency Code") then
-            if Abs(ExpenseReportLine."Reimbursable Amount (LCY)") <> Abs(RefundableLCY) then
-                PostRoundingDifferenceOnCurrency(GenJournalLine, ExpenseReportLine, ExpenseReportLine."Reimbursable Amount (LCY)" - RefundableLCY);
+        PostRoundingDifferenceOnCurrency(
+            ExpenseReportHeader, ExpenseReportLine,
+            ExpenseReportLine."Reimbursable Amount" - RefundableAmount,
+            ExpenseReportLine."Reimbursable Amount (LCY)" - RefundableLCY);
     end;
 
     local procedure PostNonRefundableJnlLineFromSpecs(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; var ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
     var
         GenJournalLine: Record "Gen. Journal Line";
         GlobalEntryCopied: Boolean;
+        PostedAmount: Decimal;
+        PostedAmountLCY: Decimal;
     begin
         // Each spec row produces its own Gen. Journal Line and VAT Entry.
         // Amounts are taken directly from the spec — no proportional splitting.
@@ -586,11 +707,17 @@ codeunit 6987 "Expense Report-Post"
             end;
 
             GenJnlPostLine.RunWithCheck(GenJournalLine);
+            PostedAmount += ExpenseReportLineVATSpec."VAT Base Amount (RCY)" + ExpenseReportLineVATSpec."VAT Amount (RCY)";
+            PostedAmountLCY += ExpenseReportLineVATSpec."VAT Base Amount (LCY)" + ExpenseReportLineVATSpec."VAT Amount (LCY)";
         until ExpenseReportLineVATSpec.Next() = 0;
 
         // Accumulate employee reimbursement amount once per line.
         AmountToEmployee += ExpenseReportLine."Reimbursable Amount";
         AmountToEmployeeLCY += ExpenseReportLine."Reimbursable Amount (LCY)";
+        PostRoundingDifferenceOnCurrency(
+            ExpenseReportHeader, ExpenseReportLine,
+            ExpenseReportLine."Reimbursable Amount" - PostedAmount,
+            ExpenseReportLine."Reimbursable Amount (LCY)" - PostedAmountLCY);
     end;
 
     local procedure SetupNonRefundableAccountForSpec(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportLine: Record "Expense Report Line"; ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
@@ -607,11 +734,6 @@ codeunit 6987 "Expense Report-Post"
 
         GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
         GenJournalLine."Account No." := ExpensePostingGroup."Non-Refundable Debit Account";
-    end;
-
-    local procedure ShouldConsiderPostingRoundingDifference(ReimbursementCurrencyCode: Code[10]; ExpenseCurrencyCode: Code[10]): Boolean
-    begin
-        exit((ReimbursementCurrencyCode = '') and (ExpenseCurrencyCode <> ''));
     end;
 
     local procedure PostProjectJnlLine(PostedExpReportLine: Record "Posted Expense Report Line"; PostedExpReportHeader: Record "Posted Expense Report Header"; GenJournalLine: Record "Gen. Journal Line"): Integer
@@ -700,19 +822,6 @@ codeunit 6987 "Expense Report-Post"
             GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
     end;
 
-    local procedure ClearVATInformationOnGenJnlLine(var GenJournalLine: Record "Gen. Journal Line")
-    begin
-        GenJournalLine."Bill-to/Pay-to No." := '';
-        GenJournalLine."VAT Registration No." := '';
-        GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Automatic VAT Entry";
-        GenJournalLine."VAT %" := 0;
-        GenJournalLine."VAT Amount" := 0;
-        GenJournalLine."VAT Amount (LCY)" := 0;
-        GenJournalLine.Validate("VAT Prod. Posting Group", '');
-        GenJournalLine.Validate("VAT Bus. Posting Group", '');
-        GenJournalLine."Gen. Posting Type" := GenJournalLine."Gen. Posting Type"::" ";
-    end;
-
     local procedure CreateGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpReportLine: Record "Posted Expense Report Line")
     begin
         GenJournalLine.Init();
@@ -740,7 +849,6 @@ codeunit 6987 "Expense Report-Post"
         GenJournalLine.Validate("Document Type", GenJournalLine."Document Type"::Invoice);
         GenJournalLine.Validate("Document No.", PostedExpReportLine."Document No.");
         GenJournalLine.Validate("Expense User No.", ExpenseReportHeader."Expense User No.");
-        GenJournalLine.Validate(Description, ExpenseReportLine.UpdatePostingDescription());
         GenJournalLine.Validate("Keep Description", true);
 
         // Use spec-level expense category/subcategory when present; fall back to parent line.
@@ -751,36 +859,38 @@ codeunit 6987 "Expense Report-Post"
             GenJournalLine.Validate("Expense Category", ExpenseReportLine."Expense Category");
             GenJournalLine.Validate("Expense Subcategory Code", ExpenseReportLine."Expense Subcategory Code");
         end;
+        GenJournalLine.Validate(
+            Description,
+            ExpenseReportLine.UpdatePostingDescription(GenJournalLine."Expense Category", GenJournalLine."Expense Subcategory Code"));
 
-        // Amounts come directly from the spec row — base (net) + VAT as captured on the receipt.
+        GenJournalLine.Validate("Currency Code", ExpenseReportHeader."Reimbursement Currency Code");
+        GenJournalLine.Validate("Source Currency Code", ExpenseReportHeader."Reimbursement Currency Code");
+        GenJournalLine."Currency Factor" := ExpenseReportHeader."Reimbursement Currency Factor";
+
+        // Amounts come directly from the spec row in reimbursement currency and LCY.
         GenJournalLine."Gen. Posting Type" := GenJournalLine."Gen. Posting Type"::Purchase;
-        GenJournalLine."Currency Code" := ExpenseReportLine."Expense Currency Code";
-        GenJournalLine."Currency Factor" := ExpenseReportLine."Expense Currency Factor";
-        GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount";
+        GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount (RCY)";
         GenJournalLine."Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
+        GenJournalLine."Source Currency Amount" := GenJournalLine.Amount;
 
         if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Approved" then begin
             GenJournalLine."VAT Bus. Posting Group" := ExpenseReportLineVATSpec."VAT Bus. Posting Group";
             GenJournalLine."VAT Prod. Posting Group" := ExpenseReportLineVATSpec."VAT Prod. Posting Group";
             GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Manual VAT Entry";
             GenJournalLine."VAT Calculation Type" := ExpenseReportLine."VAT Calculation Type";
-            GenJournalLine."VAT Base Amount" := ExpenseReportLineVATSpec."VAT Base Amount";
-            GenJournalLine."VAT Base Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
-            GenJournalLine."VAT Amount" := ExpenseReportLineVATSpec."VAT Amount";
-            GenJournalLine."VAT Amount (LCY)" := ExpenseReportLineVATSpec."VAT Amount (LCY)";
             GenJournalLine."VAT %" := ExpenseReportLineVATSpec."VAT %";
+            GenJournalLine."VAT Base Amount" := ExpenseReportLineVATSpec."VAT Base Amount (RCY)";
+            GenJournalLine."VAT Base Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
+            GenJournalLine."VAT Amount" := ExpenseReportLineVATSpec."VAT Amount (RCY)";
+            GenJournalLine."VAT Amount (LCY)" := ExpenseReportLineVATSpec."VAT Amount (LCY)";
+            GenJournalLine."Source Curr. VAT Base Amount" := ExpenseReportLineVATSpec."VAT Base Amount (RCY)";
+            GenJournalLine."Source Curr. VAT Amount" := ExpenseReportLineVATSpec."VAT Amount (RCY)";
 
-            // VAT Reclaim % is used to route the non-deductible portion of VAT to the correct accounts via VAT Posting Setup.
-            if (ExpenseReportLineVATSpec."Reclaim %" <> 100) and (ExpenseReportLineVATSpec."VAT Amount" <> 0) then begin
-                VATSetup.Get();
-                VATSetup.TestField("Non-Deductible VAT Is Enabled");
-                GenJournalLine.Validate("Non-Deductible VAT %", 100 - ExpenseReportLineVATSpec."Reclaim %");
-            end;
         end else begin
             // VAT is not reclaimable: include VAT in the expense amount (gross) and do not create a VAT entry.
-            GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount" + ExpenseReportLineVATSpec."VAT Amount";
+            GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount (RCY)" + ExpenseReportLineVATSpec."VAT Amount (RCY)";
             GenJournalLine."Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)" + ExpenseReportLineVATSpec."VAT Amount (LCY)";
-
+            GenJournalLine."Source Currency Amount" := GenJournalLine.Amount;
             GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Automatic VAT Entry";
             GenJournalLine."VAT %" := 0;
             GenJournalLine."VAT Amount" := 0;
@@ -802,6 +912,27 @@ codeunit 6987 "Expense Report-Post"
         end;
 
         GenJournalLine."System-Created Entry" := true;
+    end;
+
+    local procedure SetupNonDeductibleVATForSpec(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
+    begin
+        if ExpenseReportLineVATSpec."Reclaim Status" <> ExpenseReportLineVATSpec."Reclaim Status"::Approved then
+            exit;
+        if (ExpenseReportLineVATSpec."Reclaim %" = 100) or (ExpenseReportLineVATSpec."VAT Amount (LCY)" = 0) then
+            exit;
+
+        VATSetup.Get();
+        if not VATSetup."Enable Non-Deductible VAT" then begin
+            VATSetup."Enable Non-Deductible VAT" := true;
+            VATSetup.Modify();
+            DisableNonDeductibleVATAfterPost := true;
+        end;
+        GenJournalLine.Validate("Non-Deductible VAT %", 100 - ExpenseReportLineVATSpec."Reclaim %");
+        GenJournalLine.Validate("Non-Deductible VAT Base", ExpenseReportLineVATSpec."VAT Base Amount (RCY)" * (100 - ExpenseReportLineVATSpec."Reclaim %") / 100);
+        GenJournalLine.Validate("Non-Deductible VAT Amount", ExpenseReportLineVATSpec."VAT Amount (RCY)" - ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)");
+        GenJournalLine.Validate("Non-Deductible VAT Base LCY", ExpenseReportLineVATSpec."VAT Base Amount (LCY)" * (100 - ExpenseReportLineVATSpec."Reclaim %") / 100);
+        GenJournalLine.Validate("Non-Deductible VAT Amount LCY", ExpenseReportLineVATSpec."VAT Amount (LCY)" - ExpenseReportLineVATSpec."Reclaim VAT Amount (LCY)");
+        GenJournalLine."Source Curr. VAT Amount" := ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)";
     end;
 
     local procedure SetupRefundableAccount(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line")
@@ -991,15 +1122,37 @@ codeunit 6987 "Expense Report-Post"
                     ReimbursementCurrency."Amount Rounding Precision");
     end;
 
-    local procedure PostRoundingDifferenceOnCurrency(GenJournalLine: Record "Gen. Journal Line"; ExpenseReportLine: Record "Expense Report Line"; AmountToPost: Decimal)
+    local procedure PostRoundingDifferenceOnCurrency(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; AmountToPost: Decimal; AmountToPostLCY: Decimal)
     var
+        LCYCurrency: Record Currency;
+        ReimbursementCurrency: Record Currency;
         ExpenseCategory: Record "Expense Category";
         ExpensePostingGroup: Record "Expense Posting Group";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        GenJournalLine: Record "Gen. Journal Line";
         AccNo: Code[20];
+        AmountForAccountSelection: Decimal;
+        AmountRoundingPrecision: Decimal;
     begin
+        LCYCurrency.Initialize('');
+        ReimbursementCurrency.Initialize(ExpenseReportHeader."Reimbursement Currency Code");
+        if (AmountToPost = 0) and (AmountToPostLCY = 0) then
+            exit;
+
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
         ExpensePostingGroup.Get(ExpenseCategory."Posting Group");
-        if AmountToPost > 0 then begin
+        AmountForAccountSelection := AmountToPostLCY;
+        AmountRoundingPrecision := LCYCurrency."Amount Rounding Precision";
+        if AmountForAccountSelection = 0 then begin
+            AmountForAccountSelection := AmountToPost;
+            AmountRoundingPrecision := ReimbursementCurrency."Amount Rounding Precision";
+        end;
+        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineVATSpec.SetRange("Document Line No.", ExpenseReportLine."Line No.");
+        if not ExpenseReportLineVATSpec.IsEmpty() then
+            if Abs(AmountForAccountSelection) > AmountRoundingPrecision then
+                Error(RoundingDifferenceTooLargeErr, ExpenseReportLine."Line No.", AmountToPost, AmountToPostLCY);
+        if AmountForAccountSelection > 0 then begin
             ExpensePostingGroup.TestField("Debit Rounding Account");
             AccNo := ExpensePostingGroup."Debit Rounding Account";
         end else begin
@@ -1007,13 +1160,25 @@ codeunit 6987 "Expense Report-Post"
             AccNo := ExpensePostingGroup."Credit Rounding Account";
         end;
 
-        GenJournalLine."Account Type" := GenJournalLine."Account Type"::"G/L Account";
+        GenJournalLine.Init();
+        GenJournalLine.Validate("Posting Date", ExpenseReportHeader."Posting Date");
+        GenJournalLine.Validate("Document Type", GenJournalLine."Document Type"::Invoice);
+        GenJournalLine.Validate("Document No.", PostedExpenseReportHeader."No.");
+        GenJournalLine.Validate("Expense User No.", ExpenseReportHeader."Expense User No.");
+        GenJournalLine.Validate("Expense Category", ExpenseReportLine."Expense Category");
+        GenJournalLine.Validate("Expense Subcategory Code", ExpenseReportLine."Expense Subcategory Code");
+        GenJournalLine.Validate(Description, ExpenseReportLine.UpdatePostingDescription());
+        GenJournalLine.Validate("Keep Description", true);
+        GenJournalLine.Validate("Currency Code", ExpenseReportHeader."Reimbursement Currency Code");
+        GenJournalLine.Validate("Source Currency Code", ExpenseReportHeader."Reimbursement Currency Code");
+        GenJournalLine."Currency Factor" := ExpenseReportHeader."Reimbursement Currency Factor";
+        GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
         GenJournalLine."Account No." := AccNo;
         GenJournalLine.Amount := AmountToPost;
-        GenJournalLine."Amount (LCY)" := AmountToPost;
+        GenJournalLine."Amount (LCY)" := AmountToPostLCY;
         GenJournalLine."Source Currency Amount" := AmountToPost;
+        SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
         GenJournalLine."System-Created Entry" := true;
-        ClearVATInformationOnGenJnlLine(GenJournalLine);
         GenJnlPostLine.RunWithCheck(GenJournalLine);
     end;
 
@@ -1269,16 +1434,19 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLineVATSpec.DeleteAll();
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessExpenseReportLine(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpenseReportLine: Record "Posted Expense Report Line"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
     begin
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostEmployeeEntry(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
     begin
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostEmployeeEntry(GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
     begin

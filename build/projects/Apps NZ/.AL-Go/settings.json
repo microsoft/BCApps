@@ -1,13 +1,11 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/992ee305e2c6d86d85d53e18c4fc88a5171a8cd4/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/91b96c2b294be6f823277dafe6f03350abfb9d23/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps NZ",
     "country":  "NZ",
     "appFolders":  [
                        "../../../src/Apps/APAC/EDocumentFormats/PINT A-NZ/app",
                        "../../../src/Apps/NZ/ContosoCoffeeDemoDatasetNZ/app",
                        "../../../src/Apps/NZ/EDocument_NZ/demo data",
-                       "../../../src/Apps/NZ/ExpenseAgent_NZ/app",
-                       "../../../src/Apps/NZ/ExpenseAgent_NZ/demo data",
                        "../../../src/Apps/NZ/HybridBCLast_NZ/app",
                        "../../../src/Apps/W1/AgentDesignExperience/app",
                        "../../../src/Apps/W1/AgentSamples/app",
