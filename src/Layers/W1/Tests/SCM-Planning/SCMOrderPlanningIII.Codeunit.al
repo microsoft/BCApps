@@ -2250,7 +2250,7 @@ codeunit 137088 "SCM Order Planning - III"
         ItemVendor.Validate("Lead Time Calculation", LeadTimeFormula);
         ItemVendor.Modify(true);
 
-        CreateSalesOrder(SalesHeader, Item."No.", '', Qty, Qty);
+        CreateSalesOrderWithShipmentDate(SalesHeader, Item."No.", '', Qty, Qty, CalcDate('<1M>', WorkDate()));
         FindSalesLine(SalesLine, SalesHeader, Item."No.");
 
         LibraryVariableStorage.Enqueue(Vendor."No.");
@@ -2293,7 +2293,7 @@ codeunit 137088 "SCM Order Planning - III"
         ItemVendor.Validate("Lead Time Calculation", LeadTimeFormula);
         ItemVendor.Modify(true);
 
-        CreateSalesOrder(SalesHeader, Item."No.", '', Qty, Qty);
+        CreateSalesOrderWithShipmentDate(SalesHeader, Item."No.", '', Qty, Qty, CalcDate('<1M>', WorkDate()));
         FindSalesLine(SalesLine, SalesHeader, Item."No.");
 
         LibraryVariableStorage.Enqueue(Vendor."No.");
@@ -4143,6 +4143,15 @@ codeunit 137088 "SCM Order Planning - III"
           SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', ItemNo, LibraryRandom.RandInt(100), '', WorkDate());
         SalesLine.Validate("Purchasing Code", PurchasingCode);
         SalesLine.Modify(true);
+    end;
+
+    local procedure CreateSalesOrderWithShipmentDate(var SalesHeader: Record "Sales Header"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; QtyToShip: Decimal; ShipmentDate: Date)
+    begin
+        Clear(SalesHeader);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        SalesHeader.Validate("Location Code", LocationCode);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, ItemNo, LocationCode, ShipmentDate, Quantity, QtyToShip);
     end;
 
     local procedure CreateLocation(var Location: Record Location)
