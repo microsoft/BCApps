@@ -82,6 +82,8 @@ Sales Document creation
 
 The standard address-based result always takes precedence. On a re-run, existing assignments are included so the Tax Area is rebuilt from the order's complete jurisdiction set rather than only newly matched lines.
 
+The review hold guards what the agent applied. If the agent can't set a Tax Area, because no tax line could be matched or no Tax Area could be found or created, the order's Tax Area and review state are left unchanged, and the order continues through the standard path as when the agent is off.
+
 ## Responsibilities
 
 | Area | Responsibility |

@@ -39,6 +39,7 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 | J6 | An order is reprocessed with existing assignments | Existing assignments are retained and combined with newly validated matches. |
 | J7 | A suggested jurisdiction does not exist and creation is disabled | The line remains unresolved and the order is held for review. |
 | J8 | A tax line has a 0% rate, such as a county placeholder line for a city address | The line is matched, or created when allowed, like any other tax line; its 0% rate is never a reason to leave it unresolved. |
+| J9 | No tax line can be matched | Nothing is applied to the order and it is not held; it continues through the standard path, as when the agent is off. |
 
 ### Tax setup scenarios
 
@@ -97,7 +98,7 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 |----|----------|-----------------|
 | E1 | The AI service call fails | No unvalidated match is applied and Shopify synchronization continues. |
 | E2 | The response is missing or malformed | The response is rejected without creating tax setup from invalid data. |
-| E3 | The response omits a tax line, references a tax line that was not sent for matching, or references an invalid jurisdiction | The invalid assignment is not persisted; any line left without a jurisdiction holds the order for review. |
+| E3 | The response omits a tax line, references a tax line that was not sent for matching, or references an invalid jurisdiction | The invalid assignment is not persisted; when a match is applied to the order, any line left without a jurisdiction holds it for review. |
 | E4 | The same order or setup is processed again | Existing assignments and setup are reused without duplication. |
 | E5 | A refund is created for a matched order | Tax context is inherited from the original order without another AI request. |
 
