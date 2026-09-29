@@ -20,7 +20,6 @@ using Microsoft.FixedAssets.Setup;
 using Microsoft.Projects.Project.Posting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Projects.Project.Journal;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 

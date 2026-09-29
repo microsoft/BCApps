@@ -20,7 +20,6 @@ using Microsoft.FixedAssets.Setup;
 using Microsoft.Projects.Project.Posting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Projects.Project.Journal;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 
@@ -30,6 +29,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
     var
         GLSetup: Record "General Ledger Setup";
+        
         PurchSetup: Record "Purchases & Payables Setup";
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
