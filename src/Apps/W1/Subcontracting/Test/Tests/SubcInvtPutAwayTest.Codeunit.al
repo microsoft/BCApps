@@ -284,8 +284,8 @@ codeunit 149918 "Subc. Invt. Put-away Test"
     [Test]
     procedure NotLastOperation_DoesNotOverrideHandledSerialInsertion()
     var
-        SubcInvtPutAwayExt: Codeunit "Subc. Invt. Put-away Ext";
         WarehouseActivityLine: Record "Warehouse Activity Line";
+        SubcInvtPutAwayExt: Codeunit "Subc. Invt. Put-away Ext";
     begin
         WarehouseActivityLine."Subc. Purchase Line Type" := "Subc. Purchase Line Type"::NotLastOperation;
 
