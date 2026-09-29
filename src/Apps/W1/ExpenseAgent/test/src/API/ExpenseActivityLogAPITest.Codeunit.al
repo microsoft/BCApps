@@ -213,7 +213,7 @@ codeunit 148343 "Expense Activity Log API Test"
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
 
         // [THEN] The endpoint explains that a source or Expense User scope is required.
-        Assert.ExpectedError('Activity log entries must be requested through an expense report, posted expense report, or expense user.');
+        Assert.ExpectedError('Activity log entries must be requested through an expense report, posted expense report, travel request, or expense user.');
         CompleteTest();
     end;
 

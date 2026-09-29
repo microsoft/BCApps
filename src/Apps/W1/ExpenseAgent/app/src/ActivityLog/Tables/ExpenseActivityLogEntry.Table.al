@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.SpendRequest;
 using System.Security.AccessControl;
 
 table 7100 "Expense Activity Log Entry"
@@ -33,7 +34,9 @@ table 7100 "Expense Activity Log Entry"
             DataClassification = SystemMetadata;
             TableRelation = if ("Source Table ID" = const(Database::"Expense Report Header")) "Expense Report Header".SystemId
                             else
-                            if ("Source Table ID" = const(Database::"Posted Expense Report Header")) "Posted Expense Report Header".SystemId;
+                            if ("Source Table ID" = const(Database::"Posted Expense Report Header")) "Posted Expense Report Header".SystemId
+                            else
+                            if ("Source Table ID" = const(Database::"Spend Request")) "Spend Request".SystemId;
             ToolTip = 'Specifies the immutable SystemId of the source document that currently owns the activity entry.';
         }
         field(4; "Subject Table ID"; Integer)
@@ -155,6 +158,18 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Reimbursement Currency Factor';
             DataClassification = AccountData;
             DecimalPlaces = 0 : 15;
+        }
+        field(23; "Total Expected Amount"; Decimal)
+        {
+            AutoFormatExpression = "Currency Code";
+            AutoFormatType = 1;
+            Caption = 'Total Expected Amount';
+            DataClassification = AccountData;
+        }
+        field(24; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            DataClassification = AccountData;
         }
         field(50; Comment; Text[2048])
         {

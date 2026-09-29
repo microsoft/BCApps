@@ -8,6 +8,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
@@ -70,6 +71,7 @@ codeunit 6987 "Expense Report-Post"
         AmountToEmployeeLCY: Decimal;
         CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
         ExpenseReportWithStatusErr: Label 'Expense Report %1 cannot be posted because its status is %2.', Comment = '%1 = Document No., %2 = Status';
+        SpendRequestStatusNotPostableErr: Label 'Expense report %1 cannot be posted because travel request %2 has status %3. The travel request must be approved.', Comment = '%1 = Expense Report No., %2 = Travel Request No., %3 = Travel Request Status';
         NothingToPostErr: Label 'There is nothing to post.';
         DocumentCanOnlyBePostedWhenApprovalProcessIsCompleteErr: Label 'This document can only be posted when the approval process is complete.';
         ReimbursementNotificationCannotBeSentErr: Label 'Reimbursement notification cannot be sent as the reimbursable amount is 0.';
@@ -269,14 +271,32 @@ codeunit 6987 "Expense Report-Post"
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
+        CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportHeader."Spend Request No.");
+
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
                 ValidateVATSpecLinesForPosting(ExpenseReportLine);
+                if ExpenseReportLine."Spend Request No." <> ExpenseReportHeader."Spend Request No." then
+                    CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
             until ExpenseReportLine.Next() = 0
         else
             Error(NothingToPostErr);
+    end;
+
+    local procedure CheckSpendRequestStatusForPosting(ExpenseReportNo: Code[20]; SpendRequestNo: Code[20])
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if SpendRequestNo = '' then
+            exit;
+
+        // Another traveler's posted expense report can close a shared travel request, so posting against it stays allowed.
+        SpendRequest.SetLoadFields(Status);
+        SpendRequest.Get(SpendRequestNo);
+        if not (SpendRequest.Status in [SpendRequest.Status::Approved, SpendRequest.Status::Closed]) then
+            Error(SpendRequestStatusNotPostableErr, ExpenseReportNo, SpendRequestNo, SpendRequest.Status);
     end;
 
     local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line")

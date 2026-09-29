@@ -444,12 +444,8 @@ table 6907 "Expense Report Line"
                     Rec."Spend Request Close" := false;
                 end;
 
-                if Rec.Refundable and (Rec."Expense User No." <> '') then begin
-                    Rec.SetSkipSpendRequestClose(true);
-                    Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
-                    Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
-                    Rec.SetSkipSpendRequestClose(false);
-                end;
+                if Rec.Refundable and (Rec."Expense User No." <> '') then
+                    LinkToHeaderSpendRequest();
 
                 UpdateAmounts();
             end;
@@ -1060,12 +1056,18 @@ table 6907 "Expense Report Line"
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
+                Traveler: Record Traveler;
+                HasMultipleTravelers: Boolean;
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." <> '' then begin
                     Rec.TestField(Refundable, true);
                     CheckTraveler();
-                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose);
+                    // Closing a shared travel request would block the expense reports of the other travelers, so do not offer it.
+                    HasMultipleTravelers := Traveler.HasMultipleTravelers(Rec."Spend Request No.");
+                    if HasMultipleTravelers then
+                        Rec."Spend Request Close" := false;
+                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose or HasMultipleTravelers);
                     SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Refundable Amount (LCY)");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
@@ -1761,7 +1763,41 @@ table 6907 "Expense Report Line"
     var
         SpendRequest: Record "Spend Request";
     begin
+        // A travel request closed by another traveler's posted expense report no longer has a budget to check.
+        if IsSpendRequestClosed(Rec."Spend Request No.") then
+            exit;
+
         SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Refundable Amount (LCY)");
+    end;
+
+    local procedure LinkToHeaderSpendRequest()
+    begin
+        if IsSpendRequestClosed(ExpenseReportHeader."Spend Request No.") then begin
+            // Another traveler's posted expense report closed the shared travel request. Keep the line linked
+            // so that the expense is still attributed to the travel request when it is posted.
+            Rec."Spend Request No." := ExpenseReportHeader."Spend Request No.";
+            Rec."Spend Request Close" := false;
+            exit;
+        end;
+
+        Rec.SetSkipSpendRequestClose(true);
+        Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
+        Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
+        Rec.SetSkipSpendRequestClose(false);
+    end;
+
+    local procedure IsSpendRequestClosed(SpendRequestNo: Code[20]): Boolean
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if SpendRequestNo = '' then
+            exit(false);
+
+        SpendRequest.SetLoadFields(Status);
+        if not SpendRequest.Get(SpendRequestNo) then
+            exit(false);
+
+        exit(SpendRequest.Status = SpendRequest.Status::Closed);
     end;
 
     local procedure UpdateVATAmount()

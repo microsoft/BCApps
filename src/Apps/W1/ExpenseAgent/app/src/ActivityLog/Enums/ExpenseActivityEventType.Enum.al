@@ -58,6 +58,10 @@ enum 6922 "Expense Activity Event Type"
     {
         Caption = 'Interim approved';
     }
+    value(25; Reopened)
+    {
+        Caption = 'Reopened';
+    }
     value(30; CommentAdded)
     {
         Caption = 'Comment added';

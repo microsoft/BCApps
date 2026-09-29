@@ -138,14 +138,16 @@ page 7129 "Travel Request Card"
                 field("Actual Start Date and Time"; Rec."Actual Start Date and Time")
                 {
                     Importance = Additional;
-                    ToolTip = 'Specifies the actual start date and time of the travel.';
+                    ToolTip = 'Specifies the actual start date and time of the travel. Required when per diem is included.';
                     Editable = Rec.Status = Rec.Status::Open;
+                    ShowMandatory = Rec."Per Diem Included";
                 }
                 field("Actual End Date and Time"; Rec."Actual End Date and Time")
                 {
                     Importance = Additional;
-                    ToolTip = 'Specifies the actual end date and time of the travel.';
+                    ToolTip = 'Specifies the actual end date and time of the travel. Required when per diem is included.';
                     Editable = Rec.Status = Rec.Status::Open;
+                    ShowMandatory = Rec."Per Diem Included";
                 }
             }
             group("Travel Details")
@@ -159,21 +161,15 @@ page 7129 "Travel Request Card"
                     ToolTip = 'Specifies the business justification for the travel.';
                     Editable = Rec.Status = Rec.Status::Open;
                 }
-                field("International Travel"; Rec."International Travel")
+                field("Per Diem Included"; Rec."Per Diem Included")
                 {
-                    Importance = Additional;
-                    ToolTip = 'Specifies whether the travel is international.';
+                    ToolTip = 'Specifies whether per diem is included in the travel request.';
                     Editable = Rec.Status = Rec.Status::Open;
-                }
-                field("Origin Country"; Rec."Origin Country/Region Code")
-                {
-                    ToolTip = 'Specifies the origin country for the travel.';
-                    Editable = Rec.Status = Rec.Status::Open;
-                }
-                field("Destination Country"; Rec."Dest. Country/Region Code")
-                {
-                    ToolTip = 'Specifies the destination country for the travel.';
-                    Editable = Rec.Status = Rec.Status::Open;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
                 }
                 field(Restrictions; Rec.Restrictions)
                 {
@@ -186,11 +182,11 @@ page 7129 "Travel Request Card"
                     ToolTip = 'Specifies whether the travel policy has been acknowledged.';
                     Editable = Rec.Status = Rec.Status::Open;
                 }
-                field("Per Diem Included"; Rec."Per Diem Included")
+                field("Expense Location"; Rec."Expense Location")
                 {
-                    Importance = Additional;
-                    ToolTip = 'Specifies whether per diem is included in the travel request.';
-                    Editable = Rec.Status = Rec.Status::Open;
+                    ToolTip = 'Specifies the expense location of the travel. The expense location can only be used, and is required, when per diem is included.';
+                    Editable = (Rec.Status = Rec.Status::Open) and Rec."Per Diem Included";
+                    ShowMandatory = Rec."Per Diem Included";
                 }
             }
             group(Approval)
@@ -207,6 +203,12 @@ page 7129 "Travel Request Card"
                 {
                     Importance = Promoted;
                     ToolTip = 'Specifies when the travel request was approved or rejected.';
+                }
+                field("Submitter Comment"; Rec."Submitter Comment")
+                {
+                    Importance = Additional;
+                    MultiLine = true;
+                    Editable = false;
                 }
             }
         }
@@ -230,9 +232,9 @@ page 7129 "Travel Request Card"
 
                     trigger OnAction()
                     var
-                        ReleaseSpendRequest: Codeunit "Release Spend Request";
+                        TravelRequestApproval: Codeunit "Travel Request Approval";
                     begin
-                        ReleaseSpendRequest.PerformManualRelease(Rec);
+                        TravelRequestApproval.ReleaseManually(Rec);
                     end;
                 }
                 action(ReOpen)
@@ -245,9 +247,9 @@ page 7129 "Travel Request Card"
 
                     trigger OnAction()
                     var
-                        ReleaseSpendRequest: Codeunit "Release Spend Request";
+                        TravelRequestApproval: Codeunit "Travel Request Approval";
                     begin
-                        ReleaseSpendRequest.PerformManualReopen(Rec);
+                        TravelRequestApproval.ReopenManually(Rec);
                     end;
                 }
                 action(Close)

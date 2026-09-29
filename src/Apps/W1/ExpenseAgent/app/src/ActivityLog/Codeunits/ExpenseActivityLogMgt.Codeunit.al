@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.SpendRequest;
 using System.Security.AccessControl;
 
 codeunit 6926 "Expense Activity Log Mgt."
@@ -80,6 +81,73 @@ codeunit 6926 "Expense Activity Log Mgt."
     end;
 
     /// <summary>
+    /// Appends an activity entry for a travel request performed by an expense user.
+    /// </summary>
+    internal procedure LogTravelRequestEvent(
+        SpendRequest: Record "Spend Request";
+        EventType: Enum "Expense Activity Event Type";
+        ActorRole: Enum "Expense Activity Actor Role";
+        ActorExpenseUserNo: Code[20];
+        EventComment: Text
+    ): BigInteger
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        InitializeTravelRequestEntry(
+            ExpenseActivityLogEntry, SpendRequest, EventType, ActorRole, EventComment, CurrentDateTime());
+        SetExpenseUserActor(ExpenseActivityLogEntry, ActorExpenseUserNo);
+        exit(InsertTravelRequestEntry(ExpenseActivityLogEntry, SpendRequest));
+    end;
+
+    /// <summary>
+    /// Appends a travel request activity entry performed directly by a Business Central user.
+    /// </summary>
+    internal procedure LogTravelRequestEventByBCUser(
+        SpendRequest: Record "Spend Request";
+        EventType: Enum "Expense Activity Event Type";
+        ActorRole: Enum "Expense Activity Actor Role";
+        EventComment: Text
+    ): BigInteger
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        InitializeTravelRequestEntry(
+            ExpenseActivityLogEntry, SpendRequest, EventType, ActorRole, EventComment, CurrentDateTime());
+        SetBCUserActor(ExpenseActivityLogEntry, UserSecurityId());
+        exit(InsertTravelRequestEntry(ExpenseActivityLogEntry, SpendRequest));
+    end;
+
+    /// <summary>
+    /// Appends the retrospective creation entry when travel request activity tracking starts at first submission.
+    /// </summary>
+    internal procedure LogTravelRequestCreatedEvent(SpendRequest: Record "Spend Request"): BigInteger
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        Requester: Record "Expense User";
+        OccurredAt: DateTime;
+    begin
+        OccurredAt := SpendRequest.SystemCreatedAt;
+        if OccurredAt = 0DT then
+            OccurredAt := CurrentDateTime();
+
+        InitializeTravelRequestEntry(
+            ExpenseActivityLogEntry, SpendRequest,
+            Enum::"Expense Activity Event Type"::Created,
+            Enum::"Expense Activity Actor Role"::Submitter,
+            '', OccurredAt);
+
+        // Travel requests are owned by the requesting employee; fall back to the BC user who created the record.
+        Requester.SetLoadFields(SystemId);
+        Requester.SetRange("Employee No.", SpendRequest."Requested By");
+        if (SpendRequest."Requested By" <> '') and Requester.FindFirst() then
+            SetExpenseUserActorBySystemID(ExpenseActivityLogEntry, Requester.SystemId)
+        else
+            SetBCUserActor(ExpenseActivityLogEntry, SpendRequest.SystemCreatedBy);
+
+        exit(InsertTravelRequestEntry(ExpenseActivityLogEntry, SpendRequest));
+    end;
+
+    /// <summary>
     /// Reassigns a report's entries to the posted report while preserving event and subject identity.
     /// </summary>
     internal procedure ReassignExpenseReportEntriesToPosted(
@@ -130,6 +198,19 @@ codeunit 6926 "Expense Activity Log Mgt."
         exit(not ExpenseActivityLogEntry.IsEmpty());
     end;
 
+    internal procedure HasSubmissionForSource(SourceTableID: Integer; SourceRecordSystemID: Guid): Boolean
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseActivityLogEntry.SetRange("Source Table ID", SourceTableID);
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SourceRecordSystemID);
+        ExpenseActivityLogEntry.SetFilter(
+            "Event Type", '%1|%2',
+            ExpenseActivityLogEntry."Event Type"::Submitted,
+            ExpenseActivityLogEntry."Event Type"::Resubmitted);
+        exit(not ExpenseActivityLogEntry.IsEmpty());
+    end;
+
     local procedure InitializeExpenseReportEntry(
         var ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportHeader: Record "Expense Report Header";
@@ -151,11 +232,58 @@ codeunit 6926 "Expense Activity Log Mgt."
         ExpenseActivityLogEntry."Occurred At" := OccurredAt;
         ExpenseActivityLogEntry."Initiated By" := InitiatedBy;
         ExpenseActivityLogEntry."Actor Role" := ActorRole;
+        SetEntryComment(ExpenseActivityLogEntry, EventComment);
+    end;
+
+    local procedure InitializeTravelRequestEntry(
+        var ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        SpendRequest: Record "Spend Request";
+        EventType: Enum "Expense Activity Event Type";
+        ActorRole: Enum "Expense Activity Actor Role";
+        EventComment: Text;
+        OccurredAt: DateTime
+    )
+    begin
+        ExpenseActivityLogEntry.Init();
+        ExpenseActivityLogEntry."Source Table ID" := Database::"Spend Request";
+        ExpenseActivityLogEntry."Source Record System ID" := SpendRequest.SystemId;
+        ExpenseActivityLogEntry."Subject Table ID" := Database::"Spend Request";
+        ExpenseActivityLogEntry."Subject System ID" := SpendRequest.SystemId;
+        ExpenseActivityLogEntry."Document No." := SpendRequest."No.";
+        ExpenseActivityLogEntry."Document Description" :=
+            CopyStr(SpendRequest.Purpose, 1, MaxStrLen(ExpenseActivityLogEntry."Document Description"));
+        ExpenseActivityLogEntry."Event Type" := EventType;
+        ExpenseActivityLogEntry."Occurred At" := OccurredAt;
+        ExpenseActivityLogEntry."Initiated By" := Enum::"Expense Activity Initiator"::User;
+        ExpenseActivityLogEntry."Actor Role" := ActorRole;
+        SetEntryComment(ExpenseActivityLogEntry, EventComment);
+    end;
+
+    local procedure SetEntryComment(var ExpenseActivityLogEntry: Record "Expense Activity Log Entry"; EventComment: Text)
+    begin
         if StrLen(EventComment) > MaxStrLen(ExpenseActivityLogEntry.Comment) then
             ExpenseActivityLogEntry.Comment :=
                 CopyStr(EventComment, 1, MaxStrLen(ExpenseActivityLogEntry.Comment) - 3) + '...'
         else
             ExpenseActivityLogEntry.Comment := CopyStr(EventComment, 1, MaxStrLen(ExpenseActivityLogEntry.Comment));
+    end;
+
+    local procedure InsertTravelRequestEntry(
+        var ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        SpendRequest: Record "Spend Request"
+    ): BigInteger
+    begin
+        if ExpenseActivityLogEntry."Event Type" in [
+            ExpenseActivityLogEntry."Event Type"::Submitted,
+            ExpenseActivityLogEntry."Event Type"::Resubmitted]
+        then begin
+            ExpenseActivityLogEntry."Total Expected Amount" := SpendRequest."Total Expected Amount";
+            ExpenseActivityLogEntry."Currency Code" := SpendRequest."Currency Code";
+            ExpenseActivityLogEntry."Amount (LCY)" := SpendRequest."Total Expected Amount (LCY)";
+        end;
+
+        ExpenseActivityLogEntry.Insert();
+        exit(ExpenseActivityLogEntry."Entry No.");
     end;
 
     local procedure InsertExpenseReportEntry(

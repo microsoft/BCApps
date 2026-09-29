@@ -141,18 +141,29 @@ page 7134 "Travel Requests API"
                 {
                     Caption = 'Travel Policy Acknowledgment';
                 }
+#if not CLEAN30
                 field(internationalTravel; Rec."International Travel")
                 {
                     Caption = 'International Travel';
+                    ObsoleteReason = 'Use expenseLocation instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(originCountry; Rec."Origin Country/Region Code")
                 {
                     Caption = 'Origin Country';
+                    ObsoleteReason = 'Use expenseLocation instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(destinationCountry; Rec."Dest. Country/Region Code")
                 {
                     Caption = 'Destination Country';
+                    ObsoleteReason = 'Use expenseLocation instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field(restrictions; Rec.Restrictions)
                 {
                     Caption = 'Restrictions';
@@ -160,6 +171,11 @@ page 7134 "Travel Requests API"
                 field(perDiemIncluded; Rec."Per Diem Included")
                 {
                     Caption = 'Per Diem Included';
+                }
+                field(expenseLocation; Rec."Expense Location")
+                {
+                    Caption = 'Expense Location';
+                    ToolTip = 'Specifies the expense location of the travel. Use the expensePerDiemLocations endpoint to list the available locations. Can only be set, and is required on submission, when perDiemIncluded is true.';
                 }
                 field(actualStartDateAndTime; Rec."Actual Start Date and Time")
                 {
@@ -181,9 +197,32 @@ page 7134 "Travel Requests API"
                     ToolTip = 'Specifies the date and time when the travel request was submitted.';
                     Editable = false;
                 }
+                field(submitterComment; Rec."Submitter Comment")
+                {
+                    Caption = 'Submitter Comment';
+                    ToolTip = 'Specifies the latest comment from the submitter, for example the justification for resubmitting a rejected travel request. Set it with the submitTravelRequestWithComment action.';
+                    Editable = false;
+                }
                 field(approvalExpenseUserNo; Rec."Approval Expense User No.")
                 {
                     Caption = 'Approval Expense User No.';
+                    ToolTip = 'Specifies the expense user who approved or rejected the travel request.';
+                    Editable = false;
+                }
+                field(approvedRejectedDateTime; Rec."Approved/Rejected At")
+                {
+                    Caption = 'Approved/Rejected Date and Time';
+                    ToolTip = 'Specifies the date and time when the travel request was approved or rejected.';
+                    Editable = false;
+                }
+                field(approvedRejectedByDisplayName; Rec."Approval Expense User Name")
+                {
+                    Caption = 'Approved/Rejected By Expense User Display Name';
+                    Editable = false;
+                }
+                field(approvedRejectedByExpUserNo; ApprovedRejectedByExpUserNo)
+                {
+                    Caption = 'Approved/Rejected By Expense User Number';
                     ToolTip = 'Specifies the expense user who approved or rejected the travel request.';
                     Editable = false;
                 }
@@ -214,6 +253,14 @@ page 7134 "Travel Requests API"
                     EntitySetName = 'employees';
                     SubPageLink = "Travel Request SystemId Filter" = field(SystemId);
                 }
+                part(activityLogEntries; "Expense Activity Log API")
+                {
+                    Caption = 'Activity Log Entries';
+                    EntityName = 'expenseActivityLogEntry';
+                    EntitySetName = 'expenseActivityLogEntries';
+                    SubPageLink = "Source Table ID" = const(Database::"Spend Request"),
+                                  "Source Record System ID" = field(SystemId);
+                }
             }
         }
     }
@@ -227,7 +274,7 @@ page 7134 "Travel Requests API"
 
     trigger OnOpenPage()
     begin
-        Rec.AddLoadFields("Currency Code", "Expected Start Date", "Expected End Date");
+        Rec.AddLoadFields("Currency Code", "Expected Start Date", "Expected End Date", "Approval Expense User No.");
     end;
 
     trigger OnAfterGetRecord()
@@ -235,6 +282,7 @@ page 7134 "Travel Requests API"
         CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code");
         ExpectedStartDate := Rec."Expected Start Date";
         ExpectedEndDate := Rec."Expected End Date";
+        ApprovedRejectedByExpUserNo := Rec."Approval Expense User No.";
         ExpectedStartDateProvided := false;
         ExpectedEndDateProvided := false;
     end;
@@ -249,6 +297,7 @@ page 7134 "Travel Requests API"
         Clear(CurrencyCodeDisplay);
         Clear(ExpectedStartDate);
         Clear(ExpectedEndDate);
+        Clear(ApprovedRejectedByExpUserNo);
         ExpectedStartDateProvided := false;
         ExpectedEndDateProvided := false;
     end;
@@ -259,6 +308,15 @@ page 7134 "Travel Requests API"
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
         TravelRequestApproval.Submit(Rec, SubmitterExpenseUserNo);
+        SetActionResponse(ActionContext);
+    end;
+
+    [ServiceEnabled]
+    procedure SubmitTravelRequestWithComment(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        TravelRequestApproval.Submit(Rec, SubmitterExpenseUserNo, SubmissionComment);
         SetActionResponse(ActionContext);
     end;
 
@@ -278,6 +336,36 @@ page 7134 "Travel Requests API"
     begin
         TravelRequestApproval.Reject(Rec, ApproverExpenseUserNo, RejectReason);
         SetActionResponse(ActionContext);
+    end;
+
+    [ServiceEnabled]
+    procedure ReopenTravelRequest(var ActionContext: WebServiceActionContext)
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+        ReopenerExpenseUserNo: Code[20];
+    begin
+        Rec.TestField("Document Type", Rec."Document Type"::"Travel Request");
+        // Like an expense report recall, the reopen is attributed to the submitter unless the call is scoped to an expense user.
+        ReopenerExpenseUserNo := GetOwnerScopeExpenseUserNo();
+        if ReopenerExpenseUserNo = '' then
+            ReopenerExpenseUserNo := Rec."Submitted By Expense User No.";
+        TravelRequestApproval.Reopen(Rec, ReopenerExpenseUserNo);
+        SetActionResponse(ActionContext);
+    end;
+
+    local procedure GetOwnerScopeExpenseUserNo(): Code[20]
+    var
+        ExpenseUser: Record "Expense User";
+        OwnerSystemId: Guid;
+        OriginalFilterGroup: Integer;
+    begin
+        OriginalFilterGroup := Rec.FilterGroup(4);
+        if Rec.GetFilter("Requested By User Id Filter") <> '' then
+            OwnerSystemId := Rec.GetRangeMin("Requested By User Id Filter");
+        Rec.FilterGroup(OriginalFilterGroup);
+        if IsNullGuid(OwnerSystemId) then
+            exit('');
+        exit(ExpenseUser.GetExpenseUserNoBySystemId(OwnerSystemId));
     end;
 
     [ServiceEnabled]
@@ -424,9 +512,11 @@ page 7134 "Travel Requests API"
         CurrencyCodeDisplay: Code[10];
         ExpectedStartDate: Date;
         ExpectedEndDate: Date;
+        // Match the expense report API's string length without changing the existing travel-request field.
+        ApprovedRejectedByExpUserNo: Code[50];
         ExpectedStartDateProvided: Boolean;
         ExpectedEndDateProvided: Boolean;
-        StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, or rejecting the travel request';
+        StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, rejecting, or reopening the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
         TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.';
         ExpenseReportAlreadyLinkedErr: Label 'Expense user %1 already has expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Expense Report No., %3 = Travel Request No.';
