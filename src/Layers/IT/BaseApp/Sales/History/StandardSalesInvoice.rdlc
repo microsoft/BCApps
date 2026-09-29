@@ -7162,7 +7162,7 @@
                               <Width>7cm</Width>
                               <ZIndex>10</ZIndex>
                               <Visibility>
-                                <Hidden>=Sum(IIF(Fields!PostedPaymentLineNo.Value &gt; 0, 1, 0)) = 0</Hidden>
+                                <Hidden>=IsNothing(Max(Fields!PostedPaymentSchedule_Lbl.Value)) Or Max(Fields!PostedPaymentSchedule_Lbl.Value) = ""</Hidden>
                               </Visibility>
                               <Style>
                                 <Border>
