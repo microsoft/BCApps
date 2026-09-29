@@ -23,6 +23,7 @@ codeunit 148318 "Expense Capabilities API Test"
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
         ApprovalConversationCapabilityNameTok: Label 'approvalConversation', Locked = true;
+        TravelRequestCapabilityNameTok: Label 'TRAVELREQUEST', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -216,6 +217,26 @@ codeunit 148318 "Expense Capabilities API Test"
         // [THEN] The provider reports aiAssistedPolicyEvaluation as disabled.
         Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation),
             'aiAssistedPolicyEvaluation must be disabled when Evaluate Policies is false.');
+    end;
+
+    [Test]
+    procedure TravelRequestCapabilityDisabled()
+    var
+        TempExpenseCapabilitiesBuffer: Record "Expense Capabilities Buffer" temporary;
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+    begin
+        // [SCENARIO] Travel requests are not supported in this release, so the
+        //            travelRequest capability is always reported disabled.
+        Initialize();
+
+        // [THEN] The provider reports TravelRequest as disabled.
+        Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::TravelRequest),
+            'travelRequest must be disabled.');
+
+        // [THEN] The buffer feeding the capabilities API contains a disabled TravelRequest row.
+        ExpenseCapabilitiesProvider.Populate(TempExpenseCapabilitiesBuffer);
+        Assert.IsTrue(TempExpenseCapabilitiesBuffer.Get(TravelRequestCapabilityNameTok), 'The capabilities API must contain a travelRequest row.');
+        Assert.IsFalse(TempExpenseCapabilitiesBuffer."Is Enabled", 'travelRequest must be reported disabled by the capabilities API.');
     end;
 
     local procedure Initialize()
