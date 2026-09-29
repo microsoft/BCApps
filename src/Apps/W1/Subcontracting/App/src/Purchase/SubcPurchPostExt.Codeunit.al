@@ -103,6 +103,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         PurchRcptLine: Record "Purch. Rcpt. Line";
         ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
+        DirectUnitCost: Decimal;
         MissingExactCostReversingLink: Boolean;
     begin
 #if not CLEAN29
@@ -119,22 +120,58 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        ItemLedgerEntry.SetRange("Item No.", FromPurchInvLine."No.");
-        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
-        ItemLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
-        ItemLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
-        ItemLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
-        ItemLedgerEntry.SetRange(Positive, true);
+        SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine);
+        if ItemLedgerEntry.IsEmpty() then
+            exit;
+
+        if not ItemIsTracked(PurchRcptLine."No.") then begin
+            ItemLedgerEntry.FindFirst();
+            ToPurchLine."Appl.-to Item Entry" := ItemLedgerEntry."Entry No.";
+            ToPurchLine.Modify();
+            exit;
+        end;
+
+        DirectUnitCost := ToPurchLine."Direct Unit Cost";
+        ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempItemLedgerEntry, ItemLedgerEntry);
+        ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
+            TempItemLedgerEntry, ToPurchLine, true, MissingExactCostReversingLink,
+            ToPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
+        ToPurchLine.Validate("Direct Unit Cost", DirectUnitCost);
+        ToPurchLine.Modify();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", OnBeforeCopyHandledItemTrkgToPurchLine, '', false, false)]
+    local procedure CopyTrackedSubcontractingOutputToSeparateInvoice(FromPurchLine: Record "Purchase Line"; var ToPurchLine: Record "Purchase Line"; CheckLineQty: Boolean; var IsHandled: Boolean)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        MissingExactCostReversingLink: Boolean;
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if ToPurchLine."Document Type" <> ToPurchLine."Document Type"::Invoice then
+            exit;
+        if not PurchRcptLine.Get(ToPurchLine."Receipt No.", ToPurchLine."Receipt Line No.") then
+            exit;
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
+            exit;
+
+        IsHandled := true;
+        SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine);
         if ItemLedgerEntry.IsEmpty() then
             exit;
 
         ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempItemLedgerEntry, ItemLedgerEntry);
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
-            TempItemLedgerEntry, ToPurchLine, true, MissingExactCostReversingLink,
-            ToPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
-        // Keep the copied subcontracting price while retaining the exact per-entry applications created above.
-        ToPurchLine.Modify();
+            TempItemLedgerEntry, ToPurchLine, false, MissingExactCostReversingLink,
+            false, false, true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
@@ -206,6 +243,19 @@ codeunit 20535 "Subc. Purch. Post Ext"
         if not Item.Get(ItemNo) then
             exit(false);
         exit(Item."Item Tracking Code" <> '');
+    end;
+
+    local procedure SetSubcontractingOutputEntryFilters(var ItemLedgerEntry: Record "Item Ledger Entry"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    begin
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Purchase Receipt");
+        ItemLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
+        ItemLedgerEntry.SetRange("Document Line No.", PurchRcptLine."Line No.");
+        ItemLedgerEntry.SetRange("Item No.", PurchRcptLine."No.");
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        ItemLedgerEntry.SetRange(Positive, true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry, '', false, false)]

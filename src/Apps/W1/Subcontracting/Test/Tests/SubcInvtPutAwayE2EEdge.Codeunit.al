@@ -1590,19 +1590,19 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
             InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
             InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
             InvoiceLine.FindFirst();
-            ReservationEntry.SetSourceFilter(
-                Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(), InvoiceLine."Document No.", InvoiceLine."Line No.", false);
-            if TrackOutput then
-                Assert.RecordCount(ReservationEntry, 2)
-            else
-                Assert.RecordCount(ReservationEntry, 1);
-            ReservationEntry.FindSet();
-            repeat
-                Assert.IsTrue(ItemLedgerEntry.Get(ReservationEntry."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
-                Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to an original output Item Ledger Entry.');
-                Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting production order.');
-                Assert.AreEqual(PurchRcptLine."Document No.", ItemLedgerEntry."Document No.", 'The applied output Item Ledger Entry must belong to the subcontracting receipt.');
-            until ReservationEntry.Next() = 0;
+            if TrackOutput then begin
+                ReservationEntry.SetSourceFilter(
+                    Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(), InvoiceLine."Document No.", InvoiceLine."Line No.", false);
+                Assert.RecordCount(ReservationEntry, 2);
+                ReservationEntry.FindSet();
+                repeat
+                    Assert.IsTrue(ItemLedgerEntry.Get(ReservationEntry."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
+                    VerifyCorrectiveApplication(ItemLedgerEntry, ProductionOrder, PurchRcptLine);
+                until ReservationEntry.Next() = 0;
+            end else begin
+                Assert.IsTrue(ItemLedgerEntry.Get(InvoiceLine."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
+                VerifyCorrectiveApplication(ItemLedgerEntry, ProductionOrder, PurchRcptLine);
+            end;
             InvoiceHeader.Validate(
                 "Vendor Cr. Memo No.",
                 CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(InvoiceHeader."Vendor Cr. Memo No.")));
@@ -1628,6 +1628,15 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Reversing the invoice must not create output entries.');
+    end;
+
+    local procedure VerifyCorrectiveApplication(ItemLedgerEntry: Record "Item Ledger Entry"; ProductionOrder: Record "Production Order"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    begin
+        Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to an original output Item Ledger Entry.');
+        Assert.AreEqual(ItemLedgerEntry."Document Type"::"Purchase Receipt", ItemLedgerEntry."Document Type", 'The corrective credit memo must apply to a purchase receipt output entry.');
+        Assert.AreEqual(PurchRcptLine."Document No.", ItemLedgerEntry."Document No.", 'The applied output Item Ledger Entry must belong to the subcontracting receipt.');
+        Assert.AreEqual(PurchRcptLine."Line No.", ItemLedgerEntry."Document Line No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting receipt line.');
+        Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting production order.');
     end;
 
     [ConfirmHandler]
