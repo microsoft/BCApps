@@ -7767,6 +7767,9 @@ End Function
         <Field Name="DueDate">
           <DataField>DueDate</DataField>
         </Field>
+        <Field Name="DueDateDisplayText">
+          <DataField>DueDateDisplayText</DataField>
+        </Field>
         <Field Name="DueDate_Lbl">
           <DataField>DueDate_Lbl</DataField>
         </Field>
@@ -7949,6 +7952,15 @@ End Function
         </Field>
         <Field Name="ExternalDocumentNo_Lbl">
           <DataField>ExternalDocumentNo_Lbl</DataField>
+        </Field>
+        <Field Name="PostedPaymentSchedule_Lbl">
+          <DataField>PostedPaymentSchedule_Lbl</DataField>
+        </Field>
+        <Field Name="PostedPaymentLineDueDate_Lbl">
+          <DataField>PostedPaymentLineDueDate_Lbl</DataField>
+        </Field>
+        <Field Name="PostedPaymentLineAmount_Lbl">
+          <DataField>PostedPaymentLineAmount_Lbl</DataField>
         </Field>
         <Field Name="LineNo_Line">
           <DataField>LineNo_Line</DataField>
@@ -8265,29 +8277,26 @@ End Function
         <Field Name="PaymentServiceText_Url">
           <DataField>PaymentServiceText_Url</DataField>
         </Field>
-        <Field Name="PostedPaymentSchedule_Lbl">
-          <DataField>PostedPaymentSchedule_Lbl</DataField>
-        </Field>
         <Field Name="PostedPaymentLineNo">
           <DataField>PostedPaymentLineNo</DataField>
         </Field>
         <Field Name="PostedPaymentLineDueDate">
           <DataField>PostedPaymentLineDueDate</DataField>
         </Field>
-        <Field Name="PostedPaymentLineDueDate_Lbl">
-          <DataField>PostedPaymentLineDueDate_Lbl</DataField>
-        </Field>
         <Field Name="PostedPaymentLineAmount">
           <DataField>PostedPaymentLineAmount</DataField>
+        </Field>
+        <Field Name="PostedPaymentLineAmountFormat">
+          <DataField>PostedPaymentLineAmountFormat</DataField>
         </Field>
         <Field Name="PostedPaymentLineAmountFormatted">
           <DataField>PostedPaymentLineAmountFormatted</DataField>
         </Field>
-        <Field Name="PostedPaymentLineAmount_Lbl">
-          <DataField>PostedPaymentLineAmount_Lbl</DataField>
-        </Field>
         <Field Name="PostedPaymentLinePaymentPercent">
           <DataField>PostedPaymentLinePaymentPercent</DataField>
+        </Field>
+        <Field Name="PostedPaymentLinePaymentPercentFormat">
+          <DataField>PostedPaymentLinePaymentPercentFormat</DataField>
         </Field>
         <Field Name="LeftHeaderName">
           <DataField>LeftHeaderName</DataField>

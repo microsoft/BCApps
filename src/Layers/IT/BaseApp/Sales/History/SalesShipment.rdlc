@@ -5741,14 +5741,14 @@ End Function</Code>
         <Field Name="Type_SalesShptLine">
           <DataField>Type_SalesShptLine</DataField>
         </Field>
-        <Field Name="LinNo">
-          <DataField>LinNo</DataField>
-        </Field>
         <Field Name="AsmHeaderExists">
           <DataField>AsmHeaderExists</DataField>
         </Field>
         <Field Name="DocNo_SalesShptLine">
           <DataField>DocNo_SalesShptLine</DataField>
+        </Field>
+        <Field Name="LinNo">
+          <DataField>LinNo</DataField>
         </Field>
         <Field Name="ItemReferenceNo_Line">
           <DataField>ItemReferenceNo_Line</DataField>
