@@ -140,8 +140,8 @@ page 5749 "Transfer Lines"
                     begin
                         TransferHeader.Get(Rec."Document No.");
 #if not CLEAN28
+                        TransferHeader.CalcFields("Subcontracting Order");
                         if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() and TransferHeader."Subcontracting Order" then begin
-                            TransferHeader.CalcFields("Subcontracting Order");
                             PAGE.Run(PAGE::"Subcontr. Transfer Order", TransferHeader);
                         end else
 #endif
