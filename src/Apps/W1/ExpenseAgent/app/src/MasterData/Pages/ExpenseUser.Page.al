@@ -250,6 +250,10 @@ page 6949 "Expense User"
                     actionref(ApprovalSetup_Promoted; ApprovalSetup)
                     {
                     }
+                    actionref(AlternateApprovers_Promoted; "Alternate Approvers")
+                    {
+                    }
+
                 }
                 actionref(CreateEmployee_Promoted; CreateEmployee)
                 {
@@ -257,9 +261,6 @@ page 6949 "Expense User"
                 actionref(SendWelcomeEmail_Promoted; "Send Welcome Email")
                 {
                 }
-            }
-            actionref(AlternateApprovers_Promoted; "Alternate Approvers")
-            {
             }
         }
     }
