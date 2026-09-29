@@ -529,7 +529,7 @@ codeunit 134714 "Shpfy TMA Test Library"
     begin
         OrderHeader := SetupHarmProbeOrder(Shop, AttackQuery);
         TMAMatcher.TryGetGuardrailPrompt(SecurityPrompt);
-        if TMAMatcher.MatchTaxLines(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch) then
+        if TMAMatcher.MatchTaxLinesWithoutProcessingLimit(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch) then
             Response := BuildHarmProbeResponse(MatchLog);
         if Response = '' then
             Response := NoMatchResponseTxt;
