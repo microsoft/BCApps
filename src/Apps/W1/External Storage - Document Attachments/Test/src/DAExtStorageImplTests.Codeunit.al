@@ -132,6 +132,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
 
         // [GIVEN] A document that has been uploaded to external storage
         CreateDocumentAttachmentWithContent(DocumentAttachment);
@@ -324,30 +325,56 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
-    procedure DeleteFromInternalStorageSucceeds()
+    procedure DeleteFromInternalFailsWhenExternalFileCannotBeRetrieved()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Result: Boolean;
     begin
-        // [SCENARIO] Delete from internal storage should succeed for externally stored docs
+        // [SCENARIO] Internal content is retained when the external file cannot be retrieved.
         Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
 
-        // [GIVEN] A document attachment with content and marked as externally stored
+        // [GIVEN] A document attachment uploaded externally
         CreateDocumentAttachmentWithContent(DocumentAttachment);
-        DocumentAttachment."Stored Externally" := true;
-        DocumentAttachment.Modify();
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should succeed');
+        FileConnectorMock.SetFailOnGetFile(true);
 
         // [WHEN] Delete from internal is attempted
         Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
 
-        // [THEN] Delete should succeed
-        Assert.IsTrue(Result, 'Delete from internal should succeed');
+        // [THEN] Delete fails and the internal media remains
+        Assert.IsFalse(Result, 'Delete from internal should fail');
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Document should remain stored internally');
+        Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media should remain available');
+    end;
 
-        // [THEN] Document should be marked as not stored internally
-        DocumentAttachment.SetRecFilter();
-        DocumentAttachment.FindFirst();
-        Assert.IsFalse(DocumentAttachment."Stored Internally", 'Document should not be marked as stored internally');
+    [Test]
+    procedure DeleteFromInternalFailsWhenExternalContentDiffers()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        Result: Boolean;
+    begin
+        // [SCENARIO] Internal content is retained when external content has the same length but a different hash.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should succeed');
+        FileConnectorMock.SetReturnDifferentContent(true);
+
+        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+
+        Assert.IsFalse(Result, 'Delete from internal should fail');
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Document should remain stored internally');
+        Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media should remain available');
     end;
 
     [Test]
@@ -901,6 +928,9 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [SCENARIO] Deleting an attachment from internal storage must not remove the Tenant Media
         // while a copied attachment still references it.
         Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
 
         // [GIVEN] An attachment with content that has been copied to another document
         CreateDocumentAttachmentWithContent(DocumentAttachment);
@@ -908,8 +938,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateCopyOfDocumentAttachment(DocumentAttachment, CopiedDocumentAttachment);
 
         // [GIVEN] The original attachment is stored externally
-        DocumentAttachment."Stored Externally" := true;
-        DocumentAttachment.Modify();
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should succeed');
 
         // [WHEN] The original is deleted from internal storage
         Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed');
@@ -937,12 +966,14 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     begin
         // [SCENARIO] Database space is still reclaimed when the attachment is the only owner
         Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
 
         // [GIVEN] An attachment with content that is not shared and is stored externally
         CreateDocumentAttachmentWithContent(DocumentAttachment);
         MediaId := DocumentAttachment."Document Reference ID".MediaId();
-        DocumentAttachment."Stored Externally" := true;
-        DocumentAttachment.Modify();
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should succeed');
 
         // [WHEN] It is deleted from internal storage
         Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed');
@@ -965,6 +996,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
 
         // [GIVEN] An attachment that has been copied to another document
         CreateDocumentAttachmentWithContent(DocumentAttachment);

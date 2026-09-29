@@ -130,6 +130,8 @@ From **External Storage Synchronize** report:
 - **From External Storage**: Download multiple files from external storage
 - **Delete Expired Files**: Clean up files based on retention policy
 
+When **Move** removes an internal attachment after upload, Business Central first downloads the persisted external path and verifies that its length and SHA-256 hash match the internal media. If verification fails, the internal content is retained for a safe retry.
+
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality
 - Document preview, download, and management work seamlessly

@@ -416,6 +416,9 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then
             exit(false);
 
+        if not ExternalContentMatchesInternal(DocumentAttachment, TenantMedia) then
+            exit(false);
+
         // Attachments copied onto other documents share this Tenant Media row, so it may only be
         // deleted once this attachment is its last owner. Deleting it earlier destroys the content
         // of every attachment copied from this one.
@@ -425,6 +428,38 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Mark Document Attachment as Not Stored Internally
         DocumentAttachment.MarkAsDeletedInternally();
         exit(true);
+    end;
+
+    local procedure ExternalContentMatchesInternal(DocumentAttachment: Record "Document Attachment"; var TenantMedia: Record "Tenant Media"): Boolean
+    var
+        TempFileAccount: Record "File Account";
+        ExternalFileStorage: Codeunit "External File Storage";
+        FileScenarioCU: Codeunit "File Scenario";
+        CryptographyManagement: Codeunit "Cryptography Management";
+        FileScenario: Enum "File Scenario";
+        ExternalInStream: InStream;
+        InternalInStream: InStream;
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+    begin
+        if DocumentAttachment."External File Path" = '' then
+            exit(false);
+
+        FileScenario := FileScenario::"Doc. Attach. - External Storage";
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
+            exit(false);
+
+        ExternalFileStorage.Initialize(FileScenario);
+        if not ExternalFileStorage.GetFile(DocumentAttachment."External File Path", ExternalInStream) then
+            exit(false);
+
+        TenantMedia.CalcFields(Content);
+        if TenantMedia.Content.Length() <> ExternalInStream.Length() then
+            exit(false);
+
+        TenantMedia.Content.CreateInStream(InternalInStream);
+        exit(
+            CryptographyManagement.GenerateHash(InternalInStream, HashAlgorithmType::SHA256) =
+            CryptographyManagement.GenerateHash(ExternalInStream, HashAlgorithmType::SHA256));
     end;
 
     /// <summary>
