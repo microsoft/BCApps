@@ -238,13 +238,115 @@ report 3010545 "DTA Payment Journal"
                 Clear(VendorBankAccount);
                 Clear(Employee);
                 case "Account Type" of
-                    "Account Type"::Vendor:
-                        SetVendorPaymentValues();
                     "Account Type"::Employee:
                         begin
                             Employee.Get("Account No.");
                             AccountName := Employee.FullName();
                             xAcc := Employee.GetBankAccountNo();
+                        end;
+                    "Account Type"::Vendor:
+                        begin
+                            Vendor.Get("Account No.");
+                            AccountName := Vendor.Name;
+
+                            // Vendor Entries
+                            if "Applies-to Doc. No." = '' then
+                                xTxt := Text000Err
+                            else begin
+                                VendorLedgerEntry.SetCurrentKey("Document No.");
+                                VendorLedgerEntry.SetRange("Document Type", "Applies-to Doc. Type");
+                                VendorLedgerEntry.SetRange("Document No.", "Applies-to Doc. No.");
+                                VendorLedgerEntry.SetRange("Vendor No.", "Account No.");
+                                if not VendorLedgerEntry.FindFirst() then
+                                    xTxt := Text001Err
+                                else begin
+                                    if not VendorLedgerEntry.Open then
+                                        xTxt := Text002Err;
+
+                                    VendorLedgerEntry.CalcFields("Remaining Amount");
+
+                                    // Calc day for age, due date and cash disc.
+                                    if VendorLedgerEntry."Posting Date" > 0D then
+                                        AgeDays := "Posting Date" - VendorLedgerEntry."Posting Date";
+                                    if VendorLedgerEntry."Pmt. Discount Date" > 0D then
+                                        CashDiscDays := VendorLedgerEntry."Pmt. Discount Date" - "Posting Date";
+                                    if VendorLedgerEntry."Due Date" > 0D then
+                                        DueDays := VendorLedgerEntry."Due Date" - "Posting Date";
+
+                                    OpenRemAmtFC := -VendorLedgerEntry."Remaining Amount";
+                                    CashDiscAmtFC := -VendorLedgerEntry."Remaining Pmt. Disc. Possible";
+
+                                    // Open entry and remaining for multicurrency. Convert to pmt currency
+                                    if VendorLedgerEntry."Currency Code" <> "Currency Code" then begin
+                                        OpenRemAmtFC :=
+                                          CurrencyExchangeRate.ExchangeAmtFCYToFCY(
+                                            "Posting Date", VendorLedgerEntry."Currency Code", "Currency Code", -VendorLedgerEntry."Remaining Amount");
+                                        CashDiscAmtFC :=
+                                          CurrencyExchangeRate.ExchangeAmtFCYToFCY(
+                                            "Posting Date", VendorLedgerEntry."Currency Code", "Currency Code", -VendorLedgerEntry."Original Pmt. Disc. Possible");
+                                    end;
+                                    if (VendorLedgerEntry."Pmt. Discount Date" >= "Posting Date") or
+                                       ((VendorLedgerEntry."Pmt. Disc. Tolerance Date" >= "Posting Date") and
+                                        VendorLedgerEntry."Accepted Pmt. Disc. Tolerance")
+                                    then
+                                        CashDeductAmt := -VendorLedgerEntry."Remaining Pmt. Disc. Possible";
+
+                                    PmtToleranceAmount := -VendorLedgerEntry."Accepted Payment Tolerance";
+
+                                    // Calc rest after pmt (and evtl. cash disc)
+                                    RestAfterPmt := OpenRemAmtFC - Amount - CashDeductAmt - PmtToleranceAmount;
+                                    if RestAfterPmt > 0 then begin
+                                        RestAfterPmt := RestAfterPmt + CashDeductAmt;
+                                        CashDeductAmt := 0;
+                                    end;
+                                end;
+                            end;
+
+                            // Vendor Bank Account
+                            if "Recipient Bank Account" = '' then
+                                xTxt := Text003Err
+                            else
+                                if not VendorBankAccount.Get("Account No.", "Recipient Bank Account") then
+                                    xTxt := Text004Err;
+                            if xTxt = '' then
+                                case VendorBankAccount."Payment Form" of
+                                    VendorBankAccount."Payment Form"::ESR, VendorBankAccount."Payment Form"::"ESR+":
+                                        begin
+                                            xAcc := VendorBankAccount."ESR Account No.";
+                                            xTxt := VendorLedgerEntry."Reference No.";
+                                        end;
+                                    VendorBankAccount."Payment Form"::"Post Payment Domestic":
+                                        if VendorBankAccount.IBAN <> '' then
+                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                        else
+                                            xAcc := VendorBankAccount."Giro Account No.";
+                                    VendorBankAccount."Payment Form"::"Bank Payment Domestic":
+                                        if VendorBankAccount.IBAN <> '' then
+                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                        else begin
+                                            xTxt := VendorBankAccount."Clearing No.";
+                                            xAcc := VendorBankAccount."Bank Account No.";
+                                        end;
+                                    VendorBankAccount."Payment Form"::"Post Payment Abroad":
+                                        if VendorBankAccount.IBAN <> '' then
+                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                        else
+                                            xAcc := VendorBankAccount."Bank Account No.";
+                                    VendorBankAccount."Payment Form"::"Bank Payment Abroad":
+                                        if VendorBankAccount.IBAN <> '' then
+                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                        else begin
+                                            xTxt := VendorBankAccount."Bank Identifier Code";
+                                            xAcc := VendorBankAccount."Bank Account No.";
+                                        end;
+                                    VendorBankAccount."Payment Form"::"SWIFT Payment Abroad":
+                                        if VendorBankAccount.IBAN <> '' then
+                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                        else begin
+                                            xTxt := VendorBankAccount."SWIFT Code";
+                                            xAcc := VendorBankAccount."Bank Account No.";
+                                        end;
+                                end;
                         end;
                 end;
 
@@ -254,7 +356,7 @@ report 3010545 "DTA Payment Journal"
 
                 NoOfLinesPerVendor := NoOfLinesPerVendor + 1;
                 if NoOfLinesPerVendor > 1 then
-                    TotalVendorTxt := Text005Msg + ' ' + "Account No." + ' ' + Vendor.Name;
+                    TotalVendorTxt := Text005Msg + ' ' + "Account No." + ' ' + AccountName;
             end;
 
             trigger OnPreDataItem()
@@ -302,113 +404,6 @@ report 3010545 "DTA Payment Journal"
     trigger OnPreReport()
     begin
         GLSetup.Get();
-    end;
-
-    local procedure SetVendorPaymentValues()
-    begin
-        Vendor.Get("Gen. Journal Line"."Account No.");
-        AccountName := Vendor.Name;
-
-        // Vendor Entries
-        if "Gen. Journal Line"."Applies-to Doc. No." = '' then
-            xTxt := Text000Err
-        else begin
-            VendorLedgerEntry.SetCurrentKey("Document No.");
-            VendorLedgerEntry.SetRange("Document Type", "Gen. Journal Line"."Applies-to Doc. Type");
-            VendorLedgerEntry.SetRange("Document No.", "Gen. Journal Line"."Applies-to Doc. No.");
-            VendorLedgerEntry.SetRange("Vendor No.", "Gen. Journal Line"."Account No.");
-            if not VendorLedgerEntry.FindFirst() then
-                xTxt := Text001Err
-            else begin
-                if not VendorLedgerEntry.Open then
-                    xTxt := Text002Err;
-
-                VendorLedgerEntry.CalcFields("Remaining Amount");
-
-                // Calc day for age, due date and cash disc.
-                if VendorLedgerEntry."Posting Date" > 0D then
-                    AgeDays := "Gen. Journal Line"."Posting Date" - VendorLedgerEntry."Posting Date";
-                if VendorLedgerEntry."Pmt. Discount Date" > 0D then
-                    CashDiscDays := VendorLedgerEntry."Pmt. Discount Date" - "Gen. Journal Line"."Posting Date";
-                if VendorLedgerEntry."Due Date" > 0D then
-                    DueDays := VendorLedgerEntry."Due Date" - "Gen. Journal Line"."Posting Date";
-
-                OpenRemAmtFC := -VendorLedgerEntry."Remaining Amount";
-                CashDiscAmtFC := -VendorLedgerEntry."Remaining Pmt. Disc. Possible";
-
-                // Open entry and remaining for multicurrency. Convert to pmt currency
-                if VendorLedgerEntry."Currency Code" <> "Gen. Journal Line"."Currency Code" then begin
-                    OpenRemAmtFC :=
-                      CurrencyExchangeRate.ExchangeAmtFCYToFCY(
-                        "Gen. Journal Line"."Posting Date", VendorLedgerEntry."Currency Code", "Gen. Journal Line"."Currency Code", -VendorLedgerEntry."Remaining Amount");
-                    CashDiscAmtFC :=
-                      CurrencyExchangeRate.ExchangeAmtFCYToFCY(
-                        "Gen. Journal Line"."Posting Date", VendorLedgerEntry."Currency Code", "Gen. Journal Line"."Currency Code", -VendorLedgerEntry."Original Pmt. Disc. Possible");
-                end;
-
-                if (VendorLedgerEntry."Pmt. Discount Date" >= "Gen. Journal Line"."Posting Date") or
-                   ((VendorLedgerEntry."Pmt. Disc. Tolerance Date" >= "Gen. Journal Line"."Posting Date") and
-                    VendorLedgerEntry."Accepted Pmt. Disc. Tolerance")
-                then
-                    CashDeductAmt := -VendorLedgerEntry."Remaining Pmt. Disc. Possible";
-
-                PmtToleranceAmount := -VendorLedgerEntry."Accepted Payment Tolerance";
-
-                // Calc rest after pmt (and evtl. cash disc)
-                RestAfterPmt := OpenRemAmtFC - "Gen. Journal Line".Amount - CashDeductAmt - PmtToleranceAmount;
-                if RestAfterPmt > 0 then begin
-                    RestAfterPmt := RestAfterPmt + CashDeductAmt;
-                    CashDeductAmt := 0;
-                end;
-            end;
-        end;
-
-        // Vendor Bank Account
-        if "Gen. Journal Line"."Recipient Bank Account" = '' then
-            xTxt := Text003Err
-        else
-            if not VendorBankAccount.Get("Gen. Journal Line"."Account No.", "Gen. Journal Line"."Recipient Bank Account") then
-                xTxt := Text004Err;
-
-        if xTxt = '' then
-            case VendorBankAccount."Payment Form" of
-                VendorBankAccount."Payment Form"::ESR, VendorBankAccount."Payment Form"::"ESR+":
-                    begin
-                        xAcc := VendorBankAccount."ESR Account No.";
-                        xTxt := VendorLedgerEntry."Reference No.";
-                    end;
-                VendorBankAccount."Payment Form"::"Post Payment Domestic":
-                    if VendorBankAccount.IBAN <> '' then
-                        xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
-                    else
-                        xAcc := VendorBankAccount."Giro Account No.";
-                VendorBankAccount."Payment Form"::"Bank Payment Domestic":
-                    if VendorBankAccount.IBAN <> '' then
-                        xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
-                    else begin
-                        xTxt := VendorBankAccount."Clearing No.";
-                        xAcc := VendorBankAccount."Bank Account No.";
-                    end;
-                VendorBankAccount."Payment Form"::"Post Payment Abroad":
-                    if VendorBankAccount.IBAN <> '' then
-                        xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
-                    else
-                        xAcc := VendorBankAccount."Bank Account No.";
-                VendorBankAccount."Payment Form"::"Bank Payment Abroad":
-                    if VendorBankAccount.IBAN <> '' then
-                        xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
-                    else begin
-                        xTxt := VendorBankAccount."Bank Identifier Code";
-                        xAcc := VendorBankAccount."Bank Account No.";
-                    end;
-                VendorBankAccount."Payment Form"::"SWIFT Payment Abroad":
-                    if VendorBankAccount.IBAN <> '' then
-                        xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
-                    else begin
-                        xTxt := VendorBankAccount."SWIFT Code";
-                        xAcc := VendorBankAccount."Bank Account No.";
-                    end;
-            end;
     end;
 
     var
