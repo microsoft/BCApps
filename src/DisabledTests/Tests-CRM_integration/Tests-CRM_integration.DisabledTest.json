@@ -207,6 +207,11 @@
   {
     "codeunitId": 139160,
     "codeunitName": "CRM Setup Test",
+    "method": "RunAssistedSetupFromCRMConnectionSetup"
+  },
+  {
+    "codeunitId": 139160,
+    "codeunitName": "CRM Setup Test",
     "method": "ServerAddressRequiredToEnable"
   },
   {
