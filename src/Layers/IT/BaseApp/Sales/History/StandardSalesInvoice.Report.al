@@ -312,6 +312,9 @@ report 1306 "Standard Sales - Invoice"
             column(DueDate; Format("Due Date", 0, 4))
             {
             }
+            column(DueDateDisplayText; DueDateDisplayText)
+            {
+            }
             column(DueDate_Lbl; FieldCaption("Due Date"))
             {
             }
@@ -1044,6 +1047,12 @@ report 1306 "Standard Sales - Invoice"
                 column(PostedPaymentLinePaymentPercent; "Payment %")
                 {
                 }
+
+                trigger OnPreDataItem()
+                begin
+                    if PostedPaymentLineCount <= 1 then
+                        CurrReport.Break();
+                end;
             }
             dataitem(LeftHeader; "Name/Value Buffer")
             {
@@ -1186,6 +1195,7 @@ report 1306 "Standard Sales - Invoice"
 
                 FormatAddressFields(Header);
                 FormatDocumentFields(Header);
+                SetPostedPaymentScheduleDisplay(Header);
                 if SellToContact.Get("Sell-to Contact No.") then;
                 if BillToContact.Get("Bill-to Contact No.") then;
 
@@ -1423,7 +1433,9 @@ report 1306 "Standard Sales - Invoice"
         CompanyLogoPosition: Integer;
         CalculatedExchRate: Decimal;
         PaymentInstructionsTxt: Text;
+        DueDateDisplayText: Text;
         ExchangeRateText: Text;
+        PostedPaymentLineCount: Integer;
         PrevLineAmount: Decimal;
         SalespersonLbl: Label 'Salesperson';
         CompanyInfoBankAccNoLbl: Label 'Account No.';
@@ -1441,6 +1453,7 @@ report 1306 "Standard Sales - Invoice"
         PageLbl: Label 'Page';
         PaymentMethodDescLbl: Label 'Payment Method';
         PostedPaymentScheduleLbl: Label 'Payment Schedule';
+        SeePaymentScheduleBelowLbl: Label 'See payment schedule below';
         PostedShipmentDateLbl: Label 'Shipment Date';
         SalesInvLineDiscLbl: Label 'Discount %';
         SalesInvoiceLbl: Label 'Invoice';
@@ -1662,6 +1675,28 @@ report 1306 "Standard Sales - Invoice"
                     TempLineFeeNoteOnReportHist.Copy(LineFeeNoteOnReportHist);
                     TempLineFeeNoteOnReportHist.Insert();
                 until LineFeeNoteOnReportHist.Next() = 0;
+        end;
+    end;
+
+    local procedure SetPostedPaymentScheduleDisplay(SalesInvoiceHeader: Record "Sales Invoice Header")
+    var
+        PostedPaymentLines: Record "Posted Payment Lines";
+    begin
+        PostedPaymentLines.SetRange("Sales/Purchase", PostedPaymentLines."Sales/Purchase"::Sales);
+        PostedPaymentLines.SetRange(Type, PostedPaymentLines.Type::Invoice);
+        PostedPaymentLines.SetRange(Code, SalesInvoiceHeader."No.");
+        PostedPaymentLineCount := PostedPaymentLines.Count();
+
+        case PostedPaymentLineCount of
+            0:
+                DueDateDisplayText := Format(SalesInvoiceHeader."Due Date", 0, 4);
+            1:
+                begin
+                    PostedPaymentLines.FindFirst();
+                    DueDateDisplayText := Format(PostedPaymentLines."Due Date", 0, 4);
+                end;
+            else
+                DueDateDisplayText := SeePaymentScheduleBelowLbl;
         end;
     end;
 
