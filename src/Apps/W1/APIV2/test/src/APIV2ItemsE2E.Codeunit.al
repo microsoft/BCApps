@@ -601,7 +601,7 @@ codeunit 139800 "APIV2 - Items E2E"
         TargetURL: Text;
         Response: Text;
         ResponseId: Text;
-        JsonObject: JsonObject;
+        RelatedEntityJsonObject: JsonObject;
     begin
         // [SCENARIO] Create an item with Gen. Prod. Post. Group and Inventory Post. Group. Verify they can be read from the response when expanding them.
         // [GIVEN] an Item, with a Gen. Prod. Post. Group and with and Inventory Post. Group
@@ -627,12 +627,12 @@ codeunit 139800 "APIV2 - Items E2E"
         LibraryGraphMgt.GetFromWebService(Response, TargetURL);
 
         // [THEN] the response should include them as properties
-        LibraryGraphMgt.GetComplexPropertyFromJSON(Response, 'generalProductPostingGroup', JsonObject);
-        ResponseId := JsonObject.GetText('id');
+        LibraryGraphMgt.GetComplexPropertyFromJSON(Response, 'generalProductPostingGroup', RelatedEntityJsonObject);
+        ResponseId := RelatedEntityJsonObject.GetText('id');
         Assert.AreEqual(GenProdPostGroupId, LowerCase(ResponseId), 'The id of the gen. prod. post. group is not the one on the response.');
 
-        LibraryGraphMgt.GetComplexPropertyFromJSON(Response, 'inventoryPostingGroup', JsonObject);
-        ResponseId := JsonObject.GetText('id');
+        LibraryGraphMgt.GetComplexPropertyFromJSON(Response, 'inventoryPostingGroup', RelatedEntityJsonObject);
+        ResponseId := RelatedEntityJsonObject.GetText('id');
         Assert.AreEqual(InventoryPostGroupId, LowerCase(ResponseId), 'The id of the inventory post. group is not the one on the response.');
     end;
 
