@@ -55,17 +55,14 @@ codeunit 31116 "EET Service Management CZL"
         CreateXmlDocument(EETEntryCZL, RequestXmlDocument);
         CreateSoapRequest(RequestXmlDocument, IsolatedCertificate, SoapXmlDocument);
         SendSoapRequest(SoapXmlDocument, ResponseXmlDocument, ResponseContentXmlDocument);
-
         if HasResponseContentError(ResponseContentXmlDocument) then
             ProcessResponseContentError(ResponseContentXmlDocument);
-
         if HasResponseContentWarnings(ResponseContentXmlDocument) then
             ProcessResponseContentWarnings(ResponseContentXmlDocument);
 
         CheckResponseSecurity(ResponseXmlDocument);
         CheckResponseContentHeader(ResponseContentXmlDocument, EETEntryCZL);
         ProcessResponseContent(ResponseContentXmlDocument);
-
         if HasErrors() then
             Error('');
     end;
@@ -129,7 +126,7 @@ codeunit 31116 "EET Service Management CZL"
         CompanyInformation.Get();
         AddAttribute(DataXmlNode, 'eic_popl', CompanyInformation."VAT Registration No.");
         AddAttribute(DataXmlNode, 'eic_poverujiciho', EETEntryCZL."Appointing VAT Reg. No.");
-        AddAttribute(DataXmlNode, 'povereni_vice_popl', FormatBoolean(EETEntryCZL."Multiple Taxpayers Auth."));
+        AddAttribute(DataXmlNode, 'povereni_vice_popl', FormatBoolean(EETEntryCZL."Multiple Taxpayer Auth."));
         AddAttribute(DataXmlNode, 'id_jednotky', EETEntryCZL.GetBusinessPremisesId());
         AddAttribute(DataXmlNode, 'id_pokl', EETEntryCZL."Cash Register Code");
         AddAttribute(DataXmlNode, 'porad_cis', EETEntryCZL."Receipt Serial No.");
@@ -181,7 +178,6 @@ codeunit 31116 "EET Service Management CZL"
         SoapEnvelopeXmlDocument := XmlDocument.Create();
         XMLDOMManagement.AddRootElementWithPrefix(SoapEnvelopeXmlDocument, 'Envelope', 'soap', SoapNamespaceTxt, EnvelopeXmlNode);
         XMLDOMManagement.AddElementWithPrefix(EnvelopeXmlNode, 'Header', '', 'soap', SoapNamespaceTxt, HeaderXmlNode);
-
         if IsolatedCertificate.Code <> '' then begin
             XMLDOMManagement.AddElementWithPrefix(HeaderXmlNode, 'Security', '', 'wsse', SecurityExtensionNamespaceTxt, SecurityXmlNode);
             AddAttributeWithPrefix(SecurityXmlNode, 'mustUnderstand', 'soap', SoapNamespaceTxt, '1');
@@ -279,7 +275,6 @@ codeunit 31116 "EET Service Management CZL"
     begin
         if VerificationMode or (ResponseContentErrorCode <> '') then
             exit;
-
         if not XMLDOMManagement.FindNodeWithNamespace(
              ResponseContentXmlDocument.AsXmlNode(), ConfirmationPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, ConfirmationXmlNode)
         then
@@ -298,7 +293,6 @@ codeunit 31116 "EET Service Management CZL"
 
         ResponseContentError := ErrorXmlNode.AsXmlElement().InnerXml();
         ResponseContentErrorCode := XMLDOMManagement.GetAttributeValue(ErrorXmlNode, 'kod');
-
         if VerificationMode and (ResponseContentErrorCode = '0') then
             exit;
 
@@ -315,7 +309,6 @@ codeunit 31116 "EET Service Management CZL"
     begin
         XMLDOMManagement.FindNodesWithNamespace(
           ResponseContentXmlDocument.AsXmlNode(), WarningPathTxt, EETNamespacePrefixTxt, EETNamespaceTxt, WarningXmlNodeList);
-
         foreach WarningXmlNode in WarningXmlNodeList do begin
             ResponseContentWarning := WarningXmlNode.AsXmlElement().InnerXml();
             ResponseContentWarningCode := XMLDOMManagement.GetAttributeValue(WarningXmlNode, 'kod_varov');
@@ -376,7 +369,6 @@ codeunit 31116 "EET Service Management CZL"
         CertBase64Value := GetResponseCertificateAsBase64(ResponseXmlDocument);
         if CertBase64Value = '' then
             exit;
-
         if not CertificateManagement.VerifyCertFromBase64(CertBase64Value) then
             LogMessage(TempErrorMessage."Message Type"::Error, '', EETCertificateNotValidErr);
     end;
@@ -435,7 +427,6 @@ codeunit 31116 "EET Service Management CZL"
         WarningCodeTxt: Label 'Warning Code: %1', Comment = '%1 = warning code';
     begin
         TempErrorMessage.LogSimpleMessage(MessageType, MessageText);
-
         if MessageType = TempErrorMessage."Message Type"::Warning then
             TempErrorMessage.Validate("Additional Information", StrSubstNo(WarningCodeTxt, MessageCode))
         else
@@ -479,7 +470,6 @@ codeunit 31116 "EET Service Management CZL"
     begin
         if IsVerificationModeOK() then
             exit(ResponseContentError);
-
         if GetLastErrorText() <> '' then
             exit(GetLastErrorText);
 
@@ -519,7 +509,6 @@ codeunit 31116 "EET Service Management CZL"
             EETServiceSetupCZL.Insert(true);
         end;
         EETServiceSetupRecordRef.GetTable(EETServiceSetupCZL);
-
         if EETServiceSetupCZL.Enabled then
             ServiceConnection.Status := ServiceConnection.Status::Enabled
         else

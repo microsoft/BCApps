@@ -16,7 +16,7 @@ table 31127 "EET Cash Register CZL"
     {
         field(1; "Business Premises Code"; Code[10])
         {
-            Caption = 'Business Premises Code';
+            Caption = 'Registrating Unit Code';
             NotBlank = true;
             TableRelation = "EET Business Premises CZL";
             DataClassification = OrganizationIdentifiableInformation;
@@ -51,7 +51,6 @@ table 31127 "EET Cash Register CZL"
             begin
                 if "Cash Register No." = '' then
                     "Cash Register Name" := '';
-
                 if ("Cash Register No." <> xRec."Cash Register No.") and ("Cash Register No." <> '') then begin
                     CheckCashRegisterDuplication();
                     "Cash Register Name" := GetCashRegisterName();
@@ -80,6 +79,36 @@ table 31127 "EET Cash Register CZL"
             Caption = 'Receipt Serial Nos.';
             TableRelation = "No. Series";
             DataClassification = CustomerContent;
+        }
+        field(30; Representation; Enum "EET Representation CZL")
+        {
+            Caption = 'Representation';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the registrating unit reports sales directly or indirectly.';
+        }
+        field(35; Authorization; Boolean)
+        {
+            Caption = 'Authorization';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the taxpayer is authorized to report sales on behalf of another taxpayer.';
+        }
+        field(36; "Multiple Taxpayer Auth."; Boolean)
+        {
+            Caption = 'Multiple Taxpayer Authorization';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers.';
+        }
+        field(40; "Authorized Taxpayer ID"; Code[20])
+        {
+            Caption = 'Authorized Taxpayer ID';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorized to report sales.';
+        }
+        field(41; "Authorizing Taxpayer ID"; Code[20])
+        {
+            Caption = 'Authorizing Taxpayer ID';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorizing another taxpayer to report sales.';
         }
     }
 

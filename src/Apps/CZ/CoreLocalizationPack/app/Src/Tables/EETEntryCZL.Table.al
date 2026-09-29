@@ -139,9 +139,9 @@ table 31128 "EET Entry CZL"
             Caption = 'Sales Regime';
             DataClassification = CustomerContent;
         }
-        field(100; "Multiple Taxpayers Auth."; Boolean)
+        field(100; "Multiple Taxpayer Auth."; Boolean)
         {
-            Caption = 'Multiple Taxpayers Authorization';
+            Caption = 'Multiple Taxpayer Authorization';
             DataClassification = CustomerContent;
         }
         field(150; "Total Sales Amount"; Decimal)
@@ -303,12 +303,10 @@ table 31128 "EET Entry CZL"
         "Entry No." := GetLastEntryNo() + 1;
         "Created By" := CopyStr(UserId(), 1, MaxStrLen("Created By"));
         "Created At" := CurrentDateTime();
-
         if "Receipt Serial No." = '' then begin
             TestReceiptSerialNoSeries();
             "Receipt Serial No." := NoSeries.GetNextNo(GetReceiptSerialNoSeriesCode(), Today());
         end;
-
         if "VAT Registration No." = '' then begin
             CompanyInformation.Get();
             "VAT Registration No." := CompanyInformation."VAT Registration No.";
@@ -389,19 +387,16 @@ table 31128 "EET Entry CZL"
     begin
         GetEETCashRegister();
         CertificateCode := EETCashRegisterCZL."Certificate Code";
-
         if CertificateCode = '' then begin
             EETBusinessPremisesCZL.Get("Business Premises Code");
             CertificateCode := EETBusinessPremisesCZL."Certificate Code";
         end;
-
         if CertificateCode = '' then begin
             EETServiceSetupCZL.Get();
             CertificateCode := EETServiceSetupCZL."Certificate Code";
         end;
 
         OnAfterGetCertificateCode(Rec, CertificateCode);
-
         if (CertificateCode = '') and (EETServiceSetupCZL."Certificate Code" = '') then
             EETServiceSetupCZL.Testfield("Certificate Code");
     end;
@@ -453,7 +448,6 @@ table 31128 "EET Entry CZL"
         OnBeforeCheckSignatureCode(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if not HasSignatureCode() then
             exit;
         if GenerateSignatureCode() <> GetSignatureCode() then
@@ -529,12 +523,10 @@ table 31128 "EET Entry CZL"
         OnBeforeCancel(Rec, ShowDialog, IsHandled);
         if IsHandled then
             exit;
-
         if ShowDialog then begin
             if "Canceled By Entry No." = 0 then
                 if not ConfirmManagement.GetResponse(StrSubstNo(CancelByEETEntryNoQst, "Entry No."), false) then
                     Error('');
-
             if "Canceled By Entry No." <> 0 then
                 if not ConfirmManagement.GetResponse(
                     StrSubstNo(EETEntryAlreadyCanceledQst, TableCaption(), "Entry No.", "Canceled By Entry No."), false)
@@ -558,7 +550,6 @@ table 31128 "EET Entry CZL"
         OnBeforeCalculateAmounts(Rec, VATEntry, IsHandled);
         if IsHandled then
             exit;
-
         if (VATEntry."Entry No." = 0) or (VATEntry."Unrealized VAT Entry No." <> 0) then
             exit;
 
@@ -580,14 +571,12 @@ table 31128 "EET Entry CZL"
         OnBeforeBaseCalculateAmounts(Rec, Base, Amount, VATBusPostingGroupCode, VATProdPostingGroupCode, IsHandled);
         if IsHandled then
             exit;
-
         if Amount = 0 then begin
             "Amount Exempted From VAT" += -Base;
             exit;
         end;
 
         VATPostingSetup.Get(VATBusPostingGroupCode, VATProdPostingGroupCode);
-
         case VATPostingSetup."Supplies Mode Code CZL" of
             VATPostingSetup."Supplies Mode Code CZL"::"par. 89":
                 AmountArt89 := Base + Amount;
@@ -600,7 +589,6 @@ table 31128 "EET Entry CZL"
         end;
 
         "Amount - Art.89" += -AmountArt89;
-
         case VATPostingSetup."VAT Rate CZL" of
             VATPostingSetup."VAT Rate CZL"::" ":
                 "Amount Exempted From VAT" += -(Base + Amount);

@@ -19,12 +19,14 @@ table 31125 "EET Service Setup CZL"
         {
             Caption = 'Primary Key';
             DataClassification = CustomerContent;
+            AllowInCustomizations = Never;
         }
         field(2; "Service URL"; Text[250])
         {
             Caption = 'Service URL';
             ExtendedDatatype = URL;
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the source address of the service.';
 
             trigger OnValidate()
             var
@@ -42,7 +44,6 @@ table 31125 "EET Service Setup CZL"
                             EETServiceMgtCZL.GetWebServicePlayGroundURLTxt():
                                 Confirmed := ConfirmManagement.GetResponse(NonproductionEnvironmentQst, false);
                         end;
-
                 if not Confirmed then
                     "Service URL" := xRec."Service URL";
             end;
@@ -51,6 +52,8 @@ table 31125 "EET Service Setup CZL"
         {
             Caption = 'Sales Regime';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the settings for the simplified scheme sales.';
+            // TODO: implement upgrade
         }
         field(11; "Limit Response Time"; Integer)
         {
@@ -58,17 +61,19 @@ table 31125 "EET Service Setup CZL"
             DataClassification = CustomerContent;
             InitValue = 2000;
             MinValue = 2000;
+            ToolTip = 'Specifies the response time limit, after which goes into offline mode.';
         }
         field(12; "Appointing VAT Reg. No."; Text[20])
         {
             Caption = 'Appointing VAT Reg. No.';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the responsible person who collects revenues.';
         }
         field(15; Enabled; Boolean)
         {
-
             Caption = 'Enabled';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies if the service is enabled.';
 
             trigger OnValidate()
             var
@@ -92,6 +97,38 @@ table 31125 "EET Service Setup CZL"
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the certificate needed to register sales.';
+        }
+        field(30; Representation; Enum "EET Representation CZL")
+        {
+            Caption = 'Representation';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the registrating unit reports sales directly or indirectly.';
+        }
+        field(35; Authorization; Boolean)
+        {
+            Caption = 'Authorization';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the taxpayer is authorized to report sales on behalf of another taxpayer.';
+        }
+        field(36; "Multiple Taxpayer Auth."; Boolean)
+        {
+            Caption = 'Multiple Taxpayer Authorization';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers.';
+        }
+        field(40; "Authorized Taxpayer ID"; Code[20])
+        {
+            Caption = 'Authorized Taxpayer ID';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorized to report sales.';
+        }
+        field(41; "Authorizing Taxpayer ID"; Code[20])
+        {
+            Caption = 'Authorizing Taxpayer ID';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorizing another taxpayer to report sales.';
+            // TODO: implement upgrade and fill value from Appointing VAT Reg. No. field
         }
     }
 
@@ -119,7 +156,6 @@ table 31125 "EET Service Setup CZL"
         URLOptionsQst: Label '&Production environment URL,&Non-production environment URL';
     begin
         TestField(Enabled, false);
-
         if not ShowDialog then begin
             EETServiceManagementCZL.SetURLToDefault(Rec);
             exit;
@@ -128,7 +164,6 @@ table 31125 "EET Service Setup CZL"
         Selection := 2;
         if GuiAllowed() then
             Selection := StrMenu(URLOptionsQst, Selection);
-
         case Selection of
             1:
                 Validate("Service URL", EETServiceManagementCZL.GetWebServiceURLTxt());
