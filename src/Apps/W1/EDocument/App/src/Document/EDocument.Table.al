@@ -13,9 +13,7 @@ using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
-#if not CLEAN27
 using Microsoft.Purchases.Document;
-#endif
 using Microsoft.Utilities;
 using System.Automation;
 using System.IO;
@@ -438,14 +436,10 @@ table 6121 "E-Document"
         EDocExternalReference: Record "E-Doc. External Reference";
         EDocumentMessage: Record "E-Document Message";
         EDocumentServiceStatus: Record "E-Document Service Status";
-#if not CLEAN27
         PurchaseHeader: Record "Purchase Header";
-#endif
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         IProcessStructuredData: Interface IProcessStructuredData;
-#if not CLEAN27
         NullGuid: Guid;
-#endif
     begin
         EDocumentErrorHelper.ClearErrorMessages(Rec);
 
@@ -482,12 +476,9 @@ table 6121 "E-Document"
         if not EDocExternalReference.IsEmpty() then
             EDocExternalReference.DeleteAll(true);
 
-#if not CLEAN27
         // Version 1 processing cleanup
-        // Can be removed soon as version 1 is fully migrated to version 2
         PurchaseHeader.SetRange("E-Document Link", Rec.SystemId);
         PurchaseHeader.ModifyAll("E-Document Link", NullGuid, false);
-#endif
 
         // Version 2 processing cleanup
         IProcessStructuredData := Rec."Process Draft Impl.";
