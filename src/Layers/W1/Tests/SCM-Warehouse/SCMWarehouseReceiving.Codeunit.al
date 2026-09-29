@@ -80,6 +80,7 @@ codeunit 137152 "SCM Warehouse - Receiving"
         WarehouseHeaderDeleteConfirmationMsg: Label 'The Whse. Receipt is not completely received.\Do you really want to delete the Whse. Receipt?';
         ExceedsErr: Label 'exceeds the available capacity';
         FromBinBlankErr: Label 'From Bin Should be blank';
+        MovementCreated: Label 'Movement ';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -4216,7 +4217,7 @@ codeunit 137152 "SCM Warehouse - Receiving"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('SetLotItemWithQtyToHandleTrackingPageHandler,ConfirmHandlerTrue')]
+    [HandlerFunctions('SetLotItemWithQtyToHandleTrackingPageHandler,ConfirmHandlerTrue,MovementCreatedMessageHandler')]
     procedure CreateMovementFromMovementWorksheetWithExpirationDateOfFEFOItem()
     var
         Bin: array[5] of Record Bin;
@@ -7012,6 +7013,13 @@ codeunit 137152 "SCM Warehouse - Receiving"
         ItemTrackingLines."Quantity (Base)".SetValue(LibraryVariableStorage.DequeueDecimal());
         ItemTrackingLines."Expiration Date".SetValue(LibraryVariableStorage.DequeueDate());
         ItemTrackingLines.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure MovementCreatedMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, MovementCreated) > 0, Message);
     end;
 
     [ConfirmHandler]
