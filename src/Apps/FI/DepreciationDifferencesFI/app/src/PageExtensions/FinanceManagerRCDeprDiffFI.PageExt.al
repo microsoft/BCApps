@@ -5,7 +5,9 @@
 
 namespace Microsoft.Finance.RoleCenters;
 
+#if CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 
 pageextension 13480 "Finance Manager RC DeprDiff FI" extends "Finance Manager Role Center"
 {
@@ -13,6 +15,7 @@ pageextension 13480 "Finance Manager RC DeprDiff FI" extends "Finance Manager Ro
     {
         addafter("Insurance...")
         {
+#if CLEAN30
             action("Calc. and Post Depr. Difference")
             {
                 ApplicationArea = Basic, Suite;
@@ -20,6 +23,7 @@ pageextension 13480 "Finance Manager RC DeprDiff FI" extends "Finance Manager Ro
                 RunObject = report "Calc. and Post Depr. Diff. FI";
                 ToolTip = 'Calculate and post the difference in accumulated depreciation between two depreciation books for each fixed asset.';
             }
+#endif
         }
     }
 }
