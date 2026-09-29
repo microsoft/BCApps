@@ -1016,7 +1016,7 @@ report 1306 "Standard Sales - Invoice"
                 {
                 }
             }
-            column(PostedPaymentSchedule_Lbl; PostedPaymentScheduleLbl)
+            column(PostedPaymentSchedule_Lbl; PostedPaymentScheduleText)
             {
             }
             dataitem(PostedPaymentLine; "Posted Payment Lines")
@@ -1460,6 +1460,7 @@ report 1306 "Standard Sales - Invoice"
         CalculatedExchRate: Decimal;
         PaymentInstructionsTxt: Text;
         DueDateDisplayText: Text;
+        PostedPaymentScheduleText: Text;
         ExchangeRateText: Text;
         PostedPaymentLineCount: Integer;
         PostedPaymentLineAmount: Decimal;
@@ -1715,18 +1716,29 @@ report 1306 "Standard Sales - Invoice"
         PostedPaymentLines.SetRange(Type, PostedPaymentLines.Type::Invoice);
         PostedPaymentLines.SetRange(Code, SalesInvoiceHeader."No.");
         PostedPaymentLineCount := PostedPaymentLines.Count();
+        Clear(PostedPaymentScheduleText);
 
         case PostedPaymentLineCount of
             0:
-                DueDateDisplayText := Format(SalesInvoiceHeader."Due Date", 0, 4);
+                DueDateDisplayText := FormatShortDate(SalesInvoiceHeader."Due Date");
             1:
                 begin
                     PostedPaymentLines.FindFirst();
-                    DueDateDisplayText := Format(PostedPaymentLines."Due Date", 0, 4);
+                    DueDateDisplayText := FormatShortDate(PostedPaymentLines."Due Date");
                 end;
-            else
+            else begin
                 DueDateDisplayText := SeePaymentScheduleBelowLbl;
+                PostedPaymentScheduleText := PostedPaymentScheduleLbl;
+            end;
         end;
+    end;
+
+    local procedure FormatShortDate(DateValue: Date): Text
+    begin
+        if DateValue = 0D then
+            exit('');
+
+        exit(Format(DateValue, 0, '<Day,2>/<Month,2>/<Year,2>'));
     end;
 
     local procedure FillLeftHeader()
