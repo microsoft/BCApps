@@ -6,7 +6,9 @@
 namespace Microsoft.DemoData.FixedAsset;
 
 using Microsoft.DemoData.Finance;
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 using Microsoft.FixedAssets.FixedAsset;
 
 codeunit 13445 "Create FA Posting Grp. FI"
