@@ -151,11 +151,19 @@ codeunit 6104 "Import E-Document Process"
     var
         Vendor: Record Vendor;
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentService: Record "E-Document Service";
+        EDocExport: Codeunit "E-Doc. Export";
         IProcessStructuredData: Interface IProcessStructuredData;
         VendNo: Code[20];
+        ErrorText: Text;
     begin
         IProcessStructuredData := EDocument."Process Draft Impl.";
         EDocument."Document Type" := IProcessStructuredData.PrepareDraft(EDocument, EDocImportParameters);
+
+        EDocumentService := EDocument.GetEDocumentService();
+        if EDocument."Document Type" <> "E-Document Type"::None then
+            if not EDocExport.CheckDocumentTypeSupportedForImport(EDocumentService, EDocument."Document Type", ErrorText) then
+                Error(ErrorText);
 
         VendNo := IProcessStructuredData.GetVendor(EDocument, EDocImportParameters."Processing Customizations")."No.";
         if VendNo = '' then begin
