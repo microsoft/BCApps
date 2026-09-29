@@ -1083,6 +1083,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         // [SCENARIO 578461] Message when using "Create corrective Credit Memo" on a partial sales or purchase invoice related to an 
         // existing Order needs to inform that the Order Quantities will be changed.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create a Item with a Price
         CreateItemWithCost(Item, LibraryRandom.RandDec(10, 2));
@@ -1109,6 +1110,37 @@ codeunit 137025 "SCM Purchase Correct Invoice"
     end;
 
     [Test]
+    procedure CheckCorrectiveCreditMemoConfirmDialogNotShownWhenRestoreDisabled()
+    var
+        Item: Record Item;
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        // [SCENARIO 649626] The order quantity restoration confirmation is not shown when "Restore Order qty. on return" is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially posted purchase order invoice.
+        CreateItemWithCost(Item, LibraryRandom.RandDec(10, 2));
+        LibraryPurchase.CreateVendor(Vendor);
+        CreatePurchaseOrderForItem(Vendor, Item, 10, PurchaseHeaderOrder, PurchaseLine);
+        PurchaseLine.Validate("Qty. to Receive", 5);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, true);
+        GetPostedInvoice(PurchInvHeader, PurchaseHeaderOrder);
+
+        // [WHEN] A corrective credit memo is created.
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchHeader);
+
+        // [THEN] The credit memo is created without requiring a confirmation handler.
+        PurchHeader.TestField("No.");
+    end;
+
+    [Test]
     procedure CancelInvoiceFromGetReceiptLinesWithPrepaymentRevertsOrderLine()
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -1128,6 +1160,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         // [FEATURE] [AI test 0.4]
         // [SCENARIO 635874] Cancelling a posted purchase invoice created via Get Receipt Lines from a PO with prepayment fully reverts the PO line quantities
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] General and VAT Posting Setup with Purch. Prepayments Account configured
         LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
@@ -1213,6 +1246,15 @@ codeunit 137025 "SCM Purchase Correct Invoice"
 
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Purchase Correct Invoice");
+    end;
+
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Modify(true);
     end;
 
     local procedure SetGlobalNoSeriesInSetups()

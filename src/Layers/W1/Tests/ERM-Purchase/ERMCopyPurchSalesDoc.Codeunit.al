@@ -6997,6 +6997,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
     begin
         // [SCENARIO 616052] After posting a sales return order if the sales order remains live the system does not remove the posted quantity reference.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create Customer and two Items.
         LibrarySales.CreateCustomer(Customer);
@@ -7027,6 +7028,50 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
 
         // [THEN] Verify Sales Line "Qty. to Ship" is not zero after posting Sales Return Order.
         VerifySalesLineQtyToShip(SalesHeader);
+    end;
+
+    [Test]
+    [HandlerFunctions('ReceiveAndInvoiceSalesReturnOrderStrMenuHandler')]
+    procedure VerifyQtyToShipNotRestoredAfterPostingSalesReturnOrderWhenRestoreDisabled()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Item2: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesHeader2: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PostedDocumentNo: Code[20];
+        SalesReturnOrder: TestPage "Sales Return Order";
+    begin
+        // [SCENARIO 649626] Sales order quantities are not restored after posting a sales return order when "Restore Order qty. on return" is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially posted sales order remains open.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItem(Item2);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", LibraryRandom.RandIntInRange(1, 10));
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] A sales return order copied from the posted invoice.
+        LibrarySales.CreateSalesHeader(SalesHeader2, SalesHeader2."Document Type"::"Return Order", Customer."No.");
+        SalesCopyDocument(SalesHeader2, PostedDocumentNo, "Sales Document Type From"::"Posted Invoice");
+        SalesHeader2.Modify(true);
+        ModifySalesReturnOrderLine(Item."No.", SalesHeader2);
+
+        // [WHEN] Receive and invoice the sales return order.
+        SalesReturnOrder.OpenView();
+        SalesReturnOrder.GotoRecord(SalesHeader2);
+        SalesReturnOrder.Post.Invoke();
+
+        // [THEN] The posted sales order line remains fully shipped.
+        VerifySalesLineQtyToShipIsZero(SalesHeader);
     end;
 
     [Test]
@@ -8933,6 +8978,15 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesReceivablesSetup.Modify(true);
     end;
 
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Modify(true);
+    end;
+
     local procedure CreateAndPostPurchaseItemJournalLine(LocationCode: Code[10]; ItemNo: Code[20])
     var
         ItemJournalTemplate: Record "Item Journal Template";
@@ -9018,6 +9072,16 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.FindFirst();
         Assert.AreNotEqual(SalesLine."Qty. to Ship", 0, SalesLineQtyToShipErr);
+    end;
+
+    local procedure VerifySalesLineQtyToShipIsZero(SalesHeader: Record "Sales Header")
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.TestField("Qty. to Ship", 0);
     end;
 
     local procedure ModifySalesReturnOrderLine(ItemNo: Code[20]; SalesHeader2: Record "Sales Header")

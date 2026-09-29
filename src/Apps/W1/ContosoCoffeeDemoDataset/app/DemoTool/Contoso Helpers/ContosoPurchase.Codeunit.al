@@ -218,6 +218,7 @@ codeunit 4781 "Contoso Purchase"
         PurchasesPayablesSetup.Validate("Return Order Nos.", ReturnOrderNos);
         PurchasesPayablesSetup."Price Calculation Method" := PriceCalculationMethod;
         PurchasesPayablesSetup.Validate("Price List Nos.", PriceListNos);
+        PurchasesPayablesSetup.Validate("Restore Order qty. on return", true);
         PurchasesPayablesSetup.Modify(true);
     end;
 

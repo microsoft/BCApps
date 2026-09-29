@@ -288,6 +288,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Sales]
         // [SCANARIO] Partially ship and invoice order, then cancel posted invoice
         Initialize();
+        SetSalesRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Order, "Quantity" = 9, "Qty. to Ship" = 7, "Qty. to Invoice" = 5
         CreateSalesOrder(SalesHeader, SalesLine);
@@ -308,6 +309,35 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure CancelSalesInvoiceDoesNotRestoreOrderQuantitiesWhenRestoreDisabled()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 649626] Cancelling an order-based sales invoice does not restore order quantities when "Restore Order qty. on return" is disabled.
+        Initialize();
+        SetSalesRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially shipped and invoiced sales order.
+        CreateSalesOrder(SalesHeader, SalesLine);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] The posted invoice is cancelled.
+        CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
+
+        // [THEN] The order quantities remain unchanged.
+        SalesLine.Find();
+        SalesLine.TestField("Quantity Shipped", 7);
+        SalesLine.TestField("Quantity Invoiced", 5);
+        SalesLine.TestField("Qty. to Ship", 2);
+        SalesLine.TestField("Qty. to Invoice", 4);
+    end;
+
+    [Test]
     [HandlerFunctions('GetShipmentLinesHandler')]
     [Scope('OnPrem')]
     procedure CancelMadeFromShipmentSalesInvoiceWithOrder()
@@ -321,6 +351,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Sales]
         // [SCANARIO] Partially ship order, create invoice from shipment lines, post it, then cancel posted invoice
         Initialize();
+        SetSalesRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Order, "Quantity" = 9, "Qty. to Ship" = 7
         CreateSalesOrder(SalesHeader[1], SalesLine[1]);
@@ -356,6 +387,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Purchase]
         // [SCANARIO] Partially receive and invoice order, then cancel posted invoice
         Initialize();
+        SetPurchaseRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Order, "Quantity" = 9, "Qty. to Receive" = 7, "Qty. to Invoice" = 5
         CreatePurchaseOrder(PurchaseHeader, PurchaseLine);
@@ -377,6 +409,35 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CancelPurchaseInvoiceDoesNotRestoreOrderQuantitiesWhenRestoreDisabled()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        // [FEATURE] [Purchase]
+        // [SCENARIO 649626] Cancelling an order-based purchase invoice does not restore order quantities when "Restore Order qty. on return" is disabled.
+        Initialize();
+        SetPurchaseRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially received and invoiced purchase order.
+        CreatePurchaseOrder(PurchaseHeader, PurchaseLine);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+
+        // [WHEN] The posted invoice is cancelled.
+        CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+
+        // [THEN] The order quantities remain unchanged.
+        PurchaseLine.Find();
+        PurchaseLine.TestField("Quantity Received", 7);
+        PurchaseLine.TestField("Quantity Invoiced", 5);
+        PurchaseLine.TestField("Qty. to Receive", 2);
+        PurchaseLine.TestField("Qty. to Invoice", 4);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     [HandlerFunctions('ConfirmHandlerYes')]
     procedure UndoShipmentAfterCancelMadeFromOrderSalesInvoiceWithOrder()
     var
@@ -391,6 +452,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Sales]
         // [SCANARIO] Partially ship and invoice order, then cancel posted invoice and undo shipment
         Initialize();
+        SetSalesRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Order, "Quantity" = 9, "Qty. to Ship" = 7, "Qty. to Invoice" = 5
         CreateSalesOrder(SalesHeader, SalesLine);
@@ -435,6 +497,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Sales]
         // [SCANARIO] Fully ship and invoice order, then cancel posted invoice and undo shipment
         Initialize();
+        SetSalesRestoreOrderQtyOnReturn(true);
 
         CreateSalesOrder(SalesHeader[1], SalesLine[1]);
         SalesLine[1].Validate("Qty. to Ship", 9);
@@ -485,6 +548,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Purchase]
         // [SCANARIO] Partially receive and invoice order, then cancel posted invoice
         Initialize();
+        SetPurchaseRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Order, "Quantity" = 9, "Qty. to Receive" = 7, "Qty. to Invoice" = 5
         CreatePurchaseOrder(PurchaseHeader, PurchaseLine);
@@ -528,6 +592,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Purchase]
         // [SCANARIO] Partially receive and invoice order, then cancel posted invoice
         Initialize();
+        SetPurchaseRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Order, "Quantity" = 9, "Qty. to Receive" = 7, "Qty. to Invoice" = 5
         CreatePurchaseOrderWithTrackedItem(PurchaseHeader, PurchaseLine);
@@ -811,6 +876,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Purchase] [Resource]
         // [SCANARIO 344832] Partially receive and invoice order, then cancel posted invoice and undo receive with resource
         Initialize();
+        SetPurchaseRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Order with resource, "Quantity" = 9, "Qty. to Receive" = 7, "Qty. to Invoice" = 5
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
@@ -862,6 +928,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Sales]
         // [SCANARIO 344832] Partially ship and invoice order, then cancel posted invoice and undo shipment with g/l account
         Initialize();
+        SetSalesRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Order, "Quantity" = 9, "Qty. to Ship" = 7, "Qty. to Invoice" = 5
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
@@ -2302,6 +2369,24 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Sales/Purch. Correct. Docs");
+    end;
+
+    local procedure SetPurchaseRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure SetSalesRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Modify(true);
     end;
 
     local procedure InitializeSetupData()
