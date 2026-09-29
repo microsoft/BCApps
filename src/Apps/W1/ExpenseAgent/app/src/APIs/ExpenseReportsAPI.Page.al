@@ -553,9 +553,9 @@ page 6928 "Expense Reports API"
     end;
 
     [ServiceEnabled]
-    procedure AssignAlternateApprover(var ActionContext: WebServiceActionContext)
+    procedure AssignAlternateApprover(var ActionContext: WebServiceActionContext; ActorExpenseUserNo: Code[20])
     begin
-        Rec.AssignAlternateApprover();
+        Rec.AssignAlternateApprover(ActorExpenseUserNo);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");
