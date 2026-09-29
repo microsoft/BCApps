@@ -195,6 +195,18 @@ codeunit 6970 "Create Expense Agent Setup"
     var
         UnitOfMeasure: Record "Unit of Measure";
     begin
+        CreateUnitOfMeasure(
+            CopyStr(KilometerCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code)),
+            CopyStr(KilometerTxt, 1, MaxStrLen(UnitOfMeasure.Description)),
+            'KMT',
+            'km');
+
+        CreateUnitOfMeasure(
+            CopyStr(MilesCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code)),
+            CopyStr(MilesTxt, 1, MaxStrLen(UnitOfMeasure.Description)),
+            'SMI',
+            'mi');
+
         UnitOfMeasure.SetFilter("International Standard Code", 'SMI|MI');
         if UnitOfMeasure.FindFirst() then
             exit(UnitOfMeasure.Code);
@@ -204,21 +216,7 @@ codeunit 6970 "Create Expense Agent Setup"
         UnitOfMeasure.SetRange("International Standard Code");
         if UnitOfMeasure.Get(MilesCodeTxt) then
             exit(UnitOfMeasure.Code);
-        if not UnitOfMeasure.WritePermission then
-            exit('');
 
-        CreateUnitOfMeasure(
-            CopyStr(KilometerCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code)),
-            CopyStr(KilometerTxt, 1, MaxStrLen(UnitOfMeasure.Description)),
-            'KMT',
-            'km');
-
-        UnitOfMeasure.Code := CopyStr(MilesCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code));
-        UnitOfMeasure.Description := CopyStr(MilesTxt, 1, MaxStrLen(UnitOfMeasure.Description));
-        UnitOfMeasure."International Standard Code" := 'SMI';
-        UnitOfMeasure.Symbol := 'mi';
-        if UnitOfMeasure.Insert() then
-            exit(UnitOfMeasure.Code);
         exit('');
     end;
 
@@ -228,12 +226,14 @@ codeunit 6970 "Create Expense Agent Setup"
     begin
         if UnitOfMeasure.Get(Code) then
             exit;
+        if not UnitOfMeasure.WritePermission then
+            exit;
 
         UnitOfMeasure.Code := Code;
         UnitOfMeasure.Description := Description;
         UnitOfMeasure."International Standard Code" := InternationalStandardCode;
         UnitOfMeasure.Symbol := Symbol;
-        UnitOfMeasure.Insert();
+        if UnitOfMeasure.Insert() then;
     end;
 
     var
