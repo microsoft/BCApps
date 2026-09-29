@@ -63,15 +63,11 @@ table 6930 "Expense Agent Setup"
             trigger OnValidate()
             begin
                 if not Rec."Enable Agent" then
-                    ConfirmCanScheduleTasks();
-                if not Rec."Enable Agent" then
                     RemoveAllScheduledTasks();
                 if Rec."Enable Agent" then
                     CheckBeforeEnablingAgent();
-
                 if (not xRec."Enable Agent") and Rec."Enable Agent" then
                     LogAgentEnabledTelemetry();
-
                 if xRec."Enable Agent" and (not Rec."Enable Agent") then
                     LogAgentDisabledTelemetry();
             end;
@@ -224,16 +220,13 @@ table 6930 "Expense Agent Setup"
                 FeatureTelemetry: Codeunit "Feature Telemetry";
             begin
                 FeatureTelemetry.LogUptake('0000TEA', GetFeatureName(), Enum::"Feature Uptake Status"::Used);
-
                 if "Full Per-Diem Calculation" = "Full Per-Diem Calculation"::None then begin
                     "Partial Day Rules" := "Partial Day Rules"::"Flat Percentage Of Full Rate";
                     "Minimum Hours for Per Diem" := 0;
                     "Min Hours for Partial Per Diem" := 0;
                 end;
-
                 if not (Rec."Full Per-Diem Calculation" in [Enum::"Exp. Full Per Diem Calculation"::"24-hour Rolling Period", Enum::"Exp. Full Per Diem Calculation"::"Overnight Stay"]) then
                     Rec.Validate("Minimum Hours for Per Diem", 0);
-
                 case "Full Per-Diem Calculation" of
                     "Full Per-Diem Calculation"::"Full Calendar Day":
                         "Partial Day Rules" := "Partial Day Rules"::"Flat Percentage Of Full Rate";
@@ -448,7 +441,6 @@ table 6930 "Expense Agent Setup"
             begin
                 if Rec."Enable Approval Workflow" then
                     Rec.TestField("Enable Agent", false);
-
                 if (not Rec."Enable Approval Workflow") and xRec."Enable Approval Workflow" then
                     CheckBeforeDisableApprovalWorkflow();
             end;
@@ -475,7 +467,6 @@ table 6930 "Expense Agent Setup"
                 if Rec."Day In A Month" <> 0 then
                     if (Rec."Day In A Month" < 1) or (Rec."Day In A Month" > 31) then
                         Error(InvalidDayErr, Rec.FieldCaption("Day In A Month"));
-
                 if not IsNullGuid(xRec.SystemId) then
                     if xRec."Day In A Month" <> Rec."Day In A Month" then
                         Rec.TestField("When to Create Expense Reports", "Expense Report Frequency"::Monthly);
@@ -513,7 +504,6 @@ table 6930 "Expense Agent Setup"
                 if Rec."Notif. Day In A Month" <> 0 then
                     if (Rec."Notif. Day In A Month" < 1) or (Rec."Notif. Day In A Month" > 31) then
                         Error(InvalidDayErr, Rec.FieldCaption("Notif. Day In A Month"));
-
                 if not IsNullGuid(xRec.SystemId) then
                     if xRec."Notif. Day In A Month" <> Rec."Notif. Day In A Month" then
                         Rec.TestField("Open Report Notif. Freq.", "Expense Report Frequency"::Monthly);
@@ -783,7 +773,6 @@ table 6930 "Expense Agent Setup"
         RecordHasBeenRead: Boolean;
         NoRegisteredUserLbl: Label 'No registered user';
         RegisteredUserLbl: Label '1 registered user';
-        ConfirmDeactivateWithLimitedPermissionsQst: Label 'You are about to deactivate the agent, but you miss some permissions needed to reenable it. The agent might not function correctly, unless a user with the necessary permissions reactivates it.\\Do you want to continue?';
         RegisteredUsersLbl: Label '%1 registered users', Comment = '%1 is an integer value';
         InvalidDayErr: Label '%1 must be between 1 and 31.', Comment = '%1 = Field Caption';
         CannotUseMinHoursErr: Label 'Minimum Hours for Per Diem can only be set when Full Per-Diem Calculation is either %1 or %2.', Comment = '%1 - Enum value "24-hour Rolling Period", %2 - Enum value "Overnight Stay"';
@@ -813,7 +802,6 @@ table 6930 "Expense Agent Setup"
     begin
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
-
         if not CheckMailboxExists() then
             exit;
 
@@ -846,7 +834,6 @@ table 6930 "Expense Agent Setup"
     begin
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
-
         if not CheckMailboxExists() then
             exit;
 
@@ -907,11 +894,9 @@ table 6930 "Expense Agent Setup"
         EmailAccount.GetAllAccounts(false, TempEmailAccount);
         if TempEmailAccount.IsEmpty() then
             exit(false);
-
         if TempEmailAccount.FindSet() then
             repeat
                 IConnector := TempEmailAccount.Connector;
-
                 if IConnector is "Email Connector v4" then
                     exit(true);
             until TempEmailAccount.Next() = 0;
@@ -1101,7 +1086,6 @@ table 6930 "Expense Agent Setup"
             Rec."Posting Groups Applied" := true;
             Rec.Modify();
         end;
-
         if GuiAllowed and ExpenseUser.IsEmpty() then
             if Confirm(CopyEmployeesToExpenseUsersQst, false) then begin
                 Employee.SetLoadFields("No.", "First Name", "Middle Name", "Last Name", "Job Title", "E-Mail", "Company E-Mail");
@@ -1191,7 +1175,6 @@ table 6930 "Expense Agent Setup"
         end;
 
         CreateExpenseCountryVATRates.InsertDefaultRates();
-
         if not Rec."VAT Rates Applied" then begin
             Rec."VAT Rates Applied" := true;
             Rec.Modify();
@@ -1267,14 +1250,6 @@ table 6930 "Expense Agent Setup"
         ExpenseReportHeader.SetRange(Status, ExpenseReportHeader.Status::"Pending Approval");
         if not ExpenseReportHeader.IsEmpty() then
             Error(CannotDisableApprovalWorkflowErr);
-    end;
-
-    internal procedure ConfirmCanScheduleTasks()
-    begin
-        if GuiAllowed() then
-            if not TaskScheduler.CanCreateTask() then
-                if not Confirm(ConfirmDeactivateWithLimitedPermissionsQst, false) then
-                    Error('');
     end;
 
     local procedure GetExpenseUserName(ExpenseUserNo: Code[20]): Text

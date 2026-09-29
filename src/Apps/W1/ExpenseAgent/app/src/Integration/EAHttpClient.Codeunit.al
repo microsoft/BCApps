@@ -9,6 +9,7 @@ using System;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Environment;
+using System.Security.AccessControl;
 using System.Security.Authentication;
 using System.Telemetry;
 
@@ -112,7 +113,6 @@ codeunit 6941 "EA Http Client"
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
-
         if not IsSuccess then begin
             // Transport-level failure: no HTTP response was received. A last-error call
             // stack is meaningful here, but HTTP status/reason are not available.
@@ -122,7 +122,6 @@ codeunit 6941 "EA Http Client"
             FeatureTelemetry.LogError('0000RIB', ExpenseAgentSetup.GetFeatureName(), SubmitExpenseFailedTxt, SubmitExpenseFailedTxt, GetLastErrorCallStack(), TelemetryDimensions);
             exit(false);
         end;
-
         if ResponseMessage.IsSuccessStatusCode() then begin
             FeatureTelemetry.LogUsage('0000RIF', ExpenseAgentSetup.GetFeatureName(), SubmitExpenseSuccessTxt);
             exit(true);
@@ -169,7 +168,6 @@ codeunit 6941 "EA Http Client"
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
-
         if IsSuccess then
             IsSuccess := ResponseMessage.IsSuccessStatusCode();
 
@@ -222,7 +220,6 @@ codeunit 6941 "EA Http Client"
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
-
         if IsSuccess then
             IsSuccess := ResponseMessage.IsSuccessStatusCode();
 
@@ -270,7 +267,6 @@ codeunit 6941 "EA Http Client"
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
-
         if IsSuccess then
             IsSuccess := ResponseMessage.IsSuccessStatusCode();
 
@@ -392,7 +388,6 @@ codeunit 6941 "EA Http Client"
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit(false);
-
         if not GetProductionBaseUrl(BaseUrl) then
             exit(false);
 
@@ -406,7 +401,6 @@ codeunit 6941 "EA Http Client"
         // Use the non-throwing auth path to avoid block the wizard from opening.
         if not TryAddAuthHeaders(Headers) then
             exit(false);
-
         if not Client.Send(RequestMessage, ResponseMessage) then
             exit(false);
         if not ResponseMessage.IsSuccessStatusCode() then
@@ -516,13 +510,11 @@ codeunit 6941 "EA Http Client"
             Message(FailureError);
             exit(false);
         end;
-
         if not ResponseMessage.IsSuccessStatusCode() then begin
             FeatureTelemetry.LogError('0000RID', ExpenseAgentSetup.GetFeatureName(), StrSubstNo(ErpConfigRequestFailedTxt, HttpMethod), StrSubstNo(ErpConfigRequestFailedTxt, HttpMethod));
             Message(FailureError);
             exit(false);
         end;
-
         if HttpMethod = 'POST' then
             FeatureTelemetry.LogUsage('0000RIG', ExpenseAgentSetup.GetFeatureName(), ErpConfigRegisteredTxt)
         else
@@ -580,12 +572,51 @@ codeunit 6941 "EA Http Client"
     begin
         if not EnvironmentInformation.IsSaaS() then
             exit;
-
         if not TryGetAccessToken(AccessToken) then
             Error(CouldNotGetAccessTokenErr);
         if AccessToken.IsEmpty() then
             Error(CouldNotGetAccessTokenErr);
         Headers.Add('Authorization', SecretStrSubstNo('Bearer %1', AccessToken));
+    end;
+
+    [NonDebuggable]
+    internal procedure IsCurrentUserGuestUser(): Boolean
+    var
+        User: Record User;
+        EnvironmentInformation: Codeunit "Environment Information";
+        TenantInformation: Codeunit "Tenant Information";
+        OAuth2: Codeunit OAuth2;
+        ObjectClaims: JsonObject;
+        SingleClaim: JsonToken;
+        AccessToken: SecretText;
+        CurrentTenant: Guid;
+    begin
+        if not EnvironmentInformation.IsSaaS() then
+            exit(false);
+
+        // External users are stored in M365 with an authentication email that
+        // looks like username_hometenant.onmicrosoft.com#EXT#@guesttenant.onmicrosoft.com;
+        // the official recommendation is to check whether whe user is marked as usertype = Guest
+        // instead, but to avoid a call to Graph, we limit the check to the email here.
+        if User.ReadPermission() then
+            if User.Get(UserSecurityId()) then
+                if User."Authentication Email".Split('#EXT#@').Count > 1 then
+                    exit(true);
+
+        // We can also fall back to checking whether the current tenant is the
+        // identity provider for the user tokens
+        if Evaluate(CurrentTenant, TenantInformation.GetTenantId()) and not IsNullGuid(CurrentTenant) then
+            if TryGetAccessToken(AccessToken) and not AccessToken.IsEmpty() then begin
+                ObjectClaims := OAuth2.GetClaims(AccessToken);
+                if ObjectClaims.Get('idp', SingleClaim) and SingleClaim.IsValue() then
+                    if not SingleClaim.AsValue().IsNull() and not SingleClaim.AsValue().IsUndefined() then
+                        if not LowerCase(SingleClaim.AsValue().AsText()).Contains(LowerCase(Format(CurrentTenant, 4))) then
+                            // There is a idp claim and it does not match the current tenant,
+                            // which is also indication of an external user
+                            exit(true);
+            end;
+
+        exit(false);
     end;
 
     [TryFunction]
