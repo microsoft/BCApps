@@ -6964,11 +6964,9 @@
                                             <rd:DefaultName>PostedPaymentScheduleLbl</rd:DefaultName>
                                             <Style>
                                               <Border>
-                                                <Color>LightGrey</Color>
-                                                <Style>Solid</Style>
+                                                <Style>None</Style>
                                               </Border>
-                                              <BackgroundColor>#F2F2F2</BackgroundColor>
-                                              <PaddingLeft>5pt</PaddingLeft>
+                                                                                            <PaddingLeft>5pt</PaddingLeft>
                                               <PaddingRight>5pt</PaddingRight>
                                             </Style>
                                           </Textbox>
@@ -7004,11 +7002,9 @@
                                             <rd:DefaultName>PostedPaymentLineDueDateLbl</rd:DefaultName>
                                             <Style>
                                               <Border>
-                                                <Color>LightGrey</Color>
-                                                <Style>Solid</Style>
+                                                <Style>None</Style>
                                               </Border>
-                                              <BackgroundColor>#F8F8F8</BackgroundColor>
-                                              <PaddingLeft>5pt</PaddingLeft>
+                                                                                            <PaddingLeft>5pt</PaddingLeft>
                                               <PaddingRight>5pt</PaddingRight>
                                             </Style>
                                           </Textbox>
@@ -7039,11 +7035,9 @@
                                             <rd:DefaultName>PostedPaymentLineAmountLbl</rd:DefaultName>
                                             <Style>
                                               <Border>
-                                                <Color>LightGrey</Color>
-                                                <Style>Solid</Style>
+                                                <Style>None</Style>
                                               </Border>
-                                              <BackgroundColor>#F8F8F8</BackgroundColor>
-                                              <PaddingLeft>5pt</PaddingLeft>
+                                                                                            <PaddingLeft>5pt</PaddingLeft>
                                               <PaddingRight>5pt</PaddingRight>
                                             </Style>
                                           </Textbox>
@@ -7076,8 +7070,7 @@
                                             <rd:DefaultName>PostedPaymentLineDueDate</rd:DefaultName>
                                             <Style>
                                               <Border>
-                                                <Color>LightGrey</Color>
-                                                <Style>Solid</Style>
+                                                <Style>None</Style>
                                               </Border>
                                               <PaddingLeft>5pt</PaddingLeft>
                                               <PaddingRight>5pt</PaddingRight>
@@ -7109,8 +7102,7 @@
                                             <rd:DefaultName>PostedPaymentLineAmount</rd:DefaultName>
                                             <Style>
                                               <Border>
-                                                <Color>LightGrey</Color>
-                                                <Style>Solid</Style>
+                                                <Style>None</Style>
                                               </Border>
                                               <PaddingLeft>5pt</PaddingLeft>
                                               <PaddingRight>5pt</PaddingRight>
