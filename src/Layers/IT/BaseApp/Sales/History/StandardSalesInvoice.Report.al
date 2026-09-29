@@ -1738,7 +1738,8 @@ report 1306 "Standard Sales - Invoice"
         if DateValue = 0D then
             exit('');
 
-        exit(Format(DateValue, 0, '<Day,2>/<Month,2>/<Year,2>'));
+        // Keep the same report date formatting used by the standard invoice date fields.
+        exit(Format(DateValue, 0, 4));
     end;
 
     local procedure FillLeftHeader()
