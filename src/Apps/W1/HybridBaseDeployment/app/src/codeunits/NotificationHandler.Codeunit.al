@@ -8,6 +8,7 @@ namespace Microsoft.DataMigration;
 using System.Environment;
 using System.Integration;
 using System.Telemetry;
+using System.Text.Json;
 
 codeunit 4014 "Notification Handler"
 {
@@ -384,17 +385,13 @@ codeunit 4014 "Notification Handler"
 
     local procedure GetJsonTokenText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JsonObject.Get(PropertyName, JsonToken) then
             exit(false);
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit(true);
-            Value := JsonToken.AsValue().AsText();
-        end else
-            JsonToken.WriteTo(Value);
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
     end;
 

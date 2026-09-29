@@ -8,6 +8,7 @@ namespace Microsoft.DataMigration.SL;
 using Microsoft.DataMigration;
 using System.Environment;
 using System.Integration;
+using System.Text.Json;
 
 codeunit 47013 "SL Hybrid Management"
 {
@@ -212,18 +213,12 @@ codeunit 47013 "SL Hybrid Management"
 
     local procedure GetJsonTokenText(JsonObject: JsonObject; PropertyName: Text): Text
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
-        JsonText: Text;
     begin
         if not JsonObject.Get(PropertyName, JsonToken) then
             exit('');
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit('');
-            exit(JsonToken.AsValue().AsText());
-        end;
-        JsonToken.WriteTo(JsonText);
-        exit(JsonText);
+        exit(Json.GetTokenAsText(JsonToken));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Message Management", OnResolveMessageCode, '', false, false)]

@@ -8,6 +8,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Upgrade;
 using System.Integration;
 using System.Security.AccessControl;
+using System.Text.Json;
 using System.Upgrade;
 
 codeunit 6060 "Hybrid Deployment"
@@ -652,18 +653,12 @@ codeunit 6060 "Hybrid Deployment"
 
     local procedure GetJsonTokenText(JsonObject: JsonObject; PropertyName: Text): Text
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
-        JsonText: Text;
     begin
         if not JsonObject.Get(PropertyName, JsonToken) then
             exit('');
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit('');
-            exit(JsonToken.AsValue().AsText());
-        end;
-        JsonToken.WriteTo(JsonText);
-        exit(JsonText);
+        exit(Json.GetTokenAsText(JsonToken));
     end;
 
     local procedure GetErrorMessage(JsonOutput: Text) Message: Text

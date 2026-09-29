@@ -1,5 +1,7 @@
 namespace System.AI;
 
+using System.Text.Json;
+
 #if not CLEAN30
 using System.Text;
 #endif
@@ -141,25 +143,22 @@ codeunit 2021 "Image Analysis Result"
 
     procedure DominantColor(Number: Integer): Text
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
-        if DominantColors.Get(Number - 1, JsonToken) and JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit('');
-            exit(JsonToken.AsValue().AsText());
-        end;
+        if DominantColors.Get(Number - 1, JsonToken) and JsonToken.IsValue() then
+            exit(Json.GetTokenAsText(JsonToken));
     end;
 
     local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
             exit(false);
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit(true);
-        Value := JsonToken.AsValue().AsText();
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
     end;
 

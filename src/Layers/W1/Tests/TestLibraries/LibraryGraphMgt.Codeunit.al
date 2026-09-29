@@ -785,32 +785,14 @@ codeunit 130618 "Library - Graph Mgt"
 
     local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JsonObject.Get(PropertyName, JsonToken) then
             exit(false);
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit(true);
-            Value := GetJsonValueText(JsonToken);
-        end else
-            JsonToken.WriteTo(Value);
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
-    end;
-
-    local procedure GetJsonValueText(JsonToken: JsonToken): Text
-    var
-        SerializedValue: Text;
-    begin
-        JsonToken.WriteTo(SerializedValue);
-        case SerializedValue of
-            'true':
-                exit('True');
-            'false':
-                exit('False');
-        end;
-        exit(JsonToken.AsValue().AsText());
     end;
 
     procedure StripBrackets(StringWithBrackets: Text): Text

@@ -37,6 +37,7 @@ codeunit 101017 "Demo Data Importer"
         OptionsTable: Dictionary of [Text, Integer];
         RefrencesTable: Dictionary of [Text, Text];
         CachedRefrencesTable: Dictionary of [Text, Text];
+        Json: Codeunit Json;
         JsonObject: JsonObject;
         JsonTxt: Text;
         LanguageCode: Code[10];
@@ -71,11 +72,11 @@ codeunit 101017 "Demo Data Importer"
             if ValueToken.IsObject() then begin
                 LocalizedValues := ValueToken.AsObject();
                 if LocalizedValues.Get(LanguageCode, LocalizedValueToken) then
-                    TempVar := GetJsonValueAsText(LocalizedValueToken)
+                    TempVar := Json.GetTokenAsText(LocalizedValueToken)
                 else
                     Clear(TempVar);
             end else
-                TempVar := GetJsonValueAsText(ValueToken);
+                TempVar := Json.GetTokenAsText(ValueToken);
 
             if RefrencesTable.ContainsKey(Format(TableId) + '/' + FieldName) then
                 TempVar := GetRefrencedValue(Format(TableId) + '/' + FieldName, Format(TempVar));
@@ -158,10 +159,10 @@ codeunit 101017 "Demo Data Importer"
             exit;
         LanguagesJson := LanguagesToken.AsObject();
         if LanguagesJson.Get('ENU', LanguageToken) then
-            AddOptionsToDic(GetJsonValueAsText(LanguageToken), TableID, OptionName);
+            AddOptionsToDic(Json.GetTokenAsText(LanguageToken), TableID, OptionName);
 
         if LanguagesJson.Get(LanguageCode, LanguageToken) then
-            AddOptionsToDic(GetJsonValueAsText(LanguageToken), TableID, OptionName);
+            AddOptionsToDic(Json.GetTokenAsText(LanguageToken), TableID, OptionName);
     end;
 
     local procedure InitRefrencesTable(ReferencesJson: JsonObject; TableId: Integer)
@@ -174,7 +175,7 @@ codeunit 101017 "Demo Data Importer"
             ReferencesJson.Get(FieldName, ReferenceToken);
             KeyStr := Format(TableId) + '/' + FieldName;
             if not RefrencesTable.ContainsKey(KeyStr) then
-                RefrencesTable.Add(KeyStr, GetJsonValueAsText(ReferenceToken));
+                RefrencesTable.Add(KeyStr, Json.GetTokenAsText(ReferenceToken));
         end;
     end;
 
@@ -269,16 +270,4 @@ codeunit 101017 "Demo Data Importer"
             end;
     end;
 
-    local procedure GetJsonValueAsText(JsonToken: JsonToken): Text
-    var
-        JsonText: Text;
-    begin
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit('');
-            exit(JsonToken.AsValue().AsText());
-        end;
-        JsonToken.WriteTo(JsonText);
-        exit(JsonText);
-    end;
 }

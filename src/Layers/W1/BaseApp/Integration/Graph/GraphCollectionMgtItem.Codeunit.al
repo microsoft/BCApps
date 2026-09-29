@@ -9,6 +9,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using System.DateTime;
 using System.Reflection;
+using System.Text.Json;
 
 codeunit 5470 "Graph Collection Mgt - Item"
 {
@@ -324,14 +325,13 @@ codeunit 5470 "Graph Collection Mgt - Item"
 
     local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
             exit(false);
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit(true);
-        Value := JsonToken.AsValue().AsText();
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
     end;
 

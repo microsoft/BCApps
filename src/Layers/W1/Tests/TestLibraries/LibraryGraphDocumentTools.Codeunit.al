@@ -858,17 +858,13 @@ codeunit 130619 "Library - Graph Document Tools"
 
     local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JsonObject.Get(PropertyName, JsonToken) then
             exit(false);
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit(true);
-            Value := JsonToken.AsValue().AsText();
-        end else
-            JsonToken.WriteTo(Value);
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
     end;
 }

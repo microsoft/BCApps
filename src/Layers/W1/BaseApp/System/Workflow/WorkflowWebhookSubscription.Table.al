@@ -11,6 +11,7 @@ using Microsoft.Utilities;
 using System;
 using System.Environment;
 using System.Reflection;
+using System.Text.Json;
 
 table 469 "Workflow Webhook Subscription"
 {
@@ -361,6 +362,7 @@ table 469 "Workflow Webhook Subscription"
         ConditionName: JsonToken;
         Condition: JsonObject;
         ConditionValue: JsonToken;
+        Json: Codeunit Json;
         FieldId: Integer;
         tableNo: Integer;
     begin
@@ -377,16 +379,16 @@ table 469 "Workflow Webhook Subscription"
             Condition := ConditionToken.AsObject();
             if Condition.Get('Name', ConditionName) and Condition.Get('Value', ConditionValue) then begin
                 // get id of the field from the page in the page's source table
-                PageControlField.SetFilter(ControlName, GetJsonTokenText(ConditionName));
+                PageControlField.SetFilter(ControlName, Json.GetTokenAsText(ConditionName));
                 if not PageControlField.FindFirst() then
-                    SendAndLogError(GetLastErrorText, StrSubstNo(NoControlOnPageErr, GetJsonTokenText(ConditionName), GetPageName(SourcePageNo)));
+                    SendAndLogError(GetLastErrorText, StrSubstNo(NoControlOnPageErr, Json.GetTokenAsText(ConditionName), GetPageName(SourcePageNo)));
 
                 FieldId := PageControlField.FieldNo;
                 FieldRef := RecRef.Field(FieldId);
 
                 // filter Header/Lines Table
                 // throws an error message if can not convert types
-                FieldRef.SetFilter(GetJsonTokenText(ConditionValue));
+                FieldRef.SetFilter(Json.GetTokenAsText(ConditionValue));
             end;
         end;
 
@@ -394,19 +396,6 @@ table 469 "Workflow Webhook Subscription"
         TableMetadata.Get(tableNo);
         EventConditions.AddTable(TableMetadata.Caption, tableNo);
         EventConditions.SetView(EventConditions.Name(ConditionIndex), RecRef.GetView());
-    end;
-
-    local procedure GetJsonTokenText(JsonToken: JsonToken): Text
-    var
-        JsonText: Text;
-    begin
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit('');
-            exit(JsonToken.AsValue().AsText());
-        end;
-        JsonToken.WriteTo(JsonText);
-        exit(JsonText);
     end;
 
     [TryFunction]

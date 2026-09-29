@@ -4,6 +4,7 @@ using System;
 using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Integration;
+using System.Text.Json;
 using System.Utilities;
 
 codeunit 9033 "Invite External Accountant"
@@ -335,14 +336,13 @@ codeunit 9033 "Invite External Accountant"
 
     local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
             exit(false);
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit(true);
-        Value := JsonToken.AsValue().AsText();
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
     end;
 

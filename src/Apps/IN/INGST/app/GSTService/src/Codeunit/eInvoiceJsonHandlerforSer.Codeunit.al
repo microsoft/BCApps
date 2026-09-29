@@ -16,6 +16,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Service.History;
 using System.Security.Encryption;
+using System.Text.Json;
 using System.Utilities;
 
 codeunit 18160 "e-Invoice Json Handler for Ser"
@@ -131,15 +132,12 @@ codeunit 18160 "e-Invoice Json Handler for Ser"
 
     local procedure GetJsonValue(JsonObject: JsonObject; PropertyName: Text): Text
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
-        if not JsonObject.Get(PropertyName, JsonToken) then
+        if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
             exit('');
-        if not JsonToken.IsValue() then
-            exit('');
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit('');
-        exit(JsonToken.AsValue().AsText());
+        exit(Json.GetTokenAsText(JsonToken));
     end;
 
     local procedure GetResponseText() ResponseText: Text

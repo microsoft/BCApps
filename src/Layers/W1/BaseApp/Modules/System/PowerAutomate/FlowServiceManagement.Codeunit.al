@@ -3,6 +3,7 @@ namespace System.Automation;
 using System.Azure.Identity;
 using System.Environment;
 using System.Integration;
+using System.Text.Json;
 
 codeunit 6400 "Flow Service Management"
 {
@@ -220,21 +221,14 @@ codeunit 6400 "Flow Service Management"
 
     local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JsonObject.Get(PropertyName, JsonToken) then
             exit(false);
 
-        if not JsonToken.IsValue() then begin
-            JsonToken.WriteTo(Value);
-            exit(true);
-        end;
-
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit(true);
-
-        Value := JsonToken.AsValue().AsText();
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
     end;
 

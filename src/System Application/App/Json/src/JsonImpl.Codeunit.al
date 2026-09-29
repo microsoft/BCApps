@@ -137,22 +137,30 @@ codeunit 5461 "Json Impl."
     procedure GetStringPropertyValueFromJObjectByName(PropertyName: Text; var Value: Text): Boolean
     var
         JsonToken: JsonToken;
-        JsonValue: JsonValue;
     begin
         Clear(Value);
         if not JsonObjectState.Get(PropertyName, JsonToken) then
             exit(false);
+
+        Value := GetTokenAsText(JsonToken);
+        exit(true);
+    end;
+
+    procedure GetTokenAsText(JsonToken: JsonToken): Text
+    var
+        JsonText: Text;
+        JsonValue: JsonValue;
+    begin
         if not JsonToken.IsValue() then begin
-            JsonToken.WriteTo(Value);
-            exit(true);
+            JsonToken.WriteTo(JsonText);
+            exit(JsonText);
         end;
 
         JsonValue := JsonToken.AsValue();
         if JsonValue.IsNull() or JsonValue.IsUndefined() then
-            exit(true);
+            exit('');
 
-        Value := GetJsonValueAsText(JsonToken);
-        exit(true);
+        exit(GetJsonValueAsText(JsonToken));
     end;
 
     procedure GetEnumPropertyValueFromJObjectByName(PropertyName: Text; var Value: Option): Boolean

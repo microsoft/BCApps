@@ -9,6 +9,7 @@ using Microsoft.CRM.Contact;
 using Microsoft.Foundation.Address;
 using System;
 using System.Reflection;
+using System.Text.Json;
 
 codeunit 5458 "Graph Collection Mgt - Contact"
 {
@@ -1221,28 +1222,24 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     local procedure GetStringPropertyValueFromJObjectByName(JObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JObject.Get(PropertyName, JsonToken) then
             exit(false);
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit(true);
-            Value := JsonToken.AsValue().AsText();
-        end else
-            JsonToken.WriteTo(Value);
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
     end;
 
     local procedure GetStringValueFromJsonToken(JsonToken: JsonToken; var Value: Text)
+    var
+        Json: Codeunit Json;
     begin
         Clear(Value);
         if not JsonToken.IsValue() then
             exit;
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit;
-        Value := JsonToken.AsValue().AsText();
+        Value := Json.GetTokenAsText(JsonToken);
     end;
 
     local procedure ResetSelectedCollectionIndex()

@@ -184,6 +184,29 @@ codeunit 139910 "Json Test"
     end;
 
     [Test]
+    procedure TestGetTokenAsText()
+    var
+        Json: Codeunit "Json";
+        JsonObject: JsonObject;
+        JsonToken: JsonToken;
+    begin
+        JsonObject.ReadFrom('{"text":"value","boolean":true,"number":42,"null":null,"object":{"id":1},"array":[1,2]}');
+
+        JsonObject.Get('text', JsonToken);
+        Assert.AreEqual('value', Json.GetTokenAsText(JsonToken), 'Text value was not converted correctly.');
+        JsonObject.Get('boolean', JsonToken);
+        Assert.AreEqual('True', Json.GetTokenAsText(JsonToken), 'Boolean value was not converted compatibly.');
+        JsonObject.Get('number', JsonToken);
+        Assert.AreEqual('42', Json.GetTokenAsText(JsonToken), 'Number value was not converted correctly.');
+        JsonObject.Get('null', JsonToken);
+        Assert.AreEqual('', Json.GetTokenAsText(JsonToken), 'Null value was not converted to empty text.');
+        JsonObject.Get('object', JsonToken);
+        Assert.AreEqual('{"id":1}', Json.GetTokenAsText(JsonToken), 'Object value was not serialized correctly.');
+        JsonObject.Get('array', JsonToken);
+        Assert.AreEqual('[1,2]', Json.GetTokenAsText(JsonToken), 'Array value was not serialized correctly.');
+    end;
+
+    [Test]
     procedure TestGetIntegerPropertyValueFromJObjectByName()
     var
         Json: Codeunit "Json";

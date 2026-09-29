@@ -209,13 +209,12 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
 
     local procedure GetJsonTokenText(JsonObject: JsonObject; PropertyName: Text): Text
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
             exit('');
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit('');
-        exit(JsonToken.AsValue().AsText());
+        exit(Json.GetTokenAsText(JsonToken));
     end;
 
     procedure GetDimensionsFromJSONText(Response: Text; var DimensionsJsonArray: JsonArray)

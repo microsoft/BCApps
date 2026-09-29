@@ -3,6 +3,7 @@ namespace System.Integration;
 using Microsoft.Utilities;
 using System;
 using System.Reflection;
+using System.Text.Json;
 using System.Utilities;
 using System.Xml;
 
@@ -350,15 +351,13 @@ codeunit 1290 "SOAP Web Service Request Mgt."
     [NonDebuggable]
     procedure GetTokenValue(WebTokenAsJson: Text; ClaimType: Text): Text
     var
+        Json: Codeunit Json;
         JsonObject: JsonObject;
         JsonToken: JsonToken;
     begin
         JsonObject.ReadFrom(WebTokenAsJson);
-        if JsonObject.Get(ClaimType, JsonToken) and JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit('');
-            exit(JsonToken.AsValue().AsText());
-        end;
+        if JsonObject.Get(ClaimType, JsonToken) and JsonToken.IsValue() then
+            exit(Json.GetTokenAsText(JsonToken));
     end;
 
     [NonDebuggable]

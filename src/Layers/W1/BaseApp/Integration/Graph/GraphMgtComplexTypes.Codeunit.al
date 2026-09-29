@@ -12,6 +12,7 @@ using Microsoft.Integration.Entity;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
+using System.Text.Json;
 
 codeunit 5468 "Graph Mgt - Complex Types"
 {
@@ -337,14 +338,13 @@ codeunit 5468 "Graph Mgt - Complex Types"
 
     local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(Value);
         if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
             exit(false);
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit(true);
-        Value := JsonToken.AsValue().AsText();
+        Value := Json.GetTokenAsText(JsonToken);
         exit(true);
     end;
 

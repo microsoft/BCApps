@@ -9,6 +9,7 @@ using System;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Text.Json;
 using System.Utilities;
 
 /// <summary>
@@ -33,6 +34,7 @@ codeunit 2501 "Extension Marketplace"
 
     var
         HttpWebRequest: DotNet HttpWebRequest;
+        Json: Codeunit Json;
         ParseFailureErr: Label 'Failed to extract ''%1'' property from JSON object.', Comment = 'JSON parsing error. %1=target property name';
         TelemetryBodyTxt: Label '{"acquisitionResult":"%1", "detail":"%2"}', Comment = '%1=AppSource operation result option, %2=details describing the context or reason for the result', Locked = true;
         ParseApplicationIdErr: Label 'Failed to extract ''%1'' token from Application Id.', Comment = '%1=Name of token that we expected   ';
@@ -57,7 +59,7 @@ codeunit 2501 "Extension Marketplace"
             exit('');
         DataObject := JsonToken.AsObject();
         if TryGetValue(DataObject, 'responseUrl', JsonToken) and JsonToken.IsValue() then
-            exit(GetJsonTokenText(JsonToken));
+            exit(Json.GetTokenAsText(JsonToken));
     end;
 
     [TryFunction]
@@ -435,7 +437,7 @@ codeunit 2501 "Extension Marketplace"
     begin
         if not TryGetValue(JObject, 'msgType', JsonToken) or not JsonToken.IsValue() then
             Error(ParseFailureErr, 'msgType');
-        exit(GetJsonTokenText(JsonToken));
+        exit(Json.GetTokenAsText(JsonToken));
     end;
 
     procedure GetApplicationIdFromData(JObject: JsonObject): Text
@@ -448,14 +450,7 @@ codeunit 2501 "Extension Marketplace"
         DataObject := JsonToken.AsObject();
         if not TryGetValue(DataObject, 'applicationId', JsonToken) or not JsonToken.IsValue() then
             Error(ParseFailureErr, 'applicationId');
-        exit(GetJsonTokenText(JsonToken));
-    end;
-
-    local procedure GetJsonTokenText(JsonToken: JsonToken): Text
-    begin
-        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-            exit('');
-        exit(JsonToken.AsValue().AsText());
+        exit(Json.GetTokenAsText(JsonToken));
     end;
 
     local procedure TryGetValue(JObject: JsonObject; Property: Text; var JsonToken: JsonToken): Boolean

@@ -99,6 +99,16 @@ codeunit 5460 Json
     end;
 
     /// <summary>
+    /// Returns the text representation of the specified JSON token.
+    /// </summary>
+    /// <param name="JsonToken">The JSON token.</param>
+    /// <returns>Unquoted text for scalar values, empty text for null or undefined values, and serialized JSON for objects and arrays.</returns>
+    procedure GetTokenAsText(JsonToken: JsonToken): Text
+    begin
+        exit(JsonImpl.GetTokenAsText(JsonToken));
+    end;
+
+    /// <summary>
     /// Gets the value at the specified property path in the JSON object and sets it to the specified record field.
     /// </summary>
     /// <param name="RecordRef">The record reference</param>

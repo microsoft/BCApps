@@ -17,6 +17,7 @@ using System.Environment.Configuration;
 using System.Integration;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 
 codeunit 5465 "Graph Mgt - General Tools"
@@ -62,18 +63,13 @@ codeunit 5465 "Graph Mgt - General Tools"
 
     procedure GetMandatoryStringPropertyFromJObject(JsonObject: JsonObject; PropertyName: Text; var PropertyValue: Text)
     var
+        Json: Codeunit Json;
         JsonToken: JsonToken;
     begin
         Clear(PropertyValue);
         if not JsonObject.Get(PropertyName, JsonToken) then
             Error(MissingFieldValueErr, PropertyName);
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit;
-            PropertyValue := JsonToken.AsValue().AsText();
-            exit;
-        end;
-        JsonToken.WriteTo(PropertyValue);
+        PropertyValue := Json.GetTokenAsText(JsonToken);
     end;
 
     procedure HandleUpdateReferencedIdFieldOnItem(var RecRef: RecordRef; NewId: Guid; var Handled: Boolean; DatabaseNumber: Integer; RecordFieldNumber: Integer)
