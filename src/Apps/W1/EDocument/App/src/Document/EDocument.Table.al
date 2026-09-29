@@ -482,13 +482,6 @@ table 6121 "E-Document"
         if not EDocExternalReference.IsEmpty() then
             EDocExternalReference.DeleteAll(true);
 
-#if not CLEAN27
-        // Version 1 processing cleanup
-        // Can be removed soon as version 1 is fully migrated to version 2
-        PurchaseHeader.SetRange("E-Document Link", Rec.SystemId);
-        PurchaseHeader.ModifyAll("E-Document Link", NullGuid, false);
-#endif
-
         // Version 2 processing cleanup
         IProcessStructuredData := Rec."Process Draft Impl.";
         IProcessStructuredData.CleanUpDraft(Rec);
