@@ -1555,6 +1555,7 @@ codeunit 138015 "O365 Correct Sales Invoice"
         // [FEATURE] [Correct] [Credit Memo] [Shipment] [UI]
         // [SCENARIO 365667] System opens sales order when Stan corrects invoice posted from that sales order
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
         CreateSalesLineWithPartialQtyToShip(SalesLine, SalesHeader);
@@ -1583,6 +1584,48 @@ codeunit 138015 "O365 Correct Sales Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
+    procedure CorrectPartialInvoicePostedFromOrderDoesNotRestoreQuantitiesWhenDisabled()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedSalesInvoicePage: TestPage "Posted Sales Invoice";
+        SalesOrderPage: TestPage "Sales Order";
+        InvoiceNo: Code[20];
+        PostedQuantity: Decimal;
+    begin
+        // [FEATURE] [Correct] [Credit Memo] [Shipment] [UI]
+        // [SCENARIO 649626] Correcting an order-based sales invoice does not restore order quantities when "Restore Order qty. on return" is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially shipped and invoiced sales order.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        CreateSalesLineWithPartialQtyToShip(SalesLine, SalesHeader);
+        PostedQuantity := SalesLine."Qty. to Ship";
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        GetSalesInvoiceHeaderAndCheckCancelled(SalesInvoiceHeader, InvoiceNo, false);
+
+        LibraryVariableStorage.Enqueue(CorrectPostedInvoiceFromSingleOrderQst);
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] The posted invoice is corrected from the Posted Sales Invoice page.
+        PostedSalesInvoicePage.Trap();
+        Page.Run(Page::"Posted Sales Invoice", SalesInvoiceHeader);
+        SalesOrderPage.Trap();
+        PostedSalesInvoicePage.CorrectInvoice.Invoke();
+
+        // [THEN] The order opens, but its shipped and invoiced quantities remain unchanged.
+        SalesOrderPage.SalesLines."Quantity Shipped".AssertEquals(PostedQuantity);
+        SalesOrderPage.SalesLines."Quantity Invoiced".AssertEquals(PostedQuantity);
+        SalesOrderPage.SalesLines."Qty. to Ship".AssertEquals(SalesLine.Quantity - PostedQuantity);
+        SalesOrderPage.SalesLines."Qty. to Invoice".AssertEquals(SalesLine.Quantity - PostedQuantity);
+        GetSalesInvoiceHeaderAndCheckCancelled(SalesInvoiceHeader, InvoiceNo, true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerVerify')]
     procedure CorrectInvoicePostedFromTwoShipmentsOfSingleOrder()
     var
         SalesHeaderOrder: Record "Sales Header";
@@ -1598,6 +1641,7 @@ codeunit 138015 "O365 Correct Sales Invoice"
         // [FEATURE] [Correct] [Credit Memo] [Shipment] [UI]
         // [SCENARIO 365667] System opens sales order when Stan corrects invoice posted via "get shipment lines" and all shipments relate to that single order
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         LibrarySales.CreateSalesHeader(SalesHeaderOrder, SalesHeaderOrder."Document Type"::Order, LibrarySales.CreateCustomerNo());
         CreateSalesLineWithPartialQtyToShip(SalesLineOrder[1], SalesHeaderOrder);
@@ -1663,6 +1707,7 @@ codeunit 138015 "O365 Correct Sales Invoice"
         // [FEATURE] [Correct] [Credit Memo] [Shipment] [UI]
         // [SCENARIO 365667] System warns that it can't open a particular sales order when Stan corrects invoice posted via "get shipment lines" and shipments relate to different single orders
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         LibrarySales.CreateSalesHeader(SalesHeaderOrder[1], SalesHeaderOrder[1]."Document Type"::Order, LibrarySales.CreateCustomerNo());
         CreateSalesLineWithPartialQtyToShip(SalesLineOrder[1], SalesHeaderOrder[1]);
@@ -1796,6 +1841,15 @@ codeunit 138015 "O365 Correct Sales Invoice"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"O365 Correct Sales Invoice");
+    end;
+
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Modify(true);
     end;
 
     local procedure VerifyCorrectionFailsOnBlockedGLAcc(GLAcc: Record "G/L Account"; BillToCust: Record Customer; SalesInvoiceHeader: Record "Sales Invoice Header")

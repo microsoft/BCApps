@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -614,6 +614,15 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Skip Manual Reservation';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies that the reservation confirmation message is not shown on sales lines. This is useful to avoid noise when you are processing many lines.';
+        }
+        /// <summary>
+        /// Indicates whether posting a sales credit memo or return order restores the reversed quantities on the related sales order.
+        /// </summary>
+        field(70; "Restore Order qty. on return"; Boolean)
+        {
+            Caption = 'Restore Order quantities on Credit Memo or Return Order posting';
+            ToolTip = 'Specifies whether posting a sales credit memo or sales return order restores quantities on the related sales order. When enabled, Qty. to Ship, Qty. to Invoice, and the shipped and invoiced quantities on the original sales order are updated based on the reversed quantity.';
+            InitValue = true;
         }
         /// <summary>
         /// Indicates whether customer name changes on open sales documents apply only to the document without searching for matching customers.

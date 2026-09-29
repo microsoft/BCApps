@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -64,6 +64,11 @@ page 460 "Purchases & Payables Setup"
                     Importance = Additional;
                 }
                 field("Return Shipment on Credit Memo"; Rec."Return Shipment on Credit Memo")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
+                field("Restore Order qty. on return"; Rec."Restore Order qty. on return")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;

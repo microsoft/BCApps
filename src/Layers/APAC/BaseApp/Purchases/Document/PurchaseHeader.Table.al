@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8081,9 +8081,14 @@ table 38 "Purchase Header"
     procedure UpdatePurchaseOrderLineIfExist()
     var
         PurchaseCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         IsHandled: Boolean;
     begin
+        PurchasesPayablesSetup.GetRecordOnce();
+        if not PurchasesPayablesSetup."Restore Order qty. on return" then
+            exit;
+
         PurchaseCrMemoHeader.SetLoadFields("Pre-Assigned No.");
         PurchaseCrMemoHeader.SetRange("Pre-Assigned No.", Rec."No.");
         if not PurchaseCrMemoHeader.FindFirst() then
