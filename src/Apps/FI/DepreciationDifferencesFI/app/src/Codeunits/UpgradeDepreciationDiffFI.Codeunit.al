@@ -23,13 +23,7 @@ codeunit 13475 "Upgrade Depreciation Diff. FI"
         DepreciationDifferencesFIUpgradeTag: Codeunit "Dep Diff FI Upgrade Tag";
 
     trigger OnUpgradePerCompany()
-    var
-        CurrentModuleInfo: ModuleInfo;
     begin
-        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if CurrentModuleInfo.AppVersion().Major() < 33 then
-            exit;
-
         UpgradeDepreciationDifferencesFI();
     end;
 
