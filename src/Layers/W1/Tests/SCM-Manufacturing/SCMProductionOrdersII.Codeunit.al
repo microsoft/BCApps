@@ -8173,6 +8173,62 @@ codeunit 137072 "SCM Production Orders II"
           ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", UpdatedFixedQty);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,ItemTrackingSummaryPageHandler')]
+    [Scope('OnPrem')]
+    procedure FinishProdOrderWithPreciselyCalculatedTrackedBackwardFlushingComp()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        UOMMgt: Codeunit "Unit of Measure Management";
+        ExpectedConsumptionQty: Decimal;
+        ProdOrderQty: Decimal;
+        QuantityPer: Decimal;
+    begin
+        // [SCENARIO 650101] A production order can be finished when precise quantity per rounds differently from the component quantity.
+        Initialize();
+        ExpectedConsumptionQty := LibraryRandom.RandIntInRange(60, 70);
+        ProdOrderQty := LibraryRandom.RandIntInRange(71, 75);
+        QuantityPer := 0.918918918918919;
+
+        // [GIVEN] Lot-tracked component "C" with backward flushing, rounding precision 0.001, and 68 units in inventory.
+        CreateItemWithItemTrackingCode(CompItem, CreateItemTrackingCode());
+        CompItem.Validate("Flushing Method", CompItem."Flushing Method"::Backward);
+        CompItem.Validate("Rounding Precision", 0.001);
+        CompItem.Modify(true);
+        CreateAndPostItemJournalLine(CompItem."No.", ExpectedConsumptionQty, '', '', true);
+
+        // [GIVEN] Production item "P" with quantity per 0.918918918918919 for component "C".
+        CreateItemWithItemTrackingCode(ProdItem, CreateItemTrackingCode());
+        CreateCertifiedProductionBOMWithQtyPer(
+            ProductionBOMHeader, ProdItem."Base Unit of Measure", ProductionBOMLine.Type::Item, CompItem."No.", QuantityPer);
+        ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
+        ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ProdItem.Modify(true);
+
+        // [GIVEN] Released production order for 74 units, where expected component quantity is 68 but component quantity per is rounded to 0.91892.
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, ProdItem."No.", ProdOrderQty, '', '');
+        FindProdOrderComponentByOrderNoAndItem(ProdOrderComponent, ProductionOrder."No.", CompItem."No.");
+        ProdOrderComponent.TestField("Expected Quantity", ExpectedConsumptionQty);
+        ProdOrderComponent.TestField(Quantity, UOMMgt.RoundQty(QuantityPer));
+
+        // [GIVEN] Lot tracking is assigned to the component and full output is posted.
+        SelectItemTrackingForProdOrderComponents(CompItem."No.");
+        CreateAndPostOutputJournalWithItemTracking(ProductionOrder."No.", true, ProdOrderQty);
+
+        // [WHEN] The production order is finished.
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+
+        // [THEN] The tracked component is consumed by the expected quantity.
+        VerifyItemLedgerEntry(ItemJournalLine."Entry Type"::Consumption, CompItem."No.", -ExpectedConsumptionQty, true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
