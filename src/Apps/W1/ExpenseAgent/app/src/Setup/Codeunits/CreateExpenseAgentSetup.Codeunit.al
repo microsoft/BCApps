@@ -195,6 +195,13 @@ codeunit 6970 "Create Expense Agent Setup"
     var
         UnitOfMeasure: Record "Unit of Measure";
     begin
+        UnitOfMeasure.SetFilter("International Standard Code", 'SMI|MI');
+        if UnitOfMeasure.FindFirst() then
+            exit(UnitOfMeasure.Code);
+        UnitOfMeasure.SetFilter("International Standard Code", 'KMT|KM');
+        if UnitOfMeasure.FindFirst() then
+            exit(UnitOfMeasure.Code);
+
         CreateUnitOfMeasure(
             CopyStr(KilometerCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code)),
             CopyStr(KilometerTxt, 1, MaxStrLen(UnitOfMeasure.Description)),
@@ -207,12 +214,6 @@ codeunit 6970 "Create Expense Agent Setup"
             'SMI',
             'mi');
 
-        UnitOfMeasure.SetFilter("International Standard Code", 'SMI|MI');
-        if UnitOfMeasure.FindFirst() then
-            exit(UnitOfMeasure.Code);
-        UnitOfMeasure.SetFilter("International Standard Code", 'KMT|KM');
-        if UnitOfMeasure.FindFirst() then
-            exit(UnitOfMeasure.Code);
         UnitOfMeasure.SetRange("International Standard Code");
         if UnitOfMeasure.Get(MilesCodeTxt) then
             exit(UnitOfMeasure.Code);
