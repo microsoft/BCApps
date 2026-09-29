@@ -859,7 +859,7 @@ page 6910 "Expense Report"
 
     local procedure AssignAlternateApproverExpenseReport()
     begin
-        Rec.AssignAlternateApprover();
+        Rec.AssignAlternateApprover('');
         CurrPage.Update(false);
     end;
 
