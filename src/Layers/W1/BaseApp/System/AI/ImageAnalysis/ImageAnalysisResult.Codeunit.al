@@ -1,10 +1,9 @@
 namespace System.AI;
 
-using System.Text.Json;
-
 #if not CLEAN30
 using System.Text;
 #endif
+using System.Text.Json;
 
 codeunit 2021 "Image Analysis Result"
 {

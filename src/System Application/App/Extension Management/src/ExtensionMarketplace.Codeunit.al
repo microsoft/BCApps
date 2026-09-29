@@ -33,8 +33,8 @@ codeunit 2501 "Extension Marketplace"
                   tabledata "Published Application" = r;
 
     var
-        HttpWebRequest: DotNet HttpWebRequest;
         Json: Codeunit Json;
+        HttpWebRequest: DotNet HttpWebRequest;
         ParseFailureErr: Label 'Failed to extract ''%1'' property from JSON object.', Comment = 'JSON parsing error. %1=target property name';
         TelemetryBodyTxt: Label '{"acquisitionResult":"%1", "detail":"%2"}', Comment = '%1=AppSource operation result option, %2=details describing the context or reason for the result', Locked = true;
         ParseApplicationIdErr: Label 'Failed to extract ''%1'' token from Application Id.', Comment = '%1=Name of token that we expected   ';

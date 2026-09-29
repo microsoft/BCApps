@@ -148,8 +148,8 @@ codeunit 5461 "Json Impl."
 
     procedure GetTokenAsText(JsonToken: JsonToken): Text
     var
-        JsonText: Text;
         JsonValue: JsonValue;
+        JsonText: Text;
     begin
         if not JsonToken.IsValue() then begin
             JsonToken.WriteTo(JsonText);
