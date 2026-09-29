@@ -80,7 +80,7 @@ codeunit 137152 "SCM Warehouse - Receiving"
         WarehouseHeaderDeleteConfirmationMsg: Label 'The Whse. Receipt is not completely received.\Do you really want to delete the Whse. Receipt?';
         ExceedsErr: Label 'exceeds the available capacity';
         FromBinBlankErr: Label 'From Bin Should be blank';
-        MovementCreated: Label 'Movement ';
+        MovementCreatedErr: Label 'Movement ';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -7019,7 +7019,7 @@ codeunit 137152 "SCM Warehouse - Receiving"
     [Scope('OnPrem')]
     procedure MovementCreatedMessageHandler(Message: Text[1024])
     begin
-        Assert.IsTrue(StrPos(Message, MovementCreated) > 0, Message);
+        Assert.IsTrue(StrPos(Message, MovementCreatedErr) > 0, Message);
     end;
 
     [ConfirmHandler]
