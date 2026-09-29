@@ -953,7 +953,6 @@ codeunit 139786 "E-Doc. Item Charge Tests"
 
     local procedure Initialize()
     var
-        GeneralLedgerSetup: Record "General Ledger Setup";
         InventorySetup: Record "Inventory Setup";
     begin
         if IsInitialized then
