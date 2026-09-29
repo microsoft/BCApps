@@ -653,7 +653,15 @@ async function readError(frame) {
     errorPage: errorPage?.rows || [],
     // Convenience boolean, so the common `if (anything went wrong)` check cannot be written
     // wrongly. True when BC refused on ANY surface.
-    hasError: Boolean(specific || firstDialogMessage || errorPageMessage || pageHasError),
+    //
+    // ⚠️ Deliberately does NOT include `firstDialogMessage`. BC reports SUCCESS in a dialog too
+    // ("The journal lines were successfully posted."), so folding every dialog into this flag
+    // made a successful post report `hasError: true` - the mirror of the bug this flag was added
+    // to prevent, and just as confidently wrong. Only a message that matched a refusal pattern
+    // (`specific`), the Error Messages page, or the page-level error bar counts.
+    //
+    // A dialog is still available in `dialogs` and `message`; decide there if you need to.
+    hasError: Boolean(specific || errorPageMessage || pageHasError),
     // Everything that was discarded as page chrome. Present so a probe that gets an
     // unexpected empty `message` can see what was filtered rather than guess.
     chrome: dialogChrome,
