@@ -66,3 +66,4 @@ codeunit 849 "Cash Flow Account - Indent"
         Window.Close();
     end;
 }
+
