@@ -112,10 +112,29 @@ try {
 if (-not $memoryLimit) { $memoryLimit = "16G" }
 $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
 
-New-BcContainer -artifactUrl $ArtifactUrl -accept_eula -accept_insiderEula `
-    -containerName $ContainerName -auth 'UserPassword' -Credential $credential `
-    -includeAL -memoryLimit $memoryLimit `
-    -additionalParameters @("--volume ""$($BaseFolder):c:\sources""")
+# ⚠️ Do NOT let a post-container step abort the script before the readiness gate below.
+#
+# `-includeAL` extracts the AL symbols into the SHARED BcContainerHelper Extensions folder, and
+# when a sibling session has already extracted the same build that step fails with
+# "...\Original-<version>-W1-al\.objidconfig already exists". The container itself is healthy and
+# serving - but the terminating error aborts the script, so the [dbo].[User] check never runs and
+# the tour is handed an UNVERIFIED container. Two parallel sessions on one artifact hit this every
+# time.
+#
+# So: catch anything from container creation, and let the readiness gate decide. The gate is the
+# authority on whether the container is usable; a failed side-step is not.
+try {
+    New-BcContainer -artifactUrl $ArtifactUrl -accept_eula -accept_insiderEula `
+        -containerName $ContainerName -auth 'UserPassword' -Credential $credential `
+        -includeAL -memoryLimit $memoryLimit `
+        -additionalParameters @("--volume ""$($BaseFolder):c:\sources""")
+} catch {
+    Write-Warning "Container creation reported an error: $($_.Exception.Message)"
+    Write-Warning 'Continuing to the readiness gate - it decides whether the container is usable.'
+    if (-not (docker ps -a --filter "name=^/$ContainerName$" --format '{{.Names}}')) {
+        throw "Container '$ContainerName' does not exist after the failure above."
+    }
+}
 
 # ⚠️ A half-built container passes every obvious readiness check.
 #
