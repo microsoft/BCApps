@@ -1228,7 +1228,7 @@ codeunit 4400 "SOA Setup"
         SOACustomerInterventionSuggestionCodeLbl: Label 'SOA-CUSTOMER-ADDED', Locked = true;
         SOACustomerInterventionSuggestionSummaryLbl: Label 'I have added the customer', MaxLength = 100;
         SOACustomerInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the customer information. Rerun the customer information check', Locked = true, MaxLength = 1024;
-        SOACustomerInterventionSuggestionInstructionsLbl: Label 'I have updated the customer information. Rerun the customer information check and proceed further.', Locked = true, MaxLength = 1024;
+        SOACustomerInterventionSuggestionInstructionsLbl: Label 'I have updated the customer information. Navigate to the customer list page, search for the customer again, and then proceed.', Locked = true, MaxLength = 1024;
         SOAContactInterventionSuggestionCodeLbl: Label 'SOA-CONTACT-ADDED', Locked = true;
         SOAContactInterventionSuggestionSummaryLbl: Label 'I have added the contact', MaxLength = 100;
         SOAContactInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the contact information. Rerun the contact information check', Locked = true, MaxLength = 1024;
