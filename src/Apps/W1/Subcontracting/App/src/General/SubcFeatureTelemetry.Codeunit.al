@@ -30,6 +30,6 @@ codeunit 20509 "Subc. Feature Telemetry"
     internal procedure LogFeatureUptakeUsed()
     begin
         LogFeatureUptakeSetup();
-        FeatureTelemetry.LogUptake('0001Q7P', SubcontractingTok, Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('0000VQ2', SubcontractingTok, Enum::"Feature Uptake Status"::Used);
     end;
 }
