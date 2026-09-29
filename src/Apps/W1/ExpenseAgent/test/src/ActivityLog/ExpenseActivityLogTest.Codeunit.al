@@ -1580,14 +1580,26 @@ codeunit 148342 "Expense Activity Log Test"
         Submitter: Record "Expense User";
         Approver: Record "Expense User";
         Setup: Record "Expense Agent Setup";
+        AgentUser: Record User;
     begin
         Policy.DeleteAll(false);
         CreateApprovalScenario(Submitter, Approver, Header);
+        CreatePolicyHistoryAgentUser(AgentUser);
         Setup.Get();
         Setup."Evaluate Policies" := true;
+        Setup."User Security ID" := AgentUser."User Security ID";
         Setup.Modify(false);
         AddHistoryLine(Header, Line);
         LibraryExpense.CreateExpensePolicy(Policy, '', 'Global policy');
+    end;
+
+    local procedure CreatePolicyHistoryAgentUser(var AgentUser: Record User)
+    begin
+        AgentUser.Init();
+        AgentUser."User Security ID" := CreateGuid();
+        AgentUser."User Name" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(AgentUser."User Name"));
+        AgentUser."Full Name" := 'Expense Agent';
+        AgentUser.Insert(true);
     end;
 
     local procedure AddHistoryLine(Header: Record "Expense Report Header"; var Line: Record "Expense Report Line")
@@ -1648,12 +1660,16 @@ codeunit 148342 "Expense Activity Log Test"
 
     local procedure VerifyPolicySnapshot(SubmissionID: Guid; Status: Enum "Expense Policy Status"; FailedCount: Integer; PassedCount: Integer; ExpectedCategoryCount: Integer)
     var
+        Setup: Record "Expense Agent Setup";
         Entry: Record "Expense Activity Log Entry";
+        AgentUser: Record User;
         Categories: JsonArray;
     begin
         SetPolicySnapshotFilter(SubmissionID, Entry);
         Assert.RecordCount(Entry, 1);
         Entry.FindFirst();
+        Setup.Get();
+        AgentUser.Get(Setup."User Security ID");
         Assert.AreEqual(Enum::"Expense Activity Event Type"::PolicyEvaluated, Entry."Event Type", 'The event type must identify the policy snapshot.');
         Assert.AreEqual(Status, Entry."Policy Status", 'Snapshot status must reflect all applicable pairs.');
         Assert.AreEqual(FailedCount, Entry."Failed Policy Count", 'Failed count counts line-policy pairs.');
@@ -1662,8 +1678,9 @@ codeunit 148342 "Expense Activity Log Test"
         Assert.AreEqual(ExpectedCategoryCount, Categories.Count(), 'The preview must contain the expected number of entries.');
         Assert.AreEqual(Enum::"Expense Activity Initiator"::Agent, Entry."Initiated By", 'The snapshot is agent initiated.');
         Assert.AreEqual(0, Entry."Actor Role".AsInteger(), 'No actor role may grant history access.');
-        Assert.AreEqual(0, Entry."Actor Table ID", 'No human identity may be attached.');
-        Assert.IsTrue(IsNullGuid(Entry."Actor Record System ID"), 'No human identity may be attached.');
+        Assert.AreEqual(Database::User, Entry."Actor Table ID", 'The provisioned agent must be identified through its BC User record.');
+        Assert.AreEqual(AgentUser.SystemId, Entry."Actor Record System ID", 'The provisioned agent user must be stored as the actor.');
+        Assert.AreEqual(AgentUser."Full Name", Entry."Actor Display Name", 'Performed By must show the provisioned agent user name.');
         Assert.AreNotEqual(0DT, Entry."Occurred At", 'A captured policy event must have a history timestamp.');
     end;
 

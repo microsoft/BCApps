@@ -178,6 +178,7 @@ codeunit 6926 "Expense Activity Log Mgt."
         InitializeExpenseReportEntry(
             Snapshot, ExpenseReportHeader, Enum::"Expense Activity Event Type"::PolicyEvaluated,
             Enum::"Expense Activity Initiator"::Agent, Enum::"Expense Activity Actor Role"::" ", '', 0DT);
+        SetBCUserActor(Snapshot, ExpenseAgentSetup."User Security ID");
         // Wait for complete, current results across all lines; a later confirmation retries.
         if not ExpenseReportHeader.IsPolicyEvaluationComplete(
             Snapshot."Policy Status", Snapshot."Failed Policy Count", Snapshot."Passed Policy Count", FlaggedCategories)
