@@ -503,14 +503,17 @@ codeunit 5522 "Order Planning Mgt."
 
     local procedure IsItemBlocked(var Item: Record Item; ItemNo: Code[20]): Boolean
     var
+        IsBlocked: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         if Item."No." <> ItemNo then
             Item.Get(ItemNo);
-        OnBeforeCheckBlockedItem(Item, IsHandled);
+        OnBeforeCheckBlockedItem(Item, ItemNo, IsHandled, IsBlocked);
         if not IsHandled then
-            exit(Item.Blocked);
+            IsBlocked := Item.Blocked;
+
+        exit(IsBlocked);
     end;
 
     [IntegrationEvent(false, false)]
@@ -612,7 +615,7 @@ codeunit 5522 "Order Planning Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckBlockedItem(var Item: Record Item; var IsHandled: Boolean)
+    local procedure OnBeforeCheckBlockedItem(var Item: Record Item; ItemNo: Code[20]; var IsHandled: Boolean; var IsBlocked: Boolean)
     begin
     end;
 }
