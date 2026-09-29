@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
 
-codeunit 11042 "E-Doc. DE Inbound Validator"
+codeunit 11044 "E-Doc. DE Inbound Validator"
 {
     Access = Internal;
     InherentEntitlements = X;
