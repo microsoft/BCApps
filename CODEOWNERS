@@ -9,9 +9,6 @@
 # Change generated ownership in BCAppsTriage, then regenerate this file.
 # Dedicated and cross-cutting ownership rules are listed after the generated map.
 
-# Repository fallback
-* @microsoft/dynamics-365-business-central
-
 # Platform. Integration owns these end to end; the sub-sections other
 # teams own are listed further down, after this block.
 /src/System\ Application/ @microsoft/d365-bc-integrations
