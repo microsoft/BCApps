@@ -5748,6 +5748,7 @@
     begin
         // [SCENARIO 649803] A production planning line can be copied to a selected requisition worksheet from the Planning Worksheet request page.
         Initialize();
+        LibraryApplicationArea.EnablePremiumSetup();
 
         // [GIVEN] An accepted production line in the planning worksheet and a destination requisition worksheet.
         LibraryInventory.CreateItem(Item);
@@ -5805,7 +5806,6 @@
         LibrarySetupStorage.Restore();
 
         LibraryApplicationArea.EnableEssentialSetup();
-        LibraryApplicationArea.EnablePremiumSetup();
 
         // Lazy Setup.
         if isInitialized then
