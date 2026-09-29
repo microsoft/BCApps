@@ -35,7 +35,7 @@ codeunit 849 "Cash Flow Account - Indent"
 #pragma warning restore AA0074
         ArrayExceededErr: Label 'You can only indent %1 levels for accounts of the type Begin-Total.', Comment = '%1 = A number bigger than 1';
 
-    local procedure Indentation()
+    procedure Indentation()
     begin
         Window.Open(Text1004);
 
@@ -66,4 +66,3 @@ codeunit 849 "Cash Flow Account - Indent"
         Window.Close();
     end;
 }
-
