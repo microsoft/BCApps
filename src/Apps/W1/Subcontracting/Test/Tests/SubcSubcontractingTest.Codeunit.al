@@ -4268,6 +4268,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         ManufacturingUserTemplate: Record "Manufacturing User Template";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         if not ManufacturingUserTemplate.Get(CopyStr(UserId(), 1, 50)) then
             LibraryPlanning.CreateManufUserTemplate(
@@ -5679,7 +5680,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
