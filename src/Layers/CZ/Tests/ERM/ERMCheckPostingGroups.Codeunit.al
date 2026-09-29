@@ -19,8 +19,6 @@ codeunit 134097 "ERM Check Posting Groups"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
-        GenBusPostingSetupErr: Label 'The General Posting Setup does not exist. Identification fields and values: Gen. Bus. Posting Group=%1,Gen. Prod. Posting Group=%2';
-
     [Test]
     [Scope('OnPrem')]
     procedure CheckCustPostingGroupGetAccounts()
