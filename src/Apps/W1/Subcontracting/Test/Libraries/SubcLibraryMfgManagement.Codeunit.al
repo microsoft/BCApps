@@ -8,9 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
-#if CLEAN27
 using Microsoft.Inventory.Setup;
-#endif
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
@@ -39,9 +37,7 @@ codeunit 139984 "Subc. Library Mfg. Management"
     local procedure CreateManufacturingSetup()
     var
         MfgSetup: Record "Manufacturing Setup";
-#if CLEAN27
         InventorySetup: Record "Inventory Setup";
-#endif
     begin
         if not MfgSetup.Get() then
             MfgSetup.Insert();
