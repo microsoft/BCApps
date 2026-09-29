@@ -1444,6 +1444,7 @@ report 1306 "Standard Sales - Invoice"
     var
         GLSetup: Record "General Ledger Setup";
         PostedPaymentLineCaptions: Record "Posted Payment Lines";
+        PostedPaymentLines: Record "Posted Payment Lines";
         DummyCompanyInfo: Record "Company Information";
         Cust: Record Customer;
         RespCenter: Record "Responsibility Center";
