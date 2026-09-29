@@ -356,13 +356,13 @@ table 469 "Workflow Webhook Subscription"
     var
         TableMetadata: Record "Table Metadata";
         PageControlField: Record "Page Control Field";
+        Json: Codeunit Json;
         RecRef: RecordRef;
         FieldRef: FieldRef;
         ConditionToken: JsonToken;
         ConditionName: JsonToken;
         Condition: JsonObject;
         ConditionValue: JsonToken;
-        Json: Codeunit Json;
         FieldId: Integer;
         tableNo: Integer;
     begin

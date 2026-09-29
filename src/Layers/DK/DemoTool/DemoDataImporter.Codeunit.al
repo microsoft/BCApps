@@ -34,10 +34,10 @@ codeunit 101017 "Demo Data Importer"
     end;
 
     var
+        Json: Codeunit Json;
         OptionsTable: Dictionary of [Text, Integer];
         RefrencesTable: Dictionary of [Text, Text];
         CachedRefrencesTable: Dictionary of [Text, Text];
-        Json: Codeunit Json;
         JsonObject: JsonObject;
         JsonTxt: Text;
         LanguageCode: Code[10];
