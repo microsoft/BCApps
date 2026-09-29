@@ -389,7 +389,7 @@ codeunit 148346 "Expense Interim Approval Test"
         CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
 
         // [WHEN] Assign Alternate Approver is invoked.
-        asserterror ExpenseReportHeader.AssignAlternateApprover();
+        asserterror ExpenseReportHeader.AssignAlternateApprover('');
 
         // [THEN] The expected validation error is raised and routing remains unchanged.
         Assert.ExpectedError(StrSubstNo(NoActiveAlternateApproverForDateErr, FinalApprover."No.", WorkDate()));
@@ -430,7 +430,7 @@ codeunit 148346 "Expense Interim Approval Test"
         SetCurrentUser(OtherExpenseUser);
 
         // [WHEN] The non-owner and non-admin user invokes Assign Alternate Approver.
-        asserterror ExpenseReportHeader.AssignAlternateApprover();
+        asserterror ExpenseReportHeader.AssignAlternateApprover('');
 
         // [THEN] The assignment is rejected and the current approver remains unchanged.
         Assert.ExpectedError(AlternateApproverActorErr);
@@ -470,7 +470,7 @@ codeunit 148346 "Expense Interim Approval Test"
         SetCurrentUser(Submitter);
 
         // [WHEN] Assign Alternate Approver is invoked.
-        ExpenseReportHeader.AssignAlternateApprover();
+        ExpenseReportHeader.AssignAlternateApprover('');
 
         // [THEN] Alternate approver is stored, but routing remains with the interim approver.
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
@@ -509,7 +509,7 @@ codeunit 148346 "Expense Interim Approval Test"
         SetCurrentUser(Submitter);
 
         // [WHEN] Assign Alternate Approver is invoked before submission.
-        asserterror ExpenseReportHeader.AssignAlternateApprover();
+        asserterror ExpenseReportHeader.AssignAlternateApprover('');
 
         // [THEN] A status validation error is raised.
         Assert.ExpectedError(StrSubstNo(AlternateApproverStatusErr, Format(ExpenseReportHeader.Status::"Pending Approval")));
