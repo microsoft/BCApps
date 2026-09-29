@@ -63,9 +63,14 @@ codeunit 144005 "Report Layout - Local"
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PostedPaymentLines: Record "Posted Payment Lines";
+        PostedPaymentLines2: Record "Posted Payment Lines";
+        Currency: Record Currency;
         StandardSalesInvoice: Report "Standard Sales - Invoice";
         PmtRate: array[2] of Integer;
         Days: array[2] of Integer;
+        ExpectedAmount: Decimal;
+        ResidualAmount: Decimal;
+        AmountRoundingPrecision: Decimal;
     begin
         // [FEATURE] [Sales] [Invoice] [Payment Terms]
         // [SCENARIO] Standard Sales Invoice exposes the persisted Italian payment installment schedule
@@ -85,6 +90,15 @@ codeunit 144005 "Report Layout - Local"
         PostedPaymentLines.SetRange(Code, SalesInvoiceHeader."No.");
         Assert.AreEqual(2, PostedPaymentLines.Count, 'Two posted payment lines were expected for the posted sales invoice.');
 
+        SalesInvoiceHeader.CalcFields("Amount Including VAT");
+        if SalesInvoiceHeader."Currency Code" = '' then begin
+            Currency.InitRoundingPrecision();
+            AmountRoundingPrecision := Currency."Amount Rounding Precision";
+        end else begin
+            Currency.Get(SalesInvoiceHeader."Currency Code");
+            AmountRoundingPrecision := Currency."Amount Rounding Precision";
+        end;
+
         // [WHEN] Standard Sales Invoice is exported as a report dataset
         SalesInvoiceHeader.SetRecFilter();
         Commit();
@@ -92,13 +106,22 @@ codeunit 144005 "Report Layout - Local"
         StandardSalesInvoice.Run();
         LibraryReportDataSet.LoadDataSetFile();
 
-        // [THEN] Each posted installment exposes its due date and amount
+        // [THEN] Each posted installment exposes its due date and calculated amount
         PostedPaymentLines.FindSet();
         repeat
+            PostedPaymentLines2.Copy(PostedPaymentLines);
+            if PostedPaymentLines2.Next() = 0 then
+                ExpectedAmount := SalesInvoiceHeader."Amount Including VAT" - ResidualAmount
+            else begin
+                ExpectedAmount := Round(
+                    PostedPaymentLines."Payment %" * SalesInvoiceHeader."Amount Including VAT" / 100, AmountRoundingPrecision);
+                ResidualAmount += ExpectedAmount;
+            end;
+
             LibraryReportDataSet.AssertElementWithValueExists(
               'PostedPaymentLineDueDate', Format(PostedPaymentLines."Due Date", 0, 4));
             LibraryReportDataSet.AssertElementWithValueExists(
-              'PostedPaymentLineAmount', PostedPaymentLines.Amount);
+              'PostedPaymentLineAmount', ExpectedAmount);
         until PostedPaymentLines.Next() = 0;
     end;
 
