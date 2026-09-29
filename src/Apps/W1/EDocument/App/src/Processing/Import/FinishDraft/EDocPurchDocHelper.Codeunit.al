@@ -64,6 +64,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Shortcut Dimension 1 Code"), EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code");
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Shortcut Dimension 2 Code"), EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
         EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
+        PurchaseLine."Created From Draft E-Doc" := true;
         PurchaseLine.Insert();
         EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
     end;
@@ -137,7 +138,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
             exit(PurchaseLine."Line No.");
     end;
 
-    procedure FinalizeCreatedDocument(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header")
+    procedure FinalizeCreatedDocument(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header"; CreatedFromDraftEDoc: Boolean)
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
@@ -151,6 +152,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT";
         PurchaseHeader.TestField("No.");
         PurchaseHeader."E-Document Link" := EDocument.SystemId;
+        PurchaseHeader."Created From Draft E-Doc" := CreatedFromDraftEDoc;
         PurchaseHeader.Modify();
 
         DocumentAttachmentMgt.CopyAttachments(EDocument, PurchaseHeader);
@@ -210,8 +212,43 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         DocumentAttachmentMgt.CopyAttachments(PurchaseHeader, EDocument);
         DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
 
+        ClearDraftEDocTraces(PurchaseHeader);
+    end;
+
+    /// <summary>
+    /// Detaches a purchase document from the e-document draft it originated from, on both the header and its lines.
+    /// </summary>
+    procedure ClearDraftEDocTraces(var PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        DeleteEDocumentRecordLinks(PurchaseHeader);
+
         Clear(PurchaseHeader."E-Document Link");
+        PurchaseHeader."Created From Draft E-Doc" := false;
         PurchaseHeader.Modify();
+
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("Created From Draft E-Doc", true);
+        if not PurchaseLine.IsEmpty() then
+            PurchaseLine.ModifyAll("Created From Draft E-Doc", false);
+    end;
+
+    local procedure DeleteEDocumentRecordLinks(PurchaseHeader: Record "Purchase Header")
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+        EDocumentEntryNo: Integer;
+    begin
+        EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Header");
+        EDocRecordLink.SetRange("Target SystemId", PurchaseHeader.SystemId);
+        if not EDocRecordLink.FindFirst() then
+            exit;
+
+        EDocumentEntryNo := EDocRecordLink."E-Document Entry No.";
+        EDocRecordLink.Reset();
+        EDocRecordLink.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        EDocRecordLink.DeleteAll();
     end;
 
     procedure ApplyDefaultPostingDateFromSetup(var PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
@@ -239,6 +276,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         EDocPurchLine: Record "E-Document Purchase Line";
         TotalLineAmount: Decimal;
     begin
+        EDocPurchLine.SetLoadFields(Quantity, "Unit Price", "Total Discount");
         EDocPurchLine.SetRange("E-Document Entry No.", EDocEntryNo);
         if EDocPurchLine.FindSet() then
             repeat
