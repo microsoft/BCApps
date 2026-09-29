@@ -226,7 +226,7 @@ page 6613 "FS Connection Setup Wizard"
                 }
                 group(Control25)
                 {
-                    InstructionalText = 'Use the link below to go to Marketplace and get the the Business Central Virtual Table app, so you can install it in your Dataverse environment. To refresh the status after you install, click Back and Next.';
+                    InstructionalText = 'Use the link below to go to Marketplace and get the Business Central Virtual Table app, so you can install it in your Dataverse environment. To refresh the status after you install, click Back and Next.';
                     ShowCaption = false;
 
                     field("Enable Invt. Availability"; Rec."Enable Invt. Availability")
