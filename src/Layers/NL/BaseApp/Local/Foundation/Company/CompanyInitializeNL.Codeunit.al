@@ -9,7 +9,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.AuditCodes;
 
-codeunit 11427 "Company-Initialize NL"
+codeunit 11444 "Company-Initialize NL"
 {
     Access = Internal;
 

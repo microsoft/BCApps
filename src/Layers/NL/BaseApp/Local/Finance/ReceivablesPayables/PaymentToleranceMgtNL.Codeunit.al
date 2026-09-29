@@ -11,7 +11,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 
-codeunit 11426 "Payment Tolerance Mgt. NL"
+codeunit 11443 "Payment Tolerance Mgt. NL"
 {
     Access = Internal;
 
