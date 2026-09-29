@@ -917,27 +917,25 @@ codeunit 5600 "FA Insert Ledger Entry"
             FALedgEntryForDerog.SetRange("Reversed Entry No.", 0);
         case FALedgEntryForDerog.Count() of
             0:
-                begin
-                    if ReversingFALedgerEntry."Legacy Derogatory Ambiguous" then begin
-                        FindLegacyFADerogatoryEntry(FALedgEntryForDerog, ReversingFALedgerEntry);
-                    end else begin
-                        if ReversingFALedgerEntry."Automatic Entry" and
-                           (ReversingFALedgerEntry."FA Posting Type" <> ReversingFALedgerEntry."FA Posting Type"::Derogatory)
-                        then
-                            exit;
-                        if not DerogatoryPostingMgt.GetDerogatoryBookCode(
-                             ReversingFALedgerEntry."Depreciation Book Code", DerogatoryDepreciationBookCode)
-                        then
-                            exit;
-                        FADepreciationBook.SetLoadFields("FA No.", "Depreciation Book Code");
-                        if not FADepreciationBook.Get(
-                             ReversingFALedgerEntry."FA No.", DerogatoryDepreciationBookCode)
-                        then
-                            exit;
-                        Error(
-                            MissingDerogatoryCounterpartErr,
-                            ReversingFALedgerEntry."Reversed Entry No.", DerogatoryDepreciationBookCode);
-                    end;
+                if ReversingFALedgerEntry."Legacy Derogatory Ambiguous" then
+                    FindLegacyFADerogatoryEntry(FALedgEntryForDerog, ReversingFALedgerEntry)
+                else begin
+                    if ReversingFALedgerEntry."Automatic Entry" and
+                       (ReversingFALedgerEntry."FA Posting Type" <> ReversingFALedgerEntry."FA Posting Type"::Derogatory)
+                    then
+                        exit;
+                    if not DerogatoryPostingMgt.GetDerogatoryBookCode(
+                         ReversingFALedgerEntry."Depreciation Book Code", DerogatoryDepreciationBookCode)
+                    then
+                        exit;
+                    FADepreciationBook.SetLoadFields("FA No.", "Depreciation Book Code");
+                    if not FADepreciationBook.Get(
+                         ReversingFALedgerEntry."FA No.", DerogatoryDepreciationBookCode)
+                    then
+                        exit;
+                    Error(
+                        MissingDerogatoryCounterpartErr,
+                        ReversingFALedgerEntry."Reversed Entry No.", DerogatoryDepreciationBookCode);
                 end;
             1:
                 FALedgEntryForDerog.FindFirst();
@@ -999,17 +997,15 @@ codeunit 5600 "FA Insert Ledger Entry"
             MaintLedgEntryForDerog.SetRange("Reversed Entry No.", 0);
         case MaintLedgEntryForDerog.Count() of
             0:
-                if ReversingMaintenanceLedgerEntry."Legacy Derogatory Ambiguous" then begin
-                    FindLegacyMaintenanceDerogatoryEntry(
-                        MaintLedgEntryForDerog, ReversingMaintenanceLedgerEntry);
-                end else begin
+                if ReversingMaintenanceLedgerEntry."Legacy Derogatory Ambiguous" then
+                    FindLegacyMaintenanceDerogatoryEntry(MaintLedgEntryForDerog, ReversingMaintenanceLedgerEntry)
+                else begin
                     if not DerogatoryPostingMgt.GetDerogatoryBookCode(
                          ReversingMaintenanceLedgerEntry."Depreciation Book Code", DerogatoryDepreciationBookCode)
                     then
                         exit;
                     FADepreciationBook.SetLoadFields("FA No.", "Depreciation Book Code");
-                    if not FADepreciationBook.Get(
-                         ReversingMaintenanceLedgerEntry."FA No.", DerogatoryDepreciationBookCode)
+                    if not FADepreciationBook.Get(ReversingMaintenanceLedgerEntry."FA No.", DerogatoryDepreciationBookCode)
                     then
                         exit;
                     Error(

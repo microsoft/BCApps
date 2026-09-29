@@ -824,6 +824,14 @@ report 5605 "Fixed Asset - Book Value 01"
 
     procedure GetDerogDeprBookInfo()
     begin
+        Clear(DerogatoryDeprBookCode);
+        Clear(DerogatoryDeprMethod);
+        Clear(DerogatoryDeprStartingDate);
+        Clear(DerogatoryDeprEndingDate);
+        Clear(DerogatoryDecliningBalancePct);
+        if not HasDerogatorySetup then
+            exit;
+
         DerogatoryDeprBookCode := FADeprBook2."Depreciation Book Code";
         DerogatoryDeprMethod := Format(FADeprBook2."Depreciation Method");
         DerogatoryDeprStartingDate := FADeprBook2."Depreciation Starting Date";

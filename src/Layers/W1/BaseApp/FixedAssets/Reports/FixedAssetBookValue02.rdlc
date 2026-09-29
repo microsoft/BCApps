@@ -375,11 +375,26 @@
                       <CellContents>
                         <Textbox Name="AccountingBookSetup1">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=Fields!AccountingDeprBookCode.Value</Value>
-                            <Style><FontSize>7pt</FontSize></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AccountingDeprBookCode.Value</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
@@ -387,11 +402,26 @@
                       <CellContents>
                         <Textbox Name="AccountingBookSetup2">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=Fields!AccountingDeprMethod.Value</Value>
-                            <Style><FontSize>7pt</FontSize></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AccountingDeprMethod.Value</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
@@ -399,11 +429,27 @@
                       <CellContents>
                         <Textbox Name="AccountingBookSetup3">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=Fields!AccountingDeprStartingDate.Value</Value>
-                            <Style><FontSize>7pt</FontSize><Format>d</Format></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AccountingDeprStartingDate.Value</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                    <Format>d</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
@@ -411,11 +457,27 @@
                       <CellContents>
                         <Textbox Name="AccountingBookSetup4">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=Fields!AccountingDeprEndingDate.Value</Value>
-                            <Style><FontSize>7pt</FontSize><Format>d</Format></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AccountingDeprEndingDate.Value</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                    <Format>d</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
@@ -423,13 +485,29 @@
                       <CellContents>
                         <Textbox Name="AccountingBookSetup5">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=Fields!AccountingDecliningBalancePct.Value</Value>
-                            <Style><FontSize>7pt</FontSize>
-                                      <Format>=Fields!AccountingDecliningBalancePctFormat.Value</Format></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AccountingDecliningBalancePct.Value</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                    <Format>=Fields!AccountingDecliningBalancePctFormat.Value</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
+                        <ColSpan>2</ColSpan>
                       </CellContents>
                     </TablixCell>
                     <TablixCell />
@@ -442,11 +520,26 @@
                       <CellContents>
                         <Textbox Name="DerogatoryBookSetup1">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDeprBookCode.Value, &quot;-&quot;)</Value>
-                            <Style><FontSize>7pt</FontSize></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDeprBookCode.Value, "-")</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
@@ -454,11 +547,26 @@
                       <CellContents>
                         <Textbox Name="DerogatoryBookSetup2">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDeprMethod.Value, Nothing)</Value>
-                            <Style><FontSize>7pt</FontSize></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDeprMethod.Value, Nothing)</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
@@ -466,11 +574,27 @@
                       <CellContents>
                         <Textbox Name="DerogatoryBookSetup3">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDeprStartingDate.Value, Nothing)</Value>
-                            <Style><FontSize>7pt</FontSize><Format>d</Format></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDeprStartingDate.Value, Nothing)</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                    <Format>d</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
@@ -478,11 +602,27 @@
                       <CellContents>
                         <Textbox Name="DerogatoryBookSetup4">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDeprEndingDate.Value, Nothing)</Value>
-                            <Style><FontSize>7pt</FontSize><Format>d</Format></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDeprEndingDate.Value, Nothing)</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                    <Format>d</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
@@ -490,13 +630,29 @@
                       <CellContents>
                         <Textbox Name="DerogatoryBookSetup5">
                           <KeepTogether>true</KeepTogether>
-                          <Paragraphs><Paragraph><TextRuns><TextRun>
-                            <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDecliningBalancePct.Value, Nothing)</Value>
-                            <Style><FontSize>7pt</FontSize>
-                                      <Format>=Fields!DerogatoryDecliningBalancePctFormat.Value</Format></Style>
-                          </TextRun></TextRuns><Style /></Paragraph></Paragraphs>
-                          <Style><VerticalAlign>Middle</VerticalAlign><PaddingLeft>2pt</PaddingLeft><PaddingRight>2pt</PaddingRight><PaddingTop>2pt</PaddingTop><PaddingBottom>2pt</PaddingBottom></Style>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=IIF(Fields!HasDerogatorySetup.Value, Fields!DerogatoryDecliningBalancePct.Value, Nothing)</Value>
+                                  <Style>
+                                    <FontSize>7pt</FontSize>
+                                    <Format>=Fields!DerogatoryDecliningBalancePctFormat.Value</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
                         </Textbox>
+                        <ColSpan>2</ColSpan>
                       </CellContents>
                     </TablixCell>
                     <TablixCell />
@@ -5278,7 +5434,7 @@
                     </TablixCell>
                   </TablixCells>
                 </TablixRow>
-<TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -5426,7 +5582,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -5572,7 +5729,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -5718,7 +5876,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -11460,7 +11619,7 @@
                     </TablixCell>
                   </TablixCells>
                 </TablixRow>
-<TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -11608,7 +11767,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -11754,7 +11914,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -11900,7 +12061,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -17469,7 +17631,7 @@
                     </TablixCell>
                   </TablixCells>
                 </TablixRow>
-<TablixRow>
+                <TablixRow>
                   <Height>0.16653in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -17617,7 +17779,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -17763,7 +17926,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16654in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -17909,7 +18073,8 @@
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
-                </TablixRow><TablixRow>
+                </TablixRow>
+                <TablixRow>
                   <Height>0.16653in</Height>
                   <TablixCells>
                     <TablixCell>
@@ -18615,15 +18780,17 @@
                               <Visibility>
                                 <Hidden>=iif(Fields!PrintDetails.Value = FALSE, TRUE,FALSE)</Hidden>
                               </Visibility>
-                            </TablixMember><TablixMember>
-  <Visibility>
-    <Hidden>=Not Fields!PrintFASetup.Value</Hidden>
-  </Visibility>
-</TablixMember><TablixMember>
-  <Visibility>
-    <Hidden>=Not Fields!PrintFASetup.Value</Hidden>
-  </Visibility>
-</TablixMember>
+                            </TablixMember>
+                            <TablixMember>
+                              <Visibility>
+                                <Hidden>=Not Fields!PrintFASetup.Value</Hidden>
+                              </Visibility>
+                            </TablixMember>
+                            <TablixMember>
+                              <Visibility>
+                                <Hidden>=Not Fields!PrintFASetup.Value</Hidden>
+                              </Visibility>
+                            </TablixMember>
                             <TablixMember>
                               <Visibility>
                                 <Hidden>=iif(Fields!PrintDetails.Value = FALSE, TRUE,FALSE)</Hidden>
@@ -18778,19 +18945,23 @@
                               <Visibility>
                                 <Hidden>=iif(Max(Fields!ShowSection06.Value) = FALSE,TRUE,FALSE)</Hidden>
                               </Visibility>
-                            </TablixMember><TablixMember>
+                            </TablixMember>
+                            <TablixMember>
                               <Visibility>
                                 <Hidden>=iif(Max(Fields!ShowDerogatoryDetail.Value) = FALSE,TRUE,FALSE)</Hidden>
                               </Visibility>
-                            </TablixMember><TablixMember>
+                            </TablixMember>
+                            <TablixMember>
                               <Visibility>
                                 <Hidden>=iif(Max(Fields!ShowDerogatoryDetail.Value) = FALSE,TRUE,FALSE)</Hidden>
                               </Visibility>
-                            </TablixMember><TablixMember>
+                            </TablixMember>
+                            <TablixMember>
                               <Visibility>
                                 <Hidden>=iif(Max(Fields!ShowDerogatoryDetail.Value) = FALSE,TRUE,FALSE)</Hidden>
                               </Visibility>
-                            </TablixMember><TablixMember>
+                            </TablixMember>
+                            <TablixMember>
                               <Visibility>
                                 <Hidden>=iif(Max(Fields!ShowDerogatoryDetail.Value) = FALSE,TRUE,FALSE)</Hidden>
                               </Visibility>
@@ -19045,25 +19216,29 @@
                           </Visibility>
                           <KeepWithGroup>Before</KeepWithGroup>
                           <KeepTogether>true</KeepTogether>
-                        </TablixMember><TablixMember>
+                        </TablixMember>
+                        <TablixMember>
                           <Visibility>
                             <Hidden>=iif(Max(Fields!ShowDerogatoryGroup.Value) = FALSE,TRUE,FALSE)</Hidden>
                           </Visibility>
                           <KeepWithGroup>Before</KeepWithGroup>
                           <KeepTogether>true</KeepTogether>
-                        </TablixMember><TablixMember>
+                        </TablixMember>
+                        <TablixMember>
                           <Visibility>
                             <Hidden>=iif(Max(Fields!ShowDerogatoryGroup.Value) = FALSE,TRUE,FALSE)</Hidden>
                           </Visibility>
                           <KeepWithGroup>Before</KeepWithGroup>
                           <KeepTogether>true</KeepTogether>
-                        </TablixMember><TablixMember>
+                        </TablixMember>
+                        <TablixMember>
                           <Visibility>
                             <Hidden>=iif(Max(Fields!ShowDerogatoryGroup.Value) = FALSE,TRUE,FALSE)</Hidden>
                           </Visibility>
                           <KeepWithGroup>Before</KeepWithGroup>
                           <KeepTogether>true</KeepTogether>
-                        </TablixMember><TablixMember>
+                        </TablixMember>
+                        <TablixMember>
                           <Visibility>
                             <Hidden>=iif(Max(Fields!ShowDerogatoryGroup.Value) = FALSE,TRUE,FALSE)</Hidden>
                           </Visibility>
@@ -19289,25 +19464,29 @@
                       </Visibility>
                       <KeepWithGroup>Before</KeepWithGroup>
                       <KeepTogether>true</KeepTogether>
-                    </TablixMember><TablixMember>
+                    </TablixMember>
+                    <TablixMember>
                       <Visibility>
                         <Hidden>=iif(Max(Fields!ShowDerogatoryTotal.Value) = FALSE,TRUE,FALSE)</Hidden>
                       </Visibility>
                       <KeepWithGroup>Before</KeepWithGroup>
                       <KeepTogether>true</KeepTogether>
-                    </TablixMember><TablixMember>
+                    </TablixMember>
+                    <TablixMember>
                       <Visibility>
                         <Hidden>=iif(Max(Fields!ShowDerogatoryTotal.Value) = FALSE,TRUE,FALSE)</Hidden>
                       </Visibility>
                       <KeepWithGroup>Before</KeepWithGroup>
                       <KeepTogether>true</KeepTogether>
-                    </TablixMember><TablixMember>
+                    </TablixMember>
+                    <TablixMember>
                       <Visibility>
                         <Hidden>=iif(Max(Fields!ShowDerogatoryTotal.Value) = FALSE,TRUE,FALSE)</Hidden>
                       </Visibility>
                       <KeepWithGroup>Before</KeepWithGroup>
                       <KeepTogether>true</KeepTogether>
-                    </TablixMember><TablixMember>
+                    </TablixMember>
+                    <TablixMember>
                       <Visibility>
                         <Hidden>=iif(Max(Fields!ShowDerogatoryTotal.Value) = FALSE,TRUE,FALSE)</Hidden>
                       </Visibility>
@@ -19869,6 +20048,9 @@ End Function
         </Field>
         <Field Name="DerogatoryDecliningBalancePctFormat">
           <DataField>DerogatoryDecliningBalancePctFormat</DataField>
+        </Field>
+        <Field Name="HasDerogatoryBook">
+          <DataField>HasDerogatoryBook</DataField>
         </Field>
         <Field Name="HeadLineText1">
           <DataField>HeadLineText1</DataField>

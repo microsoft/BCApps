@@ -30,6 +30,8 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         RenderedValueMissingErr: Label 'The rendered report does not contain %1.', Comment = '%1 = expected value';
         UnexpectedRenderedValueErr: Label 'The rendered report unexpectedly contains %1.', Comment = '%1 = unexpected value';
         RenderedRowValueMissingErr: Label 'The rendered row for %1 does not contain %2.', Comment = '%1 = row identifier, %2 = expected value';
+        DatasetDateMismatchErr: Label 'Unexpected date in report dataset column %1.', Comment = '%1 = column name';
+        RenderedDateMismatchErr: Label 'Unexpected date in rendered setup field %1.', Comment = '%1 = field caption';
         ReclassificationTxt: Label 'Reclassification';
         TotalTxt: Label 'Total';
 
@@ -258,6 +260,8 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         // [GIVEN] FA "FA" has a derogatory entry but its accounting book has no linked derogatory book
         CreateFADepreciationBook(FADepreciationBook);
         CreateAndPostFAGLJournal(
+          FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", GenJournalLine."FA Posting Type"::"Acquisition Cost");
+        CreateAndPostFAGLJournal(
           FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", GenJournalLine."FA Posting Type"::Derogatory);
 
         // [WHEN] Run Fixed Asset Book Value 01
@@ -282,6 +286,8 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
         // [GIVEN] FA "FA" has a derogatory entry but its accounting book has no linked derogatory book
         CreateFADepreciationBook(FADepreciationBook);
+        CreateAndPostFAGLJournal(
+          FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", GenJournalLine."FA Posting Type"::"Acquisition Cost");
         CreateAndPostFAGLJournal(
           FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", GenJournalLine."FA Posting Type"::Derogatory);
 
@@ -430,6 +436,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [HandlerFunctions('PrintFASetupFixedAssetBookValue01RequestPageHandler')]
     procedure FABookValue01PrintSetupIdentifiesIneligibleAsset()
     var
+        DerogatoryFADepreciationBook: Record "FA Depreciation Book";
         EligibleFADepreciationBook: Record "FA Depreciation Book";
         IneligibleFADepreciationBook: Record "FA Depreciation Book";
     begin
@@ -445,13 +452,23 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
         // [THEN] The ineligible row prints setup, identifies missing linked setup, and has no derogatory data
         LibraryReportDataset.LoadDataSetFile();
+        GetLinkedDerogatoryFADepreciationBook(DerogatoryFADepreciationBook, EligibleFADepreciationBook);
+        DerogatoryFADepreciationBook.TestField("Depreciation Method", DerogatoryFADepreciationBook."Depreciation Method"::"Straight-Line");
+        VerifyBookValue01SetupMetadata(EligibleFADepreciationBook, DerogatoryFADepreciationBook);
         VerifyIneligibleBookValue01SetupRow(IneligibleFADepreciationBook."FA No.");
+
+        // [THEN] Reversing the asset order preserves real Straight-Line setup and blank missing setup
+        RunReportFABookValue01(EligibleFADepreciationBook, IneligibleFADepreciationBook, false);
+        LibraryReportDataset.LoadDataSetFile();
+        VerifyIneligibleBookValue01SetupRow(IneligibleFADepreciationBook."FA No.");
+        VerifyBookValue01SetupMetadata(EligibleFADepreciationBook, DerogatoryFADepreciationBook);
     end;
 
     [Test]
     [HandlerFunctions('PrintFASetupFixedAssetBookValue02RequestPageHandler')]
     procedure FABookValue02PrintSetupIdentifiesIneligibleAsset()
     var
+        DerogatoryFADepreciationBook: Record "FA Depreciation Book";
         EligibleFADepreciationBook: Record "FA Depreciation Book";
         IneligibleFADepreciationBook: Record "FA Depreciation Book";
     begin
@@ -467,7 +484,16 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
         // [THEN] The ineligible row prints setup, identifies missing linked setup, and has no derogatory data
         LibraryReportDataset.LoadDataSetFile();
+        GetLinkedDerogatoryFADepreciationBook(DerogatoryFADepreciationBook, EligibleFADepreciationBook);
+        DerogatoryFADepreciationBook.TestField("Depreciation Method", DerogatoryFADepreciationBook."Depreciation Method"::"Straight-Line");
+        VerifyBookValue02SetupMetadata(EligibleFADepreciationBook, DerogatoryFADepreciationBook);
         VerifyIneligibleBookValue02SetupRow(IneligibleFADepreciationBook."FA No.");
+
+        // [THEN] Reversing the asset order preserves real Straight-Line setup and blank missing setup
+        RunReportFABookValue02(EligibleFADepreciationBook, IneligibleFADepreciationBook, false);
+        LibraryReportDataset.LoadDataSetFile();
+        VerifyIneligibleBookValue02SetupRow(IneligibleFADepreciationBook."FA No.");
+        VerifyBookValue02SetupMetadata(EligibleFADepreciationBook, DerogatoryFADepreciationBook);
     end;
 
     [Test]
@@ -494,7 +520,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         DecreaseAmount := LibraryRandom.RandDec(100, 2);
         CreateAndPostFAGLJournal(
             FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
-            GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate(), AcquisitionAmount, false);
+            GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate() - 1, AcquisitionAmount, false);
         CreateAndPostFAGLJournal(
             FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
             GenJournalLine."FA Posting Type"::Derogatory, WorkDate() - 1, OpeningAmount, false);
@@ -521,7 +547,9 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     var
         FADepreciationBook: Record "FA Depreciation Book";
         GenJournalLine: Record "Gen. Journal Line";
+        FAGeneralReport: Codeunit "FA General Report";
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
+        Period: Option "Before Starting Date","Net Change","at Ending Date";
         AcquisitionAmount: Decimal;
         OpeningAmount: Decimal;
         IncreaseAmount: Decimal;
@@ -539,7 +567,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         DecreaseAmount := LibraryRandom.RandDec(100, 2);
         CreateAndPostFAGLJournal(
             FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
-            GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate(), AcquisitionAmount, false);
+            GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate() - 1, AcquisitionAmount, false);
         CreateAndPostFAGLJournal(
             FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
             GenJournalLine."FA Posting Type"::Derogatory, WorkDate() - 1, OpeningAmount, false);
@@ -558,6 +586,53 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         VerifyBookValue02DerogatoryAmounts(
             FADepreciationBook."FA No.", OpeningAmount, IncreaseAmount, DecreaseAmount,
             OpeningAmount + IncreaseAmount + DecreaseAmount, AcquisitionAmount);
+
+        // [THEN] Unsigned totals include both signs, and each signed selection is consumed once
+        Assert.AreEqual(
+            OpeningAmount + IncreaseAmount + DecreaseAmount,
+            FAGeneralReport.CalcFAPostedAmount(
+                FADepreciationBook."FA No.", FADepreciationBook.FieldNo("Derogatory Amount"), Period::"at Ending Date",
+                WorkDate(), WorkDate(), FADepreciationBook."Depreciation Book Code", 0, 0, false, true), 'Closing derogatory balance');
+        FAGeneralReport.SetSign(true);
+        Assert.AreEqual(
+            -IncreaseAmount,
+            FAGeneralReport.CalcFAPostedAmount(
+                FADepreciationBook."FA No.", FADepreciationBook.FieldNo("Derogatory Amount"), Period::"Net Change",
+                WorkDate(), WorkDate(), FADepreciationBook."Depreciation Book Code", 0, 0, false, true), 'Credit selection');
+        Assert.AreEqual(
+            IncreaseAmount + DecreaseAmount,
+            FAGeneralReport.CalcFAPostedAmount(
+                FADepreciationBook."FA No.", FADepreciationBook.FieldNo("Derogatory Amount"), Period::"Net Change",
+                WorkDate(), WorkDate(), FADepreciationBook."Depreciation Book Code", 0, 0, false, true), 'Credit selection must not leak');
+        FAGeneralReport.SetSign(false);
+        Assert.AreEqual(
+            DecreaseAmount,
+            FAGeneralReport.CalcFAPostedAmount(
+                FADepreciationBook."FA No.", FADepreciationBook.FieldNo("Derogatory Amount"), Period::"Net Change",
+                WorkDate(), WorkDate(), FADepreciationBook."Depreciation Book Code", 0, 0, false, true), 'Debit selection');
+        Assert.AreEqual(
+            IncreaseAmount + DecreaseAmount,
+            FAGeneralReport.CalcFAPostedAmount(
+                FADepreciationBook."FA No.", FADepreciationBook.FieldNo("Derogatory Amount"), Period::"Net Change",
+                WorkDate(), WorkDate(), FADepreciationBook."Depreciation Book Code", 0, 0, false, true), 'Debit selection must not leak');
+
+        // [THEN] Date boundaries are inclusive, and linked-book mirror entries are not added to the source-book totals
+        Assert.AreEqual(
+            OpeningAmount,
+            FAGeneralReport.CalcFAPostedAmount(
+                FADepreciationBook."FA No.", FADepreciationBook.FieldNo("Derogatory Amount"), Period::"at Ending Date",
+                WorkDate() - 1, WorkDate() - 1, FADepreciationBook."Depreciation Book Code", 0, 0, false, true), 'Ending date boundary');
+        Assert.AreEqual(
+            OpeningAmount + IncreaseAmount + DecreaseAmount,
+            FAGeneralReport.CalcFAPostedAmount(
+                FADepreciationBook."FA No.", FADepreciationBook.FieldNo("Derogatory Amount"), Period::"Before Starting Date",
+                WorkDate() + 1, WorkDate() + 1, FADepreciationBook."Depreciation Book Code", 0, 0, false, true), 'Starting date boundary');
+        Assert.AreEqual(
+            OpeningAmount + IncreaseAmount + DecreaseAmount,
+            FAGeneralReport.CalcFAPostedAmount(
+                FADepreciationBook."FA No.", FADepreciationBook.FieldNo("Derogatory Amount"), Period::"at Ending Date",
+                WorkDate(), WorkDate(), GetLinkedDerogatoryBookCode(FADepreciationBook."Depreciation Book Code"), 0, 0, false, true),
+            'Linked-book mirror amounts must be isolated from source-book totals');
     end;
 
     [Test]
@@ -673,7 +748,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         DecreaseAmount := 33.33;
         CreateAndPostFAGLJournal(
             FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
-            GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate(), AcquisitionAmount, false);
+            GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate() - 1, AcquisitionAmount, false);
         CreateAndPostFAGLJournal(
             FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
             GenJournalLine."FA Posting Type"::Derogatory, WorkDate() - 1, OpeningAmount, false);
@@ -720,7 +795,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
             GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate(), AcquisitionAmount, false);
 
         // [WHEN] Render Fixed Asset Book Value 01 with details
-        RunFixedAssetBookValue01AsExcel(FADepreciationBook, GroupTotals::" ", false);
+        RunFixedAssetBookValue01AsExcel(FADepreciationBook, GroupTotals::" ", true);
 
         // [THEN] Accounting output remains visible and derogatory headings are absent
         LibraryReportValidation.OpenFile();
@@ -753,7 +828,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
             GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate(), AcquisitionAmount, false);
 
         // [WHEN] Render Fixed Asset Book Value 02 with FA setup
-        RunFixedAssetBookValue02AsExcel(FADepreciationBook, GroupTotals::" ", false, false);
+        RunFixedAssetBookValue02AsExcel(FADepreciationBook, GroupTotals::" ", true, false);
 
         // [THEN] Accounting and derogatory setup values are rendered on their respective rows
         LibraryReportValidation.OpenFile();
@@ -785,7 +860,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         DecreaseAmount := 33.34;
         CreateAndPostFAGLJournal(
             FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
-            GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate(), AcquisitionAmount, false);
+            GenJournalLine."FA Posting Type"::"Acquisition Cost", WorkDate() - 1, AcquisitionAmount, false);
         CreateAndPostFAGLJournal(
             FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
             GenJournalLine."FA Posting Type"::Derogatory, WorkDate() - 1, OpeningAmount, false);
@@ -869,7 +944,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryERM.CreateGeneralJnlLine(
           GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
           GenJournalLine."Account Type"::"Fixed Asset", FANo, LibraryRandom.RandDec(100, 2));  // Using Random value for Amount.
-        GenJournalLine.Validate("Document No.", GenJournalLine."Account No.");
+        GenJournalLine.Validate("Document No.", GenJournalBatch.Name);
         GenJournalLine.Validate("FA Posting Type", FAPostingType);
         GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
         GenJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
@@ -894,7 +969,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
             GenJournalLine."Account Type"::"Fixed Asset", FANo, Amount);
         GenJournalLine.Validate("Posting Date", PostingDate);
         GenJournalLine.Validate("FA Posting Date", PostingDate);
-        GenJournalLine.Validate("Document No.", GenJournalLine."Account No.");
+        GenJournalLine.Validate("Document No.", GenJournalBatch.Name);
         GenJournalLine.Validate("FA Posting Type", FAPostingType);
         GenJournalLine.Validate("FA Reclassification Entry", ReclassificationEntry);
         GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
@@ -967,11 +1042,18 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     var
         DerogatoryDepreciationBook: Record "Depreciation Book";
         DerogatoryFADepreciationBook: Record "FA Depreciation Book";
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalSetup: Record "FA Journal Setup";
     begin
         CreateFADepreciationBook(FADepreciationBook);
         LibraryFixedAsset.CreateDepreciationBook(DerogatoryDepreciationBook);
         DerogatoryDepreciationBook.Validate("Derogatory Calc.", FADepreciationBook."Depreciation Book Code");
         DerogatoryDepreciationBook.Modify(true);
+        CreateFAJournalBatch(FAJournalBatch);
+        LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DerogatoryDepreciationBook.Code, '');
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatch.Name);
+        FAJournalSetup.Modify(true);
         CreateFADepreciationBook(
             DerogatoryFADepreciationBook,
             FADepreciationBook."FA No.",
@@ -991,6 +1073,10 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
             FixedAsset."No.",
             EligibleFADepreciationBook."FA Posting Group",
             EligibleFADepreciationBook."Depreciation Book Code");
+        CreateAndPostFAGLJournal(
+            IneligibleFADepreciationBook."FA No.",
+            IneligibleFADepreciationBook."Depreciation Book Code",
+            GenJournalLine."FA Posting Type"::"Acquisition Cost");
         CreateAndPostFAGLJournal(
             IneligibleFADepreciationBook."FA No.",
             IneligibleFADepreciationBook."Depreciation Book Code",
@@ -1021,7 +1107,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         FADepreciationBook.Modify(true);
 
         DerogatoryFADepreciationBook.Validate(
-            "Depreciation Method", DerogatoryFADepreciationBook."Depreciation Method"::"Declining-Balance 1");
+            "Depreciation Method", DerogatoryFADepreciationBook."Depreciation Method"::"DB1/SL");
         DerogatoryFADepreciationBook.Validate("Depreciation Starting Date", WorkDate() - 20);
         DerogatoryFADepreciationBook.Validate("Depreciation Ending Date", WorkDate() + 200);
         DerogatoryFADepreciationBook.Validate("Declining-Balance %", 22);
@@ -1037,9 +1123,23 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportValidation.FindFirstRow(RowValues);
         AssertRowContainsValue(RowValues, FADepreciationBook."Depreciation Book Code");
         AssertRowContainsValue(RowValues, Format(FADepreciationBook."Depreciation Method"));
-        AssertRowContainsValue(RowValues, Format(FADepreciationBook."Depreciation Starting Date"));
-        AssertRowContainsValue(RowValues, Format(FADepreciationBook."Depreciation Ending Date"));
-        AssertRowContainsValue(RowValues, Format(FADepreciationBook."Declining-Balance %"));
+        // FindFirstRow returns nonempty setup cells in order: book, method, starting date, ending date, percentage.
+        VerifyRenderedSetupDate(
+            RowValues[3], FADepreciationBook."Depreciation Starting Date", FADepreciationBook.FieldCaption("Depreciation Starting Date"));
+        VerifyRenderedSetupDate(
+            RowValues[4], FADepreciationBook."Depreciation Ending Date", FADepreciationBook.FieldCaption("Depreciation Ending Date"));
+        AssertRowContainsValue(RowValues, LibraryReportValidation.FormatDecimalValue(FADepreciationBook."Declining-Balance %"));
+    end;
+
+    local procedure VerifyRenderedSetupDate(RenderedDateValue: Text; ExpectedDate: Date; FieldCaption: Text)
+    var
+        ExcelBuffer: Record "Excel Buffer";
+        DateValue: Decimal;
+    begin
+        Evaluate(DateValue, RenderedDateValue, 9);
+        Assert.AreEqual(
+            ExpectedDate, DT2Date(ExcelBuffer.ConvertDateTimeDecimalToDateTime(DateValue)),
+            StrSubstNo(RenderedDateMismatchErr, FieldCaption));
     end;
 
     local procedure VerifyRenderedDecimalValueMinimumCount(ExpectedValue: Decimal; MinimumCount: Integer)
@@ -1081,7 +1181,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     var
         ExcelBuffer: Record "Excel Buffer";
     begin
-        ExcelBuffer.SetFilter("Cell Value as Text", '@*%1*', ExpectedValue);
+        ExcelBuffer.SetFilter("Cell Value as Text", '%1', '@*' + ExpectedValue + '*');
         Assert.IsFalse(ExcelBuffer.IsEmpty(), StrSubstNo(RenderedValueMissingErr, ExpectedValue));
     end;
 
@@ -1090,7 +1190,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         ExcelBuffer: Record "Excel Buffer";
     begin
         if PartialMatch then begin
-            ExcelBuffer.SetFilter("Cell Value as Text", '@*%1*', UnexpectedValue);
+            ExcelBuffer.SetFilter("Cell Value as Text", '%1', '@*' + UnexpectedValue + '*');
             Assert.IsTrue(ExcelBuffer.IsEmpty(), StrSubstNo(UnexpectedRenderedValueErr, UnexpectedValue));
         end else
             Assert.IsFalse(
@@ -1100,30 +1200,50 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     local procedure VerifyBookValue01SetupMetadata(FADepreciationBook: Record "FA Depreciation Book"; DerogatoryFADepreciationBook: Record "FA Depreciation Book")
     begin
+        LibraryReportDataset.SetRange(NoFATxt, FADepreciationBook."FA No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFATxt, FADepreciationBook."FA No."));
         LibraryReportDataset.AssertElementWithValueExists('AccountingDeprBookCode', FADepreciationBook."Depreciation Book Code");
         LibraryReportDataset.AssertElementWithValueExists('AccountingDeprMethod', Format(FADepreciationBook."Depreciation Method"));
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDeprStartingDate', FADepreciationBook."Depreciation Starting Date");
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDeprEndingDate', FADepreciationBook."Depreciation Ending Date");
+        VerifyCurrentRowDate('AccountingDeprStartingDate', FADepreciationBook."Depreciation Starting Date");
+        VerifyCurrentRowDate('AccountingDeprEndingDate', FADepreciationBook."Depreciation Ending Date");
         LibraryReportDataset.AssertElementWithValueExists('AccountingDecliningBalancePct', FADepreciationBook."Declining-Balance %");
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprBookCode', DerogatoryFADepreciationBook."Depreciation Book Code");
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprMethod', Format(DerogatoryFADepreciationBook."Depreciation Method"));
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprStartingDate', DerogatoryFADepreciationBook."Depreciation Starting Date");
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprEndingDate', DerogatoryFADepreciationBook."Depreciation Ending Date");
+        VerifyCurrentRowDate('DerogatoryDeprStartingDate', DerogatoryFADepreciationBook."Depreciation Starting Date");
+        VerifyCurrentRowDate('DerogatoryDeprEndingDate', DerogatoryFADepreciationBook."Depreciation Ending Date");
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryDecliningBalancePct', DerogatoryFADepreciationBook."Declining-Balance %");
     end;
 
     local procedure VerifyBookValue02SetupMetadata(FADepreciationBook: Record "FA Depreciation Book"; DerogatoryFADepreciationBook: Record "FA Depreciation Book")
     begin
+        LibraryReportDataset.SetRange(NoFixedAssetCap, FADepreciationBook."FA No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, FADepreciationBook."FA No."));
         LibraryReportDataset.AssertElementWithValueExists('AccountingDeprBookCode', FADepreciationBook."Depreciation Book Code");
         LibraryReportDataset.AssertElementWithValueExists('AccountingDeprMethod', Format(FADepreciationBook."Depreciation Method"));
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDeprStartingDate', FADepreciationBook."Depreciation Starting Date");
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDeprEndingDate', FADepreciationBook."Depreciation Ending Date");
+        VerifyCurrentRowDate('AccountingDeprStartingDate', FADepreciationBook."Depreciation Starting Date");
+        VerifyCurrentRowDate('AccountingDeprEndingDate', FADepreciationBook."Depreciation Ending Date");
         LibraryReportDataset.AssertElementWithValueExists('AccountingDecliningBalancePct', FADepreciationBook."Declining-Balance %");
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprBookCode', DerogatoryFADepreciationBook."Depreciation Book Code");
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprMethod', Format(DerogatoryFADepreciationBook."Depreciation Method"));
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprStartingDate', DerogatoryFADepreciationBook."Depreciation Starting Date");
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprEndingDate', DerogatoryFADepreciationBook."Depreciation Ending Date");
+        VerifyCurrentRowDate('DerogatoryDeprStartingDate', DerogatoryFADepreciationBook."Depreciation Starting Date");
+        VerifyCurrentRowDate('DerogatoryDeprEndingDate', DerogatoryFADepreciationBook."Depreciation Ending Date");
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryDecliningBalancePct', DerogatoryFADepreciationBook."Declining-Balance %");
+    end;
+
+    local procedure VerifyCurrentRowDate(ElementName: Text; ExpectedDate: Date)
+    var
+        ActualValue: Variant;
+        ActualDate: Date;
+    begin
+        if ExpectedDate = 0D then begin
+            // XML report datasets omit blank date elements rather than serializing a date value.
+            Assert.IsFalse(LibraryReportDataset.CurrentRowHasElement(ElementName), StrSubstNo(DatasetDateMismatchErr, ElementName));
+            exit;
+        end;
+        LibraryReportDataset.GetElementValueInCurrentRow(ElementName, ActualValue);
+        // Date columns are serialized as XML date-times, which the dataset library leaves as text.
+        Evaluate(ActualDate, CopyStr(Format(ActualValue), 1, 10), 9);
+        Assert.AreEqual(ExpectedDate, ActualDate, StrSubstNo(DatasetDateMismatchErr, ElementName));
     end;
 
     local procedure VerifyNoDerogatoryBookValue01()
@@ -1176,8 +1296,8 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertCurrentRowValueEquals('PrintFASetup', true);
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprBookCode', '');
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprMethod', '');
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprStartingDate', 0D);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprEndingDate', 0D);
+        VerifyCurrentRowDate('DerogatoryDeprStartingDate', 0D);
+        VerifyCurrentRowDate('DerogatoryDeprEndingDate', 0D);
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecliningBalancePct', 0);
     end;
 
@@ -1187,8 +1307,8 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertCurrentRowValueEquals('PrintFASetup', true);
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprBookCode', '');
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprMethod', '');
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprStartingDate', 0D);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprEndingDate', 0D);
+        VerifyCurrentRowDate('DerogatoryDeprStartingDate', 0D);
+        VerifyCurrentRowDate('DerogatoryDeprEndingDate', 0D);
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecliningBalancePct', 0);
     end;
 
@@ -1199,7 +1319,9 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', true);
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecreaseAmount', DerogatoryAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryClosingAmount', DerogatoryAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, AccountingBookValue);
         VerifyIneligibleBookValue01Row(IneligibleFADepreciationBook."FA No.");
+        LibraryReportDataset.Reset();
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryGroupDecreaseAmount', DerogatoryAmount);
         LibraryReportDataset.AssertElementWithValueExists(BookValueAtEndingDateCap, AccountingBookValue);
     end;
@@ -1211,7 +1333,9 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', true);
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecreaseAmount', DerogatoryAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryClosingAmount', DerogatoryAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, AccountingBookValue);
         VerifyIneligibleBookValue02Row(IneligibleFADepreciationBook."FA No.");
+        LibraryReportDataset.Reset();
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryGroupDecreaseAmount', DerogatoryAmount);
         LibraryReportDataset.AssertElementWithValueExists('DerogatoryTotalDecreaseAmount', DerogatoryAmount);
         LibraryReportDataset.AssertElementWithValueExists('BookValueAtEndingDate_Control125', AccountingBookValue);
@@ -1329,7 +1453,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         FixedAssetBookValue01.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
 
-    local procedure RunFixedAssetBookValue01AsExcel(FADepreciationBook: Record "FA Depreciation Book"; GroupTotals: Option; PrintTotal: Boolean)
+    local procedure RunFixedAssetBookValue01AsExcel(FADepreciationBook: Record "FA Depreciation Book"; GroupTotals: Option; PrintDetails: Boolean)
     var
         FixedAsset: Record "Fixed Asset";
         FixedAssetBookValue01: Report "Fixed Asset - Book Value 01";
@@ -1338,11 +1462,11 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         FixedAsset.SetRange("No.", FADepreciationBook."FA No.");
         FixedAssetBookValue01.SetTableView(FixedAsset);
         FixedAssetBookValue01.SetMandatoryFields(FADepreciationBook."Depreciation Book Code", WorkDate(), WorkDate());
-        FixedAssetBookValue01.SetTotalFields(GroupTotals, true, PrintTotal);
+        FixedAssetBookValue01.SetTotalFields(GroupTotals, PrintDetails, false);
         FixedAssetBookValue01.Run();
     end;
 
-    local procedure RunFixedAssetBookValue02AsExcel(FADepreciationBook: Record "FA Depreciation Book"; GroupTotals: Option; PrintTotal: Boolean; Reclassify: Boolean)
+    local procedure RunFixedAssetBookValue02AsExcel(FADepreciationBook: Record "FA Depreciation Book"; GroupTotals: Option; PrintDetails: Boolean; Reclassify: Boolean)
     var
         FixedAsset: Record "Fixed Asset";
         FixedAssetBookValue02: Report "Fixed Asset - Book Value 02";
@@ -1351,7 +1475,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         FixedAsset.SetRange("No.", FADepreciationBook."FA No.");
         FixedAssetBookValue02.SetTableView(FixedAsset);
         FixedAssetBookValue02.SetMandatoryFields(FADepreciationBook."Depreciation Book Code", WorkDate(), WorkDate());
-        FixedAssetBookValue02.SetTotalFields(GroupTotals, true, PrintTotal, Reclassify);
+        FixedAssetBookValue02.SetTotalFields(GroupTotals, PrintDetails, false, Reclassify);
         FixedAssetBookValue02.Run();
         LibraryReportValidation.DownloadFile();
     end;
@@ -1438,6 +1562,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure FixedAssetBookValue02RequestPageHandler(var FixedAssetBookValue02: TestRequestPage "Fixed Asset - Book Value 02")
     begin
+        FixedAssetBookValue02.Print_FASetup.SetValue(false);
         FixedAssetBookValue02.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -1451,6 +1576,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure FixedAssetBookValue01RequestPageHandler(var FixedAssetBookValue01: TestRequestPage "Fixed Asset - Book Value 01")
     begin
+        FixedAssetBookValue01.Print_FASetup.SetValue(false);
         FixedAssetBookValue01.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -1471,6 +1597,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure FixedAssetBookValue01ExcelRequestPageHandler(var FixedAssetBookValue01: TestRequestPage "Fixed Asset - Book Value 01")
     begin
+        FixedAssetBookValue01.Print_FASetup.SetValue(false);
         FixedAssetBookValue01.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
 
@@ -1484,6 +1611,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure FixedAssetBookValue02ExcelRequestPageHandler(var FixedAssetBookValue02: TestRequestPage "Fixed Asset - Book Value 02")
     begin
+        FixedAssetBookValue02.Print_FASetup.SetValue(false);
         FixedAssetBookValue02.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
 

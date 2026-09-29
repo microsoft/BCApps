@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Depreciation;
 
+#if CLEAN30
 using System.Upgrade;
+#endif
 
 codeunit 5867 "Upg. Tag Accelerated Depr."
 {
