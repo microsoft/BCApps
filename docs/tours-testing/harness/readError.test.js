@@ -173,6 +173,30 @@ function check(name, actual, expected) {
   check('OK/Cancel chooser is not an error', r.message, '');
   check('OK/Cancel chooser is classified as a confirmation', r.confirmation, POST_DIALOG);
 
+  // ⚠️ BC announces SUCCESS in a dialog too, and an earlier `hasError` folded every dialog in -
+  // so a post that had worked reported hasError:true. A probe asserting "no error" would then
+  // abandon a document it had just posted correctly. Two surfaces, same shape: a completion
+  // notice and an informational summary.
+  r = await readError(mockFrame({ dialogs: ['The journal lines were successfully posted. OK'] }));
+  check('success dialog does not set hasError', r.hasError, false);
+
+  r = await readError(mockFrame({
+    dialogs: ['You have created suggested vendor payment lines for all currencies. OK'],
+  }));
+  check('informational completion does not set hasError', r.hasError, false);
+
+  // ...but a real refusal must still set it, or the flag is useless in the other direction.
+  r = await readError(mockFrame({ marked: ["Status must be equal to 'Open' in Purchase Header."] }));
+  check('a refusal still sets hasError', r.hasError, true);
+
+  r = await readError(mockFrame({ marked: ['The page has an error. Refresh (F5) to undo the change.'] }));
+  check('page error bar still sets hasError', r.hasError, true);
+
+  // An empty errorPage is an ARRAY, and an empty array is truthy - which is why hasError exists.
+  r = await readError(mockFrame({}));
+  check('clean page: errorPage is empty', r.errorPage.length, 0);
+  check('clean page: hasError is false', r.hasError, false);
+
   console.log(failed ? `\n${failed} FAILED` : '\nall passed');
   process.exit(failed ? 1 : 0);
 })();
