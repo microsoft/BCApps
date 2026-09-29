@@ -18,6 +18,12 @@ codeunit 6969 "Expense Consumption Handler"
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
         CompanionTableRecordFoundTelemetryTxt: Label 'Consumption record for Expense Agent already exists. This is expected.', Locked = true;
 
+    internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
+    begin
+
+        exit(AiConsumptionRequestJson.Count() > 0);
+    end;
+
     internal procedure LogV2AIConsumption(
         AgentConversationSessionId: Guid;
         AgentTurnInteractionId: Guid;
@@ -36,7 +42,6 @@ codeunit 6969 "Expense Consumption Handler"
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         UniqueId := FindOrCreateCompanionTableSystemId(ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, ExpenseUserNo);
-
         if not CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId) then
             CopilotQuota.LogAgentUserAIConsumption(
                 Enum::"Copilot Capability"::"Expense Agent",
@@ -72,7 +77,6 @@ codeunit 6969 "Expense Consumption Handler"
         ExpenseAgentEnvConsumption.SetRange("Consumption Source Type", ConsumptionSourceType);
         ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", ConsumptionSourceSystemId);
         ExpenseAgentEnvConsumption.SetRange("Consumption Source Operation", ConsumptionSourceOperationName);
-
         if not ExpenseAgentEnvConsumption.FindFirst() then begin
             ExpenseAgentEnvConsumption.Init();
             ExpenseAgentEnvConsumption."Consumption Unique ID" := CreateGuid();
@@ -89,7 +93,7 @@ codeunit 6969 "Expense Consumption Handler"
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;
 
-    internal procedure LogAIConsumption(
+    internal procedure LogAIConsumptionV1(
         Usage: Integer;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
         ActionsSummary: Text[1024];
@@ -102,7 +106,7 @@ codeunit 6969 "Expense Consumption Handler"
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         UniqueId: Text[1024];
     begin
-        UniqueId := MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
+        UniqueId := MakeUniqueIdV1(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
 
         Session.LogMessage('0000ROU', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId)),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
@@ -136,7 +140,7 @@ codeunit 6969 "Expense Consumption Handler"
         exit(CopilotQuota.CanConsume());
     end;
 
-    local procedure MakeUniqueId(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]) UniqueId: Text[1024]
+    local procedure MakeUniqueIdV1(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]) UniqueId: Text[1024]
     var
         TempUniqueId: Text;
     begin
@@ -147,7 +151,6 @@ codeunit 6969 "Expense Consumption Handler"
             Format(Operation, 0, 9));
 
         TempUniqueId := UpperCase(TempUniqueId);
-
         if StrLen(TempUniqueId) > MaxStrLen(UniqueId) then
             Session.LogMessage('0000ROV', UniqueIdTooLongTelemetryErr,
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());

@@ -61,11 +61,13 @@ page 6968 "Expense User Cons. API"
         ConsumptionSourceSystemIdErr: Label 'Consumption Source System ID must be provided.';
         ExpenseEmployeeCodeErr: Label 'Expense Employee Code must be provided.';
         ConsumptionUsageErr: Label 'Usage cannot be negative.';
-        AiConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON.';
+        InvalidJsonAiConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON.';
+        InvalidStructureConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON.';
         ActionsSummaryOrDescriptionErr: Label 'Actions Summary and Description must be provided.';
         EmptyConsumptionOperationErr: Label 'Operation must be provided.';
 
     [ServiceEnabled]
+    [Obsolete('Use LogAIConsumptionV2 instead.', '30.0')]
     procedure LogAIConsumption(
         CopilotQuotaUsageAmount: Integer;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
@@ -76,31 +78,25 @@ page 6968 "Expense User Cons. API"
         ConsumptionSourceOperationName: Code[50]): Text[1024]
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-
         if CopilotQuotaUsageAmount < 0 then
             Error(ConsumptionUsageErr);
-
         if (ActionsSummary = '') or (ActionsDescription = '') then
             Error(ActionsSummaryOrDescriptionErr);
-
         if ConsumptionSourceType = ConsumptionSourceType::Invalid then
             Error(ConsumptionSourceTypeErr);
-
         if IsNullGuid(ConsumptionSourceSystemId) then
             Error(ConsumptionSourceSystemIdErr);
-
         if Rec."No." = '' then
             Error(ExpenseEmployeeCodeErr);
-
         if ConsumptionSourceOperationName = '' then
             Error(EmptyConsumptionOperationErr);
 
-        exit(ExpenseConsumptionHandler.LogAIConsumption(CopilotQuotaUsageAmount, CopilotQuotaUsageType,
+        exit(ExpenseConsumptionHandler.LogAIConsumptionV1(CopilotQuotaUsageAmount, CopilotQuotaUsageType,
             ActionsSummary, ActionsDescription, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
     end;
 
     [ServiceEnabled]
-    procedure LogV2AIConsumption(
+    procedure LogAIConsumptionV2(
         AiConsumptionRequest: Text;
         AgentConversationSessionId: Guid;
         AgentTurnInteractionId: Guid;
@@ -113,25 +109,20 @@ page 6968 "Expense User Cons. API"
         AiConsumptionRequestJson: JsonObject;
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-
         if (AiConsumptionRequest = '') or not AiConsumptionRequestJson.ReadFrom(AiConsumptionRequest) then
-            Error(AiConsumptionRequestErr);
-
+            Error(InvalidJsonAiConsumptionRequestErr);
+        if not ExpenseConsumptionHandler.ValidateConsumptionJson(AiConsumptionRequestJson) then
+            Error(InvalidStructureConsumptionRequestErr);
         if ActionsSummary = '' then
             Error(ActionsSummaryOrDescriptionErr);
-
         if ConsumptionSourceType = ConsumptionSourceType::Invalid then
             Error(ConsumptionSourceTypeErr);
-
         if IsNullGuid(ConsumptionSourceSystemId) then
             Error(ConsumptionSourceSystemIdErr);
-
         if Rec."No." = '' then
             Error(ExpenseEmployeeCodeErr);
-
         if ConsumptionSourceOperationName = '' then
             Error(EmptyConsumptionOperationErr);
-
         if not IsNullGuid(Rec."Entra Id") then
             if Rec."Entra Id" <> ExpenseUserEntraId then
                 Session.LogMessage('0000VKU', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
