@@ -325,6 +325,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure DeleteFromInternalFailsWhenExternalFileCannotBeRetrieved()
     var
         DocumentAttachment: Record "Document Attachment";
@@ -353,6 +354,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure DeleteFromInternalFailsWhenExternalContentDiffers()
     var
         DocumentAttachment: Record "Document Attachment";
