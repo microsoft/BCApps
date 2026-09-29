@@ -98,6 +98,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterCopyPurchLineFromPurchLineBuffer, '', false, false)]
     local procedure RestoreSubcontractingOutputApplication(var ToPurchLine: Record "Purchase Line"; FromPurchInvLine: Record "Purch. Inv. Line"; ToPurchHeader: Record "Purchase Header")
     var
+        ItemLedgerEntry: Record "Item Ledger Entry";
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
 #if not CLEAN29
@@ -114,10 +115,17 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
-        if PurchRcptLine."Item Rcpt. Entry No." = 0 then
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Item No.", FromPurchInvLine."No.");
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        ItemLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
+        ItemLedgerEntry.SetRange(Positive, true);
+        if not ItemLedgerEntry.FindFirst() then
             exit;
 
-        ToPurchLine."Appl.-to Item Entry" := PurchRcptLine."Item Rcpt. Entry No.";
+        ToPurchLine."Appl.-to Item Entry" := ItemLedgerEntry."Entry No.";
         ToPurchLine.Modify();
     end;
 

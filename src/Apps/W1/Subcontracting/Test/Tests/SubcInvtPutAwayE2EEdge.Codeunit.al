@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -1474,6 +1475,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         PostedInvoiceHeader: Record "Purch. Inv. Header";
         ProductionOrder: Record "Production Order";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        ReasonCode: Record "Reason Code";
         InvoiceHeader: Record "Purchase Header";
         InvoiceLine: Record "Purchase Line";
         PurchaseHeader: Record "Purchase Header";
@@ -1538,6 +1540,9 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
         InvoiceLine.FindFirst();
         ExpectedCost := Round(Quantity * InvoiceLine."Direct Unit Cost");
+        LibraryERM.CreateReasonCode(ReasonCode);
+        InvoiceHeader.Validate("Reason Code", ReasonCode.Code);
+        InvoiceHeader.Modify(true);
         PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
         PostedInvoiceHeader.Get(PostedInvoiceNo);
         Commit();
@@ -1546,6 +1551,14 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
             CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader)
         else begin
             CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PostedInvoiceHeader, InvoiceHeader);
+            InvoiceLine.Reset();
+            InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+            InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+            InvoiceLine.FindFirst();
+            Assert.IsTrue(ItemLedgerEntry.Get(InvoiceLine."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
+            Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to the original output Item Ledger Entry.');
+            Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting production order.');
+            Assert.AreEqual(PurchRcptLine."Document No.", ItemLedgerEntry."Document No.", 'The applied output Item Ledger Entry must belong to the subcontracting receipt.');
             InvoiceHeader.Validate(
                 "Vendor Cr. Memo No.",
                 CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(InvoiceHeader."Vendor Cr. Memo No.")));
