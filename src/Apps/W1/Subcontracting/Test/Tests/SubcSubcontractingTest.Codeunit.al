@@ -4734,6 +4734,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure VendorSuppliedPurchLineNotCancelledByPlanning()
     var
         ComponentItem: Record Item;
