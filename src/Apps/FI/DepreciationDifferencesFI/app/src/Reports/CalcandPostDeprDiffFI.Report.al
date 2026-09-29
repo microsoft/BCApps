@@ -287,7 +287,7 @@ report 13478 "Calc. and Post Depr. Diff. FI"
         DeprBook.Get(DeprBookCode1);
         FAGenReport.SetFAPostingGroup(FixedAsset, DeprBook.Code);
         FAGenReport.AppendFAPostingFilter(FixedAsset, StartDate, EndDate);
-        FAFilter := FixedAsset.GetFilters();
+        FAFilter := CopyStr(FixedAsset.GetFilters(), 1, MaxStrLen(FAFilter));
     end;
 
     var

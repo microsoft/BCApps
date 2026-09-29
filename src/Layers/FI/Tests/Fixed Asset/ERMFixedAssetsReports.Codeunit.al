@@ -14,7 +14,9 @@ codeunit 134978 "ERM Fixed Assets Reports"
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryPurchase: Codeunit "Library - Purchase";
+#if not CLEAN30
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+#endif
         LibraryReportValidation: Codeunit "Library - Report Validation";
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -41,7 +43,9 @@ codeunit 134978 "ERM Fixed Assets Reports"
         ExistErr: Label '%1 must exist.', Comment = '%1 = Column or field value';
         ValueMismatchErr: Label '%1 must be %2.', Comment = '%1 = Column Caption, %2 = Value';
         ReclassifyTxt: Label 'Reclassification';
+#if not CLEAN30
         ZeroDifferenceLineErr: Label '''%1'' report contains lines with 0 in difference amount';
+#endif
         TheDepreciationHasBeenCalculatedTxt: Label 'The depreciation has been calculated.';
 
     [Test]
@@ -1554,6 +1558,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
         FADepreciationBook.Modify(true);
     end;
 
+#if not CLEAN30
     local procedure CreateDepreciationBook(DefaultRounding: Decimal; UseFALedgerCheck: Boolean; UserRoundingInPeriodicAmount: Boolean; UseSameFAGLPostingDates: Boolean; Integration: Boolean): Code[10]
     var
         DepreciationBook: Record "Depreciation Book";
@@ -1575,6 +1580,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
 
         exit(DepreciationBook.Code);
     end;
+#endif
 
     local procedure CreateDepreciationJournalSetup(var DepreciationBook: Record "Depreciation Book")
     var
@@ -1681,6 +1687,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
+#if not CLEAN30
     local procedure CreateFAAndPostDepreciation(Amount: Decimal; StartingDate: Date; PostingDate: Date; DepreciationBookCodeSUMU: Code[10]; DepreciationBookCodeTax: Code[10]; DepreciationMethodTax: Enum "FA Depreciation Method"; EndingDateFormulaTax: Text; DecliningBalancePercentTax: Decimal): Code[20]
     var
         FixedAsset: Record "Fixed Asset";
@@ -1702,6 +1709,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
 
         exit(FixedAsset."No.");
     end;
+#endif
 
     local procedure CreateFAJournalBatch(var FAJournalBatch: Record "FA Journal Batch")
     var
@@ -2142,4 +2150,3 @@ codeunit 134978 "ERM Fixed Assets Reports"
         Reply := false;
     end;
 }
-
