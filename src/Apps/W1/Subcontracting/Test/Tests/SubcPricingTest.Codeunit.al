@@ -2048,7 +2048,8 @@ codeunit 139982 "Subc. Pricing Test"
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
         SubcontractorPrice: Record "Subcontractor Price";
-        SubcPriceAmount: Decimal;
+        BaseTierPriceAmount: Decimal;
+        LotSizeTierPriceAmount: Decimal;
         WorkCenterDirectCost: Decimal;
         XmlParameters: Text;
     begin
@@ -2077,14 +2078,19 @@ codeunit 139982 "Subc. Pricing Test"
         RoutingHeader.Modify(true);
 
         Item.Validate("Routing No.", RoutingHeader."No.");
-        Item.Validate("Lot Size", 1);
+        Item.Validate("Lot Size", 10);
         Item.Modify(true);
 
-        // [GIVEN] A subcontractor price of 200 for this item/work center (different from WorkCenter."Direct Unit Cost" of 50).
-        SubcPriceAmount := 200;
+        // [GIVEN] Subcontractor prices of 300 for quantity one and 200 for quantity ten.
+        BaseTierPriceAmount := 300;
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
-            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
-        SubcontractorPrice.Validate("Direct Unit Cost", SubcPriceAmount);
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 1, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", BaseTierPriceAmount);
+        SubcontractorPrice.Modify(true);
+        LotSizeTierPriceAmount := 200;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 10, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", LotSizeTierPriceAmount);
         SubcontractorPrice.Modify(true);
 
         // [WHEN] Run the "Detailed Calculation" report (BaseApp 99000756) for this item.
@@ -2093,9 +2099,9 @@ codeunit 139982 "Subc. Pricing Test"
         XmlParameters := Report.RunRequestPage(Report::"Detailed Calculation");
         LibraryReportDataset.RunReportAndLoad(Report::"Detailed Calculation", Item, XmlParameters);
 
-        // [THEN] The ProdUnitCost in the report dataset equals the subcontractor price (200),
-        // not the Work Center's generic Direct Unit Cost (50).
-        LibraryReportDataset.AssertElementWithValueExists('ProdUnitCost', SubcPriceAmount);
+        // [THEN] The ProdUnitCost in the report dataset equals the quantity-ten price (200),
+        // not the quantity-one price (300) or the Work Center's generic Direct Unit Cost (50).
+        LibraryReportDataset.AssertElementWithValueExists('ProdUnitCost', LotSizeTierPriceAmount);
     end;
 
     local procedure CreateLotSizePricingScenario(var Item: Record Item; LotSize: Decimal; BlankPriceUOM: Boolean)
