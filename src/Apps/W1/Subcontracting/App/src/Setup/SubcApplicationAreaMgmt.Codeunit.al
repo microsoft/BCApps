@@ -9,7 +9,7 @@ using Microsoft.Manufacturing.Setup;
 #endif
 using System.Environment.Configuration;
 
-codeunit 99001571 "Subc. Application Area Mgmt."
+codeunit 20571 "Subc. Application Area Mgmt."
 {
     Access = Internal;
 

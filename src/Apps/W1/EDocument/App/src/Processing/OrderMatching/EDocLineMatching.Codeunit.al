@@ -48,6 +48,14 @@ codeunit 6164 "E-Doc. Line Matching"
         EDocOrderLineMatching.Run();
     end;
 
+#if not CLEAN29
+    [Obsolete('Deprecated functionality', '29.0')]
+    procedure RunMatching(var EDocument: Record "E-Document"; WithCopilot: Boolean)
+    begin
+        RunMatching(EDocument);
+    end;
+
+#endif
     procedure ApplyToPurchaseOrder(var EDocument: Record "E-Document"; var TempEDocumentImportedLine: Record "E-Doc. Imported Line" temporary)
     var
         PurchaseLine: Record "Purchase Line";

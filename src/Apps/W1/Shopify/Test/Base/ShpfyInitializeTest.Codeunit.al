@@ -339,24 +339,29 @@ codeunit 139561 "Shpfy Initialize Test"
 
 
     internal procedure CreateVATPostingSetup(BusinessPostingGroup: Code[20]; ProductPostingGroup: Code[20])
+    begin
+        CreateVATPostingSetup(BusinessPostingGroup, ProductPostingGroup, BusinessPostingGroup, ProductPostingGroup);
+    end;
+
+    internal procedure CreateVATPostingSetup(GenBusinessPostingGroup: Code[20]; GenProductPostingGroup: Code[20]; VATBusinessPostingGroup: Code[20]; VATProductPostingGroup: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
         VatPostingSetup: Record "VAT Posting Setup";
     begin
-        if not VatPostingSetup.Get(BusinessPostingGroup, ProductPostingGroup) then begin
+        if not VatPostingSetup.Get(VATBusinessPostingGroup, VATProductPostingGroup) then begin
             Clear(VatPostingSetup);
-            VatPostingSetup."VAT Bus. Posting Group" := BusinessPostingGroup;
-            VatPostingSetup."VAT Prod. Posting Group" := ProductPostingGroup;
+            VatPostingSetup."VAT Bus. Posting Group" := VATBusinessPostingGroup;
+            VatPostingSetup."VAT Prod. Posting Group" := VATProductPostingGroup;
             VatPostingSetup."VAT Identifier" := CopyStr(Any.AlphabeticText(MaxStrLen(VatPostingSetup."VAT Identifier")), 1, MaxStrLen(VatPostingSetup."VAT Identifier"));
             VatPostingSetup."VAT Calculation Type" := "Tax Calculation Type"::"Normal VAT";
             VatPostingSetup."VAT %" := 10;
             VatPostingSetup.Insert();
         end;
 
-        if not GeneralPostingSetup.Get(BusinessPostingGroup, ProductPostingGroup) then begin
+        if not GeneralPostingSetup.Get(GenBusinessPostingGroup, GenProductPostingGroup) then begin
             Clear(GeneralPostingSetup);
-            GeneralPostingSetup."Gen. Bus. Posting Group" := BusinessPostingGroup;
-            GeneralPostingSetup."Gen. Prod. Posting Group" := ProductPostingGroup;
+            GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusinessPostingGroup;
+            GeneralPostingSetup."Gen. Prod. Posting Group" := GenProductPostingGroup;
             GeneralPostingSetup.Insert();
         end;
     end;
@@ -364,6 +369,9 @@ codeunit 139561 "Shpfy Initialize Test"
     internal procedure RegisterAccessTokenForShop(Store: Text; AccessToken: SecretText)
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
+        RefreshToken: SecretText;
+        RefreshTokenText: Text;
+        OneDay: Duration;
         ScopeTxt: Label 'write_orders,read_all_orders,write_assigned_fulfillment_orders,read_checkouts,write_customers,read_discounts,write_files,write_merchant_managed_fulfillment_orders,write_fulfillments,write_inventory,read_locations,write_products,write_shipping,read_shopify_payments_disputes,read_shopify_payments_payouts,write_returns,write_translations,write_third_party_fulfillment_orders,write_order_edits,write_publications,write_payment_terms,write_draft_orders,read_locales,read_shopify_payments_accounts,read_users,read_markets', Locked = true;
     begin
         Store := Store.ToLower();
@@ -372,10 +380,17 @@ codeunit 139561 "Shpfy Initialize Test"
             RegisteredStoreNew.Store := CopyStr(Store, 1, MaxStrLen(RegisteredStoreNew.Store));
             RegisteredStoreNew.Insert(false);
         end;
+        OneDay := 24 * 60 * 60 * 1000;
         RegisteredStoreNew."Requested Scope" := ScopeTxt;
         RegisteredStoreNew."Actual Scope" := ScopeTxt;
+        // Seed a healthy expiring token so EnsureValidAccessToken performs no refresh/migration.
+        RegisteredStoreNew."Token Expires At" := CurrentDateTime() + OneDay;
+        RegisteredStoreNew."Refresh Token Expires At" := CurrentDateTime() + OneDay;
         RegisteredStoreNew.Modify(false);
         RegisteredStoreNew.SetAccessToken(AccessToken);
+        RefreshTokenText := Any.AlphanumericText(20);
+        RefreshToken := RefreshTokenText;
+        RegisteredStoreNew.SetRefreshToken(RefreshToken);
     end;
 
     local procedure CreateShippingChargesGLAcc(var VATPostingSetup: Record "VAT Posting Setup"; GenPostingType: Enum "General Posting Type"; PostingGroupCode: Code[20]): Code[20]

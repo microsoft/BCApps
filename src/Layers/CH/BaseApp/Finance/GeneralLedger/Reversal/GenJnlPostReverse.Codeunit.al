@@ -210,7 +210,6 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
-        SpendRequestToGLLink: Record "Spend Request To G/L Link";
     begin
         if GLEntry2.Find('+') then
             repeat
@@ -302,7 +301,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                             ReverseBankAccLedgEntry(TempBankAccountLedgerEntry, GLEntry."Entry No.", GenJournalLine."Source Code");
                             TempBankAccountLedgerEntry.Delete();
                         end;
-                    SpendRequestToGLLink.Get(GLEntry2."Entry No."):
+                    SpendRequestLinkedToGLEntry(GLEntry2."Entry No."):
                         ReverseSpendRequest(GLEntry2."Entry No.", GLEntry."Entry No.");
                     else
                         OnReverseGLEntryOnCaseElse(GLEntry2, GLEntry, GenJournalLine, GenJnlPostLine, TempBankAccountLedgerEntry);
@@ -649,6 +648,14 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 GLEntryVATEntryLink.InsertLink(GLEntry."Entry No.", NewVATEntry."Entry No.");
                 GenJnlPostLine.IncrNextVATEntryNo();
             until GLEntryVATEntryLink.Next() = 0;
+    end;
+
+    local procedure SpendRequestLinkedToGLEntry(GLEntryNo: Integer): Boolean
+    var
+        SpendRequestToGLLink: Record "Spend Request To G/L Link";
+    begin
+        SpendRequestToGLLink.SetRange("G/L Entry No.", GLEntryNo);
+        exit(not SpendRequestToGLLink.IsEmpty());
     end;
 
     local procedure ReverseSpendRequest(OldGLEntryNo: Integer; NewGLEntryNo: Integer)

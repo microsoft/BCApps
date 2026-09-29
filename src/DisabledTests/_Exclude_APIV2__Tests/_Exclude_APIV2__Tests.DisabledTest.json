@@ -2067,6 +2067,11 @@
   {
     "codeunitId": 139843,
     "codeunitName": "APIV2 - Vendor Payments E2E",
+    "method": "TestAppliesToInvoiceNumberEmptyForNonInvoiceApplication"
+  },
+  {
+    "codeunitId": 139843,
+    "codeunitName": "APIV2 - Vendor Payments E2E",
     "method": "TestCreateVendorPayment"
   },
   {
@@ -2088,6 +2093,11 @@
     "codeunitId": 139843,
     "codeunitName": "APIV2 - Vendor Payments E2E",
     "method": "TestGetVendorPayment"
+  },
+  {
+    "codeunitId": 139843,
+    "codeunitName": "APIV2 - Vendor Payments E2E",
+    "method": "TestGetVendorPaymentWithoutInvoiceApplicationIsVisible"
   },
   {
     "codeunitId": 139843,
@@ -2548,6 +2558,21 @@
     "codeunitId": 139866,
     "codeunitName": "APIV2 - Contacts E2E",
     "method": "TestModifyContactWithAddress"
+  },
+  {
+    "codeunitId": 139867,
+    "codeunitName": "APIV2 - Apply Vendor Ent. E2E",
+    "method": "TestApplyVendorEntryAppliesPayment"
+  },
+  {
+    "codeunitId": 139867,
+    "codeunitName": "APIV2 - Apply Vendor Ent. E2E",
+    "method": "TestGetApplyVendorEntriesFailsWhenNoVendor"
+  },
+  {
+    "codeunitId": 139867,
+    "codeunitName": "APIV2 - Apply Vendor Ent. E2E",
+    "method": "TestGetApplyVendorEntriesReturnsOpenEntries"
   },
   {
     "codeunitId": 139868,

@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Foundation.Navigate;
 
-codeunit 99001566 "Subc. Posting Preview Subscr."
+codeunit 20566 "Subc. Posting Preview Subscr."
 {
     var
         TempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;

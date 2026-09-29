@@ -623,6 +623,15 @@ table 99000758 "Machine Center"
                 CheckBinCode("Location Code", "From-Production Bin Code", FieldCaption("From-Production Bin Code"), "No.");
             end;
         }
+        field(7304; "Calendar Entries Avail. Until"; Date)
+        {
+            CalcFormula = max("Calendar Entry".Date where("Capacity Type" = const("Machine Center"),
+                                                          "No." = field("No.")));
+            Caption = 'Calendar Entries Available Until';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the last date for which machine center calendar entries have been calculated. If this date is in the past, run the Calculate Machine Center Calendar report to extend the calendar.';
+        }
     }
 
     keys

@@ -11,8 +11,8 @@ page 37061 "Purchases Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Report';
-    AboutTitle = 'About Purchases Report';
+    Caption = 'Purchases Report (Power BI)';
+    AboutTitle = 'About Purchases Report (Power BI)';
     AboutText = 'The Purchases Report offers a consolidated view of all purchases report pages, conveniently embedded into a single page for easy access.';
 
     layout

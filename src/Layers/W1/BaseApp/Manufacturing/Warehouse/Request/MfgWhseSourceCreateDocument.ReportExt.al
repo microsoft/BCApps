@@ -27,6 +27,7 @@ reportextension 7305 "Mfg. WhseSourceCreateDocument" extends "Whse.-Source - Cre
                     WMSMgt: Codeunit "WMS Management";
                     QtyToPick: Decimal;
                     QtyToPickBase: Decimal;
+                    GroupingNumber: Integer;
                     SkipProdOrderComp: Boolean;
                     EmptyGuid: Guid;
                 begin
@@ -64,8 +65,10 @@ reportextension 7305 "Mfg. WhseSourceCreateDocument" extends "Whse.-Source - Cre
                         QtyToPickBase := UOMMgt.CalcBaseQty("Item No.", "Variant Code", "Unit of Measure Code", QtyToPick, "Qty. per Unit of Measure");
 
                         if QtyToPick > 0 then begin
+                            GroupingNumber := 1;
+                            OnAfterGetRecordProdOrderComponentOnBeforeSetCustomWhseSourceLine("Prod. Order Component", GroupingNumber);
                             CreatePick.SetCustomWhseSourceLine(
-                                "Prod. Order Component", 1,
+                                "Prod. Order Component", GroupingNumber,
                                 Database::"Prod. Order Component", Status.AsInteger(), "Prod. Order No.", "Prod. Order Line No.", "Line No.");
                             CreatePick.SetTempWhseItemTrkgLine(
                                 "Prod. Order No.", Database::"Prod. Order Component", '', "Prod. Order Line No.", "Line No.", "Location Code");
@@ -150,6 +153,11 @@ reportextension 7305 "Mfg. WhseSourceCreateDocument" extends "Whse.-Source - Cre
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetRecordProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; var SkipProdOrderComp: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecordProdOrderComponentOnBeforeSetCustomWhseSourceLine(var ProdOrderComponent: Record "Prod. Order Component"; var GroupingNumber: Integer)
     begin
     end;
 

@@ -21,7 +21,7 @@ if ($WhatIf) {
 Write-Host "Fetching open pull requests..."
 
 # Get all open pull requests with mergeable state
-$prs = gh pr list --state open --json number,title,url,mergeable --limit 1000 | ConvertFrom-Json
+$prs = @(gh pr list --state open --json number,title,url,mergeable --limit 1000 | ConvertFrom-Json)
 
 Write-Host "Found $($prs.Count) open pull requests"
 

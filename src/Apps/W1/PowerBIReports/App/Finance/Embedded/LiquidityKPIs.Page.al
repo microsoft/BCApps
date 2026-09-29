@@ -11,8 +11,8 @@ page 36988 "Liquidity KPIs"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Liquidity KPIs';
-    AboutTitle = 'About Liquidity KPIs';
+    Caption = 'Liquidity KPIs (Power BI)';
+    AboutTitle = 'About Liquidity KPIs (Power BI)';
     AboutText = 'The Liquidity KPIs report offers insights into three key metrics: Current Ratio, Quick Ratio, and Cash Ratio. Visualizing these metrics over time, the report makes it easy to track trends and assess the company’s liquidity position.';
 
     layout

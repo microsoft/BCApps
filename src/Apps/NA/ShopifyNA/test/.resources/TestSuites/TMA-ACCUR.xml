@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Root>
+    <AITSuite Code="TMA-ACCUR"
+              Description="Shopify Tax Matching Agent - Accuracy (generated, large)"
+              Dataset="TMA-Setup.yaml"
+              Capability="Shopify Tax Matching Agent"
+              Frequency="Weekly"
+              TestRunnerId="130451"
+              TestType="Copilot">
+        <Line CodeunitID="134717"
+              Description="Accuracy - US jurisdictions (generated, batch 1)"
+              Dataset="TMA-TS-AccUS-1.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - US jurisdictions (generated, batch 2)"
+              Dataset="TMA-TS-AccUS-2.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - Canada jurisdictions (generated)"
+              Dataset="TMA-TS-AccCA.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - US real-world (Shopify titles, real jurisdictions)"
+              Dataset="TMA-TS-RealUS.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - Canada real-world (Shopify titles, real jurisdictions)"
+              Dataset="TMA-TS-RealCA.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - held-out generalization (unusual official names not in prompt)"
+              Dataset="TMA-TS-Heldout.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - traps / false-positive (no-match-correct with distractors)"
+              Dataset="TMA-TS-Traps.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - adversarial hard mode (homonyms, geo/substring traps, code-vs-desc, truncation)"
+              Dataset="TMA-TS-Hard.yaml" />
+    </AITSuite>
+</Root>

@@ -11,8 +11,8 @@ page 37118 "Purchase Quote Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchase Quote Overview';
-    AboutTitle = 'About Purchase Quote Overview';
+    Caption = 'Purchase Quote Overview (Power BI)';
+    AboutTitle = 'About Purchase Quote Overview (Power BI)';
     AboutText = 'The Purchase Quote Overview provides detailed information on purchase quotes, including the number of quotes, total value,  purchase quantities, and purchase amount over time.';
 
     layout

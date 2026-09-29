@@ -130,6 +130,35 @@ codeunit 4307 "Agent Message"
 #endif
 
     /// <summary>
+    /// Sets the message status to failed, to indicate that delivery of the output message failed terminally.
+    /// Only a reviewed output message, or one that already failed, can be set to failed.
+    /// </summary>
+    /// <param name="TaskID">The task ID of the message.</param>
+    /// <param name="MessageID">The unique identifier of the message.</param>
+    /// <param name="StatusReason">The reason the message could not be delivered. It is shown to the user and recorded on the agent task log entry.</param>
+    procedure SetStatusToFailed(TaskID: BigInteger; MessageID: Guid; StatusReason: Text[250])
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentMessageImpl.SetStatusToFailed(TaskID, MessageID, StatusReason);
+    end;
+
+    /// <summary>
+    /// Sets the message status back to reviewed, so that delivery of a failed output message can be attempted again.
+    /// The status reason of the previous failure is cleared.
+    /// </summary>
+    /// <param name="TaskID">The task ID of the message.</param>
+    /// <param name="MessageID">The unique identifier of the message.</param>
+    procedure SetStatusToReviewed(TaskID: BigInteger; MessageID: Guid)
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentMessageImpl.SetStatusToReviewed(TaskID, MessageID);
+    end;
+
+    /// <summary>
     /// Add an attachment to the task message.
     /// </summary>
     /// <param name="FileName">The name of the file to be attached.</param>

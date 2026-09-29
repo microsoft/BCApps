@@ -422,7 +422,6 @@ codeunit 147305 "Cartera Posting"
     procedure SalesUnrealVATPayToSeveralBillsAndApplyPostedEntries()
     begin
         exit; // VSTF 54637
-        SalesUnrealVATPayToSeveralBills(false);
     end;
 
     [Test]
@@ -430,7 +429,6 @@ codeunit 147305 "Cartera Posting"
     procedure SalesUnrealVATApplyFromJournalPayToSeveralBills()
     begin
         exit; // VSTF 54637
-        SalesUnrealVATPayToSeveralBills(true);
     end;
 
     [Test]
@@ -1595,6 +1593,76 @@ codeunit 147305 "Cartera Posting"
         GLEntry.FindFirst();
         Assert.IsTrue(GLEntry."Credit Amount" > 0,
             StrSubstNo(FieldErr, GLEntry.FieldCaption("Credit Amount"), GLEntry.TableCaption()));
+    end;
+
+    [Test]
+    procedure BillCustLedgEntryUsesAlternativePostingGroupFromSalesInvoice()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        CustomerPostingGroup2: Record "Customer Posting Group";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 644753] Bill Customer Ledger Entries use the alternative Customer Posting Group set on the Sales Document
+        // instead of the customer's default Customer Posting Group when creating bills.
+        Initialize();
+
+        // [GIVEN] Enable "Allow Multiple Posting Groups" in Sales & Receivables Setup.
+        SetSalesAllowMultiplePostingGroups(true);
+
+        // [GIVEN] Create a customer with a bill-creating (Cartera) payment method and "Allow Multiple Posting Groups" enabled.
+        CreateCustomerWithAllowMultiplePostingGroups(Customer, true);
+
+        // [GIVEN] Create an alternative Customer Posting Group linked to the customer's default posting group.
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup2);
+        LibrarySales.CreateAltCustomerPostingGroup(Customer."Customer Posting Group", CustomerPostingGroup2.Code);
+
+        // [GIVEN] Create a sales invoice and set the alternative Customer Posting Group on the Sales Document.
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Customer Posting Group", CustomerPostingGroup2.Code);
+        SalesHeader.Modify(true);
+
+        // [WHEN] Post the sales invoice (splitting it into bills).
+        SalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The created Bill Customer Ledger Entry uses the alternative Customer Posting Group from the Sales Document.
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Bill, SalesInvoiceNo);
+        Assert.AreEqual(
+            CustomerPostingGroup2.Code,
+            CustLedgerEntry."Customer Posting Group",
+            StrSubstNo(
+                FieldErr, CustLedgerEntry.FieldCaption("Customer Posting Group"), CustLedgerEntry.TableCaption()));
+    end;
+
+    [Test]
+    procedure BillCustLedgEntryKeepsDefaultPostingGroupWhenNoAlternativeUsed()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 644753] When no alternative Customer Posting Group is used on the Sales Document, the Bill
+        // Customer Ledger Entry keeps the customer's default Customer Posting Group (previous behavior is not affected).
+        Initialize();
+
+        // [GIVEN] A customer with a bill-creating (Cartera) payment method and its default Customer Posting Group.
+        LibraryCarteraReceivables.CreateCarteraCustomer(Customer, '');
+
+        // [GIVEN] A sales invoice created without changing the Customer Posting Group.
+        LibraryCarteraReceivables.CreateSalesInvoice(SalesHeader, Customer."No.");
+
+        // [WHEN] Post the sales invoice (splitting it into a bill).
+        SalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The Bill Customer Ledger Entry uses the customer's default Customer Posting Group.
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Bill, SalesInvoiceNo);
+        Assert.AreEqual(
+            Customer."Customer Posting Group",
+            CustLedgerEntry."Customer Posting Group",
+            StrSubstNo(
+                FieldErr, CustLedgerEntry.FieldCaption("Customer Posting Group"), CustLedgerEntry.TableCaption()));
     end;
 
     local procedure Initialize()
@@ -2980,42 +3048,6 @@ codeunit 147305 "Cartera Posting"
           VATPostingSetup."Purch. VAT Unreal. Account", VATPostingSetup."Sales VAT Unreal. Account");
     end;
 
-    local procedure SalesUnrealVATPayToSeveralBills(ApplyFromGenJnlLine: Boolean)
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        PaymentTerms: Record "Payment Terms";
-        GenJnlLine: Record "Gen. Journal Line";
-        CustNo: Code[20];
-        InvoiceNo: Code[20];
-        BillNo: array[2] of Code[20];
-        PayNo: Code[20];
-        InvAmount: Decimal;
-        BillAmount: array[2] of Decimal;
-        PayAmount: Decimal;
-    begin
-        Initialize();
-        UpdateGenLedgVATSetup(true);
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        UpdateUnrealVATPostingSetup(
-          VATPostingSetup, VATPostingSetup."Unrealized VAT Type"::Percentage, LibraryERM.CreateGLAccountNo(), LibraryERM.CreateGLAccountNo());
-
-        CustNo :=
-          CreateCustWithPaymentTermsAndVATGroup(PaymentTerms."VAT distribution"::Proportional, VATPostingSetup."VAT Bus. Posting Group");
-        InvoiceNo :=
-          CreatePostSalesInvoiceWithVATGroup(InvAmount, CustNo, VATPostingSetup."VAT Prod. Posting Group");
-        CreateApplyPostSeveralBillsToInvoice(
-          BillNo, BillAmount, GenJnlLine."Account Type"::Customer, CustNo, InvoiceNo, InvAmount);
-        PayAmount := -InvAmount;
-        PayNo :=
-          CreatePostPaymentToSeveralBills(
-            GenJnlLine."Account Type"::Customer, CustNo, InvoiceNo, BillNo, PayAmount, ApplyFromGenJnlLine);
-
-        CalcAmtAndVerifyMultipleEntries(VATPostingSetup, CustNo, PayNo, InvAmount, BillAmount);
-
-        UpdateUnrealVATPostingSetup(VATPostingSetup, VATPostingSetup."Unrealized VAT Type",
-          VATPostingSetup."Purch. VAT Unreal. Account", VATPostingSetup."Sales VAT Unreal. Account");
-    end;
-
     local procedure PurchUnrealVATPayToSeveralBills(ApplyFromGenJnlLine: Boolean)
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -3602,6 +3634,15 @@ codeunit 147305 "Cartera Posting"
         LibraryERM.PostCustLedgerApplication(CustLedgerEntry);
     end;
 
+    local procedure CreateCustomerWithAllowMultiplePostingGroups(var Customer: Record Customer; AllowMultiplePostingGroups: Boolean)
+    begin
+        CreateCustomer(Customer);
+        if not AllowMultiplePostingGroups then
+            exit;
+        Customer.Validate("Allow Multiple Posting Groups", AllowMultiplePostingGroups);
+        Customer.Modify(true);
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ApplyCustEntriesHandler(var ApplyCustEntries: TestPage "Apply Customer Entries")
@@ -3624,4 +3665,3 @@ codeunit 147305 "Cartera Posting"
         ApplyVendEntries.OK().Invoke();
     end;
 }
-

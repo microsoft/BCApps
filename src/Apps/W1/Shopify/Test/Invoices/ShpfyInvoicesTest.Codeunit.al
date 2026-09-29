@@ -542,7 +542,11 @@ codeunit 139695 "Shpfy Invoices Test"
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryInventory.CreateItem(Item);
+        LibraryInventory.SetAutomaticCostAdjmtNever();
         LibrarySales.CreateCustomer(Customer);
+        InitializeTest.CreateVATPostingSetup(
+            Customer."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group",
+            Customer."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
         ShopifyCustomerTemplate.DeleteAll(false);
         InvoiceHeader.DeleteAll(false);
         DocLinkToBCDoc.DeleteAll(false);

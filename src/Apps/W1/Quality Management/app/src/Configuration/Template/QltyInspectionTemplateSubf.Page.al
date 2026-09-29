@@ -552,6 +552,9 @@ page 20403 "Qlty. Inspection Template Subf"
         RowStyleText := Format(RowStyle);
     end;
 
+    /// <summary>
+    /// Loads promoted result data and updates cell editability for the current template line.
+    /// </summary>
     local procedure UpdateRowData()
     var
         DummyMatrixArrayCaptionSet: array[10] of Text;
@@ -584,6 +587,10 @@ page 20403 "Qlty. Inspection Template Subf"
         IsExpressionFormulaEditable := Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Text Expression";
     end;
 
+    /// <summary>
+    /// Persists a matrix condition and keeps an identical condition description synchronized.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -606,6 +613,10 @@ page 20403 "Qlty. Inspection Template Subf"
         CurrPage.Update(true);
     end;
 
+    /// <summary>
+    /// Persists a matrix condition description.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -624,7 +635,7 @@ page 20403 "Qlty. Inspection Template Subf"
     /// <summary>
     /// Starts the assist-edit dialog for the result condition description.
     /// </summary>
-    /// <param name="Matrix"></param>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -642,7 +653,7 @@ page 20403 "Qlty. Inspection Template Subf"
     /// <summary>
     /// Starts the assist edit dialog for the result condition description
     /// </summary>
-    /// <param name="Matrix"></param>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";

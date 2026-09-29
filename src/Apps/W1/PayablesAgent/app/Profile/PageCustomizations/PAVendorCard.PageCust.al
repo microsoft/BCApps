@@ -19,7 +19,7 @@ pagecustomization "PA Vendor Card" customizes "Vendor Card"
     {
         modify(Invoicing)
         {
-            Visible = false; // VAT information is to difficult to validate currently.
+            Visible = true;
         }
         modify(VendorStatisticsFactBox)
         {

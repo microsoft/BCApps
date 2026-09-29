@@ -190,6 +190,9 @@ table 5407 "Prod. Order Component"
             begin
                 UpdateExpectedQuantity();
 
+                if IsTemporary() then
+                    exit;
+
                 ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
 
                 IsHandled := false;
@@ -230,8 +233,8 @@ table 5407 "Prod. Order Component"
                                 ProdOrderLine."Location Code");
                                 Validate("Location Code", SKU."Components at Location");
 #endif
+                            end;
                         end;
-                    end;
                 end;
                 if Format("Lead-Time Offset") <> '' then begin
                     "Due Date" :=
@@ -1291,8 +1294,14 @@ table 5407 "Prod. Order Component"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
         NeededQty: Decimal;
+        IsHandled: Boolean;
     begin
-        ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
+        OnBeforeGetProdOrderNeeds(Rec, ProdOrderLine, IsHandled);
+        if IsHandled then
+            exit;
+
+        if ProdOrderLine."Prod. Order No." = '' then
+            ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
 
         if "Due Date" = 0D then begin
             "Due Date" := ProdOrderLine."Starting Date";
@@ -1538,9 +1547,11 @@ table 5407 "Prod. Order Component"
         ProdOrderLine: Record "Prod. Order Line";
         IsHandled: Boolean;
     begin
-        IsHandled := false;
         OnBeforeCreateDim(Rec, DefaultDimSource, CurrFieldNo, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         SourceCodeSetup.Get();
@@ -1766,10 +1777,12 @@ table 5407 "Prod. Order Component"
     begin
         OnBeforeGetDefaultConsumptionBin(Rec, ProdOrderRtngLine, BinCode);
 
-        ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
-        if "Location Code" = ProdOrderLine."Location Code" then
-            if FindFirstRtngLine(ProdOrderRtngLine, ProdOrderLine) then
-                BinCode := GetBinCodeFromRtngLine(ProdOrderRtngLine);
+        if not IsTemporary() then begin
+            ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
+            if "Location Code" = ProdOrderLine."Location Code" then
+                if FindFirstRtngLine(ProdOrderRtngLine, ProdOrderLine) then
+                    BinCode := GetBinCodeFromRtngLine(ProdOrderRtngLine);
+        end;
 
         OnGetDefaultConsumptionBinOnAfterGetBinCodeFromRtngLine(Rec, ProdOrderRtngLine, BinCode);
         if BinCode <> '' then
@@ -1898,9 +1911,11 @@ table 5407 "Prod. Order Component"
         ProdOrderComp2: Record "Prod. Order Component";
         OverwriteBinCode, IsHandled : Boolean;
     begin
-        IsHandled := false;
         OnBeforeUpdateBin(ProdOrderComp, FieldNo, FieldCaption, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         ProdOrderComp2 := ProdOrderComp;
@@ -2210,6 +2225,8 @@ table 5407 "Prod. Order Component"
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
     begin
+        if IsTemporary() then
+            exit;
         InitDefaultDimensionSources(DefaultDimSource);
         CreateDim(DefaultDimSource);
     end;
@@ -2670,5 +2687,9 @@ table 5407 "Prod. Order Component"
     local procedure OnBeforeCreateDim(var ProdOrderComponent: Record "Prod. Order Component"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetProdOrderNeeds(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
+    end;
+}

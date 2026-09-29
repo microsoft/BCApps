@@ -91,6 +91,13 @@ codeunit 139942 "Qlty. Prod. Order Generator"
         LibrarySales.SetOrderNoSeriesInSetup();
     end;
 
+    /// <summary>
+    /// Creates a Purchase Order for the provided vendor and item, ensures related VAT posting setup exists, and adds
+    /// a single line with a quantity of 4 and a low direct unit cost. Intended for VAT-sensitive test setups.
+    /// </summary>
+    /// <param name="PurchaseHeader">The created purchase order header.</param>
+    /// <param name="Vendor">The vendor used for the purchase order.</param>
+    /// <param name="Item">The item placed on the purchase line.</param>
     internal procedure CreatePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; var Vendor: Record vendor; var Item: Record Item)
     var
         PurchaseLine: Record "Purchase Line";
@@ -104,11 +111,12 @@ codeunit 139942 "Qlty. Prod. Order Generator"
     end;
 
     /// <summary>
-    /// Creates Item and Production Order
+    /// Creates a randomized Item (with BOM, routing and VAT posting) and a released Production Order for that item,
+    /// then returns the item, order and the last routing line of the order.
     /// </summary>
-    /// <param name="OutItem"></param>
-    /// <param name="OutProdProductionOrder"></param>
-    /// <param name="OutProdOrderRoutingLine"></param>
+    /// <param name="OutItem">The created item.</param>
+    /// <param name="OutProdProductionOrder">The created production order.</param>
+    /// <param name="OutProdOrderRoutingLine">The last routing line of the created production order.</param>
     internal procedure CreateItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
@@ -146,11 +154,12 @@ codeunit 139942 "Qlty. Prod. Order Generator"
     end;
 
     /// <summary>
-    /// Creates Lot-Tracked Item and Production Order
+    /// Creates a lot-tracked Item and a Production Order for it using the generator's currently configured status (Released by default),
+    /// returning the item, order and its last routing line.
     /// </summary>
-    /// <param name="OutItem"></param>
-    /// <param name="OutProdProductionOrder"></param>
-    /// <param name="OutProdOrderRoutingLine"></param>
+    /// <param name="OutItem">The created lot-tracked item.</param>
+    /// <param name="OutProdProductionOrder">The created production order.</param>
+    /// <param name="OutProdOrderRoutingLine">The last routing line of the created production order.</param>
     internal procedure CreateLotTrackedItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
@@ -159,11 +168,13 @@ codeunit 139942 "Qlty. Prod. Order Generator"
     end;
 
     /// <summary>
-    /// Creates Lot-Tracked Item and Production Order
+    /// Creates a lot-tracked Item and a Production Order for it with the specified status, returning the item, order
+    /// and its last routing line.
     /// </summary>
-    /// <param name="OutItem"></param>
-    /// <param name="OutProdProductionOrder"></param>
-    /// <param name="OutProdOrderRoutingLine"></param>
+    /// <param name="ProdOrderStatusToCreate">The status to create the production order with.</param>
+    /// <param name="OutItem">The created lot-tracked item.</param>
+    /// <param name="OutProdProductionOrder">The created production order.</param>
+    /// <param name="OutProdOrderRoutingLine">The last routing line of the created production order.</param>
     internal procedure CreateLotTrackedItemAndProductionOrder(ProdOrderStatusToCreate: Enum "Production Order Status"; var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
@@ -180,11 +191,26 @@ codeunit 139942 "Qlty. Prod. Order Generator"
         OutItem.Get(OutProdProductionOrder."Source No.");
     end;
 
+    /// <summary>
+    /// Creates a Prod. Order Line for the given production order and item with the requested quantity.
+    /// </summary>
+    /// <param name="ProdProductionOrder">The production order the line belongs to.</param>
+    /// <param name="Item">The item to place on the line.</param>
+    /// <param name="Qty">The quantity for the new line.</param>
+    /// <param name="OutProdOrderLine">The created Prod. Order Line.</param>
     internal procedure CreateProdOrderLine(var ProdProductionOrder: Record "Production Order"; var Item: Record Item; Qty: Decimal; var OutProdOrderLine: Record "Prod. Order Line")
     begin
         LibraryManufacturing.CreateProdOrderLine(OutProdOrderLine, ProdProductionOrder.Status, ProdProductionOrder."No.", Item."No.", '', '', Qty);
     end;
 
+    /// <summary>
+    /// Creates an output journal line targeting the specified production order line, with the requested output quantity.
+    /// </summary>
+    /// <param name="Item">The item that was produced.</param>
+    /// <param name="ProdOrderLine">The production order line to post output against.</param>
+    /// <param name="ItemJournalBatch">The item journal batch to use.</param>
+    /// <param name="OutItemJournalLine">The created item journal line.</param>
+    /// <param name="OutputQty">The output quantity to record on the journal line.</param>
     internal procedure CreateOutputJournal(var Item: Record Item; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalBatch: Record "Item Journal Batch"; var OutItemJournalLine: Record "Item Journal Line"; OutputQty: Decimal)
     var
         ItemJournalTemplate: Record "Item Journal Template";
@@ -196,13 +222,20 @@ codeunit 139942 "Qlty. Prod. Order Generator"
         OutItemJournalLine.Modify();
     end;
 
+    /// <summary>
+    /// Sets up Value-Added-Tax for testing in blank companies using empty bus./prod. posting groups.
+    /// </summary>
     internal procedure SetupVAT()
     begin
         SetupVAT('', '');
     end;
+
     /// <summary>
-    /// Sets up Value-Added-Tax for testing in blank companies.
+    /// Sets up Value-Added-Tax for testing in blank companies, ensuring the required product posting group, an
+    /// optional business posting group, and a matching VAT posting setup all exist.
     /// </summary>
+    /// <param name="VATBusPostingGroup">Optional VAT business posting group code; pass empty to skip business-group linkage.</param>
+    /// <param name="VATProdPostingGroup">Optional VAT product posting group code used together with VATBusPostingGroup.</param>
     internal procedure SetupVAT(VATBusPostingGroup: Text; VATProdPostingGroup: Text)
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -312,6 +345,11 @@ codeunit 139942 "Qlty. Prod. Order Generator"
         end;
     end;
 
+    /// <summary>
+    /// Creates a randomized Item with BOM, serial routing and VAT product posting group configured for use as a
+    /// production output item.
+    /// </summary>
+    /// <param name="Item">The item to initialize; the record is inserted and updated with routing, replenishment and VAT setup.</param>
     internal procedure CreateItem(var Item: Record "Item")
     var
         RoutingHeader: Record "Routing Header";
@@ -328,6 +366,11 @@ codeunit 139942 "Qlty. Prod. Order Generator"
         SetupVAT();
     end;
 
+    /// <summary>
+    /// Creates a lot-tracked Item with BOM, serial routing and VAT product posting group configured for use as a
+    /// production output item.
+    /// </summary>
+    /// <param name="Item">The item to initialize; created lot-tracked and updated with routing, replenishment and VAT setup.</param>
     internal procedure CreateLotTrackedItem(var Item: Record "Item")
     var
         RoutingHeader: Record "Routing Header";
@@ -436,6 +479,11 @@ codeunit 139942 "Qlty. Prod. Order Generator"
         RoutingLine.Modify();
     end;
 
+    /// <summary>
+    /// Overrides the quantity that <see cref="Generate"/>-family procedures use when creating item-source production orders.
+    /// A value of zero (the default) means "use quantity 1".
+    /// </summary>
+    /// <param name="Quantity">The quantity to place on generated production orders.</param>
     internal procedure SetQuantity(Quantity: Decimal)
     begin
         QuantityToCreate := Quantity;

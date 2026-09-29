@@ -11,8 +11,8 @@ page 37003 "Sales Month-To-Date"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Month-To-Date';
-    AboutTitle = 'About Sales Month-To-Date';
+    Caption = 'Sales Month-To-Date (Power BI)';
+    AboutTitle = 'About Sales Month-To-Date (Power BI)';
     AboutText = 'The Sales Month-to-Date report tracks the accumulation of sales amounts throughout the current month, providing insights into progress and performance up to the present date.';
 
     layout

@@ -313,7 +313,7 @@ codeunit 134835 "Test Item Lookup"
 
         // Excercise
         SalesQuote.SalesLines.New();
-        SalesQuote.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatType());
+        SalesQuote.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatTypeAsText());
         SalesQuote.SalesLines.Description.SetValue(NoneExixtingItemNo);
 
         // Verify
@@ -360,7 +360,7 @@ codeunit 134835 "Test Item Lookup"
 
         // Excercise
         SalesInvoice.SalesLines.New();
-        SalesInvoice.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatTypeAsText());
         SalesInvoice.SalesLines.Description.SetValue(NoneExixtingItemNo);
 
         // Verify
@@ -407,7 +407,7 @@ codeunit 134835 "Test Item Lookup"
 
         // Excercise
         SalesOrder.SalesLines.New();
-        SalesOrder.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatType());
+        SalesOrder.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatTypeAsText());
         SalesOrder.SalesLines.Description.SetValue(NoneExixtingItemNo);
 
         // Verify
@@ -454,7 +454,7 @@ codeunit 134835 "Test Item Lookup"
 
         // Excercise
         SalesCreditMemo.SalesLines.New();
-        SalesCreditMemo.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatType());
+        SalesCreditMemo.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatTypeAsText());
         SalesCreditMemo.SalesLines.Description.SetValue(NoneExixtingItemNo);
 
         // Verify
@@ -702,7 +702,7 @@ codeunit 134835 "Test Item Lookup"
 
         // Excercise
         PurchaseInvoice.PurchLines.New();
-        PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatType());
+        PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatTypeAsText());
         PurchaseInvoice.PurchLines.Description.SetValue(NoneExixtingItemNo);
 
         // Verify
@@ -749,7 +749,7 @@ codeunit 134835 "Test Item Lookup"
 
         // Excercise
         PurchaseCreditMemo.PurchLines.New();
-        PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatType());
+        PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatTypeAsText());
         PurchaseCreditMemo.PurchLines.Description.SetValue(NoneExixtingItemNo);
 
         // Verify

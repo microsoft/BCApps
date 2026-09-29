@@ -11,8 +11,8 @@ page 37064 "Inventory Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory Report';
-    AboutTitle = 'About Inventory Report';
+    Caption = 'Inventory Report (Power BI)';
+    AboutTitle = 'About Inventory Report (Power BI)';
     AboutText = 'The Inventory Report offers a consolidated view of all inventory report pages, conveniently embedded into a single page for easy access.';
 
     layout

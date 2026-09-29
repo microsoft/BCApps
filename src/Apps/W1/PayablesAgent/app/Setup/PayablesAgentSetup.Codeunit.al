@@ -17,11 +17,13 @@ using System.Agents;
 using System.AI;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
+using System.Config;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.Encryption;
 using System.Security.User;
 
 codeunit 3307 "Payables Agent Setup"
@@ -168,7 +170,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup.TransferFields(TempPayablesAgentSetup, false);
 
         if not PASetupConfiguration.GetSkipAgentConfiguration() then // Skipping the agent's configuration is valid in tests
-            PayablesAgentSetup."User Security Id" := ApplyAgentSetup(PASetupConfiguration);
+            PayablesAgentSetup."User Security Id" := ApplyAgentSetup(PASetupConfiguration, PayablesAgentSetup."Applied Instr. Config Hash");
 
         // We apply the changes to the E-Document Service related records
         PayablesAgentSetup."E-Document Service Code" := ApplyEDocumentServiceSetup(PASetupConfiguration, EmailAccountChanged);
@@ -199,10 +201,22 @@ codeunit 3307 "Payables Agent Setup"
     /// <param name="Agent">Record where the Agent is loaded, if it exists</param>
     /// <returns>True if an Agent was found, false otherwise</returns>
     procedure GetAgent(var Agent: Record Agent): Boolean
+    begin
+        exit(GetAgent(Agent, true));
+    end;
+
+    /// <summary>
+    /// Retrieves the agent record if configured in the database, and optionally ensures that the Payables Agent setup record is updated with the correct user security id. 
+    /// </summary>
+    /// <param name="Agent">Record where the Agent is loaded, if it exists</param>
+    /// <param name="UpdateSetup">If true, the Payables Agent Setup record will be updated with the correct user security id if it was not configured or was invalid</param>
+    /// <returns>True if an Agent was found, false otherwise</returns>
+    procedure GetAgent(var Agent: Record Agent; UpdateSetup: Boolean): Boolean
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
     begin
-        PayablesAgentSetup.GetSetup();
+        // When the setup record does not exist and we are not allowed to create it, we continue with a blank record, so the agent can still be located by user name.
+        if PayablesAgentSetup.GetSetup(UpdateSetup) then;
         // We attempt to find the agent by the security id stored in the setup record.
         if Agent.Get(PayablesAgentSetup."User Security Id") then
             exit(true);
@@ -213,24 +227,46 @@ codeunit 3307 "Payables Agent Setup"
         Agent.SetRange("User Name", AgentUserName());
         if Agent.FindFirst() then
             PayablesAgentSetup."User Security Id" := Agent."User Security ID";
-        PayablesAgentSetup.Modify();
+        if UpdateSetup then
+            PayablesAgentSetup.Modify();
         exit(not IsNullGuid(Agent."User Security ID"));
     end;
 
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
     var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        Agent: Codeunit Agent;
-        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
-        PayablesAgentPromptText: Text;
-        PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
-        SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
-        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
+        PayablesAgentSetup: Record "Payables Agent Setup";
+        NewConfigHash: Text[64];
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
 
-        PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
+        NewConfigHash := ApplyAgentInstructions(AgentUserSecurityId);
+
+        PayablesAgentSetup.GetSetup();
+        if PayablesAgentSetup."Applied Instr. Config Hash" <> NewConfigHash then begin
+            PayablesAgentSetup."Applied Instr. Config Hash" := NewConfigHash;
+            PayablesAgentSetup.Modify();
+        end;
+    end;
+
+    /// <summary>
+    /// Applies the agent instructions for the given user and returns the configuration hash that was used.
+    /// This helper does NOT modify the Payables Agent Setup record, allowing callers that already hold
+    /// a loaded record (such as ApplyPayablesAgentSetup) to persist the hash themselves in a single Modify().
+    /// </summary>
+    local procedure ApplyAgentInstructions(AgentUserSecurityId: Guid) ConfigHash: Text[64]
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        Agent: Codeunit Agent;
+        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
+        PayablesAgentPromptText: Text;
+        AgentDriven: Boolean;
+    begin
+        AgentDriven := IsAgentDrivenLineMatchingEnabled();
+        if AgentDriven then
+            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentAgentDrivenPromptTok, TextEncoding::UTF8)
+        else
+            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
             CompletePromptSecretText := SecretText.SecretStrSubstNo(PayablesAgentPromptText, SecurityPromptSecretText)
         else begin
@@ -238,6 +274,77 @@ codeunit 3307 "Payables Agent Setup"
             Error(UnableToConfigureAgentInstructionsErr);
         end;
         Agent.SetInstructions(AgentUserSecurityId, CompletePromptSecretText);
+
+        ConfigHash := CopyStr(GetInstructionsConfigHash(), 1, MaxStrLen(ConfigHash));
+    end;
+
+    /// <summary>
+    /// Feature-specific resolver for the agent-driven line-matching experiment, used to select the prompt variant.
+    /// </summary>
+    internal procedure IsAgentDrivenLineMatchingEnabled(): Boolean
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+    begin
+        exit(FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok);
+    end;
+
+    /// <summary>
+    /// Reconciles the agent's persisted instructions with the current experiment configuration.
+    /// The agent instructions are set once (at creation/upgrade), but tenant-level ECS experiments can change
+    /// independently; this reapplies the instructions when the configuration that produced them has drifted.
+    /// Cheap on the common path: it only reloads instructions when the config hash has actually changed.
+    /// </summary>
+    internal procedure EnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        if IsNullGuid(AgentUserSecurityId) then
+            exit;
+        PayablesAgentSetup.GetSetup();
+        if PayablesAgentSetup."Applied Instr. Config Hash" = GetInstructionsConfigHash() then
+            exit;
+        Session.LogMessage('0000SEK', 'Payables Agent instructions reapplied due to experiment configuration drift.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureName());
+        SetAgentInstructions(AgentUserSecurityId);
+    end;
+
+    /// <summary>
+    /// Non-throwing wrapper around EnsureAgentInstructionsMatchConfiguration for callers on a critical path
+    /// (e.g. the e-document import event subscriber) where an instruction-refresh failure must not abort the
+    /// host operation. Returns false on failure so the caller can log and continue with existing instructions.
+    /// </summary>
+    [TryFunction]
+    internal procedure TryEnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
+    begin
+        EnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId);
+    end;
+
+    /// <summary>
+    /// Fingerprint of every tenant-level experiment configuration that influences the agent's instructions.
+    /// Generic on purpose: a future prompt-affecting experiment only needs its key added to
+    /// GetInstructionsExperimentKeys (and its value consumed in prompt selection) — no new setup field required.
+    /// </summary>
+    internal procedure GetInstructionsConfigHash(): Text
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+        CryptographyManagement: Codeunit "Cryptography Management";
+        ConfigKey: Text;
+        Signature: TextBuilder;
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+    begin
+        foreach ConfigKey in GetInstructionsExperimentKeys() do begin
+            Signature.Append(ConfigKey);
+            Signature.Append('=');
+            Signature.Append(FeatureConfiguration.GetConfiguration(ConfigKey));
+            Signature.Append(';');
+        end;
+        exit(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256));
+    end;
+
+    local procedure GetInstructionsExperimentKeys() Keys: List of [Text]
+    begin
+        // Tenant-level experiment keys whose ECS configuration changes the agent's instructions.
+        // Add future prompt-affecting experiment keys here.
+        Keys.Add(AgentDrivenLineMatchingTok);
     end;
 
     internal procedure CanShowAgentActions(): Boolean
@@ -287,7 +394,6 @@ codeunit 3307 "Payables Agent Setup"
         end;
     end;
 
-
     /// <summary>
     /// Returns true if a new Payables Agent can be created.
     /// Blocked if an agent already exists. Otherwise allowed for SUPER users
@@ -307,7 +413,7 @@ codeunit 3307 "Payables Agent Setup"
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
 
-        if PayablesAgentSetup.GetAgent(Agent) then
+        if PayablesAgentSetup.GetAgent(Agent, false) then
             exit(false);
 
         // No payables agent exists
@@ -335,7 +441,7 @@ codeunit 3307 "Payables Agent Setup"
         exit(AgentSummaryLbl);
     end;
 
-    local procedure ApplyAgentSetup(var PASetupConfiguration: Codeunit "PA Setup Configuration"): Guid
+    local procedure ApplyAgentSetup(var PASetupConfiguration: Codeunit "PA Setup Configuration"; var AppliedInstrConfigHash: Text[64]): Guid
     var
         AgentAdminPS: Record "Aggregate Permission Set";
         AccessControl: Record "Access Control";
@@ -364,7 +470,10 @@ codeunit 3307 "Payables Agent Setup"
                         UserPermissions.AssignPermissionSets(TempModifiedAgentAccessControl."User Security ID", CompanyName(), AgentAdminPS);
             until TempModifiedAgentAccessControl.Next() = 0;
 
-        SetAgentInstructions(AgentUserId);
+        // Apply agent instructions and capture the hash; the outer ApplyPayablesAgentSetup persists it
+        // in the single final Modify() so there is no nested row modification of Payables Agent Setup.
+        if not IsNullGuid(AgentUserId) then
+            AppliedInstrConfigHash := ApplyAgentInstructions(AgentUserId);
         exit(AgentUserId);
     end;
 
@@ -720,4 +829,10 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         TrialModeInitializedTok: Label 'Trial mode initialized for Payables Agent', Locked = true;
+        PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
+        PayablesAgentAgentDrivenPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
+        SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
+        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
+        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
+        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 }

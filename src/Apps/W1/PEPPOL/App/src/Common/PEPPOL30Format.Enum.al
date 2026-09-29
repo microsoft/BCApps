@@ -23,6 +23,16 @@ enum 37200 "PEPPOL 3.0 Format" implements "PEPPOL Attachment Provider",
                             "PEPPOL Party Info Provider" = "PEPPOL30",
                             "PEPPOL Payment Info Provider" = "PEPPOL30",
                             "PEPPOL Tax Info Provider" = "PEPPOL30";
+    UnknownValueImplementation = "PEPPOL Attachment Provider" = "PEPPOL30",
+                                 "PEPPOL Delivery Info Provider" = "PEPPOL30",
+                                 "PEPPOL Document Info Provider" = "PEPPOL30",
+                                 "PEPPOL Line Info Provider" = "PEPPOL30",
+                                 "PEPPOL Monetary Info Provider" = "PEPPOL30",
+                                 "PEPPOL Party Info Provider" = "PEPPOL30",
+                                 "PEPPOL Payment Info Provider" = "PEPPOL30",
+                                 "PEPPOL Posted Document Iterator" = "PEPPOL30 Unknown Format",
+                                 "PEPPOL Tax Info Provider" = "PEPPOL30",
+                                 "PEPPOL30 Validation" = "PEPPOL30 Unknown Format";
     Extensible = true;
 
     value(0; "PEPPOL 3.0 - Sales")

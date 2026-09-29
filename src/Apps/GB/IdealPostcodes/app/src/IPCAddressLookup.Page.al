@@ -24,16 +24,19 @@ page 9402 "IPC Address Lookup"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies street address';
+                    Visible = false;
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies city or town';
+                    Visible = false;
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies post code';
+                    Visible = false;
                 }
             }
         }

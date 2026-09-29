@@ -204,35 +204,6 @@ page 30060 "APIV2 - Vendor Payments"
 
     }
 
-    trigger OnFindRecord(Which: Text): Boolean
-    var
-        NextRecNotFound: Boolean;
-    begin
-        if not Rec.Find(Which) then
-            exit(false);
-
-        if ShowRecord() then
-            exit(true);
-
-        repeat
-            NextRecNotFound := Rec.Next() <= 0;
-            if ShowRecord() then
-                exit(true);
-        until NextRecNotFound;
-
-        exit(false);
-    end;
-
-    trigger OnNextRecord(Steps: Integer): Integer
-    var
-        ResultSteps: Integer;
-    begin
-        repeat
-            ResultSteps := Rec.Next(Steps);
-        until (ResultSteps = 0) or ShowRecord();
-        exit(ResultSteps);
-    end;
-
     trigger OnAfterGetCurrRecord()
     begin
         if not FiltersChecked then begin
@@ -346,7 +317,10 @@ page 30060 "APIV2 - Vendor Payments"
 
     local procedure SetCalculatedFields()
     begin
-        AppliesToInvoiceNumberText := Rec."Applies-to Doc. No.";
+        if Rec."Applies-to Doc. Type" = Rec."Applies-to Doc. Type"::Invoice then
+            AppliesToInvoiceNumberText := Rec."Applies-to Doc. No."
+        else
+            AppliesToInvoiceNumberText := '';
         AppliesToInvoiceIdText := Rec."Applies-to Invoice Id";
     end;
 
@@ -369,10 +343,5 @@ page 30060 "APIV2 - Vendor Payments"
            (Rec.GetFilter(SystemId) = '')
         then
             Error(FiltersNotSpecifiedErr);
-    end;
-
-    local procedure ShowRecord(): Boolean
-    begin
-        exit((Rec."Applies-to Doc. Type" = Rec."Applies-to Doc. Type"::Invoice) or (Rec."Applies-to ID" <> ''));
     end;
 }

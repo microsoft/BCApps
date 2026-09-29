@@ -22,6 +22,7 @@
         CannotBeLessThanMsg: Label 'cannot be less than %1', Comment = '.';
         CannotBeMoreThanMsg: Label 'cannot be more than %1', Comment = '.';
         UnitPriceModifyMsg: Label 'must be %1 when the Prepayment Invoice has already been posted', Comment = 'starts with a field name; %1 - numeric value';
+        PrepmtAmtToDeductMisalignedErr: Label 'Prepmt Amt to Deduct must stay aligned with the posted prepayment after toggling Qty. to Invoice.';
 
     [Test]
     [Scope('OnPrem')]
@@ -809,6 +810,57 @@
         PostSalesPrepmtInvoice(SalesHeaderOrder);
 
         VerifyDescriptionOnPostedInvoiceRoundingLine(SalesHeaderOrder);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PrepmtAmtToDeductStableWhenTogglingQtyToInvoice()
+    var
+        SalesOrderHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Header";
+        SalesOrderLine: Record "Sales Line";
+        ExpectedPrepmtAmtToDeduct: Decimal;
+    begin
+        // [FEATURE] [Rounding]
+        // [SCENARIO 644912] "Prepmt Amt to Deduct" does not fluctuate when "Qty. to Invoice" is toggled after posting the prepayment invoice
+        Initialize();
+
+        // [GIVEN] Sales Order with 100% Prepayment, Qty = 2, "Qty. to Ship" = 1, "Qty. to Invoice" = 1, "Unit Price" = 42.963
+        PrepareSalesOrder(SalesOrderHeader);
+        AddSalesOrderLine(SalesOrderLine, SalesOrderHeader, 2, 42.963, 100, 0);
+        UpdateQtysInLine(SalesOrderLine, 1, 1);
+
+        // [GIVEN] The value posted for the invoiced quantity is the prorated Round(1 * Round(2 * 42.963) / 2) = 42.97
+        ExpectedPrepmtAmtToDeduct := 42.97;
+
+        // [GIVEN] Prepayment invoice is posted
+        PostSalesPrepmtInvoice(SalesOrderHeader);
+        SalesOrderLine.Find();
+        SalesOrderLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtAmtToDeduct);
+
+        // [WHEN] "Qty. to Invoice" is changed to 0 and then back to 1
+        SalesOrderLine.Validate("Qty. to Invoice", 0);
+        SalesOrderLine.Modify(true);
+        SalesOrderLine.Validate("Qty. to Invoice", 1);
+        SalesOrderLine.Modify(true);
+
+        // [THEN] "Prepmt Amt to Deduct" stays 42.97 and does not flip to 42.96
+        Assert.AreEqual(
+          ExpectedPrepmtAmtToDeduct, SalesOrderLine."Prepmt Amt to Deduct",
+          PrepmtAmtToDeductMisalignedErr);
+
+        // [WHEN] The order is fully shipped and invoiced
+        SalesInvoiceHeader."Sell-to Customer No." := SalesOrderHeader."Sell-to Customer No.";
+        CreateSalesInvoice(SalesInvoiceHeader, SalesOrderHeader."Prices Including VAT");
+        UpdateQtysInLine(SalesOrderLine, 2, 0);
+        SalesOrderHeader.Find();
+        LibrarySales.PostSalesDocument(SalesOrderHeader, true, false);
+        GetShipmentLine(SalesInvoiceHeader, SalesOrderHeader."Last Shipping No.");
+        LibrarySales.PostSalesDocument(SalesInvoiceHeader, false, true);
+
+        // [THEN] The full posted prepayment (42.97 + 42.96 = 85.93) is deducted with no rounding lost
+        SalesOrderLine.Find();
+        SalesOrderLine.TestField("Prepmt Amt Deducted", SalesOrderLine."Prepmt. Amt. Inv.");
     end;
 
     local procedure Initialize()

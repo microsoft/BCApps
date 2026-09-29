@@ -5,7 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
-codeunit 99001558 "Subc. Worksheet Handler"
+codeunit 20558 "Subc. Worksheet Handler"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReqJnlManagement, OnOpenJnlBatchOnBeforeTemplateSelection, '', false, false)]
     local procedure OnOpenJnlBatchOnBeforeTemplateSelection(var RequisitionWkshName: Record "Requisition Wksh. Name"; var ReqWorksheetTemplateTypeList: List of [Enum Microsoft.Inventory.Requisition."Req. Worksheet Template Type"])

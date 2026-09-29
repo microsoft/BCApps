@@ -11,8 +11,8 @@ page 37048 "Average Productions Times"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Average Productions Times';
-    AboutTitle = 'About Average Productions Times';
+    Caption = 'Average Productions Times (Power BI)';
+    AboutTitle = 'About Average Productions Times (Power BI)';
     AboutText = 'View the average time spent for Setup, Run and Stop times per unit for each manufactured Item. Expand to see the times for each production order to determine why fluctuations occurred.';
 
     layout

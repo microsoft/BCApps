@@ -87,7 +87,7 @@ codeunit 6140 "E-Doc. Import"
     var
         ImportEDocumentProcess: Codeunit "Import E-Document Process";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-        Status, CurrentStatus : Enum "Import E-Doc. Proc. Status";
+        Status, CurrentStatus, InitialStatus : Enum "Import E-Doc. Proc. Status";
         StepToDo, StepToUndo : Enum "Import E-Document Steps";
         StatusIndex: Integer;
     begin
@@ -97,6 +97,7 @@ codeunit 6140 "E-Doc. Import"
 
         EDocument.CalcFields("Import Processing Status");
         CurrentStatus := EDocument."Import Processing Status";
+        InitialStatus := CurrentStatus;
 
         EDocImpSessionTelemetry.SetSession(CurrentStatus, DesiredStatus);
         EDocImpSessionTelemetry.SetBool('Success', true);
@@ -126,9 +127,9 @@ codeunit 6140 "E-Doc. Import"
                     end;
                 end;
 
-        if CurrentStatus <> DesiredStatus then
+        if InitialStatus <> DesiredStatus then
             EDocImpSessionTelemetry.Emit(EDocument);
-        OnAfterProcessIncomingEDocument(EDocument, EDocImportParameters, CurrentStatus, DesiredStatus);
+        OnAfterProcessIncomingEDocument(EDocument, EDocImportParameters, InitialStatus, DesiredStatus);
         exit(true);
     end;
 
