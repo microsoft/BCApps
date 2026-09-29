@@ -38,7 +38,6 @@ codeunit 6922 "Expense Agent Entra App Mgt."
     begin
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit(true);
-
         if not AadApplication.Get(GetAadAppId()) then
             exit(false);
 
@@ -76,7 +75,6 @@ codeunit 6922 "Expense Agent Entra App Mgt."
             AadApplication.Validate(State, AadApplication.State::Enabled);
             AadApplication.Modify(true);
         end;
-
         if HasPermissionForCurrentCompany(AadApplication) then
             exit;
 
@@ -117,10 +115,6 @@ codeunit 6922 "Expense Agent Entra App Mgt."
         if UserPermissions.IsSuper(UserSecurityId()) then
             exit;
 
-        GetAgentAdminPermissionSet(AggregatePermissionSet);
-        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
-            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
-
         GetExpenseManagementAdminPermissionSet(AggregatePermissionSet);
         if not UserPermissions.HasUserPermissionSetAssigned(
             UserSecurityId(),
@@ -130,6 +124,49 @@ codeunit 6922 "Expense Agent Entra App Mgt."
             AggregatePermissionSet."App ID")
         then
             Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
+
+        // Users without SUPER need SECURITY permission sets to enable the Entra App for
+        // authentication, plus they need the permission set they will assign to the
+        // new application (otherwise it would be permission escalation).
+        if not HasSecurityPermission(UserPermissions) then
+            Error(SecurityPermissionRequiredErr);
+
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
+        if not UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityId(),
+            GetCurrentCompanyName(),
+            AggregatePermissionSet."Role ID",
+            AggregatePermissionSet.Scope,
+            AggregatePermissionSet."App ID")
+        then
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
+
+        // Agent framework requires this permission to run the Agent configuration wizard
+        // and activate the agent
+        GetAgentAdminPermissionSet(AggregatePermissionSet);
+        if not UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityId(),
+            GetCurrentCompanyName(),
+            AggregatePermissionSet."Role ID",
+            AggregatePermissionSet.Scope,
+            AggregatePermissionSet."App ID")
+        then
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
+        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
+    end;
+
+    local procedure HasSecurityPermission(UserPermissions: Codeunit "User Permissions"): Boolean
+    var
+        AccessControl: Record "Access Control";
+        NullGuid: Guid;
+    begin
+        exit(UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityId(),
+            GetCurrentCompanyName(),
+            SecurityPermissionSetLbl,
+            AccessControl.Scope::System,
+            NullGuid));
     end;
 
     local procedure HasPermissionForCurrentCompany(AadApplication: Record "AAD Application"): Boolean
@@ -262,7 +299,9 @@ codeunit 6922 "Expense Agent Entra App Mgt."
         AgentAdminPermissionSetLbl: Label 'Agent - Admin', Locked = true;
         ExpenseAgentPermissionSetLbl: Label 'Expense Agent', Locked = true;
         ExpenseManagementAdminPermissionSetLbl: Label 'Expense Mgmt. Admin', Locked = true;
+        SecurityPermissionSetLbl: Label 'SECURITY', Locked = true;
         AadApplicationMissingErr: Label 'The Expense Agent Microsoft Entra application is not configured.';
         PermissionSetRequiredErr: Label 'You must be assigned the %1 permission set to manage the Expense Agent Microsoft Entra application.', Comment = '%1 = permission set name';
         PermissionSetMissingErr: Label 'The %1 permission set is not available.', Comment = '%1 = permission set ID';
+        SecurityPermissionRequiredErr: Label 'You must be assigned either the SUPER or SECURITY permission set to manage the Expense Agent Microsoft Entra application.';
 }
