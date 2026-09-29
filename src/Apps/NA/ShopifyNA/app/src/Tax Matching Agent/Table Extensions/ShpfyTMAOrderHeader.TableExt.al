@@ -7,7 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 /// <summary>
 /// TableExtension Shpfy TMA Order Header (ID 30476) extends Shpfy Order Header.
-/// Marks orders whose Tax Area was populated by Tax Matching Agent, so the
+/// Marks orders whose Tax Area was populated by Shopify Tax Matching, so the
 /// status can propagate to the resulting Sales Header for human review, flags
 /// orders that must be held for review because a matched rate conflicts with BC,
 /// and flags orders where one or more tax lines could not be resolved to a
@@ -22,7 +22,7 @@ tableextension 30476 "Shpfy TMA Order Header" extends "Shpfy Order Header"
             Caption = 'Tax Match Applied';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies whether Tax Matching Agent populated the Tax Area Code on this Shopify order.';
+            ToolTip = 'Specifies whether Shopify Tax Matching populated the Tax Area Code on this Shopify order.';
         }
         field(30477; "Tax Match Reviewed"; Boolean)
         {
@@ -36,27 +36,37 @@ tableextension 30476 "Shpfy TMA Order Header" extends "Shpfy Order Header"
             Caption = 'Tax Rate Conflict';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies whether the Tax Matching Agent matched a tax jurisdiction whose Business Central Tax Detail rate differs from the rate Shopify charged. Such an order is always held for human review, regardless of the shop''s Tax Match Review Mode, so the rate difference can be accepted or corrected before a Sales Document is created.';
+            ToolTip = 'Specifies whether Shopify Tax Matching matched a tax jurisdiction whose Business Central Tax Detail rate differs from the rate Shopify charged. Such an order is always held for human review, regardless of the shop''s Tax Match Review Mode, so the rate difference can be accepted or corrected before a Sales Document is created.';
         }
         field(30479; "Tax Match Incomplete"; Boolean)
         {
             Caption = 'Tax Match Incomplete';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies whether the Tax Matching Agent could not resolve one or more tax lines to a Tax Jurisdiction (the model returned UNKNOWN, e.g. for an unrecognizable or adversarial tax-line title). Such an order is always held for human review, regardless of the shop''s Tax Match Review Mode, so a user can assign the missing Tax Jurisdiction before a Sales Document is created.';
+            ToolTip = 'Specifies whether Shopify Tax Matching could not resolve one or more tax lines to a Tax Jurisdiction (the model returned UNKNOWN, e.g. for an unrecognizable or adversarial tax-line title). Such an order is always held for human review, regardless of the shop''s Tax Match Review Mode, so a user can assign the missing Tax Jurisdiction before a Sales Document is created.';
         }
         field(30480; "Tax Match Low Confidence"; Boolean)
         {
             Caption = 'Tax Match Low Confidence';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies whether the Tax Matching Agent produced at least one match on this order that is not high confidence. This includes a match to a provisional (agent-created, not yet verified) Tax Jurisdiction, which is always forced to low confidence. When the shop uses the Low Confidence Only review mode, such an order is held for human review.';
+            ToolTip = 'Specifies whether Shopify Tax Matching produced at least one match on this order that is not high confidence. This includes a match to a provisional (AI-created, not yet verified) Tax Jurisdiction, which is always forced to low confidence. When the shop uses the Low Confidence Only review mode, such an order is held for human review.';
+        }
+        field(30481; "Tax Match Attempted At"; DateTime)
+        {
+            Caption = 'Tax Match Attempted At';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies when Shopify Tax Matching last attempted to process this order.';
         }
     }
 
     keys
     {
         key(TMASalesOrderNo; "Sales Order No.")
+        {
+        }
+        key(TMAAttemptedAt; "Tax Match Attempted At")
         {
         }
     }

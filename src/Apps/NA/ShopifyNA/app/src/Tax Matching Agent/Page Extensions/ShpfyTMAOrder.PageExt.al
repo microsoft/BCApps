@@ -40,7 +40,7 @@ pageextension 30479 "Shpfy TMA Order" extends "Shpfy Order"
                 ApplicationArea = All;
                 Caption = 'Review Tax Match';
                 Image = SparkleFilled;
-                ToolTip = 'Opens the tax match review for this order, where you can see the resolved Tax Area and the per-line Tax Jurisdiction Codes that the Tax Matching Agent matched.';
+                ToolTip = 'Opens the tax match review for this order, where you can see the resolved Tax Area and the per-line Tax Jurisdiction Codes that Shopify Tax Matching matched.';
                 Visible = ShowReviewEntry and (Rec."Tax Match Reviewed" or not (ReviewRequired or Rec."Tax Rate Conflict" or Rec."Tax Match Incomplete"));
 
                 trigger OnAction()
