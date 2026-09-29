@@ -1237,7 +1237,6 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         GenJournalLine: Record "Gen. Journal Line";
         GLAccountSourceCurrency: Record "G/L Account Source Currency";
         GLEntry: Record "G/L Entry";
-        GeneralLedgerSetup: Record "General Ledger Setup";
         CurrencyCode: Code[10];
         SecondCurrencyCode: Code[10];
         OpeningBalanceFCY: Decimal;
@@ -1270,12 +1269,6 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         GLAccountSourceCurrency.Insert();
 
         LibraryERM.CreateGLAccount(BalGLAccount);
-
-        // [GIVEN] The additional reporting currency also has a rate before the report period.
-        GeneralLedgerSetup.Get();
-        LibraryERM.CreateExchangeRate(
-            GeneralLedgerSetup."Additional Reporting Currency", CalcDate('<-1D>', WorkDate()),
-            LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
 
         // [GIVEN] An entry in the first source currency before the report period.
         CreateGenJournalLine(
@@ -1339,7 +1332,6 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         GenJournalLine: Record "Gen. Journal Line";
         GLAccountSourceCurrency: Record "G/L Account Source Currency";
         GLEntry: Record "G/L Entry";
-        GeneralLedgerSetup: Record "General Ledger Setup";
         GlobalDimensionValue: Record "Dimension Value";
         FilteredDimensionValue: Record "Dimension Value";
         ExcludedDimensionValue: Record "Dimension Value";
@@ -1371,12 +1363,6 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         GLAccountSourceCurrency.Insert();
 
         LibraryERM.CreateGLAccount(BalGLAccount);
-
-        // [GIVEN] The additional reporting currency also has a rate before the report period.
-        GeneralLedgerSetup.Get();
-        LibraryERM.CreateExchangeRate(
-            GeneralLedgerSetup."Additional Reporting Currency", CalcDate('<-1D>', WorkDate()),
-            LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
 
         // [GIVEN] A pre-period entry carrying the dimension value that the report filters on.
         CreateGenJournalLineWithDimension(
@@ -1483,8 +1469,9 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+        // The rate starts before the work date so that entries can also be posted in earlier periods.
         GeneralLedgerSetup."Additional Reporting Currency" :=
-          LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(100, 2),
+          LibraryERM.CreateCurrencyWithExchangeRate(CalcDate('<-1M>', WorkDate()), LibraryRandom.RandDec(100, 2),
             LibraryRandom.RandDec(100, 2));
         GeneralLedgerSetup.Modify(true);
     end;
