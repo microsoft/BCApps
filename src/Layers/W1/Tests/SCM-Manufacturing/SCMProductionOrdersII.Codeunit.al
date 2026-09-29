@@ -8192,8 +8192,8 @@ codeunit 137072 "SCM Production Orders II"
     begin
         // [SCENARIO 650101] A production order can be finished when precise quantity per rounds differently from the component quantity.
         Initialize();
-        ExpectedConsumptionQty := LibraryRandom.RandIntInRange(60, 70);
-        ProdOrderQty := LibraryRandom.RandIntInRange(71, 75);
+        ExpectedConsumptionQty := LibraryRandom.RandIntInRange(68, 68);
+        ProdOrderQty := LibraryRandom.RandIntInRange(74, 74);
         QuantityPer := 0.918918918918919;
 
         // [GIVEN] Lot-tracked component "C" with backward flushing, rounding precision 0.001, and 68 units in inventory.
