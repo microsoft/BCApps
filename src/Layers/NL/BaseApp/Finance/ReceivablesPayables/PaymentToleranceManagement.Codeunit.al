@@ -232,7 +232,7 @@ codeunit 426 "Payment Tolerance Management"
         if (TempGenJnlLine."Applies-to Doc. No." = '') and (TempGenJnlLine."Applies-to ID" = '') then
             exit(true);
 
-        OnPmtTolGenJnlOnAfterCheckConditions(TempGenJnlLine, SuppressCommit, Result);
+        OnPmtTolGenJnlOnAfterCheckConditions(TempGenJnlLine, SuppressCommit, Result, TempGenJnlLine);
 
         case true of
             (TempGenJnlLine."Account Type" = TempGenJnlLine."Account Type"::Customer) or
