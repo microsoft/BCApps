@@ -16,6 +16,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
+using Microsoft.Utilities;
 codeunit 20535 "Subc. Purch. Post Ext"
 {
     var
@@ -92,6 +93,32 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ValueEntry.SetFilter("Item Ledger Entry No.", '<>%1', 0);
         if ValueEntry.IsEmpty() then
             ThrowItemReturnedError := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterCopyPurchLineFromPurchLineBuffer, '', false, false)]
+    local procedure RestoreSubcontractingOutputApplication(var ToPurchLine: Record "Purchase Line"; FromPurchInvLine: Record "Purch. Inv. Line"; ToPurchHeader: Record "Purchase Header")
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if ToPurchHeader."Document Type" <> ToPurchHeader."Document Type"::"Credit Memo" then
+            exit;
+        if FromPurchInvLine.Type <> FromPurchInvLine.Type::Item then
+            exit;
+        if not PurchRcptLine.Get(FromPurchInvLine."Receipt No.", FromPurchInvLine."Receipt Line No.") then
+            exit;
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) then
+            exit;
+        if PurchRcptLine."Item Rcpt. Entry No." = 0 then
+            exit;
+
+        ToPurchLine."Appl.-to Item Entry" := PurchRcptLine."Item Rcpt. Entry No.";
+        ToPurchLine.Modify();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
