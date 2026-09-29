@@ -317,7 +317,7 @@ codeunit 1482 "Edit in Excel Impl."
         if not (PageMetadata.SourceTable in [Database::User]) then
             exit;
 
-        Session.LogMessage('0000U9E', StrSubstNo(EditInExcelBlockedForUserTableTxt, PageId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
+        Session.LogMessage('0000VPZ', StrSubstNo(EditInExcelBlockedForUserTableTxt, PageId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
         Error(EditInExcelNotSupportedForUserTableErr);
     end;
 
