@@ -324,6 +324,33 @@ codeunit 130618 "Library - Graph Mgt"
         exit(TargetURL);
     end;
 
+    /// <summary>Appends a path before any query string in an API target URL.</summary>
+    /// <param name="TargetURL">API target URL.</param>
+    /// <param name="Path">Path to append.</param>
+    /// <returns>The URL with the appended path.</returns>
+    procedure AppendPathToTargetURL(TargetURL: Text; Path: Text): Text
+    var
+        QueryPosition: Integer;
+    begin
+        QueryPosition := StrPos(TargetURL, '?');
+        if QueryPosition = 0 then
+            exit(TargetURL + Path);
+
+        exit(CopyStr(TargetURL, 1, QueryPosition - 1) + Path + CopyStr(TargetURL, QueryPosition));
+    end;
+
+    /// <summary>Appends a query parameter using the appropriate query separator.</summary>
+    /// <param name="TargetURL">API target URL.</param>
+    /// <param name="QueryParameter">Query parameter to append.</param>
+    /// <returns>The URL with the appended query parameter.</returns>
+    procedure AppendQueryParameterToTargetURL(TargetURL: Text; QueryParameter: Text): Text
+    begin
+        if StrPos(TargetURL, '?') = 0 then
+            exit(TargetURL + '?' + QueryParameter);
+
+        exit(TargetURL + '&' + QueryParameter);
+    end;
+
     [Normal]
     procedure STRREPLACE(String: Text; ReplaceWhat: Text; ReplaceWith: Text): Text
     var
@@ -857,9 +884,15 @@ codeunit 130618 "Library - Graph Mgt"
     var
         TargetURL: Text;
     begin
-        TargetURL := GetODataTargetURL(ObjectType::Page, PageNumber);
-        TargetURL := AppendSubpageToTargetURL(ID, TargetURL, ServiceNameTxt, ServiceSubPageTxt);
-        exit(AppendSubpageToTargetURL(SubPageID, TargetURL, ServiceSubPageTxt, ServiceSubSubPageTxt));
+        TargetURL := CreateTargetURL(ID, PageNumber, ServiceNameTxt);
+        if ServiceSubPageTxt <> '' then
+            TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubPageTxt);
+        if SubPageID <> '' then
+            TargetURL := AppendPathToTargetURL(
+                TargetURL, '(' + StripBrackets(SubPageID) + ')');
+        if ServiceSubSubPageTxt <> '' then
+            TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubSubPageTxt);
+        exit(TargetURL);
     end;
 
     [IntegrationEvent(false, false)]
