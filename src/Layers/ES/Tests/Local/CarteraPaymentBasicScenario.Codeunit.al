@@ -1810,11 +1810,10 @@ codeunit 147500 "Cartera Payment Basic Scenario"
         // [WHEN] The G/L entries created by the posted payment order are reviewed.
         // [THEN] The G/L entries should have the correct source currency information.
         GLEntry.SetRange("Document No.", PaymentOrder."No.");
-        GLEntry.FindSet();
-        repeat
-            Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
-            Assert.AreNotEqual(0, GLEntry."Source Currency Amount", 'Source Currency Amount must be populated on posted payment-order G/L entries.');
-        until GLEntry.Next() = 0;
+        GLEntry.SetRange("Debit Amount", 0);
+        GLEntry.FindFirst();
+        Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
+        Assert.AreEqual(-SettleAmount, GLEntry."Source Currency Amount", 'Source Currency Amount must be populated on posted payment-order G/L entries.');
     end;
 
     local procedure Initialize()
