@@ -1542,41 +1542,54 @@ codeunit 134097 "ERM Check Posting Groups"
     procedure PostGLAccountInvoiceByGenJnlWithoutGenPostingSetupForAdjustVAT()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        GeneralLedgerSetup: Record "General Ledger Setup";
         GeneralPostingSetup: Record "General Posting Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
         GenProductPostingGroup: Record "Gen. Product Posting Group";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        Vendor: Record Vendor;
+        PaymentTerms: Record "Payment Terms";
         VATPostingSetup: Record "VAT Posting Setup";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
+        GLAccountNo: Code[20];
     begin
         // [FEATURE] [G/L Account] [Invoice] [Payment Discount]
-        // [SCENARIO 651675] G/L Account invoice cannot be posted when its general posting setup combination is missing.
+        // [SCENARIO 651675] G/L account invoice cannot post when its general posting setup is missing.
         Initialize();
 
-        // [GIVEN] VAT Posting Setup with "Adjust for Payment Discount" = TRUE
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.Validate("VAT Tolerance %", 0);
-        GeneralLedgerSetup.Modify(true);
-        LibraryPmtDiscSetup.SetPmtDiscExclVAT(false);
-        LibraryPmtDiscSetup.SetAdjustForPaymentDisc(true);
-        VATPostingSetup.Validate("Adjust for Payment Discount", true);
-        VATPostingSetup.Modify(true);
-
-        // [GIVEN] Invoice line with a product group but blank business group and no matching setup row
-        CreateGenJnlLineWithAccountVATPostingSetup(
-            GenJournalLine, VATPostingSetup, GenJournalLine."Document Type"::Invoice);
+        CreateVATPostingSetupForPaymentDiscount(VATPostingSetup);
+        CreateVendorWithPaymentTerms(Vendor, PaymentTerms);
         LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
+
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccountNo,
+            GenJournalLine."Bal. Account Type"::Vendor,
+            Vendor."No.",
+            LibraryRandom.RandDec(10, 2));
+
+        GenJournalLine.Validate("Document Date", WorkDate());
+        GenJournalLine.Validate("Payment Terms Code", Vendor."Payment Terms Code");
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         GenJournalLine."Gen. Bus. Posting Group" := '';
         GenJournalLine."Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
         GenJournalLine.Modify(true);
+
+        GenJournalLine.TestField("Pmt. Discount Date");
+        GenJournalLine.TestField("Payment Discount %");
         Assert.IsFalse(
             GeneralPostingSetup.Get('', GenProductPostingGroup.Code),
             'Unexpected General Posting Setup exists for the test combination.');
 
-        // [WHEN] Post the Gen. Journal Line
+        // [WHEN] Post the journal line
         asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [THEN] Posting fails because the General Posting Setup combination does not exist
@@ -1588,133 +1601,54 @@ codeunit 134097 "ERM Check Posting Groups"
     procedure PostBalGLAccountInvoiceByGenJnlWithoutGenBusPostingGroupForAdjustVAT()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        GeneralLedgerSetup: Record "General Ledger Setup";
         GeneralPostingSetup: Record "General Posting Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
         GenProductPostingGroup: Record "Gen. Product Posting Group";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        Vendor: Record Vendor;
+        PaymentTerms: Record "Payment Terms";
         VATPostingSetup: Record "VAT Posting Setup";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
+        GLAccountNo: Code[20];
     begin
         // [FEATURE] [G/L Account] [Invoice] [Payment Discount]
-        // [SCENARIO 651675] G/L Account invoice cannot be posted when its general posting setup combination is missing.
+        // [SCENARIO 651675] G/L account invoice cannot post when its general posting setup is missing.
         Initialize();
 
-        // [GIVEN] VAT Posting Setup with "Adjust for Payment Discount" = TRUE
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.Validate("VAT Tolerance %", 0);
-        GeneralLedgerSetup.Modify(true);
-        LibraryPmtDiscSetup.SetPmtDiscExclVAT(false);
-        LibraryPmtDiscSetup.SetAdjustForPaymentDisc(true);
-        VATPostingSetup.Validate("Adjust for Payment Discount", true);
-        VATPostingSetup.Modify(true);
-
-        // [GIVEN] Invoice line with a product group but blank business group and no matching setup row
-        CreateGenJnlLineWithBalAccountVATPostingSetup(
-            GenJournalLine, VATPostingSetup, GenJournalLine."Document Type"::Invoice);
+        CreateVATPostingSetupForPaymentDiscount(VATPostingSetup);
+        CreateVendorWithPaymentTerms(Vendor, PaymentTerms);
         LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
-        GenJournalLine."Bal. Gen. Bus. Posting Group" := '';
-        GenJournalLine."Bal. Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
-        GenJournalLine.Modify(true);
-        Assert.IsFalse(
-            GeneralPostingSetup.Get('', GenProductPostingGroup.Code),
-            'Unexpected General Posting Setup exists for the test combination.');
 
-        // [WHEN] Post the Gen. Journal Line
-        asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
 
-        // [THEN] Posting fails because the General Posting Setup combination does not exist
-        Assert.ExpectedError('The General Posting Setup does not exist.');
-    end;
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccountNo,
+            GenJournalLine."Bal. Account Type"::Vendor,
+            Vendor."No.",
+            LibraryRandom.RandDec(10, 2));
 
-    [Test]
-    [Scope('OnPrem')]
-    procedure PostGLAccountCreditMemoByGenJnlWithoutGenBusPostingGroupForAdjustVAT()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        GeneralPostingSetup: Record "General Posting Setup";
-        GenProductPostingGroup: Record "Gen. Product Posting Group";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
-    begin
-        // [FEATURE] [G/L Account] [Invoice] [Payment Discount]
-        // [SCENARIO 651675] G/L Account invoice cannot be posted when its general posting setup combination is missing.
-        Initialize();
-
-        // [GIVEN] VAT Posting Setup with "Adjust for Payment Discount" = TRUE
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.Validate("VAT Tolerance %", 0);
-        GeneralLedgerSetup.Modify(true);
-        LibraryPmtDiscSetup.SetPmtDiscExclVAT(false);
-        LibraryPmtDiscSetup.SetAdjustForPaymentDisc(true);
-        VATPostingSetup.Validate("Adjust for Payment Discount", true);
-        VATPostingSetup.Modify(true);
-
-        // [GIVEN] Invoice line with a product group but blank business group and no matching setup row
-        CreateGenJnlLineWithAccountVATPostingSetup(
-            GenJournalLine, VATPostingSetup, GenJournalLine."Document Type"::"Credit Memo");
-        LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
+        GenJournalLine.Validate("Document Date", WorkDate());
+        GenJournalLine.Validate("Payment Terms Code", Vendor."Payment Terms Code");
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         GenJournalLine."Gen. Bus. Posting Group" := '';
         GenJournalLine."Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
         GenJournalLine.Modify(true);
+
+        GenJournalLine.TestField("Pmt. Discount Date");
+        GenJournalLine.TestField("Payment Discount %");
         Assert.IsFalse(
             GeneralPostingSetup.Get('', GenProductPostingGroup.Code),
             'Unexpected General Posting Setup exists for the test combination.');
 
-        // [WHEN] Post the Gen. Journal Line
-        asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // [THEN] Posting fails because the General Posting Setup combination does not exist
-        Assert.ExpectedError('The General Posting Setup does not exist.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure PostBalGLAccountCreditMemoByGenJnlWithoutGenBusPostingGroupForAdjustVAT()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        GeneralPostingSetup: Record "General Posting Setup";
-        GenProductPostingGroup: Record "Gen. Product Posting Group";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
-    begin
-        // [FEATURE] [G/L Account] [Invoice] [Payment Discount]
-        // [SCENARIO 651675] G/L Account invoice cannot be posted when its general posting setup combination is missing.
-        Initialize();
-
-        // [GIVEN] VAT Posting Setup with "Adjust for Payment Discount" = TRUE
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.Validate("VAT Tolerance %", 0);
-        GeneralLedgerSetup.Modify(true);
-        LibraryPmtDiscSetup.SetPmtDiscExclVAT(false);
-        LibraryPmtDiscSetup.SetAdjustForPaymentDisc(true);
-        VATPostingSetup.Validate("Adjust for Payment Discount", true);
-        VATPostingSetup.Modify(true);
-
-        // [GIVEN] Invoice line with a product group but blank business group and no matching setup row
-        CreateGenJnlLineWithBalAccountVATPostingSetup(
-            GenJournalLine, VATPostingSetup, GenJournalLine."Document Type"::"Credit Memo");
-        LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
-        GenJournalLine."Bal. Gen. Bus. Posting Group" := '';
-        GenJournalLine."Bal. Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
-        GenJournalLine.Modify(true);
-        Assert.IsFalse(
-            GeneralPostingSetup.Get('', GenProductPostingGroup.Code),
-            'Unexpected General Posting Setup exists for the test combination.');
-
-        // [WHEN] Post the Gen. Journal Line
+        // [WHEN] Post the journal line
         asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [THEN] Posting fails because the General Posting Setup combination does not exist
@@ -1733,6 +1667,37 @@ codeunit 134097 "ERM Check Posting Groups"
 
         IsInitialized := true;
         Commit();
+    end;
+
+    local procedure CreateVATPostingSetupForPaymentDiscount(var VATPostingSetup: Record "VAT Posting Setup")
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(
+            VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("VAT Tolerance %", 0);
+        GeneralLedgerSetup.Modify(true);
+        LibraryPmtDiscSetup.SetPmtDiscExclVAT(false);
+        LibraryPmtDiscSetup.SetAdjustForPaymentDisc(true);
+
+        VATPostingSetup.Validate("Adjust for Payment Discount", true);
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateVendorWithPaymentTerms(
+        var Vendor: Record Vendor;
+        var PaymentTerms: Record "Payment Terms")
+    begin
+        LibraryERM.CreatePaymentTermsDiscount(PaymentTerms, false);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Payment Terms Code", PaymentTerms.Code);
+        Vendor.Modify(true);
     end;
 
     local procedure CreateGenJnlLineWithAccountVATPostingSetup(var GenJournalLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; GenJournalLineType: Enum "Gen. Journal Document Type")

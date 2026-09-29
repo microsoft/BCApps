@@ -1062,9 +1062,10 @@ codeunit 11 "Gen. Jnl.-Check Line"
            VATPostingSetup."Adjust for Payment Discount"
         then begin
             GenJnlLine.TestField("Gen. Prod. Posting Group", ErrorInfo.Create());
-            CheckGenPostingSetupExists(
-                    GenJnlLine."Gen. Bus. Posting Group",
-                    GenJnlLine."Gen. Prod. Posting Group");
+            if (GenJnlLine."Payment Discount %" <> 0) and (GenJnlLine."Pmt. Discount Date" <> 0D) then
+                CheckGenPostingSetupExists(
+                        GenJnlLine."Gen. Bus. Posting Group",
+                        GenJnlLine."Gen. Prod. Posting Group");
         end;
     end;
 
@@ -1086,9 +1087,10 @@ codeunit 11 "Gen. Jnl.-Check Line"
            VATPostingSetup."Adjust for Payment Discount"
         then begin
             GenJnlLine.TestField("Bal. Gen. Prod. Posting Group", ErrorInfo.Create());
-            CheckGenPostingSetupExists(
-                    GenJnlLine."Bal. Gen. Bus. Posting Group",
-                    GenJnlLine."Bal. Gen. Prod. Posting Group");
+            if (GenJnlLine."Payment Discount %" <> 0) and (GenJnlLine."Pmt. Discount Date" <> 0D) then
+                CheckGenPostingSetupExists(
+                        GenJnlLine."Bal. Gen. Bus. Posting Group",
+                        GenJnlLine."Bal. Gen. Prod. Posting Group");
         end;
     end;
 
