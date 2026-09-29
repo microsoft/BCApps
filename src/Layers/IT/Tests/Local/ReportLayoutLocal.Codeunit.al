@@ -3465,13 +3465,13 @@ codeunit 144005 "Report Layout - Local"
         VendorAccountBillsList.EndingDate.SetValue(LibraryRandom.RandDate(10));  // Using random Date.
         VendorAccountBillsList.Vendor.SetFilter("No.", LibraryVariableStorage.DequeueText());
         VendorAccountBillsList.SaveAsXml(LibraryReportDataSet.GetParametersFileName(), LibraryReportDataSet.GetFileName());
-    end;    [RequestPageHandler]
+    end;
+
+    [RequestPageHandler]
     [Scope('OnPrem')]
     procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
     begin
         StandardSalesInvoice.SaveAsXml(LibraryReportDataSet.GetParametersFileName(), LibraryReportDataSet.GetFileName());
     end;
-
-
 }
 
