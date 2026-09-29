@@ -1016,68 +1016,76 @@ report 1306 "Standard Sales - Invoice"
                 {
                 }
             }
-            column(PostedPaymentSchedule_Lbl; PostedPaymentScheduleText)
+            dataitem(PaymentSchedule; "Integer")
             {
-            }
-            dataitem(PostedPaymentLine; "Posted Payment Lines")
-            {
-                DataItemLink = "Code" = field("No.");
-                DataItemTableView = sorting("Sales/Purchase", Type, "Code", "Line No.")
-                    where("Sales/Purchase" = const(Sales), Type = const(Invoice));
-                column(PostedPaymentLineNo; "Line No.")
+                DataItemTableView = sorting(Number) where(Number = const(1));
+                column(PostedPaymentSchedule_Lbl; PostedPaymentScheduleLbl)
                 {
                 }
-                column(PostedPaymentLineDueDate; Format("Due Date", 0, 4))
+                column(PostedPaymentLineDueDate_Lbl; PostedPaymentLineCaptions.FieldCaption("Due Date"))
                 {
                 }
-                column(PostedPaymentLineDueDate_Lbl; FieldCaption("Due Date"))
+                column(PostedPaymentLineAmount_Lbl; PostedPaymentLineCaptions.FieldCaption(Amount))
                 {
                 }
-                column(PostedPaymentLineAmount; PostedPaymentLineAmount)
+                dataitem(PostedPaymentLine; "Posted Payment Lines")
                 {
-                    AutoFormatExpression = Header."Currency Code";
-                    AutoFormatType = 1;
-                }
-                column(PostedPaymentLineAmountFormatted; Format(PostedPaymentLineAmount, 0, AutoFormat.ResolveAutoFormat(Enum::"Auto Format"::AmountFormat, Header."Currency Code")))
-                {
-                }
-                column(PostedPaymentLineAmount_Lbl; FieldCaption(Amount))
-                {
-                }
-                column(PostedPaymentLinePaymentPercent; "Payment %")
-                {
-                }
+                    DataItemLink = "Code" = field("No.");
+                    DataItemLinkReference = Header;
+                    DataItemTableView = sorting("Sales/Purchase", Type, "Code", "Line No.")
+                        where("Sales/Purchase" = const(Sales), Type = const(Invoice));
+                    column(PostedPaymentLineNo; "Line No.")
+                    {
+                    }
+                    column(PostedPaymentLineDueDate; Format("Due Date", 0, 4))
+                    {
+                    }
+                    column(PostedPaymentLineAmount; PostedPaymentLineAmount)
+                    {
+                        AutoFormatExpression = Header."Currency Code";
+                        AutoFormatType = 1;
+                    }
+                    column(PostedPaymentLineAmountFormatted; Format(PostedPaymentLineAmount, 0, AutoFormat.ResolveAutoFormat(Enum::"Auto Format"::AmountFormat, Header."Currency Code")))
+                    {
+                    }
+                    column(PostedPaymentLinePaymentPercent; "Payment %")
+                    {
+                    }
 
-                trigger OnAfterGetRecord()
-                var
-                    PostedPaymentLines2: Record "Posted Payment Lines";
-                begin
-                    PostedPaymentLines2.Copy(PostedPaymentLine);
-                    if PostedPaymentLines2.Next() = 0 then
-                        PostedPaymentLineAmount := Header."Amount Including VAT" - PostedPaymentLineResidualTotal
-                    else begin
-                        PostedPaymentLineAmount := Round(
-                            "Payment %" * Header."Amount Including VAT" / 100, PostedPaymentLineRoundingPrecision);
-                        PostedPaymentLineResidualTotal += PostedPaymentLineAmount;
+                    trigger OnAfterGetRecord()
+                    var
+                        PostedPaymentLines2: Record "Posted Payment Lines";
+                    begin
+                        PostedPaymentLines2.Copy(PostedPaymentLine);
+                        if PostedPaymentLines2.Next() = 0 then
+                            PostedPaymentLineAmount := Header."Amount Including VAT" - PostedPaymentLineResidualTotal
+                        else begin
+                            PostedPaymentLineAmount := Round(
+                                "Payment %" * Header."Amount Including VAT" / 100, PostedPaymentLineRoundingPrecision);
+                            PostedPaymentLineResidualTotal += PostedPaymentLineAmount;
+                        end;
                     end;
-                end;
+
+                    trigger OnPreDataItem()
+                    var
+                        Currency: Record Currency;
+                    begin
+                        PostedPaymentLineResidualTotal := 0;
+                        if Header."Currency Code" = '' then begin
+                            Currency.InitRoundingPrecision();
+                            PostedPaymentLineRoundingPrecision := Currency."Amount Rounding Precision";
+                        end else begin
+                            Currency.Get(Header."Currency Code");
+                            Currency.TestField("Amount Rounding Precision");
+                            PostedPaymentLineRoundingPrecision := Currency."Amount Rounding Precision";
+                        end;
+                    end;
+                }
 
                 trigger OnPreDataItem()
-                var
-                    Currency: Record Currency;
                 begin
                     if PostedPaymentLineCount <= 1 then
                         CurrReport.Break();
-
-                    PostedPaymentLineResidualTotal := 0;
-                    if Header."Currency Code" = '' then begin
-                        Currency.InitRoundingPrecision();
-                        PostedPaymentLineRoundingPrecision := Currency."Amount Rounding Precision";
-                    end else begin
-                        Currency.Get(Header."Currency Code");
-                        Currency.TestField("Amount Rounding Precision");
-                        PostedPaymentLineRoundingPrecision := Currency."Amount Rounding Precision";
-                    end;
                 end;
             }
             dataitem(LeftHeader; "Name/Value Buffer")
@@ -1431,6 +1439,7 @@ report 1306 "Standard Sales - Invoice"
 
     var
         GLSetup: Record "General Ledger Setup";
+        PostedPaymentLineCaptions: Record "Posted Payment Lines";
         DummyCompanyInfo: Record "Company Information";
         Cust: Record Customer;
         RespCenter: Record "Responsibility Center";
@@ -1460,7 +1469,6 @@ report 1306 "Standard Sales - Invoice"
         CalculatedExchRate: Decimal;
         PaymentInstructionsTxt: Text;
         DueDateDisplayText: Text;
-        PostedPaymentScheduleText: Text;
         ExchangeRateText: Text;
         PostedPaymentLineCount: Integer;
         PostedPaymentLineAmount: Decimal;
@@ -1716,8 +1724,6 @@ report 1306 "Standard Sales - Invoice"
         PostedPaymentLines.SetRange(Type, PostedPaymentLines.Type::Invoice);
         PostedPaymentLines.SetRange(Code, SalesInvoiceHeader."No.");
         PostedPaymentLineCount := PostedPaymentLines.Count();
-        Clear(PostedPaymentScheduleText);
-
         case PostedPaymentLineCount of
             0:
                 DueDateDisplayText := FormatShortDate(SalesInvoiceHeader."Due Date");
@@ -1726,10 +1732,8 @@ report 1306 "Standard Sales - Invoice"
                     PostedPaymentLines.FindFirst();
                     DueDateDisplayText := FormatShortDate(PostedPaymentLines."Due Date");
                 end;
-            else begin
+            else
                 DueDateDisplayText := SeePaymentScheduleBelowLbl;
-                PostedPaymentScheduleText := PostedPaymentScheduleLbl;
-            end;
         end;
     end;
 
