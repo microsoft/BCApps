@@ -959,12 +959,6 @@ codeunit 139786 "E-Doc. Item Charge Tests"
         if IsInitialized then
             exit;
 
-        // Item charge tests do not exercise VAT date behavior. Disable it to avoid localization-specific
-        // VAT period validation during posting, such as the CZ check for the current work date.
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
-        GeneralLedgerSetup.Modify();
-
         LibrarySales.SetStockoutWarning(false);
         LibrarySales.SetCreditWarningsToNoWarnings();
         LibrarySales.SetCalcInvDiscount(false);
@@ -1106,7 +1100,6 @@ codeunit 139786 "E-Doc. Item Charge Tests"
             ChargeSalesLine, SalesHeader, ChargeSalesLine.Type::"Charge (Item)", CreateItemChargeNo(Item, VATProdPostingGroupCode), NoOfItemLines);
         ChargeSalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 50, 2));
         ChargeSalesLine.Modify(true);
-
         for Index := 1 to NoOfItemLines do begin
             LibraryInventory.CreateItemChargeAssignment(
                 ItemChargeAssignmentSales, ChargeSalesLine, SalesHeader."Document Type", SalesHeader."No.", ItemLineNo[Index], Item."No.");
@@ -1201,7 +1194,6 @@ codeunit 139786 "E-Doc. Item Charge Tests"
             ChargeSalesLine, SalesHeader, ChargeSalesLine.Type::"Charge (Item)", CreateItemChargeNo(Item, Item."VAT Prod. Posting Group"), NoOfItemLines);
         ChargeSalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 50, 2));
         ChargeSalesLine.Modify(true);
-
         for Index := 1 to NoOfItemLines do begin
             LibraryInventory.CreateItemChargeAssignment(
                 ItemChargeAssignmentSales, ChargeSalesLine, SalesHeader."Document Type", SalesHeader."No.", ItemLineNo[Index], Item."No.");
