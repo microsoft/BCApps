@@ -8,8 +8,6 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.UOM;
 using System.Agents;
 using System.Telemetry;
-#pragma warning disable AS0031
-#pragma warning disable AA0073
 page 6996 "Expense Agent Setup"
 {
     ApplicationArea = Basic, Suite;

@@ -22,6 +22,20 @@
   "screenshots": [],
   "platform": "29.0.0.0",
   "target": "Cloud",
+  "idRanges": [
+    {
+      "from": 139757,
+      "to": 139758
+    },
+    {
+      "from": 139929,
+      "to": 139930
+    },
+    {
+      "from": 139934,
+      "to": 139934
+    }
+  ],
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,
