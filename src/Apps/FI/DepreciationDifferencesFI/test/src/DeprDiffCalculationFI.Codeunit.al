@@ -9,7 +9,7 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 148152 "Depr. Diff. Calculation FI"
+codeunit 148163 "Depr. Diff. Calculation FI"
 {
     Subtype = Test;
     TestPermissions = Disabled;
