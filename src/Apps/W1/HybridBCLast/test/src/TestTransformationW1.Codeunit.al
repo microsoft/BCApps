@@ -109,8 +109,8 @@ codeunit 139666 "Test Transformation W1"
     local procedure IsExpectedObsoleteFieldMapping(TableName: Text; FieldName: Text): Boolean
 #if not CLEANSCHEMA33
     var
-        EnvironmentInformation: Codeunit "Environment Information";
         Field: Record Field;
+        EnvironmentInformation: Codeunit "Environment Information";
 #endif
     begin
 #if not CLEANSCHEMA33

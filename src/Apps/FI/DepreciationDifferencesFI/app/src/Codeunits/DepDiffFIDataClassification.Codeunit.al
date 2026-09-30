@@ -5,7 +5,7 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
-using System.IO;
+using Microsoft.Utilities;
 
 codeunit 13482 "Dep Diff FI Data Class."
 {
