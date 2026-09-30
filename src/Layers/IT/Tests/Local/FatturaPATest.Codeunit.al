@@ -1533,7 +1533,6 @@ codeunit 144200 "FatturaPA Test"
         Customer.Get(CreateCustomer());
         CurrCustomer := Customer;
         Customer.Validate("Country/Region Code", CountryRegion.Code);
-        Customer.Validate("Post Code", CurrCustomer."Post Code");
         Customer.Validate(City, CurrCustomer.City);
         Customer.Validate(County, CurrCustomer.County);
         Customer."PA Code" := '';
@@ -1548,6 +1547,10 @@ codeunit 144200 "FatturaPA Test"
 
         // [THEN] The foreign-recipient routing constant is exported
         LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/FormatoTrasmissione',
+            'FPR12');
         AssertCurrentElementValue(
             TempXMLBuffer,
             '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
