@@ -3606,13 +3606,20 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure GetIssueDateTime(DocumentHeaderVariant: Variant): Text[50]
     var
+        DocumentHeader: Record "Document Header";
         TimeZone: Text;
+        DocumentDate: Date;
     begin
         TimeZone := GetTimeZoneFromDocument(DocumentHeaderVariant);
         if TimeZone = '' then
             TimeZone := GetDefaultMexicoTimeZone();
 
-        exit(FormatAsDateTime(Today, Time, TimeZone));
+        DocumentHeader.TransferFields(DocumentHeaderVariant);
+        DocumentDate := DocumentHeader."Document Date";
+        if DocumentDate = 0D then
+            DocumentDate := Today;
+
+        exit(FormatAsDateTime(DocumentDate, Time, TimeZone));
     end;
 
     local procedure FormatAsDateTime(DocumentDate: Date; DocumentTime: Time; TimeZone: Text): Text[50]
