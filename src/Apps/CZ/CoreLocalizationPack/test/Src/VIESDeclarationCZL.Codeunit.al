@@ -45,7 +45,6 @@ codeunit 148067 "VIES Declaration CZL"
         VIESDeclarationHeaderCZL.DeleteAll(false);
         VIESDeclarationLineCZL.Reset();
         VIESDeclarationLineCZL.DeleteAll(false);
-
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"VIES Declaration CZL");
@@ -237,9 +236,18 @@ codeunit 148067 "VIES Declaration CZL"
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
         InStream: InStream;
+        OfficialFullName: Text[250];
     begin
         // [SCENARIO] Export released VIES Declaration
         Initialize();
+
+        // [GIVEN] Official full name with the maximum supported length has been set
+        StatutoryReportingSetupCZL.Get();
+#pragma warning disable AA0139
+        OfficialFullName := LibraryRandom.RandText(250);
+#pragma warning restore AA0139
+        StatutoryReportingSetupCZL."Official Full Name" := OfficialFullName;
+        StatutoryReportingSetupCZL.Modify();
 
         // [GIVEN] New EU Customer has been created
         CreateCustomer();
@@ -285,6 +293,13 @@ codeunit 148067 "VIES Declaration CZL"
 #pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         Assert.AreEqual('R', TempXMLBuffer.Value, 'shvies_forma');
+
+        // [THEN] Exported VetaP will contain the full official name
+#pragma warning disable AA0210
+        TempXMLBuffer.SetRange(Path, '/Pisemnost/DPHSHV/VetaP/@zast_nazev');
+#pragma warning restore AA0210
+        TempXMLBuffer.FindFirst();
+        Assert.AreEqual(OfficialFullName, TempXMLBuffer.Value, 'zast_nazev');
 
         // [THEN] Exported XML document will have VetaR
         TempXMLBuffer.SetFilter(Path, '/Pisemnost/DPHSHV/vetaR/*');

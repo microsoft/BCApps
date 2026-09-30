@@ -151,10 +151,26 @@ page 31108 "Statutory Reporting Setup CZL"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the type of official company for reporting.';
                 }
+#if not CLEANSCHEMA32
                 field("Official Name"; Rec."Official Name")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name of official company for reporting.';
+                    Visible = false;
+#if not CLEAN29
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+#else
+                    ObsoleteState = Removed;
+                    ObsoleteTag = '32.0';
+#endif
+                    ObsoleteReason = 'Replaced by "Official Full Name" field.';
+                }
+#endif
+                field("Official Full Name"; Rec."Official Full Name")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the full name of official company for reporting.';
                 }
                 field("Official First Name"; Rec."Official First Name")
                 {
