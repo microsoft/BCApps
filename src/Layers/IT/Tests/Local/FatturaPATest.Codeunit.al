@@ -1377,6 +1377,125 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportSalesInvoiceTreatsMatchingISOCountriesAsDomestic()
+    var
+        CompanyInformation: Record "Company Information";
+        CompanyCountryRegion: Record "Country/Region";
+        AlternateCountryRegion: Record "Country/Region";
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+        FiscalCode: Code[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Different Country/Region keys with the same ISO Code are treated as the same country
+        Initialize();
+
+        // [GIVEN] Company and Customer use different Country/Region keys for the same ISO country
+        CompanyInformation.Get();
+        CompanyCountryRegion.Get(CompanyInformation."Country/Region Code");
+        CreateCountryRegionWithISOCode(AlternateCountryRegion, CompanyCountryRegion."ISO Code");
+
+        Customer.Get(CreateCustomer());
+        Customer.Validate("Country/Region Code", AlternateCountryRegion.Code);
+        FiscalCode := LibraryITLocalization.GetFiscalCode();
+        Customer."Fiscal Code" := FiscalCode;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Domestic-only values are emitted even though the BC record keys differ
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/CodiceFiscale',
+          FiscalCode);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/Sede/CAP',
+          Customer."Post Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceUsesISOCodeForAllHeaderCountrySources()
+    var
+        CompanyInformation: Record "Company Information";
+        CompanyCountryRegion: Record "Country/Region";
+        AlternateCompanyCountryRegion: Record "Country/Region";
+        TaxRepresentativeCountryRegion: Record "Country/Region";
+        TransmissionCountryRegion: Record "Country/Region";
+        TaxRepresentativeVendor: Record Vendor;
+        TransmissionIntermediaryVendor: Record Vendor;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Header country sources export ISO codes instead of configurable BC record keys
+        Initialize();
+
+        // [GIVEN] Company Information uses a non-ISO BC key for the domestic ISO country
+        CompanyInformation.Get();
+        CompanyCountryRegion.Get(CompanyInformation."Country/Region Code");
+        CreateCountryRegionWithISOCode(AlternateCompanyCountryRegion, CompanyCountryRegion."ISO Code");
+        CompanyInformation.Validate("Country/Region Code", AlternateCompanyCountryRegion.Code);
+        CompanyInformation.Modify(true);
+
+        // [GIVEN] Tax Representative and Transmission Intermediary use non-ISO BC keys
+        CreateCountryRegionWithISOCode(TaxRepresentativeCountryRegion, 'DE');
+        CreateCleanTaxRepresentative(TaxRepresentativeVendor);
+        TaxRepresentativeVendor.Validate("Country/Region Code", TaxRepresentativeCountryRegion.Code);
+        TaxRepresentativeVendor."Fiscal Code" := LibraryITLocalization.GetFiscalCode();
+        TaxRepresentativeVendor."VAT Registration No." := 'DE123456789';
+        TaxRepresentativeVendor.Modify(true);
+
+        CreateCountryRegionWithISOCode(TransmissionCountryRegion, 'FR');
+        CreateCleanTransmissionIntermediary(TransmissionIntermediaryVendor);
+        TransmissionIntermediaryVendor.Validate("Country/Region Code", TransmissionCountryRegion.Code);
+        TransmissionIntermediaryVendor."Fiscal Code" := LibraryITLocalization.GetFiscalCode();
+        TransmissionIntermediaryVendor.Modify(true);
+
+        // [GIVEN] A posted Sales Invoice
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Each header source is serialized by ISO identity
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/IdTrasmittente/IdPaese',
+          TransmissionCountryRegion."ISO Code");
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CedentePrestatore/DatiAnagrafici/IdFiscaleIVA/IdPaese',
+          AlternateCompanyCountryRegion."ISO Code");
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CedentePrestatore/Sede/Nazione',
+          AlternateCompanyCountryRegion."ISO Code");
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/RappresentanteFiscale/DatiAnagrafici/IdFiscaleIVA/IdPaese',
+          TaxRepresentativeCountryRegion."ISO Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceForLocalCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
