@@ -57,13 +57,15 @@ page 6968 "Expense User Cons. API"
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
         MismatchingEntraIdsTelemetryErr: Label 'The Expense User has an Entra Id saved in the database, but it''s different from the ID used for consumption reporting.', Locked = true;
+        LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log request: ''%1'' Operation name: %2.', Locked = true;
         ConsumptionSourceTypeErr: Label 'Consumption Source Type must be provided and valid.';
+        AgentConversationSessionIdOrTurnInteractionIdErr: Label 'Agent Session ID and Interaction ID must be provided.';
         ConsumptionSourceSystemIdErr: Label 'Consumption Source System ID must be provided.';
         ExpenseEmployeeCodeErr: Label 'Expense Employee Code must be provided.';
         ConsumptionUsageErr: Label 'Usage cannot be negative.';
-        InvalidJsonAiConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON.';
-        InvalidStructureConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON.';
+        InvalidJsonConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON containing all required fields.';
         ActionsSummaryOrDescriptionErr: Label 'Actions Summary and Description must be provided.';
+        ActionsSummaryErr: Label 'Actions Summary must be provided.';
         EmptyConsumptionOperationErr: Label 'Operation must be provided.';
 
     [ServiceEnabled]
@@ -91,7 +93,7 @@ page 6968 "Expense User Cons. API"
         if ConsumptionSourceOperationName = '' then
             Error(EmptyConsumptionOperationErr);
 
-        exit(ExpenseConsumptionHandler.LogAIConsumptionV1(CopilotQuotaUsageAmount, CopilotQuotaUsageType,
+        exit(ExpenseConsumptionHandler.LogAIConsumption(CopilotQuotaUsageAmount, CopilotQuotaUsageType,
             ActionsSummary, ActionsDescription, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
     end;
 
@@ -109,12 +111,12 @@ page 6968 "Expense User Cons. API"
         AiConsumptionRequestJson: JsonObject;
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-        if (AiConsumptionRequest = '') or not AiConsumptionRequestJson.ReadFrom(AiConsumptionRequest) then
-            Error(InvalidJsonAiConsumptionRequestErr);
-        if not ExpenseConsumptionHandler.ValidateConsumptionJson(AiConsumptionRequestJson) then
-            Error(InvalidStructureConsumptionRequestErr);
+        if not ExpenseConsumptionHandler.InitializeAndValidateConsumptionJson(AiConsumptionRequest, AiConsumptionRequestJson) then
+            Error(InvalidJsonConsumptionRequestErr);
+        if IsNullGuid(AgentConversationSessionId) or IsNullGuid(AgentTurnInteractionId) then
+            Error(AgentConversationSessionIdOrTurnInteractionIdErr);
         if ActionsSummary = '' then
-            Error(ActionsSummaryOrDescriptionErr);
+            Error(ActionsSummaryErr);
         if ConsumptionSourceType = ConsumptionSourceType::Invalid then
             Error(ConsumptionSourceTypeErr);
         if IsNullGuid(ConsumptionSourceSystemId) then
@@ -128,8 +130,12 @@ page 6968 "Expense User Cons. API"
                 Session.LogMessage('0000VKU', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
                     TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
-        exit(ExpenseConsumptionHandler.LogV2AIConsumption(AgentConversationSessionId, AgentTurnInteractionId, AiConsumptionRequestJson, ActionsSummary,
-            ExpenseUserEntraId, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
+        // Request contains only system metadata about consumption (such as model names and credits consumed).
+        Session.LogMessage('0000VKT', StrSubstNo(LogV2QuotaStartedTelemetryMsg, AiConsumptionRequest, ConsumptionSourceOperationName),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
+
+        exit(ExpenseConsumptionHandler.LogAIConsumption(AiConsumptionRequestJson,
+            ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
     end;
 
     [ServiceEnabled]

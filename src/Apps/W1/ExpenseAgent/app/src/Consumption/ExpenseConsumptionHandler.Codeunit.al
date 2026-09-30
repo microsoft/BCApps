@@ -13,87 +13,24 @@ codeunit 6969 "Expense Consumption Handler"
     var
         ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         CopilotQuota: Codeunit "Copilot Quota";
-        LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log request: ''%1'' Operation name: %2.', Locked = true;
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
-        CompanionTableRecordFoundTelemetryTxt: Label 'Consumption record for Expense Agent already exists. This is expected.', Locked = true;
 
-    internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
-    begin
-
-        exit(AiConsumptionRequestJson.Count() > 0);
-    end;
-
-    internal procedure LogV2AIConsumption(
-        AgentConversationSessionId: Guid;
-        AgentTurnInteractionId: Guid;
-        AiConsumptionRequestJson: JsonObject;
-        Description: Text;
-        ExpenseUserEntraId: Guid;
-        ConsumptionSourceType: Enum "Expense Agent Cons. Source";
-        ConsumptionSourceSystemId: Guid;
-        ConsumptionSourceOperationName: Code[50];
-        ExpenseUserNo: Code[20]): Guid
+    internal procedure InitializeAndValidateConsumptionJson(AiConsumptionRequest: Text; var AiConsumptionRequestJson: JsonObject): Boolean
     var
-        UniqueId: Guid;
+        TempToken: JsonToken;
     begin
-        // Request contains only system metadata about consumption.
-        Session.LogMessage('0000VKT', StrSubstNo(LogV2QuotaStartedTelemetryMsg, AiConsumptionRequestJson, ConsumptionSourceOperationName),
-            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
+        if (AiConsumptionRequest = '') or not AiConsumptionRequestJson.ReadFrom(AiConsumptionRequest) then
+            exit(false);
+        if not AiConsumptionRequestJson.Get('model', TempToken) or not TempToken.IsObject() then
+            exit(false);
+        if not AiConsumptionRequestJson.Get('v1', TempToken) or not TempToken.IsObject() then
+            exit(false);
 
-        UniqueId := FindOrCreateCompanionTableSystemId(ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, ExpenseUserNo);
-        if not CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId) then
-            CopilotQuota.LogAgentUserAIConsumption(
-                Enum::"Copilot Capability"::"Expense Agent",
-                MapOperationToUsage(ConsumptionSourceOperationName),
-                Enum::"Copilot Quota Usage Type"::"Autonomous Action",
-                0, // We have no Agent Task ID
-                Copystr(Description, 1, 1024),
-                Description,
-                UniqueId);
-
-        exit(UniqueId);
+        exit(true);
     end;
 
-    local procedure MapOperationToUsage(Operation: Text): Integer
-    begin
-        // This is a workaround only used until we move fully to V2 consumption reporting
-        if (LowerCase(Operation) = 'process') then
-            exit(10)
-        else
-            exit(3);
-    end;
-
-    local procedure FindOrCreateCompanionTableSystemId(ConsumptionSourceType: Enum "Expense Agent Cons. Source";
-        ConsumptionSourceSystemId: Guid;
-        ConsumptionSourceOperationName: Code[50];
-        ExpenseUserNo: Code[20]): Guid
-    var
-        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
-    begin
-        ExpenseAgentEnvConsumption.ReadIsolation := IsolationLevel::UpdLock;
-
-        ExpenseAgentEnvConsumption.SetRange("Expense User No.", ExpenseUserNo);
-        ExpenseAgentEnvConsumption.SetRange("Consumption Source Type", ConsumptionSourceType);
-        ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", ConsumptionSourceSystemId);
-        ExpenseAgentEnvConsumption.SetRange("Consumption Source Operation", ConsumptionSourceOperationName);
-        if not ExpenseAgentEnvConsumption.FindFirst() then begin
-            ExpenseAgentEnvConsumption.Init();
-            ExpenseAgentEnvConsumption."Consumption Unique ID" := CreateGuid();
-            ExpenseAgentEnvConsumption.SystemId := ExpenseAgentEnvConsumption."Consumption Unique ID";
-            ExpenseAgentEnvConsumption."Expense User No." := ExpenseUserNo;
-            ExpenseAgentEnvConsumption."Consumption Source Type" := ConsumptionSourceType;
-            ExpenseAgentEnvConsumption."Consumption Source System ID" := ConsumptionSourceSystemId;
-            ExpenseAgentEnvConsumption."Consumption Source Operation" := ConsumptionSourceOperationName;
-            ExpenseAgentEnvConsumption.Insert();
-        end else
-            Session.LogMessage('0000VKV', CompanionTableRecordFoundTelemetryTxt,
-                Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
-
-        exit(ExpenseAgentEnvConsumption.SystemId);
-    end;
-
-    internal procedure LogAIConsumptionV1(
+    internal procedure LogAIConsumption(
         Usage: Integer;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
         ActionsSummary: Text[1024];
@@ -101,12 +38,12 @@ codeunit 6969 "Expense Consumption Handler"
         ConsumptionSourceType: Enum "Expense Agent Cons. Source";
         ConsumptionSourceSystemId: Guid;
         Operation: Code[50];
-        ExpenseUserNo: Code[20]): Text[1024]
+        ExpenseUserNo: Code[20]): Guid
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         UniqueId: Text[1024];
     begin
-        UniqueId := MakeUniqueIdV1(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
+        UniqueId := MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
 
         Session.LogMessage('0000ROU', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId)),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
@@ -132,7 +69,33 @@ codeunit 6969 "Expense Consumption Handler"
             ExpenseAgentEnvConsumption.Insert();
         end;
 
-        exit(UniqueId);
+        exit(ExpenseAgentEnvConsumption.SystemId);
+    end;
+
+    internal procedure LogAIConsumption(
+        AiConsumptionRequestJson: JsonObject;
+        ActionsSummary: Text;
+        ConsumptionSourceType: Enum "Expense Agent Cons. Source";
+        ConsumptionSourceSystemId: Guid;
+        Operation: Code[50];
+        ExpenseUserNo: Code[20]): Guid
+    var
+        Usage: Integer;
+        CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
+    begin
+        Usage := AiConsumptionRequestJson.GetInteger('usage', false);
+        Evaluate(CopilotQuotaUsageType, AiConsumptionRequestJson.GetText('usageType', false));
+
+        exit(LogAIConsumption(Usage, CopilotQuotaUsageType,
+            Truncate(ActionsSummary), ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo));
+    end;
+
+    local procedure Truncate(TextToTruncate: Text): Text[1024]
+    begin
+        if StrLen(TextToTruncate) > 1024 then
+            exit(CopyStr(TextToTruncate, 1, 1024 - 3) + '...')
+        else
+            exit(CopyStr(TextToTruncate, 1, 1024));
     end;
 
     internal procedure CanConsume(): Boolean
@@ -140,7 +103,7 @@ codeunit 6969 "Expense Consumption Handler"
         exit(CopilotQuota.CanConsume());
     end;
 
-    local procedure MakeUniqueIdV1(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]) UniqueId: Text[1024]
+    local procedure MakeUniqueId(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]) UniqueId: Text[1024]
     var
         TempUniqueId: Text;
     begin
