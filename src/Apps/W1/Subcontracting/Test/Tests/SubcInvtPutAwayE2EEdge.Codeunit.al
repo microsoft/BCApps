@@ -695,16 +695,31 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     local procedure SetPurchaseLineSerialTrackingQuantity(PurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; QuantityBase: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
+        TrackingSpecification: Record "Tracking Specification";
     begin
         ReservationEntry.SetSourceFilter(
             Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(),
             PurchaseLine."Document No.", PurchaseLine."Line No.", false);
         ReservationEntry.SetFilter("Serial No.", '<>%1', SerialNo);
+        if ReservationEntry.FindSet() then
+            repeat
+                if TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No.") then
+                    TrackingSpecification.Delete(true);
+            until ReservationEntry.Next() = 0;
         ReservationEntry.DeleteAll(true);
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(),
+            PurchaseLine."Document No.", PurchaseLine."Line No.", false);
         ReservationEntry.SetRange("Serial No.", SerialNo);
         ReservationEntry.FindFirst();
         ReservationEntry.Validate("Quantity (Base)", QuantityBase);
         ReservationEntry.Modify(true);
+        TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No.");
+        TrackingSpecification."Quantity (Base)" := ReservationEntry."Quantity (Base)";
+        TrackingSpecification."Qty. to Handle" := 0;
+        TrackingSpecification."Qty. to Handle (Base)" := 0;
+        TrackingSpecification."Qty. to Invoice (Base)" := ReservationEntry."Qty. to Invoice (Base)";
+        TrackingSpecification.Modify(true);
     end;
 
     local procedure VerifyCorrectiveCreditMemoSerialNo(PostedInvoiceNo: Code[20]; ItemNo: Code[20]; ExpectedSerialNo: Code[50])
@@ -712,6 +727,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         PurchInvHeader: Record "Purch. Inv. Header";
         CreditMemoHeader: Record "Purchase Header";
         CreditMemoLine: Record "Purchase Line";
+        ItemEntryRelation: Record "Item Entry Relation";
         ReservationEntry: Record "Reservation Entry";
         TrackingSpecification: Record "Tracking Specification";
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
@@ -732,6 +748,12 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         Assert.AreEqual(ExpectedSerialNo, ReservationEntry."Serial No.", 'A correction must copy the original invoice serial number.');
         Assert.AreNotEqual(0, ReservationEntry."Item Ledger Entry No.", 'The corrective tracking reservation must reference an invoice specification.');
         TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No.");
+        Assert.AreEqual(
+            ReservationEntry."Appl.-to Item Entry", TrackingSpecification."Item Ledger Entry No.",
+            'The corrective invoice specification must reference the receipt Item Entry Relation key.');
+        Assert.IsTrue(
+            ItemEntryRelation.Get(TrackingSpecification."Item Ledger Entry No."),
+            'The receipt Item Entry Relation referenced by corrective tracking must exist.');
         Assert.AreEqual(0, TrackingSpecification."Qty. to Handle (Base)", 'Corrective invoice tracking must not contain an unhandled quantity.');
 
         CreditMemoHeader.Validate(
@@ -765,21 +787,21 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler,PurchaseCreditMemoPageHandler')]
     procedure CancelSeparateSubcontractingInvoiceReversesCapacityCost()
     begin
         VerifySeparateSubcontractingInvoiceReversal(true, false);
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler,PurchaseCreditMemoPageHandler')]
     procedure CorrectiveCreditMemoForSeparateSubcontractingInvoiceReversesCapacityCost()
     begin
         VerifySeparateSubcontractingInvoiceReversal(false, false);
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler,PurchaseCreditMemoPageHandler')]
     procedure CorrectiveCreditMemoForTrackedSeparateSubcontractingInvoicePreservesApplications()
     begin
         VerifySeparateSubcontractingInvoiceReversal(false, true);
@@ -1698,6 +1720,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         CapacityLedgerEntryCount: Integer;
         CapacityLedgerEntryNo: Integer;
         OutputItemLedgerEntryCount: Integer;
+        PostedCreditMemoNo: Code[20];
         PostedInvoiceNo: Code[20];
         ExpectedCost: Decimal;
         Quantity: Decimal;
@@ -1781,8 +1804,11 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         PostedInvoiceHeader.Get(PostedInvoiceNo);
         Commit();
 
-        if CancelInvoice then
-            CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader)
+        if CancelInvoice then begin
+            CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
+            CancelledDocument.Get(Database::"Purch. Inv. Header", PostedInvoiceNo);
+            PostedCreditMemoNo := CancelledDocument."Cancelled By Doc. No.";
+        end
         else begin
             CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PostedInvoiceHeader, InvoiceHeader);
             InvoiceLine.Reset();
@@ -1791,6 +1817,14 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
             InvoiceLine.SetRange(Type, InvoiceLine.Type::Item);
             InvoiceLine.SetRange("No.", Item."No.");
             InvoiceLine.FindFirst();
+            Assert.AreEqual(PurchRcptLine."Prod. Order No.", InvoiceLine."Prod. Order No.", 'The corrective line must retain the production order.');
+            Assert.AreEqual(PurchRcptLine."Prod. Order Line No.", InvoiceLine."Prod. Order Line No.", 'The corrective line must retain the production order line.');
+            Assert.AreEqual(PurchRcptLine."Routing No.", InvoiceLine."Routing No.", 'The corrective line must retain the routing.');
+            Assert.AreEqual(PurchRcptLine."Routing Reference No.", InvoiceLine."Routing Reference No.", 'The corrective line must retain the routing reference.');
+            Assert.AreEqual(PurchRcptLine."Operation No.", InvoiceLine."Operation No.", 'The corrective line must retain the operation.');
+            Assert.AreEqual(PurchRcptLine."Work Center No.", InvoiceLine."Work Center No.", 'The corrective line must retain the work center.');
+            Assert.AreEqual(PurchRcptLine."Document No.", InvoiceLine."Receipt No.", 'The corrective line must retain the receipt identity.');
+            Assert.AreEqual(PurchRcptLine."Line No.", InvoiceLine."Receipt Line No.", 'The corrective line must retain the receipt line identity.');
             if TrackOutput then begin
                 ReservationEntry.SetSourceFilter(
                     Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(), InvoiceLine."Document No.", InvoiceLine."Line No.", false);
@@ -1813,11 +1847,10 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
                 "Vendor Cr. Memo No.",
                 CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(InvoiceHeader."Vendor Cr. Memo No.")));
             InvoiceHeader.Modify(true);
-            LibraryPurchase.PostPurchaseDocument(InvoiceHeader, true, true);
+            PostedCreditMemoNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, true, true);
         end;
 
-        CancelledDocument.Get(Database::"Purch. Inv. Header", PostedInvoiceNo);
-        PostedCreditMemoHeader.Get(CancelledDocument."Cancelled By Doc. No.");
+        PostedCreditMemoHeader.Get(PostedCreditMemoNo);
         ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Credit Memo");
         ValueEntry.SetRange("Document No.", PostedCreditMemoHeader."No.");
         ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
@@ -1875,6 +1908,12 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         if Message.Contains('successfully posted and is now deleted') then
             exit;
         Error('Unexpected Message: %1', Message);
+    end;
+
+    [PageHandler]
+    procedure PurchaseCreditMemoPageHandler(var PurchaseCreditMemoPage: TestPage "Purchase Credit Memo")
+    begin
+        PurchaseCreditMemoPage.OK().Invoke();
     end;
 
     [PageHandler]

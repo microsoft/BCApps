@@ -124,6 +124,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         if ItemLedgerEntry.IsEmpty() then
             exit;
 
+        RestoreSubcontractingIdentity(ToPurchLine, PurchRcptLine);
         if not ItemIsTracked(PurchRcptLine."No.") then begin
             ItemLedgerEntry.FindFirst();
             ToPurchLine.Validate("Appl.-to Item Entry", ItemLedgerEntry."Entry No.");
@@ -258,6 +259,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         if not ReservationEntry.FindSet(true) then
             exit;
 
+        TrackingSpecification.LockTable();
         NextEntryNo := TrackingSpecification.GetLastEntryNo() + 1;
         repeat
             TrackingSpecification.Init();
@@ -270,6 +272,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
             TrackingSpecification."Qty. to Handle" := 0;
             TrackingSpecification."Qty. to Handle (Base)" := 0;
             TrackingSpecification."Qty. to Invoice (Base)" := ReservationEntry."Qty. to Invoice (Base)";
+            TrackingSpecification."Item Ledger Entry No." := ReservationEntry."Appl.-to Item Entry";
             TrackingSpecification.Insert();
 
             ReservationEntry."Item Ledger Entry No." := TrackingSpecification."Entry No.";
@@ -292,6 +295,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", OnAfterPostItemJnlLineCopyProdOrder, '', false, false)]
     local procedure MfgPurchPostOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -299,9 +304,33 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
-        ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
-        ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
+        if PurchRcptLine.Get(PurchLine."Receipt No.", PurchLine."Receipt Line No.") then begin
+            ItemJnlLine."Subc. Purch. Order No." := PurchRcptLine."Order No.";
+            ItemJnlLine."Subc. Purch. Order Line No." := PurchRcptLine."Order Line No.";
+            ItemJnlLine."Subc. Operation No." := PurchRcptLine."Operation No.";
+        end else begin
+            ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
+            ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
+            ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
+        end;
+    end;
+
+    local procedure RestoreSubcontractingIdentity(var PurchaseLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    begin
+        PurchaseLine."Receipt No." := PurchRcptLine."Document No.";
+        PurchaseLine."Receipt Line No." := PurchRcptLine."Line No.";
+        PurchaseLine."Prod. Order No." := PurchRcptLine."Prod. Order No.";
+        PurchaseLine."Prod. Order Line No." := PurchRcptLine."Prod. Order Line No.";
+        PurchaseLine."Routing No." := PurchRcptLine."Routing No.";
+        PurchaseLine."Routing Reference No." := PurchRcptLine."Routing Reference No.";
+        PurchaseLine."Operation No." := PurchRcptLine."Operation No.";
+        PurchaseLine."Work Center No." := PurchRcptLine."Work Center No.";
+        PurchaseLine."Subc. Prod. Order No." := PurchRcptLine."Subc. Prod. Order No.";
+        PurchaseLine."Subc. Prod. Order Line No." := PurchRcptLine."Subc. Prod. Order Line No.";
+        PurchaseLine."Subc. Routing No." := PurchRcptLine."Subc. Routing No.";
+        PurchaseLine."Subc. Rtng Reference No." := PurchRcptLine."Subc. Rtng Reference No.";
+        PurchaseLine."Subc. Operation No." := PurchRcptLine."Subc. Operation No.";
+        PurchaseLine."Subc. Work Center No." := PurchRcptLine."Subc. Work Center No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemChargePerRcptOnAfterCalcDistributeCharge, '', false, false)]
