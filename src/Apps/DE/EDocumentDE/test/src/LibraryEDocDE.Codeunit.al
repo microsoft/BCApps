@@ -23,6 +23,7 @@ codeunit 13925 "Library - E-Doc DE"
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
+        SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
         CapturedEDocumentServiceCode: Code[20];
         EDocumentServiceEventCount: Integer;
 
@@ -73,11 +74,16 @@ codeunit 13925 "Library - E-Doc DE"
 #endif
 
     procedure CreateDirectDebitPaymentMethod(): Code[10]
+    begin
+        exit(CreatePaymentMethodWithMeansCode(SEPADirectDebitMeansCodeTok));
+    end;
+
+    procedure CreatePaymentMethodWithMeansCode(PaymentMeansCode: Code[3]): Code[10]
     var
         PaymentMethod: Record "Payment Method";
     begin
         LibraryERM.CreatePaymentMethod(PaymentMethod);
-        PaymentMethod.Validate("Payment Means Code", '59');
+        PaymentMethod.Validate("Payment Means Code", PaymentMeansCode);
         PaymentMethod.Modify(true);
         exit(PaymentMethod.Code);
     end;

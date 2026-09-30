@@ -37,8 +37,11 @@ codeunit 13926 "E-Document DE Tests"
         LibraryEdocument: Codeunit "Library - E-Document";
         LibraryUtility: Codeunit "Library - Utility";
         ExportXRechnungFormat: Codeunit "XRechnung Format";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
+        UnsupportedMeansCodeTok: Label '48', Locked = true;
+        UnsupportedPaymentMeansCodeErr: Label 'Payment means code %1 is not supported for German electronic documents.', Comment = '%1 = UNCL4461 payment means code';
 
     #region BuyerReference
 
@@ -320,6 +323,69 @@ codeunit 13926 "E-Document DE Tests"
         Assert.ExpectedError('has no IBAN');
     end;
 
+    [Test]
+    procedure CheckPaymentMeansUnsupportedCodeRaisesError()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] A payment means code the export builds no dependent data for is rejected before export.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '48' (bank card), which the export does not support
+        PaymentMethodCode := LibraryEDocDE.CreatePaymentMethodWithMeansCode(UnsupportedMeansCodeTok);
+
+        // [GIVEN] A Sales Invoice that uses that Payment Method
+        CreateSalesInvoiceWithPaymentMethod(SalesHeader, PaymentMethodCode);
+
+        // [WHEN] The payment data is checked
+        // [THEN] An error names the unsupported code
+        asserterror CheckPaymentDataAvailable(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(UnsupportedPaymentMeansCodeErr, UnsupportedMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansUnsupportedCodeHandledBySubscriberPasses()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMeansHandler: Codeunit "E-Doc. DE Paym. Means Handler";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] An extension that supplies the data for an otherwise unsupported code can accept it.
+        Initialize();
+
+        // [GIVEN] A Sales Invoice with a Payment Method carrying the unsupported Payment Means Code '48'
+        PaymentMethodCode := LibraryEDocDE.CreatePaymentMethodWithMeansCode(UnsupportedMeansCodeTok);
+        CreateSalesInvoiceWithPaymentMethod(SalesHeader, PaymentMethodCode);
+
+        // [GIVEN] An extension subscribes to OnBeforeCheckPaymentMeansCodeSupported and handles the code
+        BindSubscription(PaymentMeansHandler);
+
+        // [WHEN] The payment data is checked
+        // [THEN] No error is raised
+        CheckPaymentDataAvailable(SalesHeader);
+
+        UnbindSubscription(PaymentMeansHandler);
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansBlankCodeIsAccepted()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] A payment method without a payment means code keeps the '58' credit transfer fallback.
+        Initialize();
+
+        // [GIVEN] A Sales Invoice with a Payment Method that has no Payment Means Code
+        PaymentMethodCode := LibraryEDocDE.CreatePaymentMethodWithMeansCode('');
+        CreateSalesInvoiceWithPaymentMethod(SalesHeader, PaymentMethodCode);
+
+        // [WHEN] The payment data is checked
+        // [THEN] No error is raised, because the export falls back to credit transfer
+        CheckPaymentDataAvailable(SalesHeader);
+    end;
+
     #endregion
 
     local procedure CreateCustomerWithRoutingNo(var Customer: Record Customer; RoutingNo: Text[50])
@@ -394,6 +460,14 @@ codeunit 13926 "E-Document DE Tests"
         SalesCrMemoHeader."Due Date" := WorkDate();
         SalesCrMemoHeader."Sell-to E-Mail" := LibraryUtility.GenerateRandomEmail();
         SalesCrMemoHeader."Payment Method Code" := PaymentMethodCode;
+    end;
+
+    local procedure CheckPaymentDataAvailable(SalesHeader: Record "Sales Header")
+    var
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(SalesHeader);
+        DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
     end;
 
     local procedure CheckSalesHeader(SalesHeader: Record "Sales Header")
