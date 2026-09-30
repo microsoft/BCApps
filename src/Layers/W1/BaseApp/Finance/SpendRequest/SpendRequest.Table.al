@@ -18,7 +18,8 @@ table 6840 "Spend Request"
     Caption = 'Spend Request';
     DataClassification = CustomerContent;
     DataCaptionFields = "No.", Purpose;
-    Permissions = tabledata "Spend Request Detail" = rimd,
+    Permissions = tabledata "Spend Request" = m,
+                  tabledata "Spend Request Detail" = rimd,
                   tabledata "Spend Request To G/L Link" = rimd;
 
     fields
@@ -83,6 +84,11 @@ table 6840 "Spend Request"
         {
             Caption = 'Purpose';
             ToolTip = 'Specifies the purpose of the spend request.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(9; "Currency Code"; Code[10])
         {
@@ -168,8 +174,8 @@ table 6840 "Spend Request"
         field(15; "Approved/Rejected by User ID"; Guid)
         {
             Caption = 'Approved/Rejected by User ID';
-            DataClassification = EndUserIdentifiableInformation;
             ToolTip = 'Specifies the user ID who approved or rejected the spend request.';
+            DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Security ID";
 
@@ -182,6 +188,7 @@ table 6840 "Spend Request"
         {
             Caption = 'Approved/Rejected by User Name';
             ToolTip = 'Specifies the user name who approved or rejected the spend request.';
+            DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
         field(17; "Approved/Rejected At"; DateTime)
@@ -447,6 +454,7 @@ table 6840 "Spend Request"
         Rec.Status := Rec.Status::Approved;
         Rec."Approved/Rejected At" := CurrentDateTime();
         Rec."Approved/Rejected by User ID" := UserSecurityId();
+        Rec."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(Rec."Approved/Rejected by User Name"));
         Rec.Modify();
     end;
 
@@ -461,6 +469,7 @@ table 6840 "Spend Request"
         Rec.Status := Rec.Status::Rejected;
         Rec."Approved/Rejected At" := CurrentDateTime();
         Rec."Approved/Rejected by User ID" := UserSecurityId();
+        Rec."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(Rec."Approved/Rejected by User Name"));
         Rec.Modify();
     end;
 

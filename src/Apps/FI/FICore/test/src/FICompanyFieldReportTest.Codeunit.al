@@ -342,10 +342,12 @@ codeunit 148150 "FI Company Field Report Test"
     var
         ServiceContractHeader: Record "Service Contract Header";
         ServiceContractLine: Record "Service Contract Line";
+        ServiceContractTemplate: Record "Service Contract Template";
         Customer: Record Customer;
         ServiceItem: Record "Service Item";
         DocumentNumber: Variant;
     begin
+        ServiceContractTemplate.DeleteAll();
         LibrarySales.CreateCustomer(Customer);
         LibraryService.CreateServiceContractHeader(ServiceContractHeader, ServiceContractType, Customer."No.");
         LibraryService.CreateServiceItem(ServiceItem, Customer."No.");

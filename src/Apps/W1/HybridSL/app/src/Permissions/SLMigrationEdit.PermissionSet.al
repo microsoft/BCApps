@@ -110,12 +110,12 @@ permissionset 47004 "SL Migration - Edit"
                   tabledata "SL PJEquip" = IMD,
                   tabledata "SL PJPent" = IMD,
                   tabledata "SL PJProj" = IMD,
-                  tabledata "SL PurchOrd" = IMD,
-                  tabledata "SL PurOrdDet" = IMD,
                   tabledata "SL SOHeader" = IMD,
                   tabledata "SL SOLine" = IMD,
                   tabledata "SL SOType" = IMD,
 #pragma warning restore AL0432
 #endif
+                  tabledata "SL PurchOrd" = IMD,
+                  tabledata "SL PurOrdDet" = IMD,
                   tabledata SLGLAcctBalByPeriod = IMD;
 }

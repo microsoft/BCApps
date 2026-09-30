@@ -174,6 +174,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetInventoryPlanningSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetICTransactionSourceTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetFinancialReportDefaultsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetShowCurrencySymbolPositionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetInitializeABCAnalysisSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPurchRcptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetSalesShptLineFieldsUpgradeTag());
@@ -217,7 +218,6 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerDatabaseUpgradeTags.Add(GetBCUserGroupUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetRenderWordReportsInPlatformFeatureKeyUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetRegisterBankAccRecCopilotCapabilityUpgradeTag());
-        PerDatabaseUpgradeTags.Add(GetCompositeReportPartsUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"API Data Upgrade", 'OnGetAPIUpgradeTags', '', false, false)]
@@ -1238,6 +1238,11 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('GIT-1494-FinancialReportDefaultsUpgradeTag-20250801');
     end;
 
+    internal procedure GetShowCurrencySymbolPositionUpgradeTag(): Code[250]
+    begin
+        exit('MS-578641-SetShowCurrencySymbolUpgradeTag-20251014');
+    end;
+
     internal procedure GetCreateExpenseAgentAADApplicationsTag(): Code[250]
     begin
         exit('MS-580734-CreateExpenseAgentAADApplication-20260115');
@@ -1297,10 +1302,5 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetProdDefinitionDisplaySetupUpgradeTag(): Code[250]
     begin
         exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
-    end;
-
-    internal procedure GetCompositeReportPartsUpgradeTag(): Code[250]
-    begin
-        exit('MS-647452-CompositeReportPartsUpgradeTag-20260820');
     end;
 }

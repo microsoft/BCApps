@@ -105,44 +105,6 @@ codeunit 117507 "Create Service Base Calendar"
         exit;
         // NAVCZ
 
-        InsertBaseCalChange(
-          XGB, BaseCalChange."Recurring System"::"Weekly Recurring", BaseCalChange.Day::Saturday, true,
-          DateToDMY(0D), XWeekend);
-        InsertBaseCalChange(
-          XGB, BaseCalChange."Recurring System"::"Weekly Recurring", BaseCalChange.Day::Sunday, true,
-          DateToDMY(0D), XWeekend);
-
-        InsertBaseCalChange(
-          XGB, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
-          DateToDMY(19030101D), XNewYearsEve);
-        CheckHolidayDate(DateToDMY(19030101D), XNewYearsEve);
-
-        InsertBaseCalChange(
-          XGB, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
-          DateToDMY(19030102D), XBankHolidayScotlandOnly);
-        CheckHolidayDate(DateToDMY(19030102D), XBankHolidayScotlandOnly);
-
-        InsertBaseCalChange(
-          XGB, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
-          DateToDMY(19040317D), XStPatricksDay);
-        CheckHolidayDate(DateToDMY(19040317D), XStPatricksDay);
-
-        InsertBaseCalChange(
-          XGB, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
-          DateToDMY(19030712D), XBattleoftheBoyneDay);
-        CheckHolidayDate(DateToDMY(19030712D), XBattleoftheBoyneDay);
-
-        InsertBaseCalChange(
-          XGB, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
-          DateToDMY(19031225D), XChristmasDay);
-        CheckHolidayDate(DateToDMY(19031225D), XChristmasDay);
-
-        InsertBaseCalChange(
-          XGB, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
-          DateToDMY(19031226D), XBoxingDay);
-        CheckHolidayDate(DateToDMY(19031226D), XBoxingDay);
-
-        CreateSpecialHolidays();
     end;
 
     var
@@ -173,12 +135,6 @@ codeunit 117507 "Create Service Base Calendar"
         // NAVCZ
         XGB: Label 'GB';
         XWeekend: Label 'Weekend';
-        XNewYearsEve: Label 'New Years Eve';
-        XBankHolidayScotlandOnly: Label 'Bank Holiday, Scotland Only';
-        XStPatricksDay: Label 'St Patricks Day';
-        XBattleoftheBoyneDay: Label 'Battle of the Boyne Day';
-        XChristmasDay: Label 'Christmas Day';
-        XBoxingDay: Label 'Boxing Day';
         XMayDayBankHoliday: Label 'May Day Bank Holiday';
         XBankHoliday: Label 'Bank Holiday';
         XSummerBankHolidayScotland: Label 'Summer Bank Holiday, Scotland';
