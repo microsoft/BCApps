@@ -11,6 +11,7 @@ codeunit 6926 "Expense Activity Log Mgt."
 {
     Access = Internal;
     Permissions = tabledata "Expense Activity Log Entry" = rimd,
+                  tabledata "Expense Agent Setup" = r,
                   tabledata User = r;
 
     /// <summary>
@@ -144,6 +145,41 @@ codeunit 6926 "Expense Activity Log Mgt."
         else
             SetBCUserActor(ExpenseActivityLogEntry, SpendRequest.SystemCreatedBy);
 
+        exit(InsertTravelRequestEntry(ExpenseActivityLogEntry, SpendRequest));
+    end;
+
+    /// <summary>
+    /// Logs the creation of an expense report created automatically by the Expense Agent from an approved travel request.
+    /// </summary>
+    internal procedure LogExpenseReportCreatedFromTravelRequest(ExpenseReportHeader: Record "Expense Report Header"): BigInteger
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        // This Created entry also prevents the retrospective Created entry at first submission.
+        InitializeExpenseReportEntry(
+            ExpenseActivityLogEntry, ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Created,
+            Enum::"Expense Activity Initiator"::Agent,
+            Enum::"Expense Activity Actor Role"::" ",
+            '', CurrentDateTime());
+        SetExpenseAgentActor(ExpenseActivityLogEntry);
+        exit(InsertExpenseReportEntry(ExpenseActivityLogEntry, ExpenseReportHeader));
+    end;
+
+    /// <summary>
+    /// Logs once on an approved travel request that the Expense Agent created its expense reports automatically.
+    /// </summary>
+    internal procedure LogTravelRequestExpenseReportsCreated(SpendRequest: Record "Spend Request"): BigInteger
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        InitializeTravelRequestEntry(
+            ExpenseActivityLogEntry, SpendRequest,
+            Enum::"Expense Activity Event Type"::ExpenseReportCreated,
+            Enum::"Expense Activity Actor Role"::" ",
+            '', CurrentDateTime());
+        ExpenseActivityLogEntry."Initiated By" := Enum::"Expense Activity Initiator"::Agent;
+        SetExpenseAgentActor(ExpenseActivityLogEntry);
         exit(InsertTravelRequestEntry(ExpenseActivityLogEntry, SpendRequest));
     end;
 
@@ -350,6 +386,18 @@ codeunit 6926 "Expense Activity Log Mgt."
         else
             ExpenseActivityLogEntry."Actor Display Name" :=
                 CopyStr(User."User Name", 1, MaxStrLen(ExpenseActivityLogEntry."Actor Display Name"));
+    end;
+
+    local procedure SetExpenseAgentActor(var ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseAgentNameTxt: Label 'Expense Agent';
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        SetBCUserActor(ExpenseActivityLogEntry, ExpenseAgentSetup."User Security ID");
+        // Without a configured agent user, the entry is still shown as performed by the Expense Agent.
+        if ExpenseActivityLogEntry."Actor Display Name" = '' then
+            ExpenseActivityLogEntry."Actor Display Name" := ExpenseAgentNameTxt;
     end;
 
     local procedure SetAmountSnapshot(

@@ -53,24 +53,6 @@ codeunit 7133 "Travel Request Approval"
         FeatureTelemetry.LogUsage('0000VEY', ExpenseAgentSetup.GetFeatureName(), TravelRequestSubmittedLbl);
     end;
 
-    /// <summary>
-    /// Releases a travel request from the Business Central client and records the release as a submission by the BC user.
-    /// </summary>
-    internal procedure ReleaseManually(var SpendRequest: Record "Spend Request")
-    var
-        ReleaseSpendRequest: Codeunit "Release Spend Request";
-    begin
-        // The release is part of the same transaction, so a failed release also discards the logged submission.
-        if (SpendRequest."Document Type" = SpendRequest."Document Type"::"Travel Request") and
-           (SpendRequest.Status <> SpendRequest.Status::Released)
-        then begin
-            // Like an expense report submitted from the client, a client release has no submitter comment.
-            Clear(SpendRequest."Submitter Comment");
-            LogTravelRequestSubmission(SpendRequest, '', IsTravelRequestResubmission(SpendRequest), '');
-        end;
-        ReleaseSpendRequest.PerformManualRelease(SpendRequest);
-    end;
-
     internal procedure Approve(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
     var
         Approver: Record "Expense User";
@@ -109,33 +91,36 @@ codeunit 7133 "Travel Request Approval"
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
         LogTravelRequestApproved(SpendRequest, ApproverExpenseUserNo);
-        CreateTravelerExpenseReports(SpendRequest);
+        // A single entry covers all travelers' expense reports created by this approval.
+        if CreateTravelerExpenseReports(SpendRequest) then
+            ExpenseActivityLogMgt.LogTravelRequestExpenseReportsCreated(SpendRequest);
     end;
 
-    local procedure CreateTravelerExpenseReports(SpendRequest: Record "Spend Request")
+    local procedure CreateTravelerExpenseReports(SpendRequest: Record "Spend Request") AnyCreated: Boolean
     var
         Traveler: Record Traveler;
     begin
-        CreateTravelerExpenseReport(SpendRequest, SpendRequest."Requested For");
+        AnyCreated := CreateTravelerExpenseReport(SpendRequest, SpendRequest."Requested For");
 
         Traveler.SetRange("Spend Request No.", SpendRequest."No.");
         Traveler.SetFilter("Expense User No.", '<>%1&<>%2', '', SpendRequest."Requested For");
         Traveler.SetLoadFields("Expense User No.");
         if Traveler.FindSet() then
             repeat
-                CreateTravelerExpenseReport(SpendRequest, Traveler."Expense User No.");
+                if CreateTravelerExpenseReport(SpendRequest, Traveler."Expense User No.") then
+                    AnyCreated := true;
             until Traveler.Next() = 0;
     end;
 
-    local procedure CreateTravelerExpenseReport(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20])
+    local procedure CreateTravelerExpenseReport(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20]) Created: Boolean
     var
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         if ExpenseReportHeader.HasPostedTravelRequestReport(SpendRequest, TravelerExpenseUserNo) then
-            exit;
+            exit(false);
 
-        ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(SpendRequest, TravelerExpenseUserNo);
+        Created := ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(SpendRequest, TravelerExpenseUserNo);
         ExpenseReportHeader.Reset();
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUserNo);
@@ -176,26 +161,6 @@ codeunit 7133 "Travel Request Approval"
         FeatureTelemetry.LogUsage('0000VF1', ExpenseAgentSetup.GetFeatureName(), TravelRequestRejectedLbl);
     end;
 
-    /// <summary>
-    /// Reopens a travel request from the Business Central client and records the BC user who reopened it.
-    /// </summary>
-    internal procedure ReopenManually(var SpendRequest: Record "Spend Request")
-    var
-        ReleaseSpendRequest: Codeunit "Release Spend Request";
-        WasOpen: Boolean;
-    begin
-        WasOpen := SpendRequest.Status = SpendRequest.Status::Open;
-        ReleaseSpendRequest.PerformManualReopen(SpendRequest);
-        if WasOpen or (SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request") then
-            exit;
-
-        ExpenseActivityLogMgt.LogTravelRequestEventByBCUser(
-            SpendRequest,
-            Enum::"Expense Activity Event Type"::Reopened,
-            Enum::"Expense Activity Actor Role"::" ",
-            '');
-    end;
-
     local procedure LogTravelRequestSubmission(SpendRequest: Record "Spend Request"; SubmitterExpenseUserNo: Code[20]; IsResubmission: Boolean; SubmissionComment: Text)
     var
         EventType: Enum "Expense Activity Event Type";
@@ -209,12 +174,8 @@ codeunit 7133 "Travel Request Approval"
         else
             EventType := EventType::Submitted;
 
-        if SubmitterExpenseUserNo <> '' then
-            ExpenseActivityLogMgt.LogTravelRequestEvent(
-                SpendRequest, EventType, Enum::"Expense Activity Actor Role"::Submitter, SubmitterExpenseUserNo, SubmissionComment)
-        else
-            ExpenseActivityLogMgt.LogTravelRequestEventByBCUser(
-                SpendRequest, EventType, Enum::"Expense Activity Actor Role"::Submitter, SubmissionComment);
+        ExpenseActivityLogMgt.LogTravelRequestEvent(
+            SpendRequest, EventType, Enum::"Expense Activity Actor Role"::Submitter, SubmitterExpenseUserNo, SubmissionComment);
     end;
 
     local procedure IsTravelRequestResubmission(SpendRequest: Record "Spend Request"): Boolean

@@ -232,9 +232,9 @@ page 7129 "Travel Request Card"
 
                     trigger OnAction()
                     var
-                        TravelRequestApproval: Codeunit "Travel Request Approval";
+                        ReleaseSpendRequest: Codeunit "Release Spend Request";
                     begin
-                        TravelRequestApproval.ReleaseManually(Rec);
+                        ReleaseSpendRequest.PerformManualRelease(Rec);
                     end;
                 }
                 action(ReOpen)
@@ -247,9 +247,9 @@ page 7129 "Travel Request Card"
 
                     trigger OnAction()
                     var
-                        TravelRequestApproval: Codeunit "Travel Request Approval";
+                        ReleaseSpendRequest: Codeunit "Release Spend Request";
                     begin
-                        TravelRequestApproval.ReopenManually(Rec);
+                        ReleaseSpendRequest.PerformManualReopen(Rec);
                     end;
                 }
                 action(Close)

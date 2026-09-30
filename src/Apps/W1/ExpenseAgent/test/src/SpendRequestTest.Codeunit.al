@@ -2753,7 +2753,7 @@ codeunit 148339 "Spend Request Test"
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         RejectReason := 'The destination is outside the approved travel policy.';
 
-        // [WHEN] The request is submitted, rejected (which reopens it), resubmitted, and approved.
+        // [WHEN] The request is submitted, rejected (which reopens it), resubmitted, and approved, which creates the traveler's expense report.
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", RejectReason);
         SpendRequest.Get(SpendRequest."No.");
@@ -2764,7 +2764,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        Assert.RecordCount(ExpenseActivityLogEntry, 5);
+        Assert.RecordCount(ExpenseActivityLogEntry, 6);
         ExpenseActivityLogEntry.FindSet();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Created, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
         Assert.AreEqual(SpendRequest.SystemCreatedAt, ExpenseActivityLogEntry."Occurred At", 'The creation entry must use the travel request creation timestamp.');
@@ -2780,6 +2780,8 @@ codeunit 148339 "Spend Request Test"
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Resubmitted, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
         ExpenseActivityLogEntry.Next();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Approved, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
+        ExpenseActivityLogEntry.Next();
+        VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
     end;
 
     [Test]
@@ -2849,33 +2851,6 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    procedure ClientReleaseClearsSubmitterComment()
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        ApproverExpenseUser: Record "Expense User";
-        TravelRequestApproval: Codeunit "Travel Request Approval";
-    begin
-        // [SCENARIO] Releasing a travel request from the client clears the comment of an earlier submission, like on expense reports.
-        Initialize();
-
-        // [GIVEN] A travel request that was submitted with a comment and rejected, which reopens it.
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
-        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
-        TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.", 'First submission comment.');
-        TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'Missing details.');
-
-        // [WHEN] The travel request is released from the client.
-        TravelRequestApproval.ReleaseManually(SpendRequest);
-
-        // [THEN] The travel request is released and the previous submitter comment is cleared.
-        SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
-        SpendRequest.TestField("Submitter Comment", '');
-    end;
-
-    [Test]
     procedure TravelRequestAutoApprovalLogsActivity()
     var
         SpendRequest: Record "Spend Request";
@@ -2892,11 +2867,11 @@ codeunit 148339 "Spend Request Test"
         // [WHEN] The request is submitted and approved automatically.
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
 
-        // [THEN] The activity log contains creation, submission, and an automatic approval in that order.
+        // [THEN] The activity log contains creation, submission, an automatic approval, and the automatic expense report creation in that order.
         ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        Assert.RecordCount(ExpenseActivityLogEntry, 3);
+        Assert.RecordCount(ExpenseActivityLogEntry, 4);
         ExpenseActivityLogEntry.FindSet();
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Created, ExpenseActivityLogEntry."Event Type", 'The first entry must record creation.');
         ExpenseActivityLogEntry.Next();
@@ -2905,48 +2880,51 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Approved, ExpenseActivityLogEntry."Event Type", 'The third entry must record the automatic approval.');
         Assert.AreEqual(Enum::"Expense Activity Actor Role"::" ", ExpenseActivityLogEntry."Actor Role", 'An automatic approval has no approver role.');
         Assert.AreNotEqual('', ExpenseActivityLogEntry.Comment, 'An automatic approval must explain why it was approved automatically.');
+        ExpenseActivityLogEntry.Next();
+        VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
     end;
 
     [Test]
-    procedure ClientReleaseOfTravelRequestLogsSubmission()
+    procedure ApprovedTravelRequestLogsExpenseReportCreation()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        TravelerExpenseUser: Record "Expense User";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
-        // [SCENARIO] Releasing and reopening a travel request from the client logs the BC user, and a second release a resubmission.
+        // [SCENARIO] Approving a travel request logs one entry on the travel request that the Expense Agent created the expense reports,
+        // [SCENARIO] and each created expense report logs its own creation by the Expense Agent.
         Initialize();
 
-        // [GIVEN] A releasable travel request with the agent enabled.
+        // [GIVEN] A submitted travel request with an additional traveler, an assigned approver, and the agent enabled.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        LibraryExpense.CreateExpenseUser(TravelerExpenseUser);
+        LibraryExpense.CreateTraveler(SpendRequest."No.", TravelerExpenseUser."No.");
+        TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
 
-        // [WHEN] The request is released from the client, reopened, and released again.
-        TravelRequestApproval.ReleaseManually(SpendRequest);
-        SpendRequest.Get(SpendRequest."No.");
-        TravelRequestApproval.ReopenManually(SpendRequest);
-        TravelRequestApproval.ReleaseManually(SpendRequest);
+        // [WHEN] The travel request is approved, which creates an expense report for each traveler.
+        TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
 
-        // [THEN] The activity log contains creation, submission, reopening, and resubmission by the BC user.
-        SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
-        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        // [THEN] The travel request has a single entry for the automatic creation of the expense reports.
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        Assert.RecordCount(ExpenseActivityLogEntry, 4);
-        ExpenseActivityLogEntry.FindSet();
-        Assert.AreEqual(Enum::"Expense Activity Event Type"::Created, ExpenseActivityLogEntry."Event Type", 'The first entry must record creation.');
-        ExpenseActivityLogEntry.Next();
-        Assert.AreEqual(Enum::"Expense Activity Event Type"::Submitted, ExpenseActivityLogEntry."Event Type", 'The client release must be logged as a submission.');
-        Assert.AreEqual(Enum::"Expense Activity Actor Role"::Submitter, ExpenseActivityLogEntry."Actor Role", 'The client release must use the submitter role.');
-        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'The client release must be attributed to the BC user.');
-        Assert.AreEqual(SpendRequest."Total Expected Amount", ExpenseActivityLogEntry."Total Expected Amount", 'The client release must capture the expected amount.');
-        ExpenseActivityLogEntry.Next();
-        Assert.AreEqual(Enum::"Expense Activity Event Type"::Reopened, ExpenseActivityLogEntry."Event Type", 'The third entry must record reopening.');
-        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'The client reopen must be attributed to the BC user.');
-        ExpenseActivityLogEntry.Next();
-        Assert.AreEqual(Enum::"Expense Activity Event Type"::Resubmitted, ExpenseActivityLogEntry."Event Type", 'The second client release must be logged as a resubmission.');
+        ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::ExpenseReportCreated);
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
+        VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
+        Assert.AreEqual(SpendRequest."No.", ExpenseActivityLogEntry."Document No.", 'The entry must reference the travel request number.');
+
+        // [THEN] The entry is part of the history of the travel request's submitter and approver.
+        VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
+        VerifyInUserHistory(ExpenseActivityLogEntry, ApproverExpenseUser, Enum::"Expense Activity Actor Role"::Approver);
+
+        // [THEN] Each expense report has a single Created entry by the Expense Agent.
+        VerifyExpenseReportCreatedByAgent(SpendRequest, ExpenseUser);
+        VerifyExpenseReportCreatedByAgent(SpendRequest, TravelerExpenseUser);
     end;
 
     [Test]
@@ -3481,6 +3459,46 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(ExpectedActorRole, ExpenseActivityLogEntry."Actor Role", StrSubstNo('The %1 event must record the expected actor role.', ExpectedEventType));
         Assert.AreEqual(Database::"Expense User", ExpenseActivityLogEntry."Actor Table ID", StrSubstNo('The %1 event must be attributed to an expense user.', ExpectedEventType));
         Assert.AreEqual(ExpectedActor.SystemId, ExpenseActivityLogEntry."Actor Record System ID", StrSubstNo('The %1 event must be attributed to the expected expense user.', ExpectedEventType));
+    end;
+
+    local procedure VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
+    begin
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::ExpenseReportCreated, ExpenseActivityLogEntry."Event Type", 'The entry must record the automatic creation of the expense reports.');
+        VerifyExpenseAgentActivity(ExpenseActivityLogEntry);
+    end;
+
+    local procedure VerifyExpenseReportCreatedByAgent(SpendRequest: Record "Spend Request"; TravelerExpenseUser: Record "Expense User")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUser."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", ExpenseReportHeader.SystemId);
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Created, ExpenseActivityLogEntry."Event Type", 'The expense report must log its creation.');
+        VerifyExpenseAgentActivity(ExpenseActivityLogEntry);
+        Assert.AreEqual(ExpenseReportHeader."No.", ExpenseActivityLogEntry."Document No.", 'The entry must reference the expense report number.');
+    end;
+
+    local procedure VerifyExpenseAgentActivity(ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
+    begin
+        Assert.AreEqual(Enum::"Expense Activity Initiator"::Agent, ExpenseActivityLogEntry."Initiated By", 'The activity must be initiated by the Expense Agent.');
+        Assert.AreEqual(Enum::"Expense Activity Actor Role"::" ", ExpenseActivityLogEntry."Actor Role", 'The Expense Agent has no submitter or approver role.');
+        Assert.AreNotEqual('', ExpenseActivityLogEntry."Actor Display Name", 'The activity must show that the Expense Agent performed it.');
+        Assert.AreEqual('', ExpenseActivityLogEntry.Comment, 'The event type and initiator describe the automatic creation without a comment.');
+    end;
+
+    local procedure VerifyInUserHistory(ExpenseActivityLogEntry: Record "Expense Activity Log Entry"; ExpenseUser: Record "Expense User"; ActorRole: Enum "Expense Activity Actor Role")
+    begin
+        ExpenseActivityLogEntry.SetRange("History Actor Table ID Filter", Database::"Expense User");
+        ExpenseActivityLogEntry.SetRange("History Actor System ID Filter", ExpenseUser.SystemId);
+        ExpenseActivityLogEntry.SetRange("History Actor Role Filter", ActorRole);
+        ExpenseActivityLogEntry.CalcFields("History Subject Match");
+        Assert.IsTrue(ExpenseActivityLogEntry."History Subject Match", StrSubstNo('The entry must be in the %1 history of expense user %2.', ActorRole, ExpenseUser."No."));
     end;
 
     local procedure GetExpectedApproverName(): Code[50]

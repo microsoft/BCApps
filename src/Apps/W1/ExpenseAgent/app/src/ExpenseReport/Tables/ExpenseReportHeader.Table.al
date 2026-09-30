@@ -1371,6 +1371,8 @@ table 6906 "Expense Report Header"
     /// <returns>True if an expense report was created; false if the traveler already has an unposted expense report for the travel request.</returns>
     [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure CreateFromApprovedTravelRequestIfMissing(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20]): Boolean
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
         // Serialize creation for this request even when no expense report exists yet.
         SpendRequest.LockTable();
@@ -1398,6 +1400,7 @@ table 6906 "Expense Report Header"
         OnBeforeCreateFromApprovedTravelRequest(SpendRequest, Rec);
         Rec.Insert(true);
         OnAfterCreateFromApprovedTravelRequest(SpendRequest, Rec);
+        ExpenseActivityLogMgt.LogExpenseReportCreatedFromTravelRequest(Rec);
         exit(true);
     end;
 
