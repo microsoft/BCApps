@@ -135,7 +135,7 @@ table 6902 "Expense Itemization"
     trigger OnInsert()
     begin
         Expense.Get("Expense No.");
-        if not (Expense."Expense Detail Required" = Expense."Expense Detail Required"::Itemize) then
+        if not ExpenseAgentSetup.IsItemizationRequired(Expense."Expense Detail Required") then
             Error(CannotAddItemizationErr, Expense."No.");
 
         Rec.TestField("Expense No.");
@@ -155,6 +155,7 @@ table 6902 "Expense Itemization"
     end;
 
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         Expense: Record Expense;
         CannotAddItemizationErr: Label 'Cannot add Itemizations to Expense No. %1 as there is no applicable Expense Rule that requires itemizations.', Comment = '%1 - Expense No.';
 

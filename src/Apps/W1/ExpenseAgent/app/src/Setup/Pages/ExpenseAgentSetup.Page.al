@@ -276,6 +276,9 @@ page 6996 "Expense Agent Setup"
                 field("Check Category/Subcategory Usage"; Rec."Check Category/SubCat. Usage")
                 {
                 }
+                field("Enforce Itemization"; Rec."Enforce Itemization")
+                {
+                }
                 field("Display Anti-Corruption attestation"; Rec."Enable Anti-Corp. Statement")
                 {
                 }

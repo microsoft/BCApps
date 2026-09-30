@@ -464,7 +464,7 @@ page 6993 "Posted Expense Report SubP."
     begin
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
-        IsItemizationCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize;
+        IsItemizationCategory := ExpenseAgentSetup.IsItemizationRequired(Rec."Expense Detail Required");
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
 
         IsRuleApplied := not IsNullGuid(Rec."Applied Rule Id");

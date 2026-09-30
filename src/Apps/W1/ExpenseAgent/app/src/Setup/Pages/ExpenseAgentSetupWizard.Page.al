@@ -529,6 +529,21 @@ page 6991 "Expense Agent Setup Wizard"
                         end;
                     }
                 }
+                group(EnforceItemizationSection)
+                {
+                    Caption = 'Enforce Itemization';
+                    InstructionalText = 'Activate this option to require itemization for expenses.';
+
+                    field("Enforce Itemization"; "Enforce Itemization")
+                    {
+                        ShowCaption = false;
+
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                }
                 group(ExpenseReportingRulesSection)
                 {
                     Caption = 'Expense reporting';

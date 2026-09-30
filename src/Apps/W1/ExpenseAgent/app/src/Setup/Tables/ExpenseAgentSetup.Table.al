@@ -715,6 +715,24 @@ table 6930 "Expense Agent Setup"
             Editable = false;
             ToolTip = 'Specifies whether Expense Agent service calls from this environment are routed to the canary endpoint.';
         }
+        field(160; "Enforce Itemization"; Boolean)
+        {
+            Caption = 'Enforce Itemization';
+            ToolTip = 'Specifies whether itemization is enforced for expenses.';
+
+            trigger OnValidate()
+            var
+                ConfirmManagement: Codeunit "Confirm Management";
+            begin
+                if Rec."Enforce Itemization" then
+                    if not ExistSubCategoryForExpenseCategories() then begin
+                        if not ConfirmManagement.GetResponseOrDefault('Do you want to create default subcategories for categories without subcategories?', false) then
+                            Error('');
+
+                        CreateDefaultSubcategoryForCategoriesWithoutSubcategories();
+                    end;
+            end;
+        }
     }
 
     keys
@@ -801,6 +819,7 @@ table 6930 "Expense Agent Setup"
         UpdateDefaultsApproverQst: Label 'You have changed the default approver.\\Do you also want to change approver from %1 to %2 for all expense users who currently have %1 as approver?', Comment = '%1 and %2 are both person names.';
         UpdatingDefaultApproversLbl: Label 'Updating approvers...';
         XDOMESTICTxt: Label 'DOMESTIC'; // DOMESTIC VAT Business Posting Group used as default for all rates created by this codeunit
+        DefaultSubCategoryLbl: Label 'DEFAULT';
 
 
     internal procedure AssistEditNoreplyMailbox()
@@ -1237,6 +1256,15 @@ table 6930 "Expense Agent Setup"
         CreateManagementDefaults();
     end;
 
+    internal procedure IsItemizationRequired(ExpenseDetailRequired: Enum "Expense Detail Needed"): Boolean
+    begin
+        Rec.GetRecordOnce();
+        if Rec."Enforce Itemization" or (ExpenseDetailRequired = ExpenseDetailRequired::Itemize) then
+            exit(true);
+
+        exit(false);
+    end;
+
     local procedure CheckBeforeEnablingAgent()
     var
         ExpenseCategory: Record "Expense Category";
@@ -1274,5 +1302,53 @@ table 6930 "Expense Agent Setup"
             if ExpenseUser.Get(ExpenseUserNo) then
                 exit(ExpenseUser.Name);
         exit('');
+    end;
+
+    local procedure ExistSubCategoryForExpenseCategories(): Boolean
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+    begin
+        if ExpenseCategory.FindSet() then
+            repeat
+                ExpenseSubCategory.SetRange("Expense Category Code", ExpenseCategory.Code);
+                if ExpenseSubCategory.IsEmpty() then
+                    exit(false);
+            until ExpenseCategory.Next() = 0;
+
+        exit(true);
+    end;
+
+    local procedure CreateDefaultSubcategoryForCategoriesWithoutSubcategories()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+    begin
+        if ExpenseCategory.FindSet() then
+            repeat
+                ExpenseSubCategory.SetRange("Expense Category Code", ExpenseCategory.Code);
+                if ExpenseSubCategory.IsEmpty() then
+                    InsertExpenseSubcategory(DefaultSubCategoryLbl, ExpenseCategory.Code, ExpenseCategory.Description, ExpenseCategory."Posting Description", ExpenseCategory.Refundable, false, ExpenseCategory."VAT Prod. Posting Group", ExpenseCategory."Default VAT %", ExpenseCategory."Default VAT Reclaim %");
+            until ExpenseCategory.Next() = 0;
+    end;
+
+    local procedure InsertExpenseSubcategory(SubcategoryCode: Code[20]; CategoryCode: Code[20]; Description: Text[250]; PostingDescription: Text[100]; Refundable: Boolean; DescriptionMandatory: Boolean; VATProdPostingGroup: Code[20]; DefaultVAT: Decimal; DefaultVATReclaim: Decimal)
+    var
+        ExpenseSubCategory: Record "Expense Subcategory";
+    begin
+        if ExpenseSubcategory.Get(CategoryCode, SubcategoryCode) then
+            exit;
+
+        ExpenseSubcategory.Init();
+        ExpenseSubcategory.Code := SubcategoryCode;
+        ExpenseSubcategory."Expense Category Code" := CategoryCode;
+        ExpenseSubcategory.Description := Description;
+        ExpenseSubcategory."Posting Description" := PostingDescription;
+        ExpenseSubcategory."Expense Description Mandatory" := DescriptionMandatory;
+        ExpenseSubcategory.Refundable := Refundable;
+        ExpenseSubcategory."VAT Prod. Posting Group" := VATProdPostingGroup;
+        ExpenseSubcategory."Default VAT %" := DefaultVAT;
+        ExpenseSubcategory."Default VAT Reclaim %" := DefaultVATReclaim;
+        ExpenseSubcategory.Insert(true);
     end;
 }
