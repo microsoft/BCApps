@@ -67,6 +67,8 @@ codeunit 139629 "Library - E-Document"
     procedure SetupStandardSalesScenario(var Customer: Record Customer; var EDocService: Record "E-Document Service")
     var
         CountryRegion: Record "Country/Region";
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
         DocumentSendingProfile: Record "Document Sending Profile";
         SalesSetup: Record "Sales & Receivables Setup";
         WorkflowSetup: Codeunit "Workflow Setup";
@@ -92,8 +94,17 @@ codeunit 139629 "Library - E-Document"
         Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CountryRegion.Code);
         Customer.Validate(GLN, '1234567890128');
+        Customer.Validate("E-Mail", 'edoc-test@contoso.com');
         Customer."Document Sending Profile" := DocumentSendingProfile.Code;
         Customer.Modify(true);
+
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
+        ContactBusinessRelation.SetRange("No.", Customer."No.");
+        if ContactBusinessRelation.FindFirst() then
+            if Contact.Get(ContactBusinessRelation."Contact No.") then begin
+                Contact."E-Mail" := Customer."E-Mail";
+                Contact.Modify();
+            end;
 
         // Create Item
         if StandardItem."No." = '' then begin
