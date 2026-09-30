@@ -10,7 +10,7 @@ page 46883 "BC14 Arch. Sales Inv. List"
     Caption = 'BC14 Archived Sales Invoices';
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Lists;
+    UsageCategory = History;
     SourceTable = "BC14 Arch. Sales Inv. Header";
     Editable = false;
     CardPageId = "BC14 Arch. Sales Inv. Card";

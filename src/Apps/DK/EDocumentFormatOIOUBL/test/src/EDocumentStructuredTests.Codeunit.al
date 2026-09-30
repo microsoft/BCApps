@@ -301,7 +301,11 @@ codeunit 148061 "E-Document Structured Tests"
         TransformationRule: Record "Transformation Rule";
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
+#if not CLEAN28
+#pragma warning disable AL0432
         EDocumentsSetup: Record "E-Documents Setup";
+#pragma warning restore AL0432
+#endif
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
@@ -329,7 +333,9 @@ codeunit 148061 "E-Document Structured Tests"
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::OIOUBL;
         EDocumentService.Modify(false);
+#if not CLEAN28
         EDocumentsSetup.InsertNewExperienceSetup();
+#endif
 
         // Set a currency that can be used across all localizations
         MockCurrencyCode := 'XYZ';
