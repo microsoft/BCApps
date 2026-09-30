@@ -171,6 +171,36 @@ page 7129 "Travel Request Card"
                         CurrPage.Update();
                     end;
                 }
+#if not CLEAN30
+                field("International Travel"; Rec."International Travel")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies whether the travel is international.';
+                    Editable = false;
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+                field("Origin Country"; Rec."Origin Country/Region Code")
+                {
+                    ToolTip = 'Specifies the origin country for the travel.';
+                    Editable = false;
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+                field("Destination Country"; Rec."Dest. Country/Region Code")
+                {
+                    ToolTip = 'Specifies the destination country for the travel.';
+                    Editable = false;
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
                 field(Restrictions; Rec.Restrictions)
                 {
                     Importance = Additional;
