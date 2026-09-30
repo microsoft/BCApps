@@ -2668,6 +2668,11 @@ codeunit 22 "Item Jnl.-Post Line"
             ValueEntry."Expected Cost" := ItemJnlLine."Value Entry Type" <> ItemJnlLine."Value Entry Type"::Revaluation;
         end;
 
+        if ItemJnlLine.Adjustment and
+           not (ValueEntry."Entry Type" in [ValueEntry."Entry Type"::"Direct Cost", ValueEntry."Entry Type"::Revaluation])
+        then
+            ValueEntry."Expected Cost" := false;
+
         ValueEntry."Document Type" := ItemJnlLine."Document Type";
         if ValueEntry."Expected Cost" or (ItemJnlLine."Invoice No." = '') then
             ValueEntry."Document No." := ItemJnlLine."Document No."
@@ -3144,6 +3149,7 @@ codeunit 22 "Item Jnl.-Post Line"
         ValueEntry."Entry No." := ValueEntryNo;
         ValueEntry."Item Charge No." := '';
         ValueEntry."Entry Type" := ValueEntry."Entry Type"::Variance;
+        ValueEntry."Expected Cost" := false;
         ValueEntry.Description := '';
         ValueEntry."Cost Posted to G/L" := 0;
         ValueEntry."Cost Posted to G/L (ACY)" := 0;
