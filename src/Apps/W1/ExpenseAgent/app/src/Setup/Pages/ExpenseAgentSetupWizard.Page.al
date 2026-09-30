@@ -927,6 +927,7 @@ page 6991 "Expense Agent Setup Wizard"
 
         FeatureTelemetry.LogUptake('0000UBU', Rec.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
 
+        if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         IsConfigUpdated := false;
         LoadSetup();
         ExpenseDashboardUrl := GetExpenseDashboardUrl();
