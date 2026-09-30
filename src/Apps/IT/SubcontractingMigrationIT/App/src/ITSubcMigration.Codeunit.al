@@ -1,8 +1,8 @@
 #if not CLEAN28
 namespace Microsoft.Manufacturing.Subcontracting.Migration;
 
-using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
