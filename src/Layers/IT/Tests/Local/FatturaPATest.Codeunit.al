@@ -1577,11 +1577,13 @@ codeunit 144200 "FatturaPA Test"
         Initialize();
 
         // [GIVEN] A foreign individual customer with a VAT/fiscal identifier
-        CountryRegion.Code := 'DE';
-        if CountryRegion.Insert() then;
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion.Modify();
         VATRegistrationNo := 'DE123456789';
         Customer.Get(CreateCustomer());
         CurrCustomer := Customer;
+        Customer."VAT Registration No." := '';
         Customer.Validate("Country/Region Code", CountryRegion.Code);
         Customer.Validate("Post Code", CurrCustomer."Post Code");
         Customer.Validate(City, CurrCustomer.City);
