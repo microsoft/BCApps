@@ -59,6 +59,11 @@ table 6316 "Power BI Deployment"
             Caption = 'Power BI Workspace Id';
             DataClassification = SystemMetadata;
         }
+        field(10; "Deployed Workspace Name"; Text[200])
+        {
+            Caption = 'Deployed Workspace Name';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -144,6 +149,97 @@ table 6316 "Power BI Deployment"
     begin
         PowerBIDeploymentState.SetRange("Report Id", Rec."Report Id");
         PowerBIDeploymentState.DeleteAll();
+        Clear(Rec."Import ID");
+        Clear(Rec."Retry After");
+        Rec.Modify(true);
+    end;
+
+    local procedure HasNewVersionAvailable(): Boolean
+    var
+        DeployableReport: Interface "Power BI Deployable Report";
+    begin
+        if not Enum::"Power BI Deployable Report".Ordinals().Contains(Rec."Report Id".AsInteger()) then
+            exit(false);
+
+        DeployableReport := Rec."Report Id";
+        exit(DeployableReport.GetVersion() > Rec."Deployed Version");
+    end;
+
+    local procedure IsDeploymentInProgress(): Boolean
+    begin
+        exit(not (Rec.GetUploadStatus() in [
+            Enum::"Power BI Upload Status"::Completed,
+            Enum::"Power BI Upload Status"::Skipped,
+            Enum::"Power BI Upload Status"::PendingDeletion,
+            Enum::"Power BI Upload Status"::Failed]));
+    end;
+
+    local procedure IsDeployed(): Boolean
+    begin
+        exit(Rec.GetUploadStatus() = Enum::"Power BI Upload Status"::Completed);
+    end;
+
+    procedure GetDeploymentStatus(): Enum "Power BI Deployment Status"
+    var
+        UploadStatus: Enum "Power BI Upload Status";
+    begin
+        if not GetDeployment(Rec."Report Id") then
+            exit(Enum::"Power BI Deployment Status"::"Not Installed");
+
+        UploadStatus := GetUploadStatus();
+
+        if UploadStatus = Enum::"Power BI Upload Status"::Failed then
+            exit(Enum::"Power BI Deployment Status"::Error);
+
+        if IsDeploymentInProgress() then begin
+            if UploadStatus = Enum::"Power BI Upload Status"::NotStarted then
+                exit(Enum::"Power BI Deployment Status"::Queued);
+            exit(Enum::"Power BI Deployment Status"::Installing);
+        end;
+
+        if HasNewVersionAvailable() then
+            exit(Enum::"Power BI Deployment Status"::"Update Available");
+
+        exit(Enum::"Power BI Deployment Status"::"Up to Date");
+    end;
+
+    procedure GetDeploymentOutcome(): Enum "Power BI Deployment Outcome"
+    begin
+        if not GetDeployment(Rec."Report Id") then
+            exit(Enum::"Power BI Deployment Outcome"::"Not Deployed");
+
+        if GetUploadStatus() = Enum::"Power BI Upload Status"::Failed then
+            exit(Enum::"Power BI Deployment Outcome"::Failed);
+
+        if IsDeploymentInProgress() then
+            exit(Enum::"Power BI Deployment Outcome"::"In Progress");
+
+        if IsDeployed() then
+            exit(Enum::"Power BI Deployment Outcome"::Finished);
+
+        exit(Enum::"Power BI Deployment Outcome"::"Not Deployed");
+    end;
+
+    local procedure GetDeployment(PowerBIDeployableReport: Enum "Power BI Deployable Report"): Boolean
+    begin
+        if Rec."Report Id" = PowerBIDeployableReport then
+            exit(true);
+        Clear(Rec);
+        exit(Rec.Get(PowerBIDeployableReport));
+    end;
+
+    internal procedure QueueForDeployment(ReportId: Enum "Power BI Deployable Report")
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+    begin
+        if not PowerBIDeployment.Get(ReportId) then begin
+            PowerBIDeployment.Init();
+            PowerBIDeployment."Report Id" := ReportId;
+            PowerBIDeployment.Insert(true);
+            exit;
+        end;
+
+        PowerBIDeployment.ResetDeployment();
     end;
 
     /// <summary>

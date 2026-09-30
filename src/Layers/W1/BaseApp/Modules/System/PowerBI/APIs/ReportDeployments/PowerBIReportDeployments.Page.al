@@ -1,5 +1,6 @@
 namespace System.Integration.PowerBI;
 using System.Environment;
+using System.Threading;
 
 page 6347 "Power BI Report Deployments"
 {
@@ -13,7 +14,7 @@ page 6347 "Power BI Report Deployments"
     ModifyAllowed = false;
     AnalysisModeEnabled = false;
     AboutTitle = 'About Power BI report deployments';
-    AboutText = 'Deploy Power BI reports to your workspace, update them when new versions are available, and retry deployments that have failed. This experience is only available in evaluation companies.';
+    AboutText = 'Deploy Power BI reports to your workspace, update them when new versions are available, and retry deployments that have failed.';
 
     layout
     {
@@ -69,6 +70,12 @@ page 6347 "Power BI Report Deployments"
                     Caption = 'Last Deployed';
                     ToolTip = 'Specifies the date and time when the report was last successfully deployed.';
                 }
+                field(DeployedWorkspaceName; Rec."Deployed Workspace Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Deployed Workspace';
+                    ToolTip = 'Specifies the Power BI workspace that the report was last deployed to. This can differ from the workspace configured on the Company Information page, if the workspace was changed after the report was deployed.';
+                }
             }
         }
     }
@@ -87,30 +94,39 @@ page 6347 "Power BI Report Deployments"
                     Caption = 'Deploy';
                     Image = Setup;
                     Enabled = IsEvaluationCompany;
-                    ToolTip = 'Deploys the selected reports to your Power BI workspace. Only available in evaluation companies.';
+                    ToolTip = 'Installs the selected reports in your Power BI workspace, or replaces them with a fresh copy if they are already deployed.';
 
                     trigger OnAction()
                     var
-                        PowerBIDeployment: Record "Power BI Deployment";
                         SelectedBuffer: Record "Power BI Deployment Buffer";
-                        PowerBIServiceMgt: Codeunit "Power BI Service Mgt.";
+                        TempSelection: Record "Power BI Deployment Buffer" temporary;
+                        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+                        InProgressCount: Integer;
+                        ReplaceCount: Integer;
                     begin
-                        SelectedBuffer.LoadReports();
-                        CurrPage.SetSelectionFilter(SelectedBuffer);
-                        if not SelectedBuffer.FindSet() then
-                            Error(NoReportSelectedErr);
+                        PowerBIWorkspaceMgt.CheckTargetWorkspaceAllowsDeployment();
+                        GetSelectedReports(SelectedBuffer);
+                        TempSelection.LoadSelection(SelectedBuffer);
 
-                        repeat
-                            if not PowerBIDeployment.Get(SelectedBuffer."Report Id") then begin
-                                PowerBIDeployment.Init();
-                                PowerBIDeployment."Report Id" := SelectedBuffer."Report Id";
-                                PowerBIDeployment.Insert(true);
-                            end;
-                        until SelectedBuffer.Next() = 0;
+                        InProgressCount := TempSelection.CountForOutcome(Enum::"Power BI Deployment Outcome"::"In Progress");
+                        if InProgressCount > 0 then
+                            Message(DeploymentInProgressMsg, InProgressCount);
+                        TempSelection.RemoveOutcome(Enum::"Power BI Deployment Outcome"::"In Progress");
 
-                        PowerBIServiceMgt.SynchronizeReportsInBackground('');
-                        Rec.LoadReports();
-                        CurrPage.Update(false);
+                        ReplaceCount := TempSelection.CountForOutcome(Enum::"Power BI Deployment Outcome"::Finished);
+                        if ReplaceCount > 0 then
+                            if not Confirm(StrSubstNo(ReplaceDeployedReportQst, ReplaceCount)) then
+                                exit;
+
+                        if TempSelection.IsEmpty() then begin
+                            if InProgressCount = 0 then
+                                Message(NothingToDeployMsg);
+                            RefreshReports();
+                            exit;
+                        end;
+
+                        QueueAndSynchronize(TempSelection);
+                        RefreshReports();
                     end;
                 }
                 action(Update)
@@ -119,28 +135,27 @@ page 6347 "Power BI Report Deployments"
                     Caption = 'Update';
                     Image = UpdateXML;
                     Enabled = IsEvaluationCompany and CanUpdate;
-                    ToolTip = 'Updates the selected reports to the latest available version. Only available in evaluation companies.';
+                    ToolTip = 'Updates the selected reports to the latest available version.';
 
                     trigger OnAction()
                     var
-                        PowerBIDeployment: Record "Power BI Deployment";
                         SelectedBuffer: Record "Power BI Deployment Buffer";
-                        PowerBIServiceMgt: Codeunit "Power BI Service Mgt.";
+                        TempSelection: Record "Power BI Deployment Buffer" temporary;
+                        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
                     begin
-                        SelectedBuffer.LoadReports();
-                        CurrPage.SetSelectionFilter(SelectedBuffer);
-                        if not SelectedBuffer.FindSet() then
-                            Error(NoReportSelectedErr);
+                        PowerBIWorkspaceMgt.CheckTargetWorkspaceAllowsDeployment();
+                        GetSelectedReports(SelectedBuffer);
+                        TempSelection.LoadSelection(SelectedBuffer);
 
-                        repeat
-                            if SelectedBuffer."Deployment Status" = Enum::"Power BI Deployment Status"::"Update Available" then
-                                if PowerBIDeployment.Get(SelectedBuffer."Report Id") then
-                                    PowerBIDeployment.ResetDeployment();
-                        until SelectedBuffer.Next() = 0;
+                        TempSelection.SetRange("Deployment Status", Enum::"Power BI Deployment Status"::"Update Available");
 
-                        PowerBIServiceMgt.SynchronizeReportsInBackground('');
-                        Rec.LoadReports();
-                        CurrPage.Update(false);
+                        if TempSelection.IsEmpty() then begin
+                            Message(NoUpdateAvailableMsg);
+                            exit;
+                        end;
+
+                        QueueAndSynchronize(TempSelection);
+                        RefreshReports();
                     end;
                 }
                 action(Retry)
@@ -149,28 +164,27 @@ page 6347 "Power BI Report Deployments"
                     Caption = 'Retry';
                     Image = ResetStatus;
                     Enabled = IsEvaluationCompany and CanRetry;
-                    ToolTip = 'Resets the failed deployment and retries from scratch. Only available in evaluation companies.';
+                    ToolTip = 'Resets the failed deployment and retries from scratch.';
 
                     trigger OnAction()
                     var
-                        PowerBIDeployment: Record "Power BI Deployment";
                         SelectedBuffer: Record "Power BI Deployment Buffer";
-                        PowerBIServiceMgt: Codeunit "Power BI Service Mgt.";
+                        TempSelection: Record "Power BI Deployment Buffer" temporary;
+                        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
                     begin
-                        SelectedBuffer.LoadReports();
-                        CurrPage.SetSelectionFilter(SelectedBuffer);
-                        if not SelectedBuffer.FindSet() then
-                            Error(NoReportSelectedErr);
+                        PowerBIWorkspaceMgt.CheckTargetWorkspaceAllowsDeployment();
+                        GetSelectedReports(SelectedBuffer);
+                        TempSelection.LoadSelection(SelectedBuffer);
 
-                        repeat
-                            if SelectedBuffer."Deployment Status" = Enum::"Power BI Deployment Status"::Error then
-                                if PowerBIDeployment.Get(SelectedBuffer."Report Id") then
-                                    PowerBIDeployment.ResetDeployment();
-                        until SelectedBuffer.Next() = 0;
+                        TempSelection.SetRange(Outcome, Enum::"Power BI Deployment Outcome"::Failed);
 
-                        PowerBIServiceMgt.SynchronizeReportsInBackground('');
-                        Rec.LoadReports();
-                        CurrPage.Update(false);
+                        if TempSelection.IsEmpty() then begin
+                            Message(NothingToRetryMsg);
+                            exit;
+                        end;
+
+                        QueueAndSynchronize(TempSelection);
+                        RefreshReports();
                     end;
                 }
                 action(DownloadPbix)
@@ -179,7 +193,7 @@ page 6347 "Power BI Report Deployments"
                     Caption = 'Download PBIX';
                     Image = ExportFile;
                     Enabled = IsEvaluationCompany;
-                    ToolTip = 'Downloads the PBIX file of the selected report. Only available in evaluation companies.';
+                    ToolTip = 'Downloads the PBIX file of the selected report.';
 
                     trigger OnAction()
                     var
@@ -199,12 +213,11 @@ page 6347 "Power BI Report Deployments"
                     Caption = 'Reload';
                     Image = Refresh;
                     Enabled = IsEvaluationCompany;
-                    ToolTip = 'Refreshes the deployment status of the reports. Only available in evaluation companies.';
+                    ToolTip = 'Refreshes the deployment status of the reports.';
 
                     trigger OnAction()
                     begin
-                        Rec.LoadReports();
-                        CurrPage.Update(false);
+                        RefreshReports();
                     end;
                 }
                 action(ClearDeploymentRecords)
@@ -213,7 +226,7 @@ page 6347 "Power BI Report Deployments"
                     Caption = 'Clear Deployment Records';
                     Image = ClearLog;
                     Enabled = IsEvaluationCompany;
-                    ToolTip = 'Deletes all data in Business Central about Power BI deployments (shown in this list). Reports already uploaded to the Power BI workspace are not removed. Only available in evaluation companies.';
+                    ToolTip = 'Deletes all data in Business Central about Power BI deployments (shown in this list). Reports already uploaded to the Power BI workspace are not removed.';
 
                     trigger OnAction()
                     var
@@ -222,8 +235,7 @@ page 6347 "Power BI Report Deployments"
                         if not Confirm(ClearDeploymentRecordsQst) then
                             exit;
                         PowerBIDeployment.DeleteAllRecords();
-                        Rec.LoadReports();
-                        CurrPage.Update(false);
+                        RefreshReports();
                     end;
                 }
             }
@@ -236,7 +248,7 @@ page 6347 "Power BI Report Deployments"
                 Caption = 'Open in Power BI';
                 Image = Open;
                 Enabled = IsEvaluationCompany and CanOpenInPowerBI;
-                ToolTip = 'Opens the deployed report in Power BI. Only available in evaluation companies.';
+                ToolTip = 'Opens the deployed report in Power BI.';
 
                 trigger OnAction()
                 var
@@ -250,6 +262,23 @@ page 6347 "Power BI Report Deployments"
             group(NavigateActions)
             {
                 Caption = 'Navigate';
+
+                action(ShowDeploymentJobQueue)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Deployment Job Queue Entries';
+                    Image = JobListSetup;
+                    ToolTip = 'Opens the job queue entries that carry out the deployments, so you can check whether the background job is running, waiting for another entry, or in error.';
+
+                    trigger OnAction()
+                    var
+                        JobQueueEntry: Record "Job Queue Entry";
+                    begin
+                        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+                        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Power BI Report Synchronizer");
+                        Page.Run(Page::"Job Queue Entries", JobQueueEntry);
+                    end;
+                }
             }
         }
         area(Promoted)
@@ -311,7 +340,6 @@ page 6347 "Power BI Report Deployments"
             else
                 StatusStyle := 'Standard';
         end;
-
         case Rec."Deployment Status" of
             Enum::"Power BI Deployment Status"::Installing,
             Enum::"Power BI Deployment Status"::Error,
@@ -320,7 +348,10 @@ page 6347 "Power BI Report Deployments"
             else
                 CurrentStepText := '';
         end;
+    end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
         CanUpdate := Rec."Deployment Status" = Enum::"Power BI Deployment Status"::"Update Available";
         CanRetry := Rec."Deployment Status" = Enum::"Power BI Deployment Status"::Error;
         CanOpenInPowerBI := not IsNullGuid(Rec."Uploaded Report ID");
@@ -334,7 +365,42 @@ page 6347 "Power BI Report Deployments"
         CanOpenInPowerBI: Boolean;
         IsEvaluationCompany: Boolean;
         NoReportSelectedErr: Label 'No report has been selected for deployment.';
+        DeploymentInProgressMsg: Label 'A deployment is already in progress for %1 of the selected reports, they were not re-deployed.', Comment = '%1 = the number of reports that are currently being deployed';
+        ReplaceDeployedReportQst: Label 'Deploying replaces the %1 selected report(s) that are already deployed with a fresh copy in your Power BI workspace, instead of updating them in place. To move a deployed report to its latest available version, use the Update action.\Do you want to continue?', Comment = '%1 = the number of reports that are already deployed';
+        NoUpdateAvailableMsg: Label 'There are no updates available for the selected reports.';
+        NothingToRetryMsg: Label 'There are no failed deployments to retry among the selected reports.';
+        NothingToDeployMsg: Label 'None of the selected reports can be deployed.';
         DownloadDialogTitleLbl: Label 'Download Power BI Report';
         PbixFileFilterLbl: Label 'Power BI Files (*.pbix)|*.pbix';
         ClearDeploymentRecordsQst: Label 'This will wipe all local Power BI deployment tracking data for this company. Reports already in your Power BI workspace will not be removed. Continue?';
+
+    local procedure RefreshReports()
+    begin
+        Rec.LoadReports();
+        CurrPage.Update(false);
+    end;
+
+    local procedure QueueAndSynchronize(var TempSelection: Record "Power BI Deployment Buffer" temporary)
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        PowerBIServiceMgt: Codeunit "Power BI Service Mgt.";
+    begin
+        if not TempSelection.FindSet() then
+            exit;
+
+        repeat
+            PowerBIDeployment.QueueForDeployment(TempSelection."Report Id");
+        until TempSelection.Next() = 0;
+
+        PowerBIServiceMgt.SynchronizeReportsInBackground('');
+    end;
+
+    local procedure GetSelectedReports(var SelectedBuffer: Record "Power BI Deployment Buffer")
+    begin
+        SelectedBuffer.Copy(Rec, true);
+        CurrPage.SetSelectionFilter(SelectedBuffer);
+        if not SelectedBuffer.FindSet() then
+            Error(NoReportSelectedErr);
+    end;
+
 }
