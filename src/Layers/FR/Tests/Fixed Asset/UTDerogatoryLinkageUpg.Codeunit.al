@@ -3438,12 +3438,12 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
         FeatureDataUpdateStatus.Insert();
     end;
-#endif
 
     local procedure GetMissingFeatureStatusValue(): Integer
     begin
         exit(-1);
     end;
+#endif
 
 #if not CLEAN30
     local procedure LegacySalvageMigrationReversalBody()
