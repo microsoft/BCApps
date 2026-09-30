@@ -2228,6 +2228,14 @@ codeunit 144200 "FatturaPA Test"
             CopyStr(LibraryUtility.GenerateRandomCode(Customer.FieldNo("PA Code"), DATABASE::Customer), 1, 6)));
     end;
 
+    local procedure GetCountryRegionISOCode(CountryRegionCode: Code[10]): Code[2]
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        CountryRegion.Get(CountryRegionCode);
+        exit(CountryRegion."ISO Code");
+    end;
+
     local procedure CreateCountryRegionWithISOCode(var CountryRegion: Record "Country/Region"; ISOCode: Code[2])
     begin
         LibraryERM.CreateCountryRegion(CountryRegion);
@@ -2663,10 +2671,10 @@ codeunit 144200 "FatturaPA Test"
         AssertElementValue(TempXMLBuffer, 'IdTrasmittente', '');
 
         if not TransmissionIntermediaryVendor.Get(CompanyInformation."Transmission Intermediary No.") then begin
-            AssertElementValue(TempXMLBuffer, 'IdPaese', Format(CompanyInformation."Country/Region Code"));
+            AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(CompanyInformation."Country/Region Code"));
             AssertElementValue(TempXMLBuffer, 'IdCodice', Format(CompanyInformation."Fiscal Code"));
         end else begin
-            AssertElementValue(TempXMLBuffer, 'IdPaese', TransmissionIntermediaryVendor."Country/Region Code");
+            AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(TransmissionIntermediaryVendor."Country/Region Code"));
             AssertElementValue(TempXMLBuffer, 'IdCodice', TransmissionIntermediaryVendor."Fiscal Code");
         end;
 
@@ -2683,7 +2691,7 @@ codeunit 144200 "FatturaPA Test"
         // 1.2 CedentePrestatore - Seller
         AssertElementValue(TempXMLBuffer, 'DatiAnagrafici', '');
         AssertElementValue(TempXMLBuffer, 'IdFiscaleIVA', '');
-        AssertElementValue(TempXMLBuffer, 'IdPaese', CompanyInformation."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(CompanyInformation."Country/Region Code"));
         AssertElementValue(TempXMLBuffer, 'IdCodice', CompanyInformation."VAT Registration No.");
         AssertElementValue(TempXMLBuffer, 'CodiceFiscale', CompanyInformation."Fiscal Code");
 
@@ -2696,7 +2704,7 @@ codeunit 144200 "FatturaPA Test"
         AssertElementValue(TempXMLBuffer, 'CAP', CompanyInformation."Post Code");
         AssertElementValue(TempXMLBuffer, 'Comune', CompanyInformation.City);
         AssertElementValue(TempXMLBuffer, 'Provincia', CompanyInformation.County);
-        AssertElementValue(TempXMLBuffer, 'Nazione', CompanyInformation."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'Nazione', GetCountryRegionISOCode(CompanyInformation."Country/Region Code"));
         // 1.2.4 IscrizioneREA
         AssertElementValue(TempXMLBuffer, 'IscrizioneREA', '');
         AssertElementValue(TempXMLBuffer, 'Ufficio', CompanyInformation."Registry Office Province");
@@ -2731,7 +2739,7 @@ codeunit 144200 "FatturaPA Test"
                 AssertElementValue(TempXMLBuffer, 'RappresentanteFiscale', '');
                 AssertElementValue(TempXMLBuffer, 'DatiAnagrafici', '');
                 AssertElementValue(TempXMLBuffer, 'IdFiscaleIVA', '');
-                AssertElementValue(TempXMLBuffer, 'IdPaese', TaxRepresentativeVendor."Country/Region Code");
+                AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(TaxRepresentativeVendor."Country/Region Code"));
                 AssertElementValue(TempXMLBuffer, 'IdCodice', TaxRepresentativeVendor."VAT Registration No.");
 
                 AssertElementValue(TempXMLBuffer, 'Anagrafica', '');
