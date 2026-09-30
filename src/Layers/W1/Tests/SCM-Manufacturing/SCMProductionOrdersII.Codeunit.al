@@ -8173,6 +8173,55 @@ codeunit 137072 "SCM Production Orders II"
           ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", UpdatedFixedQty);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,ConfirmHandlerTrue,MessageHandlerNoText')]
+    procedure ReverseLotTrackedProductionOutputPostedInNonBaseUnitOfMeasure()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        UnitOfMeasure: Record "Unit of Measure";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        QtyPerUnitOfMeasure: Decimal;
+    begin
+        // [SCENARIO 651623] Production output with lot tracking can be reversed when posted in a non-base unit of measure.
+        Initialize();
+        QtyPerUnitOfMeasure := 900;
+
+        // [GIVEN] A lot-tracked production item with an alternate unit of measure representing 900 base units.
+        CreateItemWithItemTrackingCode(Item, CreateItemTrackingCode());
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QtyPerUnitOfMeasure);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Modify(true);
+
+        // [GIVEN] A released production order for one alternate unit.
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", 1, '', '');
+        FindProductionOrderLine(ProdOrderLine, Item."No.");
+        ProdOrderLine.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        ProdOrderLine.Modify(true);
+
+        // [GIVEN] The output is posted with lot tracking in the alternate unit of measure.
+        CreateAndPostOutputJournalWithItemTracking(ProductionOrder."No.", true, 1);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindFirst();
+
+        // [WHEN] The production output entry is reversed.
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [THEN] A reversing output entry is posted in the alternate unit for the original base quantity.
+        ItemLedgerEntry.SetRange("Entry No.");
+        ItemLedgerEntry.FindLast();
+        ItemLedgerEntry.TestField(Quantity, -QtyPerUnitOfMeasure);
+        ItemLedgerEntry.TestField("Unit of Measure Code", UnitOfMeasure.Code);
+        ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
