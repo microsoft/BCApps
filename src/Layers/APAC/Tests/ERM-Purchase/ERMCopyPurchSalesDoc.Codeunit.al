@@ -9236,10 +9236,12 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         ItemLedgerEntry.SetRange("Item No.", ItemNo);
         ItemLedgerEntry.FindFirst();
 
+#pragma warning disable AA0210
         SalesReturnOrderLine.SetRange("Document Type", SalesReturnOrderHeader."Document Type");
         SalesReturnOrderLine.SetRange("Document No.", SalesReturnOrderHeader."No.");
         SalesReturnOrderLine.SetRange(Quantity, 0);
         SalesReturnOrderLine.DeleteAll(true);
+#pragma warning restore AA0210
 
         SalesReturnOrderLine.Reset();
         SalesReturnOrderLine.SetRange("Document Type", SalesReturnOrderHeader."Document Type");

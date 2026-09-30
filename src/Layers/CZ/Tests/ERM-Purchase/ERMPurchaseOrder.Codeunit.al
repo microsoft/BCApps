@@ -961,7 +961,7 @@
 
     [Test]
     [Scope('OnPrem')]
-    procedure PurchaseInvoice()
+    procedure PurchaseInvoicePostAndVerify()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -982,7 +982,7 @@
 
     [Test]
     [Scope('OnPrem')]
-    procedure PurchaseCreditMemo()
+    procedure PurchaseCreditMemoPostAndVerify()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";

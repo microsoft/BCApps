@@ -960,7 +960,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [Scope('OnPrem')]
-    procedure PurchaseInvoice()
+    procedure PurchaseInvoicePostAndVerify()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -981,7 +981,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [Scope('OnPrem')]
-    procedure PurchaseCreditMemo()
+    procedure PurchaseCreditMemoPostAndVerify()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
