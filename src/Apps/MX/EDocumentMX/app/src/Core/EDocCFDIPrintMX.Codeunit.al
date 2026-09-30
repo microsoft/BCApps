@@ -22,8 +22,11 @@ codeunit 3364 "EDoc CFDI Print MX"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
         ReportSelections: Record "Report Selections";
         CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
+        EDocCartaPortePrintBuffer: Codeunit "EDoc Carta Porte Print Buffer";
         EDocCartaPorteReport: Report "EDoc CFDI Carta Porte MX";
         RecordRef: RecordRef;
     begin
@@ -67,11 +70,19 @@ codeunit 3364 "EDoc CFDI Print MX"
                     if ReportSelections.FindFirst() then
                         Report.RunModal(ReportSelections."Report ID", true, false, ServiceCrMemoHeader);
                 end;
-            Database::"Sales Shipment Header",
+            Database::"Sales Shipment Header":
+                begin
+                    RecordRef.SetTable(SalesShipmentHeader);
+                    EDocCartaPortePrintBuffer.SetSalesShipment(SalesShipmentHeader);
+                    EDocCartaPorteReport.RunModal();
+                    EDocCartaPortePrintBuffer.Clear();
+                end;
             Database::"Transfer Shipment Header":
                 begin
-                    EDocCartaPorteReport.SetRecord(RecordRef);
+                    RecordRef.SetTable(TransferShipmentHeader);
+                    EDocCartaPortePrintBuffer.SetTransferShipment(TransferShipmentHeader);
                     EDocCartaPorteReport.RunModal();
+                    EDocCartaPortePrintBuffer.Clear();
                 end;
             else
                 Error(DocumentTypeNotSupportedErr, RecordRef.Caption());

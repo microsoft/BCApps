@@ -3607,6 +3607,9 @@ codeunit 3354 "Export Interfactura MX"
     local procedure GetIssueDateTime(DocumentHeaderVariant: Variant): Text[50]
     var
         DocumentHeader: Record "Document Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        DataTypeManagement: Codeunit "Data Type Management";
+        RecRef: RecordRef;
         TimeZone: Text;
         DocumentDate: Date;
     begin
@@ -3614,8 +3617,15 @@ codeunit 3354 "Export Interfactura MX"
         if TimeZone = '' then
             TimeZone := GetDefaultMexicoTimeZone();
 
-        DocumentHeader.TransferFields(DocumentHeaderVariant);
-        DocumentDate := DocumentHeader."Document Date";
+        DataTypeManagement.GetRecordRef(DocumentHeaderVariant, RecRef);
+        if RecRef.Number = Database::"Transfer Shipment Header" then begin
+            RecRef.SetTable(TransferShipmentHeader);
+            DocumentDate := TransferShipmentHeader."Posting Date";
+        end else begin
+            DocumentHeader.TransferFields(DocumentHeaderVariant);
+            DocumentDate := DocumentHeader."Document Date";
+        end;
+
         if DocumentDate = 0D then
             DocumentDate := Today;
 

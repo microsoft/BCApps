@@ -738,7 +738,6 @@ report 3365 "EDoc CFDI Sales Invoice MX"
             trigger OnAfterGetRecord()
             var
                 SATUtilities: Codeunit "SAT Utilities";
-                EInvoiceMgt: Codeunit "E-Invoice Mgt.";
                 InStream: InStream;
                 DummySalesInvoiceNumber: Code[20];
             begin
@@ -819,7 +818,7 @@ report 3365 "EDoc CFDI Sales Invoice MX"
 
                 CFDIPurpose := "CFDI Purpose"; // UsoCFDI
 
-                SATFolioFiscal := EInvoiceMgt.GetUUIDFromOriginalPrepayment("Sales Invoice Header", DummySalesInvoiceNumber);// Folio Fiscal
+                SATFolioFiscal := GetUUIDFromOriginalPrepayment("Sales Invoice Header", DummySalesInvoiceNumber);// Folio Fiscal
                 if SATFolioFiscal <> '' then
                     SATTipoRelacion := TipoRelacionTxt;
             end;
@@ -1118,5 +1117,20 @@ report 3365 "EDoc CFDI Sales Invoice MX"
     procedure BlanksForIndent(): Text[10]
     begin
         exit(PadStr('', 2, ' '));
+    end;
+
+    local procedure GetUUIDFromOriginalPrepayment(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceNumber: Code[20]): Text[50]
+    var
+        PrepaymentInvoice: Record "Sales Invoice Header";
+    begin
+        SalesInvoiceNumber := '';
+        if SalesInvoiceHeader."Order No." = '' then
+            exit('');
+        PrepaymentInvoice.SetFilter("Prepayment Order No.", '=%1', SalesInvoiceHeader."Order No.");
+        if PrepaymentInvoice.FindFirst() then begin
+            SalesInvoiceNumber := PrepaymentInvoice."No.";
+            exit(PrepaymentInvoice."Fiscal Invoice Number PAC");
+        end;
+        exit('');
     end;
 }

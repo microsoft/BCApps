@@ -11,9 +11,11 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.History;
 using System;
+using System.Reflection;
 using System.Utilities;
 
 report 3367 "EDoc CFDI Carta Porte MX"
@@ -386,9 +388,24 @@ report 3367 "EDoc CFDI Carta Porte MX"
     trigger OnPreReport()
     var
         SATUtilities: Codeunit "SAT Utilities";
+        EDocCartaPortePrintBuffer: Codeunit "EDoc Carta Porte Print Buffer";
+        TempSalesShipmentHeader: Record "Sales Shipment Header";
+        TempTransferShipmentHeader: Record "Transfer Shipment Header";
     begin
         CompanyInformation.Get();
         SATTaxRegimeClassification := SATUtilities.GetSATTaxSchemeDescription(CompanyInformation."SAT Tax Regime Classification");
+        case EDocCartaPortePrintBuffer.GetSourceTableId() of
+            Database::"Sales Shipment Header":
+                begin
+                    EDocCartaPortePrintBuffer.GetSalesShipment(TempSalesShipmentHeader);
+                    CreateTempDocumentTransfer(TempSalesShipmentHeader, "Document Header", "Document Line");
+                end;
+            Database::"Transfer Shipment Header":
+                begin
+                    EDocCartaPortePrintBuffer.GetTransferShipment(TempTransferShipmentHeader);
+                    CreateTempDocumentTransfer(TempTransferShipmentHeader, "Document Header", "Document Line");
+                end;
+        end;
     end;
 
     var
@@ -407,7 +424,6 @@ report 3367 "EDoc CFDI Carta Porte MX"
         FixedAssetVehicle: Record "Fixed Asset";
         FixedAssetTrailer1: Record "Fixed Asset";
         FixedAssetTrailer2: Record "Fixed Asset";
-        EInvoiceMgt: Codeunit "E-Invoice Mgt.";
         TempBlob: Codeunit "Temp Blob";
         OriginalStringTextUnbounded: Text;
         DigitalSignatureTextUnbounded: Text;
@@ -446,9 +462,105 @@ report 3367 "EDoc CFDI Carta Porte MX"
         exit(Format(DateTime, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
     end;
 
-    [Scope('OnPrem')]
-    procedure SetRecord(RecVariant: Variant)
+
+    local procedure CreateTempDocumentTransfer(DocumentHeaderVariant: Variant; var TempDocumentHeader: Record "Document Header" temporary; var TempDocumentLine: Record "Document Line" temporary)
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        GLSetup: Record "General Ledger Setup";
+        Location: Record Location;
+        DataTypeManagement: Codeunit "Data Type Management";
+        RecRef: RecordRef;
     begin
-        EInvoiceMgt.CreateTempDocumentTransfer(RecVariant, "Document Header", "Document Line");
+        GLSetup.Get();
+        DataTypeManagement.GetRecordRef(DocumentHeaderVariant, RecRef);
+        case RecRef.Number of
+            Database::"Sales Shipment Header":
+                begin
+                    RecRef.SetTable(SalesShipmentHeader);
+                    TempDocumentHeader.TransferFields(SalesShipmentHeader);
+                    TempDocumentHeader."Document Table ID" := RecRef.Number;
+                    TempDocumentHeader."CFDI Purpose" := 'S01';
+                    TempDocumentHeader."Transit-from Location" := SalesShipmentHeader."Location Code";
+                    if TempDocumentHeader."Currency Code" = '' then begin
+                        TempDocumentHeader."Currency Code" := GLSetup."LCY Code";
+                        TempDocumentHeader."Currency Factor" := 1.0;
+                    end;
+                    TempDocumentHeader.Insert();
+                    SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
+                    SalesShipmentLine.SetFilter(Type, '<>%1', SalesShipmentLine.Type::" ");
+                    if SalesShipmentLine.FindSet() then
+                        repeat
+                            TempDocumentLine.TransferFields(SalesShipmentLine);
+                            TempDocumentLine."Gross Weight" := SalesShipmentLine."Gross Weight" * SalesShipmentLine.Quantity;
+                            TempDocumentLine.Insert();
+                            if TempDocumentHeader."Location Code" = '' then
+                                TempDocumentHeader."Location Code" := TempDocumentLine."Location Code";
+                        until SalesShipmentLine.Next() = 0;
+                end;
+            Database::"Transfer Shipment Header":
+                begin
+                    RecRef.SetTable(TransferShipmentHeader);
+                    TempDocumentHeader.Init();
+                    TempDocumentHeader."No." := TransferShipmentHeader."No.";
+                    TempDocumentHeader."Posting Date" := TransferShipmentHeader."Posting Date";
+                    TempDocumentHeader."Document Date" := TransferShipmentHeader."Transfer Order Date";
+                    TempDocumentHeader."Bill-to/Pay-To Address" := TransferShipmentHeader."Transfer-to Address";
+                    TempDocumentHeader."Ship-to/Buy-from Country Code" := TransferShipmentHeader."Trsf.-to Country/Region Code";
+                    TempDocumentHeader."Ship-to/Buy-from Post Code" := TransferShipmentHeader."Transfer-from Post Code";
+                    TempDocumentHeader."Ship-to/Buy-from City" := TransferShipmentHeader."Transfer-from City";
+                    TempDocumentHeader."Transit-from Date/Time" := TransferShipmentHeader."Transit-from Date/Time";
+                    TempDocumentHeader."Transit Hours" := TransferShipmentHeader."Transit Hours";
+                    TempDocumentHeader."Transit Distance" := TransferShipmentHeader."Transit Distance";
+                    TempDocumentHeader."Insurer Name" := TransferShipmentHeader."Insurer Name";
+                    TempDocumentHeader."Insurer Policy Number" := TransferShipmentHeader."Insurer Policy Number";
+                    TempDocumentHeader."Foreign Trade" := TransferShipmentHeader."Foreign Trade";
+                    TempDocumentHeader."Vehicle Code" := TransferShipmentHeader."Vehicle Code";
+                    TempDocumentHeader."Trailer 1" := TransferShipmentHeader."Trailer 1";
+                    TempDocumentHeader."Trailer 2" := TransferShipmentHeader."Trailer 2";
+                    TempDocumentHeader."CFDI Purpose" := 'S01';
+                    TempDocumentHeader."CFDI Export Code" := TransferShipmentHeader."CFDI Export Code";
+                    TempDocumentHeader."Transit-from Location" := TransferShipmentHeader."Transfer-from Code";
+                    TempDocumentHeader."Transit-to Location" := TransferShipmentHeader."Transfer-to Code";
+                    TempDocumentHeader."Location Code" := TempDocumentHeader."Transit-to Location";
+                    TempDocumentHeader."Medical Insurer Name" := TransferShipmentHeader."Medical Insurer Name";
+                    TempDocumentHeader."Medical Ins. Policy Number" := TransferShipmentHeader."Medical Ins. Policy Number";
+                    TempDocumentHeader."SAT Weight Unit Of Measure" := TransferShipmentHeader."SAT Weight Unit Of Measure";
+                    TempDocumentHeader."SAT Transfer Reason" := TransferShipmentHeader."SAT Transfer Reason";
+                    TempDocumentHeader."SAT Customs Regime" := TransferShipmentHeader."SAT Customs Regime";
+                    TempDocumentHeader."SAT International Trade Term" := TransferShipmentHeader."SAT International Trade Term";
+                    TempDocumentHeader."Exchange Rate USD" := TransferShipmentHeader."Exchange Rate USD";
+                    if Location.Get(TransferShipmentHeader."Transfer-to Code") then
+                        TempDocumentHeader."SAT Address ID" := Location."SAT Address ID";
+                    TempDocumentHeader."Document Table ID" := RecRef.Number;
+                    if TempDocumentHeader."Currency Code" = '' then begin
+                        TempDocumentHeader."Currency Code" := GLSetup."LCY Code";
+                        TempDocumentHeader."Currency Factor" := 1.0;
+                    end;
+                    TempDocumentHeader.Insert();
+                    TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
+                    if TransferShipmentLine.FindSet() then
+                        repeat
+                            TempDocumentLine.Init();
+                            TempDocumentLine."Document No." := TransferShipmentLine."Document No.";
+                            TempDocumentLine."Line No." := TransferShipmentLine."Line No.";
+                            TempDocumentLine.Type := TempDocumentLine.Type::Item;
+                            TempDocumentLine."No." := TransferShipmentLine."Item No.";
+                            TempDocumentLine.Description := TransferShipmentLine.Description;
+                            TempDocumentLine."Unit of Measure Code" := TransferShipmentLine."Unit of Measure Code";
+                            TempDocumentLine.Quantity := TransferShipmentLine.Quantity;
+                            TempDocumentLine."Gross Weight" := TransferShipmentLine."Gross Weight" * TransferShipmentLine.Quantity;
+                            TempDocumentLine."Location Code" := TempDocumentHeader."Location Code";
+                            TempDocumentLine."Custom Transit Number" := TransferShipmentLine."Custom Transit Number";
+                            TempDocumentLine."SAT Customs Document Type" := TransferShipmentLine."SAT Customs Document Type";
+                            TempDocumentLine.Insert();
+                            if TempDocumentHeader."Location Code" = '' then
+                                TempDocumentHeader."Location Code" := TempDocumentLine."Location Code";
+                        until TransferShipmentLine.Next() = 0;
+                end;
+        end;
+        TempDocumentHeader.Modify();
     end;
 }
