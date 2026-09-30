@@ -14,7 +14,8 @@ codeunit 134706 "Email Retention Policy Tests"
     Subtype = Test;
     TestPermissions = Restrictive;
     Permissions = tabledata "Sent Email" = rimd,
-                  tabledata "Email Outbox" = rimd;
+                  tabledata "Email Outbox" = rimd,
+                  tabledata "Email Inbox" = rimd;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -70,6 +71,64 @@ codeunit 134706 "Email Retention Policy Tests"
 
         // Verify
         LibraryAssert.TableIsEmpty(Database::"Sent Email");
+    end;
+
+    [HandlerFunctions('ConfirmApplyRetentionPolicy')]
+    [Test]
+    procedure EmailInboxRetentionPolicyWithoutFiltersTest()
+    var
+        EmailInbox: Record "Email Inbox";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+    begin
+        // Init
+        Initialize();
+
+        // Setup
+        CreateEmailInboxRecord(CreateDateTime(CalcDate('<-1Y>', Today), Time()));
+        CreateRetentionPolicySetup(RetentionPolicySetup, Database::"Email Inbox", EmailInbox.FieldNo("Received DateTime"), CreateOrFindRetentionPeriod(enum::"Retention Period Enum"::"1 Month"));
+        LibraryAssert.TableIsNotEmpty(Database::"Email Inbox");
+
+        // Exercise
+        PermissionsMock.Set('Email - Edit');
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, true);
+        PermissionsMock.ClearAssignments();
+
+        // Verify
+        LibraryAssert.TableIsEmpty(Database::"Email Inbox");
+    end;
+
+    [HandlerFunctions('ConfirmApplyRetentionPolicy')]
+    [Test]
+    procedure EmailInboxRetentionPolicyWithFiltersTest()
+    var
+        EmailInbox: Record "Email Inbox";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+    begin
+        // Init
+        Initialize();
+
+        // Setup
+        CreateEmailInboxRecord(CreateDateTime(CalcDate('<-1Y>', Today), Time()));
+        CreateRetentionPolicySetupWithLine(RetentionPolicySetup, Database::"Email Inbox", EmailInbox.FieldNo("Received DateTime"), CreateOrFindRetentionPeriod(enum::"Retention Period Enum"::"1 Month"));
+        LibraryAssert.TableIsNotEmpty(Database::"Email Inbox");
+
+        // Exercise
+        PermissionsMock.Set('Email - Edit');
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, true);
+        PermissionsMock.ClearAssignments();
+
+        // Verify
+        LibraryAssert.TableIsEmpty(Database::"Email Inbox");
+    end;
+
+    local procedure CreateEmailInboxRecord(ReceivedDateTime: DateTime)
+    var
+        EmailInbox: Record "Email Inbox";
+    begin
+        EmailInbox."Received DateTime" := ReceivedDateTime;
+        EmailInbox.Insert();
     end;
 
     local procedure CreateSentEmailRecord(DatetimeSent: DateTime)
@@ -137,8 +196,10 @@ codeunit 134706 "Email Retention Policy Tests"
     local procedure Initialize()
     var
         SentEmail: Record "Sent Email";
+        EmailInbox: Record "Email Inbox";
     begin
         SentEmail.DeleteAll();
+        EmailInbox.DeleteAll();
 
         if IsInitialized then
             exit;
