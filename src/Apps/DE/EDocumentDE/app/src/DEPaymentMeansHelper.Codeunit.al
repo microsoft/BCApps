@@ -20,10 +20,14 @@ codeunit 11043 "DE Payment Means Helper"
 
     var
         BankAccountNotFoundErr: Label 'Customer bank account %1 on mandate %2 does not exist.', Comment = '%1 = Bank Account Code, %2 = Mandate ID';
+        CompanyBankAccountMissingErr: Label 'SEPA direct debit requires the company bank account that holds the creditor identifier. Set the Company Bank Account Code on the document.';
+        CompanyBankAccountNotFoundErr: Label 'Company bank account %1 does not exist.', Comment = '%1 = Bank Account Code';
+        CreditorNoMissingErr: Label 'Bank account %1 has no creditor identifier (Creditor No.). Set it up before releasing the document.', Comment = '%1 = Bank Account Code';
         IBANMissingErr: Label 'Customer bank account %1 on mandate %2 has no IBAN. Set up the IBAN before releasing the document.', Comment = '%1 = Bank Account Code, %2 = Mandate ID';
         MandateIDMissingErr: Label 'Direct debit mandate ID is missing on the document. Set it in the Payment tab before releasing.';
         MandateNotFoundErr: Label 'SEPA Direct Debit Mandate %1 does not exist.', Comment = '%1 = Mandate ID';
         SEPADDOnCrMemoErr: Label 'Payment means code %1 (SEPA direct debit) cannot be used on a credit memo or return order. Use a credit transfer code (30 or 58) instead.', Comment = '%1 = UNCL4461 payment means code';
+        ShowBankAccountLbl: Label 'Show Bank Account';
         ShowCustomerBankAccountLbl: Label 'Show Customer Bank Account';
         UnsupportedPaymentMeansCodeErr: Label 'Payment means code %1 is not supported for German electronic documents. Use a credit transfer code (30 or 58) or a SEPA direct debit code (49 or 59), or install an extension that supplies the data that code requires.', Comment = '%1 = UNCL4461 payment means code';
 
@@ -87,7 +91,7 @@ codeunit 11043 "DE Payment Means Helper"
     /// <summary>
     /// Validates that all required payment data is available for the given document before export.
     /// Called from XRechnungFormat.Check() and ZUGFeRDFormat.Check().
-    /// Covers SEPA direct debit mandate completeness, and rejects payment means codes for which
+    /// Covers SEPA direct debit mandate completeness and the creditor identifier (BT-90), and rejects payment means codes for which
     /// neither this app nor a subscribing extension supplies the required document data.
     /// </summary>
     /// <param name="SourceDocumentHeader">The source document header to check. Sales and service headers and
@@ -130,6 +134,7 @@ codeunit 11043 "DE Payment Means Helper"
                     if DirectDebitMandateID = '' then
                         Error(MandateIDMissingErr);
                     CheckMandateData(DirectDebitMandateID);
+                    CheckCreditorNoAvailable(SourceDocumentHeader);
                 end;
             else
                 CheckPaymentMeansCodeSupported(PaymentMeansCode, SourceDocumentHeader);
@@ -184,6 +189,37 @@ codeunit 11043 "DE Payment Means Helper"
             IBANMissingErrorInfo.PageNo := Page::"Customer Bank Account Card";
             IBANMissingErrorInfo.AddNavigationAction(ShowCustomerBankAccountLbl);
             Error(IBANMissingErrorInfo);
+        end;
+    end;
+
+    local procedure CheckCreditorNoAvailable(SourceDocumentHeader: RecordRef)
+    var
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        CompanyBankAccountCodeFieldRef: FieldRef;
+        CreditorNoMissingErrorInfo: ErrorInfo;
+        CompanyBankAccountCode: Code[20];
+    begin
+        // BT-90 Bank assigned creditor identifier is mandatory for direct debit (BR-DE-30).
+        // The export takes it from the company bank account on the document.
+        if SourceDocumentHeader.Number() in [Database::"Service Header", Database::"Service Invoice Header"] then
+            CompanyBankAccountCodeFieldRef := SourceDocumentHeader.Field(ServiceInvoiceHeader.FieldNo("Company Bank Account Code"))
+        else
+            CompanyBankAccountCodeFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Company Bank Account Code"));
+        CompanyBankAccountCode := CompanyBankAccountCodeFieldRef.Value();
+        if CompanyBankAccountCode = '' then
+            Error(CompanyBankAccountMissingErr);
+
+        BankAccount.SetLoadFields(BankAccount."Creditor No.");
+        if not BankAccount.Get(CompanyBankAccountCode) then
+            Error(CompanyBankAccountNotFoundErr, CompanyBankAccountCode);
+        if BankAccount."Creditor No." = '' then begin
+            CreditorNoMissingErrorInfo.Message := StrSubstNo(CreditorNoMissingErr, CompanyBankAccountCode);
+            CreditorNoMissingErrorInfo.RecordId := BankAccount.RecordId();
+            CreditorNoMissingErrorInfo.PageNo := Page::"Bank Account Card";
+            CreditorNoMissingErrorInfo.AddNavigationAction(ShowBankAccountLbl);
+            Error(CreditorNoMissingErrorInfo);
         end;
     end;
 

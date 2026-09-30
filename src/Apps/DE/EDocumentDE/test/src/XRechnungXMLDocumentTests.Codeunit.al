@@ -315,7 +315,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         TempXMLBuffer: Record "XML Buffer" temporary;
         CompanyBankAccountCode: Code[20];
     begin
-        // [SCENARIO] Export posted sales invoice with SEPA direct debit payment means uses the company account as payee, the customer's mandate account as payer, and the mandate reference and creditor identifier
+        // [SCENARIO] Export posted sales invoice with SEPA direct debit payment means exports the customer's mandate account as payer, the mandate reference and creditor identifier, and no credit transfer account
         Initialize();
 
         // [GIVEN] Create and Post Sales Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
@@ -325,8 +325,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] Payment means contains the mandate reference (BT-89), company account as payee, and customer account as payer (BT-91)
-        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans', SEPADirectDebitMandate.ID, BankAccount.IBAN, CustomerBankAccount.IBAN);
+        // [THEN] Payment means contains the mandate reference (BT-89) and customer account as payer (BT-91), but no payee account (BR-DE-25-b)
+        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans', SEPADirectDebitMandate.ID, CustomerBankAccount.IBAN);
 
         // [THEN] Supplier party contains the bank assigned creditor identifier (BT-90)
         VerifyDirectDebitCreditorNo(TempXMLBuffer, '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party', BankAccount."Creditor No.");
@@ -913,7 +913,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         TempXMLBuffer: Record "XML Buffer" temporary;
         CompanyBankAccountCode: Code[20];
     begin
-        // [SCENARIO] Export posted service invoice with SEPA direct debit payment means uses the company account as payee, the customer's mandate account as payer, and the mandate reference and creditor identifier
+        // [SCENARIO] Export posted service invoice with SEPA direct debit payment means exports the customer's mandate account as payer, the mandate reference and creditor identifier, and no credit transfer account
         Initialize();
 
         // [GIVEN] Create and Post Service Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
@@ -923,8 +923,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] Payment means contains the mandate reference (BT-89), company account as payee, and customer account as payer (BT-91)
-        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans', SEPADirectDebitMandate.ID, BankAccount.IBAN, CustomerBankAccount.IBAN);
+        // [THEN] Payment means contains the mandate reference (BT-89) and customer account as payer (BT-91), but no payee account (BR-DE-25-b)
+        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans', SEPADirectDebitMandate.ID, CustomerBankAccount.IBAN);
 
         // [THEN] Supplier party contains the bank assigned creditor identifier (BT-90)
         VerifyDirectDebitCreditorNo(TempXMLBuffer, '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party', BankAccount."Creditor No.");
@@ -4792,7 +4792,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         end;
     end;
 
-    local procedure VerifyDirectDebitPaymentMeans(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text; ExpectedMandateID: Code[35]; ExpectedPayeeIBAN: Text; ExpectedPayerIBAN: Text)
+    local procedure VerifyDirectDebitPaymentMeans(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text; ExpectedMandateID: Code[35]; ExpectedPayerIBAN: Text)
     var
         Path: Text;
     begin
@@ -4800,8 +4800,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.AreEqual('59', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cac:PaymentMandate/cbc:ID';
         Assert.AreEqual(ExpectedMandateID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentTok + '/cac:PayeeFinancialAccount/cbc:ID';
-        Assert.AreEqual(ExpectedPayeeIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentTok + '/cac:PayeeFinancialAccount'), 'BG-17 PayeeFinancialAccount must not be exported for direct debit (BR-DE-25-b).');
         Path := DocumentTok + '/cac:PaymentMandate/cac:PayerFinancialAccount/cbc:ID';
         Assert.AreEqual(ExpectedPayerIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;

@@ -658,7 +658,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempXMLBuffer: Record "XML Buffer" temporary;
         CompanyBankAccountCode: Code[20];
     begin
-        // [SCENARIO] Export posted sales invoice with SEPA direct debit payment means uses the company account as payee, the customer's mandate account as payer, and exports the mandate reference and creditor identifier
+        // [SCENARIO] Export posted sales invoice with SEPA direct debit payment means exports the customer's mandate account as payer, the mandate reference and creditor identifier, and no credit transfer account
         Initialize();
 
         // [GIVEN] Create and Post Sales Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
@@ -668,7 +668,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] Settlement contains the mandate reference (BT-89), creditor identifier (BT-90), company account as payee (BT-84) and customer account as payer (BT-91)
+        // [THEN] Settlement contains the mandate reference (BT-89), creditor identifier (BT-90) and customer account as payer (BT-91), but no payee account (BR-DE-25-b)
         VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', SEPADirectDebitMandate.ID, BankAccount, CustomerBankAccount.IBAN);
     end;
 
@@ -1778,7 +1778,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempXMLBuffer: Record "XML Buffer" temporary;
         CompanyBankAccountCode: Code[20];
     begin
-        // [SCENARIO] Export posted service invoice with SEPA direct debit payment means uses the company account as payee, the customer's mandate account as payer, and exports the mandate reference and creditor identifier
+        // [SCENARIO] Export posted service invoice with SEPA direct debit payment means exports the customer's mandate account as payer, the mandate reference and creditor identifier, and no credit transfer account
         Initialize();
 
         // [GIVEN] Create and Post Service Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
@@ -1788,7 +1788,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] Settlement contains the mandate reference (BT-89), creditor identifier (BT-90), company account as payee (BT-84) and customer account as payer (BT-91)
+        // [THEN] Settlement contains the mandate reference (BT-89), creditor identifier (BT-90) and customer account as payer (BT-91), but no payee account (BR-DE-25-b)
         VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', SEPADirectDebitMandate.ID, BankAccount, CustomerBankAccount.IBAN);
     end;
 
@@ -4896,11 +4896,9 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // BT-91 Debited account identifier
         Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayerPartyDebtorFinancialAccount/ram:IBANID';
         Assert.AreEqual(GetIBAN(ExpectedPayerIBAN), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        // BT-84 Payment account identifier
-        Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeePartyCreditorFinancialAccount/ram:IBANID';
-        Assert.AreEqual(GetIBAN(BankAccount.IBAN), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID';
-        Assert.AreEqual(GetIBAN(BankAccount."SWIFT Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        // BG-17 CREDIT TRANSFER must not be exported for direct debit (BR-DE-25-b)
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeePartyCreditorFinancialAccount'), 'PayeePartyCreditorFinancialAccount must not be exported for direct debit (BR-DE-25-b).');
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeeSpecifiedCreditorFinancialInstitution'), 'PayeeSpecifiedCreditorFinancialInstitution must not be exported for direct debit (BR-DE-25-b).');
         // BT-89 Mandate reference identifier
         Path := DocumentTok + '/ram:SpecifiedTradePaymentTerms/ram:DirectDebitMandateID';
         Assert.AreEqual(ExpectedMandateID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));

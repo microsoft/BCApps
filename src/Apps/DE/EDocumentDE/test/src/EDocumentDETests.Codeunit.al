@@ -5,6 +5,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
@@ -45,6 +46,8 @@ codeunit 13926 "E-Document DE Tests"
         SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
         UnsupportedMeansCodeTok: Label '48', Locked = true;
         BankAccountNotFoundErr: Label 'Customer bank account %1 on mandate %2 does not exist.', Comment = '%1 = Bank Account Code, %2 = Mandate ID';
+        CompanyBankAccountMissingErr: Label 'Set the Company Bank Account Code on the document.';
+        CreditorNoMissingErr: Label 'Bank account %1 has no creditor identifier (Creditor No.).', Comment = '%1 = Bank Account Code';
         MandateNotFoundErr: Label 'SEPA Direct Debit Mandate %1 does not exist.', Comment = '%1 = Mandate ID';
         SEPADDOnCrMemoErr: Label 'Payment means code %1 (SEPA direct debit) cannot be used on a credit memo or return order.', Comment = '%1 = UNCL4461 payment means code';
         UnsupportedPaymentMeansCodeErr: Label 'Payment means code %1 is not supported for German electronic documents.', Comment = '%1 = UNCL4461 payment means code';
@@ -396,6 +399,97 @@ codeunit 13926 "E-Document DE Tests"
     end;
 
     [Test]
+    procedure CheckPaymentMeansDirectDebitCompanyBankAccountMissingRaisesError()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Releasing a direct debit sales invoice without a company bank account raises an error, because the creditor identifier (BT-90) cannot be exported.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59' and a valid SEPA Direct Debit Mandate
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID set and Company Bank Account Code = ''
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Validate("Company Bank Account Code", '');
+        SalesHeader.Modify(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error is raised
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(CompanyBankAccountMissingErr);
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitCreditorNoMissingRaisesError()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+        CompanyBankAccountCode: Code[20];
+    begin
+        // [SCENARIO] Releasing a direct debit sales invoice whose company bank account has no Creditor No. raises an error, because the creditor identifier (BT-90) cannot be exported.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59' and a valid SEPA Direct Debit Mandate
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+
+        // [GIVEN] A company bank account without a Creditor No.
+        CompanyBankAccountCode := CreateCompanyBankAccount('');
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID and that company bank account set
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Validate("Company Bank Account Code", CompanyBankAccountCode);
+        SalesHeader.Modify(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error is raised
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(CreditorNoMissingErr, CompanyBankAccountCode));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitWithCreditorNoPasses()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Releasing a direct debit sales invoice with a valid mandate and a company bank account with a Creditor No. passes the check.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59' and a valid SEPA Direct Debit Mandate
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID and a company bank account with a Creditor No. set
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Validate("Company Bank Account Code", CreateCompanyBankAccount(LibraryUtility.GenerateGUID()));
+        SalesHeader.Modify(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        CheckSalesHeader(SalesHeader);
+
+        // [THEN] No error is raised
+    end;
+
+    [Test]
     procedure CheckPaymentMeansUnsupportedCodeRaisesError()
     var
         SalesHeader: Record "Sales Header";
@@ -548,6 +642,17 @@ codeunit 13926 "E-Document DE Tests"
     begin
         SourceDocumentHeader.GetTable(SalesHeader);
         DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
+    end;
+
+    local procedure CreateCompanyBankAccount(CreditorNo: Code[35]): Code[20]
+    var
+        BankAccount: Record "Bank Account";
+    begin
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        BankAccount."Creditor No." := CreditorNo;
+        BankAccount.Modify(true);
+        exit(BankAccount."No.");
     end;
 
     local procedure CheckSalesHeader(SalesHeader: Record "Sales Header")

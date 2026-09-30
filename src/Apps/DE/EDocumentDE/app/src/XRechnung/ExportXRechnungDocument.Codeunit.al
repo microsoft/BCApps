@@ -1097,7 +1097,7 @@ codeunit 13916 "Export XRechnung Document"
             '30', '58':
                 InsertCreditTransferPaymentMeans(PaymentMeansElement, CompanyBankAccountCode);
             '49', '59':
-                InsertDirectDebitPaymentMeans(PaymentMeansElement, CompanyBankAccountCode, DirectDebitMandateID);
+                InsertDirectDebitPaymentMeans(PaymentMeansElement, DirectDebitMandateID);
         end;
 
         if DataTypeManagement.GetRecordRef(RecordVariant, HeaderRecordRef) then
@@ -1105,20 +1105,19 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(PaymentMeansElement);
     end;
 
-    local procedure InsertDirectDebitPaymentMeans(var PaymentMeansElement: XmlElement; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35])
+    local procedure InsertDirectDebitPaymentMeans(var PaymentMeansElement: XmlElement; DirectDebitMandateID: Code[35])
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
         CustomerBankAccount: Record "Customer Bank Account";
         PaymentMandateElement: XmlElement;
         PayerFinancialAccountElement: XmlElement;
     begin
-        // BT-84 Payment account identifier: company account (creditor) -> PayeeFinancialAccount.
-        InsertPayeeFinancialAccount(PaymentMeansElement, 'PayeeFinancialAccount', CompanyBankAccountCode);
+        // BG-17 CREDIT TRANSFER (PayeeFinancialAccount) must not be sent for direct debit (BR-DE-25-b).
+        // The creditor is identified by BT-90 in the supplier party instead.
         if DirectDebitMandateID = '' then
             exit;
 
-        // BG-19 DIRECT DEBIT -> PaymentMandate. The UBL PaymentMeans sequence requires PaymentMandate
-        // after PayeeFinancialAccount, so this group is always added last.
+        // BG-19 DIRECT DEBIT -> PaymentMandate.
         PaymentMandateElement := XmlElement.Create('PaymentMandate', XmlNamespaceCAC);
         // BT-89 Mandate reference identifier.
         PaymentMandateElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, DirectDebitMandateID));

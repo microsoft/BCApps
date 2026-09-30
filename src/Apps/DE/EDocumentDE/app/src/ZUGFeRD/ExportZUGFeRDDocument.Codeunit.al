@@ -1263,7 +1263,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             '30', '58':
                 InsertCreditTransferPayment(PaymentMethodElement, CompanyBankAccountCode);
             '49', '59':
-                InsertDirectDebitPayment(PaymentMethodElement, CompanyBankAccountCode, DirectDebitMandateID);
+                InsertDirectDebitPayment(PaymentMethodElement, DirectDebitMandateID);
         end;
 
         if DataTypeManagement.GetRecordRef(RecordVariant, HeaderRecordRef) then
@@ -1271,15 +1271,13 @@ codeunit 13917 "Export ZUGFeRD Document"
         RootXMLNode.Add(PaymentMethodElement);
     end;
 
-    local procedure InsertDirectDebitPayment(var PaymentMethodElement: XmlElement; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35])
+    local procedure InsertDirectDebitPayment(var PaymentMethodElement: XmlElement; DirectDebitMandateID: Code[35])
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
         CustomerBankAccount: Record "Customer Bank Account";
-        IBAN: Text[50];
-        SWIFTCode: Code[20];
     begin
-        // The CII TradeSettlementPaymentMeans sequence is PayerPartyDebtorFinancialAccount,
-        // PayeePartyCreditorFinancialAccount, PayeeSpecifiedCreditorFinancialInstitution - keep this order.
+        // BG-17 CREDIT TRANSFER (PayeePartyCreditorFinancialAccount, PayeeSpecifiedCreditorFinancialInstitution) must not
+        // be sent for direct debit (BR-DE-25-b). The creditor is identified by BT-90 CreditorReferenceID instead.
 
         // BT-91 PayerPartyDebtorFinancialAccount = account being charged (customer, direct debit only), resolved via the mandate.
         if DirectDebitMandateID <> '' then begin
@@ -1290,11 +1288,6 @@ codeunit 13917 "Export ZUGFeRD Document"
                     AddDebtorAccount(PaymentMethodElement, CustomerBankAccount.IBAN);
             end;
         end;
-
-        // BT-84 PayeePartyCreditorFinancialAccount = account receiving money (company account, SEPA direct debit creditor).
-        GetBankAccountPaymentDetails(CompanyBankAccountCode, IBAN, SWIFTCode);
-        AddCreditorAccount(PaymentMethodElement, IBAN);
-        AddCreditorFinancialInstitution(PaymentMethodElement, SWIFTCode);
     end;
 
     local procedure InsertCreditTransferPayment(var PaymentMethodElement: XmlElement; CompanyBankAccountCode: Code[20])
