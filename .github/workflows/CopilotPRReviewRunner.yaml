@@ -40,4 +40,4 @@ jobs:
     with:
       target_repo: ${{ github.repository }}
       engine_ref: latest
-
+      copilot_cli_version: '1.0.83'
