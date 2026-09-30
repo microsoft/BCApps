@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <Invoice xmlns:cec="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:sbt="http://mfin.gov.rs/srbdt/srbdtext" xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
+      <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:mfin.gov.rs:srbdt:2022</cbc:CustomizationID>
+      <cbc:ID>Broj fakture</cbc:ID>
+	  <!-- Jedinstveni broj fakture -->
+      <cbc:IssueDate>2025-07-02</cbc:IssueDate>
+	  <!--  Upisuje se datum slanja fakture  -->
+      <cbc:DueDate>2025-07-22</cbc:DueDate>
+	  <!--  Upisuje se datum dospeća  -->
+      <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+      <cbc:Note>Marketinški tekst za podnožje dokumenta</cbc:Note>
+      <cbc:DocumentCurrencyCode>RSD</cbc:DocumentCurrencyCode>
+      <cbc:BuyerReference>Interni broj za rutiranje</cbc:BuyerReference>
+      <cac:InvoicePeriod>
+        <cbc:DescriptionCode>35</cbc:DescriptionCode>
+      </cac:InvoicePeriod>
+      <cac:OrderReference>
+        <cbc:ID>Broj Narudžbenice/Broj Fakture/Broj Ponude</cbc:ID>
+      </cac:OrderReference>
+      <cac:DespatchDocumentReference>
+        <cbc:ID>Broj otpremnice</cbc:ID>
+      </cac:DespatchDocumentReference>
+      <cac:OriginatorDocumentReference>
+        <cbc:ID>Broj okvirnog sporazuma</cbc:ID>
+      </cac:OriginatorDocumentReference>
+      <cac:ContractDocumentReference>
+        <cbc:ID>Broj ugovora</cbc:ID>
+      </cac:ContractDocumentReference>
+      <cac:AdditionalDocumentReference>
+        <cbc:ID>Šifra objekta</cbc:ID>
+        <cbc:DocumentTypeCode>130</cbc:DocumentTypeCode>
+      </cac:AdditionalDocumentReference>
+      <cac:AccountingSupplierParty>
+        <cac:Party>
+          <cbc:EndpointID schemeID="9948">123456789</cbc:EndpointID>
+		  <!-- PIB pravnog lica prodavca -->
+          <cac:PartyName>
+            <cbc:Name>Naziv pravnog lica prodavca</cbc:Name>
+          </cac:PartyName>
+          <cac:PostalAddress>
+            <cbc:StreetName>Adresa pravnog lica prodavca</cbc:StreetName>
+            <cbc:CityName>Grad pravnog lica prodavca</cbc:CityName>
+            <cbc:PostalZone>Poštanski broj pravnog lica prodavca</cbc:PostalZone>
+            <cac:Country>
+              <cbc:IdentificationCode>RS</cbc:IdentificationCode>
+            </cac:Country>
+          </cac:PostalAddress>
+          <cac:PartyTaxScheme>
+            <cbc:CompanyID>RS123456789</cbc:CompanyID>
+			<!-- Obavezan prefiks "RS" i PIB broj pravnog lica prodavca -->
+            <cac:TaxScheme>
+              <cbc:ID>VAT</cbc:ID>
+            </cac:TaxScheme>
+          </cac:PartyTaxScheme>
+          <cac:PartyLegalEntity>
+            <cbc:RegistrationName>Naziv pravnog lica prodavca</cbc:RegistrationName>
+            <cbc:CompanyID>12345678</cbc:CompanyID>
+			<!--   Matični broj pravnog lica prodavca -->
+          </cac:PartyLegalEntity>
+          <cac:Contact>
+            <cbc:ElectronicMail>e-mail adresa prodavca</cbc:ElectronicMail>
+          </cac:Contact>
+        </cac:Party>
+      </cac:AccountingSupplierParty>
+      <cac:AccountingCustomerParty>
+        <cac:Party>
+          <cbc:EndpointID schemeID="9948">987654321</cbc:EndpointID>
+		  <!--   PIB pravnog lica kupca -->
+          <cac:PartyIdentification>
+            <cbc:ID>JBKJS:12345</cbc:ID>
+			<!-- JBKJS broj budžetskog korisnika -->
+          </cac:PartyIdentification>
+          <cac:PartyName>
+            <cbc:Name>Naziv pravnog lica kupca</cbc:Name>
+          </cac:PartyName>
+          <cac:PostalAddress>
+            <cbc:StreetName>Adresa pravnog lica kupca</cbc:StreetName>
+            <cbc:CityName>Grad pravnog lica kupca</cbc:CityName>
+            <cac:Country>
+              <cbc:IdentificationCode>RS</cbc:IdentificationCode>
+            </cac:Country>
+          </cac:PostalAddress>
+          <cac:PartyTaxScheme>
+            <cbc:CompanyID>RS987654321</cbc:CompanyID>
+			<!-- Obavezan prefiks "RS" i PIB broj pravnog lica kupca -->
+            <cac:TaxScheme>
+              <cbc:ID>VAT</cbc:ID>
+            </cac:TaxScheme>
+          </cac:PartyTaxScheme>
+          <cac:PartyLegalEntity>
+            <cbc:RegistrationName>Naziv pravnog lica kupca</cbc:RegistrationName>
+            <cbc:CompanyID>87654321</cbc:CompanyID>
+			<!--   Matični broj pravnog lica kupca -->
+          </cac:PartyLegalEntity>
+          <cac:Contact>
+            <cbc:ElectronicMail>e-mail adresa kupca</cbc:ElectronicMail>
+          </cac:Contact>
+        </cac:Party>
+      </cac:AccountingCustomerParty>
+      <cac:Delivery>
+        <cbc:ActualDeliveryDate>2025-07-02</cbc:ActualDeliveryDate>
+		<!--  Upisuje se datum prometa  -->
+      </cac:Delivery>
+      <cac:PaymentMeans>
+        <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
+        <cbc:PaymentID>(mod97) 123456/2025</cbc:PaymentID>
+		<!--   Model i poziv na broj u formatu: (mod [Broj modela]) [Poziv na broj] -->
+        <cac:PayeeFinancialAccount>
+          <cbc:ID>Tekući račun pravnog lica prodavca</cbc:ID>
+        </cac:PayeeFinancialAccount>
+      </cac:PaymentMeans>
+      <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="RSD">1.32</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+          <cbc:TaxableAmount currencyID="RSD">13.24</cbc:TaxableAmount>
+          <cbc:TaxAmount currencyID="RSD">1.32</cbc:TaxAmount>
+          <cac:TaxCategory>
+            <cbc:ID>S</cbc:ID>
+            <cbc:Percent>10</cbc:Percent>
+            <cac:TaxScheme>
+              <cbc:ID>VAT</cbc:ID>
+            </cac:TaxScheme>
+          </cac:TaxCategory>
+        </cac:TaxSubtotal>
+      </cac:TaxTotal>
+      <cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="RSD">13.24</cbc:LineExtensionAmount>
+        <cbc:TaxExclusiveAmount currencyID="RSD">13.24</cbc:TaxExclusiveAmount>
+        <cbc:TaxInclusiveAmount currencyID="RSD">14.56</cbc:TaxInclusiveAmount>
+        <cbc:AllowanceTotalAmount currencyID="RSD">0</cbc:AllowanceTotalAmount>
+        <cbc:PrepaidAmount currencyID="RSD">0</cbc:PrepaidAmount>
+        <cbc:PayableRoundingAmount currencyID="RSD">0</cbc:PayableRoundingAmount>
+        <cbc:PayableAmount currencyID="RSD">14.56</cbc:PayableAmount>
+      </cac:LegalMonetaryTotal>
+      <cac:InvoiceLine>
+        <cbc:ID>1</cbc:ID>
+        <cbc:InvoicedQuantity unitCode="KWT">1</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount currencyID="RSD">13.24</cbc:LineExtensionAmount>
+        <cac:Item>
+          <cbc:Name>Naziv stavke</cbc:Name>
+          <cac:SellersItemIdentification>
+            <cbc:ID>Šifra stavke</cbc:ID>
+          </cac:SellersItemIdentification>
+          <cac:ClassifiedTaxCategory>
+            <cbc:ID>S</cbc:ID>
+            <cbc:Percent>10</cbc:Percent>
+            <cac:TaxScheme>
+              <cbc:ID>VAT</cbc:ID>
+            </cac:TaxScheme>
+          </cac:ClassifiedTaxCategory>
+        </cac:Item>
+        <cac:Price>
+          <cbc:PriceAmount currencyID="RSD">13.24</cbc:PriceAmount>
+        </cac:Price>
+      </cac:InvoiceLine>
+    </Invoice>
