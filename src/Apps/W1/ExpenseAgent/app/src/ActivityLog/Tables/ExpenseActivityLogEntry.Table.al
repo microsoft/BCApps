@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.SpendRequest;
 using System.Security.AccessControl;
 
@@ -111,52 +112,52 @@ table 7100 "Expense Activity Log Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount (LCY)';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(16; "Non-Refundable Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Non-Refundable Amount (LCY)';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(17; "Reimbursable Amount"; Decimal)
         {
             AutoFormatExpression = "Reimbursement Currency Code";
             AutoFormatType = 1;
             Caption = 'Reimbursable Amount';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(18; "Reimbursable Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Reimbursable Amount (LCY)';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(19; "Refundable Amount"; Decimal)
         {
             AutoFormatExpression = "Reimbursement Currency Code";
             AutoFormatType = 1;
             Caption = 'Refundable Amount';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(20; "Refundable Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Refundable Amount (LCY)';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(21; "Reimbursement Currency Code"; Code[10])
         {
             Caption = 'Reimbursement Currency Code';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(22; "Reimbursement Currency Factor"; Decimal)
         {
             Caption = 'Reimbursement Currency Factor';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
             DecimalPlaces = 0 : 15;
         }
         field(23; "Total Expected Amount"; Decimal)
@@ -164,12 +165,13 @@ table 7100 "Expense Activity Log Entry"
             AutoFormatExpression = "Currency Code";
             AutoFormatType = 1;
             Caption = 'Total Expected Amount';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(24; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
+            TableRelation = Currency;
         }
         field(50; Comment; Text[2048])
         {

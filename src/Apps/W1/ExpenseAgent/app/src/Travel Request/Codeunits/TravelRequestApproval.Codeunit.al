@@ -43,18 +43,39 @@ codeunit 7133 "Travel Request Approval"
         IsResubmission := IsTravelRequestResubmission(SpendRequest);
         SpendRequest."Submitted By Expense User No." := SubmitterExpenseUserNo;
         SpendRequest."Submitted At" := CurrentDateTime();
-        // A new submission starts a new approval, so no decision from a previous rejection is kept.
-        Clear(SpendRequest."Approved/Rejected At");
-        Clear(SpendRequest."Approved/Rejected by User ID");
-        Clear(SpendRequest."Approved/Rejected by User Name");
-        Clear(SpendRequest."Approval Expense User No.");
-        Clear(SpendRequest."Rejection Reason");
+        ClearPreviousDecision(SpendRequest);
         SpendRequest."Submitter Comment" := CopyStr(SubmissionComment, 1, MaxStrLen(SpendRequest."Submitter Comment"));
         SpendRequest.Modify();
         // Log before releasing so that an automatic approval raised by the release is ordered after the submission.
         LogTravelRequestSubmission(SpendRequest, SubmitterExpenseUserNo, IsResubmission, SubmissionComment);
         ReleaseSpendRequest.Release(SpendRequest);
         FeatureTelemetry.LogUsage('0000VEY', ExpenseAgentSetup.GetFeatureName(), TravelRequestSubmittedLbl);
+    end;
+
+    /// <summary>
+    /// Starts a new approval for an open travel request released from the Business Central client, like a submission without a comment.
+    /// The decision and the submitter comment of an earlier approval, for example a rejection, are cleared.
+    /// </summary>
+    internal procedure PrepareManualRelease(var SpendRequest: Record "Spend Request")
+    begin
+        if SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request" then
+            exit;
+        if SpendRequest.Status <> SpendRequest.Status::Open then
+            exit;
+
+        ClearPreviousDecision(SpendRequest);
+        Clear(SpendRequest."Submitter Comment");
+        SpendRequest.Modify();
+    end;
+
+    local procedure ClearPreviousDecision(var SpendRequest: Record "Spend Request")
+    begin
+        // A new approval starts, so no decision from an earlier rejection is kept.
+        Clear(SpendRequest."Approved/Rejected At");
+        Clear(SpendRequest."Approved/Rejected by User ID");
+        Clear(SpendRequest."Approved/Rejected by User Name");
+        Clear(SpendRequest."Approval Expense User No.");
+        Clear(SpendRequest."Rejection Reason");
     end;
 
     internal procedure Approve(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])

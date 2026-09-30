@@ -3107,6 +3107,42 @@ codeunit 148339 "Spend Request Test"
         TravelRequestCard.Close();
     end;
 
+    [Test]
+    procedure ReleaseRejectedTravelRequestFromCardClearsPreviousDecision()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+        TravelRequestCard: TestPage "Travel Request Card";
+    begin
+        // [SCENARIO] Releasing a rejected travel request from the card starts a new approval without the decision and comment of the previous one.
+        Initialize();
+
+        // [GIVEN] A travel request that was submitted with a comment and rejected, which reopens it.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.", 'First submission comment.');
+        TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'Missing details.');
+
+        // [WHEN] The travel request is released from the card.
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
+        TravelRequestCard.Release.Invoke();
+        TravelRequestCard.Close();
+
+        // [THEN] The travel request is released, and the rejection details and the submitter comment are cleared.
+        SpendRequest.Get(SpendRequest."No.");
+        SpendRequest.TestField(Status, SpendRequest.Status::Released);
+        SpendRequest.TestField("Rejection Reason", '');
+        SpendRequest.TestField("Approval Expense User No.", '');
+        SpendRequest.TestField("Approved/Rejected At", 0DT);
+        SpendRequest.TestField("Approved/Rejected by User Name", '');
+        SpendRequest.TestField("Submitter Comment", '');
+        Assert.IsTrue(IsNullGuid(SpendRequest."Approved/Rejected by User ID"), 'A released travel request must not keep the user who rejected it.');
+    end;
+
     local procedure Initialize()
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";

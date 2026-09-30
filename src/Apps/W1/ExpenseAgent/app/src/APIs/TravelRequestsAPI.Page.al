@@ -175,7 +175,6 @@ page 7134 "Travel Requests API"
                 field(expenseLocation; Rec."Expense Location")
                 {
                     Caption = 'Expense Location';
-                    ToolTip = 'Specifies the expense location of the travel. Use the expensePerDiemLocations endpoint to list the available locations. Can only be set, and is required on submission, when perDiemIncluded is true.';
                 }
                 field(actualStartDateAndTime; Rec."Actual Start Date and Time")
                 {
@@ -188,25 +187,21 @@ page 7134 "Travel Requests API"
                 field(submittedByExpenseUserNo; Rec."Submitted By Expense User No.")
                 {
                     Caption = 'Submitted By Expense User No.';
-                    ToolTip = 'Specifies the expense user who submitted the travel request.';
                     Editable = false;
                 }
                 field(submittedAt; Rec."Submitted At")
                 {
                     Caption = 'Submitted At';
-                    ToolTip = 'Specifies the date and time when the travel request was submitted.';
                     Editable = false;
                 }
                 field(submitterComment; Rec."Submitter Comment")
                 {
                     Caption = 'Submitter Comment';
-                    ToolTip = 'Specifies the latest comment from the submitter, for example the justification for resubmitting a rejected travel request. Set it with the submitTravelRequestWithComment action.';
                     Editable = false;
                 }
                 field(approvalExpenseUserNo; Rec."Approval Expense User No.")
                 {
                     Caption = 'Approval Expense User No.';
-                    ToolTip = 'Specifies the expense user who approved or rejected the travel request.';
                     Editable = false;
                 }
                 field(approvedRejectedDateTime; Rec."Approved/Rejected At")
@@ -229,7 +224,6 @@ page 7134 "Travel Requests API"
                 field(rejectionReason; Rec."Rejection Reason")
                 {
                     Caption = 'Rejection Reason';
-                    ToolTip = 'Specifies the reason the travel request was rejected.';
                     Editable = false;
                 }
                 part(travelRequestDetails; "Travel Request Details API")

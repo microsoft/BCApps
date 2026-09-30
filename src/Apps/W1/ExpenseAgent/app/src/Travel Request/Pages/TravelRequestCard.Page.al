@@ -41,12 +41,10 @@ page 7129 "Travel Request Card"
                 }
                 field("Requested For"; Rec."Requested For")
                 {
-                    ToolTip = 'Specifies the expense user for whom the travel request is being created.';
                     Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Requested For Name"; Rec."Requested For Name")
                 {
-                    ToolTip = 'Specifies the name of the expense user for whom the travel request is being created.';
                     Editable = Rec.Status = Rec.Status::Open;
                 }
                 field(Purpose; Rec.Purpose)
@@ -138,14 +136,12 @@ page 7129 "Travel Request Card"
                 field("Actual Start Date and Time"; Rec."Actual Start Date and Time")
                 {
                     Importance = Additional;
-                    ToolTip = 'Specifies the actual start date and time of the travel. Required when per diem is included.';
                     Editable = Rec.Status = Rec.Status::Open;
                     ShowMandatory = Rec."Per Diem Included";
                 }
                 field("Actual End Date and Time"; Rec."Actual End Date and Time")
                 {
                     Importance = Additional;
-                    ToolTip = 'Specifies the actual end date and time of the travel. Required when per diem is included.';
                     Editable = Rec.Status = Rec.Status::Open;
                     ShowMandatory = Rec."Per Diem Included";
                 }
@@ -158,12 +154,10 @@ page 7129 "Travel Request Card"
                 {
                     MultiLine = true;
                     Importance = Additional;
-                    ToolTip = 'Specifies the business justification for the travel.';
                     Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Per Diem Included"; Rec."Per Diem Included")
                 {
-                    ToolTip = 'Specifies whether per diem is included in the travel request.';
                     Editable = Rec.Status = Rec.Status::Open;
 
                     trigger OnValidate()
@@ -175,7 +169,6 @@ page 7129 "Travel Request Card"
                 field("International Travel"; Rec."International Travel")
                 {
                     Importance = Additional;
-                    ToolTip = 'Specifies whether the travel is international.';
                     Editable = false;
                     Visible = false;
                     ObsoleteReason = 'Replaced by the Expense Location field.';
@@ -184,7 +177,6 @@ page 7129 "Travel Request Card"
                 }
                 field("Origin Country"; Rec."Origin Country/Region Code")
                 {
-                    ToolTip = 'Specifies the origin country for the travel.';
                     Editable = false;
                     Visible = false;
                     ObsoleteReason = 'Replaced by the Expense Location field.';
@@ -193,7 +185,6 @@ page 7129 "Travel Request Card"
                 }
                 field("Destination Country"; Rec."Dest. Country/Region Code")
                 {
-                    ToolTip = 'Specifies the destination country for the travel.';
                     Editable = false;
                     Visible = false;
                     ObsoleteReason = 'Replaced by the Expense Location field.';
@@ -204,17 +195,14 @@ page 7129 "Travel Request Card"
                 field(Restrictions; Rec.Restrictions)
                 {
                     Importance = Additional;
-                    ToolTip = 'Specifies any travel restrictions that apply.';
                     Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Travel Policy Acknowledgment"; Rec."Travel Policy Acknowledgment")
                 {
-                    ToolTip = 'Specifies whether the travel policy has been acknowledged.';
                     Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Expense Location"; Rec."Expense Location")
                 {
-                    ToolTip = 'Specifies the expense location of the travel. The expense location can only be used, and is required, when per diem is included.';
                     Editable = (Rec.Status = Rec.Status::Open) and Rec."Per Diem Included";
                     ShowMandatory = Rec."Per Diem Included";
                 }
@@ -262,8 +250,10 @@ page 7129 "Travel Request Card"
 
                     trigger OnAction()
                     var
+                        TravelRequestApproval: Codeunit "Travel Request Approval";
                         ReleaseSpendRequest: Codeunit "Release Spend Request";
                     begin
+                        TravelRequestApproval.PrepareManualRelease(Rec);
                         ReleaseSpendRequest.PerformManualRelease(Rec);
                     end;
                 }

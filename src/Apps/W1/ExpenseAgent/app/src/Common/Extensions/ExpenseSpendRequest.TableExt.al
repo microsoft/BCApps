@@ -16,7 +16,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6900; "Requested For"; Code[20])
         {
             Caption = 'Requested For';
-            ToolTip = 'Specifies the expense user for whom the spend request is being created.';
+            ToolTip = 'Specifies the expense user for whom the travel request is being created.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Expense User";
 
@@ -122,7 +122,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6907; "Per Diem Included"; Boolean)
         {
             Caption = 'Per Diem Included';
-            ToolTip = 'Specifies whether per diem is included in the requisition.';
+            ToolTip = 'Specifies whether per diem is included in the travel request.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -149,12 +149,12 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             Caption = 'Requested For Name';
             FieldClass = FlowField;
             CalcFormula = lookup("Expense User".Name where("No." = field("Requested For")));
-            ToolTip = 'Specifies the name of the expense user for whom the spend request is being created.';
+            ToolTip = 'Specifies the name of the expense user for whom the travel request is being created.';
         }
         field(6911; "Actual Start Date and Time"; DateTime)
         {
             Caption = 'Actual Start Date and Time';
-            ToolTip = 'Specifies the actual start date and time of the travel.';
+            ToolTip = 'Specifies the actual start date and time of the travel. Required when per diem is included.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -165,7 +165,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6912; "Actual End Date and Time"; DateTime)
         {
             Caption = 'Actual End Date and Time';
-            ToolTip = 'Specifies the actual end date and time of the travel.';
+            ToolTip = 'Specifies the actual end date and time of the travel. Required when per diem is included.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -182,6 +182,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6914; "Submitted By Expense User No."; Code[20])
         {
             Caption = 'Submitted By Expense User No.';
+            ToolTip = 'Specifies the expense user who submitted the travel request.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = "Expense User"."No.";
@@ -189,12 +190,14 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6915; "Submitted At"; DateTime)
         {
             Caption = 'Submitted At';
+            ToolTip = 'Specifies the date and time when the travel request was submitted.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(6916; "Approval Expense User No."; Code[20])
         {
             Caption = 'Approval Expense User No.';
+            ToolTip = 'Specifies the expense user who approved or rejected the travel request.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = "Expense User"."No.";
@@ -202,6 +205,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6917; "Rejection Reason"; Text[2048])
         {
             Caption = 'Rejection Reason';
+            ToolTip = 'Specifies the reason the travel request was rejected.';
             DataClassification = CustomerContent;
             Editable = false;
         }

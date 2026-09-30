@@ -326,16 +326,14 @@ codeunit 6908 "Expense Event Subscriber"
     local procedure CheckTravelersAreEmployees(SpendRequest: Record "Spend Request")
     var
         Traveler: Record Traveler;
-        Employee: Record Employee;
     begin
         // Each traveler receives an expense report when the travel request is approved, which requires an employee.
         Traveler.SetRange("Spend Request No.", SpendRequest."No.");
         Traveler.SetLoadFields("Expense User No.");
         Traveler.SetAutoCalcFields("Employee No.");
         Traveler.FindSet();
-        Employee.SetLoadFields("No.");
         repeat
-            if (Traveler."Employee No." = '') or not Employee.Get(Traveler."Employee No.") then
+            if Traveler."Employee No." = '' then
                 Error(TravelerNotEmployeeErr, Traveler."Expense User No.", SpendRequest.GetDocumentTypeDescription());
         until Traveler.Next() = 0;
     end;
