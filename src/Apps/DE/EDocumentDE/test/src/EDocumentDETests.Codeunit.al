@@ -189,7 +189,7 @@ codeunit 13926 "E-Document DE Tests"
         // [SCENARIO] Creating an e-document from a posted sales credit memo with a SEPA direct-debit payment method (code 59) raises an error.
         Initialize();
 
-        // [GIVEN] A Payment Method with PEPPOL Payment Means Code = '59'
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
         PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
 
         // [GIVEN] An otherwise valid Sales Credit Memo that uses that Payment Method
@@ -210,7 +210,7 @@ codeunit 13926 "E-Document DE Tests"
         // [SCENARIO] Releasing a sales invoice with a SEPA direct-debit payment method but no mandate ID raises an error.
         Initialize();
 
-        // [GIVEN] A Payment Method with PEPPOL Payment Means Code = '59'
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
         PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
 
         // [GIVEN] A Sales Invoice that uses that Payment Method, with Direct Debit Mandate ID = ''
@@ -234,7 +234,7 @@ codeunit 13926 "E-Document DE Tests"
         // [SCENARIO] Releasing a sales invoice with a mandate ID that has no matching record raises an error.
         Initialize();
 
-        // [GIVEN] A Payment Method with PEPPOL Payment Means Code = '59'
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
         PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
 
         // [GIVEN] A SEPA Direct Debit Mandate
@@ -267,7 +267,7 @@ codeunit 13926 "E-Document DE Tests"
         // [SCENARIO] Releasing a sales invoice where the mandate's customer bank account was deleted raises an error.
         Initialize();
 
-        // [GIVEN] A Payment Method with PEPPOL Payment Means Code = '59'
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
         PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
 
         // [GIVEN] A SEPA Direct Debit Mandate referencing a Customer Bank Account
@@ -300,7 +300,7 @@ codeunit 13926 "E-Document DE Tests"
         // [SCENARIO] Releasing a sales invoice where the mandate's customer bank account has no IBAN raises an error.
         Initialize();
 
-        // [GIVEN] A Payment Method with PEPPOL Payment Means Code = '59'
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
         PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
 
         // [GIVEN] A SEPA Direct Debit Mandate referencing a Customer Bank Account with IBAN = ''
