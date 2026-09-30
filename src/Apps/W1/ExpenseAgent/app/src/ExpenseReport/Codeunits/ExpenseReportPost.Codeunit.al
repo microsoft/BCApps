@@ -271,16 +271,20 @@ codeunit 6987 "Expense Report-Post"
     local procedure ValidateExpenseReportLineForPosting(ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLine: Record "Expense Report Line";
+        CheckedSpendRequestNos: List of [Code[20]];
     begin
         CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportHeader."Spend Request No.");
+        CheckedSpendRequestNos.Add(ExpenseReportHeader."Spend Request No.");
 
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
                 ValidateVATSpecLinesForPosting(ExpenseReportLine);
-                if ExpenseReportLine."Spend Request No." <> ExpenseReportHeader."Spend Request No." then
+                if not CheckedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
                     CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
+                    CheckedSpendRequestNos.Add(ExpenseReportLine."Spend Request No.");
+                end;
             until ExpenseReportLine.Next() = 0
         else
             Error(NothingToPostErr);
