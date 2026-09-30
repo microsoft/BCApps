@@ -7084,6 +7084,8 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesReturnOrderHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         PostedDocumentNo: Code[20];
+        SalesOrderNo: Code[20];
+        SalesOrderLineNo: Integer;
     begin
         // [SCENARIO 649626] A sales order can be posted again after a return restores its quantities.
         Initialize();
@@ -7094,7 +7096,9 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItem(Item2);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesOrderNo := SalesHeader."No.";
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesOrderLineNo := SalesLine."Line No.";
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", 1);
         SalesLine.Validate("Qty. to Ship", 0);
         SalesLine.Validate("Qty. to Invoice", 0);
@@ -7109,14 +7113,14 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
 
         // [THEN] The originating sales order quantities are restored.
-        VerifySalesOrderLineQuantities(SalesHeader, Item."No.", 0, 0, 1, 1);
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 0, 0, 1, 1);
 
         // [WHEN] The restored quantity is shipped and invoiced from the originating sales order.
-        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesHeader.Get(SalesHeader."Document Type"::Order, SalesOrderNo);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [THEN] The originating sales order line is fully shipped and invoiced again.
-        VerifySalesOrderLineQuantities(SalesHeader, Item."No.", 1, 1, 0, 0);
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 0, 0);
     end;
 
     [Test]
@@ -7129,6 +7133,8 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesReturnOrderHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         PostedDocumentNo: Code[20];
+        SalesOrderNo: Code[20];
+        SalesOrderLineNo: Integer;
     begin
         // [SCENARIO 649626] Each sales return uses the current restore-order-quantity setting.
         Initialize();
@@ -7139,7 +7145,9 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItem(Item2);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesOrderNo := SalesHeader."No.";
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
+        SalesOrderLineNo := SalesLine."Line No.";
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", 1);
         SalesLine.Validate("Qty. to Ship", 0);
         SalesLine.Validate("Qty. to Invoice", 0);
@@ -7152,7 +7160,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
 
         // [THEN] Quantity 1 is restored to the originating sales order.
-        VerifySalesOrderLineQuantities(SalesHeader, Item."No.", 1, 1, 1, 1);
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 1, 1);
 
         // [GIVEN] Restoring order quantities is disabled for a second return against the same sales order.
         SetRestoreOrderQtyOnReturn(false);
@@ -7164,7 +7172,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
 
         // [THEN] The second return does not restore any additional quantity.
-        VerifySalesOrderLineQuantities(SalesHeader, Item."No.", 1, 1, 1, 1);
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 1, 1);
     end;
 
     [Test]
@@ -9177,15 +9185,11 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesLine.TestField("Qty. to Ship", 0);
     end;
 
-    local procedure VerifySalesOrderLineQuantities(SalesHeader: Record "Sales Header"; ItemNo: Code[20]; QuantityShipped: Decimal; QuantityInvoiced: Decimal; QtyToShip: Decimal; QtyToInvoice: Decimal)
+    local procedure VerifySalesOrderLineQuantities(SalesOrderNo: Code[20]; SalesOrderLineNo: Integer; QuantityShipped: Decimal; QuantityInvoiced: Decimal; QtyToShip: Decimal; QtyToInvoice: Decimal)
     var
         SalesLine: Record "Sales Line";
     begin
-        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
-        SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.SetRange(Type, SalesLine.Type::Item);
-        SalesLine.SetRange("No.", ItemNo);
-        SalesLine.FindFirst();
+        SalesLine.Get(SalesLine."Document Type"::Order, SalesOrderNo, SalesOrderLineNo);
         SalesLine.TestField("Quantity Shipped", QuantityShipped);
         SalesLine.TestField("Quantity Invoiced", QuantityInvoiced);
         SalesLine.TestField("Qty. to Ship", QtyToShip);
