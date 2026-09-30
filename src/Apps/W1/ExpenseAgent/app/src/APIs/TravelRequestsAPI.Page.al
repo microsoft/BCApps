@@ -438,9 +438,11 @@ page 7134 "Travel Requests API"
     begin
         if Rec.Status <> xRec.Status then
             Rec.FieldError(Status, StatusCannotBeChangedErr);
-        // Allow the owner on POST and unchanged in PATCH payloads, but reject reassignment.
+        // Allow the owner and traveler on POST and unchanged in PATCH payloads, but reject reassignment.
         if Rec."Requested By" <> xRec."Requested By" then
             Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
+        if Rec."Requested For" <> xRec."Requested For" then
+            Rec.FieldError("Requested For", RequestedByCannotBeChangedErr);
 
         CheckOwnerScope();
         Rec.ApplyExpectedDatesFromAPI(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);

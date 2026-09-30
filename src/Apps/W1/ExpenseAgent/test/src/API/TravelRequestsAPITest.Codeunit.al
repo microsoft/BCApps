@@ -46,6 +46,7 @@ codeunit 148347 "Travel Requests API Test"
         BadRequestResponseErr: Label 'Response code is 400 (BadRequest).', Locked = true;
         RequestedByCannotBeChangedErr: Label 'cannot be changed', Locked = true;
         RequestedByRequestBodyLbl: Label '{"requestedBy":"%1"}', Comment = '%1 = Employee number', Locked = true;
+        RequestedForRequestBodyLbl: Label '{"requestedFor":"%1"}', Comment = '%1 = Expense User No.', Locked = true;
         ApproveTravelRequestBodyLbl: Label '{"approverExpenseUserNo":"%1"}', Comment = '%1 = Approver Expense User No.', Locked = true;
         StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
         StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
@@ -739,6 +740,54 @@ codeunit 148347 "Travel Requests API Test"
         Assert.AreEqual(
             TravelRequest.Status::Open, TravelRequest.Status,
             'The Travel Requests API must not change the Travel Request status.');
+    end;
+
+    [Test]
+    procedure TravelRequestsAPIRejectsRequestedForChange()
+    var
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Traveler: Record Traveler;
+        Response: JsonObject;
+        ErrorResponse: JsonToken;
+        ErrorMessage: JsonToken;
+        MessageText: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] PATCH cannot change who the travel request is for.
+        Initialize();
+
+        // [GIVEN] An open travel request for an expense user, and another expense user.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        TravelRequest.Validate("Requested For", ExpenseUser."No.");
+        TravelRequest.Modify(true);
+        Commit();
+
+        // [WHEN] PATCH attempts to change Requested For.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(
+            TargetURL, StrSubstNo(RequestedForRequestBodyLbl, OtherExpenseUser."No."), ResponseText, 400);
+
+        // [THEN] The API rejects the change and identifies Requested For.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Response.ReadFrom(ResponseText);
+        Response.Get('error', ErrorResponse);
+        ErrorResponse.AsObject().Get('message', ErrorMessage);
+        MessageText := ErrorMessage.AsValue().AsText();
+        Assert.AreNotEqual(0, StrPos(MessageText, RequestedByCannotBeChangedErr), 'The API must reject the Requested For change.');
+        Assert.AreNotEqual(0, StrPos(MessageText, TravelRequest.FieldCaption("Requested For")), 'The error must identify Requested For.');
+
+        // [THEN] Requested For and the travelers are unchanged.
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField("Requested For", ExpenseUser."No.");
+        Traveler.SetRange("Spend Request No.", TravelRequest."No.");
+        Traveler.SetRange("Expense User No.", OtherExpenseUser."No.");
+        Assert.RecordIsEmpty(Traveler);
     end;
 
 #if not CLEAN30

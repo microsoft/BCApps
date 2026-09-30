@@ -178,10 +178,12 @@ page 7099 "Spend Requests API"
     trigger OnModifyRecord(): Boolean
     begin
         // Protect travel request ownership while the legacy endpoint remains available before CLEAN30.
-        if (Rec."Document Type" = Rec."Document Type"::"Travel Request") and
-           (Rec."Requested By" <> xRec."Requested By")
-        then
-            Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
+        if Rec."Document Type" = Rec."Document Type"::"Travel Request" then begin
+            if Rec."Requested By" <> xRec."Requested By" then
+                Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
+            if Rec."Requested For" <> xRec."Requested For" then
+                Rec.FieldError("Requested For", RequestedByCannotBeChangedErr);
+        end;
 
         exit(true);
     end;
