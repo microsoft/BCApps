@@ -60,6 +60,9 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 #endif
 
     local procedure Initialize()
+    var
+        FAClass: Record "FA Class";
+        GeneralPostingSetup: Record "General Posting Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
         LibraryVariableStorage.Clear();
@@ -69,6 +72,8 @@ codeunit 148163 "Depr. Diff. Calculation FI"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
 
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibraryFixedAsset.CreateFAClass(FAClass);
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
@@ -977,9 +982,14 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
     local procedure SetFeatureEnabled(Enabled: Boolean)
     begin
-        FeatureEnabled := Enabled;
         UnbindSubscription(TestCU);
+        TestCU.SetFeatureEnabledValue(Enabled);
         BindSubscription(TestCU);
+    end;
+
+    procedure SetFeatureEnabledValue(Enabled: Boolean)
+    begin
+        FeatureEnabled := Enabled;
     end;
 
     local procedure DisableFeature()
