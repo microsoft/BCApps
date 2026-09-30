@@ -10,7 +10,7 @@ page 46885 "BC14 Old G/L Entry List"
     Caption = 'BC14 Old G/L Entries';
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Lists;
+    UsageCategory = History;
     SourceTable = "BC14 Old G/L Entry";
     Editable = false;
 
