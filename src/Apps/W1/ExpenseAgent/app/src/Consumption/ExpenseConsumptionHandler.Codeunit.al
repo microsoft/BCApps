@@ -13,6 +13,7 @@ codeunit 6969 "Expense Consumption Handler"
     var
         ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         CopilotQuota: Codeunit "Copilot Quota";
+        ExpenseAgentFeatureTrialIdTok: Label 'ExpenseAgentTrial', Locked = true;
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
 
@@ -41,6 +42,13 @@ codeunit 6969 "Expense Consumption Handler"
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         UniqueId: Text[1024];
     begin
+        If TrialAvailable() then begin
+            Session.LogMessage('0000ROU', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId)),
+                Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
+            IncrementTrial(Operation);
+            exit;
+        end;
+
         UniqueId := MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
 
         Session.LogMessage('0000ROU', StrSubstNo(LogQuotaStartedTelemetryMsg, Usage, CopilotQuotaUsageType, CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId), ExpenseAgentEnvConsumption.Get(UniqueId)),
@@ -96,6 +104,20 @@ codeunit 6969 "Expense Consumption Handler"
             exit(CopyStr(TextToTruncate, 1, 1024));
     end;
 
+    local procedure TrialAvailable(): Boolean
+    begin
+        exit(CopilotQuota.GetFeatureTrialInfoAsync(ExpenseAgentFeatureTrialId, ExpenseAgentInvariantFeatureName()));
+    end;
+
+    local procedure IncrementTrial(Operation: Code[50])
+    begin
+        if Operation = 'TODO policy eval' then
+            exit; // We only count expense processing
+
+        CopilotQuota.ReportFeatureTrialQuotaAsync(ExpenseAgentFeatureTrialId, ExpenseAgentInvariantFeatureName(),
+            RecurrenceTypeEnum::None, 50, 50, 50, 50);
+    end;
+
     internal procedure CanConsume(): Boolean
     begin
         exit(CopilotQuota.CanConsume());
@@ -106,7 +128,7 @@ codeunit 6969 "Expense Consumption Handler"
         TempUniqueId: Text;
     begin
         TempUniqueId := StrSubstNo('%1-%2-%3-%4',
-            Format(Enum::"Copilot Capability"::"Expense Agent", 0, 9),
+            ExpenseAgentInvariantFeatureName(),
             Format(ConsumptionSourceType, 0, 9),
             Format(ConsumptionSourceSystemId, 0, 9),
             Format(Operation, 0, 9));
@@ -117,5 +139,14 @@ codeunit 6969 "Expense Consumption Handler"
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         exit(CopyStr(TempUniqueId, 1, MaxStrLen(UniqueId)));
+    end;
+
+    local procedure ExpenseAgentInvariantFeatureName(): Text[100]
+    var
+        CopilotCapability: Enum "Copilot Capability";
+        CapabilityIndex: Integer;
+    begin
+        CapabilityIndex := CopilotCapability.Ordinals().IndexOf(CopilotCapability::"Expense Agent".AsInteger());
+        exit(CopyStr(CopilotCapability.Names().Get(CapabilityIndex), 1, 100));
     end;
 }
