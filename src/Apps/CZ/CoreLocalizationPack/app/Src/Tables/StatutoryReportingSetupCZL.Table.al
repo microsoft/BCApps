@@ -225,7 +225,7 @@ table 31105 "Statutory Reporting Setup CZL"
         {
             Caption = 'Official Name (Obsolete)';
             DataClassification = CustomerContent;
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
 #else
