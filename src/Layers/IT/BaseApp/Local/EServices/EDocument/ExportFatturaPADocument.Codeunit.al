@@ -226,15 +226,6 @@ codeunit 12179 "Export FatturaPA Document"
         Customer."PA Code" := FatturaSetup."Company PA Code";
     end;
 
-    local procedure GetISOCountryCode(CountryRegionCode: Code[10]): Code[2]
-    var
-        CountryRegion: Record "Country/Region";
-    begin
-        CountryRegion.Get(CountryRegionCode);
-        CountryRegion.TestField("ISO Code");
-        exit(CountryRegion."ISO Code");
-    end;
-
     local procedure GetDenominazioneMaxLength(): Integer
     begin
         exit(80);
@@ -298,13 +289,13 @@ codeunit 12179 "Export FatturaPA Document"
 
         TempXMLBuffer.AddGroupElement('IdTrasmittente');
         if TransmissionIntermediaryVendor."No." = '' then begin
-            TempXMLBuffer.AddNonEmptyElement('IdPaese', GetISOCountryCode(CompanyInformation."Country/Region Code"));
+            TempXMLBuffer.AddNonEmptyElement('IdPaese', FatturaDocHelper.GetISOCountryCode(CompanyInformation."Country/Region Code"));
             if CompanyInformation."Fiscal Code" = '' then
                 TempXMLBuffer.AddNonEmptyLastElement('IdCodice', CompanyInformation."VAT Registration No.")
             else
                 TempXMLBuffer.AddNonEmptyLastElement('IdCodice', CompanyInformation."Fiscal Code");
         end else begin
-            TempXMLBuffer.AddNonEmptyElement('IdPaese', GetISOCountryCode(TransmissionIntermediaryVendor."Country/Region Code"));
+            TempXMLBuffer.AddNonEmptyElement('IdPaese', FatturaDocHelper.GetISOCountryCode(TransmissionIntermediaryVendor."Country/Region Code"));
             TempXMLBuffer.AddNonEmptyLastElement('IdCodice', TransmissionIntermediaryVendor."Fiscal Code");
         end;
 
@@ -322,7 +313,7 @@ codeunit 12179 "Export FatturaPA Document"
         TempXMLBuffer.AddGroupElement('CedentePrestatore');
         TempXMLBuffer.AddGroupElement('DatiAnagrafici');
         TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
-        TempXMLBuffer.AddNonEmptyElement('IdPaese', GetISOCountryCode(CompanyInformation."Country/Region Code"));
+        TempXMLBuffer.AddNonEmptyElement('IdPaese', FatturaDocHelper.GetISOCountryCode(CompanyInformation."Country/Region Code"));
         TempXMLBuffer.AddNonEmptyLastElement('IdCodice', CompanyInformation."VAT Registration No.");
         TempXMLBuffer.AddNonEmptyElement('CodiceFiscale', CompanyInformation."Fiscal Code");
 
@@ -335,7 +326,7 @@ codeunit 12179 "Export FatturaPA Document"
         TempXMLBuffer.AddNonEmptyElement('CAP', CompanyInformation."Post Code");
         TempXMLBuffer.AddNonEmptyElement('Comune', CompanyInformation.City);
         TempXMLBuffer.AddNonEmptyElement('Provincia', CompanyInformation.County);
-        TempXMLBuffer.AddNonEmptyLastElement('Nazione', GetISOCountryCode(CompanyInformation."Country/Region Code"));
+        TempXMLBuffer.AddNonEmptyLastElement('Nazione', FatturaDocHelper.GetISOCountryCode(CompanyInformation."Country/Region Code"));
         // 1.2.4 IscrizioneREA
         TempXMLBuffer.AddGroupElement('IscrizioneREA');
         TempXMLBuffer.AddNonEmptyElement('Ufficio', CompanyInformation."Registry Office Province");
@@ -371,7 +362,7 @@ codeunit 12179 "Export FatturaPA Document"
         TempXMLBuffer.AddGroupElement('RappresentanteFiscale');
         TempXMLBuffer.AddGroupElement('DatiAnagrafici');
         TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
-        TempXMLBuffer.AddNonEmptyElement('IdPaese', GetISOCountryCode(TempVendor."Country/Region Code"));
+        TempXMLBuffer.AddNonEmptyElement('IdPaese', FatturaDocHelper.GetISOCountryCode(TempVendor."Country/Region Code"));
         TempXMLBuffer.AddNonEmptyLastElement('IdCodice', TempVendor."VAT Registration No.");
 
         TempXMLBuffer.AddGroupElement('Anagrafica');
@@ -399,10 +390,10 @@ codeunit 12179 "Export FatturaPA Document"
         TempXMLBuffer.AddGroupElement('DatiAnagrafici');
         if (Customer."VAT Registration No." <> '') and (not Customer."Individual Person") then begin
             TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
-            TempXMLBuffer.AddNonEmptyElement('IdPaese', GetISOCountryCode(Customer."Country/Region Code"));
+            TempXMLBuffer.AddNonEmptyElement('IdPaese', FatturaDocHelper.GetISOCountryCode(Customer."Country/Region Code"));
             TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."VAT Registration No.");
         end;
-        if CompanyInformation."Country/Region Code" = Customer."Country/Region Code" then
+        if FatturaDocHelper.IsSameISOCountry(CompanyInformation."Country/Region Code", Customer."Country/Region Code") then
             TempXMLBuffer.AddNonEmptyElement('CodiceFiscale', Customer."Fiscal Code");
         // 1.4.1.3 Anagrafica
         TempXMLBuffer.AddGroupElement('Anagrafica');
@@ -415,13 +406,13 @@ codeunit 12179 "Export FatturaPA Document"
         // 1.4.2. Sede
         TempXMLBuffer.AddGroupElement('Sede');
         TempXMLBuffer.AddNonEmptyElement('Indirizzo', CopyStr(Customer.Address, 1, 60));
-        if Customer."Country/Region Code" <> CompanyInformation."Country/Region Code" then
+        if not FatturaDocHelper.IsSameISOCountry(Customer."Country/Region Code", CompanyInformation."Country/Region Code") then
             TempXMLBuffer.AddNonEmptyElement('CAP', '00000')
         else
             TempXMLBuffer.AddNonEmptyElement('CAP', Customer."Post Code");
         TempXMLBuffer.AddNonEmptyElement('Comune', Customer.City);
         TempXMLBuffer.AddNonEmptyElement('Provincia', Customer.County);
-        TempXMLBuffer.AddNonEmptyLastElement('Nazione', GetISOCountryCode(Customer."Country/Region Code"));
+        TempXMLBuffer.AddNonEmptyLastElement('Nazione', FatturaDocHelper.GetISOCountryCode(Customer."Country/Region Code"));
         TempXMLBuffer.GetParent();
     end;
 
