@@ -652,13 +652,14 @@ table 246 "Requisition Line"
                     UpdateReplenishmentSystem();
                     if "Variant Code" <> xRec."Variant Code" then begin
                         "Bin Code" := '';
-                        if ("Location Code" <> '') and ("No." <> '') and not IsDropShipment() then begin
-                            GetLocation("Location Code");
-                            ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
-                            OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
-                            if ShouldGetDefaultBin then
-                                WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
-                        end;
+                        if ("Location Code" <> '') and ("No." <> '') then
+                            if not IsDropShipment() then begin
+                                GetLocation("Location Code");
+                                ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+                                OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
+                                if ShouldGetDefaultBin then
+                                    WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
+                            end;
                     end;
                     if ItemVend.Get("Vendor No.", "No.", "Variant Code") then
                         "Vendor Item No." := ItemVend."Vendor Item No.";
@@ -3136,8 +3137,9 @@ table 246 "Requisition Line"
         if ("Location Code" <> '') and ("No." <> '') then begin
             GetLocation("Location Code");
             OnSetFromBinCodeOnSetBinCode(Rec, Location);
-            ShouldGetDefaultBin :=
-                ("Bin Code" = '') and Location."Bin Mandatory" and not Location."Directed Put-away and Pick" and not IsDropShipment();
+            ShouldGetDefaultBin := ("Bin Code" = '') and Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+            if ShouldGetDefaultBin then
+                ShouldGetDefaultBin := not IsDropShipment();
             OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
             if ShouldGetDefaultBin then
                 WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
