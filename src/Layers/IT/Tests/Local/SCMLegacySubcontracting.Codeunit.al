@@ -678,6 +678,39 @@ codeunit 137500 "SCM Legacy Subcontracting"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CannotReopenFullyReceivedWIPPurchaseLineAfterDisabling()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        ReopenLegacyWIPPurchaseLineErr: Label 'You cannot increase Quantity on a completed purchase line with a WIP Item after Legacy Subcontracting has been disabled.';
+    begin
+        // [SCENARIO 649448] A retained fully received WIP purchase line cannot become outstanding after disabling Legacy Subcontracting
+        Initialize();
+
+        // [GIVEN] Legacy Subcontracting is disabled
+        SetLegacySubcontracting(false);
+
+        // [GIVEN] A retained WIP purchase order item line is fully received
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine."WIP Item" := true;
+        PurchaseLine."Quantity Received" := PurchaseLine.Quantity;
+        PurchaseLine."Outstanding Quantity" := 0;
+        PurchaseLine.Modify();
+
+        // [WHEN] Quantity is increased
+        asserterror PurchaseLine.Validate(Quantity, PurchaseLine.Quantity + 1);
+
+        // [THEN] The retained legacy WIP purchase line cannot be reopened
+        Assert.ExpectedError(ReopenLegacyWIPPurchaseLineErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PreCheckDisableErrorWordingMatchesWIPItemFilterForPurchaseOrders()
     var
         PurchaseHeader: Record "Purchase Header";

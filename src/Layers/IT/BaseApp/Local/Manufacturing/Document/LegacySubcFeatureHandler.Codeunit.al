@@ -25,6 +25,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         SubcontractingAppInstalledErr: Label 'Cannot activate legacy subcontracting while the Subcontracting app is installed. Use the Subcontracting app features instead.';
         OpenSubcontractingTransfersExistErr: Label 'There are still open transfer orders with WIP Items. All subcontracting transfer orders must be completed before disabling Legacy Subcontracting.';
         OpenWIPPurchaseOrdersExistErr: Label 'There are still open purchase orders with WIP Items. All purchase orders with WIP Items must be completed before disabling Legacy Subcontracting.';
+        ReopenLegacyWIPPurchaseLineErr: Label 'You cannot increase Quantity on a completed purchase line with a WIP Item after Legacy Subcontracting has been disabled.';
         InstallSubcontractingAppQst: Label 'The Subcontracting app is required to disable Legacy Subcontracting. Do you want to install it now?';
         InstallITMigrationAppQst: Label 'The IT Subcontracting Migration app is needed to migrate your data. Do you want to install it now?';
 
@@ -266,6 +267,23 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
     begin
         SessionSetting.Init();
         SessionSetting.RequestSessionUpdate(false);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeValidateQuantity', '', false, false)]
+    local procedure PreventReopeningLegacyWIPPurchaseLine(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled or (CurrentFieldNo <> PurchaseLine.FieldNo(Quantity)) then
+            exit;
+        if IsLegacySubcontractingEnabled() then
+            exit;
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit;
+        if not xPurchaseLine."WIP Item" then
+            exit;
+        if xPurchaseLine."Outstanding Quantity" <> 0 then
+            exit;
+        if PurchaseLine.Quantity > PurchaseLine."Quantity Received" then
+            Error(ReopenLegacyWIPPurchaseLineErr);
     end;
 
     [InternalEvent(false)]
