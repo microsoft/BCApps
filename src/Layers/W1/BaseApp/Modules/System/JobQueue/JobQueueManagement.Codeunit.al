@@ -13,7 +13,7 @@ codeunit 456 "Job Queue Management"
         ExecuteEndSuccessMsg: label 'Job finished executing.\Status: %1', Comment = '%1 is a status value, e.g. Success';
         ExecuteEndErrorMsg: label 'Job finished executing.\Status: %1\Error: %2', Comment = '%1 is a status value, e.g. Success, %2=Error message';
         JobSomethingWentWrongMsg: Label 'Something went wrong and the job has stopped. Likely causes are system updates or routine maintenance processes. To restart the job, set the status to Ready.';
-        JobSomethingWentWrongMsgErr: Label 'Something went wrong and the job has stopped. Likely causes are system updates or routine maintenance processes. The job will automatically run again.';
+        JobRunInterruptedRetryMsg: Label 'This run (attempt %1) was interrupted because the service restarted or was updated. A new attempt is scheduled to retry automatically.', Comment = '%1 = the attempt number of the interrupted run, for example 1 for the first run';
         JobQueueStatusChangeTxt: Label 'The status for Job Queue Entry: %1 has changed.', Comment = '%1 is the Job Queue Entry Id', Locked = true;
         TelemetryStaleJobQueueEntryTxt: Label 'Updated Job Queue Entry status to error as it is stale. Please investigate associated Task Id for error.', Locked = true;
         TelemetryStaleJobQueueLogEntryTxt: Label 'Updated Job Queue Log Entry status to error as it is stale. Please investigate associated Task Id for error.', Locked = true;
@@ -320,6 +320,7 @@ codeunit 456 "Job Queue Management"
     internal procedure UpdateRetriableFailedJobQueueLogEntry(var JobQueueEntry: Record "Job Queue Entry")
     var
         JobQueueLogEntry: Record "Job Queue Log Entry";
+        Attempt: Integer;
     begin
         JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
         JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::"In Process");
@@ -330,13 +331,32 @@ codeunit 456 "Job Queue Management"
             exit;
 
         repeat
+            Attempt := GetTaskAttemptNo(JobQueueLogEntry);
             JobQueueLogEntry.Status := JobQueueLogEntry.Status::Error;
-            JobQueueLogEntry."Error Message" := CopyStr(JobSomethingWentWrongMsgErr, 1, MaxStrLen(JobQueueLogEntry."Error Message"));
+            JobQueueLogEntry."Error Message" := CopyStr(StrSubstNo(JobRunInterruptedRetryMsg, Attempt), 1, MaxStrLen(JobQueueLogEntry."Error Message"));
             JobQueueLogEntry.Modify();
 
-            StaleRetriableJobQueueLogEntryTelemetry(JobQueueLogEntry);
+            StaleRetriableJobQueueLogEntryTelemetry(JobQueueLogEntry, Attempt);
         until JobQueueLogEntry.Next() = 0;
         Commit();
+    end;
+
+    /// <summary>
+    /// Each platform retry of a scheduled task inserts a new log entry with the same System Task Id,
+    /// so the attempt number of a log entry is its position among the log entries for that task.
+    /// </summary>
+    local procedure GetTaskAttemptNo(JobQueueLogEntry: Record "Job Queue Log Entry"): Integer
+    var
+        TaskJobQueueLogEntry: Record "Job Queue Log Entry";
+    begin
+        if IsNullGuid(JobQueueLogEntry."System Task Id") then
+            exit(1);
+
+        TaskJobQueueLogEntry.ReadIsolation(IsolationLevel::ReadCommitted);
+        TaskJobQueueLogEntry.SetRange(ID, JobQueueLogEntry.ID);
+        TaskJobQueueLogEntry.SetRange("System Task Id", JobQueueLogEntry."System Task Id");
+        TaskJobQueueLogEntry.SetFilter("Entry No.", '<=%1', JobQueueLogEntry."Entry No.");
+        exit(TaskJobQueueLogEntry.Count());
     end;
 
     local procedure GetCheckDelayInMilliseconds(): Integer
@@ -407,7 +427,7 @@ codeunit 456 "Job Queue Management"
         GlobalLanguage(CurrentLanguage);
     end;
 
-    local procedure StaleRetriableJobQueueLogEntryTelemetry(JobQueueLogEntry: Record "Job Queue Log Entry")
+    local procedure StaleRetriableJobQueueLogEntryTelemetry(JobQueueLogEntry: Record "Job Queue Log Entry"; Attempt: Integer)
     var
         CurrentLanguage: Integer;
         Dimensions: Dictionary of [Text, Text];
@@ -416,6 +436,7 @@ codeunit 456 "Job Queue Management"
         GlobalLanguage(1033);
 
         JobQueueTelemetry.SetJobQueueTelemetryDimensions(JobQueueLogEntry, Dimensions);
+        Dimensions.Add('JobQueueInterruptedAttempt', Format(Attempt));
 
         Session.LogMessage('0000PCR', TelemetryStaleRetriableJobQueueLogEntryTxt, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, Dimensions);
 

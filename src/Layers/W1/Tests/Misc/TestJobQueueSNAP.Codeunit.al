@@ -19,6 +19,7 @@ codeunit 139020 "Test Job Queue SNAP"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryJobQueue: Codeunit "Library - Job Queue";
         JobQueueDispatcher: Codeunit "Job Queue Dispatcher";
+        JobRunInterruptedRetryMsg: Label 'This run (attempt %1) was interrupted because the service restarted or was updated. A new attempt is scheduled to retry automatically.', Comment = '%1 = the attempt number of the interrupted run';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -1595,6 +1596,64 @@ codeunit 139020 "Test Job Queue SNAP"
         // [THEN] The job queue log entry is set to 'error'
         JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::Error);
         Assert.RecordCount(JobQueueLogEntry, 1);
+
+        // [THEN] The error message explains the interruption and the attempt number of the interrupted run
+        JobQueueLogEntry.FindFirst();
+        Assert.AreEqual(StrSubstNo(JobRunInterruptedRetryMsg, 1), JobQueueLogEntry."Error Message", 'Unexpected error message for an interrupted run.');
+    end;
+
+    [Test]
+    procedure RunCleanUpTaskWhenJobQueueRetriedByPlatformTwice()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        SystemTaskId: Guid;
+    begin
+        // [SCENARIO] The attempt number in the error message counts earlier log entries of the same scheduled task
+
+        // [GIVEN] No job queue entries or logs
+        JobQueueEntry.DeleteAll();
+        JobQueueLogEntry.DeleteAll();
+
+        // [GIVEN] Job Queue Entry that is in process, simulating a JQ that is being retried
+        CreateFailingJobQueueEntry(JobQueueEntry);  // status = 'In Process'
+        SystemTaskId := CreateGuid();
+        JobQueueEntry."System Task ID" := SystemTaskId;
+        JobQueueEntry."User Service Instance ID" := 1;
+        JobQueueEntry."User Session ID" := 2;
+        JobQueueEntry.Modify();
+
+        // [GIVEN] An earlier log entry of a different task for the same job queue entry
+        InsertJobQueueLogEntry(JobQueueEntry.ID, CreateGuid(), JobQueueLogEntry.Status::Success, 7, 8);
+
+        // [GIVEN] A log entry for the first attempt of the same task that was already marked as interrupted
+        InsertJobQueueLogEntry(JobQueueEntry.ID, SystemTaskId, JobQueueLogEntry.Status::Error, 3, 4);
+
+        // [GIVEN] A stale in-process log entry for the second attempt of the same task
+        InsertJobQueueLogEntry(JobQueueEntry.ID, SystemTaskId, JobQueueLogEntry.Status::"In Process", 5, 6);
+
+        // [WHEN] The cleanup task is run, it will update the in-process JQLE
+        Codeunit.Run(Codeunit::"Job Queue Cleanup Tasks", JobQueueEntry);
+
+        // [THEN] The second attempt is marked as interrupted with attempt number 2
+        JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
+        JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::Error);
+        Assert.RecordCount(JobQueueLogEntry, 2);
+        JobQueueLogEntry.FindLast();
+        Assert.AreEqual(StrSubstNo(JobRunInterruptedRetryMsg, 2), JobQueueLogEntry."Error Message", 'Unexpected attempt number for the interrupted run.');
+    end;
+
+    local procedure InsertJobQueueLogEntry(JobQueueEntryId: Guid; SystemTaskId: Guid; Status: Option; ServiceInstanceId: Integer; SessionId: Integer)
+    var
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+    begin
+        JobQueueLogEntry.Init();
+        JobQueueLogEntry.ID := JobQueueEntryId;
+        JobQueueLogEntry."System Task Id" := SystemTaskId;
+        JobQueueLogEntry.Status := Status;
+        JobQueueLogEntry."User Service Instance ID" := ServiceInstanceId;
+        JobQueueLogEntry."User Session ID" := SessionId;
+        JobQueueLogEntry.Insert();
     end;
 
     local procedure InitializeRecurringJobQueueEntry(var JobQueueEntry: Record "Job Queue Entry"; MinutesBetween: Integer)
