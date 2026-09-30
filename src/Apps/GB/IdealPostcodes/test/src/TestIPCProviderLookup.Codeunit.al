@@ -7,7 +7,6 @@ namespace Microsoft.Foundation.Address.IdealPostcodes.Test;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Address.IdealPostcodes;
 using Microsoft.Utilities;
-using System.TestLibraries.Utilities;
 
 codeunit 148120 "Test IPC Provider Lookup"
 {
@@ -124,6 +123,7 @@ codeunit 148120 "Test IPC Provider Lookup"
     var
         IPCConfig: Record "IPC Config";
         PostcodeServiceConfig: Record "Postcode Service Config";
+        TempServiceListNameValueBuffer: Record "Name/Value Buffer" temporary;
         IPCAddressCache: Codeunit "IPC Address Cache";
         ApiKeyGuid: Guid;
     begin
@@ -133,12 +133,16 @@ codeunit 148120 "Test IPC Provider Lookup"
         ResolveRequestCount := 0;
         OtherRequestCount := 0;
 
-        // IdealPostcodes is the selected provider, enabled and with an API key
+        // IdealPostcodes is the selected provider, stored the way page 9143 stores it: the discovered row's Name
+        PostcodeServiceManager.DiscoverPostcodeServices(TempServiceListNameValueBuffer);
+        TempServiceListNameValueBuffer.SetRange(Value, MyServiceKeyTok);
+        TempServiceListNameValueBuffer.FindFirst();
         PostcodeServiceConfig.DeleteAll();
         PostcodeServiceConfig.Init();
         PostcodeServiceConfig.Insert();
-        PostcodeServiceConfig.SaveServiceKey(MyServiceKeyTok);
+        PostcodeServiceConfig.SaveServiceKey(TempServiceListNameValueBuffer.Name);
 
+        // Enabled and with an API key
         IPCConfig.DeleteAll();
         IPCConfig.Init();
         IPCConfig.Insert();
