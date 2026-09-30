@@ -25,7 +25,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
-        CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Use the ''Create Corrective Credit Memo'' action to create a credit memo for this invoice.', Comment = '%1 = Posted Purchase Invoice No.';
+        CancelNotSupportedErr: Label 'You cannot cancel or correct this posted purchase invoice because it contains item charges assigned to a subcontracting order receipt.\Use the ''Create Corrective Credit Memo'' action to create a credit memo for this invoice.';
         ShowPostedPurchaseInvoiceLbl: Label 'Show Posted Purchase Invoice';
         ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
@@ -63,7 +63,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     internal procedure CreateCancelNotSupportedErrorInfo(PurchInvHeader: Record "Purch. Inv. Header") CancelNotSupportedErrorInfo: ErrorInfo
     begin
-        CancelNotSupportedErrorInfo.Message := StrSubstNo(CancelNotSupportedErr, PurchInvHeader."No.");
+        CancelNotSupportedErrorInfo.Message := CancelNotSupportedErr;
         CancelNotSupportedErrorInfo.DataClassification := DataClassification::CustomerContent;
         CancelNotSupportedErrorInfo.ErrorType := ErrorType::Client;
         CancelNotSupportedErrorInfo.RecordId := PurchInvHeader.RecordId;
@@ -127,8 +127,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
         if not ItemIsTracked(PurchRcptLine."No.") then begin
             ItemLedgerEntry.FindFirst();
-            ToPurchLine."Appl.-to Item Entry" := ItemLedgerEntry."Entry No.";
-            ToPurchLine.Modify();
+            ToPurchLine.Validate("Appl.-to Item Entry", ItemLedgerEntry."Entry No.");
+            ToPurchLine.Modify(true);
             exit;
         end;
 
@@ -137,8 +137,9 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
             TempItemLedgerEntry, ToPurchLine, true, MissingExactCostReversingLink,
             ToPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
+        CreateInvoiceTrackingSpecifications(ToPurchLine);
         ToPurchLine.Validate("Direct Unit Cost", DirectUnitCost);
-        ToPurchLine.Modify();
+        ToPurchLine.Modify(true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", OnBeforeCopyHandledItemTrkgToPurchLine, '', false, false)]
@@ -164,16 +165,46 @@ codeunit 20535 "Subc. Purch. Post Ext"
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
 
-        IsHandled := true;
         if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
             exit;
         if ItemLedgerEntry.IsEmpty() then
             exit;
 
+        IsHandled := true;
         ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempItemLedgerEntry, ItemLedgerEntry);
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
             TempItemLedgerEntry, ToPurchLine, false, MissingExactCostReversingLink,
             false, false, true);
+    end;
+
+    local procedure CreateInvoiceTrackingSpecifications(PurchaseLine: Record "Purchase Line")
+    var
+        ReservationEntry: Record "Reservation Entry";
+        TrackingSpecification: Record "Tracking Specification";
+        NextEntryNo: Integer;
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(),
+            PurchaseLine."Document No.", PurchaseLine."Line No.", false);
+        if not ReservationEntry.FindSet(true) then
+            exit;
+
+        NextEntryNo := TrackingSpecification.GetLastEntryNo() + 1;
+        repeat
+            TrackingSpecification.Init();
+            TrackingSpecification.TransferFields(ReservationEntry);
+            TrackingSpecification."Entry No." := NextEntryNo;
+            TrackingSpecification."Source Type" := Database::"Purchase Line";
+            TrackingSpecification."Source Subtype" := PurchaseLine."Document Type".AsInteger();
+            TrackingSpecification."Source ID" := PurchaseLine."Document No.";
+            TrackingSpecification."Source Ref. No." := PurchaseLine."Line No.";
+            TrackingSpecification."Qty. to Invoice (Base)" := ReservationEntry."Qty. to Invoice (Base)";
+            TrackingSpecification.Insert();
+
+            ReservationEntry."Item Ledger Entry No." := TrackingSpecification."Entry No.";
+            ReservationEntry.Modify();
+            NextEntryNo += 1;
+        until ReservationEntry.Next() = 0;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]

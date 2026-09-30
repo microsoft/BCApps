@@ -463,6 +463,16 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         Assert.AreEqual(OriginalProdBinCode, ProdOrderLine."Bin Code", 'Production Order Line Bin Code must stay unchanged through WIP pick/put-away posting.');
     end;
 
+#if not CLEAN30
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Obsolete('Use GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice instead.', '30.0')]
+    procedure GetReceiptLinesFromInvtPutAwayReceiptIsCurrentlyBlocked()
+    begin
+        GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice();
+    end;
+#endif
+
     [Test]
     [HandlerFunctions('MessageHandler')]
     procedure GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice()
@@ -1485,6 +1495,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         PurchRcptLine: Record "Purch. Rcpt. Line";
         ReasonCode: Record "Reason Code";
         ReservationEntry: Record "Reservation Entry";
+        TrackingSpecification: Record "Tracking Specification";
         InvoiceHeader: Record "Purchase Header";
         InvoiceLine: Record "Purchase Line";
         PurchaseHeader: Record "Purchase Header";
@@ -1596,6 +1607,11 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
                 Assert.RecordCount(ReservationEntry, 2);
                 ReservationEntry.FindSet();
                 repeat
+                    Assert.AreNotEqual(0, ReservationEntry."Item Ledger Entry No.", 'The corrective credit memo must create an invoice tracking specification.');
+                    Assert.IsTrue(TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No."), 'The corrective credit memo invoice tracking specification must exist.');
+                    Assert.AreEqual(
+                        ReservationEntry."Appl.-to Item Entry", TrackingSpecification."Appl.-to Item Entry",
+                        'The invoice tracking specification must preserve the exact output application.');
                     Assert.IsTrue(ItemLedgerEntry.Get(ReservationEntry."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
                     VerifyCorrectiveApplication(ItemLedgerEntry, ProductionOrder, PurchRcptLine);
                 until ReservationEntry.Next() = 0;
@@ -1646,7 +1662,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         CapacityLedgerEntry.FindFirst();
 #pragma warning restore AA0210
 
-        Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to an original output Item Ledger Entry.');
+        Assert.AreEqual("Item Ledger Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to an original output Item Ledger Entry.');
         Assert.AreEqual(CapacityLedgerEntry."Item Register No.", ItemLedgerEntry."Item Register No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting receipt posting.');
         Assert.AreEqual(PurchRcptLine."Order No.", ItemLedgerEntry."Subc. Purch. Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting purchase order.');
         Assert.AreEqual(PurchRcptLine."Order Line No.", ItemLedgerEntry."Subc. Purch. Order Line No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting purchase order line.');
