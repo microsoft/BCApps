@@ -46,28 +46,6 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    procedure RunAllEnabledProvidersContinuesAfterProviderFailure()
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
-    begin
-        Initialize();
-
-        SetProviderSourcePayload(CorpCardCamt053ProviderCodeTok, GetMalformedXmlPayload(), MalformedXmlFileNameTok);
-
-        CorpCardFeedMgt.RunAllEnabledProviders();
-
-        CorpCardBatch.SetRange("Provider Code", CorpCardCamt053ProviderCodeTok);
-        Assert.IsTrue(CorpCardBatch.FindLast(), 'The failing provider must create a batch.');
-        Assert.AreEqual(CorpCardBatch.Status::Failed, CorpCardBatch.Status, 'The failing provider batch must be finalized as failed.');
-
-        CorpCardBatch.Reset();
-        CorpCardBatch.SetRange("Provider Code", CorpCardCsvProviderCodeTok);
-        Assert.IsTrue(CorpCardBatch.FindLast(), 'A provider after the failure must still be processed.');
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'A provider after the failure must complete normally.');
-    end;
-
-    [Test]
     procedure ImportClearsSourcePayloadAndRetainsMetadata()
     var
         CorpCardBatch: Record "EA Corp Card Batch";
@@ -85,54 +63,6 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.AreEqual(CorpCardCsvSampleFileNameTok, CorpCardBatch."Source File Name", 'The batch must retain the source file name.');
         Assert.IsTrue(CorpCardBatch."Source Payload Hash" <> '', 'The batch must retain the source payload hash.');
         Assert.AreEqual(0, CorpCardBatch."Data Exch Entry No.", 'Successful imports must remove the temporary data exchange record.');
-    end;
-
-    [Test]
-    procedure Level3MissingProviderTransIdAddsException()
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-    begin
-        Initialize();
-        SetProviderSourcePayload(CorpCardL3ProviderCodeTok, GetL3PayloadMissingProviderTransId(), L3NegativeFileNameTok);
-
-        RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
-
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'Batch should complete when strict validation rejects rows.');
-        Assert.IsTrue(CorpCardBatch.Exceptions > 0, 'Missing Provider Trans Id must create an exception.');
-        Assert.IsTrue(CorpCardBatch.Rejected > 0, 'Missing Provider Trans Id must be counted as rejected.');
-        Assert.AreEqual(0, CorpCardBatch.Imported, 'Missing Provider Trans Id must not be imported.');
-    end;
-
-    [Test]
-    procedure Level3MissingAmountAddsException()
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-    begin
-        Initialize();
-        SetProviderSourcePayload(CorpCardL3ProviderCodeTok, GetL3PayloadMissingAmount(), L3NegativeFileNameTok);
-
-        RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
-
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'Batch should complete when strict validation rejects rows.');
-        Assert.IsTrue(CorpCardBatch.Exceptions > 0, 'Missing Amount must create an exception.');
-        Assert.IsTrue(CorpCardBatch.Rejected > 0, 'Missing Amount must be counted as rejected.');
-        Assert.AreEqual(0, CorpCardBatch.Imported, 'Missing Amount must not be imported.');
-    end;
-
-    [Test]
-    procedure Level3MissingTransDateAddsException()
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-    begin
-        Initialize();
-        SetProviderSourcePayload(CorpCardL3ProviderCodeTok, GetL3PayloadMissingTransDate(), L3NegativeFileNameTok);
-
-        RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
-
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'Batch should complete when strict validation rejects rows.');
-        Assert.IsTrue(CorpCardBatch.Exceptions > 0, 'Missing Trans Date must create an exception.');
-        Assert.IsTrue(CorpCardBatch.Rejected > 0, 'Missing Trans Date must be counted as rejected.');
-        Assert.AreEqual(0, CorpCardBatch.Imported, 'Missing Trans Date must not be imported.');
     end;
 
     [Test]
@@ -237,56 +167,6 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    procedure IsoImportMapsMandatoryFields()
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-    begin
-        Initialize();
-
-        RunImportAndGetLastBatch(CorpCardIsoProviderCodeTok, CorpCardBatch);
-
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'ISO import batch must complete successfully.');
-        Assert.IsTrue(CorpCardBatch.Imported > 0, 'ISO sample payload must import at least one transaction.');
-        AssertAnyTransactionHasMandatoryFields(CorpCardBatch."Batch No.", CorpCardIsoProviderCodeTok);
-    end;
-
-    [Test]
-    procedure Camt053ImportMapsMandatoryFields()
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-    begin
-        Initialize();
-
-        RunImportAndGetLastBatch(CorpCardCamt053ProviderCodeTok, CorpCardBatch);
-
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'CAMT053 import batch must complete successfully.');
-        Assert.IsTrue(CorpCardBatch.Imported > 0, 'CAMT053 sample payload must import at least one transaction.');
-        AssertAnyTransactionHasMandatoryFields(CorpCardBatch."Batch No.", CorpCardCamt053ProviderCodeTok);
-    end;
-
-    [Test]
-    procedure Camt054ImportMapsMandatoryFields()
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-    begin
-        Initialize();
-        if ExpenseAgentSetup.Get() then begin
-            ExpenseAgentSetup.Validate("Corp Card Create Mode", ExpenseAgentSetup."Corp Card Create Mode"::ManualLink);
-            ExpenseAgentSetup.Validate("Corp Card Auto Create Draft", false);
-            ExpenseAgentSetup.Modify(true);
-        end;
-
-        SetProviderSourcePayload(CorpCardCamt054ProviderCodeTok, GetCamt054SmokePayload(), Camt054SmokeFileNameTok);
-
-        RunImportAndGetLastBatch(CorpCardCamt054ProviderCodeTok, CorpCardBatch);
-
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'CAMT054 import batch must complete successfully.');
-        Assert.IsTrue(CorpCardBatch.Imported > 0, 'CAMT054 sample payload must import at least one transaction.');
-        AssertAnyTransactionHasMandatoryFields(CorpCardBatch."Batch No.", CorpCardCamt054ProviderCodeTok);
-    end;
-
-    [Test]
     procedure XmlImportMapsMandatoryFields()
     var
         CorpCardBatch: Record "EA Corp Card Batch";
@@ -337,113 +217,6 @@ codeunit 148353 EACorpCardPhase3Tests
                     '<MCC>4511</MCC>' +
                     '<Country>US</Country>' +
                 '</Transaction>');
-    end;
-
-    local procedure GetL3PayloadMissingProviderTransId(): Text
-    begin
-        exit(
-            '<?xml version="1.0" encoding="utf-8"?>' +
-            '<Transactions>' +
-                '<Transaction>' +
-                    '<CardId>CRDL3-0001</CardId>' +
-                    '<TransDate>2026-07-01</TransDate>' +
-                    '<PostingDate>2026-07-01</PostingDate>' +
-                    '<Amount>15.00</Amount>' +
-                    '<CurrencyCode>EUR</CurrencyCode>' +
-                    '<MerchantRaw>Contoso Store</MerchantRaw>' +
-                    '<MCC>5812</MCC>' +
-                    '<Country>DE</Country>' +
-                    '<Level3>' +
-                        '<TaxLine>' +
-                            '<Description>Meal</Description>' +
-                            '<Quantity>1</Quantity>' +
-                            '<UnitCost>13.39</UnitCost>' +
-                            '<VATAmount>1.61</VATAmount>' +
-                            '<TaxAmount>1.61</TaxAmount>' +
-                            '<TaxCode>VAT12</TaxCode>' +
-                        '</TaxLine>' +
-                    '</Level3>' +
-                '</Transaction>' +
-            '</Transactions>');
-    end;
-
-    local procedure GetL3PayloadMissingAmount(): Text
-    begin
-        exit(
-            '<?xml version="1.0" encoding="utf-8"?>' +
-            '<Transactions>' +
-                '<Transaction>' +
-                    '<ProviderTransId>L3NEG0003</ProviderTransId>' +
-                    '<CardId>CRDL3-0001</CardId>' +
-                    '<TransDate>2026-07-01</TransDate>' +
-                    '<PostingDate>2026-07-01</PostingDate>' +
-                    '<CurrencyCode>EUR</CurrencyCode>' +
-                    '<MerchantRaw>Contoso Store</MerchantRaw>' +
-                    '<MCC>5812</MCC>' +
-                    '<Country>DE</Country>' +
-                    '<Level3>' +
-                        '<TaxLine>' +
-                            '<Description>Meal</Description>' +
-                            '<Quantity>1</Quantity>' +
-                            '<UnitCost>13.39</UnitCost>' +
-                            '<VATAmount>1.61</VATAmount>' +
-                            '<TaxAmount>1.61</TaxAmount>' +
-                            '<TaxCode>VAT12</TaxCode>' +
-                        '</TaxLine>' +
-                    '</Level3>' +
-                '</Transaction>' +
-            '</Transactions>');
-    end;
-
-    local procedure GetL3PayloadMissingTransDate(): Text
-    begin
-        exit(
-            '<?xml version="1.0" encoding="utf-8"?>' +
-            '<Transactions>' +
-                '<Transaction>' +
-                    '<ProviderTransId>L3NEG0004</ProviderTransId>' +
-                    '<CardId>CRDL3-0001</CardId>' +
-                    '<PostingDate>2026-07-01</PostingDate>' +
-                    '<Amount>15.00</Amount>' +
-                    '<CurrencyCode>EUR</CurrencyCode>' +
-                    '<MerchantRaw>Contoso Store</MerchantRaw>' +
-                    '<MCC>5812</MCC>' +
-                    '<Country>DE</Country>' +
-                    '<Level3>' +
-                        '<TaxLine>' +
-                            '<Description>Meal</Description>' +
-                            '<Quantity>1</Quantity>' +
-                            '<UnitCost>13.39</UnitCost>' +
-                            '<VATAmount>1.61</VATAmount>' +
-                            '<TaxAmount>1.61</TaxAmount>' +
-                            '<TaxCode>VAT12</TaxCode>' +
-                        '</TaxLine>' +
-                    '</Level3>' +
-                '</Transaction>' +
-            '</Transactions>');
-    end;
-
-    local procedure GetCamt054SmokePayload(): Text
-    begin
-        exit(
-            '<?xml version="1.0" encoding="utf-8"?>' +
-            '<Document>' +
-                '<BkToCstmrStmt>' +
-                    '<Stmt>' +
-                        '<Ntry>' +
-                            '<NtryDtls>' +
-                                '<TxDtls>' +
-                                    '<Refs><EndToEndId>CAMT54TXN002</EndToEndId></Refs>' +
-                                    '<RmtInf><Ustrd>CRDC54-0001</Ustrd></RmtInf>' +
-                                    '<RltdDts><IntrBkSttlmDt><Dt>2026-06-04</Dt></IntrBkSttlmDt></RltdDts>' +
-                                    '<AmtDtls><TxAmt><Amt Ccy="USD">19.63</Amt></TxAmt></AmtDtls>' +
-                                    '<RltdPties><Cdtr><Nm>Contoso Air</Nm><PstlAdr><Ctry>US</Ctry></PstlAdr></Cdtr></RltdPties>' +
-                                '</TxDtls>' +
-                            '</NtryDtls>' +
-                        '</Ntry>' +
-                    '</Stmt>' +
-                '</BkToCstmrStmt>' +
-            '</Document>');
     end;
 
     local procedure Initialize()
@@ -536,14 +309,8 @@ codeunit 148353 EACorpCardPhase3Tests
     var
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', Locked = true;
-        CorpCardIsoProviderCodeTok: Label 'CORPCARDISO', Locked = true;
-        CorpCardCamt053ProviderCodeTok: Label 'CORPCAMT053', Locked = true;
-        CorpCardCamt054ProviderCodeTok: Label 'CORPCAMT054', Locked = true;
         SharedDefinitionTestProviderCodeTok: Label 'SHAREDDEFTEST', Locked = true;
-        CorpCardL3ProviderCodeTok: Label 'CORPCARDL3', Locked = true;
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         MalformedXmlRootElementTok: Label 'CorporateCardTransactions', Locked = true;
         MalformedXmlFileNameTok: Label 'CorpCard-Malformed.xml', Locked = true;
-        L3NegativeFileNameTok: Label 'CorpCard-L3-Phase3.xml', Locked = true;
-        Camt054SmokeFileNameTok: Label 'CorpCard-CAMT054-Smoke.xml', Locked = true;
 }

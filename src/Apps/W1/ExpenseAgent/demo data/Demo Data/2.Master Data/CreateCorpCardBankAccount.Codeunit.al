@@ -22,7 +22,6 @@ codeunit 8223 "Create Corp Card Bank Account"
         ContosoBank: Codeunit "Contoso Bank";
         CreateBankAccPostingGrp: Codeunit "Create Bank Acc. Posting Grp";
         CreateBankExImportSetup: Codeunit "Create Bank Ex/Import Setup";
-        CreateCorpCardL3Demo: Codeunit "EA Create Corp Card L3 Demo";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
         CreateNoSeries: Codeunit "Create No. Series";
         SalespersonPurchaser: Codeunit "Create Salesperson/Purchaser";
@@ -33,9 +32,7 @@ codeunit 8223 "Create Corp Card Bank Account"
             CreateBankAccPostingGrp.Checking(), SalespersonPurchaser.OtisFalls(),
             ContosoCoffeeDemoDataSetup."Country/Region Code", '', CreateNoSeries.PaymentReconciliationJournals(),
             '', '', '', CreateBankExImportSetup.SEPACAMT());
-
         CreateCorpCardSetup.CreateDefaults();
-        CreateCorpCardL3Demo.CreateDefaults();
 
         CorpCard.SetRange("Bank Account No.", '');
         CorpCard.ModifyAll("Bank Account No.", CorpCardBankAccount(), true);

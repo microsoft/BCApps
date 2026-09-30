@@ -322,19 +322,10 @@ Payment Application reconciliations are grouped by posted expense report and Ban
     - 7399 (Business Services) → MISC
     - 5542 (Fuel Dispensers) → CAR
 
-2. **Apply Corp Card Level 3 Demo**
-    - Navigate: Expense Agent Setup → Setup → Apply corp card level 3 demo
-    - Creates provider `CORPCARDL3` and demo Data Exchange definition `EACCL3VAT`
-    - Seeds header line mapping `L3HDR` and detail line mapping `L3DTL`
-    - Ensures provider-specific corporate card links exist for `CORPCARDL3`
-    - Initializes default MCC mappings and mapped Expense Categories (idempotent)
-    - Builds sample payload using actual card IDs assigned to `CORPCARDL3`
-    - Uploads sample payload for mixed VAT detail scenarios
-
-3. **Contoso Demo Data**
+2. **Contoso Demo Data**
     - Adds the dedicated LCY bank account `CORPCARD` for corporate card settlement
     - Configures the standard Payment Reconciliation number series and bank statement import format
-    - Assigns `CORPCARD` to regular and Level 3 demo cards only when their Bank Account No. is blank
+    - Assigns `CORPCARD` to corporate cards only when their Bank Account No. is blank
 
 ### VAT Specification Line Numbering
 
@@ -370,12 +361,7 @@ When VAT specification rows are created from imported Level 3 details:
 Static samples use provider-specific card ID prefixes to avoid cross-provider ambiguity:
 
 - CSV sample (`CorpCard-Sample-60.csv`) uses `CRDCSV-xxxx`
-- CAMT.053 sample (`CorpCard-Sample-60-SEPA-CAMT053.xml`) uses `CRDC53-xxxx`
-- CAMT.054 sample (`CorpCard-Sample-60-SEPA-CAMT054.xml`) uses `CRDC54-xxxx`
-- ISO20022 sample (`CorpCardISO20022Sample.xml`) uses `CRDISO-xxxx`
-- Level 3 sample (`CorpCard-Sample-Level3.xml`) uses `CRDL3-xxxx`
-
-For runtime Level 3 demo payloads, card IDs are generated from provider cards linked to `CORPCARDL3`.
+- XML sample (`CorpCard-Sample-60.xml`) uses `CRDXML-xxxx`
 
 ---
 
@@ -716,16 +702,15 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 **Check:**
 1. Provider has corporate card links (`EACorpCard`) for that provider code
 2. Sample payload card IDs match cards linked to the same provider
-3. Re-run `Apply corp card level 3 demo` to refresh provider links and payload
-4. Verify provider `Data Exch Def Code`/`Data Exch Map Code` still point to the expected line definition
+3. Verify provider `Data Exch Def Code`/`Data Exch Map Code` still point to the expected line definition
 
 ---
 
 ## Object ID Allocation
 
 **Ranges:** [7420–7449], [7458–7477] (50 IDs per object type)
-**Used:** 8 tables, 4 table extensions, 13 pages, 3 page extensions, 22 codeunits, 6 enums, and 3 permission sets
-**Available:** 42 tables, 46 table extensions, 37 pages, 47 page extensions, 28 codeunits, 44 enums, and 47 permission sets
+**Used:** 8 tables, 4 table extensions, 13 pages, 3 page extensions, 21 codeunits, 6 enums, and 3 permission sets
+**Available:** 42 tables, 46 table extensions, 37 pages, 47 page extensions, 29 codeunits, 44 enums, and 47 permission sets
 
 ---
 

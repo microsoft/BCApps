@@ -57,27 +57,6 @@ codeunit 148356 EACorpCardImportBasicTests
     end;
 
     [Test]
-    procedure Camt054ImportNormalizesMappedFields()
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        CorpCardBatch: Record "EA Corp Card Batch";
-        CorpCardTrans: Record "EA Corp Card Trans";
-    begin
-        Initialize();
-
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup."LCY Code" := UsdCurrencyCodeTok;
-        GeneralLedgerSetup.Modify(true);
-
-        CorpCardTestLib.RunImportAndGetLastBatch(CorpCardCamt054ProviderCodeTok, CorpCardBatch);
-        CorpCardTestLib.FindTransInBatchByProviderTransId(CorpCardBatch."Batch No.", CorpCardCamt054ProviderCodeTok, Camt054ProviderTransIdTok, CorpCardTrans);
-
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'CAMT054 import batch must complete successfully.');
-        Assert.AreEqual(Camt054MccTok, CorpCardTrans.MCC, 'CAMT054 import must remove the MCC tag before validating the transaction field.');
-        Assert.AreEqual('', CorpCardTrans."Currency Code", 'CAMT054 import must map the LCY currency code to blank before validating the transaction field.');
-    end;
-
-    [Test]
     procedure ImportValidationNormalizesLcyCurrencyCode()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -174,9 +153,6 @@ codeunit 148356 EACorpCardImportBasicTests
 
     var
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
-        CorpCardCamt054ProviderCodeTok: Label 'CORPCAMT054', Locked = true;
-        Camt054ProviderTransIdTok: Label 'CAMT54TXN001', Locked = true;
-        Camt054MccTok: Label '4511', Locked = true;
         EuroCurrencyCodeTok: Label 'EUR', Locked = true;
         UsdCurrencyCodeTok: Label 'USD', Locked = true;
 }

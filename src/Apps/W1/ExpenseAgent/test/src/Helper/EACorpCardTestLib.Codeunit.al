@@ -21,7 +21,6 @@ codeunit 148357 EACorpCardTestLib
         CorpCard: Record "EA Corp Card";
         ExpenseUser: Record "Expense User";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
-        CreateCorpCardL3Demo: Codeunit "EA Create Corp Card L3 Demo";
     begin
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
@@ -30,7 +29,6 @@ codeunit 148357 EACorpCardTestLib
 
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         CreateCorpCardSetup.CreateDefaults();
-        CreateCorpCardL3Demo.CreateDefaults();
         EnsureCurrencyExchangeRate('USD');
         EnsureCurrencyExchangeRate('EUR');
     end;

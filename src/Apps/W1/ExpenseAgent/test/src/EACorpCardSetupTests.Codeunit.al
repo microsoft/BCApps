@@ -76,7 +76,7 @@ codeunit 148354 EACorpCardSetupTests
     var
         CorpCardProvider: Record "EA Corp Card Provider";
     begin
-        CorpCardProvider.SetFilter(Code, '%1|%2|%3|%4|%5', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok, CorpCardIsoProviderCodeTok, CorpCardCamt053ProviderCodeTok, CorpCardCamt054ProviderCodeTok);
+        CorpCardProvider.SetFilter(Code, '%1|%2', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok);
         exit(CorpCardProvider.Count());
     end;
 
@@ -84,15 +84,12 @@ codeunit 148354 EACorpCardSetupTests
     var
         CorpCard: Record "EA Corp Card";
     begin
-        CorpCard.SetFilter("Provider Code", '%1|%2|%3|%4|%5', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok, CorpCardIsoProviderCodeTok, CorpCardCamt053ProviderCodeTok, CorpCardCamt054ProviderCodeTok);
+        CorpCard.SetFilter("Provider Code", '%1|%2', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok);
         exit(CorpCard.Count());
     end;
 
     var
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', Locked = true;
-        CorpCardIsoProviderCodeTok: Label 'CORPCARDISO', Locked = true;
-        CorpCardCamt053ProviderCodeTok: Label 'CORPCAMT053', Locked = true;
-        CorpCardCamt054ProviderCodeTok: Label 'CORPCAMT054', Locked = true;
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
 }

@@ -249,7 +249,6 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "EA Corp Card Bank Rec Mgt" = X,
         codeunit "EA Corp Card Data Exch Prov" = X,
         codeunit "EA Create Corp Card Setup" = X,
-        codeunit "EA Create Corp Card L3 Demo" = X,
         codeunit "EA Corp Card DE Noop" = X,
         codeunit "EA Corp Card Dedup Mgt" = X,
         codeunit "EA Corp Card Enh. Match Mgt" = X,
