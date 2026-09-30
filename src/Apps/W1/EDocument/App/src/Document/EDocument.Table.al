@@ -333,10 +333,8 @@ table 6121 "E-Document"
     begin
         if (Rec.Status = Rec.Status::Processed) then
             Error(this.DeleteProcessedNotAllowedErr);
-
         if (Rec."Document Record ID".TableNo <> 0) then
             Error(this.DeleteLinkedNotAllowedErr);
-
         if (not Rec.IsDuplicate(false)) then
             if not GuiAllowed() then
                 Error(DeleteUniqueNotAllowedErr)
@@ -372,7 +370,6 @@ table 6121 "E-Document"
         EDocument.SetFilter("Entry No", '<>%1', Rec."Entry No");
         if not EDocument.FindFirst() then
             exit(false);
-
         if ShowMessage and GuiAllowed() then
             Message(EDocumentExistsMsg, EDocument."Entry No");
         Telemetry.LogMessage('0000PHB', StrSubstNo(EDocumentExistsMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
@@ -524,7 +521,6 @@ table 6121 "E-Document"
             IEDocFileFormat.PreviewContent(EDocDataStorage.Name, EDocDataStorage.GetTempBlob());
             exit;
         end;
-
         if not TryGetExportedFileLog(EDocumentLog) then
             Error(NoSourceFileErr);
         Message(PreviewNotSupportedMsg);
@@ -637,7 +633,6 @@ table 6121 "E-Document"
             Message(NoEDocumentForRecordMsg);
             exit(false);
         end;
-
         if not EDocument.ReadPermission() then
             exit(false);
 
