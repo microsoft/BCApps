@@ -10,9 +10,9 @@ using Microsoft.EServices.EDocument.Processing;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
-using Microsoft.Peppol;
 using Microsoft.Peppol.Response;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -29,6 +29,7 @@ codeunit 139864 "E-Doc. Message Response Tests"
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         LibraryEDoc: Codeunit "Library - E-Document";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         LibrarySales: Codeunit "Library - Sales";
         IsInitialized: Boolean;
@@ -425,30 +426,24 @@ codeunit 139864 "E-Doc. Message Response Tests"
     [Test]
     procedure AcknowledgementBeforeSalesOrderUsesBuyerOrderReference()
     var
+        OriginalCompanyInformation: Record "Company Information";
+        OriginalCustomer: Record Customer;
         EDocument: Record "E-Document";
-        EDocSalesHeader: Record "E-Document Sales Header";
-        SalesHeader: Record "Sales Header";
-        PEPPOLMgt: Codeunit "PEPPOL30";
         TempBlob: Codeunit "Temp Blob";
         XmlDoc: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         BuiltResponseType: Enum "E-Doc. Response Type";
-        ExpectedEndpointId: Text;
-        ExpectedSchemeId: Text;
-        PartyId: Text;
-        PartyIdSchemeId: Text;
-        PartyName: Text;
     begin
         // [SCENARIO] An acknowledgement sent before a sales order exists is AB, and without endpoints in the order both parties
-        // are addressed by the Peppol identification BC uses for its own Peppol documents.
+        // are addressed by the Peppol identification BC uses for its own Peppol documents (here: GLN).
         Initialize();
 
+        // [GIVEN] A company and a customer that use their GLN in electronic documents
+        SetCompanyGLN(SellerEndpointId(), OriginalCompanyInformation);
+        SetCustomerGLN(BuyerEndpointId(), OriginalCustomer);
+
         // [GIVEN] An inbound order draft without endpoint information
-        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
-        EDocSalesHeader.InsertForEDocument(EDocument);
-        EDocSalesHeader."Buyer Order No." := BuyerOrderNoTxt;
-        EDocSalesHeader."[BC] Customer No." := Customer."No.";
-        EDocSalesHeader.Modify();
+        CreateOrderDraftWithoutEndpoints(EDocument);
 
         // [WHEN] The acknowledgement is built
         BuiltResponseType := BuildResponse(EDocument, "E-Doc. Response Type"::Acknowledged, TempBlob);
@@ -459,18 +454,49 @@ codeunit 139864 "E-Doc. Message Response Tests"
         Assert.AreEqual("E-Doc. Response Type"::Acknowledged, BuiltResponseType, 'An acknowledgement must stay Acknowledged.');
         Assert.AreEqual(BuyerOrderNoTxt, GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:OrderReference/cbc:ID'), 'OrderReference ID');
 
-        // [THEN] The buyer is addressed by the customer's Peppol identification (GLN or VAT registration no.)
-        SalesHeader.Validate("Sell-to Customer No.", Customer."No.");
-        PEPPOLMgt.GetAccountingCustomerPartyInfoBIS(SalesHeader, ExpectedEndpointId, ExpectedSchemeId, PartyId, PartyIdSchemeId, PartyName);
-        Assert.AreNotEqual('', ExpectedEndpointId, 'The test customer must have a Peppol identification.');
-        Assert.AreEqual(ExpectedEndpointId, GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:BuyerCustomerParty/cac:Party/cbc:EndpointID'), 'Buyer EndpointID must fall back to the customer identification.');
-        Assert.AreEqual(ExpectedSchemeId, GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:BuyerCustomerParty/cac:Party/cbc:EndpointID/@schemeID'), 'Buyer EndpointID schemeID');
+        // [THEN] Both parties are addressed by their GLN with the GLN scheme
+        Assert.AreEqual(BuyerEndpointId(), GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:BuyerCustomerParty/cac:Party/cbc:EndpointID'), 'Buyer EndpointID must fall back to the customer GLN.');
+        Assert.AreEqual(GLNSchemeIdTxt, GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:BuyerCustomerParty/cac:Party/cbc:EndpointID/@schemeID'), 'Buyer EndpointID schemeID');
+        Assert.AreEqual(SellerEndpointId(), GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:SellerSupplierParty/cac:Party/cbc:EndpointID'), 'Seller EndpointID must fall back to the company GLN.');
+        Assert.AreEqual(GLNSchemeIdTxt, GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:SellerSupplierParty/cac:Party/cbc:EndpointID/@schemeID'), 'Seller EndpointID schemeID');
 
-        // [THEN] The seller is addressed by the company's Peppol identification
-        PEPPOLMgt.GetAccountingSupplierPartyInfoBIS(ExpectedEndpointId, ExpectedSchemeId, PartyName);
-        Assert.AreNotEqual('', ExpectedEndpointId, 'The test company must have a Peppol identification.');
-        Assert.AreEqual(ExpectedEndpointId, GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:SellerSupplierParty/cac:Party/cbc:EndpointID'), 'Seller EndpointID must fall back to the company identification.');
-        Assert.AreEqual(ExpectedSchemeId, GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:SellerSupplierParty/cac:Party/cbc:EndpointID/@schemeID'), 'Seller EndpointID schemeID');
+        RestoreCustomer(OriginalCustomer);
+        RestoreCompanyInformation(OriginalCompanyInformation);
+    end;
+
+    [Test]
+    procedure ResponseWithoutEndpointSchemeIsNotCreated()
+    var
+        CountryRegion: Record "Country/Region";
+        OriginalCompanyInformation: Record "Company Information";
+        OriginalCustomer: Record Customer;
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A customer addressed by VAT registration no. in a country without VAT Scheme would give an EndpointID
+        // without the mandatory schemeID, so the response is not built.
+        Initialize();
+
+        // [GIVEN] A company with a GLN, and a customer with only a VAT registration no. in a country without VAT Scheme
+        SetCompanyGLN(SellerEndpointId(), OriginalCompanyInformation);
+        SetCustomerGLN('', OriginalCustomer);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        Customer.Get(Customer."No.");
+        Customer."Country/Region Code" := CountryRegion.Code;
+        Customer."VAT Registration No." := 'X12345678';
+        Customer.Modify();
+
+        // [GIVEN] An inbound order draft without endpoint information
+        CreateOrderDraftWithoutEndpoints(EDocument);
+
+        // [WHEN] The acknowledgement is built
+        asserterror BuildResponse(EDocument, "E-Doc. Response Type"::Acknowledged, TempBlob);
+
+        // [THEN] The error points to the missing VAT Scheme
+        Assert.ExpectedError(CountryRegion.FieldCaption("VAT Scheme"));
+
+        RestoreCustomer(OriginalCustomer);
+        RestoreCompanyInformation(OriginalCompanyInformation);
     end;
 
     [Test]
@@ -479,7 +505,6 @@ codeunit 139864 "E-Doc. Message Response Tests"
         CompanyInformation: Record "Company Information";
         OriginalCompanyInformation: Record "Company Information";
         EDocument: Record "E-Document";
-        EDocSalesHeader: Record "E-Document Sales Header";
         TempBlob: Codeunit "Temp Blob";
     begin
         // [SCENARIO] Without an endpoint in the order and without GLN or VAT registration no. on the company,
@@ -487,11 +512,7 @@ codeunit 139864 "E-Doc. Message Response Tests"
         Initialize();
 
         // [GIVEN] An inbound order draft without endpoint information and a company without Peppol identification
-        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
-        EDocSalesHeader.InsertForEDocument(EDocument);
-        EDocSalesHeader."Buyer Order No." := BuyerOrderNoTxt;
-        EDocSalesHeader."[BC] Customer No." := Customer."No.";
-        EDocSalesHeader.Modify();
+        CreateOrderDraftWithoutEndpoints(EDocument);
         CompanyInformation.Get();
         OriginalCompanyInformation := CompanyInformation;
         CompanyInformation.GLN := '';
@@ -505,7 +526,7 @@ codeunit 139864 "E-Doc. Message Response Tests"
         // [THEN] The standard Peppol error names the missing company identification
         Assert.ExpectedError(CompanyInformation.FieldCaption("VAT Registration No."));
 
-        OriginalCompanyInformation.Modify();
+        RestoreCompanyInformation(OriginalCompanyInformation);
     end;
 
     local procedure CreateSalesOrderFromInboundOrder(var EDocument: Record "E-Document"; var SalesHeader: Record "Sales Header")
@@ -601,6 +622,59 @@ codeunit 139864 "E-Doc. Message Response Tests"
         XmlNamespaces.AddNamespace('resp', 'urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2');
         XmlNamespaces.AddNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
         XmlNamespaces.AddNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+    end;
+
+    local procedure CreateOrderDraftWithoutEndpoints(var EDocument: Record "E-Document")
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+    begin
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocSalesHeader.InsertForEDocument(EDocument);
+        EDocSalesHeader."Buyer Order No." := BuyerOrderNoTxt;
+        EDocSalesHeader."[BC] Customer No." := Customer."No.";
+        EDocSalesHeader.Modify();
+    end;
+
+    local procedure SetCompanyGLN(NewGLN: Code[13]; var OriginalCompanyInformation: Record "Company Information")
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.Get();
+        OriginalCompanyInformation := CompanyInformation;
+        CompanyInformation.GLN := NewGLN;
+        CompanyInformation."Use GLN in Electronic Document" := NewGLN <> '';
+        CompanyInformation.Modify();
+    end;
+
+    local procedure SetCustomerGLN(NewGLN: Code[13]; var OriginalCustomer: Record Customer)
+    begin
+        Customer.Get(Customer."No.");
+        OriginalCustomer := Customer;
+        Customer.GLN := NewGLN;
+        Customer."Use GLN in Electronic Document" := NewGLN <> '';
+        Customer.Modify();
+    end;
+
+    local procedure RestoreCompanyInformation(OriginalCompanyInformation: Record "Company Information")
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        // Re-read before modifying: the saved copy predates the test's own Modify and would fail the concurrency check
+        CompanyInformation.Get();
+        CompanyInformation.GLN := OriginalCompanyInformation.GLN;
+        CompanyInformation."Use GLN in Electronic Document" := OriginalCompanyInformation."Use GLN in Electronic Document";
+        CompanyInformation."VAT Registration No." := OriginalCompanyInformation."VAT Registration No.";
+        CompanyInformation.Modify();
+    end;
+
+    local procedure RestoreCustomer(OriginalCustomer: Record Customer)
+    begin
+        Customer.Get(OriginalCustomer."No.");
+        Customer.GLN := OriginalCustomer.GLN;
+        Customer."Use GLN in Electronic Document" := OriginalCustomer."Use GLN in Electronic Document";
+        Customer."Country/Region Code" := OriginalCustomer."Country/Region Code";
+        Customer."VAT Registration No." := OriginalCustomer."VAT Registration No.";
+        Customer.Modify();
     end;
 
     local procedure InsertSalesLine(SalesHeader: Record "Sales Header"; LineNo: Integer; ItemNo: Code[20]; Quantity: Decimal)

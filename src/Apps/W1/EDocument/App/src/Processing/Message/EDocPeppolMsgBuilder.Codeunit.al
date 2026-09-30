@@ -9,6 +9,7 @@ using Microsoft.EServices.EDocument.Processing;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
 using Microsoft.Peppol;
@@ -41,6 +42,7 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
         LineChangedTok: Label '3', Locked = true;
         LineNotAcceptedTok: Label '7', Locked = true;
         RejectedTok: Label 'RE', Locked = true;
+        MissingEndpointSchemeErr: Label 'The order response cannot be created because the electronic address %1 of %2 has no Peppol scheme. Specify the %3 on %4 %5, or use a GLN with %6.', Comment = '%1 = electronic address (e.g. a VAT registration no.), %2 = company or customer name, %3 = VAT Scheme field caption, %4 = Country/Region table caption, %5 = country/region code, %6 = Use GLN in Electronic Document field caption';
 
     procedure BuildMessage(EDocument: Record "E-Document"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob")
     begin
@@ -134,12 +136,13 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
         EndpointSchemeId := EDocSalesHeader."Seller Endpoint Scheme Id";
         // cbc:EndpointID and its schemeID are mandatory (PEPPOL-T76-B01501, B01601): otherwise use the company's
         // Peppol identification (GLN or VAT registration no.) as for Peppol invoices, and stop when there is none
+        CompanyInformation.Get();
         if (EndpointId = '') or (EndpointSchemeId = '') then begin
             PEPPOLMgt.GetAccountingSupplierPartyInfoBIS(EndpointId, EndpointSchemeId, CompanyPartyName);
             PEPPOLMgt.CheckCompanyPartyIdentification(EndpointId);
+            CheckEndpointScheme(EndpointId, EndpointSchemeId, CompanyInformation.Name, CompanyInformation."Country/Region Code");
         end;
 
-        CompanyInformation.Get();
         SellerName := CompanyInformation.Name;
         if SellerName = '' then
             SellerName := EDocSalesHeader."Seller Company Name";
@@ -173,6 +176,7 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
                 PEPPOLMgt.GetAccountingCustomerPartyInfoBIS(SalesHeader, EndpointId, EndpointSchemeId, CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerPartyName);
             end;
             PEPPOLMgt.CheckCustomerPartyIdentification(EndpointId, Customer."No.");
+            CheckEndpointScheme(EndpointId, EndpointSchemeId, Customer.Name, SalesHeader."Bill-to Country/Region Code");
         end;
 
         // PEPPOL-T76-R001: the buyer needs an official name or identifier
@@ -180,6 +184,22 @@ codeunit 6434 "E-Doc. PEPPOL Msg. Builder" implements IEDocMessageBuilder, IEDoc
         if BuyerName = '' then
             BuyerName := Customer.Name;
         PEPPOLOrderRespBuilder.SetBuyerParty(EndpointId, EndpointSchemeId, BuyerName);
+    end;
+
+    local procedure CheckEndpointScheme(EndpointId: Text; EndpointSchemeId: Text; PartyName: Text; CountryRegionCode: Code[10])
+    var
+        CompanyInformation: Record "Company Information";
+        CountryRegion: Record "Country/Region";
+    begin
+        // A VAT registration no. gets its scheme from the country's VAT Scheme, which may not be set up;
+        // an endpoint without schemeID breaks PEPPOL-T76-B01601/B02402 just like a missing endpoint
+        if EndpointSchemeId <> '' then
+            exit;
+        if CountryRegionCode = '' then begin
+            CompanyInformation.Get();
+            CountryRegionCode := CompanyInformation."Country/Region Code";
+        end;
+        Error(MissingEndpointSchemeErr, EndpointId, PartyName, CountryRegion.FieldCaption("VAT Scheme"), CountryRegion.TableCaption(), CountryRegionCode, CompanyInformation.FieldCaption("Use GLN in Electronic Document"));
     end;
 
     local procedure HasSellerChanges(EDocSalesHeader: Record "E-Document Sales Header"; SalesHeader: Record "Sales Header"): Boolean
