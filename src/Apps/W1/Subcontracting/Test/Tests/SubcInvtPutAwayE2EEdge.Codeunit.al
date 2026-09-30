@@ -1635,7 +1635,8 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to an original output Item Ledger Entry.');
         Assert.AreEqual(ItemLedgerEntry."Document Type"::"Purchase Receipt", ItemLedgerEntry."Document Type", 'The corrective credit memo must apply to a purchase receipt output entry.');
         Assert.AreEqual(PurchRcptLine."Document No.", ItemLedgerEntry."Document No.", 'The applied output Item Ledger Entry must belong to the subcontracting receipt.');
-        Assert.AreEqual(PurchRcptLine."Line No.", ItemLedgerEntry."Document Line No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting receipt line.');
+        Assert.AreEqual(PurchRcptLine."Order No.", ItemLedgerEntry."Subc. Purch. Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting purchase order.');
+        Assert.AreEqual(PurchRcptLine."Order Line No.", ItemLedgerEntry."Subc. Purch. Order Line No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting purchase order line.');
         Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting production order.');
     end;
 

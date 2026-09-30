@@ -250,11 +250,12 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Purchase Receipt");
         ItemLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
-        ItemLedgerEntry.SetRange("Document Line No.", PurchRcptLine."Line No.");
         ItemLedgerEntry.SetRange("Item No.", PurchRcptLine."No.");
         ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
         ItemLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
         ItemLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        ItemLedgerEntry.SetRange("Subc. Purch. Order No.", PurchRcptLine."Order No.");
+        ItemLedgerEntry.SetRange("Subc. Purch. Order Line No.", PurchRcptLine."Order Line No.");
         ItemLedgerEntry.SetRange(Positive, true);
     end;
 
