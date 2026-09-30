@@ -864,7 +864,8 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
             EDocumentNotificationRec.Init();
             EDocumentNotificationRec."E-Document Entry No." := EDocumentEntryNo;
             EDocumentNotificationRec.ID := SubTotalMismatchNotificationId();
-            EDocumentNotificationRec."User Id" := UserId();
+            EDocumentNotificationRec."User Id" :=
+                CopyStr(UserId(), 1, MaxStrLen(EDocumentNotificationRec."User Id"));
             EDocumentNotificationRec.Type := "E-Document Notification Type"::"Sub Total Mismatch";
             EDocumentNotificationRec.Insert();
         end;
