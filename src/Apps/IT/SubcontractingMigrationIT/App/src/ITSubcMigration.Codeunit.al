@@ -2,11 +2,14 @@
 namespace Microsoft.Manufacturing.Subcontracting.Migration;
 
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
@@ -26,7 +29,9 @@ codeunit 149951 "IT Subc. Migration"
         MigratePurchaseLines();
         MigrateTransferLines();
         MigrateTransferHeaders();
+        MigrateProductionBOMLines();
         MigrateProdOrderComponents();
+        MigrateProdOrderComponentSupplyMethods();
         MigrateProdOrderRoutingLines();
         MigrateRoutingLines();
     end;
@@ -262,6 +267,187 @@ codeunit 149951 "IT Subc. Migration"
         until ProdOrderComponent.Next() = 0;
     end;
 
+    internal procedure MigrateProductionBOMLines()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ComponentSupplyMethod: Enum "Component Supply Method";
+        TotalRecords: Integer;
+    begin
+        Clear(WorkCenterSupplyMethods);
+        Clear(InventoryItems);
+        SetProductionBOMLineSupplyMethodFilters(ProductionBOMLine);
+        PreMigrationCounts.Set(ProductionBOMLineProgressEntityLbl, ProductionBOMLine.Count());
+        ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::Empty);
+        TotalRecords := ProductionBOMLine.Count();
+        if UIAllowed then
+            StartProgressPhase(ProductionBOMLinesPhaseLbl, ProductionBOMLineProgressEntityLbl, TotalRecords);
+        if not ProductionBOMLine.FindSet() then
+            exit;
+
+        repeat
+            if TryGetProductionBOMLineSupplyMethod(ProductionBOMLine, ComponentSupplyMethod) then begin
+                ProductionBOMLine."Component Supply Method" := ComponentSupplyMethod;
+                ProductionBOMLine.Modify();
+            end;
+
+            if UIAllowed then
+                UpdateProgressPhase();
+        until ProductionBOMLine.Next() = 0;
+    end;
+
+    internal procedure MigrateProdOrderComponentSupplyMethods()
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        ComponentSupplyMethod: Enum "Component Supply Method";
+        TotalRecords: Integer;
+    begin
+        Clear(WorkCenterSupplyMethods);
+        Clear(InventoryItems);
+        SetProdOrderComponentSupplyMethodFilters(ProdOrderComponent);
+        PreMigrationCounts.Set(ProdOrderComponentSupplyMethodProgressEntityLbl, ProdOrderComponent.Count());
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::Empty);
+        TotalRecords := ProdOrderComponent.Count();
+        if UIAllowed then
+            StartProgressPhase(ProdOrderComponentSupplyMethodsPhaseLbl, ProdOrderComponentSupplyMethodProgressEntityLbl, TotalRecords);
+        if not ProdOrderComponent.FindSet() then
+            exit;
+
+        repeat
+            if TryGetProdOrderComponentSupplyMethod(ProdOrderComponent, ComponentSupplyMethod) then begin
+                ProdOrderComponent."Component Supply Method" := ComponentSupplyMethod;
+                ProdOrderComponent.Modify();
+            end;
+
+            if UIAllowed then
+                UpdateProgressPhase();
+        until ProdOrderComponent.Next() = 0;
+    end;
+
+    local procedure TryGetProductionBOMLineSupplyMethod(ProductionBOMLine: Record "Production BOM Line"; var ComponentSupplyMethod: Enum "Component Supply Method"): Boolean
+    var
+        Item: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        VersionManagement: Codeunit VersionManagement;
+        CandidateSupplyMethod: Enum "Component Supply Method";
+        HasResolvedUsage: Boolean;
+    begin
+        Item.SetCurrentKey("Production BOM No.");
+        Item.SetRange("Production BOM No.", ProductionBOMLine."Production BOM No.");
+        if Item.FindSet() then
+            repeat
+                if VersionManagement.GetBOMVersion(Item."Production BOM No.", WorkDate(), true) = ProductionBOMLine."Version Code" then begin
+                    if not TryGetRoutingSupplyMethod(Item."Routing No.", ProductionBOMLine."Routing Link Code", ProductionBOMLine."No.", CandidateSupplyMethod) then
+                        exit(false);
+                    if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedUsage) then
+                        exit(false);
+                end;
+            until Item.Next() = 0;
+
+        StockkeepingUnit.SetRange("Production BOM No.", ProductionBOMLine."Production BOM No.");
+        if StockkeepingUnit.FindSet() then
+            repeat
+                if VersionManagement.GetBOMVersion(StockkeepingUnit."Production BOM No.", WorkDate(), true) = ProductionBOMLine."Version Code" then begin
+                    if not TryGetRoutingSupplyMethod(StockkeepingUnit."Routing No.", ProductionBOMLine."Routing Link Code", ProductionBOMLine."No.", CandidateSupplyMethod) then
+                        exit(false);
+                    if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedUsage) then
+                        exit(false);
+                end;
+            until StockkeepingUnit.Next() = 0;
+
+        exit(HasResolvedUsage);
+    end;
+
+    local procedure TryGetProdOrderComponentSupplyMethod(ProdOrderComponent: Record "Prod. Order Component"; var ComponentSupplyMethod: Enum "Component Supply Method"): Boolean
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        CandidateSupplyMethod: Enum "Component Supply Method";
+        HasResolvedOperation: Boolean;
+    begin
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderComponent.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderComponent."Prod. Order Line No.");
+        ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
+        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Work Center");
+        if not ProdOrderRoutingLine.FindSet() then
+            exit(false);
+
+        repeat
+            if TryGetWorkCenterSupplyMethod(ProdOrderRoutingLine."No.", ProdOrderComponent."Item No.", CandidateSupplyMethod) then
+                if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedOperation) then
+                    exit(false);
+        until ProdOrderRoutingLine.Next() = 0;
+
+        exit(HasResolvedOperation);
+    end;
+
+    local procedure TryGetRoutingSupplyMethod(RoutingNo: Code[20]; RoutingLinkCode: Code[10]; ComponentItemNo: Code[20]; var ComponentSupplyMethod: Enum "Component Supply Method"): Boolean
+    var
+        RoutingLine: Record "Routing Line";
+        VersionManagement: Codeunit VersionManagement;
+        CandidateSupplyMethod: Enum "Component Supply Method";
+        HasResolvedOperation: Boolean;
+    begin
+        if RoutingNo = '' then
+            exit(false);
+
+        RoutingLine.SetRange("Routing No.", RoutingNo);
+        RoutingLine.SetRange("Version Code", VersionManagement.GetRtngVersion(RoutingNo, WorkDate(), true));
+        RoutingLine.SetRange("Routing Link Code", RoutingLinkCode);
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        if not RoutingLine.FindSet() then
+            exit(false);
+
+        repeat
+            if TryGetWorkCenterSupplyMethod(RoutingLine."No.", ComponentItemNo, CandidateSupplyMethod) then
+                if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedOperation) then
+                    exit(false);
+        until RoutingLine.Next() = 0;
+
+        exit(HasResolvedOperation);
+    end;
+
+    local procedure TryGetWorkCenterSupplyMethod(WorkCenterNo: Code[20]; ComponentItemNo: Code[20]; var ComponentSupplyMethod: Enum "Component Supply Method"): Boolean
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        IsInventoryItem: Boolean;
+    begin
+        if not WorkCenterSupplyMethods.Get(WorkCenterNo, ComponentSupplyMethod) then begin
+            ComponentSupplyMethod := ComponentSupplyMethod::Empty;
+            if WorkCenter.Get(WorkCenterNo) then
+                if WorkCenter."Subcontractor No." <> '' then
+                    if Vendor.Get(WorkCenter."Subcontractor No.") then
+                        if Vendor."Subcontractor Procurement" then
+                            ComponentSupplyMethod := ComponentSupplyMethod::"Consignment at Vendor"
+                        else
+                            ComponentSupplyMethod := ComponentSupplyMethod::"Transfer to Vendor";
+            WorkCenterSupplyMethods.Add(WorkCenterNo, ComponentSupplyMethod);
+        end;
+
+        if ComponentSupplyMethod = ComponentSupplyMethod::Empty then
+            exit(false);
+        if ComponentSupplyMethod = ComponentSupplyMethod::"Consignment at Vendor" then
+            exit(true);
+        if not InventoryItems.Get(ComponentItemNo, IsInventoryItem) then begin
+            if Item.Get(ComponentItemNo) then
+                IsInventoryItem := Item.Type = Item.Type::Inventory;
+            InventoryItems.Add(ComponentItemNo, IsInventoryItem);
+        end;
+        exit(IsInventoryItem);
+    end;
+
+    local procedure MergeSupplyMethod(var ComponentSupplyMethod: Enum "Component Supply Method"; CandidateSupplyMethod: Enum "Component Supply Method"; var HasResolvedMethod: Boolean): Boolean
+    begin
+        if not HasResolvedMethod then begin
+            ComponentSupplyMethod := CandidateSupplyMethod;
+            HasResolvedMethod := true;
+            exit(true);
+        end;
+
+        exit(ComponentSupplyMethod = CandidateSupplyMethod);
+    end;
+
     internal procedure MigrateProdOrderRoutingLines()
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -438,6 +624,7 @@ codeunit 149951 "IT Subc. Migration"
 
     local procedure LockTables()
     var
+        ProductionBOMLine: Record "Production BOM Line";
         TransferLine: Record "Transfer Line";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
@@ -454,6 +641,7 @@ codeunit 149951 "IT Subc. Migration"
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
         TransferLine.LockTable();
+        ProductionBOMLine.LockTable();
         PurchaseLine.LockTable();
         TransferHeader.LockTable();
         ProdOrderComponent.LockTable();
@@ -554,6 +742,17 @@ codeunit 149951 "IT Subc. Migration"
 #pragma warning disable AL0432
         ProdOrderComponent.SetFilter("Original Location", '<>%1', '');
 #pragma warning restore AL0432
+    end;
+
+    local procedure SetProductionBOMLineSupplyMethodFilters(var ProductionBOMLine: Record "Production BOM Line")
+    begin
+        ProductionBOMLine.SetRange(Type, ProductionBOMLine.Type::Item);
+        ProductionBOMLine.SetFilter("Routing Link Code", '<>%1', '');
+    end;
+
+    local procedure SetProdOrderComponentSupplyMethodFilters(var ProdOrderComponent: Record "Prod. Order Component")
+    begin
+        ProdOrderComponent.SetFilter("Routing Link Code", '<>%1', '');
     end;
 
     local procedure SetProdOrderRoutingLineMigrationFilters(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
@@ -695,6 +894,7 @@ codeunit 149951 "IT Subc. Migration"
 
     local procedure VerifyMigration()
     var
+        ProductionBOMLine: Record "Production BOM Line";
         TransferLine: Record "Transfer Line";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
@@ -723,8 +923,15 @@ codeunit 149951 "IT Subc. Migration"
 
         VerifyEntityCount(TransferHeaderProgressEntityLbl, TransferHeader.Count());
 
+        SetProductionBOMLineSupplyMethodFilters(ProductionBOMLine);
+        VerifyEntityCount(ProductionBOMLineProgressEntityLbl, ProductionBOMLine.Count());
+
         SetProdOrderComponentMigrationFilters(ProdOrderComponent);
         VerifyEntityCount(ProdOrderComponentProgressEntityLbl, ProdOrderComponent.Count());
+
+        ProdOrderComponent.Reset();
+        SetProdOrderComponentSupplyMethodFilters(ProdOrderComponent);
+        VerifyEntityCount(ProdOrderComponentSupplyMethodProgressEntityLbl, ProdOrderComponent.Count());
 
         SetProdOrderRoutingLineMigrationFilters(ProdOrderRoutingLine);
         VerifyEntityCount(ProdOrderRoutingLineProgressEntityLbl, ProdOrderRoutingLine.Count());
@@ -746,6 +953,8 @@ codeunit 149951 "IT Subc. Migration"
     var
         MigrationProgressDialog: Dialog;
         PreMigrationCounts: Dictionary of [Text, Integer];
+        WorkCenterSupplyMethods: Dictionary of [Code[20], Enum "Component Supply Method"];
+        InventoryItems: Dictionary of [Code[20], Boolean];
         UIAllowed: Boolean;
         CurrentProgressEntity: Text;
         TotalProgressRecords: Integer;
@@ -761,8 +970,12 @@ codeunit 149951 "IT Subc. Migration"
         PurchaseLineProgressEntityLbl: Label 'Purchase line';
         TransferHeadersPhaseLbl: Label 'Migrating transfer headers...';
         TransferHeaderProgressEntityLbl: Label 'Transfer header';
+        ProductionBOMLinesPhaseLbl: Label 'Migrating production BOM component supply methods...';
+        ProductionBOMLineProgressEntityLbl: Label 'Production BOM line component supply method';
         ProdOrderComponentsPhaseLbl: Label 'Migrating production order components...';
         ProdOrderComponentProgressEntityLbl: Label 'Production order component';
+        ProdOrderComponentSupplyMethodsPhaseLbl: Label 'Migrating production order component supply methods...';
+        ProdOrderComponentSupplyMethodProgressEntityLbl: Label 'Production order component supply method';
         ProdOrderRoutingLinesPhaseLbl: Label 'Migrating production order routing lines...';
         ProdOrderRoutingLineProgressEntityLbl: Label 'Production order routing line';
         RoutingLinesPhaseLbl: Label 'Migrating routing lines...';

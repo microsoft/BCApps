@@ -5,6 +5,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
@@ -17,6 +18,7 @@ using System.Environment.Configuration;
 codeunit 149956 "IT Subc. Migration Tests"
 {
     Subtype = Test;
+    EventSubscriberInstance = Manual;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
 
@@ -33,6 +35,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
+        GuardedProductionBOMNo: Code[20];
         SubcontractingLocationsBlockedErr: Label 'Migration can''t start because one or more subcontracting locations are invalid.';
         UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
         MissingSubcontractingLocationErr: Label 'Migration can''t start because legacy subcontracting data references location %1, but that location doesn''t exist. Update the legacy vendor or purchase document, and then run the precheck again.', Comment = '%1 = location code';
@@ -652,6 +655,125 @@ codeunit 149956 "IT Subc. Migration Tests"
             'MigrateProdOrderComponents should copy "Original Location" to "Subc. Original Location Code".');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure RunMigration_MapsLegacyProcurementToComponentSupplyMethods()
+    var
+        ConsignmentProductionBOMLine: Record "Production BOM Line";
+        TransferProductionBOMLine: Record "Production BOM Line";
+        ConsignmentProdOrderComponent: Record "Prod. Order Component";
+        TransferProdOrderComponent: Record "Prod. Order Component";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649440] Migration maps legacy subcontractor procurement to component supply methods
+        Initialize();
+
+        // [GIVEN] Linked BOM and production order components for vendors with subcontractor procurement enabled and disabled
+        CreateComponentSupplyMethodMigrationScenario(ConsignmentProductionBOMLine, ConsignmentProdOrderComponent, true);
+        CreateComponentSupplyMethodMigrationScenario(TransferProductionBOMLine, TransferProdOrderComponent, false);
+
+        // [WHEN] The legacy subcontracting data is migrated
+        ITSubcMigration.RunMigration();
+
+        // [THEN] Procurement-enabled components use consignment at vendor
+        ConsignmentProductionBOMLine.Get(
+            ConsignmentProductionBOMLine."Production BOM No.",
+            ConsignmentProductionBOMLine."Version Code",
+            ConsignmentProductionBOMLine."Line No.");
+        Assert.AreEqual(
+            "Component Supply Method"::"Consignment at Vendor",
+            ConsignmentProductionBOMLine."Component Supply Method",
+            'Procurement-enabled BOM component must migrate to Consignment at Vendor.');
+        ConsignmentProdOrderComponent.Get(
+            ConsignmentProdOrderComponent.Status,
+            ConsignmentProdOrderComponent."Prod. Order No.",
+            ConsignmentProdOrderComponent."Prod. Order Line No.",
+            ConsignmentProdOrderComponent."Line No.");
+        Assert.AreEqual(
+            "Component Supply Method"::"Consignment at Vendor",
+            ConsignmentProdOrderComponent."Component Supply Method",
+            'Procurement-enabled production order component must migrate to Consignment at Vendor.');
+
+        // [THEN] Procurement-disabled inventory components use transfer to vendor
+        TransferProductionBOMLine.Get(
+            TransferProductionBOMLine."Production BOM No.",
+            TransferProductionBOMLine."Version Code",
+            TransferProductionBOMLine."Line No.");
+        Assert.AreEqual(
+            "Component Supply Method"::"Transfer to Vendor",
+            TransferProductionBOMLine."Component Supply Method",
+            'Procurement-disabled BOM component must migrate to Transfer to Vendor.');
+        TransferProdOrderComponent.Get(
+            TransferProdOrderComponent.Status,
+            TransferProdOrderComponent."Prod. Order No.",
+            TransferProdOrderComponent."Prod. Order Line No.",
+            TransferProdOrderComponent."Line No.");
+        Assert.AreEqual(
+            "Component Supply Method"::"Transfer to Vendor",
+            TransferProdOrderComponent."Component Supply Method",
+            'Procurement-disabled production order component must migrate to Transfer to Vendor.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MigrateProductionBOMLines_SkipsAlreadyMigratedComponents()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+        ITSubcMigrationTests: Codeunit "IT Subc. Migration Tests";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649440] Already migrated BOM components do not resolve versions or routing again.
+        Initialize();
+
+        // [GIVEN] A linked BOM component already has a supply method.
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        ProductionBOMLine."Component Supply Method" := "Component Supply Method"::"Vendor-Supplied";
+        ProductionBOMLine.Modify(false);
+        ITSubcMigrationTests.SetGuardedProductionBOMNo(ProductionBOMLine."Production BOM No.");
+        BindSubscription(ITSubcMigrationTests);
+
+        // [WHEN] The BOM supply methods are migrated.
+        ITSubcMigration.MigrateProductionBOMLines();
+
+        // [THEN] Its method is preserved without performing version resolution.
+        UnbindSubscription(ITSubcMigrationTests);
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Vendor-Supplied", ProductionBOMLine."Component Supply Method",
+            'An existing component supply method must be preserved.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StartDisableLegacySubcontracting_VerifiesMigratedSupplyMethods()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649440] Supply method changes preserve the record-count verification and are idempotent.
+        Initialize();
+
+        // [GIVEN] Linked BOM and production order components with blank supply methods.
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+
+        // [WHEN] The full migration including verification is run twice.
+        ITSubcMigration.StartDisableLegacySubcontracting(false);
+        ITSubcMigration.StartDisableLegacySubcontracting(false);
+
+        // [THEN] Verification succeeds and both components retain their migrated method.
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.",
+            ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Consignment at Vendor", ProductionBOMLine."Component Supply Method",
+            'The full migration must preserve the migrated BOM method on repeat.');
+        Assert.AreEqual("Component Supply Method"::"Consignment at Vendor", ProdOrderComponent."Component Supply Method",
+            'The full migration must preserve the migrated order component method on repeat.');
+    end;
+
     // *** 15. Prod. Order Routing Lines ***
 
     [Test]
@@ -1208,6 +1330,93 @@ codeunit 149956 "IT Subc. Migration Tests"
         ProdOrderRoutingLine."Operation No." := '10';
         ProdOrderRoutingLine."Next Operation No." := NextOperationNo;
         ProdOrderRoutingLine.Insert(false);
+    end;
+
+    local procedure CreateComponentSupplyMethodMigrationScenario(
+        var ProductionBOMLine: Record "Production BOM Line";
+        var ProdOrderComponent: Record "Prod. Order Component";
+        SubcontractorProcurement: Boolean)
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLink: Record "Routing Link";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ComponentItem: Record Item;
+        OutputItem: Record Item;
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        Location: Record Location;
+    begin
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subcontracting Location Code" := Location.Code;
+        Vendor."Subcontractor Procurement" := SubcontractorProcurement;
+        Vendor.Modify(false);
+
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter."Subcontractor No." := Vendor."No.";
+        WorkCenter.Modify(false);
+
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine."Routing Link Code" := RoutingLink.Code;
+        RoutingLine.Modify(false);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        LibraryInventory.CreateItem(ComponentItem);
+        LibraryInventory.CreateItem(OutputItem);
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, OutputItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", 1);
+        ProductionBOMLine."Routing Link Code" := RoutingLink.Code;
+        ProductionBOMLine."Component Supply Method" := "Component Supply Method"::Empty;
+        ProductionBOMLine.Modify(false);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+
+        OutputItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        OutputItem.Validate("Routing No.", RoutingHeader."No.");
+        OutputItem.Modify(true);
+
+        InsertReleasedProdOrderSetup(ProductionOrder, ProdOrderLine, ProdOrderRoutingLine, '');
+        ProdOrderLine."Routing No." := RoutingHeader."No.";
+        ProdOrderLine.Modify(false);
+        ProdOrderRoutingLine.Type := ProdOrderRoutingLine.Type::"Work Center";
+        ProdOrderRoutingLine."No." := WorkCenter."No.";
+        ProdOrderRoutingLine."Work Center No." := WorkCenter."No.";
+        ProdOrderRoutingLine."Routing Link Code" := RoutingLink.Code;
+        ProdOrderRoutingLine.Modify(false);
+
+        ProdOrderComponent.Init();
+        ProdOrderComponent.Status := ProductionOrder.Status;
+        ProdOrderComponent."Prod. Order No." := ProductionOrder."No.";
+        ProdOrderComponent."Prod. Order Line No." := ProdOrderLine."Line No.";
+        ProdOrderComponent."Line No." := 10000;
+        ProdOrderComponent."Item No." := ComponentItem."No.";
+        ProdOrderComponent."Routing Link Code" := RoutingLink.Code;
+#pragma warning disable AL0432
+        ProdOrderComponent."Original Location" := Location.Code;
+#pragma warning restore AL0432
+        ProdOrderComponent."Component Supply Method" := "Component Supply Method"::Empty;
+        ProdOrderComponent.Insert(false);
+    end;
+
+    procedure SetGuardedProductionBOMNo(ProductionBOMNo: Code[20])
+    begin
+        GuardedProductionBOMNo := ProductionBOMNo;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::VersionManagement, 'OnBeforeGetBOMVersion', '', false, false)]
+    local procedure RejectAlreadyMigratedBOMLookup(BOMHeaderNo: Code[20])
+    begin
+        if BOMHeaderNo = GuardedProductionBOMNo then
+            Error('Already migrated BOM components must not resolve their BOM version.');
     end;
 
     local procedure AssertLegacySubcontractingFlag(ExpectedValue: Boolean)
