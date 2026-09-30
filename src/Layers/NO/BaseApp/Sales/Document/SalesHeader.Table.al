@@ -332,6 +332,7 @@ table 36 "Sales Header"
                 Validate("Payment Terms Code");
                 Validate("Prepmt. Payment Terms Code");
                 Validate("Payment Method Code");
+                OnAfterValidateBillToCustomerPaymentFields(Rec);
                 Validate("Prepayment %");
 
                 if (xRec."Sell-to Customer No." = "Sell-to Customer No.") and
@@ -6546,8 +6547,7 @@ table 36 "Sales Header"
     /// <param name="DocNo">The number of the sales document.</param>
     /// <param name="ShippingAdvice">The shipping advice for the sales document.</param>
     /// <returns>True if there is a conflict, otherwise false.</returns>
-    procedure InventoryPickConflict(DocType: Enum "Sales Document Type"; DocNo: Code[20];
-                                                 ShippingAdvice: Enum "Sales Header Shipping Advice"): Boolean
+    procedure InventoryPickConflict(DocType: Enum "Sales Document Type"; DocNo: Code[20]; ShippingAdvice: Enum "Sales Header Shipping Advice"): Boolean
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
         SalesLine2: Record "Sales Line";
@@ -6575,8 +6575,7 @@ table 36 "Sales Header"
     /// <param name="DocNo">The number of the sales document.</param>
     /// <param name="ShippingAdvice">The shipping advice for the sales document.</param>
     /// <returns>True if there is a conflict, otherwise false.</returns>
-    procedure WhseShipmentConflict(DocType: Enum "Sales Document Type"; DocNo: Code[20];
-                                                ShippingAdvice: Enum "Sales Header Shipping Advice"): Boolean
+    procedure WhseShipmentConflict(DocType: Enum "Sales Document Type"; DocNo: Code[20]; ShippingAdvice: Enum "Sales Header Shipping Advice"): Boolean
     var
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
     begin
@@ -10462,6 +10461,11 @@ table 36 "Sales Header"
     /// <param name="CUrrentFieldNo">The field number that triggered the update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFieldsBilltoCustomer(var SalesHeader: Record "Sales Header"; Customer: Record Customer; xSalesHeader: Record "Sales Header"; SkipBillToContact: Boolean; CUrrentFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateBillToCustomerPaymentFields(var SalesHeader: Record "Sales Header")
     begin
     end;
 

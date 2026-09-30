@@ -1,0 +1,6 @@
+[
+  "src/Layers/CH/BaseApp/Bank/Payment/PaymentExportData.Table.al",
+  "src/Layers/IT/BaseApp/Bank/Payment/PaymentExportData.Table.al",
+  "src/Layers/NO/BaseApp/Bank/Payment/PaymentExportData.Table.al",
+  "src/Layers/RU/BaseApp/Bank/Payment/PaymentExportData.Table.al"
+]

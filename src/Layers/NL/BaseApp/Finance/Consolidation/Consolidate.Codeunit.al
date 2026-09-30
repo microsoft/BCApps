@@ -833,8 +833,6 @@ codeunit 432 Consolidate
                     UpdateAmountArray(ConsolidGLEntry."Posting Date", ConsolidGLEntry.Amount);
                     ConsolidGLEntry.Description := '';
                     ConsolidGLEntry.Amount := 0;
-                    ConsolidGLEntry."Remaining Amount" := 0;
-                    ConsolidGLEntry.Open := false;
                     ConsolidGLEntry."Debit Amount" := 0;
                     ConsolidGLEntry."Credit Amount" := 0;
                     ConsolidGLEntry."Additional-Currency Amount" := 0;

@@ -171,8 +171,8 @@ table 287 "Customer Bank Account"
         field(14; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
-            ToolTip = 'Specifies the number used by the bank for the bank account.';
             MaskType = Concealed;
+            ToolTip = 'Specifies the number used by the bank for the bank account.';
 
             trigger OnValidate()
             begin
@@ -280,8 +280,8 @@ table 287 "Customer Bank Account"
         field(24; IBAN; Code[50])
         {
             Caption = 'IBAN';
-            ToolTip = 'Specifies the bank account''s international bank account number.';
             MaskType = Concealed;
+            ToolTip = 'Specifies the bank account''s international bank account number.';
 
             trigger OnValidate()
             var
@@ -476,4 +476,5 @@ table 287 "Customer Bank Account"
     local procedure OnBeforeValidatePostCode(var CustomerBankAccount: Record "Customer Bank Account"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
+
 }

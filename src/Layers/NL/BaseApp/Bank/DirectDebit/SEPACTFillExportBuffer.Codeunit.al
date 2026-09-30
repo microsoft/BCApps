@@ -137,12 +137,23 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
                 else
                     OnFillExportBufferOnSetAsRecipient(GenJnlLine, PaymentExportData, TempGenJnlLine, CreditTransferRegister);
             end;
+
             IsHandled := false;
+#if not CLEAN30
             OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(IsHandled);
-            if IsHandled or (not GeneralLedgerSetup."Local SEPA Instr. Priority") then
+            if IsHandled then
                 PaymentExportData.Validate(PaymentExportData."SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL)
-            else
-                PaymentExportData.CollectDataFromLocalSource(TempGenJnlLine);
+            else begin
+                IsHandled := false;
+                OnBeforeSetSEPAInstructionPriority(PaymentExportData, TempGenJnlLine, IsHandled);
+                if not IsHandled then
+                    PaymentExportData.Validate(PaymentExportData."SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL);
+            end;
+#else
+            OnBeforeSetSEPAInstructionPriority(PaymentExportData, TempGenJnlLine, IsHandled);
+            if not IsHandled then
+                PaymentExportData.Validate(PaymentExportData."SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL);
+#endif
 
             PaymentExportData.Validate(PaymentExportData."SEPA Payment Method", PaymentExportData."SEPA Payment Method"::TRF);
             if GeneralLedgerSetup."SEPA Non-Euro Export" then
@@ -427,9 +438,16 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
     local procedure OnGetAppliesToDocEntryNumbersCaseElse(var GenJournalLine: Record "Gen. Journal Line"; var TempInteger: Record Integer temporary; AccNo: Code[20])
     begin
     end;
+#if not CLEAN30
+    [IntegrationEvent(false, false)]
+    [Obsolete('Use OnBeforeSetSEPAInstructionPriority instead.', '30.0')]
+    local procedure OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(var IsHandled: Boolean)
+    begin
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(var IsHandled: Boolean)
+    local procedure OnBeforeSetSEPAInstructionPriority(var PaymentExportData: Record "Payment Export Data"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var IsHandled: Boolean)
     begin
     end;
 }
