@@ -23,13 +23,16 @@ codeunit 11043 "DE Payment Means Helper"
         IBANMissingErr: Label 'Customer bank account %1 on mandate %2 has no IBAN. Set up the IBAN before releasing the document.', Comment = '%1 = Bank Account Code, %2 = Mandate ID';
         MandateIDMissingErr: Label 'Direct debit mandate ID is missing on the document. Set it in the Payment tab before releasing.';
         MandateNotFoundErr: Label 'SEPA Direct Debit Mandate %1 does not exist.', Comment = '%1 = Mandate ID';
-        SEPADDOnCrMemoErr: Label 'Payment means code %1 (SEPA direct debit) cannot be used on a credit memo. Use a credit transfer code (30 or 58) instead.', Comment = '%1 = UNCL4461 payment means code';
+        SEPADDOnCrMemoErr: Label 'Payment means code %1 (SEPA direct debit) cannot be used on a credit memo or return order. Use a credit transfer code (30 or 58) instead.', Comment = '%1 = UNCL4461 payment means code';
+        ShowCustomerBankAccountLbl: Label 'Show Customer Bank Account';
         UnsupportedPaymentMeansCodeErr: Label 'Payment means code %1 is not supported for German electronic documents. Use a credit transfer code (30 or 58) or a SEPA direct debit code (49 or 59), or install an extension that supplies the data that code requires.', Comment = '%1 = UNCL4461 payment means code';
 
     /// <summary>
     /// Returns the UNCL4461 payment means code for the given Payment Method Code.
     /// Falls back to '58' (SEPA Credit Transfer) if no code is configured.
     /// </summary>
+    /// <param name="PaymentMethodCode">The Payment Method Code taken from the source document header.</param>
+    /// <returns>The payment means code set up on the payment method, or '58' when none is set up.</returns>
     procedure GetPaymentMeansCode(PaymentMethodCode: Code[10]): Code[3]
     var
         PaymentMethod: Record "Payment Method";
@@ -45,6 +48,8 @@ codeunit 11043 "DE Payment Means Helper"
     /// Returns true when the given UNCL4461 payment means code is a SEPA direct debit code (49 or 59).
     /// Direct debit requires the BG-19 mandate data (BT-89, BT-90, BT-91) in the exported document.
     /// </summary>
+    /// <param name="PaymentMeansCode">The UNCL4461 payment means code to classify.</param>
+    /// <returns>True when the code is 49 or 59, otherwise false.</returns>
     procedure IsDirectDebit(PaymentMeansCode: Code[3]): Boolean
     begin
         exit(PaymentMeansCode in ['49', '59']);
@@ -54,6 +59,8 @@ codeunit 11043 "DE Payment Means Helper"
     /// Returns true when the given UNCL4461 payment means code is a credit transfer code (30 or 58).
     /// Credit transfer only requires the payee account (BT-84) in the exported document.
     /// </summary>
+    /// <param name="PaymentMeansCode">The UNCL4461 payment means code to classify.</param>
+    /// <returns>True when the code is 30 or 58, otherwise false.</returns>
     procedure IsCreditTransfer(PaymentMeansCode: Code[3]): Boolean
     begin
         exit(PaymentMeansCode in ['30', '58']);
@@ -63,13 +70,17 @@ codeunit 11043 "DE Payment Means Helper"
     /// Returns the SEPA Creditor Identifier from the company bank account.
     /// Used for SEPA Direct Debit payment means (49/59) in the SellerTradeParty/AccountingSupplierParty.
     /// </summary>
+    /// <param name="CompanyBankAccountCode">The Company Bank Account Code taken from the source document header.</param>
+    /// <returns>The Creditor No. of that bank account, or an empty string when no bank account is given or found.</returns>
     procedure GetCreditorNo(CompanyBankAccountCode: Code[20]): Code[35]
     var
         BankAccount: Record "Bank Account";
     begin
-        if CompanyBankAccountCode <> '' then
+        if CompanyBankAccountCode <> '' then begin
+            BankAccount.SetLoadFields(BankAccount."Creditor No.");
             if BankAccount.Get(CompanyBankAccountCode) then
                 exit(BankAccount."Creditor No.");
+        end;
         exit('');
     end;
 
@@ -79,6 +90,8 @@ codeunit 11043 "DE Payment Means Helper"
     /// Covers SEPA direct debit mandate completeness, and rejects payment means codes for which
     /// neither this app nor a subscribing extension supplies the required document data.
     /// </summary>
+    /// <param name="SourceDocumentHeader">The source document header to check. Sales and service headers and
+    /// their posted invoice and credit memo tables are checked, any other table is skipped.</param>
     procedure CheckPaymentDataAvailable(SourceDocumentHeader: RecordRef)
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -108,7 +121,9 @@ codeunit 11043 "DE Payment Means Helper"
                 exit;
             IsDirectDebit(PaymentMeansCode):
                 begin
-                    if SourceDocumentHeader.Number() in [Database::"Sales Cr.Memo Header", Database::"Service Cr.Memo Header"] then
+                    // A credit document never carries a mandate. This has to stay in front of the mandate
+                    // FieldRef below, because the posted credit memo tables have no Direct Debit Mandate ID field.
+                    if IsCreditDocument(SourceDocumentHeader) then
                         Error(SEPADDOnCrMemoErr, PaymentMeansCode);
                     DirectDebitMandateIDFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Direct Debit Mandate ID"));
                     DirectDebitMandateID := DirectDebitMandateIDFieldRef.Value();
@@ -121,10 +136,40 @@ codeunit 11043 "DE Payment Means Helper"
         end;
     end;
 
+    /// <summary>
+    /// Returns true when the given source document header is a credit document. For the posted credit memo
+    /// tables that follows from the table, for an unposted sales or service header from the document type.
+    /// </summary>
+    /// <param name="SourceDocumentHeader">The source document header being checked.</param>
+    /// <returns>True for a credit memo and for a sales return order, otherwise false.</returns>
+    local procedure IsCreditDocument(SourceDocumentHeader: RecordRef): Boolean
+    var
+        SalesHeader: Record "Sales Header";
+        ServiceHeader: Record "Service Header";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Sales Cr.Memo Header",
+            Database::"Service Cr.Memo Header":
+                exit(true);
+            Database::"Sales Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesHeader);
+                    exit(SalesHeader.IsCreditDocType());
+                end;
+            Database::"Service Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceHeader);
+                    exit(ServiceHeader.IsCreditDocType());
+                end;
+        end;
+        exit(false);
+    end;
+
     local procedure CheckMandateData(DirectDebitMandateID: Code[35])
     var
         CustomerBankAccount: Record "Customer Bank Account";
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        IBANMissingErrorInfo: ErrorInfo;
     begin
         SEPADirectDebitMandate.SetLoadFields(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code");
         if not SEPADirectDebitMandate.Get(DirectDebitMandateID) then
@@ -132,8 +177,14 @@ codeunit 11043 "DE Payment Means Helper"
         CustomerBankAccount.SetLoadFields(CustomerBankAccount.IBAN);
         if not CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
             Error(BankAccountNotFoundErr, SEPADirectDebitMandate."Customer Bank Account Code", DirectDebitMandateID);
-        if CustomerBankAccount.IBAN = '' then
-            Error(IBANMissingErr, SEPADirectDebitMandate."Customer Bank Account Code", DirectDebitMandateID);
+        if CustomerBankAccount.IBAN = '' then begin
+            // The bank account exists, so the user can be taken straight to the record that needs the IBAN.
+            IBANMissingErrorInfo.Message := StrSubstNo(IBANMissingErr, SEPADirectDebitMandate."Customer Bank Account Code", DirectDebitMandateID);
+            IBANMissingErrorInfo.RecordId := CustomerBankAccount.RecordId();
+            IBANMissingErrorInfo.PageNo := Page::"Customer Bank Account Card";
+            IBANMissingErrorInfo.AddNavigationAction(ShowCustomerBankAccountLbl);
+            Error(IBANMissingErrorInfo);
+        end;
     end;
 
     local procedure CheckPaymentMeansCodeSupported(PaymentMeansCode: Code[3]; SourceDocumentHeader: RecordRef)
@@ -143,6 +194,7 @@ codeunit 11043 "DE Payment Means Helper"
         // The export only builds the dependent data for credit transfer and SEPA direct debit. Any other
         // code would produce a payment means block without the group that code requires, so it is rejected
         // unless an extension subscribes and supplies that data through the OnInsertPaymentMeans events.
+        IsHandled := false;
         OnBeforeCheckPaymentMeansCodeSupported(PaymentMeansCode, SourceDocumentHeader, IsHandled);
         if IsHandled then
             exit;
