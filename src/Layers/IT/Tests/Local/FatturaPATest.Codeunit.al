@@ -1528,8 +1528,7 @@ codeunit 144200 "FatturaPA Test"
         Initialize();
 
         // [GIVEN] A foreign customer without PA Code
-        CountryRegion.Code := 'DE';
-        if CountryRegion.Insert() then;
+        LibraryERM.CreateCountryRegion(CountryRegion);
         Customer.Get(CreateCustomer());
         CurrCustomer := Customer;
         Customer.Validate("Country/Region Code", CountryRegion.Code);
