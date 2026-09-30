@@ -19,6 +19,7 @@ codeunit 148342 "Expense Activity Log Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryPermissions: Codeunit "Library - Permissions";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
 
@@ -1597,11 +1598,7 @@ codeunit 148342 "Expense Activity Log Test"
 
     local procedure CreatePolicyHistoryAgentUser(var AgentUser: Record User)
     begin
-        AgentUser.Init();
-        AgentUser."User Security ID" := CreateGuid();
-        AgentUser."User Name" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(AgentUser."User Name"));
-        AgentUser."Full Name" := 'Expense Agent';
-        AgentUser.Insert(true);
+        LibraryPermissions.CreateUser(AgentUser, '', false);
     end;
 
     local procedure AddHistoryLine(Header: Record "Expense Report Header"; var Line: Record "Expense Report Line")
