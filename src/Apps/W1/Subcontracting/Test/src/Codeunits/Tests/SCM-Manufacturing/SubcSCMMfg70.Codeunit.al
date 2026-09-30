@@ -21,6 +21,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using System.TestLibraries.Utilities;
 
@@ -38,29 +39,29 @@ codeunit 149924 "Subc SCM Mfg. 70"
 
     var
         LocationGreen: Record Location;
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPlanning: Codeunit "Library - Planning";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        LibraryERM: Codeunit "Library - ERM";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
-        NumberOfLineErr: Label 'Number of line must be same.', Locked = true;
-        StatusTxt: Label 'Status must be', Locked = true;
         CertifiedTxt: Label 'Certified', Locked = true;
-        ModifyRtngErr: Label 'You cannot modify Routing No. %1 because there is at least one %2 associated with it.', Comment = '%1 = Routing No., %2 = Table Caption', Locked = true;
         DeleteRtngErr: Label 'You cannot delete Prod. Order Line %1 because there is at least one %2 associated with it.', Comment = '%1 = Prod. Order Line No., %2 = Table Caption', Locked = true;
-        SubcontractingDescriptionErr: Label 'The description in Subcontracting Worksheet must be from Work Center if available.', Locked = true;
+        ModifyRtngErr: Label 'You cannot modify Routing No. %1 because there is at least one %2 associated with it.', Comment = '%1 = Routing No., %2 = Table Caption', Locked = true;
+        NumberOfLineErr: Label 'Number of line must be same.', Locked = true;
         OperationNoErr: Label 'Operation No. must be equal to %1', Comment = '%1 = Operation No.', Locked = true;
+        StatusTxt: Label 'Status must be', Locked = true;
+        SubcontractingDescriptionErr: Label 'The description in Subcontracting Worksheet must be from Work Center if available.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -627,6 +628,71 @@ codeunit 149924 "Subc SCM Mfg. 70"
         VerifyOperationNoOnRequisitionLineForProductionOrder(ProductionOrder, OperationNo);
     end;
 
+    [Test]
+    [HandlerFunctions('PostedPurchaseDocumentLinesPageHandler')]
+    procedure PostPurchaseReturnOrderForSubcontractingWhenLastOperationIsNotSubcontracted()
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        RequisitionLine: Record "Requisition Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SubcontractingWorkCenter: Record "Work Center";
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+        WorkCenter: Record "Work Center";
+        OperationNo: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647380] A subcontracting purchase return order can be posted when a later operation is not subcontracted.
+        Initialize();
+
+        // [GIVEN] A released production order whose subcontracting operation is followed by a non-subcontracting operation.
+        OperationNo := Format(10 + LibraryRandom.RandInt(10));
+        CreateSubcontractingSetup(SubcontractingWorkCenter, RoutingHeader, OperationNo);
+        UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::"Under Development");
+        CreateWorkCenterSetup(WorkCenter, CapacityUnitOfMeasure.Type::Minutes, 160000T, 235959T);
+        CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenter."No.");
+        UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
+        CreateProdItem(Item, RoutingHeader."No.");
+        CreateAndRefreshProdOrder(
+            ProductionOrder, ProductionOrder.Status::Released, Item."No.", LibraryRandom.RandInt(10),
+            ProductionOrder."Source Type"::Item, false);
+
+        // [GIVEN] A subcontracting purchase order created from the subcontracting worksheet is received and invoiced.
+        CalculateSubcontractOrder(RequisitionLine, SubcontractingWorkCenter."No.", ProductionOrder);
+        LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Operation No.", OperationNo);
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] A purchase return order populated from the posted subcontracting invoice.
+        PurchInvLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchInvLine.FindFirst();
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", SubcontractingWorkCenter."Subcontractor No.");
+        LibraryVariableStorage.Enqueue(PurchInvLine."Document No.");
+        PurchaseHeader.GetPstdDocLinesToReverse();
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", PurchaseHeader."Buy-from Vendor No.");
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] The purchase return order is shipped and invoiced.
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Posting succeeds.
+        PurchCrMemoHdr.SetRange("Buy-from Vendor No.", PurchaseHeader."Buy-from Vendor No.");
+        Assert.RecordIsNotEmpty(PurchCrMemoHdr);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc SCM Mfg. 70");
@@ -1140,5 +1206,13 @@ codeunit 149924 "Subc SCM Mfg. 70"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure PostedPurchaseDocumentLinesPageHandler(var PostedPurchaseDocumentLines: TestPage "Posted Purchase Document Lines")
+    begin
+        PostedPurchaseDocumentLines.PostedReceiptsBtn.SetValue('Posted Invoices');
+        PostedPurchaseDocumentLines.PostedInvoices.Filter.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        PostedPurchaseDocumentLines.OK().Invoke();
     end;
 }

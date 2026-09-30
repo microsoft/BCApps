@@ -420,7 +420,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
 
         LibraryExciseTax.CreateFixedAssetWithExciseTax(FixedAsset, TaxTypeCode);
         // [GIVEN] Create hierarchical rate for fixed asset source type
-        LibraryExciseTax.CreateExciseTaxItemFARate(TaxTypeCode, Enum::"Excise Source Type"::"Fixed Asset", FixedAsset."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), LibraryRandom.RandText(10));
+        LibraryExciseTax.CreateExciseTaxRate(TaxTypeCode, Enum::"Excise Source Type"::"Fixed Asset", FixedAsset."No.", '', "Excise Calculation Type"::"Specific per Unit", TaxPercentage, 0, CalcDate('<-CY>', WorkDate()));
 
         // [GIVEN] Setup fixed asset depreciation and post acquisition cost
         CreateFixedAssetWithSetup(FixedAsset, DepreciationBook);
@@ -761,12 +761,12 @@ codeunit 148351 "Excise Tax Calculation Tests"
 
     local procedure VerifyTaxRateCreated(TaxTypeCode: Code[20]; SourceType: Enum "Excise Source Type")
     var
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
     begin
-        ExciseTaxItemFARate.SetRange("Excise Tax Type Code", TaxTypeCode);
-        ExciseTaxItemFARate.SetRange("Source Type", SourceType);
-        ExciseTaxItemFARate.FindFirst();
-        Assert.IsTrue(ExciseTaxItemFARate."Excise Tax Type Code" = TaxTypeCode, StrSubstNo(ExciseRecordNotCreatedLbl, ExciseTaxItemFARate.TableCaption()));
+        ExciseTaxRate.SetRange("Excise Tax Type Code", TaxTypeCode);
+        ExciseTaxRate.SetRange("Source Type", SourceType);
+        ExciseTaxRate.FindFirst();
+        Assert.IsTrue(ExciseTaxRate."Excise Tax Type Code" = TaxTypeCode, StrSubstNo(ExciseRecordNotCreatedLbl, ExciseTaxRate.TableCaption()));
     end;
 
     local procedure CreateFixedAssetWithSetup(FixedAsset: Record "Fixed Asset"; var DepreciationBook: Record "Depreciation Book")

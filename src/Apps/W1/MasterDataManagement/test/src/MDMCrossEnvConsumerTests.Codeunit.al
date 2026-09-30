@@ -810,6 +810,731 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure DuplicateCouplingInsertIsIdempotent()
+    var
+        LocalRecord: Record "MDM Test Table A";
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        IntegrationSystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Re-creating an existing coupling (as when a concurrent customer/vendor run already coupled the
+        // auto-created company contact) is a no-op instead of failing the record on a duplicate key.
+        Initialize();
+
+        // [GIVEN] a local record already coupled to a source record
+        Clear(LocalRecord);
+        LocalRecord."Primary Key" := CopyStr('K' + Format(LibraryRandomInt()), 1, MaxStrLen(LocalRecord."Primary Key"));
+        LocalRecord.Insert();
+        IntegrationSystemId := CreateGuid();
+        LibraryMasterDataMgt.InsertCoupling(IntegrationSystemId, LocalRecord.SystemId, Database::"MDM Test Table A");
+
+        // [WHEN] the same coupling is created again (concurrent/re-entrant coupling)
+        LibraryMasterDataMgt.InsertCoupling(IntegrationSystemId, LocalRecord.SystemId, Database::"MDM Test Table A");
+
+        // [THEN] no error, and exactly one coupling row exists
+        MasterDataMgtCoupling.SetRange("Integration System ID", IntegrationSystemId);
+        MasterDataMgtCoupling.SetRange("Local System ID", LocalRecord.SystemId);
+        Assert.AreEqual(1, MasterDataMgtCoupling.Count(), 'A duplicate coupling insert must be a no-op, not a second row or a duplicate-key error');
+
+        MasterDataMgtCoupling.DeleteAll(); // couplings are outside DeleteTestArtifacts' cleanup
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvInlineMediaSurvivesAncillaryReFetch()
+    var
+        FirstRecord, SecondRecord : Record "MDM Test Table A";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+        Watermark: DateTime;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A batch caches every record's picture; a per-record re-fetch (GetBySystemId, as the write loop
+        // does for coupling/conflict checks) must NOT drop the OTHER records' cached pictures. Regression guard for
+        // the bug where only the first record kept its image.
+        Initialize();
+
+        // [GIVEN] two source records with pictures, materialized as one batch (both pictures cached)
+        Watermark := CurrentDateTime();
+        Sleep(100);
+        CreateTestTableAWithImage(FirstRecord, 'first picture bytes');
+        CreateTestTableAWithImage(SecondRecord, 'second picture bytes');
+        CreateTestTableAMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Modified On Filter" := Watermark;
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', SourceRecordRef);
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(FirstRecord.SystemId, FirstRecord.FieldNo("Test Image")), 'Precondition: first record picture should be cached');
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(SecondRecord.SystemId, SecondRecord.FieldNo("Test Image")), 'Precondition: second record picture should be cached');
+
+        // [WHEN] the write loop re-fetches one record by SystemId (coupling/conflict lookup)
+        LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", FirstRecord.SystemId, SourceRecordRef);
+
+        // [THEN] the other record's cached picture is still there for the transfer-time apply
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(SecondRecord.SystemId, SecondRecord.FieldNo("Test Image")), 'A per-record re-fetch must not drop the batch''s other cached pictures');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSourceWatermarkSurvivesAncillaryReFetch()
+    var
+        FirstRecord, SecondRecord : Record "MDM Test Table A";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+        Watermark, CachedModifiedAt : DateTime;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The per-batch source watermark cache (read by GetRowLastModifiedOn during the write loop) must
+        // survive a per-record re-fetch, so conflict detection keeps each record's real source timestamp.
+        Initialize();
+
+        Watermark := CurrentDateTime();
+        Sleep(100);
+        CreateTestTableAWithImage(FirstRecord, 'first picture bytes');
+        CreateTestTableAWithImage(SecondRecord, 'second picture bytes');
+        CreateTestTableAMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Modified On Filter" := Watermark;
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', SourceRecordRef);
+        Assert.IsTrue(LibraryMasterDataMgt.TryGetSourceWatermark(SecondRecord.SystemId, CachedModifiedAt), 'Precondition: second record source watermark should be cached');
+
+        // [WHEN] the write loop re-fetches the first record by SystemId
+        LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", FirstRecord.SystemId, SourceRecordRef);
+
+        // [THEN] the other record's source watermark is still cached for conflict detection
+        Assert.IsTrue(LibraryMasterDataMgt.TryGetSourceWatermark(SecondRecord.SystemId, CachedModifiedAt), 'A per-record re-fetch must not drop the batch''s other source watermarks');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvInlineMediaSurvivesRelatedTableRead()
+    var
+        FirstRecord, SecondRecord : Record "MDM Test Table A";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+        Watermark: DateTime;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Resolving a related table (contact business relations) during the write loop must NOT drop the
+        // batch's cached pictures. Regression guard for the contact-side variant of the "only one picture" bug.
+        Initialize();
+
+        Watermark := CurrentDateTime();
+        Sleep(100);
+        CreateTestTableAWithImage(FirstRecord, 'first picture bytes');
+        CreateTestTableAWithImage(SecondRecord, 'second picture bytes');
+        CreateTestTableAMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Modified On Filter" := Watermark;
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', SourceRecordRef);
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(FirstRecord.SystemId, FirstRecord.FieldNo("Test Image")), 'Precondition: first record picture should be cached');
+
+        // [WHEN] a related-table read runs during the write loop (contact business relation resolution)
+        LibraryMasterDataMgt.DataSourceGetRecordsByFilter(Database::"Contact Business Relation", '', SourceRecordRef);
+
+        // [THEN] the batch's cached pictures are still there for the transfer-time apply
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(FirstRecord.SystemId, FirstRecord.FieldNo("Test Image")), 'A related-table read must not drop the batch''s cached pictures');
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(SecondRecord.SystemId, SecondRecord.FieldNo("Test Image")), 'A related-table read must not drop the batch''s cached pictures');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvOversizeBlobMarksSkipForApply()
+    var
+        TestTableA: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] An over-cap Blob is skipped AND marked so the field transfer keeps the destination blob (blobs
+        // travel in-band on the temp record, so without the marker the empty temp value would clear the destination).
+        Initialize();
+        CreateTestTableAWithBlob(TestTableA, PadStr('', 600000, 'A')); // > 512 KB raw
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", TestTableA.SystemId, SourceRecordRef), 'Record should still materialize');
+        Assert.IsTrue(
+            LibraryMasterDataMgt.InlineBlobIsSkipped(TestTableA.SystemId, TestTableA.FieldNo("Test Blob")),
+            'An over-cap blob must be marked skipped so the transfer preserves the destination blob');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservesDestinationBlob()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        NewValue: Variant;
+        IsValueFound: Boolean;
+        NeedsConversion: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] An over-cap source Blob is skipped (not sent inline), so the temp source blob is empty. The field
+        // transfer must keep the existing destination blob instead of clearing it. Regression guard for blob data loss.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record with an existing blob (seeded like the engine's SetTextValue, i.e. Write, so the
+        // read round-trips), and a source record whose (over-cap) blob was skipped
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert(); // empty (skipped) blob; carries a real SystemId
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+
+        // [WHEN] the field-transfer subscriber resolves the blob value
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+
+        // [THEN] the resolved value is the destination's own content. The engine writes a resolved Blob via
+        // SetTextValue(dest, Format(NewValue)), so asserting Format(NewValue) mirrors the production write and proves
+        // the destination blob is preserved unchanged (not cleared by the empty source value).
+        Assert.IsTrue(IsValueFound, 'A skipped cross-env blob must be resolved so the destination is not cleared');
+        Assert.AreEqual(false, NeedsConversion, '');
+        Assert.AreEqual('existing destination blob', Format(NewValue), 'The skipped blob must resolve to the destination''s current content, unchanged');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservesDestinationBlobWhenKeyRenamed()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        RenamedDestination: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        NewValue: Variant;
+        IsValueFound: Boolean;
+        NeedsConversion: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A key mapping renames the destination buffer before the Blob mapping runs, so the buffer's key no
+        // longer matches the stored row. The skipped-blob transfer must still resolve the stored content by SystemId
+        // (not the renamed key) so the destination blob is preserved rather than cleared or the sync failing.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record with an existing blob and a source record whose over-cap blob was skipped
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] the stored row is renamed, so the in-flight buffer's key no longer matches the database row
+        RenamedDestination.Get(DestinationRecord."Primary Key");
+        RenamedDestination.Rename(CopyStr('R' + Format(LibraryRandomInt()), 1, MaxStrLen(RenamedDestination."Primary Key")));
+
+        // [WHEN] the field-transfer subscriber resolves the blob value against the stale-key buffer
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+
+        // [THEN] the value resolves to the stored content via SystemId, so the destination blob is preserved unchanged
+        Assert.IsTrue(IsValueFound, 'A skipped cross-env blob must resolve even when the buffer key was renamed');
+        Assert.AreEqual('existing destination blob', Format(NewValue), 'The skipped blob must resolve to the stored content via SystemId, not the renamed key');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobReportedUnmodifiedBeforeCompare()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A skipped over-cap source Blob is reported as unchanged before the engine's field comparison, so
+        // the engine leaves the destination Blob untouched (no key-based read, no clear) regardless of mapping order.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+
+        // [WHEN] the engine asks whether the skipped blob field is modified
+        Result := true;
+        IsHandled := false;
+        LibraryMasterDataMgt.HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+
+        // [THEN] it is reported handled and unchanged, so the engine skips the destination blob entirely
+        Assert.IsTrue(IsHandled, 'A skipped cross-env blob must short-circuit the engine field comparison');
+        Assert.IsFalse(Result, 'A skipped cross-env blob must be reported as unchanged');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvNonSkippedBlobNotShortCircuited()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A blob with no skip marker is left to the engine's normal comparison (not short-circuited).
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+
+        SourceRecordRef.GetTable(SourceRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+
+        // [WHEN] the engine asks whether an ordinary (not skipped) blob field is modified
+        Result := false;
+        IsHandled := false;
+        LibraryMasterDataMgt.HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+
+        // [THEN] the subscriber leaves the decision to the engine
+        Assert.IsFalse(IsHandled, 'A blob without a skip marker must not short-circuit the engine comparison');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaContentSupersedesEarlierClearForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The same (SystemId, field) can arrive twice in one batch (re-modified between pages): cleared,
+        // then content. The newest state must win, so storing content drops the stale cleared marker.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPutCleared(SystemId, 5);
+        LibraryMasterDataMgt.InlineMediaPut(SystemId, 5, 'pic.bin', 'application/octet-stream', 'QUJD');
+
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'The newest content must win over an earlier cleared marker');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'A stale cleared marker must not survive newer content');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaClearSupersedesEarlierContentForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] Reverse of the above: content then cleared for the same key. The newest cleared state must win so
+        // the transfer removes the destination picture rather than re-applying stale bytes.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPut(SystemId, 5, 'pic.bin', 'application/octet-stream', 'QUJD');
+        LibraryMasterDataMgt.InlineMediaPutCleared(SystemId, 5);
+
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'The newest cleared marker must win over earlier content');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'Stale content must not survive a newer cleared marker');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaSkipSupersedesEarlierContentForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The newest duplicate has over-cap (skipped) media; earlier cached content must be dropped so the
+        // transfer leaves the destination unchanged instead of re-applying stale bytes.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPut(SystemId, 5, 'pic.bin', 'application/octet-stream', 'QUJD');
+        LibraryMasterDataMgt.InlineMediaClearMediaState(SystemId, 5); // newest duplicate is over-cap (skipped)
+
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'A skipped newest state must drop earlier cached content');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'A skipped newest state must not leave a cleared marker');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaSkipSupersedesEarlierClearForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The newest duplicate has over-cap (skipped) media; an earlier cleared marker must be dropped so
+        // the transfer leaves the destination unchanged instead of clearing it.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPutCleared(SystemId, 5);
+        LibraryMasterDataMgt.InlineMediaClearMediaState(SystemId, 5); // newest duplicate is over-cap (skipped)
+
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'A skipped newest state must drop an earlier cleared marker');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'A skipped newest state must not leave cached content');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CrossEnvSkippedBlobPreservedThroughSynchEngine()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        TempIntegrationFieldMapping: Record "Temp Integration Field Mapping" temporary;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        IntegrationRecordSynch: Codeunit "Integration Record Synch.";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobField: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        PreservedText: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] End-to-end through the real synch engine: an over-cap (skipped) source blob must leave the
+        // destination blob unchanged after Integration Record Synch. transfers the mapped blob field.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record with an existing blob (seeded the way the engine stores blobs, i.e. Write)
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped (empty temp blob + skip marker)
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+
+        // [GIVEN] a field mapping for the blob field (source -> destination)
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 1;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+
+        // [WHEN] the real synch engine transfers the mapped fields
+        IntegrationRecordSynch.SetFieldMapping(TempIntegrationFieldMapping);
+        IntegrationRecordSynch.SetParameters(SourceRecordRef, DestinationRecordRef, false);
+        Commit(); // Integration Record Synch. runs via Codeunit.Run
+        Assert.IsTrue(IntegrationRecordSynch.Run(), 'The field transfer should succeed');
+
+        // [THEN] the destination blob is unchanged (not cleared by the empty skipped source)
+        DestBlobField := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobField);
+        Assert.IsTrue(TempBlob.HasValue(), 'The destination blob must be preserved (not cleared) through the transfer');
+        TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
+        BlobInStream.Read(PreservedText);
+        Assert.AreEqual('existing destination blob', PreservedText, 'The skipped blob must leave the destination content unchanged through the engine');
+
+        CleanUp();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CrossEnvSkippedBlobSurvivesEngineWhenKeyMappedBeforeBlob()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        TempIntegrationFieldMapping: Record "Temp Integration Field Mapping" temporary;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        IntegrationRecordSynch: Codeunit "Integration Record Synch.";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        PreservedText: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The real synch engine processes the key mapping before the Blob mapping (No. 1 vs No. 2), so the
+        // destination buffer's primary key is already the new source key by the time the skipped over-cap Blob field is
+        // reached. Under only-modified (update) semantics the transfer must not read the destination Blob by the stale
+        // key and must not fail, leaving the transferred destination buffer's Blob untouched (S3/S5, key-before-Blob).
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record (old key) with an existing blob
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record with a DIFFERENT (renamed) key whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+        // load the existing bytes into the buffer up front, so a transfer that cleared the blob would be visible on it
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        DestBlobFieldRef.CalcField();
+
+        // [GIVEN] the key mapping is ordered (No. 1) before the blob mapping (No. 2), so the engine renames the
+        // destination buffer key first and reaches the skipped blob with a key that no longer matches the stored row
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 1;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Primary Key");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Primary Key");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 2;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+
+        // [WHEN] the real engine transfers the mapped fields with only-modified (update) semantics
+        IntegrationRecordSynch.SetFieldMapping(TempIntegrationFieldMapping);
+        IntegrationRecordSynch.SetParameters(SourceRecordRef, DestinationRecordRef, true);
+        Commit();
+
+        // [THEN] the transfer succeeds - the skipped blob is never read by the renamed key ...
+        Assert.IsTrue(IntegrationRecordSynch.Run(), 'The transfer must succeed with the key mapped before the skipped blob');
+        // [THEN] ... the key mapping was actually processed (precondition held) ...
+        Assert.IsTrue(IntegrationRecordSynch.GetWasModified(), 'The key mapping must have been processed before the blob');
+
+        // [THEN] ... and the blob on the transferred buffer is left unchanged (a clear would empty it here)
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The transferred destination buffer blob must not be cleared by the skipped source');
+        TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
+        BlobInStream.Read(PreservedText);
+        Assert.AreEqual('existing destination blob', PreservedText, 'The skipped blob must leave the transferred destination buffer content unchanged');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservesBinaryDestinationThroughOnAfter()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        OriginalBase64: Text;
+        PreservedBase64: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] Binary (non-UTF-8) destination blob bytes survive a skipped over-cap source blob byte-exact via
+        // the OnAfterTransferRecordFields restore, which the text round-trip alone could not guarantee.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        OriginalBase64 := '//7+/QABAgP/'; // arbitrary non-UTF-8 bytes (0xFF 0xFE ...) that would not survive a UTF-8 round-trip
+
+        // [GIVEN] a destination record whose blob holds non-UTF-8 binary content
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream);
+        Base64Convert.FromBase64(OriginalBase64, BlobOutStream);
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] a destination buffer whose blob was cleared by the field transfer (the database still holds the original)
+        DestinationRecordRef.GetTable(DestinationRecord);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        Clear(TempBlob);
+        TempBlob.ToFieldRef(DestBlobFieldRef);
+        SourceRecordRef.GetTable(SourceRecord);
+
+        // [WHEN] the after-transfer restore runs
+        LibraryMasterDataMgt.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+
+        // [THEN] the destination buffer blob is byte-exact to the original (restored from the database, not text-decoded)
+        Clear(TempBlob);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The binary destination blob must be restored');
+        TempBlob.CreateInStream(BlobInStream);
+        PreservedBase64 := Base64Convert.ToBase64(BlobInStream);
+        Assert.AreEqual(OriginalBase64, PreservedBase64, 'Non-UTF-8 destination blob bytes must be preserved byte-exact');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservedWhenPrimaryKeyRenamed()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        RenamedDestination: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        OriginalBase64: Text;
+        PreservedBase64: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A source rename changes the destination primary key, so the in-flight buffer's RecordId no
+        // longer matches the database row. The after-transfer restore must reload the original blob by the stable
+        // SystemId (not the stale primary key) so a skipped over-cap blob still leaves the destination bytes unchanged.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        OriginalBase64 := '//7+/QABAgP/';
+
+        // [GIVEN] a destination record whose blob holds non-UTF-8 binary content
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream);
+        Base64Convert.FromBase64(OriginalBase64, BlobOutStream);
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] the in-flight destination buffer, captured with the blob cleared by the field transfer
+        DestinationRecordRef.GetTable(DestinationRecord);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        Clear(TempBlob);
+        TempBlob.ToFieldRef(DestBlobFieldRef);
+        SourceRecordRef.GetTable(SourceRecord);
+
+        // [GIVEN] the database row is renamed (as OnBeforeModifyRecord does), so the buffer's RecordId is now stale
+        // while the row keeps the same SystemId
+        RenamedDestination.Get(DestinationRecord."Primary Key");
+        RenamedDestination.Rename(CopyStr('R' + Format(LibraryRandomInt()), 1, MaxStrLen(RenamedDestination."Primary Key")));
+
+        // [WHEN] the after-transfer restore runs against the stale-key buffer
+        LibraryMasterDataMgt.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+
+        // [THEN] the blob is still restored byte-exact, reloaded via the stable SystemId rather than the renamed key
+        Clear(TempBlob);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The blob must be restored even when the primary key was renamed');
+        TempBlob.CreateInStream(BlobInStream);
+        PreservedBase64 := Base64Convert.ToBase64(BlobInStream);
+        Assert.AreEqual(OriginalBase64, PreservedBase64, 'A renamed key must still preserve the destination blob byte-exact');
+
+        CleanUp();
+    end;
+
+    local procedure EnableCrossEnvForTransfer(EnvironmentName: Text)
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then begin
+            MasterDataManagementSetup.Init();
+            MasterDataManagementSetup.Insert();
+        end;
+        MasterDataManagementSetup."Source Environment Name" := CopyStr(EnvironmentName, 1, MaxStrLen(MasterDataManagementSetup."Source Environment Name"));
+        MasterDataManagementSetup."Is Enabled" := true;
+        MasterDataManagementSetup.Modify(false);
+    end;
+
     local procedure CreateTestTableAMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
     var
         IntegrationFieldMapping: Record "Integration Field Mapping";
@@ -881,10 +1606,14 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     local procedure Initialize()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
+        ExperienceTierSetup: Record "Experience Tier Setup";
         InProcessTransport: Codeunit "MDM In-Process Transport";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         PagingConfig: Codeunit "MDM Test Paging Config";
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
+        // MDM pages are ApplicationArea = Suite; the NAV CI harness defaults to Basic, hiding them, so force Essential.
+        ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(ExperienceTierSetup.FieldCaption(Essential));
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate(); // a paging test that failed before its CleanUp must not leak its forced page cap into later tests
         LibraryMasterDataMgt.ApproveCrossEnvPrivacyNotice(); // the source API is consent-gated; approve for the gated paths

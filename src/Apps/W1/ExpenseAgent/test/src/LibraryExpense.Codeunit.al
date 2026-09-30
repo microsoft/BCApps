@@ -16,10 +16,12 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
-using System.Security.User;
+using System.Utilities;
 
 codeunit 148300 "Library - Expense"
 {
+    EventSubscriberInstance = Manual;
+
     var
         LibraryUtility: Codeunit "Library - Utility";
         LibraryERM: Codeunit "Library - ERM";
@@ -27,6 +29,20 @@ codeunit 148300 "Library - Expense"
         LibraryHumanResource: Codeunit "Library - Human Resource";
         FirstNameTxt: Label 'First Name';
         NameTxt: Label 'Name';
+        AttachmentRetrievalFailedErr: Label 'The attachment could not be retrieved.', Locked = true;
+        AttachmentRetrievalFailureEnabled: Boolean;
+
+    internal procedure SetAttachmentRetrievalFailureEnabled(Enabled: Boolean)
+    begin
+        AttachmentRetrievalFailureEnabled := Enabled;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeGetAsTempBlob, '', false, false)]
+    local procedure FailOnBeforeGetAsTempBlob(var DocumentAttachment: Record "Document Attachment"; var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean)
+    begin
+        if AttachmentRetrievalFailureEnabled then
+            Error(AttachmentRetrievalFailedErr);
+    end;
 
     /// <summary>
     /// Creates or reuses the Expense Agent and ensures that it is enabled for the current company.
@@ -202,7 +218,7 @@ codeunit 148300 "Library - Expense"
         ExpenseLocation.Insert(true);
     end;
 
-    internal procedure CreateExpenseWithZeroVATPostingSetup(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[30]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
+    internal procedure CreateExpenseWithZeroVATPostingSetup(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[20]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
     var
         VATPostingSetup: Record "VAT Posting Setup";
     begin
@@ -214,7 +230,7 @@ codeunit 148300 "Library - Expense"
         Expense.Modify();
     end;
 
-    internal procedure CreateExpense(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[30]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
+    internal procedure CreateExpense(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[20]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
     begin
         Expense.Init();
         Expense.Validate(Description, LibraryUtility.GenerateRandomCode(Expense.FieldNo(Description), Database::"Expense"));
@@ -608,24 +624,6 @@ codeunit 148300 "Library - Expense"
         ExpenseTeam.Validate(Code, LibraryUtility.GenerateRandomCode(ExpenseTeam.FieldNo(Code), Database::"Expense Team"));
         ExpenseTeam.Validate(Description, LibraryUtility.GenerateRandomCode(ExpenseTeam.FieldNo(Description), Database::"Expense Team"));
         ExpenseTeam.Insert(true);
-    end;
-
-    procedure SetExpenseAmountApprovalLimits(var UserSetup: Record "User Setup"; ExpenseApprovalLimit: Integer)
-    begin
-        UserSetup."Expense Amount Approval Limit" := ExpenseApprovalLimit;
-        UserSetup.Modify(true);
-    end;
-
-    procedure SetLimitedExpenseApprovalLimits(var UserSetup: Record "User Setup")
-    begin
-        UserSetup."Unlimited Expense Approval" := false;
-        UserSetup.Modify(true);
-    end;
-
-    procedure SetUnlimitedExpenseApprovalLimits(var UserSetup: Record "User Setup")
-    begin
-        UserSetup."Unlimited Expense Approval" := true;
-        UserSetup.Modify(true);
     end;
 
     internal procedure CreateExpenseApprovalSetup(var ExpenseApprovalSetup: Record "Expense Approval Setup"; ExpenseUserNo: Code[20]; ApproverNo: Code[20])

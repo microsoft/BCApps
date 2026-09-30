@@ -485,6 +485,9 @@ table 6916 "Posted Expense Report Line"
         key(SpendRequestNo; "Spend Request No.")
         {
         }
+        key(SpendRequestExpenseUser; "Spend Request No.", "Expense User No.")
+        {
+        }
     }
 
     var

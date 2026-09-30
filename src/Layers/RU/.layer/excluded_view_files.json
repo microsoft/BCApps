@@ -349,6 +349,7 @@
   "Tests\\ERM\\PaymentsusingCreditorNumber.Codeunit.al",
   "Tests\\Report\\ReportLayout.Codeunit.al",
   "Tests\\SCM\\SCMInventoryBatchJobs.Codeunit.al",
+  "Tests\\SCM-Costing\\SCMInventoryCostingIV.Codeunit.al",
   "Tests\\SCM-Costing\\SCMWIPPosting.Codeunit.al",
   "Tests\\Integration\\TestAccountantPortalWS.Codeunit.al",
   "Tests\\Misc\\TestPartnerIntegrationEvent.Codeunit.al",

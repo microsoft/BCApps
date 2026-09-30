@@ -4401,6 +4401,39 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
+    procedure AttachmentModifySucceedsWhenContentHashRetrievalFails()
+    var
+        Expense: Record Expense;
+        DocumentAttachment: Record "Document Attachment";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO] Attachment writes are not blocked when best-effort content hashing cannot retrieve the attachment
+        Initialize();
+
+        // [GIVEN] An expense attachment with a content hash
+        CreateExpense(Expense, true, '', LibraryRandom.RandDec(100, 2));
+        RecRef.GetTable(Expense);
+        CreateDocumentAttachment(DocumentAttachment, RecRef, Expense."No." + JPEGLbl);
+        Assert.AreNotEqual('', DocumentAttachment."Content Hash", 'The attachment should have a content hash before retrieval fails.');
+
+        // [GIVEN] Attachment retrieval fails during content-hash refresh
+        LibraryExpense.SetAttachmentRetrievalFailureEnabled(true);
+        BindSubscription(LibraryExpense);
+
+        // [WHEN] The attachment is modified
+        DocumentAttachment."Attached Date" := CurrentDateTime();
+        DocumentAttachment.Modify(true);
+
+        UnbindSubscription(LibraryExpense);
+
+        // [THEN] The modification succeeds and the stale content hash is cleared
+        DocumentAttachment.Get(
+            DocumentAttachment."Table ID", DocumentAttachment."No.", DocumentAttachment."Document Type",
+            DocumentAttachment."Line No.", DocumentAttachment.ID);
+        Assert.AreEqual('', DocumentAttachment."Content Hash", 'The content hash should be cleared when attachment retrieval fails.');
+    end;
+
+    [Test]
     procedure DocumentAttachmentIsShownOnExpense()
     var
         Expense: Record Expense;
