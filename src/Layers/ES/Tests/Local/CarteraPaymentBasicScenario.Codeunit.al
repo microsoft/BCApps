@@ -1791,6 +1791,7 @@ codeunit 147500 "Cartera Payment Basic Scenario"
         Currency: Record Currency;
         GLEntry: Record "G/L Entry";
         PaymentOrder: Record "Payment Order";
+        VendorPostingGroup: Record "Vendor Posting Group";
         Vendor: Record Vendor;
         InvoiceNo: Code[20];
         SettleAmount: Decimal;
@@ -1808,12 +1809,16 @@ codeunit 147500 "Cartera Payment Basic Scenario"
         CreateAndPostPaymentOrder(PaymentOrder, Currency.Code, WorkDate() + 1, InvoiceNo);
 
         // [WHEN] The G/L entries created by the posted payment order are reviewed.
-        // [THEN] The G/L entries should have the correct source currency information.
-        GLEntry.SetRange("Document No.", PaymentOrder."No.");
-        GLEntry.SetRange("Debit Amount", 0);
-        GLEntry.FindFirst();
+        // [THEN] The G/L entries should have the expected source currency amounts and signs.
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+
+        FindGLEntryByDocNoGLAccNo(GLEntry, PaymentOrder."No.", VendorPostingGroup."Invoices in  Pmt. Ord. Acc.");
         Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
-        Assert.AreEqual(-SettleAmount, GLEntry."Source Currency Amount", 'Source Currency Amount must be populated on posted payment-order G/L entries.');
+        Assert.AreEqual(-SettleAmount, GLEntry."Source Currency Amount", 'Source Currency Amount must equal the invoice amount.');
+
+        FindGLEntryByDocNoGLAccNo(GLEntry, PaymentOrder."No.", VendorPostingGroup."Payables Account");
+        Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
+        Assert.AreEqual(SettleAmount, GLEntry."Source Currency Amount", 'Source Currency Amount must have the opposite sign on the balancing entry.');
     end;
 
     local procedure Initialize()
