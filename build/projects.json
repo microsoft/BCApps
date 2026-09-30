@@ -1084,6 +1084,27 @@
       "dvdFolder": "Applications\\BaseApp\\Test",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "Tests-Company Creation": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\Company Creation",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\Company Creation\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\Integrations"
+    },
     "Tests-Misc": {
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\Misc",
       "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\Misc\\app.json",
