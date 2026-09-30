@@ -18,7 +18,7 @@ report 13478 "Calc. and Post Depr. Diff. FI"
     DefaultLayout = RDLC;
     RDLCLayout = './src/Reports/CalcandPostDeprDiff.rdlc';
     ApplicationArea = Basic, Suite;
-    Caption = 'Calculate and Post Deprication Difference';
+    Caption = 'Calculate and Post Depreciation Difference';
     Permissions = TableData "FA Ledger Entry" = rimd;
     UsageCategory = ReportsAndAnalysis;
 

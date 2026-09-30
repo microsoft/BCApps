@@ -48,12 +48,7 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
     end;
 
     procedure AfterUpdate(FeatureDataUpdateStatus: Record "Feature Data Update Status")
-    var
-        UpdateFeatureDataUpdateStatus: Record "Feature Data Update Status";
     begin
-        UpdateFeatureDataUpdateStatus.SetRange("Feature Key", FeatureDataUpdateStatus."Feature Key");
-        UpdateFeatureDataUpdateStatus.SetFilter("Company Name", '<>%1', FeatureDataUpdateStatus."Company Name");
-        UpdateFeatureDataUpdateStatus.ModifyAll("Feature Status", FeatureDataUpdateStatus."Feature Status");
         SetUpgradeTag(true);
     end;
 

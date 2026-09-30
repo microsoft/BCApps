@@ -51,6 +51,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         Book2NotInGLTxt: Label 'The Depreciation Book Code 2 must not be integrated with G/L.';
         NoDeprDiffPostedTxt: Label 'There is no Depreciation Difference posted for the specified period.';
         ZeroDifferenceLineErr: Label '''%1'' report contains lines with 0 in difference amount', Comment = '%1 is the report name.';
+        ExpectedReportRowErr: Label 'The report did not produce the expected difference row.';
         HandledMessage: Text;
         DifferenceAmtErr: Label 'Current row does not have ''DifferenceAmt'' value greater than zero. Value  = <%1>.', Comment = '%1 is the name of the DataSet field, and %2 is the value of that field.';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
@@ -948,10 +949,9 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         DifferenceAmt: Variant;
     begin
         LibraryReportDataset.LoadDataSetFile();
-        if LibraryReportDataset.GetNextRow() then begin
-            LibraryReportDataset.FindCurrentRowValue('DifferenceAmt', DifferenceAmt);
-            Assert.AreNotEqual(0, DifferenceAmt, StrSubstNo(DifferenceAmtErr, 0));
-        end
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), ExpectedReportRowErr);
+        LibraryReportDataset.FindCurrentRowValue('DifferenceAmt', DifferenceAmt);
+        Assert.AreNotEqual(0, DifferenceAmt, StrSubstNo(DifferenceAmtErr, 0));
     end;
 
     [ConfirmHandler]
