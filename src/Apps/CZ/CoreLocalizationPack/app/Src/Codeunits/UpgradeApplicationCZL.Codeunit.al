@@ -193,7 +193,7 @@ codeunit 31017 "Upgrade Application CZL"
 #endif
         UpgradeOriginalVATAmountsACYInVATEntries();
         UpgradeDraftInvoiceAndProformaReportLayouts();
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
         UpgradeStatutoryReportingSetupOfficialFullName();
 #endif
     end;

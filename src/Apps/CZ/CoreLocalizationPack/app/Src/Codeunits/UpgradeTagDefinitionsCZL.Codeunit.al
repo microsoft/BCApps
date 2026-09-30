@@ -231,7 +231,7 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
         exit('CZL-640925-ChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag-20260908');
     end;
 
-    procedure GetStatutoryReportingSetupOfficialFullNameUpgradeTag(): Code[250]
+    internal procedure GetStatutoryReportingSetupOfficialFullNameUpgradeTag(): Code[250]
     begin
         exit('CZL-652254-StatutoryReportingSetupOfficialFullNameUpgradeTag-20260930');
     end;
