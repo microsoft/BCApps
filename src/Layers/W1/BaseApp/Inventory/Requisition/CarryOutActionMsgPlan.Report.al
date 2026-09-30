@@ -33,9 +33,9 @@ report 99001020 "Carry Out Action Msg. - Plan."
                 if not "Accept Action Message" then
                     CurrReport.Skip();
 
-                Commit();
+                    Commit();
                 RunCarryOutActionsByRefOrderType("Requisition Line");
-                Commit();
+                    Commit();
 
                 OnAfterRequisitionLineOnAfterGetRecord("Requisition Line", ProdOrderChoice.AsInteger());
             end;
@@ -118,6 +118,56 @@ report 99001020 "Carry Out Action Msg. - Plan."
                             ApplicationArea = Manufacturing;
                             Caption = 'Production Order';
                             ToolTip = 'Specifies that you want to create production orders for item with the Prod. Order replenishment system. You can select to create either planned or firm planned production order, and you can have the new order documents printed.';
+
+                            trigger OnValidate()
+                            begin
+                                ProdOrderCopyToReqWksh := ProdOrderChoice = ProdOrderChoice::"Copy to Req. Wksh";
+                            end;
+                        }
+                        group(ProductionOrderWorksheet)
+                        {
+                            ShowCaption = false;
+                            Visible = ProdOrderCopyToReqWksh;
+                            field(ProdTemp; ProdWkshTempl)
+                            {
+                                ApplicationArea = Manufacturing;
+                                Caption = 'Planning Wksh. Template';
+                                Enabled = ProdOrderCopyToReqWksh;
+                                TableRelation = "Req. Wksh. Template";
+                                ToolTip = 'Specifies the worksheet template to which production planning lines are copied.';
+
+                                trigger OnLookup(var Text: Text): Boolean
+                                begin
+                                    if Page.RunModal(Page::"Req. Worksheet Templates", ReqWkshTmpl) = Action::LookupOK then begin
+                                        Text := ReqWkshTmpl.Name;
+                                        exit(true);
+                                    end;
+                                    exit(false);
+                                end;
+
+                                trigger OnValidate()
+                                begin
+                                    ProdWkshName := '';
+                                end;
+                            }
+                            field(ProdName; ProdWkshName)
+                            {
+                                ApplicationArea = Manufacturing;
+                                Caption = 'Planning Wksh. Name';
+                                Enabled = ProdOrderCopyToReqWksh;
+                                TableRelation = "Requisition Wksh. Name".Name;
+                                ToolTip = 'Specifies the worksheet name to which production planning lines are copied.';
+
+                                trigger OnLookup(var Text: Text): Boolean
+                                begin
+                                    ReqWkshName.SetRange("Worksheet Template Name", ProdWkshTempl);
+                                    if Page.RunModal(Page::"Req. Wksh. Names", ReqWkshName) = Action::LookupOK then begin
+                                        Text := ReqWkshName.Name;
+                                        exit(true);
+                                    end;
+                                    exit(false);
+                                end;
+                            }
                         }
                     }
                     group("Assembly Order")
@@ -272,12 +322,14 @@ report 99001020 "Carry Out Action Msg. - Plan."
 
         trigger OnInit()
         begin
+            ProdOrderCopyToReqWksh := false;
             PurchOrderCopyToReqWksh := false;
             TransOrderCopyToReqWksh := false;
         end;
 
         trigger OnOpenPage()
         begin
+            ProdOrderCopyToReqWksh := ProdOrderChoice = ProdOrderChoice::"Copy to Req. Wksh";
             PurchOrderCopyToReqWksh := PurchOrderChoice = PurchOrderChoice::"Copy to Req. Wksh";
             TransOrderCopyToReqWksh := TransOrderChoice = TransOrderChoice::"Copy to Req. Wksh";
         end;
@@ -320,6 +372,7 @@ report 99001020 "Carry Out Action Msg. - Plan."
         CounterTotal: Integer;
         CounterFailed: Integer;
         EndOrderDate: Date;
+        ProdOrderCopyToReqWksh: Boolean;
         PurchOrderCopyToReqWksh: Boolean;
         TransOrderCopyToReqWksh: Boolean;
 
