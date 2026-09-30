@@ -3,14 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Integration.Shopify;
+#pragma warning disable AA0247
 
-using System.AI;
-
-enumextension 30470 "Shpfy TMA Cap." extends "Copilot Capability"
+enumextension 139492 "API Test Authentication Test" extends "API Test Authentication"
 {
-    value(30470; "Shopify Tax Matching Agent")
+    value(139492; Mock)
     {
-        Caption = 'Shopify Tax Matching';
+        Implementation = "API Test Auth Provider" = "Mock API Test Auth Provider";
     }
 }
