@@ -170,35 +170,45 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
 
         IsHandled := true;
-        CopyItemLedgerEntriesUpToQuantity(TempItemLedgerEntry, ItemLedgerEntry, ToPurchLine."Quantity (Base)");
+        CopyItemLedgerEntriesUpToQuantity(
+            TempItemLedgerEntry, ItemLedgerEntry, ToPurchLine."Quantity (Base)", PurchRcptLine."Qty. Invoiced (Base)");
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
             TempItemLedgerEntry, ToPurchLine, false, MissingExactCostReversingLink,
             false, false, true);
     end;
 
-    local procedure CopyItemLedgerEntriesUpToQuantity(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; QuantityBase: Decimal)
+    local procedure CopyItemLedgerEntriesUpToQuantity(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; QuantityBase: Decimal; QuantityAlreadyInvoicedBase: Decimal)
     var
+        EntryQuantityBase: Decimal;
         QuantityToCopy: Decimal;
+        QuantityToSkipBase: Decimal;
         RemainingQuantityBase: Decimal;
     begin
         TempItemLedgerEntry.Reset();
         TempItemLedgerEntry.DeleteAll();
         RemainingQuantityBase := Abs(QuantityBase);
+        QuantityToSkipBase := Abs(QuantityAlreadyInvoicedBase);
         if (RemainingQuantityBase = 0) or not ItemLedgerEntry.FindSet() then
             exit;
 
         repeat
-            QuantityToCopy := Abs(ItemLedgerEntry.Quantity);
-            if QuantityToCopy > RemainingQuantityBase then
-                QuantityToCopy := RemainingQuantityBase;
-            RemainingQuantityBase -= QuantityToCopy;
-            if ItemLedgerEntry.Quantity < 0 then
-                QuantityToCopy := -QuantityToCopy;
+            EntryQuantityBase := Abs(ItemLedgerEntry.Quantity);
+            if QuantityToSkipBase >= EntryQuantityBase then
+                QuantityToSkipBase -= EntryQuantityBase
+            else begin
+                QuantityToCopy := EntryQuantityBase - QuantityToSkipBase;
+                QuantityToSkipBase := 0;
+                if QuantityToCopy > RemainingQuantityBase then
+                    QuantityToCopy := RemainingQuantityBase;
+                RemainingQuantityBase -= QuantityToCopy;
+                if ItemLedgerEntry.Quantity < 0 then
+                    QuantityToCopy := -QuantityToCopy;
 
-            TempItemLedgerEntry := ItemLedgerEntry;
-            TempItemLedgerEntry.Quantity := QuantityToCopy;
-            TempItemLedgerEntry."Remaining Quantity" := QuantityToCopy;
-            TempItemLedgerEntry.Insert();
+                TempItemLedgerEntry := ItemLedgerEntry;
+                TempItemLedgerEntry.Quantity := QuantityToCopy;
+                TempItemLedgerEntry."Remaining Quantity" := QuantityToCopy;
+                TempItemLedgerEntry.Insert();
+            end;
         until (ItemLedgerEntry.Next() = 0) or (RemainingQuantityBase = 0);
 
         TempItemLedgerEntry.Reset();

@@ -596,6 +596,8 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         WarehouseActivityLine: Record "Warehouse Activity Line";
         WorkCenter: array[2] of Record "Work Center";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        FirstPostedInvoiceNo: Code[20];
+        SecondPostedInvoiceNo: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 649862] A tracked subcontracting receipt can be invoiced after an earlier partial invoice
@@ -655,7 +657,8 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         InvoiceLine.FindFirst();
         InvoiceLine.Validate(Quantity, 1);
         InvoiceLine.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+        FirstPostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+        VerifyPostedInvoiceSerialNo(FirstPostedInvoiceNo, PurchRcptLine, 'PARTIAL-SN1');
         PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
         Assert.AreEqual(1, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The first invoice must leave one unit uninvoiced.');
 
@@ -679,9 +682,33 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
             InvoiceLine."Document No.", InvoiceLine."Line No.", false);
         ReservationEntry.CalcSums("Quantity (Base)");
         Assert.AreEqual(InvoiceLine."Quantity (Base)", Abs(ReservationEntry."Quantity (Base)"), 'Copied tracking must equal the remaining invoice quantity.');
-        LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+        SecondPostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+        VerifyPostedInvoiceSerialNo(SecondPostedInvoiceNo, PurchRcptLine, 'PARTIAL-SN2');
         PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
         Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The second invoice must invoice the remaining receipt quantity.');
+    end;
+
+    local procedure VerifyPostedInvoiceSerialNo(PostedInvoiceNo: Code[20]; PurchRcptLine: Record "Purch. Rcpt. Line"; ExpectedSerialNo: Code[50])
+    var
+        PurchInvLine: Record "Purch. Inv. Line";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
+    begin
+        PurchInvLine.SetRange("Document No.", PostedInvoiceNo);
+#pragma warning disable AA0210
+        PurchInvLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        PurchInvLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+#pragma warning restore AA0210
+        PurchInvLine.FindFirst();
+
+        ItemTrackingDocMgt.FindInvoiceEntries(
+            TempTrackingSpecification, Database::"Purch. Inv. Line", 0,
+            PurchInvLine."Document No.", '', 0, PurchInvLine."Line No.", PurchInvLine.Description);
+        Assert.RecordCount(TempTrackingSpecification, 1);
+        TempTrackingSpecification.FindFirst();
+        Assert.AreEqual(
+            ExpectedSerialNo, TempTrackingSpecification."Serial No.",
+            'Successive partial invoices must use the distinct serial numbers from the posted output entries.');
     end;
 
     [Test]
