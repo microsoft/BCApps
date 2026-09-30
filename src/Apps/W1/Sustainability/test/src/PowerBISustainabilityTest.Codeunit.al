@@ -225,9 +225,6 @@ codeunit 148215 "PowerBI Sustainability Test"
         VerifySustainabilityGoal(Response, SustainabilityGoal);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
     [Test]
     procedure TestGenerateSustainabilityReportDateFilter_StartEndDate()
     var
@@ -348,9 +345,6 @@ codeunit 148215 "PowerBI Sustainability Test"
         Assert.IsFalse(IsEndDateVisible, StrSubstNo(FieldShownMsg, PowerBIReportsSetup."Sustainability End Date".Caption()));
         Assert.IsFalse(IsDateFormulaVisible, StrSubstNo(FieldShownMsg, PowerBIReportsSetup."Sustainability Date Formula".Caption()));
     end;
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
 
     local procedure RecreatePBISetup()
     var
