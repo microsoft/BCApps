@@ -598,18 +598,18 @@ codeunit 1001 "Job Post-Line"
         end;
     end;
 
-    procedure PostJobPurchaseLinesFromQueue(var JobLineQueue: Record "Invoice Posting Buffer" temporary)
+    procedure PostJobPurchaseLinesFromQueue(var TempJobLineQueue: Record "Invoice Posting Buffer" temporary)
     begin
         TempPurchaseLineJob.Reset();
         if TempPurchaseLineJob.FindSet() then
             repeat
-                JobLineQueue.Reset();
-                JobLineQueue.SetRange("Fixed Asset Line No.", TempPurchaseLineJob."Line No.");
-                if JobLineQueue.FindFirst() then begin
+                TempJobLineQueue.Reset();
+                TempJobLineQueue.SetRange("Fixed Asset Line No.", TempPurchaseLineJob."Line No.");
+                if TempJobLineQueue.FindFirst() then begin
                     TempJobJournalLine.Reset();
                     TempJobJournalLine.SetRange("Line No.", TempPurchaseLineJob."Line No.");
                     TempJobJournalLine.FindFirst();
-                    JobJnlPostLine.SetGLEntryNo(JobLineQueue."Deferral Line No.");
+                    JobJnlPostLine.SetGLEntryNo(TempJobLineQueue."Deferral Line No.");
                     JobJnlPostLine.RunWithCheck(TempJobJournalLine);
                 end;
             until TempPurchaseLineJob.Next() = 0;

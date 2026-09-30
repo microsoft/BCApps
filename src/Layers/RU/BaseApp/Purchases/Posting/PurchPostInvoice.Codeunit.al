@@ -527,12 +527,13 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
     procedure PostLines(DocumentHeaderVar: Variant; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var Window: Dialog; var TotalAmount: Decimal)
     var
-        PurchHeader: Record "Purchase Header";
+        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
         JobPostingQueue: Record "Invoice Posting Buffer" temporary;
         JobPurchLine: Record "Purchase Line";
-        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         PrepmtDiffVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PurchHeader: Record "Purchase Header";
+        TempJobPostingQueue: Record "Invoice Posting Buffer" temporary;
         GLEntryNo: Integer;
         LineCount: Integer;
     begin
@@ -576,10 +577,10 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                 if (TempInvoicePostingBuffer."Job No." <> '') and
                    (TempInvoicePostingBuffer.Type = TempInvoicePostingBuffer.Type::"G/L Account")
                 then
-                    PostJobLine(TempInvoicePostingBuffer, GLEntryNo, JobPostingQueue, JobPurchLine);
+                    PostJobLine(TempInvoicePostingBuffer, GLEntryNo, TempJobPostingQueue, JobPurchLine);
             until TempInvoicePostingBuffer.Next(-1) = 0;
 
-        PostQueuedJobLines(JobPostingQueue);
+        PostQueuedJobLines(TempJobPostingQueue);
 
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := TempInvoicePostingBuffer.Amount;
@@ -1420,7 +1421,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         end;
     end;
 
-    local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: Integer; var JobPostingQueue: Record "Invoice Posting Buffer" temporary; var JobPurchLine: Record "Purchase Line")
+    local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: Integer; var TempJobPostingQueue: Record "Invoice Posting Buffer" temporary; var JobPurchLine: Record "Purchase Line")
     var
         QueueEntry: Record "Invoice Posting Buffer" temporary;
     begin
@@ -1428,20 +1429,20 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         if PurchSetup."Copy Line Descr. to G/L Entry" and (InvoicePostingBuffer."Fixed Asset Line No." <> 0) then begin
             QueueEntry := InvoicePostingBuffer;
             QueueEntry."Deferral Line No." := GLEntryNo;
-            JobPostingQueue := QueueEntry;
-            JobPostingQueue.Insert();
+            TempJobPostingQueue := QueueEntry;
+            TempJobPostingQueue.Insert();
         end else begin
             SetJobLineFilters(JobPurchLine, InvoicePostingBuffer);
             JobPostLine.PostJobPurchaseLines(JobPurchLine.GetView(), GLEntryNo);
         end;
     end;
 
-    local procedure PostQueuedJobLines(var JobPostingQueue: Record "Invoice Posting Buffer" temporary)
+    local procedure PostQueuedJobLines(var TempJobPostingQueue: Record "Invoice Posting Buffer" temporary)
     begin
-        if JobPostingQueue.IsEmpty() then
+        if TempJobPostingQueue.IsEmpty() then
             exit;
 
-        JobPostLine.PostJobPurchaseLinesFromQueue(JobPostingQueue);
+        JobPostLine.PostJobPurchaseLinesFromQueue(TempJobPostingQueue);
     end;
 
     [IntegrationEvent(false, false)]
