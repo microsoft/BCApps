@@ -445,6 +445,7 @@ codeunit 148343 "Expense Activity Log API Test"
 
         CreateTestExpenseUser(ApproverExpenseUser);
         ApproverExpenseUser."Can Approve" := true;
+        ApproverExpenseUser.Validate("Unlimited Approval", true);
         ApproverExpenseUser."User Id For Approvals" :=
             CopyStr('APPROVER-' + RunToken, 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
         ApproverExpenseUser.Modify();
