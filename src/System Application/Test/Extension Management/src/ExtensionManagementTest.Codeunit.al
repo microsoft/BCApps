@@ -8,6 +8,7 @@ namespace System.Test.Apps;
 using System.Apps;
 using System.Environment.Configuration;
 using System.Media;
+using System.Security.AccessControl;
 using System.TestLibraries.Apps;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
@@ -43,6 +44,7 @@ codeunit 133100 "Extension Management Test"
         PackageIdExistsErr: Label 'The returned extension pakage does not exist';
         NullPackageIdErr: Label 'There should not be an extension corresponding to the returned package ID';
         PackageIdExtensionVersionErr: Label 'The package Id does not poin to the correct extension version';
+        NotSufficientPermissionErr: Label 'You do not have sufficient permissions to manage extensions. Please contact your administrator.';
 
     local procedure SetNavAppIds()
     begin
@@ -155,7 +157,7 @@ codeunit 133100 "Extension Management Test"
 
         Assert.IsFalse(ExtensionMgtTestLibrary.CanManageExtensions(UserSecurityId), 'Company-scoped Exten. Mgt. - Admin must not grant tenant-wide extension management permission.');
     end;
-    [Test]
+
     [Test]
     [Scope('OnPrem')]
     procedure InstallUninstallExtension()
