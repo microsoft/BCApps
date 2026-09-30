@@ -1400,7 +1400,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         SalesInvoiceHeader.Modify();
         MockTextSalesInvoiceLine(SalesInvoiceHeader."No.");
         ExpectedClientFileName := CopyStr(
-            StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), Format("Sales Document Type"::Invoice), SalesInvoiceHeader."No.", 'XML'), 1, 250);
+            StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), Format("Sales Document Type"::Invoice), SalesInvoiceHeader."No.", 'xml'), 1, 250);
 
         // [WHEN] Export Sales Invoice with PEPPOL BIS3
         SalesInvoiceHeader.SetRecFilter();
@@ -1635,6 +1635,74 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <AnticipatedMonetaryTotal>/<PayableAmount> equals the purchase line's own Amount Including VAT
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AnticipatedMonetaryTotal/cbc:PayableAmount', Format(PurchaseLine."Amount Including VAT", 0, 9));
+    end;
+
+    [Test]
+    procedure ExportXml_PEPPOL_BIS3_PurchOrder_NoCompanyVATRegNo()
+    var
+        CompanyInformation: Record "Company Information";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [Purchase Order]
+        // [SCENARIO] PEPPOL BIS3. A company that identifies by GLN only must not export an empty
+        // [SCENARIO] <PartyTaxScheme><CompanyID>, because <CompanyID> is mandatory inside the optional block.
+        Initialize();
+
+        // [GIVEN] Company Information identified by GLN only, "VAT Registration No." is blank
+        CompanyInformation.Get();
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation.Modify();
+
+        // [GIVEN] A Purchase Order with one item line
+        CreateVendorWithAddressAndGLN(Vendor);
+        CreatePurchaseOrderWithItemLine(
+          PurchaseHeader, PurchaseLine, Vendor."No.", LibraryRandom.RandIntInRange(1, 5), LibraryRandom.RandDecInRange(10, 100, 2));
+
+        // [WHEN] The Purchase Order is exported with the PEPPOL 3.0 Purchase format
+        ExportPurchaseOrderToBlob(PurchaseHeader, TempBlob);
+
+        // [THEN] <BuyerCustomerParty> has no <PartyTaxScheme> at all
+        InitXPathXMLReaderForOrder(TempBlob);
+        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:BuyerCustomerParty/cac:Party/cac:PartyTaxScheme');
+
+        // [THEN] The buyer is still identified by the company GLN in <PartyLegalEntity><CompanyID>
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:BuyerCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', CompanyInformation.GLN);
+    end;
+
+    [Test]
+    procedure ExportXml_PEPPOL_BIS3_PurchOrder_CompanyVATRegNo()
+    var
+        CompanyInformation: Record "Company Information";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [Purchase Order]
+        // [SCENARIO] PEPPOL BIS3. A company with a VAT Registration No. keeps exporting <PartyTaxScheme>.
+        Initialize();
+
+        // [GIVEN] Company Information with a "VAT Registration No."
+        CompanyInformation.Get();
+
+        // [GIVEN] A Purchase Order with one item line
+        CreateVendorWithAddressAndGLN(Vendor);
+        CreatePurchaseOrderWithItemLine(
+          PurchaseHeader, PurchaseLine, Vendor."No.", LibraryRandom.RandIntInRange(1, 5), LibraryRandom.RandDecInRange(10, 100, 2));
+
+        // [WHEN] The Purchase Order is exported with the PEPPOL 3.0 Purchase format
+        ExportPurchaseOrderToBlob(PurchaseHeader, TempBlob);
+
+        // [THEN] <PartyTaxScheme> has the company VAT Registration No. as <CompanyID> and <TaxScheme><ID> = 'VAT'
+        InitXPathXMLReaderForOrder(TempBlob);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:BuyerCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:BuyerCustomerParty/cac:Party/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID', 'VAT');
     end;
 
     [Test]
