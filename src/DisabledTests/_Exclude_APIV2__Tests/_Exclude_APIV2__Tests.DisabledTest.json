@@ -1,48 +1,8 @@
 [
   {
-    "codeunitId": 139925,
-    "codeunitName": "APIV2 - Assembly Orders E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139908,
-    "codeunitName": "APIV2 - Bl. Purch. Orders E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139909,
-    "codeunitName": "APIV2 - Bl. Sales Orders E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139922,
-    "codeunitName": "APIV2 - Purch. Quotes E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139923,
-    "codeunitName": "APIV2 - Purch. Ret. Orders E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139928,
-    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139927,
-    "codeunitName": "APIV2 - Sales Ord. Arch. E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139924,
-    "codeunitName": "APIV2 - Sales Ret. Orders E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139926,
-    "codeunitName": "APIV2 - Transfer Orders E2E",
-    "method": "*"
+    "codeunitId": 139806,
+    "codeunitName": "APIV2 - Company Info. E2E",
+    "method": "TestGetCompanyAndEnvironmentDescriptions"
   },
   {
     "codeunitId": 139809,
@@ -83,5 +43,50 @@
     "codeunitId": 139867,
     "codeunitName": "APIV2 - Apply Vendor Ent. E2E",
     "method": "TestApplyVendorEntryAppliesPayment"
+  },
+  {
+    "codeunitId": 139928,
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139908,
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139927,
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139909,
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139924,
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139923,
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139922,
+    "codeunitName": "APIV2 - Purch. Quotes E2E",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139925,
+    "codeunitName": "APIV2 - Assembly Orders E2E",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139926,
+    "codeunitName": "APIV2 - Transfer Orders E2E",
+    "method": "*"
   }
 ]
