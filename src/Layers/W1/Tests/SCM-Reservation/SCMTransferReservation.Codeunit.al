@@ -35,6 +35,7 @@ codeunit 137269 "SCM Transfer Reservation"
         ReservationEntryShipmentDateIncorrectErr: Label 'Reservation Entry Shipment Date is incorrect.';
         ReservationFromStockErr: Label 'Reservation from Stock must be %1 in %2.', Comment = '%1= Field Value, %2 =Table Caption.';
         ReservedQtyExpectedErr: Label 'Reserved Qty. Outbnd. (Base) is expected to be non-zero before deletion.';
+        ReservedItemNotOnInventoryErr: Label 'Reserved item %1 is not on inventory.', Comment = '%1 = Item No.';
         ReservEntryQtyIncorrectErr: Label 'Reservation Entry Quantity is different than expected.';
         TransferHeaderNotDeletedErr: Label 'Transfer Header should have been deleted.';
         UnexpectedErr: Label 'Unexpected Error occured.';
@@ -1965,14 +1966,11 @@ codeunit 137269 "SCM Transfer Reservation"
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
         WarehouseActivityLine: Record "Warehouse Activity Line";
         WarehouseActivityHeader: Record "Warehouse Activity Header";
-        TransferShipmentHeader: Record "Transfer Shipment Header";
-        TransferShipmentLine: Record "Transfer Shipment Line";
-        ReservationEntry: Record "Reservation Entry";
         LocationInTransit: Record Location;
         WarehouseEmployee: Record "Warehouse Employee";
         Vendor: Record Vendor;
     begin
-        // [SCENARIO 615167] Post warehouse shipment for transfer order with partial inventory when reservation exists from unposted purchase order
+        // [SCENARIO 615167] Reject warehouse shipment for transfer order reserved from an unposted purchase order.
         Initialize();
 
         // [GIVEN] Create Item with reordering policy
@@ -1986,6 +1984,8 @@ codeunit 137269 "SCM Transfer Reservation"
 
         // [GIVEN] Location with warehouse management (bins, require shipment, require pick)
         LibraryWarehouse.CreateLocationWMS(Location, true, false, true, false, true);
+        Location.Validate("Always Create Pick Line", true);
+        Location.Modify(true);
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 2, false);
         LibraryWarehouse.FindBin(Bin[1], Location.Code, '', 1);
         LibraryWarehouse.FindBin(Bin[2], Location.Code, '', 2);
@@ -2038,8 +2038,8 @@ codeunit 137269 "SCM Transfer Reservation"
         // [GIVEN] Create and Post warehouse Pick from Warehouse Shipment
         WarehouseShipmentLine.SetRange("Source Document", WarehouseShipmentLine."Source Document"::"Outbound Transfer");
         WarehouseShipmentLine.SetRange("Source No.", TransferHeader."No.");
-        if WarehouseShipmentLine.FindFirst() then
-            WarehouseShipmentLine."Bin Code" := Bin[2].Code;
+        WarehouseShipmentLine.FindFirst();
+        WarehouseShipmentLine.Validate("Bin Code", Bin[2].Code);
         WarehouseShipmentLine.Modify(true);
         WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
         LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
@@ -2048,36 +2048,138 @@ codeunit 137269 "SCM Transfer Reservation"
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
         WarehouseActivityLine.FindFirst();
         WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
-        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+        RegisterTransferPickQuantity(WarehouseActivityHeader, Bin[1].Code, 1);
 
-        // [WHEN] Post warehouse shipment
-        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
-
-        // [THEN] Transfer shipment is created with quantity 1
-        TransferShipmentHeader.SetRange("Transfer Order No.", TransferHeader."No.");
-        TransferShipmentHeader.FindFirst();
-        TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
-        TransferShipmentLine.SetRange("Item No.", Item."No.");
-        TransferShipmentLine.FindFirst();
-        Assert.AreEqual(1, TransferShipmentLine.Quantity, '');
-
-        // [THEN] Reservation from the planning-created PO still exists after partial shipment
-        // During posting, the reservation is transferred from the Transfer Line to the Item Journal Line
-        // (via TransferTransferToItemJnlLine). Our fix prevents it from being deleted in ItemJnlPostLine.
-        // Verify from the Purchase Line side, which is the stable side of the reservation pair.
+        // [GIVEN] The planning-created purchase supply remains unreceived and paired with the transfer demand.
         PurchaseLine.Reset();
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.SetRange("No.", Item."No.");
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Outstanding Quantity", 1);
         PurchaseLine.FindFirst();
+        VerifyUnreceivedTransferReservation(PurchaseLine, TransferLine, 1);
+        Commit();
 
-        ReservationEntry.Reset();
-        ReservationEntry.SetRange("Source Type", DATABASE::"Purchase Line");
-        ReservationEntry.SetRange("Source ID", PurchaseLine."Document No.");
-        ReservationEntry.SetRange("Source Ref. No.", PurchaseLine."Line No.");
-        ReservationEntry.SetRange("Item No.", Item."No.");
-        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
-        Assert.RecordIsNotEmpty(ReservationEntry);
+        // [WHEN] Post the picked warehouse shipment.
+        asserterror PostWarehouseShipmentWithoutCommit(WarehouseShipmentHeader);
+
+        // [THEN] Unreceived supply cannot be shipped and both reservation partners remain on their documents.
+        Assert.ExpectedError(StrSubstNo(ReservedItemNotOnInventoryErr, Item."No."));
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyRejectedReservedTransfer(PurchaseLine, TransferLine, 1);
+
+        // [WHEN] Ship a different untracked item from the same warehouse.
+        PostDifferentItemWarehouseTransfer(TransferLine, Bin[1].Code, Bin[2].Code);
+
+        // [THEN] The planning-created reservation is still intact.
+        VerifyRejectedReservedTransfer(PurchaseLine, TransferLine, 1);
+    end;
+
+    [Test]
+    procedure WarehouseTransferWithFullUnreceivedReservationIsRejected()
+    var
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Warehouse Pick] [Reservation]
+        // [SCENARIO] A fully picked transfer cannot consume a full reservation against unreceived purchase supply.
+        Initialize();
+
+        // [GIVEN] Transfer "T" has two units reserved from unreceived purchase "P" and two other units picked from stock.
+        CreatePickedReservedTransfer(PurchaseLine, TransferLine, WarehouseShipmentHeader, 2, 2, 2, false);
+        VerifyUnreceivedTransferReservation(PurchaseLine, TransferLine, 2);
+        Commit();
+
+        // [WHEN] Post the warehouse shipment.
+        asserterror PostWarehouseShipmentWithoutCommit(WarehouseShipmentHeader);
+
+        // [THEN] Posting is rejected without moving either reservation partner to a temporary journal.
+        Assert.ExpectedError(StrSubstNo(ReservedItemNotOnInventoryErr, TransferLine."Item No."));
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyRejectedReservedTransfer(PurchaseLine, TransferLine, 2);
+
+        // [WHEN] Ship a different untracked item from the same warehouse.
+        PostDifferentItemWarehouseTransfer(TransferLine, 'STOCK', 'SHIP');
+
+        // [THEN] The rejected transfer's legitimate reservation is still intact.
+        VerifyRejectedReservedTransfer(PurchaseLine, TransferLine, 2);
+    end;
+
+    [Test]
+    procedure WarehouseTransferWithPartialUnreceivedReservationIsRejected()
+    var
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Warehouse Pick] [Reservation]
+        // [SCENARIO] A partial shipment cannot consume part of an unreceived purchase reservation.
+        Initialize();
+
+        // [GIVEN] Transfer "T" has four units, two reserved from purchase "P", and one unit picked from other stock.
+        CreatePickedReservedTransfer(PurchaseLine, TransferLine, WarehouseShipmentHeader, 4, 2, 1, false);
+        VerifyUnreceivedTransferReservation(PurchaseLine, TransferLine, 2);
+        Commit();
+
+        // [WHEN] Post the partial warehouse shipment.
+        asserterror PostWarehouseShipmentWithoutCommit(WarehouseShipmentHeader);
+
+        // [THEN] Posting is rejected and the complete reservation pair remains on the source documents.
+        Assert.ExpectedError(StrSubstNo(ReservedItemNotOnInventoryErr, TransferLine."Item No."));
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyRejectedReservedTransfer(PurchaseLine, TransferLine, 2);
+
+        // [WHEN] Ship a different untracked item from the same warehouse.
+        PostDifferentItemWarehouseTransfer(TransferLine, 'STOCK', 'SHIP');
+
+        // [THEN] The original reservation has not been consumed by the unrelated shipment.
+        VerifyRejectedReservedTransfer(PurchaseLine, TransferLine, 2);
+    end;
+
+    [Test]
+    procedure WarehouseTransferWithReceivedReservationCanShip()
+    var
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Warehouse Pick] [Reservation]
+        // [SCENARIO] Receiving reserved purchase supply allows the inventory-backed transfer shipment.
+        Initialize();
+
+        // [GIVEN] Purchase "P" is reserved to transfer "T", received, and picked.
+        CreatePickedReservedTransfer(PurchaseLine, TransferLine, WarehouseShipmentHeader, 2, 2, 2, true);
+        VerifyInventoryBackedTransferReservation(TransferLine, 2);
+
+        // [WHEN] Post the warehouse shipment.
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        // [THEN] Both units ship without leaving reservations on the temporary journal key.
+        VerifyWarehouseTransferShipped(TransferLine, 2);
+    end;
+
+    [Test]
+    procedure WarehouseTransferWithoutReservationCanPartiallyShip()
+    var
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Warehouse Pick] [Reservation]
+        // [SCENARIO] An unreserved transfer can still ship only the picked stock quantity.
+        Initialize();
+
+        // [GIVEN] Transfer "T" has four unreserved units and two units picked from stock.
+        CreatePickedReservedTransfer(PurchaseLine, TransferLine, WarehouseShipmentHeader, 4, 0, 2, false);
+        TransferLine.CalcFields("Reserved Qty. Outbnd. (Base)");
+        Assert.AreEqual(0, TransferLine."Reserved Qty. Outbnd. (Base)", 'The control must be unreserved.');
+
+        // [WHEN] Post the partial warehouse shipment.
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        // [THEN] Two units ship without temporary journal reservations.
+        VerifyWarehouseTransferShipped(TransferLine, 2);
     end;
 
     [Test]
@@ -2198,6 +2300,218 @@ codeunit 137269 "SCM Transfer Reservation"
 
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Transfer Reservation");
+    end;
+
+    local procedure CreatePickedReservedTransfer(var PurchaseLine: Record "Purchase Line"; var TransferLine: Record "Transfer Line"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; TransferQuantity: Decimal; ReservedQuantity: Decimal; ShipQuantity: Decimal; ReceiveReservedSupply: Boolean)
+    var
+        Item: Record Item;
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        TransitLocation: Record Location;
+        StockBin: Record Bin;
+        ShipmentBin: Record Bin;
+        WarehouseEmployee: Record "Warehouse Employee";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocationWMS(FromLocation, true, false, true, false, true);
+        FromLocation.Validate("Always Create Pick Line", true);
+        FromLocation.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, FromLocation.Code, false);
+        LibraryWarehouse.CreateBin(StockBin, FromLocation.Code, 'STOCK', '', '');
+        LibraryWarehouse.CreateBin(ShipmentBin, FromLocation.Code, 'SHIP', '', '');
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+        LibraryWarehouse.CreateInTransitLocation(TransitLocation);
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, TransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", TransferQuantity);
+
+        if ReservedQuantity > 0 then begin
+            LibraryPurchase.CreatePurchaseDocumentWithItem(
+                PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, '',
+                Item."No.", ReservedQuantity, FromLocation.Code, WorkDate());
+            PurchaseLine.Validate("Bin Code", StockBin.Code);
+            PurchaseLine.Modify(true);
+            AutoReservePurchaseLine(PurchaseLine, TransferLine."Shipment Date");
+        end;
+
+        if ReceiveReservedSupply then
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false)
+        else
+            ReceiveUnreservedStock(Item."No.", StockBin, ShipQuantity);
+
+        CreateAndRegisterTransferPick(TransferHeader, WarehouseShipmentHeader, StockBin.Code, ShipmentBin.Code, ShipQuantity);
+    end;
+
+    local procedure ReceiveUnreservedStock(ItemNo: Code[20]; StockBin: Record Bin; Quantity: Decimal)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchaseDocumentWithItem(
+            PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, '',
+            ItemNo, Quantity, StockBin."Location Code", WorkDate());
+        PurchaseLine.Validate("Bin Code", StockBin.Code);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+    end;
+
+    local procedure CreateAndRegisterTransferPick(var TransferHeader: Record "Transfer Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; StockBinCode: Code[20]; ShipmentBinCode: Code[20]; ShipQuantity: Decimal)
+    var
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        WarehouseShipmentLine.SetRange("Source Document", WarehouseShipmentLine."Source Document"::"Outbound Transfer");
+        WarehouseShipmentLine.SetRange("Source No.", TransferHeader."No.");
+        WarehouseShipmentLine.FindFirst();
+        WarehouseShipmentLine.Validate("Bin Code", ShipmentBinCode);
+        WarehouseShipmentLine.Modify(true);
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+        FindSetWarehouseActivityLine(WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick, TransferHeader."No.");
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        RegisterTransferPickQuantity(WarehouseActivityHeader, StockBinCode, ShipQuantity);
+        WarehouseShipmentLine.FindFirst();
+        Assert.AreEqual(ShipQuantity, WarehouseShipmentLine."Qty. Picked", 'The requested quantity must be registered as picked.');
+        Assert.AreEqual(ShipQuantity, WarehouseShipmentLine."Qty. to Ship", 'Posting must consume the registered pick.');
+    end;
+
+    local procedure RegisterTransferPickQuantity(var WarehouseActivityHeader: Record "Warehouse Activity Header"; StockBinCode: Code[20]; Quantity: Decimal)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindSet();
+        repeat
+            WarehouseActivityLine.Validate("Qty. to Handle", 0);
+            WarehouseActivityLine.Modify(true);
+        until WarehouseActivityLine.Next() = 0;
+
+        // Always Create Pick Line also creates unpickable shortage lines; handle only the available take/place pair.
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.SetRange("Bin Code", StockBinCode);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.Validate("Qty. to Handle", Quantity);
+        WarehouseActivityLine.Modify(true);
+        WarehouseActivityLine.SetRange("Bin Code");
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Place);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.Validate("Qty. to Handle", Quantity);
+        WarehouseActivityLine.Modify(true);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+    end;
+
+    local procedure PostWarehouseShipmentWithoutCommit(WarehouseShipmentHeader: Record "Warehouse Shipment Header")
+    var
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        WhsePostShipment: Codeunit "Whse.-Post Shipment";
+    begin
+        WarehouseShipmentLine.SetRange("No.", WarehouseShipmentHeader."No.");
+        WarehouseShipmentLine.FindFirst();
+        WhsePostShipment.SetPostingSettings(false);
+        WhsePostShipment.SetSuppressCommit(true);
+        WhsePostShipment.Run(WarehouseShipmentLine);
+    end;
+
+    local procedure VerifyUnreceivedTransferReservation(var PurchaseLine: Record "Purchase Line"; var TransferLine: Record "Transfer Line"; ReservedQuantity: Decimal)
+    var
+        SupplyReservation: Record "Reservation Entry";
+        DemandReservation: Record "Reservation Entry";
+    begin
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        Assert.AreEqual(0, PurchaseLine."Quantity Received", 'Reserved purchase supply must remain unreceived.');
+        SupplyReservation.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.", false);
+        SupplyReservation.SetRange("Reservation Status", SupplyReservation."Reservation Status"::Reservation);
+        SupplyReservation.SetRange(Positive, true);
+        Assert.RecordCount(SupplyReservation, 1);
+        SupplyReservation.FindFirst();
+        Assert.AreEqual(ReservedQuantity, SupplyReservation."Quantity (Base)", 'The purchase reservation must retain its quantity.');
+        DemandReservation.Get(SupplyReservation."Entry No.", false);
+        Assert.AreEqual(Database::"Transfer Line", DemandReservation."Source Type", 'The demand partner must stay on the transfer line.');
+        Assert.AreEqual(0, DemandReservation."Source Subtype", 'The reservation must be outbound.');
+        Assert.AreEqual(TransferLine."Document No.", DemandReservation."Source ID", 'The demand document must be preserved.');
+        Assert.AreEqual(TransferLine."Line No.", DemandReservation."Source Ref. No.", 'The demand line must be preserved.');
+        Assert.AreEqual(TransferLine."Item No.", DemandReservation."Item No.", 'The demand item must be preserved.');
+        Assert.AreEqual(-ReservedQuantity, DemandReservation."Quantity (Base)", 'The demand reservation must retain its quantity.');
+        TransferLine.CalcFields("Reserved Qty. Outbnd. (Base)");
+        Assert.AreEqual(ReservedQuantity, TransferLine."Reserved Qty. Outbnd. (Base)", 'The transfer must remain reserved.');
+    end;
+
+    local procedure VerifyRejectedReservedTransfer(var PurchaseLine: Record "Purchase Line"; var TransferLine: Record "Transfer Line"; ReservedQuantity: Decimal)
+    var
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+    begin
+        VerifyUnreceivedTransferReservation(PurchaseLine, TransferLine, ReservedQuantity);
+        Assert.AreEqual(0, TransferLine."Quantity Shipped", 'A rejected shipment must not update the transfer line.');
+        TransferShipmentHeader.SetRange("Transfer Order No.", TransferLine."Document No.");
+        Assert.RecordIsEmpty(TransferShipmentHeader);
+        VerifyNoTemporaryTransferReservations();
+    end;
+
+    local procedure VerifyNoTemporaryTransferReservations()
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetSourceFilter(Database::"Item Journal Line", 4, '', 0, false);
+        ReservationEntry.SetRange("Source Batch Name", '');
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
+    local procedure VerifyInventoryBackedTransferReservation(TransferLine: Record "Transfer Line"; ReservedQuantity: Decimal)
+    var
+        DemandReservation: Record "Reservation Entry";
+        SupplyReservation: Record "Reservation Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        DemandReservation.SetSourceFilter(Database::"Transfer Line", 0, TransferLine."Document No.", TransferLine."Line No.", false);
+        DemandReservation.SetRange("Reservation Status", DemandReservation."Reservation Status"::Reservation);
+        Assert.RecordCount(DemandReservation, 1);
+        DemandReservation.FindFirst();
+        Assert.AreEqual(-ReservedQuantity, DemandReservation."Quantity (Base)", 'The transfer must remain fully reserved after receipt.');
+        SupplyReservation.Get(DemandReservation."Entry No.", true);
+        Assert.AreEqual(Database::"Item Ledger Entry", SupplyReservation."Source Type", 'Receipt must move the supply reservation to inventory.');
+        ItemLedgerEntry.Get(SupplyReservation."Source Ref. No.");
+        Assert.AreEqual(TransferLine."Item No.", ItemLedgerEntry."Item No.", 'The inventory-backed reservation must refer to the transferred item.');
+        Assert.AreEqual(ReservedQuantity, ItemLedgerEntry."Remaining Quantity", 'The received stock must be available.');
+    end;
+
+    local procedure VerifyWarehouseTransferShipped(var TransferLine: Record "Transfer Line"; ShippedQuantity: Decimal)
+    var
+        TransferShipmentLine: Record "Transfer Shipment Line";
+    begin
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        Assert.AreEqual(ShippedQuantity, TransferLine."Quantity Shipped", 'The picked quantity must ship.');
+        TransferShipmentLine.SetRange("Transfer Order No.", TransferLine."Document No.");
+        TransferShipmentLine.SetRange("Item No.", TransferLine."Item No.");
+        Assert.RecordCount(TransferShipmentLine, 1);
+        TransferShipmentLine.FindFirst();
+        Assert.AreEqual(ShippedQuantity, TransferShipmentLine.Quantity, 'The posted shipment must contain the picked quantity.');
+        VerifyNoTemporaryTransferReservations();
+    end;
+
+    local procedure PostDifferentItemWarehouseTransfer(OriginalTransferLine: Record "Transfer Line"; StockBinCode: Code[20]; ShipmentBinCode: Code[20])
+    var
+        Item: Record Item;
+        StockBin: Record Bin;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+    begin
+        LibraryInventory.CreateItem(Item);
+        StockBin.Get(OriginalTransferLine."Transfer-from Code", StockBinCode);
+        ReceiveUnreservedStock(Item."No.", StockBin, 1);
+        LibraryWarehouse.CreateTransferHeader(
+            TransferHeader, OriginalTransferLine."Transfer-from Code", OriginalTransferLine."Transfer-to Code", OriginalTransferLine."In-Transit Code");
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 1);
+        CreateAndRegisterTransferPick(TransferHeader, WarehouseShipmentHeader, StockBinCode, ShipmentBinCode, 1);
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+        VerifyWarehouseTransferShipped(TransferLine, 1);
     end;
 
     local procedure CreateSOAsDemandAndPOAsSupplyAtDifferentLocations(var SalesLine: Record "Sales Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; SNSpecific: Boolean; LNSpecific: Boolean): Code[20]
@@ -3162,4 +3476,3 @@ codeunit 137269 "SCM Transfer Reservation"
     begin
     end;
 }
-
