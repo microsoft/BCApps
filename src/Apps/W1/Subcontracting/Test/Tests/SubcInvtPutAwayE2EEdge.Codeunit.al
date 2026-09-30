@@ -655,6 +655,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
         InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
         InvoiceLine.FindFirst();
+        SetPurchaseLineSerialTrackingQuantity(InvoiceLine, 'PARTIAL-SN1', 1);
         InvoiceLine.Validate(Quantity, 1);
         InvoiceLine.Modify(true);
         FirstPostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
@@ -686,6 +687,58 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         VerifyPostedInvoiceSerialNo(SecondPostedInvoiceNo, PurchRcptLine, 'PARTIAL-SN2');
         PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
         Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The second invoice must invoice the remaining receipt quantity.');
+
+        VerifyCorrectiveCreditMemoSerialNo(FirstPostedInvoiceNo, Item."No.", 'PARTIAL-SN1');
+        VerifyCorrectiveCreditMemoSerialNo(SecondPostedInvoiceNo, Item."No.", 'PARTIAL-SN2');
+    end;
+
+    local procedure SetPurchaseLineSerialTrackingQuantity(PurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; QuantityBase: Decimal)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(),
+            PurchaseLine."Document No.", PurchaseLine."Line No.", false);
+        ReservationEntry.SetFilter("Serial No.", '<>%1', SerialNo);
+        ReservationEntry.DeleteAll(true);
+        ReservationEntry.SetRange("Serial No.", SerialNo);
+        ReservationEntry.FindFirst();
+        ReservationEntry.Validate("Quantity (Base)", QuantityBase);
+        ReservationEntry.Modify(true);
+    end;
+
+    local procedure VerifyCorrectiveCreditMemoSerialNo(PostedInvoiceNo: Code[20]; ItemNo: Code[20]; ExpectedSerialNo: Code[50])
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CreditMemoHeader: Record "Purchase Header";
+        CreditMemoLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        TrackingSpecification: Record "Tracking Specification";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        PurchInvHeader.Get(PostedInvoiceNo);
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, CreditMemoHeader);
+        CreditMemoLine.SetRange("Document Type", CreditMemoHeader."Document Type");
+        CreditMemoLine.SetRange("Document No.", CreditMemoHeader."No.");
+        CreditMemoLine.SetRange(Type, CreditMemoLine.Type::Item);
+        CreditMemoLine.SetRange("No.", ItemNo);
+        CreditMemoLine.FindFirst();
+
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", CreditMemoLine."Document Type".AsInteger(),
+            CreditMemoLine."Document No.", CreditMemoLine."Line No.", false);
+        Assert.RecordCount(ReservationEntry, 1);
+        ReservationEntry.FindFirst();
+        Assert.AreEqual(ExpectedSerialNo, ReservationEntry."Serial No.", 'A correction must copy the original invoice serial number.');
+        Assert.AreNotEqual(0, ReservationEntry."Item Ledger Entry No.", 'The corrective tracking reservation must reference an invoice specification.');
+        TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No.");
+        Assert.AreEqual(0, TrackingSpecification."Qty. to Handle (Base)", 'Corrective invoice tracking must not contain an unhandled quantity.');
+
+        CreditMemoHeader.Validate(
+            "Vendor Cr. Memo No.",
+            CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(CreditMemoHeader."Vendor Cr. Memo No.")));
+        CreditMemoHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(CreditMemoHeader, true, true);
     end;
 
     local procedure VerifyPostedInvoiceSerialNo(PostedInvoiceNo: Code[20]; PurchRcptLine: Record "Purch. Rcpt. Line"; ExpectedSerialNo: Code[50])
@@ -1735,6 +1788,8 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
             InvoiceLine.Reset();
             InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
             InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+            InvoiceLine.SetRange(Type, InvoiceLine.Type::Item);
+            InvoiceLine.SetRange("No.", Item."No.");
             InvoiceLine.FindFirst();
             if TrackOutput then begin
                 ReservationEntry.SetSourceFilter(

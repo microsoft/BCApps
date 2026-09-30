@@ -101,7 +101,6 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ItemLedgerEntry: Record "Item Ledger Entry";
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         PurchRcptLine: Record "Purch. Rcpt. Line";
-        ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         DirectUnitCost: Decimal;
         MissingExactCostReversingLink: Boolean;
@@ -133,7 +132,10 @@ codeunit 20535 "Subc. Purch. Post Ext"
         end;
 
         DirectUnitCost := ToPurchLine."Direct Unit Cost";
-        ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempItemLedgerEntry, ItemLedgerEntry);
+        if not CopyPostedInvoiceOutputEntriesToTemp(
+            TempItemLedgerEntry, ItemLedgerEntry, FromPurchInvLine)
+        then
+            exit;
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
             TempItemLedgerEntry, ToPurchLine, true, MissingExactCostReversingLink,
             ToPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
@@ -175,6 +177,36 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
             TempItemLedgerEntry, ToPurchLine, false, MissingExactCostReversingLink,
             false, false, true);
+        CreateInvoiceTrackingSpecifications(ToPurchLine);
+    end;
+
+    local procedure CopyPostedInvoiceOutputEntriesToTemp(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; FromPurchInvLine: Record "Purch. Inv. Line"): Boolean
+    var
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
+    begin
+        ItemTrackingDocMgt.FindInvoiceEntries(
+            TempTrackingSpecification, Database::"Purch. Inv. Line", 0,
+            FromPurchInvLine."Document No.", '', 0, FromPurchInvLine."Line No.", FromPurchInvLine.Description);
+        if not TempTrackingSpecification.FindSet() then
+            exit(false);
+
+        TempItemLedgerEntry.Reset();
+        TempItemLedgerEntry.DeleteAll();
+        repeat
+            ItemLedgerEntry.SetTrackingFilterFromSpec(TempTrackingSpecification);
+            ItemLedgerEntry.SetRange("Package No.", TempTrackingSpecification."Package No.");
+            if not ItemLedgerEntry.FindFirst() then
+                exit(false);
+
+            TempItemLedgerEntry := ItemLedgerEntry;
+            TempItemLedgerEntry.Quantity := Abs(TempTrackingSpecification."Quantity (Base)");
+            TempItemLedgerEntry."Remaining Quantity" := TempItemLedgerEntry.Quantity;
+            TempItemLedgerEntry.Insert();
+        until TempTrackingSpecification.Next() = 0;
+        TempItemLedgerEntry.Reset();
+
+        exit(not TempItemLedgerEntry.IsEmpty());
     end;
 
     local procedure CopyItemLedgerEntriesUpToQuantity(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; QuantityBase: Decimal; QuantityAlreadyInvoicedBase: Decimal)
@@ -235,6 +267,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
             TrackingSpecification."Source Subtype" := PurchaseLine."Document Type".AsInteger();
             TrackingSpecification."Source ID" := PurchaseLine."Document No.";
             TrackingSpecification."Source Ref. No." := PurchaseLine."Line No.";
+            TrackingSpecification."Qty. to Handle" := 0;
+            TrackingSpecification."Qty. to Handle (Base)" := 0;
             TrackingSpecification."Qty. to Invoice (Base)" := ReservationEntry."Qty. to Invoice (Base)";
             TrackingSpecification.Insert();
 
