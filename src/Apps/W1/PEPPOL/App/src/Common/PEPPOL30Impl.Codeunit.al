@@ -57,6 +57,8 @@ codeunit 37201 "PEPPOL30 Impl."
         GLNSchemeIDTxt: Label '0088', Locked = true;
         CreditTransferPaymentMeansCodeTxt: Label '31', Locked = true;
         CheckPaymentMeansCodeTxt: Label '20', Locked = true;
+        MissingCompanyPartyIdentificationErr: Label 'You must specify %1 in %2, or specify %3 and enable %4.', Comment = '%1 - VAT Registration No. field caption, %2 - Company Information table caption, %3 - GLN field caption, %4 - Use GLN in Electronic Documents field caption';
+        MissingCustomerPartyIdentificationErr: Label 'You must specify %1 for Customer %2, or specify %3 and enable %4.', Comment = '%1 - VAT Registration No. field caption, %2 - Customer No., %3 - GLN field caption, %4 - Use GLN in Electronic Documents field caption';
 
     procedure GetPayeePartyInfo(Vendor: Record Vendor; var PayeeEndpointID: Text; var PayeeSchemeID: Text; var PayeePartyName: Text)
     begin
@@ -326,6 +328,20 @@ codeunit 37201 "PEPPOL30 Impl."
         GetAccountingSupplierPartyInfoByFormat(SupplierEndpointID, SupplierSchemeID, SupplierName, true);
     end;
 
+    procedure CheckCompanyPartyIdentification(SupplierEndpointID: Text)
+    var
+        CompanyInfo: Record "Company Information";
+    begin
+        if SupplierEndpointID <> '' then
+            exit;
+
+        CompanyInfo.Get();
+        Error(
+          MissingCompanyPartyIdentificationErr,
+          CompanyInfo.FieldCaption("VAT Registration No."), CompanyInfo.TableCaption(),
+          CompanyInfo.FieldCaption(GLN), CompanyInfo.FieldCaption("Use GLN in Electronic Document"));
+    end;
+
     local procedure GetAccountingSupplierPartyInfoByFormat(var SupplierEndpointID: Text; var SupplierSchemeID: Text; var SupplierName: Text; IsBISBilling: Boolean)
     var
         CompanyInfo: Record "Company Information";
@@ -465,6 +481,19 @@ codeunit 37201 "PEPPOL30 Impl."
         GetAccountingCustomerPartyInfoByFormat(
           SalesHeader, CustomerEndpointID, CustomerSchemeID,
           CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName, true);
+    end;
+
+    procedure CheckCustomerPartyIdentification(CustomerEndpointID: Text; CustomerNo: Code[20])
+    var
+        Cust: Record Customer;
+    begin
+        if CustomerEndpointID <> '' then
+            exit;
+
+        Error(
+          MissingCustomerPartyIdentificationErr,
+          Cust.FieldCaption("VAT Registration No."), CustomerNo,
+          Cust.FieldCaption(GLN), Cust.FieldCaption("Use GLN in Electronic Document"));
     end;
 
     local procedure GetAccountingCustomerPartyInfoByFormat(SalesHeader: Record "Sales Header"; var CustomerEndpointID: Text; var CustomerSchemeID: Text; var CustomerPartyIdentificationID: Text; var CustomerPartyIDSchemeID: Text; var CustomerName: Text; IsBISBilling: Boolean)

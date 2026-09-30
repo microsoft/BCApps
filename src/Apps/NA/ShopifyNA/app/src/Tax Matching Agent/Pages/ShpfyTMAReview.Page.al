@@ -9,9 +9,9 @@ using Microsoft.Finance.SalesTax;
 
 /// <summary>
 /// Page Shpfy TMA Review (ID 30471).
-/// Card view that lets a human review — and adjust — what Tax Matching Agent did for a
+/// Card view that lets a human review — and adjust — what Shopify Tax Matching did for a
 /// single Shopify order: the resolved Tax Area (with the platform AI confidence indicator),
-/// the ship-to context the Tax Matching Agent reasoned over, and each tax line with the item it taxes and
+/// the ship-to context used for matching, and each tax line with the item it taxes and
 /// its matched Tax Jurisdiction Code. The Tax Jurisdiction on each line is editable, and each
 /// line shows Business Central's Tax Detail rate next to Shopify's rate (a difference is
 /// highlighted). The Approve action rebuilds the Tax Area from the (possibly edited) line
@@ -42,12 +42,12 @@ page 30471 "Shpfy TMA Review"
                 field("Shopify Order No."; Rec."Shopify Order No.")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the Shopify order that the Tax Matching Agent matched tax for.';
+                    ToolTip = 'Specifies the Shopify order that Shopify Tax Matching matched tax for.';
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the Tax Area that the Tax Matching Agent resolved for this order from the matched tax jurisdictions. The AI confidence indicator shows how confident the Tax Matching Agent was about the resolved Tax Area.';
+                    ToolTip = 'Specifies the Tax Area that Shopify Tax Matching resolved for this order from the matched tax jurisdictions. The AI confidence indicator shows how confident the AI was about the resolved Tax Area.';
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
@@ -83,17 +83,17 @@ page 30471 "Shpfy TMA Review"
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the ship-to country/region the Tax Matching Agent used as geographic context when matching tax jurisdictions.';
+                    ToolTip = 'Specifies the ship-to country/region Shopify Tax Matching used as geographic context when matching tax jurisdictions.';
                 }
                 field("Ship-to County"; Rec."Ship-to County")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the ship-to state/county the Tax Matching Agent used as geographic context when matching tax jurisdictions.';
+                    ToolTip = 'Specifies the ship-to state/county Shopify Tax Matching used as geographic context when matching tax jurisdictions.';
                 }
                 field("Ship-to City"; Rec."Ship-to City")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the ship-to city the Tax Matching Agent used as geographic context when matching tax jurisdictions.';
+                    ToolTip = 'Specifies the ship-to city Shopify Tax Matching used as geographic context when matching tax jurisdictions.';
                 }
             }
         }
