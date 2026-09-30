@@ -765,7 +765,7 @@ codeunit 134825 "UT Customer Table"
         Customer: Record Customer;
         Customer2: Record Customer;
         Contact: Record Contact;
-        CustomerEmail: Text;
+        CustomerEmail: Text[80];
     begin
         // [SCENARIO 651180] A contact is updated when a customer is modified programmatically
         Initialize();
@@ -794,7 +794,6 @@ codeunit 134825 "UT Customer Table"
         Customer.DeleteAll();
         LibraryApplicationArea.EnableFoundationSetup();
         LibrarySetupStorage.Restore();
-
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"UT Customer Table");
