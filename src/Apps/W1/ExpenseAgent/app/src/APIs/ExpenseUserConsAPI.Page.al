@@ -3,7 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
+#if not CLEAN30
 using System.AI;
+#endif
 
 page 6968 "Expense User Cons. API"
 {
@@ -62,11 +64,14 @@ page 6968 "Expense User Cons. API"
         AgentConversationSessionIdOrTurnInteractionIdErr: Label 'Agent Session ID and Interaction ID must be provided.';
         ConsumptionSourceSystemIdErr: Label 'Consumption Source System ID must be provided.';
         ExpenseEmployeeCodeErr: Label 'Expense Employee Code must be provided.';
-        ConsumptionUsageErr: Label 'Usage cannot be negative.';
         InvalidJsonConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON containing all required fields.';
-        ActionsSummaryOrDescriptionErr: Label 'Actions Summary and Description must be provided.';
         ActionsSummaryErr: Label 'Actions Summary must be provided.';
         EmptyConsumptionOperationErr: Label 'Operation must be provided.';
+
+#if not CLEAN30
+    var
+        ConsumptionUsageErr: Label 'Usage cannot be negative.';
+        ActionsSummaryOrDescriptionErr: Label 'Actions Summary and Description must be provided.';
 
     [ServiceEnabled]
     [Obsolete('Use LogAIConsumptionV2 instead.', '30.0')]
@@ -96,6 +101,7 @@ page 6968 "Expense User Cons. API"
         exit(ExpenseConsumptionHandler.LogAIConsumption(CopilotQuotaUsageAmount, CopilotQuotaUsageType,
             ActionsSummary, ActionsDescription, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
     end;
+#endif
 
     [ServiceEnabled]
     procedure LogAIConsumptionV2(

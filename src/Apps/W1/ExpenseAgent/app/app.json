@@ -150,5 +150,6 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "target": "OnPrem"
+  "target": "OnPrem",
+  "preprocessorSymbols": ["CLEAN30"]
 }
