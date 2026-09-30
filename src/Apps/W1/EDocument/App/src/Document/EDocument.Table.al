@@ -333,10 +333,8 @@ table 6121 "E-Document"
     begin
         if (Rec.Status = Rec.Status::Processed) then
             Error(this.DeleteProcessedNotAllowedErr);
-
         if (Rec."Document Record ID".TableNo <> 0) then
             Error(this.DeleteLinkedNotAllowedErr);
-
         if (not Rec.IsDuplicate(false)) then
             if not GuiAllowed() then
                 Error(DeleteUniqueNotAllowedErr)
@@ -372,7 +370,6 @@ table 6121 "E-Document"
         EDocument.SetFilter("Entry No", '<>%1', Rec."Entry No");
         if not EDocument.FindFirst() then
             exit(false);
-
         if ShowMessage and GuiAllowed() then
             Message(EDocumentExistsMsg, EDocument."Entry No");
         Telemetry.LogMessage('0000PHB', StrSubstNo(EDocumentExistsMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
@@ -515,11 +512,26 @@ table 6121 "E-Document"
     procedure ViewSourceFile()
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentLog: Record "E-Document Log";
         IEDocFileFormat: Interface IEDocFileFormat;
     begin
-        EDocDataStorage.Get(Rec."Unstructured Data Entry No.");
-        IEDocFileFormat := EDocDataStorage."File Format";
-        IEDocFileFormat.PreviewContent(EDocDataStorage.Name, EDocDataStorage.GetTempBlob());
+        if Rec."Unstructured Data Entry No." <> 0 then begin
+            EDocDataStorage.Get(Rec."Unstructured Data Entry No.");
+            IEDocFileFormat := EDocDataStorage."File Format";
+            IEDocFileFormat.PreviewContent(EDocDataStorage.Name, EDocDataStorage.GetTempBlob());
+            exit;
+        end;
+        if not TryGetExportedFileLog(EDocumentLog) then
+            Error(NoSourceFileErr);
+        Message(PreviewNotSupportedMsg);
+    end;
+
+    internal procedure TryGetExportedFileLog(var EDocumentLog: Record "E-Document Log"): Boolean
+    begin
+        EDocumentLog.SetRange("E-Doc. Entry No", Rec."Entry No");
+        EDocumentLog.SetRange(Status, "E-Document Service Status"::Exported);
+        EDocumentLog.SetFilter("E-Doc. Data Storage Entry No.", '<>%1', 0);
+        exit(EDocumentLog.FindLast());
     end;
 
     internal procedure OpenEDocument(EDocumentRecordId: RecordId)
@@ -621,7 +633,6 @@ table 6121 "E-Document"
             Message(NoEDocumentForRecordMsg);
             exit(false);
         end;
-
         if not EDocument.ReadPermission() then
             exit(false);
 
@@ -711,6 +722,8 @@ table 6121 "E-Document"
         DeleteProcessedNotAllowedErr: Label 'The E-Document has already been processed and cannot be deleted.';
         DeleteUniqueNotAllowedErr: Label 'Only duplicate E-Documents can be deleted without a confirmation in the user interface.';
         NoFileErr: label 'No previewable attachment exists for this %2.', Comment = '%1 - a table caption';
+        NoSourceFileErr: label 'There is no file to view for this electronic document.';
+        PreviewNotSupportedMsg: label 'This XML file cannot be viewed but can be downloaded from E-Document Logs.';
         DeleteConfirmQst: label 'Are you sure? You may not be able to retrieve this E-Document again.\\ Do you want to continue?';
         EDocumentExistsMsg: Label 'This E-Document is a duplicate of E-Document %1.', Comment = '%1 - E-Document No.';
 }
