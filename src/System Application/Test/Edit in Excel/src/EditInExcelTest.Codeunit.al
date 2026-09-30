@@ -9,6 +9,7 @@ using System;
 using System.Integration;
 using System.Integration.Excel;
 using System.Reflection;
+using System.Security.User;
 using System.TestLibraries.Integration.Excel;
 using System.TestLibraries.Utilities;
 
@@ -25,6 +26,7 @@ codeunit 132525 "Edit in Excel Test"
         EventServiceName: Text[240];
         EventBeforePageControlFieldFindSetPageId: Integer;
         EventBeforePageControlFieldFindSetFireCount: Integer;
+        UserTableNotSupportedErr: Label 'Edit in Excel is not supported for pages that are based on the User table. To change users, use the Users or User Card page in Business Central.';
 
     [Test]
     procedure TestEditInExcelCreatesWebService()
@@ -240,6 +242,44 @@ codeunit 132525 "Edit in Excel Test"
         // [Then] Creating Workbook finishes successfully and downloads .xslx file
         EditinExcelTestLibrary.ReadFromJsonFilters(EditinExcelFilters, FilterJsonObject, PayloadJsonObject, Page::"Edit in Excel List");
         EditInExcel.EditPageInExcel('Edit in Excel', Page::"Edit in Excel List", EditinExcelFilters);
+    end;
+
+    [Test]
+    procedure TestEditInExcelIsBlockedForUserTablePage()
+    var
+        TenantWebService: Record "Tenant Web Service";
+        EditinExcelFilters: Codeunit "Edit in Excel Filters";
+    begin
+        // [SCENARIO] Edit in Excel cannot be used on pages that are based on the User table
+        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
+        TenantWebService.SetRange("Object ID", Page::"User Lookup");
+        TenantWebService.DeleteAll();
+
+        // [WHEN] Edit in Excel is invoked for a page with the User table as source table
+        asserterror EditInExcel.EditPageInExcel('User Lookup', Page::"User Lookup", EditinExcelFilters);
+
+        // [THEN] An error is raised and no web service is created
+        LibraryAssert.ExpectedError(UserTableNotSupportedErr);
+        LibraryAssert.RecordIsEmpty(TenantWebService);
+    end;
+
+    [Test]
+    procedure TestEditInExcelIsBlockedForUserTablePageWithExistingWebService()
+    var
+        TenantWebService: Record "Tenant Web Service";
+        EditinExcelFilters: Codeunit "Edit in Excel Filters";
+    begin
+        // [SCENARIO] Edit in Excel cannot be used on pages that are based on the User table, even if a web service already exists
+        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
+        TenantWebService.SetRange("Object ID", Page::"User Lookup");
+        TenantWebService.DeleteAll();
+        InsertTenantWebService(Page::"User Lookup", 'User Lookup_Excel', true, true, true);
+
+        // [WHEN] Edit in Excel is invoked for the page
+        asserterror EditInExcel.EditPageInExcel('User Lookup', Page::"User Lookup", EditinExcelFilters);
+
+        // [THEN] An error is raised
+        LibraryAssert.ExpectedError(UserTableNotSupportedErr);
     end;
 
     procedure GetServiceName(): Text[240]
