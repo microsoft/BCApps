@@ -183,6 +183,7 @@ codeunit 5626 "FA General Report"
                 Period::"at Ending Date":
                     FALedgEntry.Amount := FALedgEntry.Amount + UntilAmount;
             end;
+        Result := FALedgEntry.Amount;
         if (PostingType = FADeprBook.FieldNo("Derogatory Amount")) then begin
             if UseCreditAmounts then begin
                 Clear(UseCreditAmounts);
@@ -192,8 +193,7 @@ codeunit 5626 "FA General Report"
                 Clear(UseDebitAmounts);
                 Result := FALedgEntry."Debit Amount";
             end;
-        end else
-            Result := FALedgEntry.Amount;
+        end;
 
         OnAfterCalcFAPostedAmount(FALedgEntry, PostingType, Period, BeforeAmount, UntilAmount, Result);
     end;
@@ -416,4 +416,3 @@ codeunit 5626 "FA General Report"
     begin
     end;
 }
-

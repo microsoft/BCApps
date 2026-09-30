@@ -1585,7 +1585,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
 
         // [GIVEN] Company initialization asks for the tags to prepopulate
         // [WHEN] All per-company subscribers contribute their tags
-        UpgradeTag.OnGetPerCompanyUpgradeTags(PerCompanyUpgradeTags);
+        UpgradeTag.GetPerCompanyUpgradeTags(PerCompanyUpgradeTags);
 
         // [THEN] None of the migration completion tags are registered
         Assert.IsFalse(PerCompanyUpgradeTags.Contains(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag()), 'Field migration must not be pre-completed.');
@@ -2148,7 +2148,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
 
         // [GIVEN] An acquisition pair with one normal and two tax salvage companions
         InitializeLinkageTestData();
-        LibraryFixedAsset.CreateFA(FixedAsset);
+        LibraryFixedAsset.CreateFixedAsset(FixedAsset);
         CreateFALedgerEntry(1, FixedAsset."No.", SourceDepreciationBookCode, false, 100, Enum::"FA Ledger Entry FA Posting Type"::"Acquisition Cost", false, 0, 0);
         CreateFALedgerEntry(2, FixedAsset."No.", DerogatoryDepreciationBookCode, false, 100, Enum::"FA Ledger Entry FA Posting Type"::"Acquisition Cost", false, 0, 0);
         CreateFALedgerEntry(3, FixedAsset."No.", SourceDepreciationBookCode, true, 100, Enum::"FA Ledger Entry FA Posting Type"::"Salvage Value", false, 0, 0);
@@ -2187,8 +2187,8 @@ codeunit 134194 "UT Derogatory Linkage Upg."
 
         // [GIVEN] Matching canceled salvage without its own acquisition, and another asset's canceled acquisition
         InitializeLinkageTestData();
-        LibraryFixedAsset.CreateFA(FixedAsset);
-        LibraryFixedAsset.CreateFA(OtherFixedAsset);
+        LibraryFixedAsset.CreateFixedAsset(FixedAsset);
+        LibraryFixedAsset.CreateFixedAsset(OtherFixedAsset);
         CreateFALedgerEntry(1, OtherFixedAsset."No.", SourceDepreciationBookCode, false, 100, Enum::"FA Ledger Entry FA Posting Type"::"Acquisition Cost", false, 0, 0);
         CreateFALedgerEntry(2, OtherFixedAsset."No.", DerogatoryDepreciationBookCode, false, 100, Enum::"FA Ledger Entry FA Posting Type"::"Acquisition Cost", false, 0, 0);
         CreateFALedgerEntry(3, FixedAsset."No.", SourceDepreciationBookCode, true, 100, Enum::"FA Ledger Entry FA Posting Type"::"Salvage Value", false, 0, 0);
@@ -2629,7 +2629,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         AssetIndex: Integer;
     begin
         for AssetIndex := 1 to AssetCount do begin
-            LibraryFixedAsset.CreateFA(FixedAsset);
+            LibraryFixedAsset.CreateFixedAsset(FixedAsset);
             CreateFALedgerEntry(2 * AssetIndex - 1, FixedAsset."No.", SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
             CreateFALedgerEntry(2 * AssetIndex, FixedAsset."No.", DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
             if (AssetIndex mod 4) in [0, 1] then
@@ -3061,7 +3061,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FALedgerEntry: Record "FA Ledger Entry";
         MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
     begin
-        LibraryFixedAsset.CreateFA(FixedAsset);
+        LibraryFixedAsset.CreateFixedAsset(FixedAsset);
         FALedgerEntry.ModifyAll("FA No.", FixedAsset."No.");
         MaintenanceLedgerEntry.ModifyAll("FA No.", FixedAsset."No.");
     end;
