@@ -649,7 +649,7 @@ codeunit 12184 "Fattura Doc. Helper"
 
     local procedure GetTransmissionType(Customer: Record Customer): Text[5]
     begin
-        if Customer.IsPublicCompany() then
+        if (Customer."Country/Region Code" = CompanyInformation."Country/Region Code") and Customer.IsPublicCompany() then
             exit('FPA12');
         exit(NonPublicCompanyLbl);
     end;
