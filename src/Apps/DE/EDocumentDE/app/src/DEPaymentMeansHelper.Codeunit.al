@@ -12,7 +12,7 @@ using Microsoft.Sales.History;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 
-codeunit 11039 "DE Payment Means Helper"
+codeunit 11043 "DE Payment Means Helper"
 {
     Access = Public;
     InherentEntitlements = X;
