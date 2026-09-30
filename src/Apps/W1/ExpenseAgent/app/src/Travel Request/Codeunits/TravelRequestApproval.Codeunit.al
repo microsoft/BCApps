@@ -145,10 +145,15 @@ codeunit 7133 "Travel Request Approval"
         end;
     end;
 
+    /// <summary>
+    /// Rejects a travel request and reopens it, so that the submitter can change and resubmit it, like a rejected expense report.
+    /// The rejection reason and the approver are kept until the travel request is resubmitted.
+    /// </summary>
     internal procedure Reject(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
     var
         Approver: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
     begin
         CheckTravelRequest(SpendRequest);
         SpendRequest.TestStatus(SpendRequest.Status::Released);
@@ -166,14 +171,15 @@ codeunit 7133 "Travel Request Approval"
             Enum::"Expense Activity Actor Role"::Approver,
             ApproverExpenseUserNo,
             RejectReason);
+        // Reopened in the same transaction, so the submitter can edit and resubmit without an extra call. The Rejected entry explains the reopen.
+        ReleaseSpendRequest.Reopen(SpendRequest);
         FeatureTelemetry.LogUsage('0000VF1', ExpenseAgentSetup.GetFeatureName(), TravelRequestRejectedLbl);
     end;
 
     /// <summary>
-    /// Reopens a travel request on behalf of an expense user and records the expense user as the submitter who reopened it.
-    /// Falls back to the Business Central user when no expense user is known.
+    /// Reopens a travel request from the Business Central client and records the BC user who reopened it.
     /// </summary>
-    internal procedure Reopen(var SpendRequest: Record "Spend Request"; ReopenerExpenseUserNo: Code[20])
+    internal procedure ReopenManually(var SpendRequest: Record "Spend Request")
     var
         ReleaseSpendRequest: Codeunit "Release Spend Request";
         WasOpen: Boolean;
@@ -183,27 +189,11 @@ codeunit 7133 "Travel Request Approval"
         if WasOpen or (SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request") then
             exit;
 
-        if ReopenerExpenseUserNo <> '' then
-            ExpenseActivityLogMgt.LogTravelRequestEvent(
-                SpendRequest,
-                Enum::"Expense Activity Event Type"::Reopened,
-                Enum::"Expense Activity Actor Role"::Submitter,
-                ReopenerExpenseUserNo,
-                '')
-        else
-            ExpenseActivityLogMgt.LogTravelRequestEventByBCUser(
-                SpendRequest,
-                Enum::"Expense Activity Event Type"::Reopened,
-                Enum::"Expense Activity Actor Role"::" ",
-                '');
-    end;
-
-    /// <summary>
-    /// Reopens a travel request from the Business Central client and records the BC user who reopened it.
-    /// </summary>
-    internal procedure ReopenManually(var SpendRequest: Record "Spend Request")
-    begin
-        Reopen(SpendRequest, '');
+        ExpenseActivityLogMgt.LogTravelRequestEventByBCUser(
+            SpendRequest,
+            Enum::"Expense Activity Event Type"::Reopened,
+            Enum::"Expense Activity Actor Role"::" ",
+            '');
     end;
 
     local procedure LogTravelRequestSubmission(SpendRequest: Record "Spend Request"; SubmitterExpenseUserNo: Code[20]; IsResubmission: Boolean; SubmissionComment: Text)

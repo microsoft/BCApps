@@ -339,36 +339,6 @@ page 7134 "Travel Requests API"
     end;
 
     [ServiceEnabled]
-    procedure ReopenTravelRequest(var ActionContext: WebServiceActionContext)
-    var
-        TravelRequestApproval: Codeunit "Travel Request Approval";
-        ReopenerExpenseUserNo: Code[20];
-    begin
-        Rec.TestField("Document Type", Rec."Document Type"::"Travel Request");
-        // Like an expense report recall, the reopen is attributed to the submitter unless the call is scoped to an expense user.
-        ReopenerExpenseUserNo := GetOwnerScopeExpenseUserNo();
-        if ReopenerExpenseUserNo = '' then
-            ReopenerExpenseUserNo := Rec."Submitted By Expense User No.";
-        TravelRequestApproval.Reopen(Rec, ReopenerExpenseUserNo);
-        SetActionResponse(ActionContext);
-    end;
-
-    local procedure GetOwnerScopeExpenseUserNo(): Code[20]
-    var
-        ExpenseUser: Record "Expense User";
-        OwnerSystemId: Guid;
-        OriginalFilterGroup: Integer;
-    begin
-        OriginalFilterGroup := Rec.FilterGroup(4);
-        if Rec.GetFilter("Requested By User Id Filter") <> '' then
-            OwnerSystemId := Rec.GetRangeMin("Requested By User Id Filter");
-        Rec.FilterGroup(OriginalFilterGroup);
-        if IsNullGuid(OwnerSystemId) then
-            exit('');
-        exit(ExpenseUser.GetExpenseUserNoBySystemId(OwnerSystemId));
-    end;
-
-    [ServiceEnabled]
     procedure CreateExpenseReport(var ActionContext: WebServiceActionContext)
     var
         ExpenseReportHeader: Record "Expense Report Header";

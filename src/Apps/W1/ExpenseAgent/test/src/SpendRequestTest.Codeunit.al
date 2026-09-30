@@ -47,7 +47,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportDescriptionMsg: Label 'The expense report description should match the travel request purpose.';
         TravelRequestSystemIdMsg: Label 'The expense report should reference the travel request by SystemId.';
         TravelRequestActionResultMsg: Label 'The travel request page action should return an updated result.';
-        TravelRequestRejectedMsg: Label 'The travel request should be rejected through the page action.';
+        TravelRequestRejectedMsg: Label 'The travel request should be reopened after it is rejected through the page action.';
         TravelRequestRejectionUserMsg: Label 'The rejecting user should be recorded.';
         TravelRequestRejectionExpenseUserMsg: Label 'The rejecting expense user should be recorded.';
         TravelRequestRejectionReasonMsg: Label 'The rejection reason should be recorded.';
@@ -88,7 +88,7 @@ codeunit 148339 "Spend Request Test"
         ApproverDateTimeRecordedMsg: Label 'The approval or rejection date and time should be recorded on the travel request.';
         AutoApprovedStatusMsg: Label 'A released travel request should be approved automatically when the agent is disabled.';
         ManualApprovedStatusMsg: Label 'The travel request should be approved by the assigned approver.';
-        RejectedByApproverStatusMsg: Label 'The travel request should be rejected by the assigned approver.';
+        RejectedByApproverStatusMsg: Label 'The travel request should be reopened after it is rejected by the assigned approver.';
         AutoApprovalReportCreatedMsg: Label 'Auto-approving a travel request should still create one expense report.';
         RequestedForNameMirrorsMsg: Label 'The requested-for name should mirror the expense user name.';
         RequestedForNameClearedMsg: Label 'The requested-for name should be cleared when the requester is removed.';
@@ -1331,67 +1331,6 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    procedure ReopenTravelRequestPageAction()
-    begin
-        // [SCENARIO] The bound action reopens released, approved, and rejected travel requests and is idempotent.
-        Initialize();
-
-        VerifyReopenTravelRequestPageAction(Enum::"Spend Request Status"::Released);
-        VerifyReopenTravelRequestPageAction(Enum::"Spend Request Status"::Approved);
-        VerifyReopenTravelRequestPageAction(Enum::"Spend Request Status"::Rejected);
-        VerifyReopenTravelRequestPageAction(Enum::"Spend Request Status"::Open);
-    end;
-
-    [Test]
-    procedure ReopenTravelRequestPageActionRejectsClosedRequest()
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        TravelRequestsAPI: Page "Travel Requests API";
-        ActionContext: WebServiceActionContext;
-    begin
-        // [SCENARIO] The bound action preserves the standard restriction on reopening closed requests.
-        Initialize();
-        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Closed);
-        TravelRequestsAPI.SetRecord(SpendRequest);
-
-        asserterror TravelRequestsAPI.ReopenTravelRequest(ActionContext);
-
-        Assert.ExpectedError('cannot be reopened');
-        SpendRequest.Get(SpendRequest."No.");
-        SpendRequest.TestField(Status, SpendRequest.Status::Closed);
-    end;
-
-    [Test]
-    [HandlerFunctions('SpendReqConfirmHandler')]
-    procedure ReopenTravelRequestPageActionRejectsPostedExpenses()
-    var
-        ExpenseReportHeader: Record "Expense Report Header";
-        SpendRequest: Record "Spend Request";
-        ExpenseReportPost: Codeunit "Expense Report-Post";
-        TravelRequestsAPI: Page "Travel Requests API";
-        ActionContext: WebServiceActionContext;
-    begin
-        // [SCENARIO] The bound action cannot reopen a request with posted spending.
-        Initialize();
-        CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
-        ExpenseReportHeader.PerformManualRelease();
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-        SpendRequest.Get(SpendRequest."No.");
-        SpendRequest.TestField(Status, SpendRequest.Status::Approved);
-        SpendRequest.CalcFields("Total Spent Amount (LCY)");
-        Assert.AreNotEqual(0, SpendRequest."Total Spent Amount (LCY)", 'The request must have posted spending.');
-        TravelRequestsAPI.SetRecord(SpendRequest);
-
-        asserterror TravelRequestsAPI.ReopenTravelRequest(ActionContext);
-
-        Assert.ExpectedError('with posted expenses cannot be reopened');
-        SpendRequest.Get(SpendRequest."No.");
-        SpendRequest.TestField(Status, SpendRequest.Status::Approved);
-    end;
-
-    [Test]
     procedure CreateExpenseReportPageActionRecreatesDeletedReport()
     var
         ExpenseReportHeader: Record "Expense Report Header";
@@ -1934,7 +1873,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestApproval: Codeunit "Travel Request Approval";
         RejectReason: Text;
     begin
-        // [SCENARIO] Rejecting a travel request records the approver and rejection reason.
+        // [SCENARIO] Rejecting a travel request records the approver and rejection reason, and reopens it for the submitter.
         Initialize();
 
         // [GIVEN] A released request, its assigned approver, and a rejection reason.
@@ -1947,9 +1886,9 @@ codeunit 148339 "Spend Request Test"
         // [WHEN] The approver rejects the request.
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", RejectReason);
 
-        // [THEN] The request is rejected and retains the approver and reason.
+        // [THEN] The request is reopened and retains the approver and reason.
         SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Rejected, SpendRequest.Status, 'The travel request should be rejected.');
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, 'The rejected travel request should be reopened.');
         Assert.AreEqual(ApproverExpenseUser."No.", SpendRequest."Approval Expense User No.", 'The rejecting expense user should be recorded.');
         Assert.AreEqual(RejectReason, SpendRequest."Rejection Reason", 'The rejection reason should be recorded.');
     end;
@@ -1980,10 +1919,10 @@ codeunit 148339 "Spend Request Test"
         // [WHEN] The page procedure is invoked directly, without an HTTP request.
         TravelRequestsAPI.RejectTravelRequest(ActionContext, ApproverExpenseUser."No.", RejectReason);
 
-        // [THEN] The action returns Updated and the request records the rejection details.
+        // [THEN] The action returns Updated, the request is reopened, and it records the rejection details.
         Assert.AreEqual(Format(WebServiceActionResultCode::Updated), Format(ActionContext.GetResultCode()), TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Rejected, SpendRequest.Status, TravelRequestRejectedMsg);
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, TravelRequestRejectedMsg);
         Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", TravelRequestRejectionUserMsg);
         Assert.AreEqual(ApproverExpenseUser."No.", SpendRequest."Approval Expense User No.", TravelRequestRejectionExpenseUserMsg);
         SpendRequest.CalcFields("Approval Expense User Name");
@@ -2788,9 +2727,9 @@ codeunit 148339 "Spend Request Test"
         // [WHEN] The assigned approver rejects the request.
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'The destination is outside the approved travel policy.');
 
-        // [THEN] The request is rejected and the rejecting user's name is recorded.
+        // [THEN] The request is reopened and the rejecting user's name is recorded.
         SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Rejected, SpendRequest.Status, RejectedByApproverStatusMsg);
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, RejectedByApproverStatusMsg);
         Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
         Assert.AreEqual(GetExpectedApproverName(), SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
     end;
@@ -2803,11 +2742,9 @@ codeunit 148339 "Spend Request Test"
         ApproverExpenseUser: Record "Expense User";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         TravelRequestApproval: Codeunit "Travel Request Approval";
-        TravelRequestsAPI: Page "Travel Requests API";
-        ActionContext: WebServiceActionContext;
         RejectReason: Text;
     begin
-        // [SCENARIO] The travel request lifecycle records creation, submission, rejection, reopening, resubmission, and approval.
+        // [SCENARIO] The travel request lifecycle records creation, submission, rejection, resubmission, and approval.
         Initialize();
 
         // [GIVEN] A releasable travel request with an assigned approver and the agent enabled.
@@ -2816,11 +2753,9 @@ codeunit 148339 "Spend Request Test"
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         RejectReason := 'The destination is outside the approved travel policy.';
 
-        // [WHEN] The request is submitted, rejected, reopened, resubmitted, and approved.
+        // [WHEN] The request is submitted, rejected (which reopens it), resubmitted, and approved.
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", RejectReason);
-        TravelRequestsAPI.SetRecord(SpendRequest);
-        TravelRequestsAPI.ReopenTravelRequest(ActionContext);
         SpendRequest.Get(SpendRequest."No.");
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
         TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
@@ -2829,7 +2764,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        Assert.RecordCount(ExpenseActivityLogEntry, 6);
+        Assert.RecordCount(ExpenseActivityLogEntry, 5);
         ExpenseActivityLogEntry.FindSet();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Created, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
         Assert.AreEqual(SpendRequest.SystemCreatedAt, ExpenseActivityLogEntry."Occurred At", 'The creation entry must use the travel request creation timestamp.');
@@ -2841,10 +2776,6 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry.Next();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Rejected, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
         Assert.AreEqual(RejectReason, ExpenseActivityLogEntry.Comment, 'The rejection entry must preserve the rejection reason.');
-        ExpenseActivityLogEntry.Next();
-        // The API reopen is attributed to the submitting expense user, as for an expense report recall.
-        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Reopened, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
-        Assert.AreEqual(ExpenseUser.Name, ExpenseActivityLogEntry."Actor Display Name", 'The reopen must show the expense user display name.');
         ExpenseActivityLogEntry.Next();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Resubmitted, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
         ExpenseActivityLogEntry.Next();
@@ -2866,13 +2797,12 @@ codeunit 148339 "Spend Request Test"
         // [SCENARIO] A rejected travel request can be resubmitted through the API with a justification, which is stored and logged.
         Initialize();
 
-        // [GIVEN] A travel request that was submitted, rejected, and reopened.
+        // [GIVEN] A travel request that was submitted and rejected, which reopens it.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'The hotel is too expensive.');
-        TravelRequestApproval.Reopen(SpendRequest, ExpenseUser."No.");
         Justification := 'The conference hotel is the only option within walking distance.';
 
         // [WHEN] The travel request is resubmitted through the API with a justification.
@@ -2903,13 +2833,12 @@ codeunit 148339 "Spend Request Test"
         // [SCENARIO] The submitter comment always reflects the latest submission, like on expense reports.
         Initialize();
 
-        // [GIVEN] A travel request that was submitted with a comment, rejected, and reopened.
+        // [GIVEN] A travel request that was submitted with a comment and rejected, which reopens it.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.", 'First submission comment.');
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'Missing details.');
-        TravelRequestApproval.Reopen(SpendRequest, ExpenseUser."No.");
 
         // [WHEN] The travel request is resubmitted without a comment.
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
@@ -2930,13 +2859,12 @@ codeunit 148339 "Spend Request Test"
         // [SCENARIO] Releasing a travel request from the client clears the comment of an earlier submission, like on expense reports.
         Initialize();
 
-        // [GIVEN] A travel request that was submitted with a comment, rejected, and reopened.
+        // [GIVEN] A travel request that was submitted with a comment and rejected, which reopens it.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.", 'First submission comment.');
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'Missing details.');
-        TravelRequestApproval.Reopen(SpendRequest, ExpenseUser."No.");
 
         // [WHEN] The travel request is released from the client.
         TravelRequestApproval.ReleaseManually(SpendRequest);
@@ -3019,36 +2947,6 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'The client reopen must be attributed to the BC user.');
         ExpenseActivityLogEntry.Next();
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Resubmitted, ExpenseActivityLogEntry."Event Type", 'The second client release must be logged as a resubmission.');
-    end;
-
-    [Test]
-    procedure OwnerScopedReopenPageActionLogsOwnerExpenseUser()
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
-        TravelRequestsAPI: Page "Travel Requests API";
-        ActionContext: WebServiceActionContext;
-    begin
-        // [SCENARIO] Reopening through expenseUsers(id)/travelRequests(id) attributes the reopen to the scoping expense user.
-        Initialize();
-
-        // [GIVEN] A released travel request without a recorded submitter, opened through its owner's scope.
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
-        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
-        SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, ExpenseUser.SystemId);
-
-        // [WHEN] The reopen page action is invoked.
-        TravelRequestsAPI.ReopenTravelRequest(ActionContext);
-
-        // [THEN] The reopen is attributed to the owning expense user as submitter.
-        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
-        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Reopened);
-        Assert.RecordCount(ExpenseActivityLogEntry, 1);
-        ExpenseActivityLogEntry.FindFirst();
-        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Reopened, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
     end;
 
     [Test]
@@ -3343,24 +3241,6 @@ codeunit 148339 "Spend Request Test"
         Assert.IsFalse(FilteredTravelRequest.IsEmpty(), DefaultTravelRequestVisibleMsg);
         FilteredTravelRequest.SetRange("No.", OtherTravelRequest."No.");
         Assert.IsTrue(FilteredTravelRequest.IsEmpty(), UnassignedTravelRequestHiddenMsg);
-    end;
-
-    local procedure VerifyReopenTravelRequestPageAction(InitialStatus: Enum "Spend Request Status")
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        TravelRequestsAPI: Page "Travel Requests API";
-        ActionContext: WebServiceActionContext;
-    begin
-        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        LibraryExpense.SetSpendRequestStatus(SpendRequest, InitialStatus);
-        TravelRequestsAPI.SetRecord(SpendRequest);
-
-        TravelRequestsAPI.ReopenTravelRequest(ActionContext);
-
-        Assert.AreEqual(Format(WebServiceActionResultCode::Updated), Format(ActionContext.GetResultCode()), TravelRequestActionResultMsg);
-        SpendRequest.Get(SpendRequest."No.");
-        SpendRequest.TestField(Status, SpendRequest.Status::Open);
     end;
 
     local procedure VerifyPostedTravelRequestHistory(SpendRequest: Record "Spend Request"; ExpectedPostedExpenseReportHeader: Record "Posted Expense Report Header")
