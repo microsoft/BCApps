@@ -161,6 +161,7 @@ codeunit 6926 "Expense Activity Log Mgt."
         SubmissionEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         SubmissionEntry.SetFilter("Event Type", '%1|%2', SubmissionEntry."Event Type"::Submitted, SubmissionEntry."Event Type"::Resubmitted);
         // Do not create policy history for an untracked submission.
+        SubmissionEntry.SetLoadFields("Entry No.");
         if not SubmissionEntry.FindLast() then
             exit;
 
