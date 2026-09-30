@@ -197,9 +197,7 @@ codeunit 134706 "Email Retention Policy Tests"
     var
         SentEmail: Record "Sent Email";
         EmailInbox: Record "Email Inbox";
-        EmailInstaller: Codeunit "Email Installer";
     begin
-        EmailInstaller.AddRetentionPolicyAllowedTables(true);
         SentEmail.DeleteAll();
         EmailInbox.DeleteAll();
 

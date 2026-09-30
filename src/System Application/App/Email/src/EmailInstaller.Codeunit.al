@@ -39,9 +39,11 @@ codeunit 1596 "Email Installer"
         UpgradeTag: Codeunit "Upgrade Tag";
         EmailUpgrade: Codeunit "Email Upgrade";
         IsInitialSetup: Boolean;
+        IsEmailInboxSetup: Boolean;
     begin
         IsInitialSetup := not UpgradeTag.HasUpgradeTag(EmailUpgrade.GetEmailTablesAddedToAllowedListUpgradeTag());
-        if not (IsInitialSetup or ForceUpdate) then
+        IsEmailInboxSetup := not UpgradeTag.HasUpgradeTag(EmailUpgrade.GetEmailInboxAddedToAllowedListUpgradeTag());
+        if not (IsInitialSetup or IsEmailInboxSetup or ForceUpdate) then
             exit;
 
         RetenPolAllowedTables.AddAllowedTable(Database::"Email Outbox", Field.FieldNo(SystemCreatedAt), 7);
@@ -50,6 +52,8 @@ codeunit 1596 "Email Installer"
 
         if IsInitialSetup then
             UpgradeTag.SetUpgradeTag(EmailUpgrade.GetEmailTablesAddedToAllowedListUpgradeTag());
+        if IsEmailInboxSetup then
+            UpgradeTag.SetUpgradeTag(EmailUpgrade.GetEmailInboxAddedToAllowedListUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reten. Pol. Allowed Tables", OnRefreshAllowedTables, '', false, false)]
