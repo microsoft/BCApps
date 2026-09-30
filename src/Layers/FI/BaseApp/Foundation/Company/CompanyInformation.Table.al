@@ -14,6 +14,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Utilities;
 using System.Email;
+using System.Environment;
 using System.Globalization;
 using System.Utilities;
 
@@ -22,6 +23,7 @@ table 79 "Company Information"
     Caption = 'Company Information';
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata Company = r;
     DataClassification = CustomerContent;
 
     fields
@@ -432,6 +434,37 @@ table 79 "Company Information"
             Caption = 'Demo Company';
             Editable = false;
         }
+        field(101; "Default Work Date"; Option)
+        {
+            Caption = 'Default Work Date';
+            DataClassification = SystemMetadata;
+            OptionCaption = 'Latest G/L Entry Posting Date,Today,Custom Date';
+            OptionMembers = "Latest G/L Entry Posting Date",Today,"Custom Date";
+            ToolTip = 'Specifies the work date used when this demo or evaluation company is opened. Choose the latest G/L entry posting date, today, or a custom date.';
+
+            trigger OnValidate()
+            begin
+                if ("Default Work Date" = "Default Work Date"::"Custom Date") and ("Custom Work Date" = 0D) then
+                    Validate("Custom Work Date", Today);
+            end;
+        }
+        field(102; "Custom Work Date"; Date)
+        {
+            Caption = 'Custom Work Date';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the work date to use when Default Work Date is set to Custom Date.';
+
+            trigger OnValidate()
+            begin
+                TestField("Custom Work Date");
+            end;
+        }
+        field(103; "Apply Work Date to Sessions"; Boolean)
+        {
+            Caption = 'Apply Work Date to All Sessions';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether the selected work date is applied to all new sessions, including background, API, and OData sessions. Existing sessions are not changed.';
+        }
         field(200; "Alternative Language Code"; Code[10])
         {
             Caption = 'Alternative Language Code';
@@ -722,6 +755,17 @@ table 79 "Company Information"
             exit;
         Get();
         RecordHasBeenRead := true;
+    end;
+
+    procedure IsEvaluationCompany(): Boolean
+    var
+        Company: Record Company;
+    begin
+        Company.SetLoadFields("Evaluation Company");
+        if Company.Get(CurrentCompany()) then
+            exit(Company."Evaluation Company");
+
+        exit(false);
     end;
 
     procedure VerifyAndSetPaymentInfo()
