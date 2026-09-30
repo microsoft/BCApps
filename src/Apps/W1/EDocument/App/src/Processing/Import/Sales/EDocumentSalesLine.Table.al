@@ -186,6 +186,21 @@ table 6154 "E-Document Sales Line"
             TableRelation = "Dimension Set Entry";
         }
         #endregion Validated fields
+
+        #region Created sales line - dates BC calculated when the sales line was created [201-300]
+        field(201; "Created Shipment Date"; Date)
+        {
+            Caption = 'Created Shipment Date';
+            ToolTip = 'Specifies the shipment date of the sales line when it was created from the e-document.';
+            Editable = false;
+        }
+        field(202; "Created Planned Delivery Date"; Date)
+        {
+            Caption = 'Created Planned Delivery Date';
+            ToolTip = 'Specifies the planned delivery date of the sales line when it was created from the e-document.';
+            Editable = false;
+        }
+        #endregion Created sales line
     }
     keys
     {

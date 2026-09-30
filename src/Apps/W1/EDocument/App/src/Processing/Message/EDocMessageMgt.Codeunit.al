@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Message;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.Utilities;
 
 /// <summary>
@@ -63,6 +64,27 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessage."Created At" := CurrentDateTime();
         EDocMessage.Insert();
         exit(EDocMessage."Entry No.");
+    end;
+
+    /// <summary>
+    /// Builds an outgoing response message with the builder bound to MessageType and stores it on the E-Document.
+    /// The stored response type is the one the builder reports when it implements IEDocResponseMessageBuilder
+    /// (e.g. Conditionally Accepted for a requested Accepted), otherwise the requested one.
+    /// Returns the Entry No. of the new message row.
+    /// </summary>
+    procedure CreateResponseMessage(EDocument: Record "E-Document"; MessageType: Enum "E-Document Message Type"; RequestedResponseType: Enum "E-Doc. Response Type"): Integer
+    var
+        ResponseBlob: Codeunit "Temp Blob";
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        ResponseType: Enum "E-Doc. Response Type";
+    begin
+        IMessageBuilder := MessageType;
+        ResponseType := RequestedResponseType;
+        if IMessageBuilder is IEDocResponseMessageBuilder then
+            ResponseType := (IMessageBuilder as IEDocResponseMessageBuilder).BuildResponseMessage(EDocument, RequestedResponseType, ResponseBlob)
+        else
+            IMessageBuilder.BuildMessage(EDocument, RequestedResponseType, ResponseBlob);
+        exit(CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, ResponseType, ResponseBlob));
     end;
 
     /// <summary>
