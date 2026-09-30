@@ -654,7 +654,7 @@ table 246 "Requisition Line"
                     UpdateReplenishmentSystem();
                     if "Variant Code" <> xRec."Variant Code" then begin
                         "Bin Code" := '';
-                        if ("Location Code" <> '') and ("No." <> '') then begin
+                        if ("Location Code" <> '') and ("No." <> '') and not IsDropShipment() then begin
                             GetLocation("Location Code");
                             ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
                             OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
@@ -2848,6 +2848,7 @@ table 246 "Requisition Line"
         "No." := UnplannedDemand."Item No.";
         "Location Code" := UnplannedDemand."Location Code";
         "Bin Code" := UnplannedDemand."Bin Code";
+        "Drop Shipment" := UnplannedDemand."Drop Shipment";
         Validate("No.");
         Validate("Variant Code", UnplannedDemand."Variant Code");
         UpdateDescription();
@@ -2866,7 +2867,6 @@ table 246 "Requisition Line"
         Level := 1;
         "Action Message" := ReqLine."Action Message"::New;
         "User ID" := CopyStr(UserId(), 1, MaxStrLen("User ID"));
-        "Drop Shipment" := UnplannedDemand."Drop Shipment";
 
         UpdateSalesOrderDetailForDropShipment();
 
@@ -3130,7 +3130,8 @@ table 246 "Requisition Line"
         if ("Location Code" <> '') and ("No." <> '') then begin
             GetLocation("Location Code");
             OnSetFromBinCodeOnSetBinCode(Rec, Location);
-            ShouldGetDefaultBin := ("Bin Code" = '') and Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+            ShouldGetDefaultBin :=
+                ("Bin Code" = '') and Location."Bin Mandatory" and not Location."Directed Put-away and Pick" and not IsDropShipment();
             OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
             if ShouldGetDefaultBin then
                 WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");

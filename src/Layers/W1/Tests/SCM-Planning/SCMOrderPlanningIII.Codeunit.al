@@ -1613,6 +1613,42 @@ codeunit 137088 "SCM Order Planning - III"
     end;
 
     [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderVerifyBinModalPageHandler')]
+    procedure CreatePurchaseOrderFromDropShipmentWithDefaultBin()
+    begin
+        // [SCENARIO] Creating a drop shipment purchase order leaves the bin blank despite an item's default bin.
+        Initialize();
+        VerifyCreatePurchaseOrderWithDefaultBin(true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderVerifyBinModalPageHandler')]
+    procedure CreatePurchaseOrderFromDropShipmentVariantWithDefaultBin()
+    begin
+        // [SCENARIO] Creating a drop shipment purchase order leaves the bin blank despite a variant's default bin.
+        Initialize();
+        VerifyCreatePurchaseOrderWithDefaultBin(true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderVerifyBinModalPageHandler')]
+    procedure CreatePurchaseOrderFromSalesWithDefaultBin()
+    begin
+        // [SCENARIO] Creating an ordinary purchase order retains the item's default bin.
+        Initialize();
+        VerifyCreatePurchaseOrderWithDefaultBin(false, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderVerifyBinModalPageHandler')]
+    procedure CreatePurchaseOrderFromSalesVariantWithDefaultBin()
+    begin
+        // [SCENARIO] Creating an ordinary purchase order retains the variant's default bin.
+        Initialize();
+        VerifyCreatePurchaseOrderWithDefaultBin(false, true);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure CreatingPlanningComponentsForOrderPlanningLine()
     var
@@ -4187,6 +4223,97 @@ codeunit 137088 "SCM Order Planning - III"
         JobPlanningLine.Modify(true);
     end;
 
+    local procedure VerifyCreatePurchaseOrderWithDefaultBin(DropShipment: Boolean; WithVariant: Boolean)
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ItemJournalLine: Record "Item Journal Line";
+        Location: Record Location;
+        Bin: Record Bin;
+        BinContent: Record "Bin Content";
+        Purchasing: Record Purchasing;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesOrder: TestPage "Sales Order";
+        PurchaseOrder: TestPage "Purchase Order";
+        ExpectedBinCode: Code[20];
+        StockQuantity: Decimal;
+        ExpectedPurchaseQuantity: Decimal;
+    begin
+        // [GIVEN] A bin-mandatory warehouse and an item with stock in its default bin.
+        LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, true);
+        Location.TestField("Directed Put-away and Pick", false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'B003', '', '');
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+        if WithVariant then
+            LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryWarehouse.CreateBinContent(
+            BinContent, Location.Code, '', Bin.Code, Item."No.", ItemVariant.Code, Item."Base Unit of Measure");
+        BinContent.Validate(Default, true);
+        BinContent.Modify(true);
+        StockQuantity := LibraryRandom.RandIntInRange(2, 10);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(
+            ItemJournalLine, Item."No.", Location.Code, Bin.Code, StockQuantity);
+        ItemJournalLine.Validate("Variant Code", ItemVariant.Code);
+        ItemJournalLine.Validate("Bin Code", Bin.Code);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A sales order for more than the stock, optionally marked as a drop shipment.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2 * StockQuantity);
+        SalesLine.Validate("Variant Code", ItemVariant.Code);
+        SalesLine.Validate("Location Code", Location.Code);
+        if DropShipment then begin
+            LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
+            SalesLine.Validate("Purchasing Code", Purchasing.Code);
+        end;
+        SalesLine.Modify(true);
+        SalesLine.TestField("Drop Shipment", DropShipment);
+        if DropShipment then begin
+            SalesLine.TestField("Bin Code", '');
+            ExpectedPurchaseQuantity := SalesLine.Quantity;
+        end else begin
+            ExpectedBinCode := Bin.Code;
+            ExpectedPurchaseQuantity := SalesLine.Quantity - StockQuantity;
+        end;
+
+        // [WHEN] Create Purchase Orders is invoked; the handler checks the requisition line before accepting it.
+        LibraryVariableStorage.Enqueue(Item."No.");
+        LibraryVariableStorage.Enqueue(ItemVariant.Code);
+        LibraryVariableStorage.Enqueue(DropShipment);
+        LibraryVariableStorage.Enqueue(ExpectedBinCode);
+        LibraryVariableStorage.Enqueue(ExpectedPurchaseQuantity);
+        PurchaseOrder.Trap();
+        SalesOrder.OpenEdit();
+        SalesOrder.GoToRecord(SalesHeader);
+        SalesOrder.CreatePurchaseOrder.Invoke();
+
+        // [THEN] The purchase line has the expected bin, variant, quantity and drop shipment link.
+        FindPurchaseDocumentByItemNo(PurchaseHeader, PurchaseLine, Item."No.");
+        PurchaseHeader.TestField("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.TestField("Buy-from Vendor No.", Item."Vendor No.");
+        PurchaseLine.TestField("Location Code", Location.Code);
+        PurchaseLine.TestField("Variant Code", ItemVariant.Code);
+        PurchaseLine.TestField("Bin Code", ExpectedBinCode);
+        PurchaseLine.TestField("Drop Shipment", DropShipment);
+        PurchaseLine.TestField(Quantity, ExpectedPurchaseQuantity);
+        if DropShipment then begin
+            PurchaseLine.TestField("Sales Order No.", SalesHeader."No.");
+            PurchaseLine.TestField("Sales Order Line No.", SalesLine."Line No.");
+            SalesLine.Find();
+            SalesLine.TestField("Purchase Order No.", PurchaseLine."Document No.");
+            SalesLine.TestField("Purch. Order Line No.", PurchaseLine."Line No.");
+        end;
+        PurchaseOrder.Close();
+        SalesOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure CreatePurchaseOrderFromSalesOrder(SalesOrderNo: Code[20]; MakePurchOrders: Boolean)
     var
         TempManufacturingUserTemplate: Record "Manufacturing User Template" temporary;
@@ -4801,6 +4928,23 @@ codeunit 137088 "SCM Order Planning - III"
     end;
 
     [ModalPageHandler]
+    procedure PurchOrderFromSalesOrderVerifyBinModalPageHandler(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", LibraryVariableStorage.DequeueText());
+        RequisitionLine.SetRange(Level, 1);
+        Assert.RecordCount(RequisitionLine, 1);
+        RequisitionLine.FindFirst();
+        RequisitionLine.TestField("Variant Code", LibraryVariableStorage.DequeueText());
+        RequisitionLine.TestField("Drop Shipment", LibraryVariableStorage.DequeueBoolean());
+        RequisitionLine.TestField("Bin Code", LibraryVariableStorage.DequeueText());
+        RequisitionLine.TestField(Quantity, LibraryVariableStorage.DequeueDecimal());
+        PurchOrderFromSalesOrder.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
     procedure PurchOrderFromSalesOrderWithVendorNoModalPageHandler(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
     begin
         PurchOrderFromSalesOrder.Vendor.SetValue(LibraryVariableStorage.DequeueText());
@@ -4882,4 +5026,3 @@ codeunit 137088 "SCM Order Planning - III"
         PlanningErrorLog.OK().Invoke();
     end;
 }
-
