@@ -1360,7 +1360,7 @@ table 6907 "Expense Report Line"
 
     internal procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)
     var
-        ExpenseReportHeader: Record "Expense Report Header";
+        ParentExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
         PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
         DocumentNo: Code[20];
@@ -1369,8 +1369,8 @@ table 6907 "Expense Report Line"
         DocumentNo := Rec."Document No.";
         LineNo := Rec."Line No.";
         // Serialize report snapshots before locking a line, matching the submission lock order.
-        ExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
-        ExpenseReportHeader.Get(DocumentNo);
+        ParentExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
+        ParentExpenseReportHeader.Get(DocumentNo);
         Rec.LockTable();
         Rec.Get(DocumentNo, LineNo);
         if EvaluatedSubjectVersion <> Rec."Policy Eval Version" then
@@ -1382,7 +1382,7 @@ table 6907 "Expense Report Line"
         Rec."Policies Evaluated At" := CurrentDateTime();
         // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
         Rec.Modify(false);
-        ExpenseActivityLogMgt.LogPolicyEvaluationIfReady(ExpenseReportHeader);
+        ExpenseActivityLogMgt.LogPolicyEvaluationIfReady(ParentExpenseReportHeader);
     end;
 
     internal procedure InvalidatePolicyEvaluation()
