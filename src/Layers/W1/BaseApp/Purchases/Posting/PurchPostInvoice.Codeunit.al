@@ -560,7 +560,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                     PostJobLine(TempInvoicePostingBuffer, GLEntryNo, JobPostingQueue, JobPurchLine);
             until TempInvoicePostingBuffer.Next(-1) = 0;
 
-        PostQueuedJobLines(JobPostingQueue, JobPurchLine);
+        PostQueuedJobLines(JobPostingQueue);
 
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := TempInvoicePostingBuffer.Amount;
@@ -1365,7 +1365,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         end;
     end;
 
-    local procedure PostQueuedJobLines(var JobPostingQueue: Record "Invoice Posting Buffer" temporary; var JobPurchLine: Record "Purchase Line")
+    local procedure PostQueuedJobLines(var JobPostingQueue: Record "Invoice Posting Buffer" temporary)
     begin
         if JobPostingQueue.IsEmpty() then
             exit;
