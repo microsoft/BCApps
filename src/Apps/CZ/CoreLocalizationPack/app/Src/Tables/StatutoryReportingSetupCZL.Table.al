@@ -220,17 +220,17 @@ table 31105 "Statutory Reporting Setup CZL"
             Caption = 'Official Code';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
         field(81; "Official Name"; Text[30])
         {
             Caption = 'Official Name (Obsolete)';
             DataClassification = CustomerContent;
 #if not CLEAN29
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
             ObsoleteReason = 'Replaced by "Official Full Name" field with the longer length.';
         }
