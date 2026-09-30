@@ -293,10 +293,10 @@ codeunit 6987 "Expense Report-Post"
         if SpendRequestNo = '' then
             exit;
 
-        // Another traveler's posted expense report can close a shared travel request, so posting against it stays allowed.
+        // Business Central only posts against an approved travel request, so a closed shared travel request blocks posting.
         SpendRequest.SetLoadFields(Status);
         SpendRequest.Get(SpendRequestNo);
-        if not (SpendRequest.Status in [SpendRequest.Status::Approved, SpendRequest.Status::Closed]) then
+        if SpendRequest.Status <> SpendRequest.Status::Approved then
             Error(GetSpendRequestNotPostableError(ExpenseReportNo, SpendRequest));
     end;
 

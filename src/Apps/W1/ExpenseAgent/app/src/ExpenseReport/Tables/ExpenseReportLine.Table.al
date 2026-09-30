@@ -1763,7 +1763,7 @@ table 6907 "Expense Report Line"
     var
         SpendRequest: Record "Spend Request";
     begin
-        // A travel request closed by another traveler's posted expense report no longer has a budget to check.
+        // A closed travel request has no remaining budget to check.
         if IsSpendRequestClosed(Rec."Spend Request No.") then
             exit;
 
@@ -1773,8 +1773,8 @@ table 6907 "Expense Report Line"
     local procedure LinkToHeaderSpendRequest()
     begin
         if IsSpendRequestClosed(ExpenseReportHeader."Spend Request No.") then begin
-            // Another traveler's posted expense report closed the shared travel request. Keep the line linked
-            // so that the expense is still attributed to the travel request when it is posted.
+            // The shared travel request was closed. Keep the line linked so the report can still be edited;
+            // posting requires an approved travel request, so the link must be removed before the report is posted.
             Rec."Spend Request No." := ExpenseReportHeader."Spend Request No.";
             Rec."Spend Request Close" := false;
             exit;

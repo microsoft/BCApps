@@ -1569,6 +1569,9 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] The travel request is open again.
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Open);
         FindTraveler(SpendRequest, OtherExpenseUser."No.", Traveler);
+        LibraryExpense.CreateExpenseUser(ThirdExpenseUser);
+        // asserterror rolls back the transaction, so the setup must survive the first failed removal.
+        Commit();
 
         // [WHEN] The traveler is removed.
         asserterror Traveler.Delete(true);
@@ -1577,7 +1580,6 @@ codeunit 148339 "Spend Request Test"
         Assert.ExpectedError(TravelerHasExpenseReportErr);
 
         // [WHEN] The traveler is replaced with another expense user.
-        LibraryExpense.CreateExpenseUser(ThirdExpenseUser);
         asserterror Traveler.Validate("Expense User No.", ThirdExpenseUser."No.");
 
         // [THEN] The replacement fails.
@@ -1649,7 +1651,8 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    procedure PostReportAfterSharedTravelRequestClosed()
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure PostReportAfterSharedTravelRequestClosedIsBlocked()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
@@ -1659,10 +1662,9 @@ codeunit 148339 "Spend Request Test"
         ExpensePaymentMethod: Record "Expense Payment Method";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
-        SpendRequestToGLLink: Record "Spend Request To G/L Link";
         ExpenseReportPost: Codeunit "Expense Report-Post";
     begin
-        // [SCENARIO] After one traveler's posted report closes a shared travel request, another traveler can still add expenses and post.
+        // [SCENARIO] After a shared travel request is closed, another traveler can still edit a linked expense report, but posting it is blocked.
         Initialize();
 
         // [GIVEN] An approved travel request with two travelers.
@@ -1678,19 +1680,18 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.Modify(true);
 
-        // [GIVEN] The first traveler's posted expense report closed the travel request.
+        // [GIVEN] The travel request is closed.
         SpendRequest.Get(SpendRequest."No.");
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Closed);
 
-        // [WHEN] The second traveler adds a refundable expense and posts the expense report.
+        // [WHEN] The second traveler adds a refundable expense, releases and posts the expense report.
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, OtherExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', LibraryRandom.RandIntInRange(100, 1000));
         Assert.AreEqual(SpendRequest."No.", ExpenseReportLine."Spend Request No.", 'The expense must stay linked to the closed travel request.');
         ExpenseReportHeader.PerformManualRelease();
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+        asserterror ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
-        // [THEN] The posted expense is attributed to the travel request.
-        SpendRequestToGLLink.SetRange("Spend Request No.", SpendRequest."No.");
-        Assert.IsFalse(SpendRequestToGLLink.IsEmpty(), SpendReqLinkExistsMsg);
+        // [THEN] Posting fails because the travel request is not approved.
+        Assert.ExpectedError(StrSubstNo(TravelRequestNotPostableErr, ExpenseReportHeader."No.", SpendRequest."No.", SpendRequest.Status::Closed));
     end;
 
     local procedure AssertPostedReportPreventsRecreation(SpendRequest: Record "Spend Request"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
