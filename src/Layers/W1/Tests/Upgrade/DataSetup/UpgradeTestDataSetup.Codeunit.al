@@ -11,23 +11,6 @@ codeunit 132802 "Upgrade Test Data Setup"
             CRMConnectionSetup.Insert();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Test Data Setup Mgt.", 'OnSetupDataPerCompany', '', false, false)]
-    local procedure SetupRestoreOrderQtyOnReturn()
-    var
-        SalesReceivablesSetup: Record "Sales & Receivables Setup";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-    begin
-        if not SalesReceivablesSetup.Get() then
-            SalesReceivablesSetup.Insert();
-        SalesReceivablesSetup.Validate("Restore Order qty. on return", false);
-        SalesReceivablesSetup.Modify();
-
-        if not PurchasesPayablesSetup.Get() then
-            PurchasesPayablesSetup.Insert();
-        PurchasesPayablesSetup.Validate("Restore Order qty. on return", false);
-        PurchasesPayablesSetup.Modify();
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Test Data Setup Mgt.", 'OnGetTablesToBackupPerCompany', '', false, false)]
     local procedure BackupIntegrationTableMapping(TableMapping: Dictionary of [Integer, Integer])
     var
