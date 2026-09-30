@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
