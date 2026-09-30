@@ -28,7 +28,7 @@ page 4400 "SOA Setup"
     RefreshOnActivate = true;
     InherentEntitlements = X;
     InherentPermissions = X;
-    HelpLink = 'https://go.microsoft.com/fwlink/?linkid=2281481';
+    HelpLink = 'https://go.microsoft.com/fwlink/?LinkId=2382318';
 
     layout
     {
