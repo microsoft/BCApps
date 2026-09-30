@@ -1568,9 +1568,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] The travel request is open again.
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Open);
-        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
-        Traveler.SetRange("Expense User No.", OtherExpenseUser."No.");
-        Traveler.FindFirst();
+        FindTraveler(SpendRequest, OtherExpenseUser."No.", Traveler);
 
         // [WHEN] The traveler is removed.
         asserterror Traveler.Delete(true);
@@ -2817,10 +2815,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.TestField("Rejection Reason", '');
 
         // [THEN] The resubmission entry in the activity log carries the justification.
-        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
-        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::Resubmitted);
-        ExpenseActivityLogEntry.FindFirst();
+        Assert.AreEqual(1, FindTravelRequestActivity(SpendRequest, ExpenseActivityLogEntry."Event Type"::Resubmitted, ExpenseActivityLogEntry), 'The travel request must have one resubmission entry.');
         Assert.AreEqual(Justification, ExpenseActivityLogEntry.Comment, 'The resubmission entry must preserve the submitter comment.');
     end;
 
@@ -2910,11 +2905,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
 
         // [THEN] The travel request has a single entry for the automatic creation of the expense reports.
-        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
-        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::ExpenseReportCreated);
-        Assert.RecordCount(ExpenseActivityLogEntry, 1);
-        ExpenseActivityLogEntry.FindFirst();
+        Assert.AreEqual(1, FindTravelRequestActivity(SpendRequest, ExpenseActivityLogEntry."Event Type"::ExpenseReportCreated, ExpenseActivityLogEntry), 'The travel request must have one expense report creation entry.');
         VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
         Assert.AreEqual(SpendRequest."No.", ExpenseActivityLogEntry."Document No.", 'The entry must reference the travel request number.');
 
@@ -3428,9 +3419,40 @@ codeunit 148339 "Spend Request Test"
         Traveler: Record Traveler;
     begin
         Traveler.SetRange("Spend Request No.", SpendRequest."No.");
-        Traveler.SetFilter("Expense User No.", '<>%1', ExpenseUserNo);
-        Traveler.FindFirst();
-        OtherExpenseUser.Get(Traveler."Expense User No.");
+        Traveler.FindSet();
+        repeat
+            if Traveler."Expense User No." <> ExpenseUserNo then begin
+                OtherExpenseUser.Get(Traveler."Expense User No.");
+                exit;
+            end;
+        until Traveler.Next() = 0;
+        Assert.Fail('The travel request must have another traveler.');
+    end;
+
+    local procedure FindTraveler(SpendRequest: Record "Spend Request"; ExpenseUserNo: Code[20]; var Traveler: Record Traveler)
+    begin
+        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Traveler.FindSet();
+        repeat
+            if Traveler."Expense User No." = ExpenseUserNo then
+                exit;
+        until Traveler.Next() = 0;
+        Assert.Fail('The expense user must be a traveler on the travel request.');
+    end;
+
+    local procedure FindTravelRequestActivity(SpendRequest: Record "Spend Request"; EventType: Enum "Expense Activity Event Type"; var FoundExpenseActivityLogEntry: Record "Expense Activity Log Entry") EntryCount: Integer
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        if ExpenseActivityLogEntry.FindSet() then
+            repeat
+                if ExpenseActivityLogEntry."Event Type" = EventType then begin
+                    EntryCount += 1;
+                    FoundExpenseActivityLogEntry := ExpenseActivityLogEntry;
+                end;
+            until ExpenseActivityLogEntry.Next() = 0;
     end;
 
     local procedure SetOwnerScopedTravelRequest(var TravelRequestsAPI: Page "Travel Requests API"; var SpendRequest: Record "Spend Request"; ExpenseUserSystemId: Guid)
@@ -3452,13 +3474,13 @@ codeunit 148339 "Spend Request Test"
         ExpectedActor: Record "Expense User"
     )
     begin
-        Assert.AreEqual(ExpectedEventType, ExpenseActivityLogEntry."Event Type", StrSubstNo('Entry %1 must record the %2 event.', ExpenseActivityLogEntry."Entry No.", ExpectedEventType));
+        Assert.AreEqual(ExpectedEventType, ExpenseActivityLogEntry."Event Type", 'The entry must record the expected event.');
         Assert.AreEqual(Database::"Spend Request", ExpenseActivityLogEntry."Subject Table ID", 'The travel request must be the activity subject.');
         Assert.AreEqual(SpendRequest.SystemId, ExpenseActivityLogEntry."Subject System ID", 'The activity subject must be the travel request.');
         Assert.AreEqual(SpendRequest."No.", ExpenseActivityLogEntry."Document No.", 'The activity must reference the travel request number.');
-        Assert.AreEqual(ExpectedActorRole, ExpenseActivityLogEntry."Actor Role", StrSubstNo('The %1 event must record the expected actor role.', ExpectedEventType));
-        Assert.AreEqual(Database::"Expense User", ExpenseActivityLogEntry."Actor Table ID", StrSubstNo('The %1 event must be attributed to an expense user.', ExpectedEventType));
-        Assert.AreEqual(ExpectedActor.SystemId, ExpenseActivityLogEntry."Actor Record System ID", StrSubstNo('The %1 event must be attributed to the expected expense user.', ExpectedEventType));
+        Assert.AreEqual(ExpectedActorRole, ExpenseActivityLogEntry."Actor Role", 'The event must record the expected actor role.');
+        Assert.AreEqual(Database::"Expense User", ExpenseActivityLogEntry."Actor Table ID", 'The event must be attributed to an expense user.');
+        Assert.AreEqual(ExpectedActor.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'The event must be attributed to the expected expense user.');
     end;
 
     local procedure VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
@@ -3498,7 +3520,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry.SetRange("History Actor System ID Filter", ExpenseUser.SystemId);
         ExpenseActivityLogEntry.SetRange("History Actor Role Filter", ActorRole);
         ExpenseActivityLogEntry.CalcFields("History Subject Match");
-        Assert.IsTrue(ExpenseActivityLogEntry."History Subject Match", StrSubstNo('The entry must be in the %1 history of expense user %2.', ActorRole, ExpenseUser."No."));
+        Assert.IsTrue(ExpenseActivityLogEntry."History Subject Match", 'The entry must be in the history of the expense user for the given role.');
     end;
 
     local procedure GetExpectedApproverName(): Code[50]
