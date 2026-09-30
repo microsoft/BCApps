@@ -13,6 +13,7 @@ tableextension 11410 "Bank Acc. Posting Group NL" extends "Bank Account Posting 
         field(11000000; "Acc.No. Pmt./Rcpt. in Process"; Code[20])
         {
             Caption = 'Acc.No. Pmt./Rcpt. in Process';
+            DataClassification = CustomerContent;
             TableRelation = "G/L Account";
 
             trigger OnValidate()

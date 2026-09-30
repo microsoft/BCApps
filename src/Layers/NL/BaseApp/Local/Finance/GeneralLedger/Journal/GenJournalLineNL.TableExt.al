@@ -48,7 +48,7 @@ tableextension 11419 "Gen. Journal Line NL" extends "Gen. Journal Line"
                                     TrMode.Get(TrMode."Account Type"::Employee, "Transaction Mode Code");
                                 else
                                     Error(
-                                      TransactionModeAccountTypeErrorQst, FieldCaption("Transaction Mode Code"), FieldCaption("Account Type"), FieldCaption("Bal. Account Type"));
+                                      TransactionModeAccountTypeErr, FieldCaption("Transaction Mode Code"), FieldCaption("Account Type"), FieldCaption("Bal. Account Type"));
                             end;
                     end;
 
@@ -60,6 +60,5 @@ tableextension 11419 "Gen. Journal Line NL" extends "Gen. Journal Line"
     }
 
     var
-        TransactionModeAccountTypeErrorQst: Label '%1 can only be filled in when %2 %3 is equal to Customer or Vendor.', Comment = '%1 - Field Caption of the field causing the error, %2 - Field Caption of the Account Type field, %3 - Field Caption of the Bal. Account Type field';
+        TransactionModeAccountTypeErr: Label '%1 can only be filled in when %2 %3 is equal to Customer or Vendor.', Comment = '%1 - Field Caption of the field causing the error, %2 - Field Caption of the Account Type field, %3 - Field Caption of the Bal. Account Type field';
 }
-
