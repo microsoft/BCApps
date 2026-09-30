@@ -103,11 +103,6 @@ permissionset 36951 "PowerBi Report Basic"
         query "Purchase Lines - Outstanding" = X,
         query "Purchase Lines - PBI API" = X,
         query "Requisition Lines" = X,
-#if not CLEAN27
-#pragma warning disable AL0432
-        query "Sales Line - PBI API" = X,
-#pragma warning restore AL0432
-#endif
         query "Sales Line V2 - PBI API" = X,
         query "Sales Line - Item Outstanding" = X,
         query "Sales Line - Item Shipped" = X,
@@ -119,12 +114,6 @@ permissionset 36951 "PowerBi Report Basic"
         query "Service Lines - Order" = X,
         query "Transfer Lines" = X,
         query "Value Entries - Item" = X,
-#if not CLEAN27
-#pragma warning disable AL0432
-        query "Value Entries - Purch." = X,
-        query "Value Entries - Sales" = X,
-#pragma warning restore AL0432
-#endif
         query "Sales Value Entries - PBI API" = X,
         query "Purch. Value Entries - PBI API" = X,
         query "Vendor Ledg. Entries - PBI API" = X,
