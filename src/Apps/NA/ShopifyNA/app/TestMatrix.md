@@ -1,6 +1,6 @@
-# Shopify Tax Matching Agent - Test Coverage
+# Shopify Tax Matching - Test Coverage
 
-This document summarizes the behavioral coverage for the Tax Matching Agent. It intentionally avoids duplicating every test object, dataset entry, telemetry tag, and security evaluation detail from the implementation.
+This document summarizes the behavioral coverage for Shopify Tax Matching. It intentionally avoids duplicating every test object, dataset entry, telemetry tag, and security evaluation detail from the implementation.
 
 ## Configuration dimensions
 
@@ -22,10 +22,19 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 |----|----------|-----------------|
 | G1 | Feature disabled for the shop | No AI request or order change; standard synchronization continues. |
 | G2 | Copilot capability unavailable or inactive | Matching is skipped without affecting order import. |
-| G3 | Standard address mapping already assigned a Tax Area | The existing Tax Area takes precedence and the agent does not run. |
+| G3 | Standard address mapping already assigned a Tax Area | The existing Tax Area takes precedence and AI matching does not run. |
 | G4 | Order is tax exempt | Matching is skipped and the tax-exempt state is preserved. |
 | G5 | No unmatched tax lines are available | No matching work or tax setup changes are performed. |
 | G6 | Required AI safeguards are unavailable | Matching is skipped and synchronization continues through the standard path. |
+
+### Processing limit scenarios
+
+| ID | Scenario | Expected result |
+|----|----------|-----------------|
+| PL1 | Processing-limit configuration is valid | The maximum order count and rolling period are read from the Key Vault value. |
+| PL2 | Processing-limit configuration is missing or invalid | Matching fails closed and the order is not counted as attempted. |
+| PL3 | The maximum number of orders has been attempted in the rolling period | Additional orders are skipped without increasing the count. |
+| PL4 | An earlier attempt leaves the rolling period | Capacity becomes available for another order. |
 
 ### Jurisdiction matching scenarios
 
@@ -71,9 +80,9 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 | RM3 | Review mode is Low Confidence Only and all matches are sufficiently validated | The order can continue automatically when no hard safety gate exists. |
 | RM4 | Review mode is Never with a complete, non-conflicting match | The order is not held solely for review preference. |
 | RM5 | Any review mode with an incomplete match | The order remains held until all tax lines are resolved. |
-| PV1 | An agent-created jurisdiction is first used | It remains provisional and requires human validation under the applicable review policy. |
+| PV1 | An AI-created jurisdiction is first used | It remains provisional and requires human validation under the applicable review policy. |
 | PV2 | A reviewer approves a provisional jurisdiction | It becomes verified for subsequent matching. |
-| PV3 | Approval is undone before document creation | The order is held again and its agent-created jurisdictions return to provisional state. |
+| PV3 | Approval is undone before document creation | The order is held again and its AI-created jurisdictions return to provisional state. |
 
 ### Human-in-the-loop scenarios
 
@@ -129,7 +138,7 @@ Security and Responsible AI evaluations are maintained in restricted test infras
 
 | Layer | Focus |
 |-------|-------|
-| Deterministic AL tests | Guards, tax setup behavior, review gates, rate-conflict handling, reprocessing, and state transitions. |
+| Deterministic AL tests | Guards, processing limits, tax setup behavior, review gates, rate-conflict handling, reprocessing, and state transitions. |
 | AI Test Toolkit evaluations | Matching quality and structured-response behavior using representative tax scenarios. |
 | Client-level verification | Page actions, field visibility, notifications, confirmation dialogs, rate highlighting, and edit/close behavior. |
 
