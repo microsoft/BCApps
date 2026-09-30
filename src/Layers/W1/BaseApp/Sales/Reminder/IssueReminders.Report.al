@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Sales.Setup;
 using System.Utilities;
+using System.Text;
 
 /// <summary>
 /// Posts reminder documents in batch, creating issued reminders and general ledger entries for fees and interest.
@@ -61,7 +62,6 @@ report 190 "Issue Reminders"
                     Commit();
                     Mark := not ReminderIssue.Run();
                 end;
-
                 if PrintEmailDocument <> PrintEmailDocument::" " then begin
                     ReminderIssue.GetIssuedReminder(IssuedReminderHeader);
                     TempIssuedReminderHeader := IssuedReminderHeader;
@@ -75,21 +75,36 @@ report 190 "Issue Reminders"
             var
                 IssuedReminderHeaderPrint: Record "Issued Reminder Header";
                 ConfirmManagement: Codeunit "Confirm Management";
+                TempIssuedReminderHeaderToPrint: Record "Issued Reminder Header" temporary;
+                IssuedReminderHeaderRef: RecordRef;
+                SelectionFilterManagement: Codeunit SelectionFilterManagement;
                 IsHandled: Boolean;
             begin
                 Window.Close();
                 Commit();
-                if PrintEmailDocument <> PrintEmailDocument::" " then
+                if PrintEmailDocument <> PrintEmailDocument::" " then begin
                     if TempIssuedReminderHeader.FindSet() then
                         repeat
                             IssuedReminderHeaderPrint := TempIssuedReminderHeader;
                             IsHandled := false;
                             OnBeforePrintIssuedReminderHeader(IssuedReminderHeaderPrint, IsHandled, PrintEmailDocument, HideDialog);
                             if not IsHandled then begin
-                                IssuedReminderHeaderPrint.SetRecFilter();
-                                IssuedReminderHeaderPrint.PrintRecords(false, PrintEmailDocument = PrintEmailDocument::Email, HideDialog);
+                                if PrintEmailDocument = PrintEmailDocument::Print then begin
+                                    TempIssuedReminderHeaderToPrint := IssuedReminderHeaderPrint;
+                                    TempIssuedReminderHeaderToPrint.Insert();
+                                end else begin
+                                    IssuedReminderHeaderPrint.SetRecFilter();
+                                    IssuedReminderHeaderPrint.PrintRecords(false, true, HideDialog);
+                                end;
                             end;
                         until TempIssuedReminderHeader.Next() = 0;
+                    if (PrintEmailDocument = PrintEmailDocument::Print) and TempIssuedReminderHeaderToPrint.FindSet() then begin
+                        IssuedReminderHeaderRef.GetTable(TempIssuedReminderHeaderToPrint);
+                        IssuedReminderHeaderPrint.Reset();
+                        IssuedReminderHeaderPrint.SetFilter("No.", SelectionFilterManagement.GetSelectionFilter(IssuedReminderHeaderRef, TempIssuedReminderHeaderToPrint.FieldNo("No.")));
+                        IssuedReminderHeaderPrint.PrintRecords(false, false, HideDialog);
+                    end;
+                end;
                 MarkedOnly := true;
                 if FindFirst() then
                     if ConfirmManagement.GetResponse(ShowNotIssuedQst, true) then
@@ -230,7 +245,6 @@ report 190 "Issue Reminders"
         begin
             GLSetup.Get();
             VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
-
             if GLSetup."Journal Templ. Name Mandatory" then begin
                 IsJournalTemplNameVisible := true;
                 SalesSetup.get();
