@@ -678,6 +678,7 @@ report 11110 "VAT Statement AT"
             FDFFile.Write('<< /V (' + Format(NumberPar6Abs1) + ')/T (Zahl112)>>');
         WriteFDFDataForPosition(1020, 'Zahl113');
         WriteFDFDataForPosition(22, 'Zahl115a');
+        WriteFDFDataForPosition(124, 'Zahl116a1');
         WriteFDFDataForPosition(29, 'Zahl116a');
         WriteFDFDataForPosition(6, 'Zahl117a');
         WriteFDFDataForPosition(37, 'Zahl118a');
@@ -692,6 +693,7 @@ report 11110 "VAT Statement AT"
         WriteFDFDataForPosition(70, 'Zahl126');
         WriteFDFDataForPosition(71, 'Zahl127');
         WriteFDFDataForPosition(72, 'Zahl128a');
+        WriteFDFDataForPosition(125, 'Zahl128a1');
         WriteFDFDataForPosition(73, 'Zahl129a');
         WriteFDFDataForPosition(8, 'Zahl129a_1');
         WriteFDFDataForPosition(88, 'Zahl130a');

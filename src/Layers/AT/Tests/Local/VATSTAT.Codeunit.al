@@ -23,7 +23,7 @@ codeunit 144001 VATSTAT
         ReportingType: Option Quarter,Month,"Defined period";
         DefaultFdfTxt: Label 'Default.fdf';
         DefaultXmlTxt: Label 'Default.xml';
-        arguments: Option ,Zahl101,Zahl102,Zahl103,Zahl104,Zahl105,Zahl106,Zahl107,Zahl108,Zahl109,Zahl110,Zahl111,Zahl112,Zahl113,Zahl115a,Zahl116a,Zahl117a,Zahl118a,Zahl119a,Zahl120a,Zahl121a,Zahl123,Zahl124,Zahl125,Zahl125b,Zahl125a,Zahl126,Zahl127,Zahl128a,Zahl129a,Zahl130a,Zahl130aa,Zahl131,Zahl132,Zahl133,Zahl134,Zahl134a,Zahl135,Zahl136,Zahl136a,Zahl137a,Zahl137,Zahl138,Zahl139,DD140,Zahl140,DD141,Zahl141,DD143_27,Zahl143_27,DD143_28,Zahl143_28,DD143,Zahl143,Checkbox100X,Checkbox100Xx;
+        arguments: Option ,Zahl101,Zahl102,Zahl103,Zahl104,Zahl105,Zahl106,Zahl107,Zahl108,Zahl109,Zahl110,Zahl111,Zahl112,Zahl113,Zahl115a,Zahl116a1,Zahl116a,Zahl117a,Zahl118a,Zahl119a,Zahl120a,Zahl121a,Zahl123,Zahl124,Zahl125,Zahl125b,Zahl125a,Zahl126,Zahl127,Zahl128a,Zahl128a1,Zahl129a,Zahl130a,Zahl130aa,Zahl131,Zahl132,Zahl133,Zahl134,Zahl134a,Zahl135,Zahl136,Zahl136a,Zahl137a,Zahl137,Zahl138,Zahl139,DD140,Zahl140,DD141,Zahl141,DD143_27,Zahl143_27,DD143_28,Zahl143_28,DD143,Zahl143,Checkbox100X,Checkbox100Xx;
         PdfFileName: Text[260];
         FdfFileName: Text[260];
         XmlFileName: Text[260];
@@ -1553,6 +1553,10 @@ codeunit 144001 VATSTAT
         LibraryXPathXMLReader.Initialize(XmlFileName, '');
         VerifyXMLHeader(LibraryXPathXMLReader);
         VerifyXMLLine(LibraryXPathXMLReader, 'LIEFERUNGEN_LEISTUNGEN_EIGENVERBRAUCH/VERSTEUERT/KZ124', VATEntry.Base);
+
+        // [THEN] FDF file (U30 PDF form) has the base amount in field Zahl116a1
+        FdfFileHelper.ReadFdfFile(FdfFileName);
+        VerifyFDFLineValue(FdfFileHelper, arguments::Zahl116a1, VATEntry.Base);
     end;
 
     [Test]
@@ -1601,6 +1605,10 @@ codeunit 144001 VATSTAT
         LibraryXPathXMLReader.Initialize(XmlFileName, '');
         VerifyXMLHeader(LibraryXPathXMLReader);
         VerifyXMLLine(LibraryXPathXMLReader, 'INNERGEMEINSCHAFTLICHE_ERWERBE/VERSTEUERT_IGE/KZ125', VATEntry.Base);
+
+        // [THEN] FDF file (U30 PDF form) has the base amount in field Zahl128a1
+        FdfFileHelper.ReadFdfFile(FdfFileName);
+        VerifyFDFLineValue(FdfFileHelper, arguments::Zahl128a1, VATEntry.Base);
     end;
 
     [Test]
