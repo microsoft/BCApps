@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using System.Xml;
 
-codeunit 11042 "DE XML Document Validator"
+codeunit 11044 "DE XML Document Validator"
 {
     Access = Public;
     InherentEntitlements = X;
