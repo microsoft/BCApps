@@ -1631,10 +1631,23 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     end;
 
     local procedure VerifyCorrectiveApplication(ItemLedgerEntry: Record "Item Ledger Entry"; ProductionOrder: Record "Production Order"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
     begin
+#pragma warning disable AA0210
+        CapacityLedgerEntry.SetRange(Subcontracting, true);
+        CapacityLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
+        CapacityLedgerEntry.SetRange("Item No.", PurchRcptLine."No.");
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
+        CapacityLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", PurchRcptLine."Order No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", PurchRcptLine."Order Line No.");
+        CapacityLedgerEntry.FindFirst();
+#pragma warning restore AA0210
+
         Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to an original output Item Ledger Entry.');
-        Assert.AreEqual(ItemLedgerEntry."Document Type"::"Purchase Receipt", ItemLedgerEntry."Document Type", 'The corrective credit memo must apply to a purchase receipt output entry.');
-        Assert.AreEqual(PurchRcptLine."Document No.", ItemLedgerEntry."Document No.", 'The applied output Item Ledger Entry must belong to the subcontracting receipt.');
+        Assert.AreEqual(CapacityLedgerEntry."Item Register No.", ItemLedgerEntry."Item Register No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting receipt posting.');
         Assert.AreEqual(PurchRcptLine."Order No.", ItemLedgerEntry."Subc. Purch. Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting purchase order.');
         Assert.AreEqual(PurchRcptLine."Order Line No.", ItemLedgerEntry."Subc. Purch. Order Line No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting purchase order line.');
         Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting production order.');

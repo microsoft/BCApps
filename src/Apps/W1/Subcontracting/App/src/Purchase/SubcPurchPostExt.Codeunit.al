@@ -120,7 +120,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
-        SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine);
+        if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
+            exit;
         if ItemLedgerEntry.IsEmpty() then
             exit;
 
@@ -164,7 +165,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
 
         IsHandled := true;
-        SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine);
+        if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
+            exit;
         if ItemLedgerEntry.IsEmpty() then
             exit;
 
@@ -245,18 +247,33 @@ codeunit 20535 "Subc. Purch. Post Ext"
         exit(Item."Item Tracking Code" <> '');
     end;
 
-    local procedure SetSubcontractingOutputEntryFilters(var ItemLedgerEntry: Record "Item Ledger Entry"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    local procedure SetSubcontractingOutputEntryFilters(var ItemLedgerEntry: Record "Item Ledger Entry"; PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
     begin
+#pragma warning disable AA0210
+        CapacityLedgerEntry.SetRange(Subcontracting, true);
+        CapacityLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
+        CapacityLedgerEntry.SetRange("Item No.", PurchRcptLine."No.");
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
+        CapacityLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", PurchRcptLine."Order No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", PurchRcptLine."Order Line No.");
+        if not CapacityLedgerEntry.FindFirst() then
+            exit(false);
+#pragma warning restore AA0210
+
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Purchase Receipt");
-        ItemLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
         ItemLedgerEntry.SetRange("Item No.", PurchRcptLine."No.");
+        ItemLedgerEntry.SetRange("Item Register No.", CapacityLedgerEntry."Item Register No.");
         ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
         ItemLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
         ItemLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
         ItemLedgerEntry.SetRange("Subc. Purch. Order No.", PurchRcptLine."Order No.");
         ItemLedgerEntry.SetRange("Subc. Purch. Order Line No.", PurchRcptLine."Order Line No.");
         ItemLedgerEntry.SetRange(Positive, true);
+        exit(true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry, '', false, false)]
