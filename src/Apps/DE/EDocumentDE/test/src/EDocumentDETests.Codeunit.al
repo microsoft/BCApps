@@ -599,10 +599,14 @@ codeunit 13926 "E-Document DE Tests"
     local procedure CreateValidCustomer(): Code[20]
     var
         Customer: Record Customer;
+        EDocDEVATRegNoHandler: Codeunit "E-Doc. DE VAT Reg. No. Handler";
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        // The duplicate VAT registration number check is not relevant for these tests and would raise a message.
+        BindSubscription(EDocDEVATRegNoHandler);
         Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
+        UnbindSubscription(EDocDEVATRegNoHandler);
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);
         exit(Customer."No.");
@@ -611,12 +615,16 @@ codeunit 13926 "E-Document DE Tests"
     local procedure CreateValidCustomerWithDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; PaymentMethodCode: Code[10]): Code[20]
     var
         Customer: Record Customer;
+        EDocDEVATRegNoHandler: Codeunit "E-Doc. DE VAT Reg. No. Handler";
         CustomerNo: Code[20];
     begin
         CustomerNo := LibraryEDocDE.CreateCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
         Customer.Get(CustomerNo);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        // The duplicate VAT registration number check is not relevant for these tests and would raise a message.
+        BindSubscription(EDocDEVATRegNoHandler);
         Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
+        UnbindSubscription(EDocDEVATRegNoHandler);
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);
         exit(CustomerNo);
