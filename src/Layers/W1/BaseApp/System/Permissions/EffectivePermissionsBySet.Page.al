@@ -189,7 +189,6 @@ page 9853 "Effective Permissions By Set"
     var
         TempPermissionBuffer: Record "Permission Buffer" temporary;
         Permission: Record Permission;
-        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
     begin
         EffectivePermissionsMgt.PopulatePermissionBuffer(TempPermissionBuffer, PassedUserID, PassedCompanyName,
           CurrentObjectType, CurrentObjectID);
