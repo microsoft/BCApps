@@ -495,6 +495,20 @@ codeunit 12184 "Fattura Doc. Helper"
           CompanyInformation, CompanyInformation.FieldNo("Registry Office Province"), ErrorMessage."Message Type"::Error);
     end;
 
+    procedure GetISOCountryCode(CountryRegionCode: Code[10]): Code[2]
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        CountryRegion.Get(CountryRegionCode);
+        CountryRegion.TestField("ISO Code");
+        exit(CountryRegion."ISO Code");
+    end;
+
+    procedure IsSameISOCountry(FirstCountryRegionCode: Code[10]; SecondCountryRegionCode: Code[10]): Boolean
+    begin
+        exit(GetISOCountryCode(FirstCountryRegionCode) = GetISOCountryCode(SecondCountryRegionCode));
+    end;
+
     local procedure CheckFatturaPAISOCountryCode(CountryRegionCode: Code[10]; SourceRecord: Variant; SourceFieldNo: Integer; var ErrorMessage: Record "Error Message")
     var
         CountryRegion: Record "Country/Region";
