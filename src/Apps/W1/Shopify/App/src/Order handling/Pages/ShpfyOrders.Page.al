@@ -292,6 +292,7 @@ page 30115 "Shpfy Orders"
             {
                 ApplicationArea = All;
                 Caption = 'Create Sales Documents';
+                Enabled = HasOrdersInCurrentView;
                 Image = MakeOrder;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -465,6 +466,13 @@ page 30115 "Shpfy Orders"
         }
     }
 
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        HasOrdersInCurrentView := not Rec.IsEmpty();
+        exit(Rec.Find(Which));
+    end;
+
     var
         ConfirmLbl: Label 'Create sales document(s) from the selected Shopify order(s)?';
+        HasOrdersInCurrentView: Boolean;
 }
