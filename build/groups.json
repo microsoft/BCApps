@@ -5183,6 +5183,20 @@
     ]
   },
   {
+    "name": "Tests-Company Creation",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-Misc",
     "groups": [
       {
