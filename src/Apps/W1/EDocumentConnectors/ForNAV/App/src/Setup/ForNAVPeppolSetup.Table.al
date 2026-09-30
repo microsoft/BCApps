@@ -458,6 +458,11 @@ table 6414 "ForNAV Peppol Setup"
         EDocServiceSupportedType.Insert();
         EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Credit Memo";
         EDocServiceSupportedType.Insert();
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
+        EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
+        EDocServiceSupportedType.Insert();
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Credit Memo";
+        EDocServiceSupportedType.Insert();
 
         if DocumentSendingProfile.Get("Document Sending Profile") then
             exit;

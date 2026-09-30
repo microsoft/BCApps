@@ -627,6 +627,93 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         LibraryAssert.IsFalse(Shop."Auto Create Tax Jurisdictions", 'Auto Create Tax Jurisdictions must stay off (opt-in).');
     end;
 
+    [Test]
+    procedure ProcessingLimitAllowsConfiguredNumberOfOrders()
+    var
+        OrderA: Record "Shpfy Order Header";
+        OrderB: Record "Shpfy Order Header";
+        OrderC: Record "Shpfy Order Header";
+        TMAProcessingLimit: Codeunit "Shpfy TMA Processing Limit";
+        ProcessedOrders: Integer;
+        AsOfDateTime: DateTime;
+    begin
+        Cleanup();
+        AsOfDateTime := CreateDateTime(20260921D, 120000T);
+        OrderA := CreateProcessingLimitOrder();
+        OrderB := CreateProcessingLimitOrder();
+        OrderC := CreateProcessingLimitOrder();
+
+        LibraryAssert.IsTrue(TMAProcessingLimit.TryAcquireAt(OrderA, AsOfDateTime, 2, 60, ProcessedOrders), 'The first order should be allowed.');
+        LibraryAssert.AreEqual(1, ProcessedOrders, 'The first order should increment the usage count.');
+        LibraryAssert.IsTrue(TMAProcessingLimit.TryAcquireAt(OrderB, AsOfDateTime, 2, 60, ProcessedOrders), 'The second order should be allowed.');
+        LibraryAssert.AreEqual(2, ProcessedOrders, 'The second order should increment the usage count.');
+        LibraryAssert.IsFalse(TMAProcessingLimit.TryAcquireAt(OrderC, AsOfDateTime, 2, 60, ProcessedOrders), 'Orders above the configured limit should be blocked.');
+        LibraryAssert.AreEqual(2, ProcessedOrders, 'A blocked order must not increment the usage count.');
+    end;
+
+    [Test]
+    procedure ProcessingLimitResetsAfterConfiguredPeriod()
+    var
+        OrderA: Record "Shpfy Order Header";
+        OrderB: Record "Shpfy Order Header";
+        TMAProcessingLimit: Codeunit "Shpfy TMA Processing Limit";
+        ProcessedOrders: Integer;
+    begin
+        Cleanup();
+        OrderA := CreateProcessingLimitOrder();
+        OrderB := CreateProcessingLimitOrder();
+
+        LibraryAssert.IsTrue(TMAProcessingLimit.TryAcquireAt(OrderA, CreateDateTime(20260921D, 120000T), 1, 60, ProcessedOrders), 'The first order should be allowed.');
+        LibraryAssert.IsFalse(TMAProcessingLimit.TryAcquireAt(OrderB, CreateDateTime(20260921D, 125959T), 1, 60, ProcessedOrders), 'The limit should remain active within the period.');
+        LibraryAssert.IsTrue(TMAProcessingLimit.TryAcquireAt(OrderB, CreateDateTime(20260921D, 130000T), 1, 60, ProcessedOrders), 'A new period should reset the usage count.');
+        LibraryAssert.AreEqual(1, ProcessedOrders, 'The first order in a new period should set the usage count to one.');
+    end;
+
+    [Test]
+    procedure ProcessingLimitConfigurationIsValidated()
+    var
+        TMAProcessingLimit: Codeunit "Shpfy TMA Processing Limit";
+        MaxOrders: Integer;
+        PeriodMinutes: Integer;
+    begin
+        LibraryAssert.IsTrue(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":25,"periodMinutes":60}', MaxOrders, PeriodMinutes), 'A complete processing limit configuration should be valid.');
+        LibraryAssert.AreEqual(25, MaxOrders, 'The maximum order count should be read from the configuration.');
+        LibraryAssert.AreEqual(60, PeriodMinutes, 'The period should be read from the configuration.');
+        LibraryAssert.IsTrue(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":0,"periodMinutes":60}', MaxOrders, PeriodMinutes), 'A zero maximum should be supported as an emergency off switch.');
+        LibraryAssert.IsFalse(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":25}', MaxOrders, PeriodMinutes), 'A configuration without a period should be rejected.');
+        LibraryAssert.IsFalse(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":-1,"periodMinutes":60}', MaxOrders, PeriodMinutes), 'A negative maximum should be rejected.');
+        LibraryAssert.IsFalse(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":25,"periodMinutes":0}', MaxOrders, PeriodMinutes), 'A non-positive period should be rejected.');
+    end;
+
+    [Test]
+    procedure BlockedRematchClearsStaleMatchState()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+        TMAProcessingLimit: Codeunit "Shpfy TMA Processing Limit";
+        ProcessedOrders: Integer;
+    begin
+        Cleanup();
+        OrderHeader := CreateProcessingLimitOrder();
+        OrderHeader."Tax Match Applied" := true;
+        OrderHeader."Tax Match Reviewed" := true;
+        OrderHeader."Tax Rate Conflict" := true;
+        OrderHeader."Tax Match Incomplete" := true;
+        OrderHeader."Tax Match Low Confidence" := true;
+        OrderHeader.Modify();
+
+        TMAMatcher.ResetMatchState(OrderHeader);
+        LibraryAssert.IsFalse(
+            TMAProcessingLimit.TryAcquireAt(OrderHeader, CreateDateTime(20260922D, 120000T), 0, 60, ProcessedOrders),
+            'The rematch should be blocked by the processing limit.');
+
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Applied", 'A blocked rematch must clear the stale applied state.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Reviewed", 'A blocked rematch must clear the stale reviewed state.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Rate Conflict", 'A blocked rematch must clear the stale rate-conflict state.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Incomplete", 'A blocked rematch must clear the stale incomplete state.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Low Confidence", 'A blocked rematch must clear the stale confidence state.');
+    end;
+
     local procedure BuildOrderAndShop(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; Applied: Boolean; Reviewed: Boolean; ReviewRequired: Boolean; RateConflict: Boolean)
     begin
         // In-memory records are enough — IsSalesDocumentCreationHeld only reads these fields.
@@ -642,6 +729,16 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         OrderHeader."Tax Match Applied" := Applied;
         OrderHeader."Tax Match Reviewed" := Reviewed;
         OrderHeader."Tax Rate Conflict" := RateConflict;
+    end;
+
+    local procedure CreateProcessingLimitOrder(): Record "Shpfy Order Header"
+    var
+        OrderHeader: Record "Shpfy Order Header";
+    begin
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader.Insert();
+        exit(OrderHeader);
     end;
 
     local procedure BuildOrderAndShopMode(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; ReviewMode: Enum "Shpfy Tax Match Review Mode"; LowConfidence: Boolean; RateConflict: Boolean; Incomplete: Boolean)
