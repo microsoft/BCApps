@@ -4,7 +4,7 @@ codeunit 1915 "MigrationQB Dashboard Mgt"
     var
         HelperFunctions: Codeunit "MigrationQB Helper Functions";
         CloudMigrationLbl: Label 'CloudMigration', Locked = true;
-        QuickBooksLbl: Label 'QuickBooks', Locked = true;
+        QBOLbl: Label 'QuickBooks Online', Locked = true;
 
     procedure InitMigrationStatus(TotalItemNb: Integer; TotalCustomerNb: Integer; TotalVendorNb: Integer; TotalChartOfAccountNb: Integer);
     var
@@ -67,7 +67,7 @@ codeunit 1915 "MigrationQB Dashboard Mgt"
         TelemetryDimensions.Add('NumberOfCompanies', Format(1, 0, 9));
         TelemetryDimensions.Add('TotalMigrationSize', Format(0, 0, 9));
         TelemetryDimensions.Add('TotalOnPremSize', Format(0, 0, 9));
-        TelemetryDimensions.Add('Product', QuickBooksLbl);
+        TelemetryDimensions.Add('Product', QBOLbl);
         TelemetryDimensions.Add('MigrationDateTime', Format(MigrationDateTime, 0, 9));
         FeatureTelemetry.LogUsage('0000JMR', 'Cloud Migration', 'Tenant was cloud migrated', TelemetryDimensions);
     end;
