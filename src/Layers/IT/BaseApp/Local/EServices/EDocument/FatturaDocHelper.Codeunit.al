@@ -425,7 +425,6 @@ codeunit 12184 "Fattura Doc. Helper"
           PaymentTerms.Get(Format(HeaderRecRef.Field(PaymentTermsCodeFieldNo).Value()));
 
         CheckCompanyInformationFields(ErrorMessage);
-        ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("PA Code"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
