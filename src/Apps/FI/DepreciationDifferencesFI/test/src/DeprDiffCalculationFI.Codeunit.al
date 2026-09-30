@@ -672,6 +672,8 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         FAJournalSetup: Record "FA Journal Setup";
     begin
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        if LibraryFixedAsset.GetDefaultDeprBook() = '' then
+            LibraryFixedAsset.UpdateFASetupDefaultDeprBook(DepreciationBook.Code);
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
         UpdateFAJournalSetup(FAJournalSetup);
     end;
@@ -976,6 +978,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     local procedure SetFeatureEnabled(Enabled: Boolean)
     begin
         FeatureEnabled := Enabled;
+        UnbindSubscription(TestCU);
         BindSubscription(TestCU);
     end;
 
