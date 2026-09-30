@@ -148,7 +148,6 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ItemLedgerEntry: Record "Item Ledger Entry";
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         PurchRcptLine: Record "Purch. Rcpt. Line";
-        ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         MissingExactCostReversingLink: Boolean;
     begin
@@ -171,10 +170,38 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
 
         IsHandled := true;
-        ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempItemLedgerEntry, ItemLedgerEntry);
+        CopyItemLedgerEntriesUpToQuantity(TempItemLedgerEntry, ItemLedgerEntry, ToPurchLine."Quantity (Base)");
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
             TempItemLedgerEntry, ToPurchLine, false, MissingExactCostReversingLink,
             false, false, true);
+    end;
+
+    local procedure CopyItemLedgerEntriesUpToQuantity(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; QuantityBase: Decimal)
+    var
+        QuantityToCopy: Decimal;
+        RemainingQuantityBase: Decimal;
+    begin
+        TempItemLedgerEntry.Reset();
+        TempItemLedgerEntry.DeleteAll();
+        RemainingQuantityBase := Abs(QuantityBase);
+        if (RemainingQuantityBase = 0) or not ItemLedgerEntry.FindSet() then
+            exit;
+
+        repeat
+            QuantityToCopy := Abs(ItemLedgerEntry.Quantity);
+            if QuantityToCopy > RemainingQuantityBase then
+                QuantityToCopy := RemainingQuantityBase;
+            RemainingQuantityBase -= QuantityToCopy;
+            if ItemLedgerEntry.Quantity < 0 then
+                QuantityToCopy := -QuantityToCopy;
+
+            TempItemLedgerEntry := ItemLedgerEntry;
+            TempItemLedgerEntry.Quantity := QuantityToCopy;
+            TempItemLedgerEntry."Remaining Quantity" := QuantityToCopy;
+            TempItemLedgerEntry.Insert();
+        until (ItemLedgerEntry.Next() = 0) or (RemainingQuantityBase = 0);
+
+        TempItemLedgerEntry.Reset();
     end;
 
     local procedure CreateInvoiceTrackingSpecifications(PurchaseLine: Record "Purchase Line")

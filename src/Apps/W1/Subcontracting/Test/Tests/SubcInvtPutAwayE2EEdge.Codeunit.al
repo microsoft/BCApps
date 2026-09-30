@@ -577,6 +577,114 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForTrackedReceiptAfterPartialInvoiceCopiesRemainingQuantity()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ReservationEntry: Record "Reservation Entry";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649862] A tracked subcontracting receipt can be invoiced after an earlier partial invoice
+
+        // [GIVEN] A serial-tracked subcontracting receipt for two units
+        Initialize();
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateSerialTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify(true);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 2, Location.Code);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, 'PARTIAL-SN1', '', 1);
+        LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, 'PARTIAL-SN2', '', 1);
+
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindSet();
+        WarehouseActivityLine.Validate("Qty. to Handle", 1);
+        WarehouseActivityLine.Validate("Serial No.", 'PARTIAL-SN1');
+        WarehouseActivityLine.Modify(true);
+        WarehouseActivityLine.Next();
+        WarehouseActivityLine.Validate("Qty. to Handle", 1);
+        WarehouseActivityLine.Validate("Serial No.", 'PARTIAL-SN2');
+        WarehouseActivityLine.Modify(true);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+
+        // [GIVEN] One unit from the receipt was already invoiced
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        InvoiceLine.Validate(Quantity, 1);
+        InvoiceLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(1, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The first invoice must leave one unit uninvoiced.');
+
+        // [WHEN] Get Receipt Lines creates and posts an invoice for the remaining unit
+        Clear(PurchGetReceipt);
+        Clear(InvoiceHeader);
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.Reset();
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+
+        // [THEN] Tracking is limited to the remaining invoice quantity and posting succeeds
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(),
+            InvoiceLine."Document No.", InvoiceLine."Line No.", false);
+        ReservationEntry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(InvoiceLine."Quantity (Base)", Abs(ReservationEntry."Quantity (Base)"), 'Copied tracking must equal the remaining invoice quantity.');
+        LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The second invoice must invoice the remaining receipt quantity.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CancelSeparateSubcontractingInvoiceReversesCapacityCost()
     begin
