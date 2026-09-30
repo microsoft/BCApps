@@ -5216,7 +5216,6 @@ codeunit 134386 "ERM Sales Documents II"
         DimensionValue: Record "Dimension Value";
         DefaultDimension: Record "Default Dimension";
         Customer: Record Customer;
-        LibraryDimension: Codeunit "Library - Dimension";
     begin
         LibrarySales.CreateCustomer(Customer);
         LibraryDimension.FindDimension(Dimension);
