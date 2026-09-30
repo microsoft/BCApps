@@ -246,10 +246,11 @@ table 61 "Electronic Document Format"
     begin
         IsHandled := false;
         OnBeforeGetAttachmentFileName(RecordVariant, DocumentNo, DocumentType, Extension, IsHandled, FileName);
+        // Extension is a Code parameter and is therefore always upper case, e.g. 'pdf' is received as 'PDF'.
         if not IsHandled then
             FileName :=
                 CopyStr(
-                    StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), DocumentType, DocumentNo, Extension), 1, 250);
+                    StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), DocumentType, DocumentNo, LowerCase(Extension)), 1, 250);
     end;
 
 
