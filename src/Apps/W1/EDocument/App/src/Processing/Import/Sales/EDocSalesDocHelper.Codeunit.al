@@ -59,6 +59,10 @@ codeunit 6427 "E-Doc. Sales Doc. Helper"
         SalesLine.Validate("Shortcut Dimension 2 Code", EDocSalesLine."[BC] Shortcut Dimension 2 Code");
         SalesLine.Insert(true);
         EDocRecordLink.InsertEDocumentSalesLineLink(EDocSalesLine, SalesLine);
+
+        EDocSalesLine."Created Shipment Date" := SalesLine."Shipment Date";
+        EDocSalesLine."Created Planned Delivery Date" := SalesLine."Planned Delivery Date";
+        EDocSalesLine.Modify();
     end;
 
     /// <summary>
