@@ -202,6 +202,7 @@
                         "../../../src/Layers/W1/Tests/Bank",
                         "../../../src/Layers/W1/Tests/BCPT-SampleTests",
                         "../../../src/Layers/W1/Tests/Cash Flow",
+                        "../../../src/Layers/W1/Tests/Company Creation",
                         "../../../src/Layers/W1/Tests/Cost Accounting",
                         "../../../src/Layers/W1/Tests/CRM integration",
                         "../../../src/Layers/W1/Tests/Data Exchange",

@@ -1,7 +1,12 @@
 [
   {
-    "codeunitId": 139925,
-    "codeunitName": "APIV2 - Assembly Orders E2E",
+    "codeunitId": 139806,
+    "codeunitName": "APIV2 - Company Info. E2E",
+    "method": "TestGetCompanyAndEnvironmentDescriptions"
+  },
+  {
+    "codeunitId": 139928,
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E",
     "method": "*"
   },
   {
@@ -10,13 +15,18 @@
     "method": "*"
   },
   {
+    "codeunitId": 139927,
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E",
+    "method": "*"
+  },
+  {
     "codeunitId": 139909,
     "codeunitName": "APIV2 - Bl. Sales Orders E2E",
     "method": "*"
   },
   {
-    "codeunitId": 139922,
-    "codeunitName": "APIV2 - Purch. Quotes E2E",
+    "codeunitId": 139924,
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E",
     "method": "*"
   },
   {
@@ -25,18 +35,13 @@
     "method": "*"
   },
   {
-    "codeunitId": 139928,
-    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E",
+    "codeunitId": 139922,
+    "codeunitName": "APIV2 - Purch. Quotes E2E",
     "method": "*"
   },
   {
-    "codeunitId": 139927,
-    "codeunitName": "APIV2 - Sales Ord. Arch. E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139924,
-    "codeunitName": "APIV2 - Sales Ret. Orders E2E",
+    "codeunitId": 139925,
+    "codeunitName": "APIV2 - Assembly Orders E2E",
     "method": "*"
   },
   {
