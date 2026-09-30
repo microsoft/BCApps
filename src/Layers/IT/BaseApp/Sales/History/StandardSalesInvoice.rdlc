@@ -6966,7 +6966,7 @@
                                               <Border>
                                                 <Style>None</Style>
                                               </Border>
-                                                                                            <PaddingLeft>5pt</PaddingLeft>
+                                              <PaddingLeft>5pt</PaddingLeft>
                                               <PaddingRight>5pt</PaddingRight>
                                             </Style>
                                           </Textbox>
@@ -7004,7 +7004,7 @@
                                               <Border>
                                                 <Style>None</Style>
                                               </Border>
-                                                                                            <PaddingLeft>5pt</PaddingLeft>
+                                              <PaddingLeft>5pt</PaddingLeft>
                                               <PaddingRight>5pt</PaddingRight>
                                             </Style>
                                           </Textbox>
@@ -7037,7 +7037,7 @@
                                               <Border>
                                                 <Style>None</Style>
                                               </Border>
-                                                                                            <PaddingLeft>5pt</PaddingLeft>
+                                              <PaddingLeft>5pt</PaddingLeft>
                                               <PaddingRight>5pt</PaddingRight>
                                             </Style>
                                           </Textbox>
