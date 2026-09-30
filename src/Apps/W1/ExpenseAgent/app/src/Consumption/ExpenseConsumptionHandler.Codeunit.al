@@ -16,12 +16,10 @@ codeunit 6969 "Expense Consumption Handler"
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
 
-    internal procedure InitializeAndValidateConsumptionJson(AiConsumptionRequest: Text; var AiConsumptionRequestJson: JsonObject): Boolean
+    internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
     var
         TempToken: JsonToken;
     begin
-        if (AiConsumptionRequest = '') or not AiConsumptionRequestJson.ReadFrom(AiConsumptionRequest) then
-            exit(false);
         if not AiConsumptionRequestJson.Get('model', TempToken) or not TempToken.IsObject() then
             exit(false);
         if not AiConsumptionRequestJson.Get('v1', TempToken) or not TempToken.IsObject() then

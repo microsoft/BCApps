@@ -117,7 +117,9 @@ page 6968 "Expense User Cons. API"
         AiConsumptionRequestJson: JsonObject;
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-        if not ExpenseConsumptionHandler.InitializeAndValidateConsumptionJson(AiConsumptionRequest, AiConsumptionRequestJson) then
+        if (AiConsumptionRequest = '') or not AiConsumptionRequestJson.ReadFrom(AiConsumptionRequest) then
+            Error(InvalidJsonConsumptionRequestErr);
+        if not ExpenseConsumptionHandler.ValidateConsumptionJson(AiConsumptionRequestJson) then
             Error(InvalidJsonConsumptionRequestErr);
         if IsNullGuid(AgentConversationSessionId) or IsNullGuid(AgentTurnInteractionId) then
             Error(AgentConversationSessionIdOrTurnInteractionIdErr);
