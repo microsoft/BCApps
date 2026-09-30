@@ -1649,7 +1649,7 @@ codeunit 148342 "Expense Activity Log Test"
         Line.Modify(false);
     end;
 
-    local procedure SubmitHistoryReport(var Header: Record "Expense Report Header") SubmissionID: Guid
+    local procedure SubmitHistoryReport(var Header: Record "Expense Report Header"): Guid
     var
         Entry: Record "Expense Activity Log Entry";
         ApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
