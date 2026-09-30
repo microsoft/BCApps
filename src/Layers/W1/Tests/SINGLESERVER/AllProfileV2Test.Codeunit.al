@@ -1046,7 +1046,7 @@ codeunit 138698 "AllProfile V2 Test"
 
         // Cleanup User Personalization, ensure default profile is loaded for the user
         Clear(AllProfile);
-        if UserPersonalization.FindSet(true, false) then
+        if UserPersonalization.FindSet(true) then
             repeat
                 ConfPersonalizationMgt.GetDefaultProfileID(UserPersonalization."User SID", AllProfile);
                 UserPersonalization.Validate("Profile ID", AllProfile."Profile ID");

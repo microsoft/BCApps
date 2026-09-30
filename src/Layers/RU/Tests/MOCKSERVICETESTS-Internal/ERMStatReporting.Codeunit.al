@@ -74,7 +74,7 @@ codeunit 144529 "ERM Stat. Reporting"
     begin
         CompanyAddress.FindFirst();
         StatutoryReport.SetFilter("Company Address Code", '%1', '');
-        if StatutoryReport.FindSet(true, false) then
+        if StatutoryReport.FindSet(true) then
             repeat
                 StatutoryReport."Company Address Code" := CompanyAddress.Code;
                 StatutoryReport."Company Address Language Code" := CompanyAddress."Language Code";

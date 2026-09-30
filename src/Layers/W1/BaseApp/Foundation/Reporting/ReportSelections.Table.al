@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -847,75 +847,6 @@ table 77 "Report Selections"
         SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
 
-#if not CLEAN27
-    [Scope('OnPrem')]
-    [Obsolete('Replaced with GetEmailBodyForCust that accepts a TempBlob as parameter.', '27.0')]
-    procedure GetEmailBodyForCust(var ServerEmailBodyFilePath: Text[250]; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; CustNo: Code[20]; var CustEmailAddress: Text[250]): Boolean
-    begin
-        exit(
-            GetEmailBodyTextForCust(
-                ServerEmailBodyFilePath, ReportUsage, RecordVariant, CustNo, CustEmailAddress, ''));
-    end;
-
-    [Scope('OnPrem')]
-    [Obsolete('Replaced with GetEmailBodyTextForCust that accepts a TempBlob as parameter.', '27.0')]
-    procedure GetEmailBodyTextForCust(var ServerEmailBodyFilePath: Text[250]; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; CustNo: Code[20]; var CustEmailAddress: Text[250]; EmailBodyText: Text) Result: Boolean
-    var
-        TempBodyReportSelections: Record "Report Selections" temporary;
-        O365HTMLTemplMgt: Codeunit "O365 HTML Templ. Mgt.";
-        IsHandled: Boolean;
-        EmailBodyUsageFound: Boolean;
-        EmailBody: Codeunit "Temp Blob";
-    begin
-        ServerEmailBodyFilePath := '';
-
-        IsHandled := false;
-        OnBeforeGetEmailBodyCustomer(
-            ReportUsage.AsInteger(), RecordVariant, TempBodyReportSelections, CustNo, CustEmailAddress, EmailBodyText, IsHandled, Result);
-        if IsHandled then
-            exit(Result);
-
-        if CustEmailAddress = '' then
-            CustEmailAddress := GetEmailAddressIgnoringLayout(ReportUsage, RecordVariant, CustNo);
-
-        IsHandled := false;
-        OnGetEmailBodyTextForCustOnBeforeFindEmailBodyUsageForCust(Rec, ReportUsage, RecordVariant, CustNo, TempBodyReportSelections, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-
-        if not FindEmailBodyUsageForCust(ReportUsage, CustNo, TempBodyReportSelections) then begin
-            IsHandled := false;
-            EmailBodyUsageFound := false;
-            OnGetEmailBodyCustomerTextOnAfterNotFindEmailBodyUsage(
-                ReportUsage.AsInteger(), RecordVariant, CustNo, TempBodyReportSelections, IsHandled, EmailBodyUsageFound);
-            if not EmailBodyUsageFound then begin
-                if IsHandled then
-                    exit(true);
-                exit(false);
-            end;
-        end;
-
-        case "Email Body Layout Type" of
-            "Email Body Layout Type"::"Custom Report Layout":
-                if TempBodyReportSelections."Email Body Layout Code" <> '' then
-                    SaveReportAsHTML(TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Email Body Layout Code", ReportUsage, EmailBody)
-                else
-                    SaveReportAsHTML(TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Email Body Layout Name", TempBodyReportSelections."Email Body Layout AppID", ReportUsage, EmailBody);
-            "Email Body Layout Type"::"HTML Layout":
-                O365HTMLTemplMgt.CreateEmailBodyFromReportSelections(Rec, RecordVariant, CustEmailAddress, EmailBodyText, EmailBody);
-        end;
-        ServerEmailBodyFilePath := FileManagement.TempBlobToServerFile(EmailBody, 'html');
-
-        CustEmailAddress := GetEmailAddress(ReportUsage, RecordVariant, CustNo, TempBodyReportSelections);
-
-        IsHandled := false;
-        OnAfterGetEmailBodyCustomer(CustEmailAddress, ServerEmailBodyFilePath, RecordVariant, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-
-        exit(true);
-    end;
-#endif
 
     /// <summary>
     /// Gets the email body for a customer into tempblob.
@@ -947,10 +878,6 @@ table 77 "Report Selections"
         O365HTMLTemplMgt: Codeunit "O365 HTML Templ. Mgt.";
         IsHandled: Boolean;
         EmailBodyUsageFound: Boolean;
-#if not CLEAN27
-        ServerEmailBodyFileCreated: Boolean;
-        ServerEmailBodyFilePath: Text[250];
-#endif
     begin
         Clear(EmailBody);
 
@@ -993,21 +920,6 @@ table 77 "Report Selections"
         CustEmailAddress := GetEmailAddress(ReportUsage, RecordVariant, CustNo, TempBodyReportSelections);
 
         IsHandled := false;
-#if not CLEAN27
-        if EmailBody.HasValue() then begin
-            ServerEmailBodyFilePath := FileManagement.TempBlobToServerFile(EmailBody, 'html');
-            ServerEmailBodyFileCreated := true;
-        end;
-        OnAfterGetEmailBodyCustomer(CustEmailAddress, ServerEmailBodyFilePath, RecordVariant, Result, IsHandled);
-        if ServerEmailBodyFileCreated then
-            Clear(EmailBody);
-        if ServerEmailBodyFilePath <> '' then begin
-            FileManagement.BLOBImportFromServerFile(EmailBody, ServerEmailBodyFilePath);
-            FileManagement.DeleteServerFile(ServerEmailBodyFilePath);
-        end;
-        if IsHandled then
-            exit(Result);
-#endif
         OnAfterGetEmailBodyCustomerProcedure(CustEmailAddress, EmailBody, RecordVariant, Result, IsHandled);
 
         if IsHandled then
@@ -1081,58 +993,6 @@ table 77 "Report Selections"
         exit(EmailAddress);
     end;
 
-#if not CLEAN27
-    [Scope('OnPrem')]
-    [Obsolete('Replaced with GetEmailBodyForVend that accepts a TempBlob as parameter.', '27.0')]
-    procedure GetEmailBodyForVend(var ServerEmailBodyFilePath: Text[250]; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; VendorNo: Code[20]; var VendorEmailAddress: Text[250]) Result: Boolean
-    var
-        TempBodyReportSelections: Record "Report Selections" temporary;
-        FoundVendorEmailAddress: Text[250];
-        IsHandled, EmailBodyUsageFound : Boolean;
-        EMailBody: Codeunit "Temp Blob";
-    begin
-        ServerEmailBodyFilePath := '';
-
-        IsHandled := false;
-        OnBeforeGetEmailBodyVendor(
-          ReportUsage.AsInteger(), RecordVariant, TempBodyReportSelections, VendorNo, VendorEmailAddress, IsHandled);
-        if IsHandled then
-            exit;
-
-        VendorEmailAddress := GetEmailAddressForVend(VendorNo, RecordVariant, ReportUsage);
-
-        if not FindEmailBodyUsageForVend(ReportUsage, VendorNo, TempBodyReportSelections) then begin
-            IsHandled := false;
-            EmailBodyUsageFound := false;
-            OnGetEmailBodyVendorTextOnAfterNotFindEmailBodyUsage(
-              ReportUsage.AsInteger(), RecordVariant, VendorNo, TempBodyReportSelections, IsHandled, EmailBodyUsageFound);
-            if not EmailBodyUsageFound then begin
-                if IsHandled then
-                    exit(true);
-                exit(false);
-            end;
-        end;
-
-        if TempBodyReportSelections."Email Body Layout Code" <> '' then
-            SaveReportAsHTML(TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Email Body Layout Code", ReportUsage, EMailBody)
-        else
-            SaveReportAsHTML(TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Email Body Layout Name", TempBodyReportSelections."Email Body Layout AppID", ReportUsage, EMailBody);
-
-        ServerEmailBodyFilePath := FileManagement.TempBlobToServerFile(EmailBody, 'html');
-
-        FoundVendorEmailAddress :=
-          FindEmailAddressForEmailLayout(TempBodyReportSelections."Email Body Layout Code", VendorNo, ReportUsage, Database::Vendor);
-        if FoundVendorEmailAddress <> '' then
-            VendorEmailAddress := FoundVendorEmailAddress;
-
-        IsHandled := false;
-        OnAfterGetEmailBodyVendor(VendorEmailAddress, ServerEmailBodyFilePath, RecordVariant, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-
-        exit(true);
-    end;
-#endif
 
     procedure GetEmailBodyForVend(var EmailBody: Codeunit "Temp Blob"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant;
                                                      VendorNo: Code[20]; var VendorEmailAddress: Text[250]) Result: Boolean
@@ -1140,10 +1000,6 @@ table 77 "Report Selections"
         TempBodyReportSelections: Record "Report Selections" temporary;
         FoundVendorEmailAddress: Text[250];
         IsHandled, EmailBodyUsageFound : Boolean;
-#if not CLEAN27
-        ServerEmailBodyFileCreated: Boolean;
-        ServerEmailBodyFilePath: Text[250];
-#endif
     begin
         Clear(EmailBody);
 
@@ -1177,21 +1033,6 @@ table 77 "Report Selections"
             VendorEmailAddress := FoundVendorEmailAddress;
 
         IsHandled := false;
-#if not CLEAN27
-        if EmailBody.HasValue() then begin
-            ServerEmailBodyFilePath := FileManagement.TempBlobToServerFile(EmailBody, 'html');
-            ServerEmailBodyFileCreated := true;
-        end;
-        OnAfterGetEmailBodyVendor(VendorEmailAddress, ServerEmailBodyFilePath, RecordVariant, Result, IsHandled);
-        if ServerEmailBodyFileCreated then
-            Clear(EmailBody);
-        if ServerEmailBodyFilePath <> '' then begin
-            FileManagement.BLOBImportFromServerFile(EmailBody, ServerEmailBodyFilePath);
-            FileManagement.DeleteServerFile(ServerEmailBodyFilePath);
-        end;
-        if IsHandled then
-            exit(Result);
-#endif
         OnAfterGetEmailBodyVendorProcedure(VendorEmailAddress, EmailBody, RecordVariant, Result, IsHandled);
         if IsHandled then
             exit(Result);
@@ -1585,15 +1426,9 @@ table 77 "Report Selections"
         FieldRef: FieldRef;
         FieldName: Text;
         EmailAddress: Text[250];
-#if not CLEAN27
-        ServerEmailBodyFilePath: Text[250];
-#endif
         SourceTableIDs, SourceRelationTypes : List of [Integer];
         SourceIDs: List of [Guid];
         IsHandled: Boolean;
-#if not CLEAN27
-        ServerEmailBodyFileCreated: Boolean;
-#endif
         AttachmentStream: InStream;
         TableId: Integer;
     begin
@@ -1647,21 +1482,6 @@ table 77 "Report Selections"
                 SourceRelationTypes.Add(Enum::"Email Relation Type"::"Related Entity".AsInteger());
             end;
         end;
-#if not CLEAN27
-        if EmailBodyTempBlob.HasValue() then begin
-            ServerEmailBodyFilePath := FileManagement.TempBlobToServerFile(EmailBodyTempBlob, 'html');
-            ServerEmailBodyFileCreated := true;
-        end;
-        OnBeforeSendEmailDirectly(Rec, ReportUsage, RecordVariant, DocNo, DocName, FoundBody, FoundAttachment, ServerEmailBodyFilePath, DefaultEmailAddress, ShowDialog, TempAttachReportSelections, CustomReportSelection, AllEmailsWereSuccessful, IsHandled, SourceTableIDs, SourceIDs, SourceRelationTypes);
-        if ServerEmailBodyFileCreated then
-            Clear(ServerEmailBodyFileCreated);
-        if ServerEmailBodyFilePath <> '' then begin
-            FileManagement.BLOBImportFromServerFile(EmailBodyTempBlob, ServerEmailBodyFilePath);
-            FileManagement.DeleteServerFile(ServerEmailBodyFilePath);
-        end;
-        if IsHandled then
-            exit(AllEmailsWereSuccessful);
-#endif
         OnSendEmailDirectlyOnBeforeSend(Rec, ReportUsage, RecordVariant, DocNo, DocName, FoundBody, FoundAttachment, EmailBodyTempBlob, DefaultEmailAddress, ShowDialog, TempAttachReportSelections, CustomReportSelection, AllEmailsWereSuccessful, IsHandled, SourceTableIDs, SourceIDs, SourceRelationTypes);
         if IsHandled then
             exit(AllEmailsWereSuccessful);
@@ -1695,20 +1515,6 @@ table 77 "Report Selections"
                     Error(ReminderAndSalesInvoiceErr);
 
                 IsHandled := false;
-#if not CLEAN27
-                ServerEmailBodyFileCreated := false;
-                if EmailBodyTempBlob.HasValue() then begin
-                    ServerEmailBodyFilePath := FileManagement.TempBlobToServerFile(EmailBodyTempBlob, 'html');
-                    ServerEmailBodyFileCreated := true;
-                end;
-                OnSendEmailDirectlyOnBeforeSendFileLoop(ReportUsage, RecordVariant, DocNo, DocName, DefaultEmailAddress, ShowDialog, TempAttachReportSelections, CustomReportSelection, IsHandled, ServerEmailBodyFilePath);
-                if ServerEmailBodyFileCreated then
-                    Clear(EmailBodyTempBlob);
-                if ServerEmailBodyFilePath <> '' then begin
-                    FileManagement.BLOBImportFromServerFile(EmailBodyTempBlob, ServerEmailBodyFilePath);
-                    FileManagement.DeleteServerFile(ServerEmailBodyFilePath);
-                end;
-#endif
                 OnSendEmailDirectlyOnBeforeSendSingleFile(ReportUsage, RecordVariant, DocNo, DocName, DefaultEmailAddress, ShowDialog, TempAttachReportSelections, CustomReportSelection, IsHandled, EmailBodyTempBlob);
 
                 if not IsHandled then begin
@@ -2040,31 +1846,14 @@ table 77 "Report Selections"
     local procedure DoSaveReportAsHTMLInTempBlob(ReportID: Integer; var RecordVariant: Variant; var TempBlob: Codeunit "Temp Blob")
     var
         IsHandled: Boolean;
-#if not CLEAN27
-        FilePath: Text;
-#endif
         FileOutStream: OutStream;
     begin
         IsHandled := false;
-#if not CLEAN27
-        OnBeforeDoSaveReportAsHTML(ReportID, FilePath, RecordVariant, IsHandled);
-        if FilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
-#endif
         OnBeforeDoSaveReportAsHTMLInTempBlob(ReportID, TempBlob, RecordVariant, IsHandled);
         if IsHandled then
             exit;
         TempBlob.CreateOutStream(FileOutStream, TextEncoding::UTF8);
         Report.SaveAs(ReportID, '', ReportFormat::Html, FileOutStream, GetRecRef(RecordVariant));
-#if not CLEAN27
-        FilePath := FileManagement.ServerTempFileName('html');
-        FileManagement.BLOBExportToServerFile(TempBlob, FilePath);
-        OnReplaceHTMLText(ReportID, FilePath, RecordVariant, IsHandled);
-        if FilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(TempBlob, FilePath)
-        else
-            Clear(TempBlob);
-#endif
         OnAfterDoSaveReportAsHTMLInTempBlob(ReportID, TempBlob, RecordVariant);
     end;
 
@@ -2477,13 +2266,6 @@ table 77 "Report Selections"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event will be removed. Please use Event OnBeforeDoSaveReportAsHTMLInTempBlob instead.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeDoSaveReportAsHTML(ReportID: Integer; var FilePath: Text[250]; var RecordVariant: Variant; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDoSaveReportAsHTMLInTempBlob(ReportID: Integer; var TemBlob: Codeunit "Temp Blob"; var RecordVariant: Variant; var IsHandled: Boolean)
     begin
@@ -2604,13 +2386,6 @@ table 77 "Report Selections"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Use new Event OnAfterGetEmailBodyCustomerProcedure instead.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetEmailBodyCustomer(var CustomerEmailAddress: Text[250]; ServerEmailBodyFilePath: Text[250]; RecordVariant: Variant; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetEmailBodyCustomerProcedure(var CustomerEmailAddress: Text[250]; var EmailBody: Codeunit "Temp Blob"; RecordVariant: Variant; var Result: Boolean; var IsHandled: Boolean)
@@ -2627,13 +2402,6 @@ table 77 "Report Selections"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Use new Event OnAfterGetEmailBodyVendorProcedure instead.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetEmailBodyVendor(var VendorEmailAddress: Text[250]; ServerEmailBodyFilePath: Text[250]; RecordVariant: Variant; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetEmailBodyVendorProcedure(var VendorEmailAddress: Text[250]; var EmailBody: Codeunit "Temp Blob"; RecordVariant: Variant; var Result: Boolean; var IsHandled: Boolean)
@@ -2670,13 +2438,6 @@ table 77 "Report Selections"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Use new Event OnSendEmailDirectlyOnBeforeSend instead.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSendEmailDirectly(var ReportSelections: Record "Report Selections"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; var DocNo: Code[20]; var DocName: Text[150]; FoundBody: Boolean; FoundAttachment: Boolean; ServerEmailBodyFilePath: Text[250]; var DefaultEmailAddress: Text[250]; ShowDialog: Boolean; var TempAttachReportSelections: Record "Report Selections" temporary; var CustomReportSelection: Record "Custom Report Selection"; var AllEmailsWereSuccessful: Boolean; var IsHandled: Boolean; var SourceTableIDs: List of [Integer]; var SourceIDs: List of [Guid]; var SourceRelationTypes: List of [Integer])
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSendEmailDirectlyOnBeforeSend(var ReportSelections: Record "Report Selections"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; var DocNo: Code[20]; var DocName: Text[150]; FoundBody: Boolean; FoundAttachment: Boolean; var EmailBody: Codeunit "Temp Blob"; var DefaultEmailAddress: Text[250]; ShowDialog: Boolean; var TempAttachReportSelections: Record "Report Selections" temporary; var CustomReportSelection: Record "Custom Report Selection"; var AllEmailsWereSuccessful: Boolean; var IsHandled: Boolean; var SourceTableIDs: List of [Integer]; var SourceIDs: List of [Guid]; var SourceRelationTypes: List of [Integer])
@@ -2713,13 +2474,6 @@ table 77 "Report Selections"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Use new Event OnSendEmailDirectlyOnBeforeSendSingleFile instead.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSendEmailDirectlyOnBeforeSendFileLoop(ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; DocNo: Code[20]; var DocName: Text[150]; var DefaultEmailAddress: Text[250]; ShowDialog: Boolean; var TempAttachReportSelections: Record "Report Selections" temporary; var CustomReportSelection: Record "Custom Report Selection"; var IsHandled: Boolean; var ServerEmailBodyFilePath: Text[250])
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSendEmailDirectlyOnBeforeSendSingleFile(ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; DocNo: Code[20]; var DocName: Text[150]; var DefaultEmailAddress: Text[250]; ShowDialog: Boolean; var TempAttachReportSelections: Record "Report Selections" temporary; var CustomReportSelection: Record "Custom Report Selection"; var IsHandled: Boolean; var EmailBody: Codeunit "Temp Blob")
@@ -2866,13 +2620,6 @@ table 77 "Report Selections"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event will be removed. Please use Event OnBeforeDoSaveReportAsHTMLInTempBlob instead.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnReplaceHTMLText(ReportID: Integer; var FilePath: Text[250]; var RecordVariant: Variant; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterDoSaveReportAsHTMLInTempBlob(ReportID: Integer; var TempBlob: Codeunit "Temp Blob"; var RecordVariant: Variant)

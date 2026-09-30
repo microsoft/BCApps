@@ -70,16 +70,6 @@ page 459 "Sales & Receivables Setup"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-#if not CLEAN27                
-                field("Create Item from Item No."; Rec."Create Item from Item No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                    ObsoleteReason = 'Discontinued functionality';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif                
                 field("Create Item from Description"; Rec."Create Item from Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -372,39 +362,6 @@ page 459 "Sales & Receivables Setup"
                     ApplicationArea = Basic, Suite;
                 }
             }
-#if not CLEAN27
-            group("Reverse Charge")
-            {
-                Caption = 'Reverse Charge';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                ObsoleteTag = '27.0';
-                field("Reverse Charge VAT Posting Gr."; Rec."Reverse Charge VAT Posting Gr.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                    ObsoleteTag = '27.0';
-                    ToolTip = 'Specifies the VAT Business Posting Group code for reverse charge VAT.';
-                }
-                field("Domestic Customers"; Rec."Domestic Customers")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                    ObsoleteTag = '27.0';
-                    ToolTip = 'Specifies the VAT Business Posting Group code for domestic UK customers.';
-                }
-                field("Invoice Wording"; Rec."Invoice Wording")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                    ObsoleteTag = '27.0';
-                    ToolTip = 'Specifies the text that is printed on the invoice indicating that the invoice is a reverse charge transaction.';
-                }
-            }
-#endif
             group(Archiving)
             {
                 Caption = 'Archiving';

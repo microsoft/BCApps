@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -123,87 +123,10 @@ page 99000768 "Manufacturing Setup"
             group(Planning)
             {
                 Caption = 'Planning';
-#if not CLEAN27
-                field("Current Production Forecast"; Rec."Current Production Forecast")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Use Forecast on Locations"; Rec."Use Forecast on Locations")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Use Forecast on Variants"; Rec."Use Forecast on Variants")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Default Safety Lead Time"; Rec."Default Safety Lead Time")
-                {
-                    ApplicationArea = Manufacturing, Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Blank Overflow Level"; Rec."Blank Overflow Level")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Combined MPS/MRP Calculation"; Rec."Combined MPS/MRP Calculation")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-#endif
                 field("Components at Location"; Rec."Components at Location")
                 {
                     ApplicationArea = Manufacturing, Planning;
                 }
-#if not CLEAN27
-                field("Default Dampener Period"; Rec."Default Dampener Period")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Default Dampener %"; Rec."Default Dampener %")
-                {
-                    ApplicationArea = Planning;
-                    AutoFormatType = 0;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-#endif
                 field("Manual Scheduling"; Rec."Manual Scheduling")
                 {
                     ApplicationArea = Manufacturing;

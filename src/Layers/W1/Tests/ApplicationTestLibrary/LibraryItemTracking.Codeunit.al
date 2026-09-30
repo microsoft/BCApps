@@ -335,63 +335,9 @@ codeunit 130502 "Library - Item Tracking"
         ItemTracking(ReservEntry, RecRef, ItemTrackingSetup, QtyBase);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure CreateProdOrderItemTracking(var ReservEntry: Record "Reservation Entry"; ProdOrderLine: Record "Prod. Order Line"; SerialNo: Code[50]; LotNo: Code[50]; QtyBase: Decimal)
-    var
-        ItemTrackingSetup: Record "Item Tracking Setup";
-    begin
-        ItemTrackingSetup."Serial No." := SerialNo;
-        ItemTrackingSetup."Lot No." := LotNo;
-#pragma warning disable AL0432
-        CreateProdOrderItemTracking(ReservEntry, ProdOrderLine, ItemTrackingSetup, QtyBase);
-#pragma warning restore AL0432
-    end;
-#pragma warning restore AL0801
-#endif
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure CreateProdOrderItemTracking(var ReservEntry: Record "Reservation Entry"; ProdOrderLine: Record "Prod. Order Line"; ItemTrackingSetup: Record "Item Tracking Setup"; QtyBase: Decimal)
-    var
-        RecRef: RecordRef;
-    begin
-        RecRef.GetTable(ProdOrderLine);
-        ItemTracking(ReservEntry, RecRef, ItemTrackingSetup, QtyBase);
-    end;
-#pragma warning restore AL0801
-#endif
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure CreateProdOrderCompItemTracking(var ReservEntry: Record "Reservation Entry"; ProdOrderComp: Record "Prod. Order Component"; SerialNo: Code[50]; LotNo: Code[50]; QtyBase: Decimal)
-    var
-        ITemTrackingSetup: Record "Item Tracking Setup";
-    begin
-        ItemTrackingSetup."Serial No." := SerialNo;
-        ItemTrackingSetup."Lot No." := LotNo;
-#pragma warning disable AL0432
-        CreateProdOrderCompItemTracking(ReservEntry, ProdOrderComp, ITemTrackingSetup, QtyBase);
-#pragma warning restore AL0432
-    end;
-#pragma warning restore AL0801
-#endif
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure CreateProdOrderCompItemTracking(var ReservEntry: Record "Reservation Entry"; ProdOrderComp: Record "Prod. Order Component"; ItemTrackingSetup: Record "Item Tracking Setup"; QtyBase: Decimal)
-    var
-        RecRef: RecordRef;
-    begin
-        RecRef.GetTable(ProdOrderComp);
-        ItemTracking(ReservEntry, RecRef, ItemTrackingSetup, QtyBase);
-    end;
-#pragma warning restore AL0801
-#endif
 
     procedure CreatePurchOrderItemTracking(var ReservEntry: Record "Reservation Entry"; PurchLine: Record "Purchase Line"; SerialNo: Code[50]; LotNo: Code[50]; QtyBase: Decimal)
     var

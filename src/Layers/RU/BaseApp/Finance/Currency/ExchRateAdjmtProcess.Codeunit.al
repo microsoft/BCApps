@@ -3190,13 +3190,6 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetDtldEmplLedgEntryFilters(var DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry"; EmplLedgEntry: Record "Employee Ledger Entry")
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnAfterShouldAdjustCurrency(Currency: Record Currency; var ShouldAdjust: Boolean)
     begin
@@ -3212,13 +3205,6 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterShouldAdjustEmplLedgEntry(EmplLedgEntry: Record "Employee Ledger Entry"; var ShouldAdjust: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetVATEntryFilters(var VATEntry: Record "VAT Entry")
     begin
@@ -3279,13 +3265,6 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessEmployeeAdjustment(var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnAfterRunAdjustment(var ExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters" temporary)
     begin
@@ -3396,19 +3375,6 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPrepareTempEmplLedgEntryOnAfterSetEmplLedgerEntryFilters(var EmployeeLedgerEntry: Record "Employee Ledger Entry")
-    begin
-    end;
-
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPrepareTempEmplLedgEntryOnAfterSetDtldEmplLedgerEntryFilters(var DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnSetPostingDimensionsOnCaseSourceEntryDimensions(var GenJournalLine: Record "Gen. Journal Line"; var DimensionSetEntry: Record "Dimension Set Entry")
     begin

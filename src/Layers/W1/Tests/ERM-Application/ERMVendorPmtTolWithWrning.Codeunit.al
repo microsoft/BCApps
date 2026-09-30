@@ -1078,7 +1078,7 @@ codeunit 134016 "ERM Vendor Pmt Tol With Wrning"
     begin
         VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
         VendorLedgerEntry.SetRange("Document Type", DocumentType);
-        VendorLedgerEntry.FindSet(true, false);
+        VendorLedgerEntry.FindSet(true);
         foreach MaxPmtTolerance in MaxPmtTolAmounts do begin
             VendorLedgerEntry.Validate("Max. Payment Tolerance", MaxPmtTolerance);
             VendorLedgerEntry.Modify(true);

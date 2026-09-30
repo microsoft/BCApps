@@ -1,0 +1,7 @@
+[
+  "src/Layers/ES/BaseApp/Sales/Pricing/CustInvoiceDisc.Table.al",
+  "src/Layers/APAC/BaseApp/Sales/Reports/CustomerItemSales.Report.al",
+  "src/Layers/APAC/BaseApp/Sales/Reports/SalespersonSalesStatistics.Report.al",
+  "src/Layers/ES/Tests/ERM-Finance/ERMAccountSchedule.Codeunit.al",
+  "src/Layers/IT/BaseApp/Inventory/Ledger/ItemLedgerEntry.Table.al"
+]

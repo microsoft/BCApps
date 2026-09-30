@@ -11462,33 +11462,6 @@ table 81 "Gen. Journal Line"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised', '27.0')]
-    /// <summary>
-    /// Event triggered before calculating the "Due Date" based on the payment terms during the validation of the "Payment Terms Code" field.
-    /// This event allows developers to add custom logic or override the default calculation for the "Due Date".
-    /// </summary>
-    /// <param name="GenJournalLine">The current General Journal Line record being processed.</param>
-    /// <param name="PaymentTerms">The Payment Terms record retrieved with the "Payment Terms Code".</param>
-    /// <param name="IsHandled">A boolean variable that, if set to true, skips the default "Due Date" calculation.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(var GenJournalLine: Record "Gen. Journal Line"; PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [Obsolete('The event is never raised', '27.0')]
-    /// <summary>
-    /// Event triggered before calculating the "Pmt. Discount Date" based on the payment terms during the validation of the "Payment Terms Code" field.
-    /// This event allows developers to add custom logic or override the default calculation for the "Pmt. Discount Date".
-    /// </summary>
-    /// <param name="GenJournalLine">The current General Journal Line record being processed.</param>
-    /// <param name="PaymentTerms">The payment terms record associated with the "Payment Terms Code".</param>
-    /// <param name="IsHandled">A boolean variable that, if set to true, skips the default discount date calculation.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(var GenJournalLine: Record "Gen. Journal Line"; PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     /// <summary>
     /// Event triggered before validating the "Amount" field during the validation of the "Bal. VAT Base Amount" field.
     /// This event allows developers to add custom logic before the "Amount" field has been validated.

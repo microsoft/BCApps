@@ -1777,11 +1777,5 @@ report 35 "Document Entries"
         PostingDateFilter := NewPostingDateFilter;
     end;
 
-#if not CLEAN27
-    [Obsolete('Not used, report replaced by W1 version', '27.0')]
-    procedure SetExternal()
-    begin
-    end;
-#endif
 }
 

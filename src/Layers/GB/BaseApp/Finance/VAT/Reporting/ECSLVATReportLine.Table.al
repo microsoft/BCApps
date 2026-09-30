@@ -73,37 +73,20 @@ table 362 "ECSL VAT Report Line"
 #if not CLEANSCHEMA30
         field(10500; "Line Status"; Option)
         {
-#if not CLEAN27
-            CalcFormula = lookup("GovTalk Message Parts".Status where("Report No." = field("Report No."),
-                                                                       "Part Id" = field("XML Part Id"),
-                                                                       "VAT Report Config. Code" = const("EC Sales List")));
-#endif
             Caption = 'Line Status';
             FieldClass = FlowField;
             OptionCaption = ' ,Released,Submitted,Accepted,Rejected';
             OptionMembers = " ",Released,Submitted,Accepted,Rejected;
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to GovTalk app';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Moved to GovTalk app';
-#endif
         }
         field(10501; "XML Part Id"; Guid)
         {
             Caption = 'XML Part Id';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to GovTalk app';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Moved to GovTalk app';
-#endif
         }
 #endif
     }

@@ -26,9 +26,6 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Setup;
-#if not CLEAN27
-using Microsoft.Manufacturing.Document;
-#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Archive;
 using System.Privacy;
@@ -80,9 +77,6 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Item Cost History");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Item Costing Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Before Start Item Cost");
-#if not CLEAN27
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Periodic Settlement VAT Entry");
-#endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Periodic VAT Settlement Entry");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Purch. Withh. Contribution");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"VAT Identifier");
@@ -90,9 +84,6 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"GL Book Entry");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"VAT Register");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Reprint Info Fiscal Reports");
-#if not CLEAN27
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Subcontractor Prices");
-#endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Goods Appearance");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Transport Reason Code");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Company Officials");

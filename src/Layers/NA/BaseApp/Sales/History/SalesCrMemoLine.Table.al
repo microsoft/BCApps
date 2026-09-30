@@ -905,13 +905,7 @@ table 115 "Sales Cr.Memo Line"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(10000; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
         }

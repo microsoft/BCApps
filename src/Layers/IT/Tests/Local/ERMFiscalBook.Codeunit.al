@@ -203,11 +203,7 @@ codeunit 144075 "ERM Fiscal Book"
     [Scope('OnPrem')]
     procedure PeriodicVATSettlEntryAddCurrFieldsWithACY()
     var
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         CurrencyCode: Code[10];
         AddCurrVATSettlement: Decimal;
     begin
@@ -220,11 +216,7 @@ codeunit 144075 "ERM Fiscal Book"
         LibraryERM.SetAddReportingCurrency(CurrencyCode);
 
         // [GIVEN] A Periodic Settlement VAT Entry "E" is created
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, WorkDate());
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, WorkDate());
-#endif
         AddCurrVATSettlement := LibraryRandom.RandDec(1000, 2);
 
         // [WHEN] Additional currency field is set on "E"
@@ -270,11 +262,7 @@ codeunit 144075 "ERM Fiscal Book"
     [Scope('OnPrem')]
     procedure PeriodicVATSettlEntryAddCurrFieldsWithoutACY()
     var
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         AddCurrVATSettlement: Decimal;
     begin
         // [FEATURE] [AI test 0.3]
@@ -285,11 +273,7 @@ codeunit 144075 "ERM Fiscal Book"
         LibraryERM.SetAddReportingCurrency('');
 
         // [GIVEN] A Periodic Settlement VAT Entry "E" is created
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, WorkDate());
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, WorkDate());
-#endif
         AddCurrVATSettlement := LibraryRandom.RandDec(1000, 2);
 
         // [WHEN] Additional currency field is set on "E"
@@ -303,11 +287,7 @@ codeunit 144075 "ERM Fiscal Book"
 
     local procedure Initialize()
     var
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
     begin
         LibrarySetupStorage.Restore();
         PeriodicSettlementVATEntry.DeleteAll();

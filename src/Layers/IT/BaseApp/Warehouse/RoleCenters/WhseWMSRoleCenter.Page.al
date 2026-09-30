@@ -275,18 +275,6 @@ page 9000 "Whse. WMS Role Center"
                 RunObject = Page "Phys. Inventory Recording List";
                 ToolTip = 'Prepare to count inventory by creating a recording document to capture the quantities.';
             }
-#if not CLEAN27
-            action("Subcontracting Transfers")
-            {
-                ApplicationArea = LegacySubcontracting;
-                Caption = 'Subcontracting Transfers';
-                RunObject = Page "Subcontracting Transfer List";
-                ToolTip = 'View the list of subcontracting transfers.';
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-            }
-#endif
             action(AssemblyOrders)
             {
                 ApplicationArea = Assembly;

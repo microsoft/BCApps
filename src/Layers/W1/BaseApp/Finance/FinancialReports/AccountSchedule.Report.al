@@ -183,18 +183,9 @@ report 25 "Account Schedule"
                         column(ColumnNo; "Column No.")
                         {
                         }
-#if not CLEAN27
-                        column(Header; Header50)
-                        {
-                            ObsoleteState = Pending;
-                            ObsoleteReason = 'The text length limit will be removed in a future release.';
-                            ObsoleteTag = '27.0';
-                        }
-#else
                         column(Header; Header)
                         {
                         }
-#endif
                         column(RoundingHeader; RoundingHeader)
                         {
                             AutoCalcField = false;
@@ -225,9 +216,6 @@ report 25 "Account Schedule"
                                 end;
 
                             ColumnValuesAsText := CalcColumnValueAsText("Acc. Schedule Line", "Column Layout", Header, ValueIsEmpty);
-#if not CLEAN27
-                            Header50 := CopyStr(Header, 1, MaxStrLen(Header50));
-#endif
                             ColumnValuesArrayIndex += 1;
                             if ColumnValuesArrayIndex <= ArrayLen(ColumnValuesArrayText) then
                                 ColumnValuesArrayText[ColumnValuesArrayIndex] := ColumnValuesAsText;
@@ -916,9 +904,6 @@ report 25 "Account Schedule"
         PeriodText: Text;
         AccSchedLineFilter: Text;
         Header: Text;
-#if not CLEAN27
-        Header50: Text[50];
-#endif
         RoundingHeader: Text[30];
         BusinessUnitFilterVisible: Boolean;
         BudgetFilterEnable: Boolean;

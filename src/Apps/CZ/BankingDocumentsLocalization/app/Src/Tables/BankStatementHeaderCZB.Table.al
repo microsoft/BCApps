@@ -627,20 +627,6 @@ table 31252 "Bank Statement Header CZB"
         DocumentAttachment.SaveAttachmentFromStream(DocumentInStream, RecordRef, FileName);
         DocumentAttachmentMgmt.ShowNotification(RecordRef, 1, true);
     end;
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the BankStatementStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-
-    procedure ShowStatistics()
-    var
-        BankingDocStatisticsCZB: Page "Banking Doc. Statistics CZB";
-    begin
-        TestField("Bank Account No.");
-        TestField("Document Date");
-        CalcFields(Amount);
-        BankingDocStatisticsCZB.SetValues("Bank Account No.", "Document Date", Amount);
-        BankingDocStatisticsCZB.Run();
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeImportBankStatement(var BankStatementHeaderCZB: Record "Bank Statement Header CZB"; var IsHandled: Boolean)

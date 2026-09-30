@@ -2501,18 +2501,6 @@ codeunit 7322 "Create Inventory Pick/Movement"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCreatePickOrMoveLineFromProductionLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnBeforeCreatePickOrMoveLineFromProductionLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderComponent);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePickOrMoveLineFromProductionLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateATOInventoryMovementsAutomatically(AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; PrintDocumentForATOMvmt: Boolean; ShowErrorForATOMvmt: Boolean; var IsHandled: Boolean)
@@ -2529,18 +2517,6 @@ codeunit 7322 "Create Inventory Pick/Movement"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCreatePickOrMoveLineFromAssemblyLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var IsHandled: Boolean; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        OnBeforeCreatePickOrMoveLineFromAssemblyLoop(WarehouseActivityHeader, AssemblyHeader, IsHandled, AssemblyLine);
-    end;
-
-    [Obsolete('Moved to codeunit AsmCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePickOrMoveLineFromAssemblyLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var IsHandled: Boolean; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateTempHandlingSpec(WarehouseActivityLine: Record "Warehouse Activity Line"; var TotalQtyToPickBase: Decimal; var IsHandled: Boolean)
@@ -2572,31 +2548,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeNewWhseActivLineInsertFromAssembly(var WarehouseActivityLine: Record "Warehouse Activity Line"; var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
-    begin
-        OnBeforeNewWhseActivLineInsertFromAssembly(WarehouseActivityLine, AssemblyLine, WarehouseActivityHeader, RemQtyToPickBase);
-    end;
 
-    [Obsolete('Moved to codeunit AsmCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNewWhseActivLineInsertFromAssembly(var WarehouseActivityLine: Record "Warehouse Activity Line"; var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeNewWhseActivLineInsertFromComp(var WarehouseActivityLine: Record "Warehouse Activity Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
-    begin
-        OnBeforeNewWhseActivLineInsertFromComp(WarehouseActivityLine, ProdOrderComp, WarehouseActivityHeader, RemQtyToPickBase);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNewWhseActivLineInsertFromComp(var WarehouseActivityLine: Record "Warehouse Activity Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var WarehouseActivityHeader: Record "Warehouse Activity Header")
@@ -2618,31 +2570,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeFindAssemblyLine(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-        OnBeforeFindAssemblyLine(AssemblyLine, AssemblyHeader, WarehouseActivityHeader);
-    end;
 
-    [Obsolete('Moved to codeunit AsmCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindAssemblyLine(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFindProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-        OnBeforeFindProdOrderComp(ProdOrderComp, ProductionOrder, WarehouseActivityHeader);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSourceDocHeader(var WhseRequest: Record "Warehouse Request"; var IsHandled: Boolean; var RecordExists: Boolean)

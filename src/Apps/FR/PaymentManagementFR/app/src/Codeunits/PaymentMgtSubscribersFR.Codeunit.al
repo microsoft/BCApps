@@ -393,9 +393,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
-#pragma warning disable AL0667                    
-                    if UnrealCVLedgEntryBuffer.FindSet(true, false) then
-#pragma warning restore AL0667                    
+                    if UnrealCVLedgEntryBuffer.FindSet(true) then
                         repeat
                             OldCustLedgEntry.Get(UnrealCVLedgEntryBuffer."Entry No.");
                             OldCustLedgEntry.CalcFields(
@@ -443,9 +441,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
-#pragma warning disable AL0667                    
-                    if UnrealCVLedgEntryBuffer.FindSet(true, false) then
-#pragma warning restore AL0667                    
+                    if UnrealCVLedgEntryBuffer.FindSet(true) then
                         repeat
                             OldVendLedgEntry.Get(UnrealCVLedgEntryBuffer."Entry No.");
                             OldVendLedgEntry.CalcFields(

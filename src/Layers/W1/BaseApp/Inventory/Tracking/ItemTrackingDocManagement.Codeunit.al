@@ -609,15 +609,6 @@ codeunit 6503 "Item Tracking Doc. Management"
         ShowItemTrackingForEntity(SourceType, SourceNo, ItemNo, VariantCode, LocationCode, DummyItemTrackingSetup);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Mfg. Item Tracking Mgt.', '27.0')]
-    procedure ShowItemTrackingForProdOrderComp(Type: Integer; ID: Code[20]; ProdOrderLine: Integer; RefNo: Integer): Boolean
-    var
-        MfgItemTrackingMgt: Codeunit "Mfg. Item Tracking Mgt.";
-    begin
-        exit(MfgItemTrackingMgt.ShowItemTrackingForProdOrderComp(Type, ID, ProdOrderLine, RefNo));
-    end;
-#endif
 
     internal procedure ShowItemTrackingForJobPlanningLine(Type: Integer; ID: Code[20]; RefNo: Integer): Boolean
     var

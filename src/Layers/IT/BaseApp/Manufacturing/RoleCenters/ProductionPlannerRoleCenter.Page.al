@@ -137,19 +137,6 @@ page 9010 "Production Planner Role Center"
                     Image = ItemAvailability;
                     RunObject = Report "Inv. Availability Plan";
                 }
-#if not CLEAN27
-                action("Planning Availability")
-                {
-                    ApplicationArea = Manufacturing;
-                    Caption = 'Planning Availability (Obsolete)';
-                    Image = "Report";
-                    RunObject = Report "Planning Availability";
-                    ToolTip = 'View all known existing requirements and receipts for the items that you select on a specific date. You can use the report to get a quick picture of the current demand-supply situation for an item. The report displays the item number and description plus the actual quantity in inventory.';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This report has been deprecated and will be removed in a future release.';
-                    ObsoleteTag = '27.0';
-                }
-#endif
                 action("Capacity Task List")
                 {
                     ApplicationArea = Manufacturing;
@@ -182,19 +169,6 @@ page 9010 "Production Planner Role Center"
                     Image = "Report";
                     RunObject = Report "Detailed Calculation";
                 }
-#if not CLEAN27
-                action("P&roduction Order - Calculation")
-                {
-                    ApplicationArea = Manufacturing;
-                    Caption = 'P&roduction Order - Calculation (Obsolete)';
-                    Image = "Report";
-                    RunObject = Report "Prod. Order - Calculation";
-                    ToolTip = 'View a list of the production orders and their costs, such as expected operation costs, expected component costs, and total costs.';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This report has been replaced by the "Production Order Statistics" report and will be removed in a future release.';
-                    ObsoleteTag = '27.0';
-                }
-#endif
                 action("Production Order Statistics")
                 {
                     ApplicationArea = Manufacturing;

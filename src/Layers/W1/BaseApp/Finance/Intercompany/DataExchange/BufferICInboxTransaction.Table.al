@@ -43,15 +43,8 @@ table 610 "Buffer IC Inbox Transaction"
             Caption = 'Source Type';
             Editable = false;
             ObsoleteReason = 'Replaced by IC Source Type for Enum typing';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>

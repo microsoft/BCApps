@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1014,17 +1014,6 @@ table 5994 "Service Cr.Memo Header"
         end;
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the ServiceStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure OpenStatistics()
-    var
-        StatPageID: Integer;
-    begin
-        StatPageID := Page::"Service Credit Memo Statistics";
-        OnOpenStatisticsOnAfterSetStatPageID(Rec, StatPageID);
-        Page.RunModal(StatPageID, Rec);
-    end;
-#endif
     procedure GetDocExchStatusStyle(): Text
     begin
         case "Document Exchange Status" of
@@ -1102,11 +1091,4 @@ table 5994 "Service Cr.Memo Header"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the ServiceStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnOpenStatisticsOnAfterSetStatPageID(var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var StatPageID: Integer);
-    begin
-    end;
-#endif
 }

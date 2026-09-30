@@ -165,7 +165,7 @@ codeunit 139502 "Test Basic BF"
         Field.SetRange(TableNo, ApplicationAreaSetupRecordRef.Number);
         Field.SetRange(Type, Field.Type::Boolean);
         Field.SetFilter(ObsoleteState, '<>%1', Field.ObsoleteState::Removed);
-        if Field.FindSet(false, false) then
+        if Field.FindSet() then
             repeat
                 ApplicationAreaSetupFieldRef := ApplicationAreaSetupRecordRef.Field(Field."No.");
                 case ApplicationAreaSetupFieldRef.Name() of
@@ -219,7 +219,7 @@ codeunit 139502 "Test Basic BF"
         Clear(AllProfile);
         AllProfile.SetRange(Enabled, true);
         AllProfile.SetFilter("Profile ID", AllProfileFilterTxt);
-        if AllProfile.FindSet(false, false) then
+        if AllProfile.FindSet() then
             repeat
                 AllProfile.TestField(Enabled, false);
             until AllProfile.Next() = 0;

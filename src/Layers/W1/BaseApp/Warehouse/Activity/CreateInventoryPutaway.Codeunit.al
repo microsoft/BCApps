@@ -621,17 +621,6 @@ codeunit 7321 "Create Inventory Put-away"
         exit(TransferLine.Find('-'));
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit MfgCreateInventoiryPutaway', '27.0')]
-    procedure SetFilterProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"): Boolean
-    var
-        MfgCreateInventoryPutaway: Codeunit "Mfg. Create Inventory Put-Away";
-    begin
-        exit(
-            MfgCreateInventoryPutaway.SetFilterProdOrderLine(
-                ProdOrderLine, ProductionOrder, CurrWarehouseActivityHeader, WarehouseSourceFilter, CheckLineExist, ApplySourceFilters));
-    end;
-#endif
 
     // Helper methods
     procedure CreateWarehouseActivityLine(
@@ -883,12 +872,6 @@ codeunit 7321 "Create Inventory Put-away"
                 OnBeforeNewWhseActivLineInsertFromSales(WarehouseActivityLine, RecordVariant);
             Database::"Transfer Line":
                 OnBeforeNewWhseActivLineInsertFromTransfer(WarehouseActivityLine, RecordVariant);
-#if not CLEAN27
-            5406: // Database::"Prod. Order Line"
-                OnBeforeNewWhseActivLineInsertFromProd(WarehouseActivityLine, RecordVariant);
-            5407: // Database::"Prod. Order Component"
-                OnBeforeNewWhseActivLineInsertFromComp(WarehouseActivityLine, RecordVariant);
-#endif
             else
                 OnRaiseOnBeforeNewWhseActivLineInsertFromEvent(WarehouseActivityLine, RecordVariant, RecordRefToCheck);
         end;
@@ -1343,21 +1326,7 @@ codeunit 7321 "Create Inventory Put-away"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by event OnRaiseOnBeforeNewWhseActivLineInsertFromEvent', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNewWhseActivLineInsertFromProd(var WarehouseActivityLine: Record "Warehouse Activity Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Replaced by event OnRaiseOnBeforeNewWhseActivLineInsertFromEvent', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNewWhseActivLineInsertFromComp(var WarehouseActivityLine: Record "Warehouse Activity Line"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnRaiseOnBeforeNewWhseActivLineInsertFromEvent(var WarehouseActivityLine: Record "Warehouse Activity Line"; RecordVariant: Variant; RecordRefToCheck: RecordRef)
@@ -1379,31 +1348,7 @@ codeunit 7321 "Create Inventory Put-away"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeFindProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-        OnBeforeFindProdOrderLine(ProdOrderLine, WarehouseActivityHeader);
-    end;
 
-    [Obsolete('Moved to codeunit MfgCreateInventoryPutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFindProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-        OnBeforeFindProdOrderComp(ProdOrderComp, WarehouseActivityHeader);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInventoryPutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSourceDocHeader(var WarehouseRequest: Record "Warehouse Request"; var IsHandled: Boolean)
@@ -1430,31 +1375,7 @@ codeunit 7321 "Create Inventory Put-away"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCreatePutAwayLinesFromCompLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnBeforeCreatePutAwayLinesFromCompLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderComponent);
-    end;
 
-    [Obsolete('Moved to codeunit MfgCreateInventoryPutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePutAwayLinesFromCompLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeCreatePutAwayLinesFromProdLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OnBeforeCreatePutAwayLinesFromProdLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInventoryPutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePutAwayLinesFromProdLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePutAwayLinesFromPurchaseLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; PurchaseLine: Record "Purchase Line")
@@ -1486,31 +1407,7 @@ codeunit 7321 "Create Inventory Put-away"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeFindReservationFromProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeFindReservationFromProdOrderLine(ProdOrderLine, WhseItemTrackingSetup, ItemTrackingMgt, ReservationFound, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit MfgCreateInventoryPutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindReservationFromProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFindReservationFromProdOrderComponent(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeFindReservationFromProdOrderComponent(ProdOrderComp, WhseItemTrackingSetup, ItemTrackingMgt, ReservationFound, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInventoryPutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindReservationFromProdOrderComponent(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnAutoCreatePutAwayLinesFromWhseRequest(var WarehouseRequest: Record "Warehouse Request"; SourceDocRecRef: RecordRef; var LineCreated: Boolean; var SourceDocRecVar: Variant; var RemQtyToPutaway: Decimal; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseSourceFilter: Record "Warehouse Source Filter"; CheckLineExist: Boolean; ApplySourceFilters: Boolean)
@@ -1567,31 +1464,7 @@ codeunit 7321 "Create Inventory Put-away"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnCreatePutawayForProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var RemQtyToPutAway: Decimal)
-    begin
-        OnCreatePutawayForProdOrderLine(ProdOrderLine, RemQtyToPutAway);
-    end;
 
-    [Obsolete('Moved to codeunit MfgCreateInventoryPutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCreatePutawayForProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var RemQtyToPutAway: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnCreatePutawayForProdOrderComponent(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var RemQtyToPutAway: Decimal)
-    begin
-        OnCreatePutawayForProdOrderComponent(ProdOrderComponent, RemQtyToPutAway);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInventoryPutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCreatePutawayForProdOrderComponent(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var RemQtyToPutAway: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetWhseRequestOnAfterFilterGroup(WarehouseRequest: Record "Warehouse Request"; var Result: Boolean; var IsHandled: Boolean)

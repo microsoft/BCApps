@@ -478,10 +478,6 @@ table 6121 "E-Document"
         if not EDocumentMessage.IsEmpty() then
             EDocumentMessage.DeleteAll(true);
 
-        EDocExternalReference.SetRange("E-Document Entry No.", Rec."Entry No");
-        if not EDocExternalReference.IsEmpty() then
-            EDocExternalReference.DeleteAll(true);
-
 #if not CLEAN27
         // Version 1 processing cleanup
         // Can be removed soon as version 1 is fully migrated to version 2

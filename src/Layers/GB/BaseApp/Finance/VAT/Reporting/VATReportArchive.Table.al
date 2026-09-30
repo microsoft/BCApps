@@ -102,42 +102,6 @@ table 747 "VAT Report Archive"
         NoSubmissionMessageAvailableErr: Label 'The submission message of the report is not available.';
         NoResponseMessageAvailableErr: Label 'The response message of the report is not available.';
 
-#if not CLEAN27
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    procedure ArchiveSubmissionMessage(VATReportTypeValue: Option; VATReportNoValue: Code[20]; TempBlobSubmissionMessage: Codeunit "Temp Blob"): Boolean
-    var
-        BlankGuid: Guid;
-    begin
-        exit(ArchiveSubmissionMessage(VATReportTypeValue, VATReportNoValue, TempBlobSubmissionMessage, BlankGuid));
-    end;
-
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    procedure ArchiveSubmissionMessage(VATReportTypeValue: Option; VATReportNoValue: Code[20]; TempBlobSubmissionMessage: Codeunit "Temp Blob"; XMLPartID: Guid): Boolean
-    var
-        VATReportArchive: Record "VAT Report Archive";
-        IsHandled: Boolean;
-    begin
-        if VATReportNoValue = '' then
-            exit(false);
-        if not TempBlobSubmissionMessage.HasValue() then
-            exit(false);
-        IsHandled := false;
-        OnBeforeVATReportArchiveGet(IsHandled, VATReportTypeValue, VATReportNoValue);
-        if not IsHandled then
-            if VATReportArchive.Get(VATReportTypeValue, VATReportNoValue, XMLPartID) then
-                exit(false);
-
-        VATReportArchive.Init();
-        VATReportArchive."VAT Report No." := VATReportNoValue;
-        VATReportArchive."VAT Report Type" := "VAT Report Configuration".FromInteger(VATReportTypeValue);
-        VATReportArchive."Xml Part ID" := XMLPartID;
-        VATReportArchive."Submitted By" := UserId;
-        VATReportArchive."Submittion Date" := Today;
-        VATReportArchive.SetSubmissionMessageBLOBFromBlob(TempBlobSubmissionMessage);
-        VATReportArchive.Insert(true);
-        exit(true);
-    end;
-#else
     /// <summary>
     /// Archives the submission message for a VAT report with compression and user tracking.
     /// Creates new archive record with submission details and compressed message data.
@@ -167,30 +131,7 @@ table 747 "VAT Report Archive"
         VATReportArchive.Insert(true);
         exit(true);
     end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    procedure ArchiveResponseMessage(VATReportTypeValue: Option; VATReportNoValue: Code[20]; TempBlobResponseMessage: Codeunit "Temp Blob"; XMLPartID: Guid): Boolean
-    var
-        VATReportArchive: Record "VAT Report Archive";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeArchiveResponseMessage(IsHandled, VATReportTypeValue, VATReportNoValue, VATReportArchive);
-        if not IsHandled then
-            if not VATReportArchive.Get(VATReportTypeValue, VATReportNoValue, XMLPartID) then
-                exit(false);
-        if not TempBlobResponseMessage.HasValue() then
-            exit(false);
-
-        VATReportArchive."Response Received Date" := CurrentDateTime;
-        VATReportArchive.SetResponseMessageBLOBFromBlob(TempBlobResponseMessage);
-        VATReportArchive.Modify(true);
-
-        exit(true);
-    end;
-#else
     /// <summary>
     /// Archives the response message received from tax authorities for an existing VAT report submission.
     /// Updates existing archive record with response data and timestamp.
@@ -214,37 +155,7 @@ table 747 "VAT Report Archive"
 
         exit(true);
     end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    procedure DownloadSubmissionMessage(VATReportTypeValue: Option; VATReportNoValue: Code[20]; XMLPartId: Guid)
-    var
-        VATReportArchive: Record "VAT Report Archive";
-        DocumentAttachment: Record "Document Attachment";
-        TempBlob: Codeunit "Temp Blob";
-        ZipFileName: Text[250];
-        IsHandled: Boolean;
-    begin
-        if DocumentAttachment.DownloadZipFileWithVATReturnSubmissionAttachments("VAT Report Configuration".FromInteger(VATReportTypeValue), VATReportNoValue) then
-            exit;
-
-        IsHandled := false;
-        OnBeforeNoSubmissionMessageAvailableError(IsHandled, VATReportArchive, VATReportTypeValue, VATReportNoValue);
-        if not IsHandled then
-            if not VATReportArchive.Get(VATReportTypeValue, VATReportNoValue, XMLPartId) then
-                Error(NoSubmissionMessageAvailableErr);
-
-        if not VATReportArchive."Submission Message BLOB".HasValue() then
-            Error(NoSubmissionMessageAvailableErr);
-
-        VATReportArchive.CalcFields("Submission Message BLOB");
-        TempBlob.FromRecord(VATReportArchive, VATReportArchive.FieldNo("Submission Message BLOB"));
-
-        ZipFileName := VATReportNoValue + '_Submission.txt';
-        DownloadZipFile(ZipFileName, TempBlob);
-    end;
-#else
     /// <summary>
     /// Downloads the archived submission message as a compressed ZIP file.
     /// Includes document attachments if available, otherwise downloads BLOB data.
@@ -274,37 +185,7 @@ table 747 "VAT Report Archive"
         ZipFileName := VATReportNoValue + '_Submission.txt';
         DownloadZipFile(ZipFileName, TempBlob);
     end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    procedure DownloadResponseMessage(VATReportTypeValue: Option; VATReportNoValue: Code[20]; XMLPart: Guid)
-    var
-        VATReportArchive: Record "VAT Report Archive";
-        DocumentAttachment: Record "Document Attachment";
-        TempBlob: Codeunit "Temp Blob";
-        ZipFileName: Text[250];
-        IsHandled: Boolean;
-    begin
-        if DocumentAttachment.DownloadZipFileWithVATReturnResponseAttachments("VAT Report Configuration".FromInteger(VATReportTypeValue), VATReportNoValue) then
-            exit;
-
-        IsHandled := false;
-        OnBeforeNoResponseMessageAvailableError(IsHandled, VATReportArchive, VATReportTypeValue, VATReportNoValue);
-        if not IsHandled then
-            if not VATReportArchive.Get(VATReportTypeValue, VATReportNoValue, XMLPart) then
-                Error(NoResponseMessageAvailableErr);
-
-        if not VATReportArchive."Response Message BLOB".HasValue() then
-            Error(NoResponseMessageAvailableErr);
-
-        VATReportArchive.CalcFields("Response Message BLOB");
-        TempBlob.FromRecord(VATReportArchive, VATReportArchive.FieldNo("Response Message BLOB"));
-
-        ZipFileName := VATReportNoValue + '_Response.txt';
-        DownloadZipFile(ZipFileName, TempBlob);
-    end;
-#else
     /// <summary>
     /// Downloads the archived response message as a compressed ZIP file.
     /// Includes document attachments if available, otherwise downloads BLOB data.
@@ -334,7 +215,6 @@ table 747 "VAT Report Archive"
         ZipFileName := VATReportNoValue + '_Response.txt';
         DownloadZipFile(ZipFileName, TempBlob);
     end;
-#endif
 
     local procedure DownloadZipFile(ZipFileName: Text[250]; TempBlob: Codeunit "Temp Blob")
     var
@@ -383,7 +263,6 @@ table 747 "VAT Report Archive"
         RecordRef.SetTable(Rec);
     end;
 
-#if CLEAN27
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitVATReportArchive(var VATReportArchive: Record "VAT Report Archive"; var Rec: Record "VAT Report Archive")
     begin
@@ -398,32 +277,5 @@ table 747 "VAT Report Archive"
     local procedure OnAfterNoResponseMessageAvailableError(var VATReportArchive: Record "VAT Report Archive"; var Rec: Record "VAT Report Archive"; VATReportTypeValue: Option; VATReportNoValue: Code[20])
     begin
     end;
-#endif
-
-#if not CLEAN27
-    [Obsolete('Event will be removed in a future release.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeVATReportArchiveGet(var IsHandled: Boolean; VATReportTypeValue: Option; VATReportNoValue: Code[20])
-    begin
-    end;
-
-    [Obsolete('Event will be removed in a future release.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeArchiveResponseMessage(var IsHandled: Boolean; VATReportTypeValue: Option; VATReportNoValue: Code[20]; var VATReportArchive: Record "VAT Report Archive")
-    begin
-    end;
-
-    [Obsolete('Event will be removed in a future release.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNoSubmissionMessageAvailableError(var IsHandled: Boolean; var VATReportArchive: Record "VAT Report Archive"; VATReportTypeValue: Option; VATReportNoValue: Code[20])
-    begin
-    end;
-
-    [Obsolete('Event will be removed in a future release.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNoResponseMessageAvailableError(var IsHandled: Boolean; var VATReportArchive: Record "VAT Report Archive"; VATReportTypeValue: Option; VATReportNoValue: Code[20])
-    begin
-    end;
-#endif
 }
 

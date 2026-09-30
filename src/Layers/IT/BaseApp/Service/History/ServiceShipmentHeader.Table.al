@@ -976,17 +976,6 @@ table 5990 "Service Shipment Header"
         SetRange("Date Filter", 0D, WorkDate() - 1);
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the ServiceStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure OpenStatistics()
-    var
-        StatPageID: Integer;
-    begin
-        StatPageID := Page::"Service Shipment Statistics";
-        OnOpenStatisticsOnAfterSetStatPageID(Rec, StatPageID);
-        Page.RunModal(StatPageID, Rec);
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSecurityFilterOnRespCenter(var ServiceShipmentHeader: Record "Service Shipment Header"; var IsHandled: Boolean)
     begin
@@ -1074,11 +1063,4 @@ table 5990 "Service Shipment Header"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the ServiceStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnOpenStatisticsOnAfterSetStatPageID(var ServiceShipmentHeader: Record "Service Shipment Header"; var StatPageID: Integer);
-    begin
-    end;
-#endif
 }

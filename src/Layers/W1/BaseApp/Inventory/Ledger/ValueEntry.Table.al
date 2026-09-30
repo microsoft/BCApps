@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -832,36 +832,6 @@ table 5802 "Value Entry"
         PAGE.RunModal(0, TempGLEntry);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to the Inventory Adjustment codeunit', '27.0')]
-    procedure IsAvgCostException(IsAvgCostCalcTypeItem: Boolean): Boolean
-    var
-        ItemApplnEntry: Record "Item Application Entry";
-        ItemLedgEntry: Record "Item Ledger Entry";
-        SearchedItemLedgerEntry: Record "Item Ledger Entry";
-        TempItemLedgEntry: Record "Item Ledger Entry" temporary;
-    begin
-        if "Partial Revaluation" then
-            exit(true);
-        if "Item Charge No." <> '' then
-            exit(true);
-
-        ItemLedgEntry.Get("Item Ledger Entry No.");
-        if ItemLedgEntry.Positive then
-            exit(false);
-
-        SearchedItemLedgerEntry.SetRange("Item No.", "Item No.");
-        SearchedItemLedgerEntry.SetRange(Positive, true);
-        if IsAvgCostCalcTypeItem then begin
-            SearchedItemLedgerEntry.SetRange("Location Code", "Location Code");
-            SearchedItemLedgerEntry.SetRange("Variant Code", "Variant Code");
-        end;
-        ItemApplnEntry.SetSearchedItemLedgerEntry(SearchedItemLedgerEntry);
-        ItemApplnEntry.GetVisitedEntries(ItemLedgEntry, TempItemLedgEntry, true);
-        TempItemLedgEntry.CopyFilters(SearchedItemLedgerEntry);
-        exit(not TempItemLedgEntry.IsEmpty());
-    end;
-#endif
 
     procedure ShowDimensions()
     var

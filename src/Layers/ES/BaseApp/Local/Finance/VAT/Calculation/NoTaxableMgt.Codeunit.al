@@ -329,28 +329,6 @@ codeunit 10740 "No Taxable Mgt."
         exit(SalesCrMemoLine.FindSet());
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Serv. No Taxable Mgt.', '27.0')]
-    [Scope('OnPrem')]
-    procedure FindNoTaxableLinesServiceInvoice(var ServiceInvoiceLine: Record Microsoft.Service.History."Service Invoice Line"; CustomerNo: Code[20]; DocumentNo: Code[20]; PostingDate: Date): Boolean
-    var
-        ServNoTaxableMgt: Codeunit "Serv. No Taxable Mgt.";
-    begin
-        exit(ServNoTaxableMgt.FindNoTaxableLinesServiceInvoice(ServiceInvoiceLine, CustomerNo, DocumentNo, PostingDate));
-    end;
-#endif
-
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Serv. No Taxable Mgt.', '27.0')]
-    [Scope('OnPrem')]
-    procedure FindNoTaxableLinesServiceCrMemo(var ServiceCrMemoLine: Record Microsoft.Service.History."Service Cr.Memo Line"; CustomerNo: Code[20]; DocumentNo: Code[20]; PostingDate: Date): Boolean
-    var
-        ServNoTaxableMgt: Codeunit "Serv. No Taxable Mgt.";
-    begin
-        exit(ServNoTaxableMgt.FindNoTaxableLinesServiceCrMemo(ServiceCrMemoLine, CustomerNo, DocumentNo, PostingDate));
-    end;
-#endif
-
     local procedure FindCustNoFromLedgEntryInSameTransNo(GenJournalLine: Record "Gen. Journal Line"; TransNo: Integer): Code[20]
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";

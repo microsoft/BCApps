@@ -9,27 +9,14 @@ codeunit 101254 "Create VAT Report Configs"
         VATReportsConfiguration."VAT Report Type" := VATReportsConfiguration."VAT Report Type"::"EC Sales List";
         VATReportsConfiguration."VAT Report Version" := 'CURRENT';
         VATReportsConfiguration."Suggest Lines Codeunit ID" := CODEUNIT::"EC Sales List Suggest Lines";
-#if not CLEAN27
-        VATReportsConfiguration."Submission Codeunit ID" := CODEUNIT::"EC Sales List Submit";
-#endif
         VATReportsConfiguration."Validate Codeunit ID" := CODEUNIT::"ECSL Report Validate";
         VATReportsConfiguration.Insert();
 
         VATReportsConfiguration.Init();
         VATReportsConfiguration."VAT Report Type" := VATReportsConfiguration."VAT Report Type"::"VAT Return";
-#if not CLEAN27
-        VATReportsConfiguration."VAT Report Version" := 'GovTalk';
-#else
         VATReportsConfiguration."VAT Report Version" := 'CURRENT';
-#endif
         VATReportsConfiguration."Suggest Lines Codeunit ID" := CODEUNIT::"VAT Report Suggest Lines";
-#if not CLEAN27
-        VATReportsConfiguration."Content Codeunit ID" := CODEUNIT::"Create VAT Declaration Request";
-        VATReportsConfiguration."Validate Codeunit ID" := CODEUNIT::"GovTalk VAT Report Validate";
-        VATReportsConfiguration."Submission Codeunit ID" := CODEUNIT::"Submit VAT Declaration Request";
-#else
         VATReportsConfiguration."Validate Codeunit ID" := CODEUNIT::"VAT Report Validate";
-#endif
         VATReportsConfiguration.Insert();
         CreateReportNoSeries();
     end;

@@ -360,19 +360,6 @@ codeunit 452 "Report Distribution Management"
         exit(IssuedReminderDocTypeTxt);
     end;
 
-#if not CLEAN27
-    [Scope('OnPrem')]
-    [Obsolete('Replaced with SendXmlEmailAttachment that accepts a TempBlob as additional parameter.', '27.0')]
-    procedure SendXmlEmailAttachment(DocumentVariant: Variant; DocumentFormat: Code[20]; ServerEmailBodyFilePath: Text[250]; SendToEmailAddress: Text[250]; ReportUsage: Enum "Report Selection Usage")
-    var
-        FileManagement: Codeunit "File Management";
-        EmailBodyTempBlob: Codeunit "Temp Blob";
-    begin
-        if ServerEmailBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(EmailBodyTempBlob, ServerEmailBodyFilePath);
-        SendXmlEmailAttachment(DocumentVariant, DocumentFormat, EmailBodyTempBlob, SendToEmailAddress, ReportUsage);
-    end;
-#endif
 
     procedure SendXmlEmailAttachment(DocumentVariant: Variant; DocumentFormat: Code[20]; var EmailBodyTempBlob: Codeunit "Temp Blob"; SendToEmailAddress: Text[250]; ReportUsage: Enum "Report Selection Usage")
     var
@@ -410,19 +397,6 @@ codeunit 452 "Report Distribution Management"
           EmailBodyTempBlob, ReportUsage, ReceiverRecord);
     end;
 
-#if not CLEAN27
-    [Scope('OnPrem')]
-    [Obsolete('Replaced with SendXmlEmailAttachmentVendor that accepts a TempBlob as additional parameter.', '27.0')]
-    procedure SendXmlEmailAttachmentVendor(DocumentVariant: Variant; DocumentFormat: Code[20]; ServerEmailBodyFilePath: Text[250]; SendToEmailAddress: Text[250])
-    var
-        FileManagement: Codeunit "File Management";
-        EmailBodyTempBlob: Codeunit "Temp Blob";
-    begin
-        if ServerEmailBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(EmailBodyTempBlob, ServerEmailBodyFilePath);
-        SendXmlEmailAttachmentVendor(DocumentVariant, DocumentFormat, EmailBodyTempBlob, SendToEmailAddress);
-    end;
-#endif
 
     procedure SendXmlEmailAttachmentVendor(DocumentVariant: Variant; DocumentFormat: Code[20]; var EmailBodyTempBlob: Codeunit "Temp Blob"; SendToEmailAddress: Text[250])
     var

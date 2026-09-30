@@ -258,17 +258,6 @@ codeunit 5812 "Calculate Standard Cost"
             until TempItem.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('procedure that was implemented to throw the error has now been identified as unnecessary', '27.0')]
-    procedure CalcItemForNonInventoryValue(var Item: Record Item)
-    begin
-    end;
-
-    [Obsolete('procedure that was implemented to throw the error has now been identified as unnecessary', '27.0')]
-    procedure CalcSKUForNonInventoryValue(var SKU: Record "Stockkeeping Unit")
-    begin
-    end;
-#endif
 
     procedure CalcItemSKU(ItemNo: Code[20]; LocationCode: Code[20]; VariantCode: Code[20])
     var

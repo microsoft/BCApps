@@ -107,36 +107,7 @@ codeunit 144108 "ERM Service Invoice ES"
         ServiceCrMemoHeader.SetRange("Customer No.", Customer."No.");
         Assert.IsTrue(ServiceCrMemoHeader.FindFirst(), RecordMustExistMsg);
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ServiceStatisticsPageHandler')]
-    [Scope('OnPrem')]
-    procedure ManualInvoiceDiscountAmountAllowInvoiceDiscountTrue()
-    var
-        Customer: Record Customer;
-        ServiceHeader: Record "Service Header";
-        ServiceLine: Record "Service Line";
-        InvoiceDiscountAmount: Decimal;
-    begin
-        // Test to verify Program allows to enter Invoice Discount manually on Service Invoice if Type is G/L Account and also update Allow Invoice Disc as TRUE on Service Line.
 
-        // Setup: Create Service Invoice, update Allow Invoice Discount - TRUE on Service Line. Open Statistics and update Invoice Discount Amount on it.
-        Initialize();
-        LibrarySales.CreateCustomer(Customer);
-        CreateServiceDocument(
-          ServiceLine, ServiceHeader."Document Type"::Invoice, ServiceLine.Type::"G/L Account", Customer."No.", CreateGLAccount());
-        UpdateServiceLineAllowInvoiceDisc(ServiceLine);
-        InvoiceDiscountAmount := LibraryRandom.RandDec(10, 2);
-        LibraryVariableStorage.Enqueue(InvoiceDiscountAmount);  // Required inside ServiceStatisticsPageHandler.
-        InvokeStatisticsOnServiceInvoice(Customer."No.");  // Opens ServiceStatisticsPageHandler.
-
-        // Exercise: Post Service Invoice.
-        PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
-
-        // Verify: Verify G/L entry created after considering Invoice Discount Amount.
-        VerifyGLEntry(ServiceLine."No.", -(ServiceLine.Amount - InvoiceDiscountAmount));
-    end;
-#endif
     [Test]
     [HandlerFunctions('ServiceStatisticsPageHandlerNM')]
     [Scope('OnPrem')]
@@ -811,16 +782,7 @@ codeunit 144108 "ERM Service Invoice ES"
         ServiceCrMemoHeader.FindFirst();
         exit(ServiceCrMemoHeader."No.");
     end;
-#if not CLEAN27
-    local procedure InvokeStatisticsOnServiceInvoice(CustomerNo: Code[20])
-    var
-        ServiceInvoice: TestPage "Service Invoice";
-    begin
-        ServiceInvoice.OpenEdit();
-        ServiceInvoice.FILTER.SetFilter("Customer No.", CustomerNo);
-        ServiceInvoice.Statistics.Invoke();
-    end;
-#endif
+
     local procedure InvokeStatisticsOnServiceInvoiceNM(CustomerNo: Code[20])
     var
         ServiceInvoice: TestPage "Service Invoice";
@@ -1011,18 +973,7 @@ codeunit 144108 "ERM Service Invoice ES"
             DueDate := CalcDate(PaymentTerms."Due Date Calculation", DueDate);
         end;
     end;
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceStatisticsPageHandler(var ServiceStatistics: TestPage "Service Statistics")
-    var
-        InvDiscountAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(InvDiscountAmount);
-        ServiceStatistics."Inv. Discount Amount_General".SetValue(InvDiscountAmount);
-        ServiceStatistics.OK().Invoke();
-    end;
-#endif
+
     [PageHandler]
     [Scope('OnPrem')]
     procedure ServiceStatisticsPageHandlerNM(var ServiceStatistics: TestPage "Service Statistics")

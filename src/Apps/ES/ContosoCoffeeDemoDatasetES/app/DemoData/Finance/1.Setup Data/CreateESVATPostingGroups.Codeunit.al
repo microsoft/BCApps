@@ -76,15 +76,6 @@ codeunit 10794 "Create ES VAT Posting Groups"
         exit(NoTaxTok);
     end;
 
-#if not CLEAN27
-    [Obsolete('Use NoVat in codeunit 5473 "Create VAT Posting Groups" instead', '27.0')]
-    procedure NoVat(): Code[20]
-    var
-        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
-    begin
-        exit(CreateVATPostingGroups.NOVAT());
-    end;
-#endif
 
     procedure Vat7(): Code[20]
     begin

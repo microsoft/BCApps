@@ -188,24 +188,8 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
     }
 
     var
-#if not CLEAN27
-        HideNonInventoryValidateOnStdCost: Boolean;
-#endif
         NoActiveBOMVersionFoundErr: Label 'There is no active Production BOM for the item %1', Comment = '%1 - Item No.';
 
-#if not CLEAN27
-    [Obsolete('procedure that was implemented to bypass the error has now been identified as unnecessary', '27.0')]
-    procedure SetHideNonInventoryValidateOnStdCost(NewHideNonInventoryValidateOnStdCost: Boolean)
-    begin
-        HideNonInventoryValidateOnStdCost := NewHideNonInventoryValidateOnStdCost;
-    end;
-
-    [Obsolete('procedure that was implemented to bypass the error has now been identified as unnecessary', '27.0')]
-    procedure CanHideNonInventoryValidateOnStdCost(): Boolean
-    begin
-        exit(HideNonInventoryValidateOnStdCost);
-    end;
-#endif
 
     internal procedure OpenProductionBOMForSKUItem(ProductionBOMNo: Code[20]; ItemNo: Code[20])
     var

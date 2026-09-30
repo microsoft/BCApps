@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7343,13 +7343,6 @@ table 5902 "Service Line"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateVATOnLinesOnAfterCalcVATAmount(var ServiceLine: Record "Service Line"; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; VATAmountLine: Record "VAT Amount Line"; var VATAmount: Decimal)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitTableValuePair(var TableValuePair: Dictionary of [Integer, Code[20]]; FieldNo: Integer; var IsHandled: Boolean; var ServiceLine: Record "Service Line")
     begin
@@ -7660,13 +7653,6 @@ table 5902 "Service Line"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyPrepaymentFromVATPostingSetup(var ServiceLine: Record "Service Line"; var VATPostingSetupFrom: Record "VAT Posting Setup")
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateLineAmount(var ServiceLine: Record "Service Line"; xServiceLine: Record "Service Line"; Currency: Record Currency; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin

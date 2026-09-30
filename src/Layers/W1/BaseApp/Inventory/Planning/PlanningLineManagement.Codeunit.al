@@ -14,17 +14,7 @@ using Microsoft.Inventory.Tracking;
 
 codeunit 99000809 "Planning Line Management"
 {
-#if not CLEAN28
-    Permissions = TableData Microsoft.Manufacturing.Setup."Manufacturing Setup" = rm,
-                  TableData Microsoft.Manufacturing.Routing."Routing Header" = r,
-                  TableData Microsoft.Manufacturing.ProductionBOM."Production BOM Header" = r,
-                  TableData Microsoft.Manufacturing.ProductionBOM."Production BOM Line" = r,
-                  TableData Microsoft.Manufacturing.Document."Prod. Order Capacity Need" = rd,
-                  TableData "Planning Component" = rimd,
-                  TableData Microsoft.Manufacturing.Routing."Planning Routing Line" = rimd;
-#else
     Permissions = tabledata "Planning Component" = rimd;
-#endif
 
     trigger OnRun()
     begin
@@ -191,25 +181,7 @@ codeunit 99000809 "Planning Line Management"
             until PlanningComponent.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Planning Routing Management', '27.0')]
-    procedure CalculateRoutingFromActual(PlanningRtngLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; Direction: Option Forward,Backward; CalcStartEndDate: Boolean)
-    var
-        PlanningRoutingManagement: Codeunit Microsoft.Manufacturing.Routing.PlanningRoutingManagement;
-    begin
-        PlanningRoutingManagement.CalculateRoutingFromActual(ReqLine, PlanningRtngLine, Direction, CalcStartEndDate, PlanningResiliency);
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Planning Routing Management', '27.0')]
-    procedure CalculatePlanningLineDates(var ReqLine2: Record "Requisition Line")
-    var
-        PlanningRoutingManagement: Codeunit Microsoft.Manufacturing.Routing.PlanningRoutingManagement;
-    begin
-        PlanningRoutingManagement.CalculatePlanningLineDates(ReqLine2);
-    end;
-#endif
 
     procedure Calculate(var ReqLine2: Record "Requisition Line"; Direction: Option Forward,Backward; CalcRouting: Boolean; CalcComponents: Boolean; PlanningLevel: Integer)
     var
@@ -551,150 +523,30 @@ codeunit 99000809 "Planning Line Management"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterIsPlannedCompFound(var PlanningComp: Record "Planning Component"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var IsFound: Boolean; var SKU2: Record "Stockkeeping Unit")
-    begin
-        OnAfterIsPlannedCompFound(PlanningComp, ProdBOMLine, IsFound, SKU2);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterIsPlannedCompFound(var PlanningComp: Record "Planning Component"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var IsFound: Boolean; var SKU: Record "Stockkeeping Unit")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsPlannedAsmCompFound(PlanningComp: Record "Planning Component"; AsmBOMComp: Record "BOM Component"; var IsFound: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterTransferBOM(RequisitionLine: Record "Requisition Line"; ProdBOMNo: Code[20]; Level: Integer; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
-    begin
-        OnAfterTransferBOM(RequisitionLine, ProdBOMNo, Level, LineQtyPerUOM, ItemQtyPerUOM);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferBOM(RequisitionLine: Record "Requisition Line"; ProdBOMNo: Code[20]; Level: Integer; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterRecalculateWithOptionalModify(var RequisitionLine: Record "Requisition Line"; Direction: Option Forward,Backward)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterTransferRouting(var RequisitionLine: Record "Requisition Line")
-    begin
-        OnAfterTransferRouting(RequisitionLine);
-    end;
 
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferRouting(var RequisitionLine: Record "Requisition Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN27
-    internal procedure RunOnAfterTransferRtngLine(var ReqLine2: Record "Requisition Line"; var RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line")
-    begin
-        OnAfterTransferRtngLine(ReqLine2, RoutingLine, PlanningRoutingLine);
-    end;
 
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferRtngLine(var ReqLine: Record "Requisition Line"; var RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN27
-    internal procedure RunOnTransferBOMOnAfterProdBOMLineSetFilters(var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; RequisitionLine: Record "Requisition Line")
-    begin
-        OnTransferBOMOnAfterProdBOMLineSetFilters(ProdBOMLine, RequisitionLine);
-    end;
 
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferBOMOnAfterProdBOMLineSetFilters(var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; RequisitionLine: Record "Requisition Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnTransferBOMOnBeforeGetDefaultBin(var PlanningComponent2: Record "Planning Component"; var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; RequisitionLine: Record "Requisition Line"; var StockkeepingUnit: Record "Stockkeeping Unit")
-    begin
-        OnTransferBOMOnBeforeGetDefaultBin(PlanningComponent2, ProductionBOMLine, RequisitionLine, StockkeepingUnit);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferBOMOnBeforeGetDefaultBin(var PlanningComponent: Record "Planning Component"; var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; RequisitionLine: Record "Requisition Line"; var StockkeepingUnit: Record "Stockkeeping Unit")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnTransferRoutingLineOnBeforeValidateDirectUnitCost(var ReqLine2: Record "Requisition Line"; var RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line")
-    begin
-        OnTransferRoutingLineOnBeforeValidateDirectUnitCost(ReqLine2, RoutingLine, PlanningRoutingLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferRoutingLineOnBeforeValidateDirectUnitCost(var ReqLine: Record "Requisition Line"; var RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnTransferRoutingLineOnBeforeCalcRoutingCostPerUnit(var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; ReqLine2: Record "Requisition Line"; RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line")
-    begin
-        OnTransferRoutingLineOnBeforeCalcRoutingCostPerUnit(PlanningRoutingLine, ReqLine2, RoutingLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferRoutingLineOnBeforeCalcRoutingCostPerUnit(var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; ReqLine: Record "Requisition Line"; RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculate(var ReqLine2: Record "Requisition Line"; Direction: Option Forward,Backward; CalcRouting: Boolean; CalcComponents: Boolean; PlanningLevel: Integer; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeInsertPlanningComponent(var ReqLine2: Record "Requisition Line"; var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var PlanningComponent2: Record "Planning Component"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
-    begin
-        OnBeforeInsertPlanningComponent(ReqLine2, ProductionBOMLine, PlanningComponent2, LineQtyPerUOM, ItemQtyPerUOM);
-    end;
 
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertPlanningComponent(var ReqLine: Record "Requisition Line"; var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var PlanningComponent: Record "Planning Component"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeModifyPlanningComponent(var ReqLine2: Record "Requisition Line"; var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var PlanningComponent2: Record "Planning Component"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
-    begin
-        OnBeforeModifyPlanningComponent(ReqLine2, ProductionBOMLine, PlanningComponent2, LineQtyPerUOM, ItemQtyPerUOM);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeModifyPlanningComponent(var ReqLine: Record "Requisition Line"; var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var PlanningComponent: Record "Planning Component"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertAsmPlanningComponent(var ReqLine: Record "Requisition Line"; var BOMComponent: Record "BOM Component"; var PlanningComponent: Record "Planning Component")
@@ -706,49 +558,13 @@ codeunit 99000809 "Planning Line Management"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeTransferBOM(ProdBOMNo: Code[20]; Level: Integer; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; var RequisitionLine: Record "Requisition Line"; Blocked2: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeTransferBOM(ProdBOMNo, Level, LineQtyPerUOM, ItemQtyPerUOM, RequisitionLine, Blocked2, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransferBOM(ProdBOMNo: Code[20]; Level: Integer; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; var RequisitionLine: Record "Requisition Line"; Blocked: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeTransferRouting(var RequisitionLine: Record "Requisition Line"; PlanningResilency: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeTransferRouting(RequisitionLine, PlanningResilency, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransferRouting(var RequisitionLine: Record "Requisition Line"; PlanningResilency: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCalculateOnBeforeTransferBOM(var RequisitionLine: Record "Requisition Line"; var StockkeepingUnit: Record "Stockkeeping Unit"; PlanningResilency: Boolean; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnCalculateRoutingOnAfterUpdateReqLine(var RequisitionLine: Record "Requisition Line"; Direction: Option Forward,Backward)
-    begin
-        OnCalculateRoutingOnAfterUpdateReqLine(RequisitionLine, Direction);
-    end;
-
-    [Obsolete('Moved to codeunit PlanningRoutingManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalculateRoutingOnAfterUpdateReqLine(var RequisitionLine: Record "Requisition Line"; Direction: Option Forward,Backward)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckMultiLevelStructureOnBeforeInsertPlanningLine(var ReqLine: Record "Requisition Line"; var PlanningComponent: Record "Planning Component")
@@ -765,57 +581,9 @@ codeunit 99000809 "Planning Line Management"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnTransferBOMOnBeforeTransferPlanningComponent(var RequisitionLine: Record "Requisition Line"; var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; Blocked2: Boolean; var IsHandled: Boolean; Level: Integer)
-    begin
-        OnTransferBOMOnBeforeTransferPlanningComponent(RequisitionLine, ProductionBOMLine, Blocked2, IsHandled, Level);
-    end;
 
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferBOMOnBeforeTransferPlanningComponent(var RequisitionLine: Record "Requisition Line"; var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; Blocked: Boolean; var IsHandled: Boolean; Level: Integer)
-    begin
-    end;
-#endif
 
-#if not CLEAN27
-    internal procedure RunOnTransferBOMOnBeforeTransferProductionBOM(var ReqQty: Decimal; ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; RequisitionLine: Record "Requisition Line")
-    begin
-        OnTransferBOMOnBeforeTransferProductionBOM(ReqQty, ProductionBOMLine, LineQtyPerUOM, ItemQtyPerUOM, RequisitionLine);
-    end;
 
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferBOMOnBeforeTransferProductionBOM(var ReqQty: Decimal; ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; RequisitionLine: Record "Requisition Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnTransferBOMOnBeforeUpdatePlanningComp(var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var UpdateCondition: Boolean; var IsHandled: Boolean)
-    begin
-        OnTransferBOMOnBeforeUpdatePlanningComp(ProductionBOMLine, UpdateCondition, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferBOMOnBeforeUpdatePlanningComp(var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var UpdateCondition: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnTransferBOMOnAfterCalculateReqQty(var ReqQty: Decimal; ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal);
-    begin
-        OnTransferBOMOnAfterCalculateReqQty(ReqQty, ProductionBOMLine, PlanningRoutingLine, LineQtyPerUOM, ItemQtyPerUOM);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferBOMOnAfterCalculateReqQty(var ReqQty: Decimal; ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal);
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnTransferAsmBOMOnBeforeGetDefaultBin(var PlanningComponent: Record "Planning Component"; var AsmBOMComponent: Record "BOM Component"; ReqLine: Record "Requisition Line")
@@ -842,44 +610,8 @@ codeunit 99000809 "Planning Line Management"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterSetPlanningLevelCode(var PlanningComponent2: Record "Planning Component"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var SKU2: Record "Stockkeeping Unit"; var ComponentSKU: Record "Stockkeeping Unit"; var Result: Boolean)
-    begin
-        OnAfterSetPlanningLevelCode(PlanningComponent2, ProdBOMLine, SKU2, ComponentSKU, Result);
-    end;
 
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetPlanningLevelCode(var PlanningComponent: Record "Planning Component"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var SKU: Record "Stockkeeping Unit"; var ComponentSKU: Record "Stockkeeping Unit"; var Result: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN27
-    internal procedure RunOnBeforeTransferRoutingLine(var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; RequisitionLine: Record "Requisition Line"; RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeTransferRoutingLine(PlanningRoutingLine, RequisitionLine, RoutingLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransferRoutingLine(var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; RequisitionLine: Record "Requisition Line"; RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnTransferBOMOnBeforePlanningRtngLineFind(var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; RequisitionLine: Record "Requisition Line")
-    begin
-        OnTransferBOMOnBeforePlanningRtngLineFind(PlanningRoutingLine, ProductionBOMLine, RequisitionLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPlanningLineManagement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferBOMOnBeforePlanningRtngLineFind(var PlanningRoutingLine: Record Microsoft.Manufacturing.Routing."Planning Routing Line"; ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; RequisitionLine: Record "Requisition Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetResiliencyErrorOnRouting(var PlanningErrorLog: Record "Planning Error Log"; var ShouldExit: Boolean)

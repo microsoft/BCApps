@@ -317,12 +317,7 @@ codeunit 5052 AttachmentManagement
                 GetAttachment(Attachment, TempDeliverySorterHtml."Attachment No.", false);
                 Clear(HtmlBody);
                 Attachment.ExportAttachmentToTempBlob(HtmlBody);
-#if not CLEAN27
-                OnDeliverHTMLEmailOnBeforeSendEmail(TempDeliverySorterHtml, Attachment, InteractLogEntry, '');
-#else
                 OnDeliverHTMLEmailOnBeforeSendEmail(TempDeliverySorterHtml, Attachment, InteractLogEntry);
-
-#endif
                 SendHTMLEmail(TempDeliverySorterHtml, InteractLogEntry, HtmlBody);
             end else
                 SetDeliveryState(InteractLogEntry, false);
@@ -374,11 +369,7 @@ codeunit 5052 AttachmentManagement
                 Attachment.ExportAttachmentToTempBlob(AttachmentTempBlob);
                 Clear(HtmlBody);
                 PrepareDummyEmailBody(HtmlBody);
-#if not CLEAN27
-                OnDeliverEmailWithAttachmentOnBeforeSendEmail(TempDeliverySorterOther, InteractLogEntry, '', '');
-#else
                 OnDeliverEmailWithAttachmentOnBeforeSendEmail(TempDeliverySorterOther, InteractLogEntry);
-#endif
                 SendEmailWithAttachment(TempDeliverySorterOther, InteractLogEntry, AttachmentTempBlob, HtmlBody);
             end else
                 SetDeliveryState(InteractLogEntry, false);
@@ -668,19 +659,6 @@ codeunit 5052 AttachmentManagement
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Parameter AttachmentFileFullName and EmailBodyFilePath will be removed', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnDeliverEmailWithAttachmentOnBeforeSendEmail(var DeliverySorter: Record "Delivery Sorter"; var InteractionLogEntry: Record "Interaction Log Entry"; AttachmentFileFullName: Text; EmailBodyFilePath: Text)
-    begin
-    end;
-
-    [Obsolete('Parameter EmailBodyFilePath will be removed', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnDeliverHTMLEmailOnBeforeSendEmail(var DeliverySorter: Record "Delivery Sorter"; Attachment: Record Attachment; var InteractionLogEntry: Record "Interaction Log Entry"; EmailBodyFilePath: Text)
-    begin
-    end;
-#else
     [IntegrationEvent(false, false)]
     local procedure OnDeliverEmailWithAttachmentOnBeforeSendEmail(var DeliverySorter: Record "Delivery Sorter"; var InteractionLogEntry: Record "Interaction Log Entry")
     begin
@@ -690,7 +668,6 @@ codeunit 5052 AttachmentManagement
     local procedure OnDeliverHTMLEmailOnBeforeSendEmail(var DeliverySorter: Record "Delivery Sorter"; Attachment: Record Attachment; var InteractionLogEntry: Record "Interaction Log Entry")
     begin
     end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnProcessDeliverySorterHtml(var DeliverySorter: Record "Delivery Sorter"; var TempDeliverySorter: Record "Delivery Sorter" temporary; Attachment: Record Attachment; I: Integer)

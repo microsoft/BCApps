@@ -433,7 +433,7 @@ report 11309 "VAT Annual Listing - Disk"
         XMLNewChild: DotNet XmlNode;
         CustSequenceNum: Integer;
     begin
-        if Buffer.FindSet(true, false) then
+        if Buffer.FindSet(true) then
             repeat
                 CustSequenceNum := CustSequenceNum + 1;
                 XMLDOMMgt.AddElement(XMLCurrNode, 'Client', '', xmlnsClientListingConsignment, XMLNewChild);

@@ -27,12 +27,10 @@ pageextension 10025 "Service Orders NA" extends "Service Orders"
                 ToolTip = 'View or add CFDI relation documents for the record.';
             }
         }
-#if CLEAN27
         modify(ServiceOrderStatistics)
         {
             Visible = not SalesTaxStatisticsVisible;
         }
-#endif
         addafter(ServiceOrderStatistics)
         {
             action(ServiceOrderStats)
@@ -42,23 +40,17 @@ pageextension 10025 "Service Orders NA" extends "Service Orders"
                 Image = Statistics;
                 ShortCutKey = 'F7';
                 ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-#if CLEAN27
                     Visible = SalesTaxStatisticsVisible;
-#else
-                Visible = false;
-#endif
                 RunObject = Page "Service Order Stats.";
                 RunPageOnRec = true;
             }
         }
-#if CLEAN27
         addafter(ServiceOrderStatistics_Promoted)
         {
             actionref(ServiceOrderStats_Promoted; ServiceOrderStatistics)
             {
             }
         }
-#endif
     }
 
     trigger OnOpenPage()

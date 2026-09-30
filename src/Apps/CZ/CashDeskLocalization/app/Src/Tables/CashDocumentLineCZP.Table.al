@@ -1864,27 +1864,6 @@ table 11733 "Cash Document Line CZP"
         Validate("VAT Bus. Posting Group", PostedGLAccount."VAT Bus. Posting Group");
         Validate("VAT Prod. Posting Group", PostedGLAccount."VAT Prod. Posting Group");
     end;
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the CashDocumentStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure ExtStatistics()
-    var
-        CashDocumentLineCZP: Record "Cash Document Line CZP";
-    begin
-        TestField("Cash Desk No.");
-        TestField("Cash Document No.");
-
-        GetCashDocumentHeaderCZP();
-        if CashDocumentHeaderCZP.Status = CashDocumentHeaderCZP.Status::Open then begin
-            CashDocumentHeaderCZP.VATRounding();
-            Commit();
-        end;
-
-        CashDocumentLineCZP.SetRange("Cash Desk No.", "Cash Desk No.");
-        CashDocumentLineCZP.SetRange("Cash Document No.", "Cash Document No.");
-        CashDocumentLineCZP.SetRange("Line No.", "Line No.");
-        Page.RunModal(Page::"Cash Document Statistics CZP", CashDocumentLineCZP);
-    end;
-#endif
 
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin

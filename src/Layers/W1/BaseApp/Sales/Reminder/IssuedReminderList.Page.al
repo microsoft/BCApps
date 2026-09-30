@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -236,24 +236,6 @@ page 440 "Issued Reminder List"
         }
         area(reporting)
         {
-#if not CLEAN27
-            action("Reminder Nos.")
-            {
-                ApplicationArea = Suite;
-                Caption = 'The action will be obsoleted.';
-                Image = "Report";
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report Reminder;
-                ToolTip = 'The action will be obsoleted.';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The related report doesn''t exist anymore';
-#pragma warning disable AS0074
-                ObsoleteTag = '27.0';
-#pragma warning restore AS0074
-            }
-#endif
             action("Customer - Balance to Date")
             {
                 ApplicationArea = Basic, Suite;

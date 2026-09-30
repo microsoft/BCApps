@@ -1306,15 +1306,6 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         end;
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced with CreateTempFA with TempFA as return parameter', '27.0')]
-    procedure CreateTempFA(GenJnlLine: Record "Gen. Journal Line"; SplitNo: Integer): Boolean
-    var
-        TempFA: Record "Fixed Asset" temporary;
-    begin
-        CreateTempFA(GenJnlLine, SplitNo, TempFA);
-    end;
-#endif
 
     procedure CreateTempFA(GenJnlLine: Record "Gen. Journal Line"; SplitNo: Integer; var TempFA: Record "Fixed Asset" temporary): Boolean
     var

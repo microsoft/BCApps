@@ -2,7 +2,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-#if CLEAN27
 namespace app.app;
 
 using Microsoft.Foundation.Address;
@@ -92,4 +91,3 @@ pageextension 50005 "Resource Card" extends "Resource Card"
         HandleAddressLookupVisibility();
     end;
 }
-#endif

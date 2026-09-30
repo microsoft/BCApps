@@ -1,4 +1,3 @@
-#if CLEAN27
 codeunit 139501 "Test UK Postcode Pages"
 {
     Subtype = Test;
@@ -1844,4 +1843,3 @@ codeunit 139501 "Test UK Postcode Pages"
         PostcodeSelectAddress.OK().Invoke();
     end;
 }
-#endif

@@ -50,11 +50,6 @@ permissionset 11730 "CZ Core Pack - Read CZL"
                   tabledata "VAT Ctrl. Report Line CZL" = R,
                   tabledata "VAT Ctrl. Report Section CZL" = R,
                   tabledata "VAT LCY Correction Buffer CZL" = R,
-#if not CLEAN27
-#pragma warning disable AL0432
-                  tabledata "VAT Period CZL" = R,
-#pragma warning restore AL0432
-#endif
                   tabledata "VAT Report Entry Link CZL" = R,
                   tabledata "VAT Stmt. Report Line Data CZL" = R,
                   tabledata "VAT Statement Attachment CZL" = R,

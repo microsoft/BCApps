@@ -322,24 +322,8 @@ table 290 "VAT Amount Line"
             AutoFormatType = 0;
             Caption = 'Reverse Charge';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-
-#if not CLEAN27
-            trigger OnValidate()
-            begin
-                TestField("VAT %");
-                TestField("VAT Base");
-                if "VAT Amount" / "VAT Base" < 0 then
-                    Error(Text002, FieldCaption("VAT Amount"));
-                "VAT Difference" := "VAT Amount" - "Calculated VAT Amount";
-            end;
-#endif
         }
 #endif
     }

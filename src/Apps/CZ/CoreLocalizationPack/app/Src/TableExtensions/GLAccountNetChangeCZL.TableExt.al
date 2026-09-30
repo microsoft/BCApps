@@ -27,13 +27,8 @@ tableextension 31047 "G/L Account Net Change CZL" extends "G/L Account Net Chang
         {
             Caption = 'Account Type (Obsolete)';
             DataClassification = SystemMetadata;
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Replaced by "Acc. Type CZL" field.';
         }
 #endif
@@ -68,14 +63,6 @@ tableextension 31047 "G/L Account Net Change CZL" extends "G/L Account Net Chang
 
     keys
     {
-#if not CLEAN27
-        key(AccountTypeNoCZL; "Account Type CZL", "Account No. CZL")
-        {
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Replaced by "Acc. Type CZL" field.';
-        }
-#endif
         key(AccTypeNoCZL; "Acc. Type CZL", "Account No. CZL")
         {
         }
@@ -83,9 +70,6 @@ tableextension 31047 "G/L Account Net Change CZL" extends "G/L Account Net Chang
 
     procedure SaveNetChangeCZL(GenJournalLine: Record "Gen. Journal Line")
     var
-#if not CLEAN27
-        ReconciliationHandler: Codeunit "Reconciliation Handler CZL";
-#endif
         NetChangeLCY: Decimal;
         NetChange: Decimal;
     begin
@@ -101,9 +85,6 @@ tableextension 31047 "G/L Account Net Change CZL" extends "G/L Account Net Chang
         if FindFirst() then begin
             UpdateNetChange(NetChangeLCY, NetChange);
             OnSaveNetChangeCZLOnBeforeModify(Rec, GenJournalLine, NetChangeLCY, NetChange);
-#if not CLEAN27
-            ReconciliationHandler.RaiseOnSetSaveNetChangeBeforeModifyGLAccountNetChange(Rec, GenJournalLine, NetChangeLCY, NetChange);
-#endif
             Modify();
         end else begin
             Reset();
@@ -113,9 +94,6 @@ tableextension 31047 "G/L Account Net Change CZL" extends "G/L Account Net Chang
             PopulateFromAccount();
             UpdateNetChange(NetChangeLCY, NetChange);
             OnSaveNetChangeCZLOnBeforeInsert(Rec, GenJournalLine, NetChangeLCY, NetChange);
-#if not CLEAN27
-            ReconciliationHandler.RaiseOnSetSaveNetChangeBeforeInsertGLAccountNetChange(Rec, GenJournalLine, NetChangeLCY, NetChange);
-#endif
             Insert();
         end;
     end;

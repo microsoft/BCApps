@@ -71,104 +71,6 @@ report 113 "Customer/Item Sales"
             {
                 DecimalPlaces = 1 : 1;
             }
-#if not CLEAN27
-            column(COMPANYNAME; COMPANYPROPERTY.DisplayName())
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(CustFilter; CustFilter)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(ItemLedgEntryFilter; ValueEntryFilter)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Customer_Item_SalesCaption; Customer_Item_SalesCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(CurrReport_PAGENOCaption; CurrReport_PAGENOCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(All_amounts_are_in_LCYCaption; All_amounts_are_in_LCYCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(ValueEntryBuffer__Item_No__Caption; ValueEntryBuffer__Item_No__CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Item_DescriptionCaption; Item_DescriptionCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(ValueEntryBuffer__Invoiced_Quantity_Caption; ValueEntryBuffer__Invoiced_Quantity_CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Item__Base_Unit_of_Measure_Caption; Item__Base_Unit_of_Measure_CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(ValueEntryBuffer__Sales_Amount__Actual___Control44Caption; ValueEntryBuffer__Sales_Amount__Actual___Control44CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(ValueEntryBuffer__Discount_Amount__Control45Caption; ValueEntryBuffer__Discount_Amount__Control45CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Profit_Control46Caption; Profit_Control46CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(ProfitPct_Control47Caption; ProfitPct_Control47CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Customer__Phone_No__Caption; FieldCaption("Phone No."))
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(TotalCaption; TotalCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             dataitem("Value Entry"; "Value Entry")
             {
                 DataItemLink = "Source No." = field("No."), "Posting Date" = field("Date Filter"), "Global Dimension 1 Code" = field("Global Dimension 1 Filter"), "Global Dimension 2 Code" = field("Global Dimension 2 Filter");
@@ -400,9 +302,7 @@ report 113 "Customer/Item Sales"
                         ObsoleteState = Pending;
                         ObsoleteReason = 'The New Page per Customer option is only supported by the RDLC layout which has been deprecated.';
                         ObsoleteTag = '28.0';
-#if CLEAN27
                         Visible = false;
-#endif
                     }
 #endif
                     // Used to set a report header across multiple languages
@@ -459,18 +359,6 @@ report 113 "Customer/Item Sales"
             LayoutFile = './Sales/Reports/CustomerItemSales.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Customer Item Sales RDLC (Obsolete)';
-            Type = RDLC;
-            LayoutFile = './Sales/Reports/CustomerItemSales.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
     }
 
     labels
@@ -536,20 +424,6 @@ report 113 "Customer/Item Sales"
         ReportHasData: Boolean;
         EmptyReportDatasetTxt: Label 'There is nothing to print for the selected filters.';
         PeriodTxt: Label 'Period: %1', Comment = '%1 - period text';
-#if not CLEAN27
-        Customer_Item_SalesCaptionLbl: Label 'Customer/Item Sales';
-        CurrReport_PAGENOCaptionLbl: Label 'Page';
-        All_amounts_are_in_LCYCaptionLbl: Label 'All amounts are in LCY';
-        ValueEntryBuffer__Item_No__CaptionLbl: Label 'Item No.';
-        Item_DescriptionCaptionLbl: Label 'Description';
-        ValueEntryBuffer__Invoiced_Quantity_CaptionLbl: Label 'Invoiced Quantity';
-        Item__Base_Unit_of_Measure_CaptionLbl: Label 'Unit of Measure';
-        ValueEntryBuffer__Sales_Amount__Actual___Control44CaptionLbl: Label 'Amount';
-        ValueEntryBuffer__Discount_Amount__Control45CaptionLbl: Label 'Discount Amount';
-        Profit_Control46CaptionLbl: Label 'Profit';
-        ProfitPct_Control47CaptionLbl: Label 'Profit %';
-        TotalCaptionLbl: Label 'Total';
-#endif
 
     protected var
         Item: Record Item;

@@ -478,17 +478,11 @@ page 118 "General Ledger Setup"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Default View by';
-#if not CLEAN27
-                        Visible = FinancialReportDefaultsEnabled;
-#endif
                     }
                     field("Fin. Rep. Neg. Amount Format"; Rec."Fin. Rep. Neg. Amount Format")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Default Negative Amount Format';
-#if not CLEAN27
-                        Visible = FinancialReportDefaultsEnabled;
-#endif
                     }
                     field("Fin. Rep. Company Logo Pos."; Rec."Fin. Rep. Company Logo Pos.")
                     {
@@ -551,42 +545,6 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                 }
             }
-#if not CLEAN27
-            group("Reverse Charge")
-            {
-                Caption = 'Reverse Charge';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                ObsoleteTag = '27.0';
-
-                field("Threshold applies"; Rec."Threshold applies")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                    ObsoleteTag = '27.0';
-                    ToolTip = 'Specifies whether or not the program is setup to process Reverse Charge invoices.';
-
-                    trigger OnValidate()
-                    begin
-                        if Rec."Threshold applies" then
-                            ThresholdAmountEnable := true
-                        else
-                            ThresholdAmountEnable := false;
-                    end;
-                }
-                field(ThresholdAmount; Rec."Threshold Amount")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Threshold Amount';
-                    Enabled = ThresholdAmountEnable;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                    ObsoleteTag = '27.0';
-                    ToolTip = 'Specifies the de minimis rule amount determined by the tax authorities.';
-                }
-            }
-#endif
             group("Gen. Journal Templates")
             {
                 Caption = 'Journal Templates';
@@ -930,18 +888,10 @@ page 118 "General Ledger Setup"
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
     begin
         FinancialReportMgt.Initialize();
-#if not CLEAN27
-        ThresholdAmountEnable := true;
-#endif
     end;
 
     trigger OnOpenPage()
     var
-#if not CLEAN27
-#pragma warning disable AL0432
-        FeatureFinancialReportDef: Codeunit "Feature - Fin. Report Default";
-#pragma warning restore AL0432
-#endif
     begin
         Rec.Reset();
         if not Rec.Get() then begin
@@ -951,24 +901,12 @@ page 118 "General Ledger Setup"
         xGeneralLedgerSetup := Rec;
 
         IsJournalTemplatesVisible := Rec."Journal Templ. Name Mandatory";
-#if not CLEAN27
-        ThresholdAmountEnable := Rec."Threshold applies";
-#endif
 
-#if not CLEAN27
-        FinancialReportDefaultsEnabled := FeatureFinancialReportDef.IsDefaultsFeatureEnabled();
-#endif
     end;
 
     var
         xGeneralLedgerSetup: Record "General Ledger Setup";
         IsJournalTemplatesVisible: Boolean;
-#if not CLEAN27
-        ThresholdAmountEnable: Boolean;
-#endif
-#if not CLEAN27
-        FinancialReportDefaultsEnabled: Boolean;
-#endif
 
 #pragma warning disable AA0074
         Text001: Label 'Do you want to change all open entries for every customer and vendor that are not blocked?';

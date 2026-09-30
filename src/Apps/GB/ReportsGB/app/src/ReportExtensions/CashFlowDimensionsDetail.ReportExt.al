@@ -8,9 +8,7 @@ using Microsoft.CashFlow.Forecast;
 
 reportextension 10589 "Cash Flow Dimensions - Detail" extends "Cash Flow Dimensions - Detail"
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/CashFlowDimensionsDetail.rdlc';
-#endif
     dataset
     {
         add("Analysis View")
@@ -138,20 +136,6 @@ reportextension 10589 "Cash Flow Dimensions - Detail" extends "Cash Flow Dimensi
         }
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Cash Flow Dimensions - Detail GB localization';
-            LayoutFile = './src/ReportExtensions/CashFlowDimensionsDetail.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     var
         TempCFForecastEntry: Record "Cash Flow Forecast Entry" temporary;

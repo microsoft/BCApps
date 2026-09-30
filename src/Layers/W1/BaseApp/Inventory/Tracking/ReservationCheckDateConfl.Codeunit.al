@@ -133,45 +133,9 @@ codeunit 99000815 "Reservation-Check Date Confl."
         ReservMgt.AutoTrack(RequisitionLine."Quantity (Base)");
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit "Mfg. ReservCheckDateConfl"', '27.0')]
-    procedure ProdOrderLineCheck(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ForceRequest: Boolean)
-    var
-        MfgReservCheckDateConfl: Codeunit "Mfg. ReservCheckDateConfl";
-    begin
-        MfgReservCheckDateConfl.ProdOrderLineCheck(ProdOrderLine, ForceRequest);
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit "Mfg. ReservCheckDateConfl"', '27.0')]
-    procedure ProdOrderComponentCheck(ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ForceRequest: Boolean; IsCritical: Boolean): Boolean
-    var
-        MfgReservCheckDateConfl: Codeunit "Mfg. ReservCheckDateConfl";
-    begin
-        exit(MfgReservCheckDateConfl.ProdOrderComponentCheck(ProdOrderComponent, ForceRequest, IsCritical));
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit "Asm. ReservCheckDateConfl"', '27.0')]
-    procedure AssemblyHeaderCheck(AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; ForceRequest: Boolean)
-    var
-        AsmReservCheckDateConfl: Codeunit "Asm. ReservCheckDateConfl";
-    begin
-        AsmReservCheckDateConfl.AssemblyHeaderCheck(AssemblyHeader, ForceRequest);
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit "Asm. ReservCheckDateConfl"', '27.0')]
-    procedure AssemblyLineCheck(AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; ForceRequest: Boolean)
-    var
-        AsmReservCheckDateConfl: Codeunit "Asm. ReservCheckDateConfl";
-    begin
-        AsmReservCheckDateConfl.AssemblyLineCheck(AssemblyLine, ForceRequest);
-    end;
-#endif
 
     procedure PlanningComponentCheck(PlanningComponent: Record "Planning Component"; ForceRequest: Boolean)
     var
@@ -441,18 +405,6 @@ codeunit 99000815 "Reservation-Check Date Confl."
         OnSameProdOrderAutoReserve(FilterReservationEntry, Result);
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCheckProdOrderLineDateConflict(DueDate: Date; var ForceRequest: Boolean; var ReservationEntry2: Record "Reservation Entry"; var IsHandled: Boolean)
-    begin
-        OnBeforeCheckProdOrderLineDateConflict(DueDate, ForceRequest, ReservationEntry2, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit "Mfg. ReservCheckDateConfl"', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckProdOrderLineDateConflict(DueDate: Date; var ForceRequest: Boolean; var ReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateDate(var ReservationEntry: Record "Reservation Entry"; NewDate: Date; var IsHandled: Boolean)
@@ -479,62 +431,14 @@ codeunit 99000815 "Reservation-Check Date Confl."
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnProdOrderLineCheckOnBeforeUpdateDate(var ReservationEntry2: Record "Reservation Entry"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var IsHandled: Boolean)
-    begin
-        OnProdOrderLineCheckOnBeforeUpdateDate(ReservationEntry2, ProdOrderLine, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit "Mfg. ReservCheckDateConfl"', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnProdOrderLineCheckOnBeforeUpdateDate(var ReservationEntry: Record "Reservation Entry"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnProdOrderComponentCheckOnBeforeUpdateDate(var ReservationEntry2: Record "Reservation Entry"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var IsHandled: Boolean)
-    begin
-        OnProdOrderComponentCheckOnBeforeUpdateDate(ReservationEntry2, ProdOrderComp, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit "Mfg. ReservCheckDateConfl"', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnProdOrderComponentCheckOnBeforeUpdateDate(var ReservationEntry: Record "Reservation Entry"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPlanningComponentCheckOnBeforeUpdateDate(var ReservationEntry: Record "Reservation Entry"; PlanningComponent: Record "Planning Component"; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAssemblyHeaderCheckOnBeforeUpdateDate(var ReservationEntry2: Record "Reservation Entry"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var IsHandled: Boolean)
-    begin
-        OnAssemblyHeaderCheckOnBeforeUpdateDate(ReservationEntry2, AssemblyHeader, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit AsmReservCheckDateConfl', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAssemblyHeaderCheckOnBeforeUpdateDate(var ReservationEntry: Record "Reservation Entry"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnAssemblyLineCheckOnBeforeUpdateDate(var ReservationEntry2: Record "Reservation Entry"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; var IsHandled: Boolean)
-    begin
-        OnAssemblyLineCheckOnBeforeUpdateDate(ReservationEntry2, AssemblyLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit AsmReservCheckDateConfl', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAssemblyLineCheckOnBeforeUpdateDate(var ReservationEntry: Record "Reservation Entry"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterDateConflict(var ReservationEntry: Record "Reservation Entry"; var Date: Date; var IsConflict: Boolean; var ForceRequest: Boolean)
@@ -571,36 +475,12 @@ codeunit 99000815 "Reservation-Check Date Confl."
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnProdOrderComponentCheckOnBeforeIssueError(var ReservationEntry2: Record "Reservation Entry"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ForceRequest: Boolean; var IsHandled: Boolean)
-    begin
-        OnProdOrderComponentCheckOnBeforeIssueError(ReservationEntry2, ProdOrderComponent, ForceRequest, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit "Mfg. ReservCheckDateConfl"', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnProdOrderComponentCheckOnBeforeIssueError(var ReservationEntry: Record "Reservation Entry"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ForceRequest: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnItemJnlLineCheckOnBeforeIssueError(var ReservationEntry: Record "Reservation Entry"; ItemJournalLine: Record "Item Journal Line"; var ForceRequest: Boolean; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAssemblyHeaderCheckOnBeforeIssueError(var ReservationEntry: Record "Reservation Entry"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var ForceRequest: Boolean; var IsHandled: Boolean)
-    begin
-        OnAssemblyHeaderCheckOnBeforeIssueError(ReservationEntry, AssemblyHeader, ForceRequest, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit AsmReservCheckDateConfl', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAssemblyHeaderCheckOnBeforeIssueError(var ReservationEntry: Record "Reservation Entry"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var ForceRequest: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnTransferLineCheckOutboundOnBeforeIssueError(var ReservationEntry: Record "Reservation Entry"; TransferLine: Record "Transfer Line"; var ForceRequest: Boolean; var IsHandled: Boolean)

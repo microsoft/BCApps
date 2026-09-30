@@ -83,25 +83,6 @@ codeunit 17121 "Create AU VAT Posting Groups"
         exit(NonGstTok);
     end;
 
-#if not CLEAN27
-    [Obsolete('Use Gst10() instead.', '27.0')]
-    procedure Vat10(): Code[20]
-    begin
-        exit(Gst10Tok);
-    end;
-
-    [Obsolete('Use NonGst() instead.', '27.0')]
-    procedure NoVat(): Code[20]
-    begin
-        exit(NonGstTok);
-    end;
-
-    [Obsolete('Use Gst10() instead.', '27.0')]
-    procedure Vat15(): Code[20]
-    begin
-        exit(Gst10Tok);
-    end;
-#endif
 
     var
         Gst10Tok: Label 'GST10', MaxLength = 20, Locked = true;

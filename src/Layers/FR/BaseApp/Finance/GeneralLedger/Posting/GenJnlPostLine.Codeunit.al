@@ -1220,9 +1220,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostGLAcc(GenJnlLine, GLEntry, GLEntryNo, IsHandled, TempGLEntryBuf);
         if not IsHandled then begin
             GLAcc.Get(GenJnlLine."Account No.");
-#if not CLEAN28
-            RealizeDelayedUnrealizedVAT(GenJnlLine);
-#endif
             OnBeforeInitGLEntryForGLAcc(GenJnlLine, GLAcc, GLEntry, TaxAmount, TaxAmountLCY, IsHandled);
             if not IsHandled then
                 InitGLEntry(
@@ -1602,9 +1599,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         BankAcc.Get(GenJnlLine."Account No.");
         BankAcc.TestField(Blocked, false);
-#if not CLEAN28
-        RealizeDelayedUnrealizedVAT(GenJnlLine);
-#endif
         IsHandled := false;
         OnPostBankAccOnBeforeCheckCurrencyCode(GenJnlLine, BankAcc, IsHandled);
         if not IsHandled then
@@ -7795,15 +7789,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                            DtldCVLedgEntryBuf."Entry Type"::"Payment Discount Tolerance (VAT Excl.)"]);
     end;
 
-#if not CLEAN27
-    local procedure RealizeDelayedUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line")
-    begin
-        if GenJnlLine."Delayed Unrealized VAT" and GenJnlLine."Realize VAT" then
-            if (GenJnlLine."Applies-to Doc. No." <> '') or (GenJnlLine."Applies-to ID" <> '') then
-                PostDelayedUnrealizedVAT(GenJnlLine);
-    end;
-#endif
-
     local procedure MakeDerogFAJnlLine(var FAJnlLine: Record "FA Journal Line"; GenJnlLine: Record "Gen. Journal Line")
     var
         DeprBook: Record "Depreciation Book";
@@ -7890,7 +7875,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
-                    if UnrealCVLedgEntryBuffer.FindSet(true, false) then
+                    if UnrealCVLedgEntryBuffer.FindSet(true) then
                         repeat
                             OldCustLedgEntry.Get(UnrealCVLedgEntryBuffer."Entry No.");
                             OldCustLedgEntry.CalcFields(
@@ -7938,7 +7923,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
-                    if UnrealCVLedgEntryBuffer.FindSet(true, false) then
+                    if UnrealCVLedgEntryBuffer.FindSet(true) then
                         repeat
                             OldVendLedgEntry.Get(UnrealCVLedgEntryBuffer."Entry No.");
                             OldVendLedgEntry.CalcFields(

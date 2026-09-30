@@ -100,26 +100,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
         PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
 
-#if not CLEAN27
-    [Obsolete('Replaced by same procedure without parameter Manufacturing Setup', '27.0')]
-    procedure CalculatePlanFromWorksheet(var Item: Record Item; ManufacturingSetup2: Record Microsoft.Manufacturing.Setup."Manufacturing Setup"; TemplateName: Code[10]; WorksheetName: Code[10]; OrderDate: Date; ToDate: Date; MRPPlanning: Boolean; RespectPlanningParm: Boolean)
-    begin
-        CalculatePlanFromWorksheet(Item, TemplateName, WorksheetName, OrderDate, ToDate, MRPPlanning, RespectPlanningParm);
-    end;
-#endif
 
     procedure CalculatePlanFromWorksheet(var Item: Record Item; TemplateName: Code[10]; WorksheetName: Code[10]; OrderDate: Date; ToDate: Date; MRPPlanning: Boolean; RespectPlanningParm: Boolean)
     var
         InventoryProfile: array[2] of Record "Inventory Profile" temporary;
-#if not CLEAN27
-        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
     begin
-#if not CLEAN27
-        ManufacturingSetup.GetRecordOnce();
-        OnBeforeCalculatePlanFromWorksheet(
-          Item, ManufacturingSetup, TemplateName, WorksheetName, OrderDate, ToDate, MRPPlanning, RespectPlanningParm);
-#endif
         OnBeforeCalculatePlanFromWorksheet2(
           Item, TemplateName, WorksheetName, OrderDate, ToDate, MRPPlanning, RespectPlanningParm);
 
@@ -5029,18 +5014,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterGetRoutingFromProdOrder(var RequisitionLine: Record "Requisition Line")
-    begin
-        OnAfterGetRoutingFromProdOrder(RequisitionLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInvtProfileOffsetting', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetRoutingFromProdOrder(var RequisitionLine: Record "Requisition Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitSupply(var InventoryProfile: Record "Inventory Profile"; var StockkeepingUnit: Record "Stockkeeping Unit"; Item: Record Item)
@@ -5117,18 +5090,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterSetProdOrder(var ReqLine: Record "Requisition Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var InventoryProfile: Record "Inventory Profile")
-    begin
-        OnAfterSetProdOrder(ReqLine, ProdOrderLine, InventoryProfile);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInvtProfileOffsetting', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetProdOrder(var ReqLine: Record "Requisition Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var InventoryProfile: Record "Inventory Profile")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetPurchase(var PurchaseLine: Record "Purchase Line"; ReqLine: Record "Requisition Line"; var InventoryProfile: Record "Inventory Profile")
@@ -5344,13 +5305,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by event OnBeforeCalculatePlanFromWorksheet2', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalculatePlanFromWorksheet(var Item: Record Item; ManufacturingSetup2: Record Microsoft.Manufacturing.Setup."Manufacturing Setup"; TemplateName: Code[10]; WorksheetName: Code[10]; OrderDate: Date; ToDate: Date; MRPPlanning: Boolean; RespectPlanningParm: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculatePlanFromWorksheet2(var Item: Record Item; TemplateName: Code[10]; WorksheetName: Code[10]; OrderDate: Date; ToDate: Date; MRPPlanning: Boolean; RespectPlanningParm: Boolean)
@@ -5558,18 +5512,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterGetComponents(var RequisitionLine: Record "Requisition Line");
-    begin
-        OnAfterGetComponents(RequisitionLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInvtProfileOffsetting', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetComponents(var RequisitionLine: Record "Requisition Line");
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertInitialSafetyStockWarningSupply(var SupplyInvtProfile: Record "Inventory Profile"; var LastAvailableInventory: Decimal; var LastProjectedInventory: Decimal; PlanningStartDate: Date; RespectPlanningParm: Boolean; var IsReorderPointPlanning: Boolean; var IsHandled: Boolean)
@@ -5798,18 +5740,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnFindCombinationOnBeforeCreateTempSKUForLocation(var Item: Record Item; var IsHandled: Boolean)
-    begin
-        OnFindCombinationOnBeforeCreateTempSKUForLocation(Item, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInvtProfileOffsetting', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnFindCombinationOnBeforeCreateTempSKUForLocation(var Item: Record Item; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPlanItemNextStateCreateSupplyOnAfterCalcNewSupplyDate(var NewSupplyDate: Date; var TempStockkeepingUnit: Record "Stockkeeping Unit" temporary; var SupplyInvtProfile: Record "Inventory Profile")
@@ -5822,18 +5752,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnTransProdOrderToProfileOnBeforeProcessLine(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ShouldProcess: Boolean)
-    begin
-        OnTransProdOrderToProfileOnBeforeProcessLine(ProdOrderLine, ShouldProcess);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInvtProfileOffsetting', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransProdOrderToProfileOnBeforeProcessLine(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ShouldProcess: Boolean)
-    begin
-    end;
-#endif
 
 
 
@@ -5986,18 +5904,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeTransProdOrderToProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; ToDate: Date; var IsHandled: Boolean)
-    begin
-        OnBeforeTransProdOrderToProfile(InventoryProfile, Item, ToDate, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInvtProfileOffsetting', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransProdOrderToProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; ToDate: Date; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetComponentsOnNewActionMessage(var RequisitionLine: Record "Requisition Line")

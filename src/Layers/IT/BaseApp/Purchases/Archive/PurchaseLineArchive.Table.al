@@ -1149,42 +1149,17 @@ table 5110 "Purchase Line Archive"
             Caption = 'WIP Item';
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
-#if not CLEAN27
-        field(12182; "WIP Qty at Subc.Loc. (Base)"; Decimal)
-        {
-            AutoFormatType = 0;
-            CalcFormula = sum(Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"."WIP Item Qty." where("Subcontr. Purch. Order No." = field("Document No."),
-                                                                             "Subcontr. Purch. Order Line" = field("Line No.")));
-            Caption = 'WIP Qty at Subc.Loc. (Base)';
-            DecimalPlaces = 0 : 5;
-            Editable = false;
-            FieldClass = FlowField;
-            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-        }
-#endif
         field(12183; "Not Proc. WIP Qty to Receive"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Not Proc. WIP Qty to Receive';
             DecimalPlaces = 0 : 5;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(12184; "Base UM Qty/Pricelist UM Qty"; Decimal)
         {
@@ -1194,13 +1169,8 @@ table 5110 "Purchase Line Archive"
             Editable = false;
             InitValue = 1;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(12185; "UoM for Pricelist"; Code[10])
         {
@@ -1208,13 +1178,8 @@ table 5110 "Purchase Line Archive"
             Editable = false;
             TableRelation = "Unit of Measure";
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(12186; "Pricelist UM Qty/Base UM Qty"; Decimal)
         {
@@ -1223,13 +1188,8 @@ table 5110 "Purchase Line Archive"
             DecimalPlaces = 0 : 5;
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(12187; "Pricelist Cost"; Decimal)
         {
@@ -1237,13 +1197,8 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 2;
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
 #endif
         field(99000755; "Overhead Rate"; Decimal)

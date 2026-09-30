@@ -571,15 +571,8 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Create Item from Item No.';
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on sales lines.';
             ObsoleteReason = 'Discontinued function';
-#if CLEAN27
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>
@@ -1006,9 +999,6 @@ table 311 "Sales & Receivables Setup"
         {
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
-#if not CLEAN27
-            InitValue = true;
-#endif
         }
 #if not CLEANSCHEMA30
         field(10501; "Reverse Charge VAT Posting Gr."; Code[20])
@@ -1016,38 +1006,23 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Reverse Charge VAT Posting Gr.';
             TableRelation = "VAT Business Posting Group";
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10502; "Domestic Customers"; Code[20])
         {
             Caption = 'Domestic Customers';
             TableRelation = "VAT Business Posting Group";
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10503; "Invoice Wording"; Text[30])
         {
             Caption = 'Invoice Wording';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
     }

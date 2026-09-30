@@ -854,16 +854,6 @@ codeunit 10756 "SII Management"
                          SalesInvoiceHeader."Invoice Type"::"R5 Corrected Invoice in Simplified Invoices".AsInteger()]);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Serv. SII Management', '27.0')]
-    procedure IsAllowedServInvType(InvType: Option): Boolean
-    var
-        ServSIIManagement: Codeunit Microsoft.EServices.EDocument."Serv. SII Management";
-    begin
-        exit(ServSIIManagement.IsAllowedServInvType(InvType));
-    end;
-#endif
-
     procedure Run347DeclarationToGenerateCollectionsInCash()
     var
         Make347Declaration: Report "Make 347 Declaration";
@@ -877,16 +867,6 @@ codeunit 10756 "SII Management"
         SalesHeader."Special Scheme Code" :=
           GetSalesSpecialSchemeCode(SalesHeader."Bill-to Customer No.", SalesHeader."VAT Country/Region Code");
     end;
-
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Serv. SII Management', '27.0')]
-    procedure UpdateSIIInfoInServiceDoc(var ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        ServSIIManagement: Codeunit Microsoft.EServices.EDocument."Serv. SII Management";
-    begin
-        ServSIIManagement.UpdateSIIInfoInServiceDoc(ServiceHeader);
-    end;
-#endif
 
     procedure GetSalesSpecialSchemeCode(BillToCustomerNo: Code[20]; VATCountryRegionCode: Code[10]): Enum "SII Sales Special Scheme Code"
     var

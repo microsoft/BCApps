@@ -12,9 +12,7 @@ using Microsoft.FixedAssets.Ledger;
 reportextension 10583 "Fixed Asset - Projected Value" extends "Fixed Asset - Projected Value"
 #pragma warning restore AL0432
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/FixedAssetProjectedValue.rdlc';
-#endif
     dataset
     {
         add("Fixed Asset")
@@ -128,20 +126,6 @@ reportextension 10583 "Fixed Asset - Projected Value" extends "Fixed Asset - Pro
         }
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Fixed Asset Projected Value GB localization';
-            LayoutFile = './src/ReportExtensions/FixedAssetProjectedValue.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     var
         DeprBook: Record "Depreciation Book";

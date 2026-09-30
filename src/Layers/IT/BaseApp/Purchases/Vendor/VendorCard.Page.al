@@ -24,9 +24,6 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.SyncEngine;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
-#if not CLEAN27
-using Microsoft.Manufacturing.Document;
-#endif
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
@@ -1112,33 +1109,6 @@ page 26 "Vendor Card"
                     RunPageView = sorting("Vendor No.");
                     ToolTip = 'View or edit the percentages of the price that can be paid as a prepayment. ';
                 }
-#if not CLEAN27
-                separator(Action1130031)
-                {
-                    ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                action("Subcontracting Prices")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    Caption = 'Subcontracting Prices';
-                    Image = Price;
-                    RunObject = Page "Subcontracting Prices";
-                    RunPageLink = "Vendor No." = field("No.");
-                    RunPageView = sorting("Vendor No.", "Item No.", "Standard Task Code", "Work Center No.", "Variant Code", "Start Date", "Unit of Measure Code", "Minimum Quantity", "Currency Code");
-                    ToolTip = 'View the list of subcontracting prices.';
-                    ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                separator(Action1130032)
-                {
-                    ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
                 action("Recurring Purchase Lines")
                 {
                     ApplicationArea = Suite;

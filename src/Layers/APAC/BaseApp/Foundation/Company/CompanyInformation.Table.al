@@ -307,13 +307,7 @@ table 79 "Company Information"
                 MailManagement.ValidateEmailAddressField("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(35; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies your company''s web site.';
@@ -520,13 +514,7 @@ table 79 "Company Information"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(11620; ABN; Text[13])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'ABN';
             Numeric = true;

@@ -2340,7 +2340,7 @@ report 18022 "Purchase Document - Test GST"
             if PurchSetup."Appln. between Currencies" = PurchSetup."Appln. between Currencies"::None then
                 OldVendLedgEntry.SetRange("Currency Code", "Purchase Header"."Currency Code");
 
-            if OldVendLedgEntry.FindSet(false, false) then
+            if OldVendLedgEntry.FindSet() then
                 repeat
                     AppliedAmountLCY := Abs(AppliedAmountLCY);
                     if RemainingAmount > 0 then

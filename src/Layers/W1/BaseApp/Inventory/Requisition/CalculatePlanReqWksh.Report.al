@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -235,10 +235,6 @@ report 699 "Calculate Plan - Req. Wksh."
 #pragma warning restore AA0074
 
     protected var
-#if not CLEAN27
-        [Obsolete('Replaced by record Inventory Setup', '27.0')]
-        MfgSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
         SKU: Record "Stockkeeping Unit";
         ReqLine: Record "Requisition Line";
         ReqLineExtern: Record "Requisition Line";
@@ -274,9 +270,6 @@ report 699 "Calculate Plan - Req. Wksh."
     begin
         IsHandled := false;
         OnBeforeInitializeFromSetup(UseForecast, IsHandled, InventorySetup);
-#if not CLEAN27
-        OnBeforeInitializeFromMfgSetup(UseForecast, IsHandled, MfgSetup);
-#endif
         if IsHandled then
             exit;
 
@@ -284,13 +277,6 @@ report 699 "Calculate Plan - Req. Wksh."
         UseForecast := InventorySetup."Current Demand Forecast";
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure InitializeFromSetup()', '27.0')]
-    procedure InitializeFromMfgSetup()
-    begin
-        InitializeFromSetup();
-    end;
-#endif
 
     procedure SetParamAndCalculatePlanFromWorksheet()
     var
@@ -298,9 +284,6 @@ report 699 "Calculate Plan - Req. Wksh."
     begin
         IsHandled := false;
         OnBeforeSetParamAndCalculatePlanFromReqWorksheet(UseForecast, ExcludeForecastBefore, CurrWorksheetType, PriceCalculationMethod, Item, CurrTemplateName, CurrWorksheetName, FromDate, ToDate, RespectPlanningParm, IsHandled);
-#if not CLEAN27
-        OnBeforeSetParamAndCalculatePlanFromWorksheet(UseForecast, ExcludeForecastBefore, CurrWorksheetType, PriceCalculationMethod, Item, MfgSetup, CurrTemplateName, CurrWorksheetName, FromDate, ToDate, RespectPlanningParm, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -375,13 +358,6 @@ report 699 "Calculate Plan - Req. Wksh."
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by OnBeforeSetParamAndCalculatePlanFromReqWorksheet', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetParamAndCalculatePlanFromWorksheet(UseForecast: Code[10]; ExcludeForecastBefore: Date; CurrWorksheetType: Option; PriceCalculationMethod: Enum "Price Calculation Method"; Item: Record Item; ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup"; CurrTemplateName: Code[10]; CurrWorksheetName: Code[10]; FromDate: Date; ToDate: Date; RespectPlanningParm: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetParamAndCalculatePlanFromReqWorksheet(UseForecast: Code[10]; ExcludeForecastBefore: Date; CurrWorksheetType: Option; PriceCalculationMethod: Enum "Price Calculation Method"; Item: Record Item; CurrTemplateName: Code[10]; CurrWorksheetName: Code[10]; FromDate: Date; ToDate: Date; RespectPlanningParm: Boolean; var IsHandled: Boolean)
@@ -398,13 +374,6 @@ report 699 "Calculate Plan - Req. Wksh."
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by event OnBeforeInitializeFromSetup', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeInitializeFromMfgSetup(var UseForecast: Code[10]; var IsHandled: Boolean; var MfgSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnPreReport(var CurrTemplateName: code[10]; var CurrWorksheetName: Code[10]; var RequistionLine: Record "Requisition Line"; var FromDate: Date; var ToDate: Date; var IsHandled: Boolean)
