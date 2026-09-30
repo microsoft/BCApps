@@ -199,7 +199,7 @@ codeunit 6926 "Expense Activity Log Mgt."
         ExpenseActivityLogEntry.SetLoadFields("Entry No.");
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Expense Report Header");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", ExpenseReportHeader.SystemId);
-        if ExpenseActivityLogEntry.FindSet(true) then
+        if ExpenseActivityLogEntry.FindSet() then
             repeat
                 EntryNumbers.Add(ExpenseActivityLogEntry."Entry No.");
             until ExpenseActivityLogEntry.Next() = 0;

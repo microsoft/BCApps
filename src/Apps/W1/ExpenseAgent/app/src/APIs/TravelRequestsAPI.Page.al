@@ -340,7 +340,7 @@ page 7134 "Travel Requests API"
         CheckOwnerScopeRequired();
         Rec.TestField("Document Type", Rec."Document Type"::"Travel Request");
         if Rec.Status <> Rec.Status::Approved then
-            Error(TravelRequestMustBeApprovedErr, Rec."No.");
+            Error(GetTravelRequestMustBeApprovedError(Rec));
         Rec.TestField("Requested For");
 
         if not ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(Rec) then begin
@@ -356,6 +356,20 @@ page 7134 "Travel Requests API"
         ActionContext.SetObjectId(Page::"Expense Reports API");
         ActionContext.AddEntityKey(ExpenseReportHeader.FieldNo(SystemId), ExpenseReportHeader.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
+    local procedure GetTravelRequestMustBeApprovedError(TravelRequest: Record "Spend Request"): ErrorInfo
+    var
+        TravelRequestMustBeApprovedError: ErrorInfo;
+    begin
+        TravelRequestMustBeApprovedError.Message := StrSubstNo(TravelRequestMustBeApprovedErr, TravelRequest."No.");
+        TravelRequestMustBeApprovedError.DataClassification := DataClassification::CustomerContent;
+        TravelRequestMustBeApprovedError.ErrorType := ErrorType::Client;
+        TravelRequestMustBeApprovedError.RecordId := TravelRequest.RecordId;
+        TravelRequestMustBeApprovedError.FieldNo := TravelRequest.FieldNo(Status);
+        TravelRequestMustBeApprovedError.PageNo := Page::"Travel Request Card";
+        TravelRequestMustBeApprovedError.AddNavigationAction(ShowItLbl);
+        exit(TravelRequestMustBeApprovedError);
     end;
 
     local procedure GetExpenseReportAlreadyLinkedError(ExpenseReportHeader: Record "Expense Report Header"; TravelRequest: Record "Spend Request"): ErrorInfo

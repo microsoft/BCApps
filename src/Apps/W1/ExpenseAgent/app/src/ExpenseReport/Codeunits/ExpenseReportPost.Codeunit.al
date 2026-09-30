@@ -85,6 +85,7 @@ codeunit 6987 "Expense Report-Post"
         RoundingDifferenceTooLargeErr: Label 'The difference between expense report line %1 and its posted amounts exceeds the currency rounding precision. The difference is %2 in reimbursement currency and %3 in local currency.', Comment = '%1 = Expense report line number, %2 = Difference in reimbursement currency, %3 = Difference in local currency';
         AgentVATSpecificationsPostedLbl: Label 'Agent-authored VAT specifications posted.', Locked = true;
         ShowItLbl: Label 'Show it';
+        ShowTravelRequestLbl: Label 'Show travel request';
 
     internal procedure RunWithCheck(var ExpenseReportHeader: Record "Expense Report Header")
     var
@@ -296,7 +297,20 @@ codeunit 6987 "Expense Report-Post"
         SpendRequest.SetLoadFields(Status);
         SpendRequest.Get(SpendRequestNo);
         if not (SpendRequest.Status in [SpendRequest.Status::Approved, SpendRequest.Status::Closed]) then
-            Error(SpendRequestStatusNotPostableErr, ExpenseReportNo, SpendRequestNo, SpendRequest.Status);
+            Error(GetSpendRequestNotPostableError(ExpenseReportNo, SpendRequest));
+    end;
+
+    local procedure GetSpendRequestNotPostableError(ExpenseReportNo: Code[20]; SpendRequest: Record "Spend Request"): ErrorInfo
+    var
+        SpendRequestNotPostableError: ErrorInfo;
+    begin
+        SpendRequestNotPostableError.Message := StrSubstNo(SpendRequestStatusNotPostableErr, ExpenseReportNo, SpendRequest."No.", SpendRequest.Status);
+        SpendRequestNotPostableError.DataClassification := DataClassification::CustomerContent;
+        SpendRequestNotPostableError.ErrorType := ErrorType::Client;
+        SpendRequestNotPostableError.RecordId := SpendRequest.RecordId;
+        SpendRequestNotPostableError.PageNo := Page::"Travel Request Card";
+        SpendRequestNotPostableError.AddNavigationAction(ShowTravelRequestLbl);
+        exit(SpendRequestNotPostableError);
     end;
 
     local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line")
