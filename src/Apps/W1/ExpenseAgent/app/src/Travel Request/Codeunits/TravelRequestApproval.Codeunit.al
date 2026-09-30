@@ -43,6 +43,10 @@ codeunit 7133 "Travel Request Approval"
         IsResubmission := IsTravelRequestResubmission(SpendRequest);
         SpendRequest."Submitted By Expense User No." := SubmitterExpenseUserNo;
         SpendRequest."Submitted At" := CurrentDateTime();
+        // A new submission starts a new approval, so no decision from a previous rejection is kept.
+        Clear(SpendRequest."Approved/Rejected At");
+        Clear(SpendRequest."Approved/Rejected by User ID");
+        Clear(SpendRequest."Approved/Rejected by User Name");
         Clear(SpendRequest."Approval Expense User No.");
         Clear(SpendRequest."Rejection Reason");
         SpendRequest."Submitter Comment" := CopyStr(SubmissionComment, 1, MaxStrLen(SpendRequest."Submitter Comment"));
@@ -90,6 +94,7 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
+        LogTravelRequestCreatedIfMissing(SpendRequest);
         LogTravelRequestApproved(SpendRequest, ApproverExpenseUserNo);
         // A single entry covers all travelers' expense reports created by this approval.
         if CreateTravelerExpenseReports(SpendRequest) then
@@ -150,6 +155,7 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         SpendRequest."Rejection Reason" := CopyStr(RejectReason, 1, MaxStrLen(SpendRequest."Rejection Reason"));
         SpendRequest.Modify();
+        LogTravelRequestCreatedIfMissing(SpendRequest);
         ExpenseActivityLogMgt.LogTravelRequestEvent(
             SpendRequest,
             Enum::"Expense Activity Event Type"::Rejected,
@@ -165,9 +171,7 @@ codeunit 7133 "Travel Request Approval"
     var
         EventType: Enum "Expense Activity Event Type";
     begin
-        // Start tracking with the earlier Created event, including requests first acted on after upgrade.
-        if not ExpenseActivityLogMgt.HasEntriesForSource(Database::"Spend Request", SpendRequest.SystemId) then
-            ExpenseActivityLogMgt.LogTravelRequestCreatedEvent(SpendRequest);
+        LogTravelRequestCreatedIfMissing(SpendRequest);
 
         if IsResubmission then
             EventType := EventType::Resubmitted
@@ -176,6 +180,14 @@ codeunit 7133 "Travel Request Approval"
 
         ExpenseActivityLogMgt.LogTravelRequestEvent(
             SpendRequest, EventType, Enum::"Expense Activity Actor Role"::Submitter, SubmitterExpenseUserNo, SubmissionComment);
+    end;
+
+    local procedure LogTravelRequestCreatedIfMissing(SpendRequest: Record "Spend Request")
+    begin
+        // Start tracking with the earlier Created event, including requests first acted on after upgrade
+        // and requests released directly in the client, where the first tracked action is the approval or rejection.
+        if not ExpenseActivityLogMgt.HasEntriesForSource(Database::"Spend Request", SpendRequest.SystemId) then
+            ExpenseActivityLogMgt.LogTravelRequestCreatedEvent(SpendRequest);
     end;
 
     local procedure IsTravelRequestResubmission(SpendRequest: Record "Spend Request"): Boolean

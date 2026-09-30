@@ -2809,10 +2809,14 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.SetRecord(SpendRequest);
         TravelRequestsAPI.SubmitTravelRequestWithComment(ActionContext, ExpenseUser."No.", Justification);
 
-        // [THEN] The justification is stored on the travel request and the rejection reason is cleared.
+        // [THEN] The justification is stored on the travel request, and the decision details of the previous rejection are cleared.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(Justification, SpendRequest."Submitter Comment", 'The submitter comment must be stored on the travel request.');
         SpendRequest.TestField("Rejection Reason", '');
+        SpendRequest.TestField("Approval Expense User No.", '');
+        SpendRequest.TestField("Approved/Rejected At", 0DT);
+        SpendRequest.TestField("Approved/Rejected by User Name", '');
+        Assert.IsTrue(IsNullGuid(SpendRequest."Approved/Rejected by User ID"), 'A resubmitted travel request must not keep the user who rejected it.');
 
         // [THEN] The resubmission entry in the activity log carries the justification.
         Assert.AreEqual(1, FindTravelRequestActivity(SpendRequest, ExpenseActivityLogEntry."Event Type"::Resubmitted, ExpenseActivityLogEntry), 'The travel request must have one resubmission entry.');
@@ -2916,6 +2920,76 @@ codeunit 148339 "Spend Request Test"
         // [THEN] Each expense report has a single Created entry by the Expense Agent.
         VerifyExpenseReportCreatedByAgent(SpendRequest, ExpenseUser);
         VerifyExpenseReportCreatedByAgent(SpendRequest, TravelerExpenseUser);
+    end;
+
+    [Test]
+    procedure ApproveDirectlyReleasedTravelRequestLogsCreationFirst()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO] A travel request released directly in the client, without a logged submission, starts its history with the Created entry when it is approved.
+        Initialize();
+
+        // [GIVEN] A released travel request without activity entries, an assigned approver, and the agent enabled.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+
+        // [WHEN] The travel request is approved.
+        TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
+
+        // [THEN] The history starts with the Created entry by the requester, followed by the approval and the expense report creation.
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        Assert.RecordCount(ExpenseActivityLogEntry, 3);
+        ExpenseActivityLogEntry.FindSet();
+        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Created, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
+        VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
+        ExpenseActivityLogEntry.Next();
+        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Approved, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
+        VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
+        ExpenseActivityLogEntry.Next();
+        VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
+    end;
+
+    [Test]
+    procedure RejectDirectlyReleasedTravelRequestLogsCreationFirst()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO] A travel request released directly in the client, without a logged submission, starts its history with the Created entry when it is rejected.
+        Initialize();
+
+        // [GIVEN] A released travel request without activity entries, an assigned approver, and the agent enabled.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+
+        // [WHEN] The travel request is rejected.
+        TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'Missing details.');
+
+        // [THEN] The history starts with the Created entry by the requester, followed by the rejection, and both are in the requester's history.
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+        ExpenseActivityLogEntry.FindSet();
+        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Created, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
+        VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
+        ExpenseActivityLogEntry.Next();
+        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Rejected, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
+        VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
     end;
 
     [Test]
