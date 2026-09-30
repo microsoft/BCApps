@@ -1400,33 +1400,8 @@ codeunit 13916 "Export XRechnung Document"
     end;
 
     local procedure InsertSupplierParty(RespCenterCode: Code[10]; SalespersonCode: Code[20]; var AccountingSupplierPartyElement: XmlElement);
-    var
-        TempCompanyAddress: Record "Standard Address" temporary;
-        PartyElement: XmlElement;
     begin
-        PartyElement := XmlElement.Create('Party', XmlNamespaceCAC);
-
-        PartyElement.Add(XmlElement.Create('EndpointID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', 'EM'), CompanyInformation."E-Mail"));
-        if CompanyInformation."Use GLN in Electronic Document" and (CompanyInformation.GLN <> '') then
-            InsertPartyIdentification(PartyElement, CompanyInformation.GLN, GLNSchemeIDTok)
-        else
-            InsertPartyIdentification(PartyElement, GetVATRegistrationNo(CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code"));
-        InsertPartyName(PartyElement, CompanyInformation.Name);
-        TempCompanyAddress.CopyFromCompanyInformation(CompanyInformation);
-        UpdateSellerAddressFromResponsibilityCenter(RespCenterCode, TempCompanyAddress);
-        InsertAddress(PartyElement, 'PostalAddress', TempCompanyAddress);
-        if CompanyInformation."VAT Registration No." = '' then begin
-            if CompanyInformation."Use Reg. No. in E-Document" and
-               (CompanyInformation.GLN = '') and
-               (CompanyInformation."Registration No." <> '')
-            then
-                InsertPartyRegistrationNoTaxScheme(PartyElement, CompanyInformation."Registration No.");
-        end else
-            if not AllLinesNotSubjectToVAT then
-                InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
-        InsertPartyLegalEntity(PartyElement);
-        InsertSupplierContact(SalespersonCode, PartyElement);
-        AccountingSupplierPartyElement.Add(PartyElement);
+        InsertSupplierParty(RespCenterCode, SalespersonCode, AccountingSupplierPartyElement, '');
     end;
 
     local procedure InsertSupplierParty(RespCenterCode: Code[10]; SalespersonCode: Code[20]; var AccountingSupplierPartyElement: XmlElement; CreditorNo: Code[35]);
@@ -1448,8 +1423,15 @@ codeunit 13916 "Export XRechnung Document"
         TempCompanyAddress.CopyFromCompanyInformation(CompanyInformation);
         UpdateSellerAddressFromResponsibilityCenter(RespCenterCode, TempCompanyAddress);
         InsertAddress(PartyElement, 'PostalAddress', TempCompanyAddress);
-        if not AllLinesNotSubjectToVAT then
-            InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
+        if CompanyInformation."VAT Registration No." = '' then begin
+            if CompanyInformation."Use Reg. No. in E-Document" and
+               (CompanyInformation.GLN = '') and
+               (CompanyInformation."Registration No." <> '')
+            then
+                InsertPartyRegistrationNoTaxScheme(PartyElement, CompanyInformation."Registration No.");
+        end else
+            if not AllLinesNotSubjectToVAT then
+                InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
         InsertPartyLegalEntity(PartyElement);
         InsertSupplierContact(SalespersonCode, PartyElement);
         AccountingSupplierPartyElement.Add(PartyElement);

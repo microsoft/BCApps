@@ -73,7 +73,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         BilledQuantityTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeDelivery/ram:BilledQuantity', Locked = true;
         TaxCategoryStandardTok: Label 'S', Locked = true;
         ItemChargeReasonTextTok: Label 'Freight surcharge', Locked = true;
-        ItemChargeReasonCodeTok: Label 'FC', Locked = true;
+        ItemChargeReasonCodeTok: Label 'ZZZ', Locked = true;
         UnitCodeOneTok: Label 'C62', Locked = true;
         UnitCodeHourTok: Label 'HUR', Locked = true;
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
@@ -4226,7 +4226,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Customer.DeleteAll();
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", CompanyInformation."VAT Registration No.");
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
         Customer.Validate("E-Invoice Routing No.", LibraryEDocDE.CreateValidRoutingNo());
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);

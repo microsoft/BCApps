@@ -508,7 +508,7 @@ codeunit 13926 "E-Document DE Tests"
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", CompanyInformation."VAT Registration No.");
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);
         exit(Customer."No.");
@@ -522,7 +522,7 @@ codeunit 13926 "E-Document DE Tests"
         CustomerNo := LibraryEDocDE.CreateCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
         Customer.Get(CustomerNo);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", CompanyInformation."VAT Registration No.");
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);
         exit(CustomerNo);

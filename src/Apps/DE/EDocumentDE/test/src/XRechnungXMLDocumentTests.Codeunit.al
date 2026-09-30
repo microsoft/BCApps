@@ -77,7 +77,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         CrMemoTaxTotalPathTok: Label '/ns0:CreditNote/cac:TaxTotal', Locked = true;
         TaxCategoryStandardTok: Label 'S', Locked = true;
         ItemChargeReasonTextTok: Label 'Freight surcharge', Locked = true;
-        ItemChargeReasonCodeTok: Label 'FC', Locked = true;
+        ItemChargeReasonCodeTok: Label 'ZZZ', Locked = true;
         UnitCodeOneTok: Label 'C62', Locked = true;
         UnitCodeHourTok: Label 'HUR', Locked = true;
         SupplierTaxSchemeTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme', Locked = true;
@@ -2083,6 +2083,39 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] Supplier tax identifier contains the Registration No. with FC tax scheme
         Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
         Assert.AreEqual('FC', GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceWithDirectDebitInXRechnungFormatVerifySupplierRegistrationNo()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CompanyBankAccountCode: Code[20];
+        RegistrationNo: Text[20];
+    begin
+        // [SCENARIO] Supplier Registration No. is exported as the FC tax identifier for SEPA direct debit invoices when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] Company "C" has a Registration No. but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        SetCompanyRegistrationNo(RegistrationNo);
+
+        // [GIVEN] Posted Sales Invoice with a Payment Method for SEPA direct debit (59) and a company Bank Account with a Creditor No.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithDirectDebit(SEPADirectDebitMandate, CustomerBankAccount, CompanyBankAccountCode));
+        BankAccount.Get(CompanyBankAccountCode);
+
+        // [WHEN] Export XRechnung electronic document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Supplier tax identifier contains the Registration No. with FC tax scheme
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+        Assert.AreEqual('FC', GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+
+        // [THEN] Supplier party still contains the bank assigned creditor identifier (BT-90)
+        VerifyDirectDebitCreditorNo(TempXMLBuffer, '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party', BankAccount."Creditor No.");
     end;
 
     [Test]
@@ -4165,7 +4198,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Customer.DeleteAll();
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", CompanyInformation."VAT Registration No.");
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
         Customer.Validate("E-Invoice Routing No.", LibraryEDocDE.CreateValidRoutingNo());
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);
