@@ -14,15 +14,19 @@ tableextension 11411 "Bank Account NL" extends "Bank Account"
         field(11000000; "Account Holder Name"; Text[100])
         {
             Caption = 'Account Holder Name';
+            DataClassification = CustomerContent;
         }
         field(11000001; "Account Holder Address"; Text[100])
         {
             Caption = 'Account Holder Address';
+            DataClassification = CustomerContent;
         }
         field(11000002; "Account Holder Post Code"; Code[20])
         {
             Caption = 'Account Holder Post Code';
-            TableRelation = if ("Acc. Hold. Country/Region Code" = const('')) "Post Code"
+            DataClassification = CustomerContent;
+            TableRelation =
+            if ("Acc. Hold. Country/Region Code" = const('')) "Post Code"
             else
             if ("Acc. Hold. Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Acc. Hold. Country/Region Code"));
             ValidateTableRelation = false;
@@ -35,7 +39,9 @@ tableextension 11411 "Bank Account NL" extends "Bank Account"
         field(11000003; "Account Holder City"; Text[30])
         {
             Caption = 'Account Holder City';
-            TableRelation = if ("Acc. Hold. Country/Region Code" = const('')) "Post Code".City
+            DataClassification = CustomerContent;
+            TableRelation =
+            if ("Acc. Hold. Country/Region Code" = const('')) "Post Code".City
             else
             if ("Acc. Hold. Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Acc. Hold. Country/Region Code"));
             ValidateTableRelation = false;
@@ -48,6 +54,7 @@ tableextension 11411 "Bank Account NL" extends "Bank Account"
         field(11000004; "Acc. Hold. Country/Region Code"; Code[10])
         {
             Caption = 'Acc. Hold. Country/Region Code';
+            DataClassification = CustomerContent;
             TableRelation = "Country/Region";
         }
         field(11000005; Proposal; Decimal)
@@ -73,6 +80,7 @@ tableextension 11411 "Bank Account NL" extends "Bank Account"
         field(11000007; "Creditor Identifier"; Code[19])
         {
             Caption = 'Creditor Identifier';
+            DataClassification = CustomerContent;
         }
     }
 
