@@ -20,7 +20,7 @@ codeunit 30470 "Shpfy TMA Register"
     InherentEntitlements = X;
 
     var
-        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2179727', Locked = true;
+        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2381118', Locked = true;
         FeatureNameTxt: Label 'Shopify Tax Matching Agent', Locked = true;
 
     procedure RegisterCopilotCapability()
@@ -32,8 +32,10 @@ codeunit 30470 "Shpfy TMA Register"
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
 
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shopify Tax Matching Agent") then begin
-            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Shopify Tax Matching Agent", LearnMoreUrlTxt);
+        if CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shopify Tax Matching Agent") then
+            CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Shopify Tax Matching Agent", Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrlTxt)
+        else begin
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Shopify Tax Matching Agent", Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrlTxt);
             FeatureTelemetry.LogUptake('0000UMZ', FeatureNameTxt, Enum::"Feature Uptake Status"::"Set up");
         end;
     end;
@@ -41,6 +43,11 @@ codeunit 30470 "Shpfy TMA Register"
     procedure FeatureName(): Text
     begin
         exit(FeatureNameTxt);
+    end;
+
+    procedure LearnMoreUrl(): Text
+    begin
+        exit(LearnMoreUrlTxt);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
