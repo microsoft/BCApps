@@ -207,6 +207,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeDataExchFieldMapping();
         UpgradeJobReportSelection();
         UpgradeJobTaskReportSelection();
+        UpgradeRemittanceAdviceReportSelection();
         UpgradeAccountSchedulesToFinancialReports();
         UpgradeCRMUnitGroupMapping();
         UpgradeCRMSDK90ToCRMSDK91();
@@ -247,6 +248,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeIntegrationTableMappingTemplates();
         UpgradeICOutboxTransactionSourceType();
         UpgradeICTransactionSourceType();
+        SetShowCurrencySymbolPosition();
         UpgradeABCAnalysisSetup();
         UpgradePurchRcptLineFields();
         UpgradeSalesShptLineFields();
@@ -254,6 +256,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeFinancialReportAuditLogAddRetentionPolicy();
         UpgradeZeroClosedBankAccountLedgerEntries();
         UpgradeDepreciationBooksGLIntegration();
+        UpgradePurchaseLineReceiptOnInvoice();
         UpgradeWarehouseActivitySourceTypeForJobPlanningLine();
     end;
 
@@ -2740,6 +2743,19 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetJobTaskReportSelectionUpgradeTag());
     end;
 
+    local procedure UpgradeRemittanceAdviceReportSelection()
+    var
+        ReportSelectionMgt: Codeunit "Report Selection Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetRemittanceAdviceReportSelectionUpgradeTag()) then
+            exit;
+        ReportSelectionMgt.InitReportSelection("Report Selection Usage"::"V.Remittance");
+        ReportSelectionMgt.InitReportSelection("Report Selection Usage"::"P.V.Remit.");
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetRemittanceAdviceReportSelectionUpgradeTag());
+    end;
+
     local procedure UpgradeCRMUnitGroupMapping()
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
@@ -4003,6 +4019,44 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICTransactionSourceTypeUpgradeTag());
     end;
 
+    local procedure SetShowCurrencySymbolPosition()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag()) then
+            exit;
+
+        if GeneralLedgerSetup.Get() then
+            if GeneralLedgerSetup."Currency Symbol Position" = GeneralLedgerSetup."Currency Symbol Position"::Default then begin
+                GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"Before Amount";
+                GeneralLedgerSetup.Modify();
+            end else
+                if GeneralLedgerSetup."Currency Symbol Position" = GeneralLedgerSetup."Currency Symbol Position"::"Before Amount" then begin
+                    GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"After Amount";
+                    GeneralLedgerSetup.Modify();
+                end;
+
+        Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::"Before Amount");
+        Currency.SetLoadFields("Currency Symbol Position");
+        if Currency.FindSet(true) then
+            repeat
+                Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"After Amount";
+                Currency.Modify();
+            until Currency.Next() = 0;
+
+        Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::Default);
+        if Currency.FindSet(true) then
+            repeat
+                Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"Before Amount";
+                Currency.Modify();
+            until Currency.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag());
+    end;
+
     local procedure UpgradePurchRcptLineFields()
     var
         PurchRcptHeader: Record "Purch. Rcpt. Header";
@@ -4135,6 +4189,29 @@ codeunit 104000 "Upgrade - BaseApp"
         DepreciationBookDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDepreciationBooksGLIntegrationUpgradeTag());
+    end;
+
+    local procedure UpgradePurchaseLineReceiptOnInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        ReceiptOnInvoiceDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag()) then
+            exit;
+
+        ReceiptOnInvoiceDataTransfer.SetTables(Database::"Purchase Header", Database::"Purchase Line");
+        ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseHeader.FieldNo("Document Type"), '=%1', PurchaseHeader."Document Type"::Order);
+        ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseHeader.FieldNo("Receipt on Invoice"), '=%1', true);
+        ReceiptOnInvoiceDataTransfer.AddJoin(PurchaseHeader.FieldNo("Document Type"), PurchaseLine.FieldNo("Document Type"));
+        ReceiptOnInvoiceDataTransfer.AddJoin(PurchaseHeader.FieldNo("No."), PurchaseLine.FieldNo("Document No."));
+        ReceiptOnInvoiceDataTransfer.AddConstantValue(true, PurchaseLine.FieldNo("Receipt on Invoice"));
+        ReceiptOnInvoiceDataTransfer.UpdateAuditFields := false;
+        ReceiptOnInvoiceDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag());
     end;
 
     local procedure UpgradeWarehouseActivitySourceTypeForJobPlanningLine()

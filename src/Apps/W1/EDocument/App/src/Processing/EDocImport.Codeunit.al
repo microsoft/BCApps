@@ -87,7 +87,7 @@ codeunit 6140 "E-Doc. Import"
     var
         ImportEDocumentProcess: Codeunit "Import E-Document Process";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-        Status, CurrentStatus : Enum "Import E-Doc. Proc. Status";
+        Status, CurrentStatus, InitialStatus : Enum "Import E-Doc. Proc. Status";
         StepToDo, StepToUndo : Enum "Import E-Document Steps";
         StatusIndex: Integer;
     begin
@@ -97,6 +97,7 @@ codeunit 6140 "E-Doc. Import"
 
         EDocument.CalcFields("Import Processing Status");
         CurrentStatus := EDocument."Import Processing Status";
+        InitialStatus := CurrentStatus;
 
         EDocImpSessionTelemetry.SetSession(CurrentStatus, DesiredStatus);
         EDocImpSessionTelemetry.SetBool('Success', true);
@@ -126,9 +127,9 @@ codeunit 6140 "E-Doc. Import"
                     end;
                 end;
 
-        if CurrentStatus <> DesiredStatus then
+        if InitialStatus <> DesiredStatus then
             EDocImpSessionTelemetry.Emit(EDocument);
-        OnAfterProcessIncomingEDocument(EDocument, EDocImportParameters, CurrentStatus, DesiredStatus);
+        OnAfterProcessIncomingEDocument(EDocument, EDocImportParameters, InitialStatus, DesiredStatus);
         exit(true);
     end;
 
@@ -692,6 +693,7 @@ codeunit 6140 "E-Doc. Import"
         EDocExport: Codeunit "E-Doc. Export";
         SourceDocumentHeaderMapped, SourceDocumentLineMapped : RecordRef;
         EDocInterface: Interface "E-Document";
+        ErrorText: Text;
     begin
         OnBeforePrepareReceivedDoc(EDocument, TempBlob, SourceDocumentHeader, SourceDocumentLine, TempEDocMapping);
 
@@ -705,6 +707,11 @@ codeunit 6140 "E-Doc. Import"
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocTypeIsNotSupportedErr, EDocument."Document Type"));
                 exit;
             end;
+        end;
+
+        if not EDocExport.CheckDocumentTypeSupportedForImport(EDocumentService, EDocument."Document Type", ErrorText) then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
+            exit;
         end;
 
         // Commit before getting full info with error handling (if Codeunit.Run then )

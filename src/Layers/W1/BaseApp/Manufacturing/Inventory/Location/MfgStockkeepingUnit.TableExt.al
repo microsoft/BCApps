@@ -66,6 +66,7 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
                 MfgSetup: Record "Manufacturing Setup";
                 ProdBOMHeader: Record "Production BOM Header";
                 CalculateLowLevelCode: Codeunit "Calculate Low-Level Code";
+                xLowLevelCode: Integer;
             begin
                 if ("Production BOM No." <> '') and ("Production BOM No." <> xRec."Production BOM No.") then begin
                     ProdBOMHeader.Get("Production BOM No.");
@@ -74,7 +75,10 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
                         MfgSetup.Get();
                         Item.Get("Item No.");
                         if MfgSetup."Dynamic Low-Level Code" then begin
+                            xLowLevelCode := Item."Low-Level Code";
                             Item."Low-Level Code" := CalculateLowLevelCode.CalcLevels(1, Item."No.", 0, 0);
+                            if Item."Low-Level Code" <> xLowLevelCode then
+                                Item.Modify();
                             CalculateLowLevelCode.SetRecursiveLevelsOnBOM(ProdBOMHeader, Item."Low-Level Code" + 1, false);
                         end;
                     end;

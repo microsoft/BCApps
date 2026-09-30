@@ -56,4 +56,12 @@ codeunit 6326 "Power BI Customer Report" implements "Power BI Uploadable Report"
         Parameters.Add('Company Name', CompanyName());
         Parameters.Add('Environment', EnvironmentInformation.GetEnvironmentName());
     end;
+
+    procedure GetTargetWorkspaceId(): Guid
+    var
+        NullGuid: Guid;
+    begin
+        // Customer (uploaded) reports are always deployed to My Workspace.
+        exit(NullGuid);
+    end;
 }

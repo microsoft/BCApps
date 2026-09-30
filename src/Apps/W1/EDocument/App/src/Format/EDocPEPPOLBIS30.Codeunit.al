@@ -2,9 +2,12 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.EServices.EDocument.Format;
+using Microsoft.eServices.EDocument.RemittanceAdvice;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
@@ -25,7 +28,11 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ReminderHeader: Record "Reminder Header";
         FinChargeMemoHeader: Record "Finance Charge Memo Header";
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PurchaseHeader: Record "Purchase Header";
         EDocPEPPOLValidation: Codeunit "E-Doc. PEPPOL Validation";
+        EDocRemittanceAdviceMgt: Codeunit "E-Doc. Remittance Advice Mgt.";
         SalesValidation: Interface "PEPPOL30 Validation";
         ServiceValidation: Interface "PEPPOL30 Validation";
     begin
@@ -75,6 +82,23 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                     ServiceValidation.ValidateDocument(ServiceHeader);
                     ServiceValidation.ValidateDocumentLines(ServiceHeader);
                 end;
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    EDocPEPPOLValidation.CheckPurchaseOrder(PurchaseHeader, EDocumentProcessingPhase);
+                end;
+            Database::"Gen. Journal Line":
+                begin
+                    SourceDocumentHeader.SetTable(GenJournalLine);
+                    EDocRemittanceAdviceMgt.CheckJournalPayment(GenJournalLine);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(GenJournalLine);
+                end;
+            Database::"Vendor Ledger Entry":
+                begin
+                    SourceDocumentHeader.SetTable(VendorLedgerEntry);
+                    EDocRemittanceAdviceMgt.CheckPostedPayment(VendorLedgerEntry);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(VendorLedgerEntry);
+                end;
         end;
     end;
 
@@ -101,6 +125,8 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                 GenerateTransferShipmentXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
             EDocument."Document Type"::"Purchase Order":
                 GeneratePurchaseOrderXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
+            EDocument."Document Type"::"Remittance Advice":
+                GenerateRemittanceAdviceXMLFile(SourceDocumentHeader, DocOutStream);
             else
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocumentTypeNotSupportedErr, EDocument.FieldCaption("Document Type"), EDocument."Document Type"));
         end;
@@ -217,29 +243,54 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         CopyStream(DocOutStream, TempBlob.CreateInStream());
     end;
 
+    local procedure GenerateRemittanceAdviceXMLFile(SourceDocumentHeader: RecordRef; DocOutStream: OutStream)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        TempRemitAdviceBuffer: Record "Remit. Advice Buffer" temporary;
+        RemitAdviceBufferMgt: Codeunit "Remit. Advice Buffer Mgt.";
+        ExportRemitAdvicePEPPOL30: Codeunit "Export Remit. Advice PEPPOL30";
+        EDocPEPPOLValidation: Codeunit "E-Doc. PEPPOL Validation";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        case SourceDocumentHeader.Number of
+            Database::"Gen. Journal Line":
+                begin
+                    SourceDocumentHeader.SetTable(GenJournalLine);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(GenJournalLine);
+                    RemitAdviceBufferMgt.BuildFromJournalPayment(GenJournalLine, TempRemitAdviceBuffer);
+                end;
+            Database::"Vendor Ledger Entry":
+                begin
+                    SourceDocumentHeader.SetTable(VendorLedgerEntry);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(VendorLedgerEntry);
+                    RemitAdviceBufferMgt.BuildFromPostedPayment(VendorLedgerEntry, TempRemitAdviceBuffer);
+                end;
+            else
+                exit;
+        end;
+
+        ExportRemitAdvicePEPPOL30.GenerateXml(TempRemitAdviceBuffer, TempBlob);
+        CopyStream(DocOutStream, TempBlob.CreateInStream());
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
-        if Rec."Document Format" = Rec."Document Format"::"PEPPOL BIS 3.0" then begin
-            EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
-            if EDocServiceSupportedType.IsEmpty() then begin
-                EDocServiceSupportedType.Init();
-                EDocServiceSupportedType."E-Document Service Code" := Rec.Code;
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Invoice";
-                EDocServiceSupportedType.Insert();
+        if Rec."Document Format" <> Rec."Document Format"::"PEPPOL BIS 3.0" then
+            exit;
 
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Credit Memo";
-                EDocServiceSupportedType.Insert();
+        EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
+        if not EDocServiceSupportedType.IsEmpty() then
+            exit;
 
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Invoice";
-                EDocServiceSupportedType.Insert();
-
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Credit Memo";
-                EDocServiceSupportedType.Insert();
-            end;
-        end;
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Sales Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Sales Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Remittance Advice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
     end;
 
     [IntegrationEvent(false, false)]

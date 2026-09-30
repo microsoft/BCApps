@@ -268,6 +268,7 @@ codeunit 5980 "Service-Post"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         ServiceDocumentArchiveMgmt: Codeunit "Service Document Archive Mgmt.";
+        IsHandled: Boolean;
     begin
         LockTables(ServiceLine, GLEntry);
         // update quantities upon posting options and test related fields.
@@ -278,14 +279,17 @@ codeunit 5980 "Service-Post"
             ServShipmentNo := ServDocumentsMgt.PrepareShipmentHeader();
             WhseShip := not TempWarehouseShipmentHeader.IsEmpty();
         end;
-        if Invoice then
-            if ServiceHeader."Document Type" in [ServiceHeader."Document Type"::Order, ServiceHeader."Document Type"::Invoice] then begin
-                ServInvoiceNo := ServDocumentsMgt.PrepareInvoiceHeader(Window);
-                ServDocumentsMgt.UpdateIncomingDocument(ServiceHeader."Incoming Document Entry No.", ServiceHeader."Posting Date", ServInvoiceNo);
-            end else begin
-                ServCrMemoNo := ServDocumentsMgt.PrepareCrMemoHeader(Window);
-                ServDocumentsMgt.UpdateIncomingDocument(ServiceHeader."Incoming Document Entry No.", ServiceHeader."Posting Date", ServCrMemoNo);
-            end;
+        IsHandled := false;
+        OnPostDocumentLinesOnBeforeInsertPostedHeaders(ServiceHeader, ServDocumentsMgt, IsHandled, ServInvoiceNo, ServCrMemoNo);
+        if not IsHandled then
+            if Invoice then
+                if ServiceHeader."Document Type" in [ServiceHeader."Document Type"::Order, ServiceHeader."Document Type"::Invoice] then begin
+                    ServInvoiceNo := ServDocumentsMgt.PrepareInvoiceHeader(Window);
+                    ServDocumentsMgt.UpdateIncomingDocument(ServiceHeader."Incoming Document Entry No.", ServiceHeader."Posting Date", ServInvoiceNo);
+                end else begin
+                    ServCrMemoNo := ServDocumentsMgt.PrepareCrMemoHeader(Window);
+                    ServDocumentsMgt.UpdateIncomingDocument(ServiceHeader."Incoming Document Entry No.", ServiceHeader."Posting Date", ServCrMemoNo);
+                end;
 
         if WhseShip then begin
             WarehouseShipmentHeader.Get(TempWarehouseShipmentHeader."No.");
@@ -915,6 +919,11 @@ codeunit 5980 "Service-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostDocumentLinesOnBeforeInsertPostedHeaders(var ServiceHeader: Record "Service Header"; var ServDocumentsMgt: Codeunit "Serv-Documents Mgt."; var IsHandled: Boolean; var ServInvoiceNo: Code[20]; var ServCrMemoNo: Code[20])
     begin
     end;
 }

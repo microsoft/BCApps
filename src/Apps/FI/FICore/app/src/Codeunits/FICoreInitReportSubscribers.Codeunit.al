@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Customer;
@@ -16,6 +17,9 @@ codeunit 13411 "FICore InitReport Subscribers"
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "Company Information" = r;
+
+    var
+        ServiceSuppliesCode4CaptionLbl: Label 'Total Value of Service Supplies(Code 4)';
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Purchase - Order", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardPurchaseOrder(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
@@ -125,6 +129,40 @@ codeunit 13411 "FICore InitReport Subscribers"
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"VAT- VIES Declaration Tax Auth", 'OnAfterInitReportForGlobalVariable', '', false, false)]
+    local procedure OnAfterInitReportForGlobalVariableInVATVIESDeclaration(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
+    begin
+        if IsHandled then
+            exit;
+
+        if not IsFeatureEnabled() then
+            exit;
+
+        AssignVIESDeclarationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
+
+        IsHandled := true;
+    end;
+
+    local procedure IsFeatureEnabled(): Boolean
+    var
+        VIESDeclarationFeature: Codeunit "FICore VIES Decl. Feature";
+    begin
+        exit(VIESDeclarationFeature.IsEnabled());
+    end;
+
+    local procedure AssignVIESDeclarationTexts(var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.Get();
+
+        BusinessIdentityCodeTxt := CompanyInformation."Business Identity Code";
+        BusinessIdentityCodeLbl := CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code");
+        RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
+        RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
+        ServiceSuppliesCode4CaptionTxt := ServiceSuppliesCode4CaptionLbl;
     end;
 
     local procedure AssignLegalOfficeTexts(var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)

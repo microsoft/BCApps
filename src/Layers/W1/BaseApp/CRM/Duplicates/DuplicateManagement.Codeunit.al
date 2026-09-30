@@ -140,6 +140,7 @@ codeunit 5060 DuplicateManagement
         DuplContSearchString.SetRange("Contact Company No.", Cont."No.");
         if DuplContSearchString.Find('-') then
             repeat
+                DuplContSearchString2.ReadIsolation(IsolationLevel::ReadUncommitted);
                 DuplContSearchString2.SetCurrentKey("Field No.", "Part of Field", "Search String");
                 DuplContSearchString2.SetRange("Field No.", DuplContSearchString."Field No.");
                 DuplContSearchString2.SetRange("Part of Field", DuplContSearchString."Part of Field");

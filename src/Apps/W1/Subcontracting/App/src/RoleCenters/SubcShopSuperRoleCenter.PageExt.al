@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.RoleCenters;
 
-pageextension 99001540 "Subc. Shop Super. Role Center" extends "Shop Supervisor Role Center"
+pageextension 20540 "Subc. Shop Super. Role Center" extends "Shop Supervisor Role Center"
 {
     actions
     {

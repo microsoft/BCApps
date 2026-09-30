@@ -46,6 +46,7 @@ table 5205 "Employee Relative"
         field(6; "Last Name"; Text[30])
         {
             Caption = 'Last Name';
+            ToolTip = 'Specifies the last name of the employee''s relative.';
         }
         field(7; "Birth Date"; Date)
         {

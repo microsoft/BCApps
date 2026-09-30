@@ -143,6 +143,44 @@ codeunit 139566 "Shpfy Payments Test"
     end;
 
     [Test]
+    [HandlerFunctions('PaymentTransactionsPageHandler')]
+    procedure ShopCardPaymentTransactionsActionFiltersByShop()
+    var
+        OtherShop: Record "Shpfy Shop";
+        ShopCard: TestPage "Shpfy Shop Card";
+    begin
+        Initialize();
+
+        CreateOtherShop(OtherShop);
+        CreatePaymentTransaction(Shop.Code);
+        CreatePaymentTransaction(OtherShop.Code);
+
+        ShopCard.OpenView();
+        ShopCard.GoToRecord(Shop);
+        ShopCard.PaymentTransactions.Invoke();
+        ShopCard.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('PayoutsPageHandler')]
+    procedure ShopCardPayoutsActionFiltersByShop()
+    var
+        OtherShop: Record "Shpfy Shop";
+        ShopCard: TestPage "Shpfy Shop Card";
+    begin
+        Initialize();
+
+        CreateOtherShop(OtherShop);
+        CreatePayout(Shop.Code);
+        CreatePayout(OtherShop.Code);
+
+        ShopCard.OpenView();
+        ShopCard.GoToRecord(Shop);
+        ShopCard.Payouts.Invoke();
+        ShopCard.Close();
+    end;
+
+    [Test]
     procedure UnitTestImportDispute()
     var
         Dispute: Record "Shpfy Dispute";
@@ -206,6 +244,60 @@ codeunit 139566 "Shpfy Payments Test"
         JPayment.Add('associatedOrder', JAssociatedOrder);
         JPayment.Add('sourceOrderTransactionId', Any.IntegerInRange(10000, 99999));
         exit(JPayment);
+    end;
+
+    local procedure CreateOtherShop(var OtherShop: Record "Shpfy Shop")
+    var
+        OtherShopCode: Code[20];
+    begin
+        OtherShopCode := CopyStr(Shop.Code + '2', 1, MaxStrLen(OtherShop.Code));
+        if OtherShop.Get(OtherShopCode) then
+            exit;
+
+        OtherShop.Code := OtherShopCode;
+        OtherShop.Insert(false);
+    end;
+
+    local procedure CreatePaymentTransaction(ShopCode: Code[20])
+    var
+        PaymentTransaction: Record "Shpfy Payment Transaction";
+        Id: BigInteger;
+    begin
+        repeat
+            Id := Any.IntegerInRange(1, 999999999);
+        until not PaymentTransaction.Get(Id);
+
+        PaymentTransaction.Id := Id;
+        PaymentTransaction."Shop Code" := ShopCode;
+        PaymentTransaction.Insert(false);
+    end;
+
+    local procedure CreatePayout(ShopCode: Code[20])
+    var
+        Payout: Record "Shpfy Payout";
+        Id: BigInteger;
+    begin
+        repeat
+            Id := Any.IntegerInRange(1, 999999999);
+        until not Payout.Get(Id);
+
+        Payout.Id := Id;
+        Payout."Shop Code" := ShopCode;
+        Payout.Insert(false);
+    end;
+
+    [PageHandler]
+    procedure PaymentTransactionsPageHandler(var PaymentTransactions: TestPage "Shpfy Payment Transactions")
+    begin
+        LibraryAssert.AreEqual(Shop.Code, PaymentTransactions.Filter.GetFilter("Shop Code"), 'Payment transactions should be filtered by Shop Code');
+        LibraryAssert.IsTrue(PaymentTransactions.First(), 'A payment transaction for the selected shop should be shown');
+    end;
+
+    [PageHandler]
+    procedure PayoutsPageHandler(var Payouts: TestPage "Shpfy Payouts")
+    begin
+        LibraryAssert.AreEqual(Shop.Code, Payouts.Filter.GetFilter("Shop Code"), 'Payouts should be filtered by Shop Code');
+        LibraryAssert.IsTrue(Payouts.First(), 'A payout for the selected shop should be shown');
     end;
 
     local procedure GetRandomDispute(Id: BigInteger; var DisputeStatus: Enum "Shpfy Dispute Status"; var FinalizedOn: DateTime): JsonObject

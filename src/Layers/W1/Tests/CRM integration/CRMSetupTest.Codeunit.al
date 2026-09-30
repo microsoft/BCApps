@@ -291,6 +291,7 @@ codeunit 139160 "CRM Setup Test"
     procedure ConnectionRegistrationMirrorsEnabledCheckbox()
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
+        Any: Codeunit "Any";
         CRMConnectionSetupPage: TestPage "CRM Connection Setup";
     begin
         // [FEATURE] [UI]
@@ -306,7 +307,7 @@ codeunit 139160 "CRM Setup Test"
         CRMConnectionSetupPage."Server Address".SetValue('@@test@@');
         CRMConnectionSetupPage."Authentication Type".SetValue('OAuth 2.0');
         CRMConnectionSetupPage."User Name".SetValue('tester@domain.net');
-        CRMConnectionSetupPage.Password.SetValue('T3sting!');
+        CRMConnectionSetupPage.Password.SetValue(Any.AlphanumericText(20));
         CRMConnectionSetupPage."Is Enabled".SetValue(true);
         // [THEN] Connection is enabled
         Assert.IsTrue(HasTableConnection(TABLECONNECTIONTYPE::CRM, ''), 'HASTABLECONNECTION when enabled');
@@ -324,6 +325,7 @@ codeunit 139160 "CRM Setup Test"
     procedure ServerAddressRequiredToEnable()
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -331,7 +333,7 @@ codeunit 139160 "CRM Setup Test"
 
         CRMConnectionSetup.Init();
         CRMConnectionSetup."User Name" := 'tester@domain.net';
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         CRMConnectionSetup.SetPassword(DummyPassword);
         CRMConnectionSetup.Insert();
 
@@ -345,6 +347,7 @@ codeunit 139160 "CRM Setup Test"
     procedure UserNameRequiredToEnable()
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -352,7 +355,7 @@ codeunit 139160 "CRM Setup Test"
 
         CRMConnectionSetup.Init();
         CRMConnectionSetup."Server Address" := '@@test@@';
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         CRMConnectionSetup.SetPassword(DummyPassword);
         CRMConnectionSetup.Insert();
 
@@ -366,6 +369,7 @@ codeunit 139160 "CRM Setup Test"
     procedure WorkingConnectionRequiredToEnable()
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -376,7 +380,7 @@ codeunit 139160 "CRM Setup Test"
         CRMConnectionSetup.Init();
         CRMConnectionSetup."Server Address" := 'https://nocrmhere.gov';
         CRMConnectionSetup.Validate("User Name", 'tester@domain.net');
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         CRMConnectionSetup.SetPassword(DummyPassword);
         CRMConnectionSetup.Insert();
 

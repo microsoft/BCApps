@@ -368,13 +368,16 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
     end;
 
     /// <summary>
-    /// Intended to help initialize default values.
+    /// Initializes the default values used by the assembly generation rule setup guide.
     /// </summary>
     local procedure InitializeDefaultValues()
     begin
         InitializeDefaultTemplate();
     end;
 
+    /// <summary>
+    /// Selects the most recently modified inspection template when no template is selected.
+    /// </summary>
     local procedure InitializeDefaultTemplate()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -388,6 +391,10 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
             TemplateCode := QltyInspectionTemplateHdr.Code;
     end;
 
+    /// <summary>
+    /// Moves the setup guide to a bounded step and updates the navigation state.
+    /// </summary>
+    /// <param name="Step">The requested step number.</param>
     local procedure ChangeToStep(Step: Integer);
     begin
         if Step < 1 then
@@ -434,6 +441,11 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
         CurrPage.Update(true);
     end;
 
+    /// <summary>
+    /// Validates the template when moving forward and redirects to the template step when necessary.
+    /// </summary>
+    /// <param name="LeavingThisStep">The step being left.</param>
+    /// <param name="MovingToThisStep">The destination step, which may be changed by validation.</param>
     local procedure LeavingStepMovingForward(LeavingThisStep: Integer; var MovingToThisStep: Integer);
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -445,6 +457,9 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
             end;
     end;
 
+    /// <summary>
+    /// Opens the item filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullItemFilter()
     begin
         TempQltyInspectionGenRule."Item Filter" := ItemRuleFilter;
@@ -457,6 +472,9 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Opens the posted assembly header filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullPostedAssemblyHeaderFilter()
     begin
         TempQltyInspectionGenRule."Source Table No." := Database::"Posted Assembly Header";
@@ -471,18 +489,27 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Removes redundant WHERE clauses from the assembly and item filter views.
+    /// </summary>
     local procedure CleanUpWhereClause()
     begin
         PostedAssemblyOrderRuleFilter := QltyFilterHelpers.CleanUpWhereClause2048(PostedAssemblyOrderRuleFilter);
         ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause2048(ItemRuleFilter);
     end;
 
+    /// <summary>
+    /// Moves the setup guide to the previous step.
+    /// </summary>
     local procedure BackAction();
     begin
         CurrPage.Update(true);
         ChangeToStep(CurrentStepCounter - 1);
     end;
 
+    /// <summary>
+    /// Moves the setup guide to the next step.
+    /// </summary>
     local procedure NextAction();
 
     begin
@@ -490,6 +517,9 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
         ChangeToStep(CurrentStepCounter + 1);
     end;
 
+    /// <summary>
+    /// Creates or updates the assembly generation rule and closes the setup guide.
+    /// </summary>
     local procedure FinishAction();
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -525,12 +555,13 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
     end;
 
     /// <summary>
+    /// Runs the setup guide using the supplied generation rule as its initial state.
     /// Start the setup guide using this generation rule as a pre-requisite.
     /// Use this to edit an existing rule.
     /// You can also use it to start a new rule with a default template by supplying a template filter.
     /// </summary>
-    /// <param name="QltyInspectionGenRule"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionGenRule">The generation rule to create or edit.</param>
+    /// <returns>The action used to close the setup guide.</returns>
     procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
@@ -549,6 +580,9 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
         exit(CurrPage.RunModal());
     end;
 
+    /// <summary>
+    /// Builds the stored assembly and item filter views from the guide fields and validates their lengths.
+    /// </summary>
     [TryFunction]
     local procedure UpdateFullTextRuleStringsFromFilters()
     begin
@@ -570,6 +604,9 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 
+    /// <summary>
+    /// Copies the current assembly and item record filters into the guide fields.
+    /// </summary>
     local procedure UpdateTableVariablesFromRecordFilters()
     begin
         LocationCodeFilter := CopyStr(TempPostedAssemblyHeader.GetFilter("Location Code"), 1, MaxStrLen(LocationCodeFilter));

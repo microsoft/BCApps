@@ -50,6 +50,7 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
         PerCompanyUpgradeTags.Add(GetUseW1RegistrationNumberFromSalesDocUpgradeTag());
         PerCompanyUpgradeTags.Add(GetUseVATReturnPeriodInsteadOfVATPeriodUpgradeTag());
         PerCompanyUpgradeTags.Add(GetOriginalVATAmountsACYInVATEntriesUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetStatutoryReportingSetupOfficialFullNameUpgradeTag());
     end;
 
@@ -223,6 +224,11 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
     procedure GetOriginalVATAmountsACYInVATEntriesUpgradeTag(): Code[250]
     begin
         exit('CZL-616614-OriginalVATAmountsACYInVATEntriesTag-20251217');
+    end;
+
+    procedure GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag(): Code[250]
+    begin
+        exit('CZL-640925-ChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag-20260908');
     end;
 
     procedure GetStatutoryReportingSetupOfficialFullNameUpgradeTag(): Code[250]

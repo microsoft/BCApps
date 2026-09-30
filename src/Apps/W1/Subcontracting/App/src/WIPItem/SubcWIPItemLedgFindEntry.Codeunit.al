@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Navigate;
 
-codeunit 99001564 "Subc. WIP Item Ledg Find Entry"
+codeunit 20564 "Subc. WIP Item Ledg Find Entry"
 {
 
     var

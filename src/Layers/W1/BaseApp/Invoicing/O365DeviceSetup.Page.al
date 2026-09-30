@@ -29,7 +29,9 @@ page 1308 "O365 Device Setup"
                         Editable = false;
                         ExtendedDatatype = URL;
                     }
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
                     field(QR; Rec."QR Code")
+#pragma warning restore AW0009
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'or QR Code';

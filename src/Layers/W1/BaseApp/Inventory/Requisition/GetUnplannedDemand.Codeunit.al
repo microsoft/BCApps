@@ -258,13 +258,13 @@ codeunit 5520 "Get Unplanned Demand"
         NeededQty := JobPlanningLine."Remaining Qty. (Base)" - JobPlanningLine."Reserved Qty. (Base)";
 
         if NeededQty > 0 then begin
-            PurchaseLine.SetLoadFields("Outstanding Qty. (Base)");
+            PurchaseLine.SetLoadFields("Outstanding Qty. (Base)", "Qty. Rcd. Not Invoiced (Base)");
             PurchaseLine.SetRange("Job No.", JobPlanningLine."Job No.");
             PurchaseLine.SetRange("Job Task No.", JobPlanningLine."Job Task No.");
             PurchaseLine.SetRange("Job Planning Line No.", JobPlanningLine."Line No.");
             PurchaseLine.SetRange("No.", JobPlanningLine."No.");
             if PurchaseLine.FindFirst() then
-                NeededQty -= PurchaseLine."Outstanding Qty. (Base)";
+                NeededQty -= PurchaseLine."Outstanding Qty. (Base)" + PurchaseLine."Qty. Rcd. Not Invoiced (Base)";
         end;
         if NeededQty < 0 then
             NeededQty := 0;

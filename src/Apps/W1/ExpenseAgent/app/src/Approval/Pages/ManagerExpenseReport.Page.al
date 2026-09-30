@@ -8,7 +8,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
-using System.Security.User;
 
 page 6980 "Manager Expense Report"
 {
@@ -203,6 +202,14 @@ page 6980 "Manager Expense Report"
                 Provider = "Expense Report Subform";
                 UpdatePropagation = Both;
                 SubPageLink = "Expense Report No." = field("Document No."), "Report Line No." = field("Line No.");
+                Visible = Rec."No." <> '';
+            }
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'History';
+                SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                              "Source Record System ID" = field(SystemId);
                 Visible = Rec."No." <> '';
             }
             part("Expense Picture"; "Expense Picture")
@@ -489,17 +496,15 @@ page 6980 "Manager Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
-        UserSetup: Record "User Setup";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
-            if not UserSetup."Unlimited Expense Approval" then begin
+            ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+            if not ExpenseUser."Unlimited Approval" then begin
                 CheckSetDefaultOwnerFilter();
-                ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();
-                ExpenseUser.Get(ExpenseUserNo);
+                ExpenseUserNo := ExpenseUser."No.";
             end else
                 ManagerExpense := true;
         end;

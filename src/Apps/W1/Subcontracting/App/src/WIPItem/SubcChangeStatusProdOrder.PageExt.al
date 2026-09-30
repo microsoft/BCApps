@@ -5,7 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
-pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status on Prod. Order"
+pageextension 20544 "Subc.Change Status Prod. Order" extends "Change Status on Prod. Order"
 {
     layout
     {

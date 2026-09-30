@@ -10,18 +10,19 @@ codeunit 134333 "ERM Purchase Prepayments"
     end;
 
     var
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryERM: Codeunit "Library - ERM";
-        LibraryUtility: Codeunit "Library - Utility";
-        PurchasePostPrepayments: Codeunit "Purchase-Post Prepayments";
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        PurchasePostPrepayments: Codeunit "Purchase-Post Prepayments";
         IsInitialized: Boolean;
         LCYCode: Code[10];
         NoAmtFoundToBePostedErr: Label 'No amount found to be posted.';
+        PaymentReferenceNotTransferredErr: Label '%1 was not transferred to the %2.', Comment = '%1 Field Caption,%2 Table Caption';
 
     local procedure Initialize()
     var
@@ -424,6 +425,49 @@ codeunit 134333 "ERM Purchase Prepayments"
 
         // [THEN] "Order Line No." in Purch. Rcpt. Line is equal to "Line No." of Purchase Line [1].
         Assert.AreEqual(PurchaseLine[1]."Line No.", PurchRcptLine."Order Line No.", '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure PaymentReferenceTransferredToVLEOnPurchasePrepaymentInvoice()
+    var
+        GLAccount: Record "G/L Account";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 643383] Payment Reference from the Purchase Order is transferred to the Vendor Ledger Entry when posting a prepayment invoice.
+        Initialize();
+
+        // [GIVEN] Prepayment posting setup, an item and a vendor with a prepayment %.
+        PreparePrepaymentsPostingSetup(GLAccount);
+        PrepareItemAccordingToSetup(Item, GLAccount);
+        PrepareVendorAccordingToSetup(Vendor, GLAccount, LibraryRandom.RandInt(100));
+
+        // [GIVEN] A Purchase Order with a Payment Reference specified.
+        CreatePurchOrder(PurchaseHeader, Vendor, Item, LCYCode);
+
+        PurchaseHeader."Payment Reference" := LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Payment Reference"), Database::"Purchase Header");
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] Post the prepayment invoice via Purchase order page.
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.PostPrepaymentInvoice.Invoke();
+        Commit();
+        PurchaseOrder.Close();
+
+        // [THEN] The Vendor Ledger Entry created for the prepayment carries the Payment Reference from the Purchase Order.
+        CheckNumOfVendorLedgerEntries(VendorLedgerEntry, Vendor, 1);
+        VendorLedgerEntry.FindFirst();
+
+        // [THEN] The Payment Reference from the Purchase Header should be transferred to the Vendor Ledger Entry table.
+        Assert.AreEqual(
+            PurchaseHeader."Payment Reference", VendorLedgerEntry."Payment Reference",
+            StrSubstNo(
+                PaymentReferenceNotTransferredErr, PurchaseHeader.FieldCaption("Payment Reference"), VendorLedgerEntry.TableCaption()));
     end;
 
     local procedure PreparePrepaymentsPostingSetup(var GLAccount: Record "G/L Account")

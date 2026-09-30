@@ -7,6 +7,7 @@ namespace Microsoft.ExternalStorage.DocumentAttachments.Test;
 
 using Microsoft.ExternalStorage.DocumentAttachments;
 using Microsoft.Foundation.Attachment;
+using System.Environment;
 using System.ExternalFileStorage;
 using System.TestLibraries.ExternalFileStorage;
 using System.TestLibraries.Utilities;
@@ -17,6 +18,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     Subtype = Test;
     TestPermissions = Disabled;
     Permissions = tabledata "Document Attachment" = rimd,
+                  tabledata "Tenant Media" = r,
                   tabledata "DA External Storage Setup" = rimd;
 
     var
@@ -24,6 +26,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         FileConnectorMock: Codeunit "File Connector Mock";
         FileScenarioMock: Codeunit "File Scenario Mock";
         Assert: Codeunit "Library Assert";
+        CannotRetrieveExternalFileErr: Label 'could not be retrieved from external storage', Locked = true;
+        DialogErrorCodeTok: Label 'Dialog', Locked = true;
 
     #region Successful Operations Tests
 
@@ -709,22 +713,153 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Initialize();
 
         // [GIVEN] A document that is externally stored but not internally stored
-        DocumentAttachment.Init();
-        DocumentAttachment.ID := Any.IntegerInRange(10000, 99999);
-        DocumentAttachment."Table ID" := Database::"Document Attachment";
-        DocumentAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
-        DocumentAttachment."File Name" := 'TestFile';
-        DocumentAttachment."File Extension" := 'txt';
-        DocumentAttachment."Stored Externally" := true;
-        DocumentAttachment."Stored Internally" := false;
-        DocumentAttachment."External File Path" := 'test/path/file.txt';
-        DocumentAttachment.Insert();
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
 
         // [WHEN] Checking if uploaded externally and deleted internally
         Result := DAExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment);
 
         // [THEN] Should return true
         Assert.IsTrue(Result, 'Should return true for externally stored and internally deleted file');
+    end;
+
+    [Test]
+    procedure HasContentUsesExternalStorageMetadataWithFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] Checking attachment content should not contact external storage
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+
+        // [GIVEN] An externally stored attachment with a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Checking if the attachment has content
+        // [THEN] The external storage metadata indicates content is available
+        Assert.IsTrue(DocumentAttachment.HasContent(), 'Externally stored attachment should report content from its metadata');
+        Assert.AreEqual(0, FileConnectorMock.GetFileExistsCallCount(), 'Checking content should not call the external file connector');
+    end;
+
+    [Test]
+    procedure HasContentUsesExternalStorageMetadataWithoutFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] External attachment metadata remains available when the file account mapping is missing
+        Initialize();
+
+        // [GIVEN] An externally stored attachment without a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Checking if the attachment has content
+        // [THEN] The external storage metadata indicates content is available
+        Assert.IsTrue(DocumentAttachment.HasContent(), 'Externally stored attachment should report content without a file account mapping');
+    end;
+
+    [Test]
+    procedure HasContentUsesInternalStorageWithoutExternalCall()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] Internally stored attachments continue to use the document reference
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+
+        // [GIVEN] An internally stored attachment
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+
+        // [WHEN] Checking if the attachment has content
+        // [THEN] The internal content is available without calling external storage
+        Assert.IsTrue(DocumentAttachment.HasContent(), 'Internally stored attachment should report content from its document reference');
+        Assert.AreEqual(0, FileConnectorMock.GetFileExistsCallCount(), 'Internal content checks should not call the external file connector');
+    end;
+
+    [Test]
+    procedure ExportToStreamErrorsWhenExternalFileCannotBeRetrieved()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentOutStream: OutStream;
+    begin
+        // [SCENARIO] Exporting an unavailable external attachment surfaces an error
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        FileConnectorMock.SetFailOnGetFile(true);
+
+        // [GIVEN] An externally stored attachment that the connector cannot retrieve
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+        TempBlob.CreateOutStream(AttachmentOutStream);
+
+        // [WHEN] Exporting the attachment to a stream
+        asserterror DocumentAttachment.ExportToStream(AttachmentOutStream);
+
+        // [THEN] The retrieval failure is surfaced
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.ExpectedError(CannotRetrieveExternalFileErr);
+    end;
+
+    [Test]
+    procedure GetAsTempBlobErrorsWhenExternalFileCannotBeRetrieved()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] Previewing an unavailable external attachment surfaces an error
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        FileConnectorMock.SetFailOnGetFile(true);
+
+        // [GIVEN] An externally stored attachment that the connector cannot retrieve
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Loading the attachment into a temporary blob
+        asserterror DocumentAttachment.GetAsTempBlob(TempBlob);
+
+        // [THEN] The retrieval failure is surfaced
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.ExpectedError(CannotRetrieveExternalFileErr);
+    end;
+
+    [Test]
+    procedure GetAsTempBlobErrorsWithoutFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] Previewing an external attachment without a file account mapping surfaces an error
+        Initialize();
+
+        // [GIVEN] An externally stored attachment without a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Loading the attachment into a temporary blob
+        asserterror DocumentAttachment.GetAsTempBlob(TempBlob);
+
+        // [THEN] The missing configuration is surfaced
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.ExpectedError(CannotRetrieveExternalFileErr);
+    end;
+
+    [Test]
+    procedure ExportToStreamErrorsWithoutFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentOutStream: OutStream;
+    begin
+        // [SCENARIO] Exporting an external attachment without a file account mapping surfaces an error
+        Initialize();
+
+        // [GIVEN] An externally stored attachment without a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+        TempBlob.CreateOutStream(AttachmentOutStream);
+
+        // [WHEN] Exporting the attachment to a stream
+        asserterror DocumentAttachment.ExportToStream(AttachmentOutStream);
+
+        // [THEN] The missing configuration is surfaced
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.ExpectedError(CannotRetrieveExternalFileErr);
     end;
 
     [Test]
@@ -748,6 +883,110 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         // [THEN] Should return false (still has internal copy)
         Assert.IsFalse(Result, 'Should return false when file is still stored internally');
+    end;
+
+    #endregion
+
+    #region Shared Tenant Media Tests
+
+    [Test]
+    procedure DeleteFromInternalKeepsMediaSharedWithCopiedAttachment()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        CopiedDocumentAttachment: Record "Document Attachment";
+        TenantMedia: Record "Tenant Media";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        SharedMediaId: Guid;
+    begin
+        // [SCENARIO] Deleting an attachment from internal storage must not remove the Tenant Media
+        // while a copied attachment still references it.
+        Initialize();
+
+        // [GIVEN] An attachment with content that has been copied to another document
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        SharedMediaId := DocumentAttachment."Document Reference ID".MediaId();
+        CreateCopyOfDocumentAttachment(DocumentAttachment, CopiedDocumentAttachment);
+
+        // [GIVEN] The original attachment is stored externally
+        DocumentAttachment."Stored Externally" := true;
+        DocumentAttachment.Modify();
+
+        // [WHEN] The original is deleted from internal storage
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed');
+
+        // [THEN] The shared Tenant Media is kept
+        Assert.IsTrue(TenantMedia.Get(SharedMediaId), 'Shared Tenant Media should not be deleted');
+
+        // [THEN] The copied attachment still has its content
+        RefreshAttachment(CopiedDocumentAttachment);
+        Assert.IsTrue(CopiedDocumentAttachment."Document Reference ID".HasValue(), 'Copied attachment should still have content');
+
+        // [THEN] The original has released its own reference
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsFalse(DocumentAttachment."Document Reference ID".HasValue(), 'Original attachment should have released its media reference');
+        Assert.IsFalse(DocumentAttachment."Stored Internally", 'Original should not be marked as stored internally');
+    end;
+
+    [Test]
+    procedure DeleteFromInternalRemovesMediaWhenNotShared()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TenantMedia: Record "Tenant Media";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        MediaId: Guid;
+    begin
+        // [SCENARIO] Database space is still reclaimed when the attachment is the only owner
+        Initialize();
+
+        // [GIVEN] An attachment with content that is not shared and is stored externally
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        MediaId := DocumentAttachment."Document Reference ID".MediaId();
+        DocumentAttachment."Stored Externally" := true;
+        DocumentAttachment.Modify();
+
+        // [WHEN] It is deleted from internal storage
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed');
+
+        // [THEN] The Tenant Media is removed
+        Assert.IsFalse(TenantMedia.Get(MediaId), 'Tenant Media should be deleted when no other attachment references it');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure UploadSucceedsForCopiedAttachmentAfterSourceIsMigrated()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        CopiedDocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+    begin
+        // [SCENARIO] A copied attachment can still be migrated after the attachment it was copied from
+        // has been moved to external storage. The shared Tenant Media used to be deleted together with
+        // the source, which left the copy with neither internal content nor an external file.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+
+        // [GIVEN] An attachment that has been copied to another document
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        CreateCopyOfDocumentAttachment(DocumentAttachment, CopiedDocumentAttachment);
+
+        // [GIVEN] The source attachment has been moved to external storage
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload of the source should succeed');
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed for the source');
+
+        // [WHEN] The copied attachment is uploaded
+        RefreshAttachment(CopiedDocumentAttachment);
+        Assert.IsTrue(CopiedDocumentAttachment."Document Reference ID".HasValue(), 'Copied attachment should still have content');
+
+        // [THEN] The upload succeeds
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(CopiedDocumentAttachment), 'Upload of the copied attachment should succeed');
+
+        // [THEN] Both attachments are stored externally, each in its own file
+        RefreshAttachment(DocumentAttachment);
+        RefreshAttachment(CopiedDocumentAttachment);
+        Assert.IsTrue(CopiedDocumentAttachment."Stored Externally", 'Copied attachment should be marked as stored externally');
+        Assert.AreNotEqual(DocumentAttachment."External File Path", CopiedDocumentAttachment."External File Path", 'Each attachment should have its own external file');
     end;
 
     #endregion
@@ -848,6 +1087,23 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment.Modify(false);
     end;
 
+    local procedure CreateCopyOfDocumentAttachment(var DocumentAttachment: Record "Document Attachment"; var CopiedDocumentAttachment: Record "Document Attachment")
+    begin
+        // Mirrors Document Attachment Mgmt, which copies attachments onto posted documents with
+        // TransferFields. That copies the media reference itself, so both records end up sharing
+        // a single Tenant Media row.
+        CopiedDocumentAttachment.Init();
+        CopiedDocumentAttachment.TransferFields(DocumentAttachment);
+        CopiedDocumentAttachment.ID := DocumentAttachment.ID + 1;
+        CopiedDocumentAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
+        CopiedDocumentAttachment.Insert(false);
+
+        Assert.AreEqual(
+            DocumentAttachment."Document Reference ID".MediaId(),
+            CopiedDocumentAttachment."Document Reference ID".MediaId(),
+            'The copied attachment is expected to share the media of the attachment it was copied from');
+    end;
+
     local procedure CreateExternallyStoredDocument(var DocumentAttachment: Record "Document Attachment")
     begin
         CreateDocumentAttachmentWithContent(DocumentAttachment);
@@ -855,6 +1111,30 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment."External File Path" := 'test/environment/Document_Attachment/file-' + Format(CreateGuid()) + '.txt';
         DocumentAttachment."External Upload Date" := CurrentDateTime();
         DocumentAttachment.Modify();
+    end;
+
+    local procedure CreateExternallyStoredOnlyDocument(var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.Init();
+        DocumentAttachment.ID := Any.IntegerInRange(10000, 99999);
+        DocumentAttachment."Table ID" := Database::"Document Attachment";
+        DocumentAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
+        DocumentAttachment."File Name" := 'TestFile';
+        DocumentAttachment."File Extension" := 'txt';
+        DocumentAttachment."Stored Externally" := true;
+        DocumentAttachment."Stored Internally" := false;
+        DocumentAttachment."External File Path" := 'test/path/file.txt';
+        DocumentAttachment.Insert();
+    end;
+
+    local procedure RefreshAttachment(var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.Get(
+            DocumentAttachment."Table ID",
+            DocumentAttachment."No.",
+            DocumentAttachment."Document Type",
+            DocumentAttachment."Line No.",
+            DocumentAttachment.ID);
     end;
 
     [ConfirmHandler]

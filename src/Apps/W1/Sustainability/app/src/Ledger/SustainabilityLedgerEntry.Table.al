@@ -237,6 +237,21 @@ table 6216 "Sustainability Ledger Entry"
             Caption = 'Energy Consumption';
             CaptionClass = '102,13,4';
         }
+        field(43; "Collected from G/L Entries"; Boolean)
+        {
+            Caption = 'Collected from G/L Entries';
+            Editable = false;
+        }
+        field(44; "Collect From Date"; Date)
+        {
+            Caption = 'Collect From Date';
+            Editable = false;
+        }
+        field(45; "Collect To Date"; Date)
+        {
+            Caption = 'Collect To Date';
+            Editable = false;
+        }
         field(5146; "Emission Scope"; Enum "Emission Scope")
         {
             Caption = 'Emission Scope';
@@ -340,6 +355,32 @@ table 6216 "Sustainability Ledger Entry"
         {
             Caption = 'Correction';
         }
+        field(5818; Reversed; Boolean)
+        {
+            Caption = 'Reversed';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(5819; "Reversed by Entry No."; Integer)
+        {
+            Caption = 'Reversed by Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "Sustainability Ledger Entry"."Entry No.";
+        }
+        field(5820; "Reversed Entry No."; Integer)
+        {
+            Caption = 'Reversed Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "Sustainability Ledger Entry"."Entry No.";
+        }
+        field(5821; "G/L Entry No."; Integer)
+        {
+            Caption = 'G/L Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
 
     keys
@@ -356,6 +397,9 @@ table 6216 "Sustainability Ledger Entry"
         {
         }
         key(Key3; "Journal Template Name", "Journal Batch Name")
+        {
+        }
+        key(Key4; "G/L Entry No.")
         {
         }
     }

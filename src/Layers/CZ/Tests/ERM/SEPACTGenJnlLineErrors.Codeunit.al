@@ -19,8 +19,6 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         MustBeBankAccErr: Label 'The balancing account must be a bank account.';
-        MustBeVendorEmployeeOrCustomerErr: Label 'The account must be a vendor, customer or employee account.';
-        MustBeVendEmplPmtOrCustRefundErr: Label 'Only vendor and employee payments and customer refunds are allowed.';
         MustBePositiveErr: Label 'The amount must be positive.';
         TransferDateErr: Label 'The earliest possible transfer date is today.';
         EuroCurrErr: Label 'Only transactions in euro (EUR) are allowed, because the %1 bank account is set up to use the %2 export format.';
@@ -71,86 +69,29 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineRecipientBankAccError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
-        Initialize();
-
-        // Setup
-        CreateVendorGenJnlLineWithRecipientBankAcc(GenJnlLine);
-        GenJnlLine."Recipient Bank Account" := '';
-        GenJnlLine.Modify();
-
-        // Exercise
-        CODEUNIT.Run(CODEUNIT::"SEPA CT-Check Line", GenJnlLine);
-
-        // Verify
-        LibraryPaymentExport.VerifyGenJnlLineErr(GenJnlLine,
-          StrSubstNo(FieldBlankErr, GenJnlLine.FieldCaption("Recipient Bank Account")));
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineAccTypeError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
-        Initialize();
-
-        // Setup
-        CreateVendorGenJnlLineWithRecipientBankAcc(GenJnlLine);
-        GenJnlLine."Account Type" := GenJnlLine."Account Type"::"G/L Account";
-        GenJnlLine.Modify();
-
-        // Exercise
-        CODEUNIT.Run(CODEUNIT::"SEPA CT-Check Line", GenJnlLine);
-
-        // Verify
-        LibraryPaymentExport.VerifyGenJnlLineErr(GenJnlLine, MustBeVendorEmployeeOrCustomerErr);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineVendorRefundError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
-        Initialize();
-
-        // Setup
-        CreateVendorGenJnlLineWithRecipientBankAcc(GenJnlLine);
-        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Refund;
-        GenJnlLine.Modify();
-
-        // Exercise.
-        CODEUNIT.Run(CODEUNIT::"SEPA CT-Check Line", GenJnlLine);
-
-        // Verify.
-        LibraryPaymentExport.VerifyGenJnlLineErr(GenJnlLine, MustBeVendEmplPmtOrCustRefundErr)
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineCustomerPaymentError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
-        Initialize();
-
-        // Setup
-        CreateCustomerGenJnlLineWithRecipientBankAcc(GenJnlLine);
-        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-        GenJnlLine.Modify();
-
-        // Exercise.
-        CODEUNIT.Run(CODEUNIT::"SEPA CT-Check Line", GenJnlLine);
-
-        // Verify.
-        LibraryPaymentExport.VerifyGenJnlLineErr(GenJnlLine, MustBeVendEmplPmtOrCustRefundErr);
     end;
 
     [Test]
@@ -246,22 +187,8 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineAccNoError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
-        Initialize();
-
-        // Setup
-        CreateVendorGenJnlLineWithRecipientBankAcc(GenJnlLine);
-        GenJnlLine."Account No." := '';
-        GenJnlLine.Modify();
-
-        // Exercise
-        CODEUNIT.Run(CODEUNIT::"SEPA CT-Check Line", GenJnlLine);
-
-        // Verify
-        LibraryPaymentExport.VerifyGenJnlLineErr(GenJnlLine, MustBeVendorEmployeeOrCustomerErr);
     end;
 
     [Test]
@@ -361,27 +288,8 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineMultipleErrors()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
-        Initialize();
-
-        // Setup
-        CreateVendorGenJnlLineWithRecipientBankAcc(GenJnlLine);
-        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Refund;
-        GenJnlLine.Amount := -1 * LibraryRandom.RandDec(100, 2);
-        GenJnlLine."Recipient Bank Account" := '';
-        GenJnlLine.Modify();
-
-        // Exercise.
-        CODEUNIT.Run(CODEUNIT::"SEPA CT-Check Line", GenJnlLine);
-
-        // Verify.
-        LibraryPaymentExport.VerifyGenJnlLineErr(GenJnlLine, MustBeVendEmplPmtOrCustRefundErr);
-        LibraryPaymentExport.VerifyGenJnlLineErr(GenJnlLine, MustBePositiveErr);
-        LibraryPaymentExport.VerifyGenJnlLineErr(GenJnlLine,
-          StrSubstNo(FieldBlankErr, GenJnlLine.FieldCaption("Recipient Bank Account")));
     end;
 
     local procedure Initialize()
@@ -483,4 +391,3 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
         Vendor.Modify(true);
     end;
 }
-

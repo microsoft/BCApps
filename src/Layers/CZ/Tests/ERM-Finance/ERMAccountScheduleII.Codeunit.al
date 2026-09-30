@@ -1426,39 +1426,10 @@
     [Test]
     [Scope('OnPrem')]
     procedure AccountScheduleVarianceDrillDownPrintsColumnLayoutFormula()
-    var
-        AccScheduleName: Record "Acc. Schedule Name";
-        AccScheduleLine: Record "Acc. Schedule Line";
-        ColumnLayoutName: Record "Column Layout Name";
-        ColumnLayout: Record "Column Layout";
-        AccSchedManagement: Codeunit AccSchedManagement;
-        PeriodType: Option Day,Week,Month,Quarter,Year,"Accounting Period";
     begin
         exit; // NAVCZ Czech Localization has Account Schedule Formula Drill-Down Page
         // [FEATURE] [UI]
         // [SCENARIO 316821] Variance drill down shows column layout formula when both account schedule and column layout contains formula.
-        Initialize();
-
-        // [GIVEN] Account schedule with formula totaling type and column layout with formula column type.
-        LibraryERM.CreateAccScheduleName(AccScheduleName);
-        CreateAccScheduleLine(
-          AccScheduleLine,
-          AccScheduleName.Name,
-          AccScheduleLine."Totaling Type"::Formula,
-          Format(LibraryRandom.RandInt(1000)));
-        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
-        CreateColumnLayoutLine(
-          ColumnLayout,
-          ColumnLayoutName.Name,
-          ColumnLayout."Column Type"::Formula,
-          Format(LibraryRandom.RandInt(1000)));
-        LibraryVariableStorage.Enqueue(ColumnLayout.Formula);
-
-        // [WHEN] Invoke drill down on Acc. Schedule Line from Acc. Schedule Overview page (AccScheduleLineRowFormulaMessageHandler handler).
-        AccSchedManagement.DrillDownFromOverviewPage(ColumnLayout, AccScheduleLine, PeriodType::Year);
-
-        // [THEN] The message prints formula from column layout.
-        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -3064,6 +3035,35 @@
 
         // [THEN] Verify that the Currency appears only once in the export
         VerifyTextValueAppearsOnce('Currency');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure ExportAccScheduleToExcelWithEmptyLCYCode()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        DimensionValue: array[4] of Record "Dimension Value";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        // [FEATURE] [Excel]
+        // [SCENARIO 650415] Account Schedule can be exported to Excel when the LCY Code is blank
+        Initialize();
+
+        // [GIVEN] LCY Code is blank
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := '';
+        GeneralLedgerSetup.Modify();
+
+        // [GIVEN] An Account Schedule
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryReportValidation.SetFileName(AccScheduleName.Name);
+
+        // [WHEN] Export Account Schedule to Excel
+        RunExportAccScheduleToExcel(AccScheduleName, DimensionValue);
+
+        // [THEN] Excel file is exported without error
+        Assert.IsTrue(FILE.Exists(LibraryReportValidation.GetFileName()), AccScheduleExportErr);
     end;
 
     local procedure Initialize()

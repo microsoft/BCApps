@@ -27,7 +27,6 @@ codeunit 30166 "Shpfy Process Order"
     var
         ShopifyShop: Record "Shpfy Shop";
         OrderEvents: Codeunit "Shpfy Order Events";
-        OrderMgt: Codeunit "Shpfy Order Mgt.";
         LastCreatedDocumentId: Guid;
 
     trigger OnRun()
@@ -64,10 +63,11 @@ codeunit 30166 "Shpfy Process Order"
     /// <param name="ShopifyOrderHeader">Parameter of type Record "Shopify Order Header".</param>
     internal procedure CreateHeaderFromShopifyOrder(var SalesHeader: Record "Sales Header"; ShopifyOrderHeader: Record "Shpfy Order Header")
     var
-        ShopifyTaxArea: Record "Shpfy Tax Area";
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
         OrdersAPI: Codeunit "Shpfy Orders API";
         BCDocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
+        OrderMgt: Codeunit "Shpfy Order Mgt.";
         InvalidCharTok: Label '@', Locked = true;
         InvalidShopifyOrderErr: Label '%1 cannot start with %2.', Comment = '%1 = Shopify Order No. field caption, %2 = Invalid Character';
         IsHandled: Boolean;
@@ -133,8 +133,15 @@ codeunit 30166 "Shpfy Process Order"
             SalesHeader.Validate("External Document No.", ShopifyOrderHeader."PO Number");
             if ShopifyOrderHeader."Due Date" <> 0D then
                 SalesHeader.Validate("Due Date", ShopifyOrderHeader."Due Date");
-            if OrderMgt.FindTaxArea(ShopifyOrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then
-                SalesHeader.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
+            if ShopifyOrderHeader."Tax Area Code" <> '' then begin
+                SalesHeader.Validate("Tax Area Code", ShopifyOrderHeader."Tax Area Code");
+                SalesHeader.Validate("Tax Liable", ShopifyOrderHeader."Tax Liable");
+            end else
+                if OrderMgt.FindTaxArea(ShopifyOrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then begin
+                    SalesHeader.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
+                    if not ShopifyOrderHeader."Tax Exempt" then
+                        SalesHeader.Validate("Tax Liable", ShopifyTaxArea."Tax Liable");
+                end;
             if ShopifyOrderHeader."Shipping Method Code" <> '' then
                 SalesHeader.Validate("Shipment Method Code", ShopifyOrderHeader."Shipping Method Code");
             if ShopifyOrderHeader."Shipping Agent Code" <> '' then begin
@@ -516,9 +523,12 @@ codeunit 30166 "Shpfy Process Order"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnInsertShipmentHeaderOnAfterTransferfieldsToSalesShptHeader', '', false, false)]
-    local procedure TransferShopifyOrderNoToShipmentHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header")
+    local procedure TransferShopifyValuesToShipmentHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header")
     begin
         SalesShptHeader."Shpfy Order No." := SalesHeader."Shpfy Order No.";
+        // Refund and fulfillment IDs share field 30103 across the source and posted headers.
+        if (SalesHeader."Shpfy Refund Id" <> 0) and (SalesShptHeader."Shpfy Fulfillment Id" = SalesHeader."Shpfy Refund Id") then
+            Clear(SalesShptHeader."Shpfy Fulfillment Id");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnBeforeSalesLineInsert', '', false, false)]
@@ -530,6 +540,5 @@ codeunit 30166 "Shpfy Process Order"
         SalesLine."Shpfy Refund Line Id" := TempSalesLine."Shpfy Refund Line Id";
     end;
 }
-
 
 

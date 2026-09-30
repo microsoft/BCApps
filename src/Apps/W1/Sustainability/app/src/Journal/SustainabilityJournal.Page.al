@@ -122,6 +122,7 @@ page 6219 "Sustainability Journal"
                         DimMgt: Codeunit DimensionManagement;
                     begin
                         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
+                        SetFormulaInputEditability();
                         CurrPage.Update();
                     end;
                 }
@@ -150,6 +151,11 @@ page 6219 "Sustainability Journal"
                 field("Manual Input"; Rec."Manual Input")
                 {
                     ToolTip = 'Specifies whether the amounts will be input manually.';
+
+                    trigger OnValidate()
+                    begin
+                        SetFormulaInputEditability();
+                    end;
                 }
                 field("Renewable Energy"; Rec."Renewable Energy")
                 {
@@ -166,7 +172,7 @@ page 6219 "Sustainability Journal"
                 }
                 field("Fuel/Electricity"; Rec."Fuel/Electricity")
                 {
-                    Editable = not Rec."Manual Input";
+                    Editable = FuelElectricityEditable;
                     ToolTip = 'Specifies the fuel or electricity of the journal line.';
                     trigger OnValidate()
                     begin
@@ -175,7 +181,7 @@ page 6219 "Sustainability Journal"
                 }
                 field(Distance; Rec.Distance)
                 {
-                    Editable = not Rec."Manual Input";
+                    Editable = DistanceEditable;
                     ToolTip = 'Specifies the distance of the journal line.';
                     trigger OnValidate()
                     begin
@@ -184,7 +190,7 @@ page 6219 "Sustainability Journal"
                 }
                 field("Custom Amount"; Rec."Custom Amount")
                 {
-                    Editable = not Rec."Manual Input";
+                    Editable = CustomAmountEditable;
                     ToolTip = 'Specifies the custom amount of the journal line.';
                     trigger OnValidate()
                     begin
@@ -193,12 +199,12 @@ page 6219 "Sustainability Journal"
                 }
                 field("Installation Multiplier"; Rec."Installation Multiplier")
                 {
-                    Editable = not Rec."Manual Input";
+                    Editable = InstallationMultiplierEditable;
                     ToolTip = 'Specifies the installation multiplier of the journal line.';
                 }
                 field("Time Factor"; Rec."Time Factor")
                 {
-                    Editable = not Rec."Manual Input";
+                    Editable = TimeFactorEditable;
                     ToolTip = 'Specifies the time factor of the journal line.';
                 }
                 field("Emission CO2"; Rec."Emission CO2")
@@ -698,10 +704,13 @@ page 6219 "Sustainability Journal"
 
     var
         SustApprovalMgmt: Codeunit "Sust. Approvals Mgmt.";
+        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
         CurrentJournalBatchName: Code[10];
         ShortcutDimCode: array[8] of Code[20];
         DimVisible1, DimVisible2, DimVisible3, DimVisible4, DimVisible5, DimVisible6, DimVisible7, DimVisible8 : Boolean;
         IsRecurringView, EnableWater, EnableWaste : Boolean;
+        FuelElectricityEditable, DistanceEditable, CustomAmountEditable : Boolean;
+        InstallationMultiplierEditable, TimeFactorEditable : Boolean;
         OpenApprovalEntriesOnBatchOrAnyJnlLineExist: Boolean;
         EnabledSustJnlBatchWorkflowsExist: Boolean;
         ShowWorkflowStatusOnBatch: Boolean;
@@ -729,12 +738,14 @@ page 6219 "Sustainability Journal"
     begin
         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
         InitializeAndEnableIntensityControl();
+        SetFormulaInputEditability();
         SetControlAppearanceFromBatch();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         InitializeAndEnableIntensityControl();
+        SetFormulaInputEditability();
         SetControlAppearanceFromBatch();
 
         SustApprovalMgmt.GetSustJnlBatchApprovalStatus(Rec, SustJnlBatchApprovalStatus, EnabledSustJnlBatchWorkflowsExist);
@@ -811,6 +822,11 @@ page 6219 "Sustainability Journal"
     begin
         EnableWater := false;
         EnableWaste := false;
+    end;
+
+    local procedure SetFormulaInputEditability()
+    begin
+        SustainabilityCalcMgt.GetFormulaInputEditability(Rec, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
     end;
 
     local procedure SetControlAppearanceFromBatch()

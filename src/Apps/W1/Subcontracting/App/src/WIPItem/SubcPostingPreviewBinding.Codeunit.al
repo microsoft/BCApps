@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Finance.GeneralLedger.Preview;
 
-codeunit 99001565 "Subc. Posting Preview Binding"
+codeunit 20565 "Subc. Posting Preview Binding"
 {
 #if not CLEAN29
     var
