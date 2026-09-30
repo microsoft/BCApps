@@ -33,9 +33,9 @@ report 99001020 "Carry Out Action Msg. - Plan."
                 if not "Accept Action Message" then
                     CurrReport.Skip();
 
-                    Commit();
+                Commit();
                 RunCarryOutActionsByRefOrderType("Requisition Line");
-                    Commit();
+                Commit();
 
                 OnAfterRequisitionLineOnAfterGetRecord("Requisition Line", ProdOrderChoice.AsInteger());
             end;
