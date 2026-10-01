@@ -21,7 +21,7 @@ page 8377 "MCP Data Query Billing"
             label(BillingNotice)
             {
                 ApplicationArea = All;
-                Caption = 'Starting December 1, 2026, use of Data Query Tools will incur additional charges. By activating Data Query Tools, you acknowledge that charges will apply according to the applicable pricing and terms.';
+                Caption = 'Use of Data Query Tools will incur additional charges. By activating Data Query Tools, you acknowledge that charges will apply according to the applicable pricing and terms. Choose Learn more for details.';
                 MultiLine = true;
                 ShowCaption = false;
             }
