@@ -1,8 +1,9 @@
 namespace Microsoft.FabricExport;
 
+using System.Apps;
 using System.Fabric;
 using System.Reflection;
-using System.Text;
+using System.Security.Authentication;
 
 codeunit 48535 "Fabric Table Validation"
 {
@@ -78,7 +79,7 @@ codeunit 48535 "Fabric Table Validation"
     local procedure IsRestrictedTable(TableId: Integer): Boolean
     begin
         // Tenant Application Storage, Token Cache, AI Consumption Log Entry, Agent Data.
-        exit(TableId in [2000000239, 2000000197, 2000000147, 2000000258]);
+        exit(TableId in [Database::"Token Cache", Database::"Tenant Application Storage", 2000000147, 2000000258]);
     end;
 
     local procedure AppendRange(var FilterBuilder: TextBuilder; FromId: Integer; ToId: Integer)
