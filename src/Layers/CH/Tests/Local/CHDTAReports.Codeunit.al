@@ -915,7 +915,7 @@
         EmployeePaymentAmount: Decimal;
         VendorPaymentAmount: Decimal;
     begin
-        // [SCENARIO 650329] Vendor and employee payments are included in the DTA Payment Journal.
+        // [SCENARIO 650708] Vendor and employee payments are included in the DTA Payment Journal.
         Initialize();
 
         // [GIVEN] Random employee and vendor payment amounts.
@@ -952,9 +952,15 @@
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('AccountNo_GenJournalLine', Vendor."No.");
         LibraryReportDataset.AssertElementWithValueExists('VendorName', Vendor.Name);
+        LibraryReportDataset.AssertElementWithValueExists('VendorBankAccountPaymentForm', Format(VendorBankAccount."Payment Form"));
         LibraryReportDataset.AssertElementWithValueExists('AccountNo_GenJournalLine', Employee."No.");
         LibraryReportDataset.AssertElementWithValueExists('VendorName', Employee.FullName());
         LibraryReportDataset.AssertElementWithValueExists('xAcc', Employee.GetBankAccountNo());
+
+        // [THEN] The employee row has no vendor payment type.
+        LibraryReportDataset.SetRange('AccountNo_GenJournalLine', Employee."No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('VendorBankAccountPaymentForm', '');
 
         LibraryVariableStorage.AssertEmpty();
     end;

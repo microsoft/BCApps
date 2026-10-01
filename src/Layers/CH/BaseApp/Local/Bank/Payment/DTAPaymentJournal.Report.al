@@ -36,6 +36,9 @@ report 3010545 "DTA Payment Journal"
             column(intLayout; intLayout)
             {
             }
+            column(AccountType_GenJournalLine; "Account Type")
+            {
+            }
             column(AccountNo_GenJournalLine; "Account No.")
             {
             }
@@ -78,10 +81,8 @@ report 3010545 "DTA Payment Journal"
             column(PmtToleranceAmount; PmtToleranceAmount)
             {
             }
-            column(VendorBankAccountPaymentForm; VendorBankAccount."Payment Form")
+            column(VendorBankAccountPaymentForm; PaymentFormTxt)
             {
-                OptionCaption = 'ESR,ESR+,Post Payment Domestic,Bank Payment Domestic,Cash Outpayment Order Domestic,Post Payment Abroad,Bank Payment Abroad,SWIFT Payment Abroad,Cash Outpayment Order Abroad';
-                OptionMembers = ESR,"ESR+","Post Payment Domestic","Bank Payment Domestic","Cash Outpayment Order Domestic","Post Payment Abroad","Bank Payment Abroad","SWIFT Payment Abroad","Cash Outpayment Order Abroad";
             }
             column(xAcc; xAcc)
             {
@@ -218,7 +219,8 @@ report 3010545 "DTA Payment Journal"
                 if ("Account No." = '') and (Amount = 0) then
                     CurrReport.Skip();
 
-                if oldAccNo <> "Account No." then begin
+                if (oldAccType <> "Account Type") or (oldAccNo <> "Account No.") then begin
+                    oldAccType := "Account Type";
                     oldAccNo := "Account No.";
                     NoOfLinesPerVendor := 0;
                 end;
@@ -234,6 +236,7 @@ report 3010545 "DTA Payment Journal"
                 xTxt := '';
                 xAcc := '';
                 AccountName := '';
+                PaymentFormTxt := '';
                 Clear(VendorLedgerEntry);
                 Clear(VendorBankAccount);
                 Clear(Employee);
@@ -257,13 +260,12 @@ report 3010545 "DTA Payment Journal"
                                 VendorLedgerEntry.SetRange("Document Type", "Applies-to Doc. Type");
                                 VendorLedgerEntry.SetRange("Document No.", "Applies-to Doc. No.");
                                 VendorLedgerEntry.SetRange("Vendor No.", "Account No.");
+                                VendorLedgerEntry.SetAutoCalcFields("Remaining Amount");
                                 if not VendorLedgerEntry.FindFirst() then
                                     xTxt := Text001Err
                                 else begin
                                     if not VendorLedgerEntry.Open then
                                         xTxt := Text002Err;
-
-                                    VendorLedgerEntry.CalcFields("Remaining Amount");
 
                                     // Calc day for age, due date and cash disc.
                                     if VendorLedgerEntry."Posting Date" > 0D then
@@ -308,6 +310,7 @@ report 3010545 "DTA Payment Journal"
                             else
                                 if not VendorBankAccount.Get("Account No.", "Recipient Bank Account") then
                                     xTxt := Text004Err;
+                            PaymentFormTxt := Format(VendorBankAccount."Payment Form");
                             if xTxt = '' then
                                 case VendorBankAccount."Payment Form" of
                                     VendorBankAccount."Payment Form"::ESR, VendorBankAccount."Payment Form"::"ESR+":
@@ -317,31 +320,31 @@ report 3010545 "DTA Payment Journal"
                                         end;
                                     VendorBankAccount."Payment Form"::"Post Payment Domestic":
                                         if VendorBankAccount.IBAN <> '' then
-                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                            xAcc := GetPureIBAN(VendorBankAccount.IBAN)
                                         else
                                             xAcc := VendorBankAccount."Giro Account No.";
                                     VendorBankAccount."Payment Form"::"Bank Payment Domestic":
                                         if VendorBankAccount.IBAN <> '' then
-                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                            xAcc := GetPureIBAN(VendorBankAccount.IBAN)
                                         else begin
                                             xTxt := VendorBankAccount."Clearing No.";
                                             xAcc := VendorBankAccount."Bank Account No.";
                                         end;
                                     VendorBankAccount."Payment Form"::"Post Payment Abroad":
                                         if VendorBankAccount.IBAN <> '' then
-                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                            xAcc := GetPureIBAN(VendorBankAccount.IBAN)
                                         else
                                             xAcc := VendorBankAccount."Bank Account No.";
                                     VendorBankAccount."Payment Form"::"Bank Payment Abroad":
                                         if VendorBankAccount.IBAN <> '' then
-                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                            xAcc := GetPureIBAN(VendorBankAccount.IBAN)
                                         else begin
                                             xTxt := VendorBankAccount."Bank Identifier Code";
                                             xAcc := VendorBankAccount."Bank Account No.";
                                         end;
                                     VendorBankAccount."Payment Form"::"SWIFT Payment Abroad":
                                         if VendorBankAccount.IBAN <> '' then
-                                            xAcc := DTAMgt.IBANDELCHR(VendorBankAccount.IBAN)
+                                            xAcc := GetPureIBAN(VendorBankAccount.IBAN)
                                         else begin
                                             xTxt := VendorBankAccount."SWIFT Code";
                                             xAcc := VendorBankAccount."Bank Account No.";
@@ -356,7 +359,10 @@ report 3010545 "DTA Payment Journal"
 
                 NoOfLinesPerVendor := NoOfLinesPerVendor + 1;
                 if NoOfLinesPerVendor > 1 then
-                    TotalVendorTxt := Text005Msg + ' ' + "Account No." + ' ' + AccountName;
+                    if "Account Type" = "Account Type"::Employee then
+                        TotalVendorTxt := CopyStr(TotalEmployeeMsg + ' ' + "Account No." + ' ' + AccountName, 1, MaxStrLen(TotalVendorTxt))
+                    else
+                        TotalVendorTxt := CopyStr(Text005Msg + ' ' + "Account No." + ' ' + AccountName, 1, MaxStrLen(TotalVendorTxt));
             end;
 
             trigger OnPreDataItem()
@@ -366,6 +372,7 @@ report 3010545 "DTA Payment Journal"
 
                 intLayout := Layout;
                 oldAccNo := '';
+                Clear(oldAccType);
             end;
         }
     }
@@ -406,6 +413,14 @@ report 3010545 "DTA Payment Journal"
         GLSetup.Get();
     end;
 
+    local procedure GetPureIBAN(IBAN: Code[50]): Code[37]
+    var
+        ShortIBAN: Code[37];
+    begin
+        ShortIBAN := CopyStr(DelChr(IBAN, '=', ' :'), 1, MaxStrLen(ShortIBAN));
+        exit(DTAMgt.IBANDELCHR(ShortIBAN));
+    end;
+
     var
         Text000Err: Label 'No application number';
         Text001Err: Label 'Vendor entry not found';
@@ -413,6 +428,7 @@ report 3010545 "DTA Payment Journal"
         Text003Err: Label 'Bankcode not defined';
         Text004Err: Label 'Vendor bank not found';
         Text005Msg: Label 'Total vendor';
+        TotalEmployeeMsg: Label 'Total employee';
         Text006Msg: Label 'Total bank';
         Text007Lbl: Label 'Total Payment in %1';
         Text008Lbl: Label 'Largest Amount in %1';
@@ -440,7 +456,9 @@ report 3010545 "DTA Payment Journal"
         RestAfterPmt: Decimal;
         intLayout: Integer;
         oldAccNo: Code[20];
+        oldAccType: Enum "Gen. Journal Account Type";
         AccountName: Text[100];
+        PaymentFormTxt: Text;
         BatchNameCaptionLbl: Label 'Batch Name';
         PageCaptionLbl: Label 'Page';
         DTAPaymentJournalCaptionLbl: Label 'DTA - Payment Journal';
@@ -448,7 +466,7 @@ report 3010545 "DTA Payment Journal"
         AgeCaptionLbl: Label 'Age';
         PossCaptionLbl: Label 'Poss.';
         DeduCaptionLbl: Label 'Dedu.';
-        VendorCaptionLbl: Label 'Vendor';
+        VendorCaptionLbl: Label 'Vendor/Employee';
         CashDiscCaptionLbl: Label 'Cash Disc.';
         BeforePmtCaptionLbl: Label 'before Pmt.';
         RestAfterPmtCaptionLbl: Label 'after Pmt.';
@@ -464,7 +482,7 @@ report 3010545 "DTA Payment Journal"
         AccountCaptionLbl: Label 'Account';
         DebitBankCaptionLbl: Label 'Debit Bank';
         ExternalDocumentCaptionLbl: Label 'Ext. Doc.';
-        VendorBankCaptionLbl: Label 'Vendor Bank';
+        VendorBankCaptionLbl: Label 'Recipient Bank';
         NoOfPaymentsCaptionLbl: Label 'No. of payments';
         PostingDateCaptionLbl: Label 'Posting Date';
 }
