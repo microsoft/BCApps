@@ -6984,7 +6984,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
 
     [Test]
     [HandlerFunctions('ReceiveAndInvoiceSalesReturnOrderStrMenuHandler')]
-    procedure VerifyQtyToShipNotClearedAfterPostingSalesReturnOrder()
+    procedure VerifyQtyToShipNotClearedAfterPostingSalesReturnOrderWhenRestoreQtyEnabled()
     var
         Customer: Record Customer;
         Item: Record Item;
@@ -7032,7 +7032,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
 
     [Test]
     [HandlerFunctions('ReceiveAndInvoiceSalesReturnOrderStrMenuHandler')]
-    procedure VerifyQtyToShipNotRestoredAfterPostingSalesReturnOrderWhenRestoreDisabled()
+    procedure VerifyQtyToShipNotRestoredAfterPostingSalesReturnOrderWhenRestoreQtyDisabled()
     var
         Customer: Record Customer;
         Item: Record Item;
@@ -7075,7 +7075,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
     end;
 
     [Test]
-    procedure SalesOrderCanBePostedAgainAfterSalesReturnRestoresQuantity()
+    procedure SalesOrderCanBePostedAgainAfterSalesReturnRestoresQuantityWhenRestoreQtyEnabled()
     var
         Customer: Record Customer;
         Item: Record Item;
@@ -7091,14 +7091,17 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         Initialize();
         SetRestoreOrderQtyOnReturn(true);
 
-        // [GIVEN] A sales order with one fully shipped and invoiced line and one open line.
+        // [GIVEN] A sales order with one partially shipped and invoiced line and one open line.
         LibrarySales.CreateCustomer(Customer);
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItem(Item2);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
         SalesOrderNo := SalesHeader."No.";
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
         SalesOrderLineNo := SalesLine."Line No.";
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Validate("Qty. to Invoice", 1);
+        SalesLine.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", 1);
         SalesLine.Validate("Qty. to Ship", 0);
         SalesLine.Validate("Qty. to Invoice", 0);
@@ -7113,18 +7116,22 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
 
         // [THEN] The originating sales order quantities are restored.
-        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 0, 0, 1, 1);
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 0, 0, 2, 2);
 
-        // [WHEN] The restored quantity is shipped and invoiced from the originating sales order.
+        // [WHEN] Part of the restored quantity is shipped and invoiced from the originating sales order.
         SalesHeader.Get(SalesHeader."Document Type"::Order, SalesOrderNo);
+        SalesLine.Get(SalesLine."Document Type"::Order, SalesOrderNo, SalesOrderLineNo);
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Validate("Qty. to Invoice", 1);
+        SalesLine.Modify(true);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        // [THEN] The originating sales order line is fully shipped and invoiced again.
-        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 0, 0);
+        // [THEN] The originating sales order line is shipped and invoiced again.
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 1, 1);
     end;
 
     [Test]
-    procedure SalesOrderQuantityRestoredOnlyForReturnsPostedWhileRestoreEnabled()
+    procedure SalesOrderQuantityRestoredOnlyForReturnsPostedWhenRestoreQtyEnabled()
     var
         Customer: Record Customer;
         Item: Record Item;
@@ -7140,7 +7147,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         Initialize();
         SetRestoreOrderQtyOnReturn(true);
 
-        // [GIVEN] A sales order with Quantity 2 fully shipped and invoiced while another line keeps the order open.
+        // [GIVEN] A sales order with Quantity 2 partially shipped and invoiced while another line keeps the order open.
         LibrarySales.CreateCustomer(Customer);
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItem(Item2);
@@ -7148,6 +7155,9 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesOrderNo := SalesHeader."No.";
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
         SalesOrderLineNo := SalesLine."Line No.";
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Validate("Qty. to Invoice", 1);
+        SalesLine.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", 1);
         SalesLine.Validate("Qty. to Ship", 0);
         SalesLine.Validate("Qty. to Invoice", 0);
@@ -7160,7 +7170,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
 
         // [THEN] Quantity 1 is restored to the originating sales order.
-        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 1, 1);
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 0, 0, 2, 2);
 
         // [GIVEN] Restoring order quantities is disabled for a second return against the same sales order.
         SetRestoreOrderQtyOnReturn(false);

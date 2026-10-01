@@ -1070,7 +1070,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure CheckCorrectiveCreditMemoConfirmDialogOnPostedPurchaseInv()
+    procedure CheckCorrectiveCreditMemoConfirmDialogOnPostedPurchaseInvWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseHeaderOrder: Record "Purchase Header";
@@ -1110,7 +1110,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
     end;
 
     [Test]
-    procedure CheckCorrectiveCreditMemoConfirmDialogNotShownWhenRestoreDisabled()
+    procedure CheckCorrectiveCreditMemoConfirmDialogNotShownWhenRestoreQtyDisabled()
     var
         Item: Record Item;
         PurchaseHeaderOrder: Record "Purchase Header";
@@ -1141,7 +1141,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
     end;
 
     [Test]
-    procedure CancelInvoiceFromGetReceiptLinesWithPrepaymentRevertsOrderLine()
+    procedure CancelInvoiceFromGetReceiptLinesWithPrepaymentRevertsOrderLineWhenRestoreQtyEnabled()
     var
         GeneralPostingSetup: Record "General Posting Setup";
         Item: Record Item;

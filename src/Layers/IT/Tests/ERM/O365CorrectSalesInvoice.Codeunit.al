@@ -1437,7 +1437,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectPartialInvoicePostedFromOrder()
+    procedure CorrectPartialInvoicePostedFromOrderWhenRestoreQtyEnabled()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -1478,7 +1478,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectPartialInvoicePostedFromOrderDoesNotRestoreQuantitiesWhenDisabled()
+    procedure CorrectPartialInvoicePostedFromOrderDoesNotRestoreQuantitiesWhenRestoreQtyDisabled()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -1520,7 +1520,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectInvoicePostedFromTwoShipmentsOfSingleOrder()
+    procedure CorrectInvoicePostedFromTwoShipmentsOfSingleOrderWhenRestoreQtyEnabled()
     var
         SalesHeaderOrder: Record "Sales Header";
 
@@ -1587,7 +1587,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectInvoicePostedFromTwoShipmentsOfTwoOrders()
+    procedure CorrectInvoicePostedFromTwoShipmentsOfTwoOrdersWhenRestoreQtyEnabled()
     var
         SalesHeaderOrder: array[2] of Record "Sales Header";
         SalesLineOrder: array[2] of Record "Sales Line";

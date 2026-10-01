@@ -1526,7 +1526,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectPartialInvoicePostedFromOrder()
+    procedure CorrectPartialInvoicePostedFromOrderWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1567,7 +1567,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectPartialInvoicePostedFromOrderDoesNotRestoreQuantitiesWhenDisabled()
+    procedure CorrectPartialInvoicePostedFromOrderDoesNotRestoreQuantitiesWhenRestoreQtyDisabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1609,7 +1609,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectInvoicePostedFromTwoShipmentsOfSingleOrder()
+    procedure CorrectInvoicePostedFromTwoShipmentsOfSingleOrderWhenRestoreQtyEnabled()
     var
         PurchaseHeaderOrder: Record "Purchase Header";
         PurchaseLineOrder: array[2] of Record "Purchase Line";
@@ -1674,7 +1674,8 @@ codeunit 138025 "O365 Correct Purchase Invoice"
     end;
 
     [Test]
-    procedure CorrectInvoicePostedFromTwoShipmentsOfTwoOrders()
+    [HandlerFunctions('ConfirmHandlerVerify')]
+    procedure CorrectInvoicePostedFromTwoShipmentsOfTwoOrdersWhenRestoreQtyEnabled()
     var
         PurchaseHeaderOrder: array[2] of Record "Purchase Header";
         PurchaseLineOrder: array[2] of Record "Purchase Line";
@@ -1875,7 +1876,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     [Scope('OnPrem')]
-    procedure CorrectiveCreditMemoQtyIncreaseBlockedForOrderBasedServiceItem()
+    procedure CorrectiveCreditMemoQtyIncreaseBlockedForOrderBasedServiceItemWhenRestoreQtyEnabled()
     var
         Vendor: Record Vendor;
         Item: Record Item;

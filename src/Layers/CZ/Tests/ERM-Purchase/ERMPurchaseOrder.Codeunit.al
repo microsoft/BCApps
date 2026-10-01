@@ -8507,7 +8507,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterPartialCorrectPostedPurchaseInvoice()
+    procedure VerifyPurchaseOrderUpdatedAfterPartialCorrectPostedPurchaseInvoiceWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8560,7 +8560,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderNotUpdatedAfterPartialCorrectPostedPurchaseInvoiceWhenRestoreDisabled()
+    procedure VerifyPurchaseOrderNotUpdatedAfterPartialCorrectPostedPurchaseInvoiceWhenRestoreQtyDisabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8610,7 +8610,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceDifferentQuantity()
+    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceDifferentQuantityWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8670,7 +8670,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceApplyEntries()
+    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceApplyEntriesWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8971,7 +8971,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyQuantityToReceiveOnPurchOrderUpdatedWithGLAccountWithCorrectiveCreditMemo()
+    procedure VerifyQuantityToReceiveOnPurchOrderUpdatedWithGLAccountWithCorrectiveCreditMemoWhenRestoreQtyEnabled()
     var
         GLAccount: Record "G/L Account";
         PurchaseHeader: Record "Purchase Header";
@@ -9051,7 +9051,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseCrMemoUpdateExistingPurchaseOrderForNonInventoryAndServiceItem()
+    procedure VerifyPurchaseCrMemoUpdateExistingPurchaseOrderForNonInventoryAndServiceItemWhenRestoreQtyEnabled()
     var
         FromPurchInvLine: Record "Purch. Inv. Line";
         NonInvItem: Record Item;
@@ -9279,7 +9279,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure PurchOrderQuantitiesRetainedAfterPostingCopyDocumentCreditMemoForInventoryItem()
+    procedure PurchOrderQuantitiesRetainedAfterPostingCopyDocumentCreditMemoForInventoryItemWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseHeaderOrder: Record "Purchase Header";

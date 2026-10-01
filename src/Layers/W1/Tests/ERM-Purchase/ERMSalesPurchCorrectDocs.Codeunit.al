@@ -277,7 +277,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CancelMadeFromOrderSalesInvoiceWithOrder()
+    procedure CancelMadeFromOrderSalesInvoiceWithOrderWhenRestoreQtyEnabled()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -310,7 +310,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CancelSalesInvoiceDoesNotRestoreOrderQuantitiesWhenRestoreDisabled()
+    procedure CancelSalesInvoiceDoesNotRestoreOrderQuantitiesWhenRestoreQtyDisabled()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -340,7 +340,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     [Test]
     [HandlerFunctions('GetShipmentLinesHandler')]
     [Scope('OnPrem')]
-    procedure CancelMadeFromShipmentSalesInvoiceWithOrder()
+    procedure CancelMadeFromShipmentSalesInvoiceWithOrderWhenRestoreQtyEnabled()
     var
         SalesHeader: array[2] of Record "Sales Header";
         SalesLine: array[2] of Record "Sales Line";
@@ -376,7 +376,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CancelMadeFromOrderPurchaseInvoiceWithOrder()
+    procedure CancelMadeFromOrderPurchaseInvoiceWithOrderWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -409,7 +409,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CancelPurchaseInvoiceDoesNotRestoreOrderQuantitiesWhenRestoreDisabled()
+    procedure CancelPurchaseInvoiceDoesNotRestoreOrderQuantitiesWhenRestoreQtyDisabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -439,7 +439,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure UndoShipmentAfterCancelMadeFromOrderSalesInvoiceWithOrder()
+    procedure UndoShipmentAfterCancelMadeFromOrderSalesInvoiceWithOrderWhenRestoreQtyEnabled()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -483,7 +483,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('GetShipmentLinesHandler,ConfirmHandlerYes')]
-    procedure UndoShipmentAfterCancelMadeFromShipmentSalesInvoiceWithOrder()
+    procedure UndoShipmentAfterCancelMadeFromShipmentSalesInvoiceWithOrderWhenRestoreQtyEnabled()
     var
         SalesHeader: array[2] of Record "Sales Header";
         SalesLine: array[2] of Record "Sales Line";
@@ -535,7 +535,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure UndoReceiveAfterCancelMadeFromOrderPurchaseInvoiceWithOrder()
+    procedure UndoReceiveAfterCancelMadeFromOrderPurchaseInvoiceWithOrderWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -579,7 +579,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('ConfirmHandlerYes,ItemTrackingLinesPageHandler')]
-    procedure ItemTrackingUndoReceiveAfterCancelMadeFromOrderPurchaseInvoiceWithOrder()
+    procedure ItemTrackingUndoReceiveAfterCancelMadeFromOrderPurchaseInvoiceWithOrderWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -863,7 +863,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure UndoReceiveAfterCancelPurchaseInvoiceWithResource()
+    procedure UndoReceiveAfterCancelPurchaseInvoiceWithResourceWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -915,7 +915,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure UndoShipmentAfterCancelSalesInvoiceWithGLAccount()
+    procedure UndoShipmentAfterCancelSalesInvoiceWithGLAccountWhenRestoreQtyEnabled()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";

@@ -8561,7 +8561,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterPartialCorrectPostedPurchaseInvoice()
+    procedure VerifyPurchaseOrderUpdatedAfterPartialCorrectPostedPurchaseInvoiceWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8614,7 +8614,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderNotUpdatedAfterPartialCorrectPostedPurchaseInvoiceWhenRestoreDisabled()
+    procedure VerifyPurchaseOrderNotUpdatedAfterPartialCorrectPostedPurchaseInvoiceWhenRestoreQtyDisabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8664,7 +8664,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceDifferentQuantity()
+    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceDifferentQuantityWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8724,7 +8724,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceApplyEntries()
+    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceApplyEntriesWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -9025,7 +9025,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyQuantityToReceiveOnPurchOrderUpdatedWithGLAccountWithCorrectiveCreditMemo()
+    procedure VerifyQuantityToReceiveOnPurchOrderUpdatedWithGLAccountWithCorrectiveCreditMemoWhenRestoreQtyEnabled()
     var
         GLAccount: Record "G/L Account";
         PurchaseHeader: Record "Purchase Header";
@@ -9105,7 +9105,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseCrMemoUpdateExistingPurchaseOrderForNonInventoryAndServiceItem()
+    procedure VerifyPurchaseCrMemoUpdateExistingPurchaseOrderForNonInventoryAndServiceItemWhenRestoreQtyEnabled()
     var
         FromPurchInvLine: Record "Purch. Inv. Line";
         NonInvItem: Record Item;
@@ -9395,7 +9395,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure PurchOrderQuantitiesRetainedAfterPostingCopyDocumentCreditMemoForInventoryItem()
+    procedure PurchOrderQuantitiesRetainedAfterPostingCopyDocumentCreditMemoForInventoryItemWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseHeaderOrder: Record "Purchase Header";

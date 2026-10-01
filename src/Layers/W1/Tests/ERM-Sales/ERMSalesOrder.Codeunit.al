@@ -5496,7 +5496,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifySalesOrderUpdatedAfterPartialCorrectPostedSalesInvoice()
+    procedure VerifySalesOrderUpdatedAfterPartialCorrectPostedSalesInvoiceWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         SalesLine: Record "Sales Line";
@@ -5549,7 +5549,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifySalesOrderNotUpdatedAfterPartialCorrectPostedSalesInvoiceWhenRestoreDisabled()
+    procedure VerifySalesOrderNotUpdatedAfterPartialCorrectPostedSalesInvoiceWhenRestoreQtyDisabled()
     var
         Item: Record Item;
         SalesLine: Record "Sales Line";
@@ -5593,7 +5593,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceDifferentQuantity()
+    procedure VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceDifferentQuantityWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         SalesLine: Record "Sales Line";
@@ -5653,7 +5653,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceApplyEntries()
+    procedure VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceApplyEntriesWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         SalesLine: Record "Sales Line";
@@ -5706,7 +5706,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes,PostedSalesDocumentLinesHandler')]
-    procedure VerifyManuallyCreatedSalesCrMemoUpdateExistingSalesOrder()
+    procedure VerifyManuallyCreatedSalesCrMemoUpdateExistingSalesOrderWhenRestoreQtyEnabled()
     var
         Customer: Record Customer;
         Item: Record Item;
@@ -5756,7 +5756,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerMessage')]
-    procedure MessageAddedUndoShipmentCreatesNegativeLineSalesShipmentWhenUndoneCancelledSalesInvoice()
+    procedure MessageAddedUndoShipmentCreatesNegativeLineSalesShipmentWhenUndoneCancelledSalesInvoiceWhenRestoreQtyEnabled()
     var
         // SalesReceivablesSetup: Record "Sales & Receivables Setup";
         SalesHeader: array[2] of Record "Sales Header";
@@ -5850,7 +5850,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifyQuantityToShipOnSalesOrderUpdatedWithGLAccountWithCorrectiveCreditMemo()
+    procedure VerifyQuantityToShipOnSalesOrderUpdatedWithGLAccountWithCorrectiveCreditMemoWhenRestoreQtyEnabled()
     var
         Customer: Record Customer;
         GLAccount: Record "G/L Account";

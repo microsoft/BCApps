@@ -1176,7 +1176,7 @@ codeunit 137019 "SCM Correct Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure CheckCorrectiveCreditMemoConfirmDialogOnPostedSalesInv()
+    procedure CheckCorrectiveCreditMemoConfirmDialogOnPostedSalesInvWhenRestoreQtyEnabled()
     var
         Cust: Record Customer;
         Item: Record Item;
@@ -1216,7 +1216,7 @@ codeunit 137019 "SCM Correct Invoice"
     end;
 
     [Test]
-    procedure CheckCorrectiveCreditMemoConfirmDialogNotShownWhenRestoreDisabled()
+    procedure CheckCorrectiveCreditMemoConfirmDialogNotShownWhenRestoreQtyDisabled()
     var
         Cust: Record Customer;
         Item: Record Item;
@@ -1296,7 +1296,7 @@ codeunit 137019 "SCM Correct Invoice"
     end;
 
     [Test]
-    procedure PostCrMemoCopyDocWithModifiedQtyUpdatesCorrectSalesOrderLine()
+    procedure PostCrMemoCopyDocWithModifiedQtyUpdatesCorrectSalesOrderLineWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         Customer: Record Customer;
@@ -1367,7 +1367,7 @@ codeunit 137019 "SCM Correct Invoice"
     end;
 
     [Test]
-    procedure PostCrMemoCopyDocRevertsCorrectOrderLinesForSameItemAcrossOrders()
+    procedure PostCrMemoCopyDocRevertsCorrectOrderLinesForSameItemAcrossOrdersWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         Customer: Record Customer;
