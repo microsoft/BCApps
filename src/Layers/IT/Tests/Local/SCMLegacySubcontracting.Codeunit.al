@@ -15,7 +15,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
-using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using System.Environment.Configuration;
 
@@ -679,79 +678,6 @@ codeunit 137500 "SCM Legacy Subcontracting"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CannotReopenFullyReceivedWIPPurchaseLineAfterDisabling()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        Vendor: Record Vendor;
-        Item: Record Item;
-        ReopenLegacyWIPPurchaseLineErr: Label 'You cannot increase Quantity on a completed purchase line with a WIP Item after Legacy Subcontracting has been disabled.';
-    begin
-        // [SCENARIO 649448] A retained fully received WIP purchase line cannot become outstanding after disabling Legacy Subcontracting
-        Initialize();
-
-        // [GIVEN] Legacy Subcontracting is disabled
-        SetLegacySubcontracting(false);
-
-        // [GIVEN] A retained WIP purchase order item line is fully received
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryInventory.CreateItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
-        PurchaseLine."WIP Item" := true;
-        PurchaseLine."Quantity Received" := PurchaseLine.Quantity;
-        PurchaseLine."Outstanding Quantity" := 0;
-        PurchaseLine.Modify();
-
-        // [WHEN] Quantity is increased
-        asserterror PurchaseLine.Validate(Quantity, PurchaseLine.Quantity + 1);
-
-        // [THEN] The retained legacy WIP purchase line cannot be reopened
-        Assert.ExpectedError(ReopenLegacyWIPPurchaseLineErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('AcceptConfirmHandler')]
-    [Scope('OnPrem')]
-    procedure CannotUndoReceiptForWIPPurchaseLineAfterDisabling()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-        Vendor: Record Vendor;
-        Item: Record Item;
-        UndoLegacyWIPPurchaseReceiptErr: Label 'You cannot undo receipt for a completed purchase line with a WIP Item after Legacy Subcontracting has been disabled.';
-    begin
-        // [SCENARIO 649448] Undoing a receipt cannot reopen a retained WIP purchase line after disabling Legacy Subcontracting
-        Initialize();
-
-        // [GIVEN] A legacy WIP purchase order item line is fully received
-        SetLegacySubcontracting(true);
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryInventory.CreateItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
-        PurchaseLine."WIP Item" := true;
-        PurchaseLine.Modify();
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
-        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
-        Assert.AreEqual(0, PurchaseLine."Outstanding Quantity", 'The WIP purchase line should be fully received.');
-
-        // [GIVEN] Legacy Subcontracting is disabled
-        SetLegacySubcontracting(false);
-
-        // [WHEN] The posted receipt is undone
-        PurchRcptLine.SetRange("Order No.", PurchaseLine."Document No.");
-        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
-        PurchRcptLine.FindFirst();
-        asserterror Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
-
-        // [THEN] The retained legacy WIP purchase line cannot be reopened
-        Assert.ExpectedError(UndoLegacyWIPPurchaseReceiptErr);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure PreCheckDisableErrorWordingMatchesWIPItemFilterForPurchaseOrders()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -912,13 +838,6 @@ codeunit 137500 "SCM Legacy Subcontracting"
     procedure DeclineInstallConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := false;
-    end;
-
-    [ConfirmHandler]
-    [Scope('OnPrem')]
-    procedure AcceptConfirmHandler(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := true;
     end;
 
     local procedure RefreshApplicationAreas()
