@@ -93,17 +93,17 @@ table 6318 "Power BI Deployment Buffer"
 
     procedure LoadSelection(var SelectedDeploymentBuffer: Record "Power BI Deployment Buffer")
     var
-        SourceBuffer: Record "Power BI Deployment Buffer";
+        TempSourceBuffer: Record "Power BI Deployment Buffer";
     begin
         Rec.Reset();
         Rec.DeleteAll();
 
-        SourceBuffer.Copy(SelectedDeploymentBuffer, true);
-        if SourceBuffer.FindSet() then
+        TempSourceBuffer.Copy(SelectedDeploymentBuffer, true);
+        if TempSourceBuffer.FindSet() then
             repeat
-                LoadReport(SourceBuffer."Report Id");
+                LoadReport(TempSourceBuffer."Report Id");
                 Rec.Insert();
-            until SourceBuffer.Next() = 0;
+            until TempSourceBuffer.Next() = 0;
 
         Rec.Reset();
         if Rec.FindFirst() then;
@@ -111,22 +111,22 @@ table 6318 "Power BI Deployment Buffer"
 
     procedure CountForOutcome(OutcomeToCount: Enum "Power BI Deployment Outcome"): Integer
     var
-        DeploymentBuffer: Record "Power BI Deployment Buffer";
+        TempDeploymentBuffer: Record "Power BI Deployment Buffer";
     begin
-        DeploymentBuffer.Copy(Rec, true);
-        DeploymentBuffer.Reset();
-        DeploymentBuffer.SetRange(Outcome, OutcomeToCount);
-        exit(DeploymentBuffer.Count());
+        TempDeploymentBuffer.Copy(Rec, true);
+        TempDeploymentBuffer.Reset();
+        TempDeploymentBuffer.SetRange(Outcome, OutcomeToCount);
+        exit(TempDeploymentBuffer.Count());
     end;
 
     internal procedure RemoveOutcome(OutcomeToRemove: Enum "Power BI Deployment Outcome")
     var
-        DeploymentBuffer: Record "Power BI Deployment Buffer";
+        TempDeploymentBuffer: Record "Power BI Deployment Buffer";
     begin
-        DeploymentBuffer.Copy(Rec, true);
-        DeploymentBuffer.Reset();
-        DeploymentBuffer.SetRange(Outcome, OutcomeToRemove);
-        DeploymentBuffer.DeleteAll();
+        TempDeploymentBuffer.Copy(Rec, true);
+        TempDeploymentBuffer.Reset();
+        TempDeploymentBuffer.SetRange(Outcome, OutcomeToRemove);
+        TempDeploymentBuffer.DeleteAll();
     end;
 
     local procedure LoadReport(ReportEnum: Enum "Power BI Deployable Report")

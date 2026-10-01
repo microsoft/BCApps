@@ -62,7 +62,7 @@ table 6316 "Power BI Deployment"
         field(10; "Deployed Workspace Name"; Text[200])
         {
             Caption = 'Deployed Workspace Name';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
     }
 
