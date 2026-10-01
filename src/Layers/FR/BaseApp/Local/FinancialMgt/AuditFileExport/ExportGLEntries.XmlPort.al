@@ -12,7 +12,7 @@ xmlport 10800 "Export G/L Entries"
     Caption = 'Export G/L Entries';
     ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File FR extensions must be installed.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     schema
     {
