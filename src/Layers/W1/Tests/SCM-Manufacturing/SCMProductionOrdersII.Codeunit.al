@@ -116,6 +116,7 @@ codeunit 137072 "SCM Production Orders II"
         CalcMethod: Option "No Levels","One level","All levels";
         IncorrectValueErr: Label 'Incorrect value of %1.%2.', Comment = '%1: Table name, %2: Field name.';
         ExpectedQuantityErr: Label 'Expected Quantity is wrong.';
+        ReversingOutputQuantityErr: Label 'Reversing output quantity must be one alternate unit.';
         ActualTimeUsedErr: Label 'Actual time used on "Production Order Statistics" Page was incorrect. Should be equal to sum of "Setup Time", "Run Time" and "Stop Time".';
         ConfirmStatusFinishTxt: Label 'has not been finished:\\  * Some output is still missing.\\ Do you still want to finish the order?';
         TimeShiftedOnParentLineMsg: Label 'The production starting date-time of the end item has been moved forward because a subassembly is taking longer than planned.';
@@ -8184,6 +8185,7 @@ codeunit 137072 "SCM Production Orders II"
         ProductionOrder: Record "Production Order";
         UnitOfMeasure: Record "Unit of Measure";
         UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        LotNo: Code[50];
         QtyPerUnitOfMeasure: Decimal;
     begin
         // [SCENARIO 651623] Production output with lot tracking can be reversed when posted in a non-base unit of measure.
@@ -8209,17 +8211,25 @@ codeunit 137072 "SCM Production Orders II"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField(Quantity, QtyPerUnitOfMeasure);
+        ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+        ItemLedgerEntry.TestField("Lot No.");
+        LotNo := ItemLedgerEntry."Lot No.";
 
         // [WHEN] The production output entry is reversed.
         ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
         UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
 
-        // [THEN] A reversing output entry is posted in the alternate unit for the original base quantity.
+        // [THEN] A reversing output entry is posted for one alternate unit with the same lot tracking.
         ItemLedgerEntry.SetRange("Entry No.");
         ItemLedgerEntry.FindLast();
         ItemLedgerEntry.TestField(Quantity, -QtyPerUnitOfMeasure);
         ItemLedgerEntry.TestField("Unit of Measure Code", UnitOfMeasure.Code);
         ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+        ItemLedgerEntry.TestField("Lot No.", LotNo);
+        Assert.AreEqual(
+            -1, ItemLedgerEntry.Quantity / ItemLedgerEntry."Qty. per Unit of Measure",
+            ReversingOutputQuantityErr);
     end;
 
     local procedure Initialize()
@@ -11021,4 +11031,3 @@ codeunit 137072 "SCM Production Orders II"
     end;
 
 }
-
