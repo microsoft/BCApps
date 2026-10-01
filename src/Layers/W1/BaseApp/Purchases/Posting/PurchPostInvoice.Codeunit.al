@@ -1351,13 +1351,13 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
     local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: Integer; var TempJobPostingQueue: Record "Invoice Posting Buffer" temporary; var JobPurchLine: Record "Purchase Line")
     var
-        QueueEntry: Record "Invoice Posting Buffer" temporary;
+        TempQueueEntry: Record "Invoice Posting Buffer" temporary;
     begin
         PurchSetup.Get();
         if PurchSetup."Copy Line Descr. to G/L Entry" and (InvoicePostingBuffer."Fixed Asset Line No." <> 0) then begin
-            QueueEntry := InvoicePostingBuffer;
-            QueueEntry."Deferral Line No." := GLEntryNo;
-            TempJobPostingQueue := QueueEntry;
+            TempQueueEntry := InvoicePostingBuffer;
+            TempQueueEntry."Deferral Line No." := GLEntryNo;
+            TempJobPostingQueue := TempQueueEntry;
             TempJobPostingQueue.Insert();
         end else begin
             SetJobLineFilters(JobPurchLine, InvoicePostingBuffer);
