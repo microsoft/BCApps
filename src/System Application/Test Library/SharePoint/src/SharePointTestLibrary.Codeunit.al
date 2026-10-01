@@ -14,6 +14,7 @@ codeunit 132973 "SharePoint Test Library"
 
     var
         LastContextInfoRequestUri: Text;
+        LastRawRequestUri: Text;
         LastRequestUri: Text;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Request Helper", 'OnBeforeSendRequest', '', false, false)]
@@ -24,6 +25,7 @@ codeunit 132973 "SharePoint Test Library"
         BaseUrl, ParentUrl : Text;
     begin
         Uri := HttpRequestMessage.GetRequestUri();
+        LastRawRequestUri := Uri;
         if Uri.IndexOf('/_api/Web') > 0 then
             BaseUrl := CopyStr(Uri, 1, Uri.IndexOf('/_api/Web'))
         else
@@ -47,6 +49,12 @@ codeunit 132973 "SharePoint Test Library"
             GetFileByServerRelativePathTestResponse(SharePointOperationResponse);
             exit;
         end;
+
+        if Uri.Contains('/_api/Web/GetFolderByServerRelativePath(decodedurl=') and Uri.Contains('/Files/AddUsingPath(decodedurl=') then
+            if Method = 'POST' then begin
+                AddFileToFolderTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
+                exit;
+            end;
 
         if Uri.EndsWith('/_api/Web/lists/') then begin
             if Method = 'GET' then begin
@@ -137,6 +145,11 @@ codeunit 132973 "SharePoint Test Library"
     procedure GetLastRequestUri(): Text
     begin
         exit(LastRequestUri);
+    end;
+
+    procedure GetLastRawRequestUri(): Text
+    begin
+        exit(LastRawRequestUri);
     end;
 
     local procedure GetFileByServerRelativePathTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")

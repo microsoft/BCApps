@@ -7,4 +7,4 @@ Sites.ReadWrite.All grants the app read and write access to all site collections
 
 When the account uses the legacy REST API ("Use legacy REST API"), the app acquires a token for the SharePoint Online resource (Office 365 SharePoint Online) instead of Microsoft Graph, so the app registration must be granted SharePoint API permissions rather than Microsoft Graph permissions. Grant the permission that matches the authentication type: the application permission Sites.FullControl.All for Certificate (client-credentials, app-only) authentication, or the delegated permission AllSites.Manage for Client Secret (authorization-code) authentication.
 
-Legacy REST file downloads and deletes use SharePoint ResourcePath endpoints so legal file names containing `#` or `%` are addressed unambiguously.
+Legacy REST file uploads, downloads, and deletes use SharePoint ResourcePath endpoints so legal file names containing `#` or `%` are addressed unambiguously.

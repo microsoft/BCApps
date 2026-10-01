@@ -32,7 +32,6 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         Content: HttpContent;
         TempBlobStream: InStream;
         TempBlobOutStream: OutStream;
-        StoredContent: Text;
         FileIndex: Integer;
     begin
         if FailOnGetFile then
@@ -46,16 +45,36 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
         StoredFileContents.Get(FileIndex, StoredTempBlob);
         if ReturnDifferentContent then begin
-            StoredTempBlob.CreateInStream(TempBlobStream, TextEncoding::UTF8);
-            TempBlobStream.ReadText(StoredContent);
-            ReturnedTempBlob.CreateOutStream(TempBlobOutStream, TextEncoding::UTF8);
-            TempBlobOutStream.WriteText('x' + StoredContent.Substring(2));
+            CreateDifferentContent(StoredTempBlob, ReturnedTempBlob);
             ReturnedTempBlob.CreateInStream(TempBlobStream);
         end else
             StoredTempBlob.CreateInStream(TempBlobStream);
 
         Content.WriteFrom(TempBlobStream);
         Content.ReadAs(Stream);
+    end;
+
+    local procedure CreateDifferentContent(var SourceTempBlob: Codeunit "Temp Blob"; var TargetTempBlob: Codeunit "Temp Blob")
+    var
+        SourceInStream: InStream;
+        TargetOutStream: OutStream;
+        ByteValue: Byte;
+        IsFirstByte: Boolean;
+    begin
+        SourceTempBlob.CreateInStream(SourceInStream);
+        TargetTempBlob.CreateOutStream(TargetOutStream);
+        IsFirstByte := true;
+        while not SourceInStream.EOS() do begin
+            SourceInStream.Read(ByteValue);
+            if IsFirstByte then begin
+                if ByteValue = 0 then
+                    ByteValue := 1
+                else
+                    ByteValue -= 1;
+                IsFirstByte := false;
+            end;
+            TargetOutStream.Write(ByteValue);
+        end;
     end;
 
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream);

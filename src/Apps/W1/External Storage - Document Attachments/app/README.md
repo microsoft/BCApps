@@ -130,7 +130,7 @@ From **External Storage Synchronize** report:
 - **From External Storage**: Download multiple files from external storage
 - **Delete Expired Files**: Clean up files based on retention policy
 
-When **Move** removes an internal attachment after upload, Business Central first downloads the persisted external path and verifies that its length and SHA-256 hash match the internal media. If verification fails, the internal content is retained. Business Central deletes the failed external copy and resets its external metadata so the next Move uploads a new copy. If cleanup also fails, the attachment remains stored both internally and externally and the failure reason is logged to telemetry for support investigation.
+Before automatic externalization or **Move** removes an internal attachment after upload, Business Central downloads the persisted external path and verifies that its length and SHA-256 hash match the internal media. This adds a synchronous full download and hash calculation when a new attachment is automatically moved outside Business Central. If verification fails, the internal content is retained. Business Central deletes the failed external copy and resets its external metadata so the next Move uploads a new copy. If cleanup also fails, the attachment remains stored both internally and externally and the failure reason is logged to telemetry for support investigation.
 
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality

@@ -42,6 +42,8 @@ codeunit 132970 "SharePoint Client Test"
             SharePointTestLibrary.GetLastRequestUri().Contains(
                 '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/$value/'),
             'The decodedurl endpoint should preserve the decoded server-relative path');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
     end;
 
     [Test]
@@ -61,6 +63,33 @@ codeunit 132970 "SharePoint Client Test"
             SharePointTestLibrary.GetLastRequestUri().Contains(
                 '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/'),
             'The decodedurl endpoint should preserve the decoded server-relative path');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
+    end;
+
+    [Test]
+    procedure TestAddFileToFolderEscapesHashAndPercent()
+    var
+        TempSharePointFile: Record "SharePoint File" temporary;
+        FileInStream: InStream;
+        ParentUrl: Text;
+        IsSuccess: Boolean;
+    begin
+        // [SCENARIO] ResourcePath-based uploads encode legal # and % filename characters.
+        Initialize();
+        InitDummyFile(FileInStream);
+        ParentUrl := BaseUrl.Substring(StrPos(BaseUrl, '/')).TrimEnd('/');
+
+        IsSuccess := SharePointClient.AddFileToFolder(
+            ParentUrl + '/Lists/Test Documents/Attachments', 'Invoice #50%.pdf', FileInStream, TempSharePointFile);
+
+        Assert.IsTrue(IsSuccess, 'The ResourcePath-based upload should succeed');
+        Assert.IsTrue(
+            SharePointTestLibrary.GetLastRequestUri().Contains(
+                '/Files/AddUsingPath(decodedurl=''Invoice #50%.pdf'',overwrite=false)/'),
+            'The AddUsingPath endpoint should preserve the decoded file name');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
     end;
 
     [Test]
