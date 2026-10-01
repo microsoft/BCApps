@@ -17,6 +17,8 @@
         LibraryReportValidation: Codeunit "Library - Report Validation";
         LibraryRandom: Codeunit "Library - Random";
         AccScheduleExportErr: Label 'Account Schedule has not been exported.';
+        PreviewColumnDefMissingErr: Label 'Specify a column definition in the Column Definition (for Preview) field before you preview this row definition.';
+        PreviewRowDefMissingErr: Label 'Specify a row definition in the Row Definition (for Preview) field before you preview this column definition.';
         CopySuccessMsg: Label 'The new rows definition has been created successfully.';
         CopyColumnLayoutSuccessMsg: Label 'The new column layout has been created.';
         DimensionValueErr: Label 'Dimension Value record does not exist.';
@@ -3100,26 +3102,33 @@
     procedure PreviewColumnDefWithRowDef()
     var
         AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
         ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayout: Record "Column Layout";
         ColumnLayoutNames: TestPage "Column Layout Names";
         ColumnLayoutPage: TestPage "Column Layout";
         AccScheduleOverview: TestPage "Acc. Schedule Overview";
     begin
+        // [FEATURE] [AI test 0.4]
         // [FEATURE] [UI]
-        // [SCENARIO] Previewing a column definition opens the financial report with the column definition itself, and the row definition specified for preview.
+        // [SCENARIO] Previewing a column definition opens a view-only financial report using the column definition itself and the row definition specified for preview.
         Initialize();
 
-        // [GIVEN] A row definition and a column definition
+        // [GIVEN] A row definition with a line, and a column definition with a net change column
         LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithGLAcc(AccScheduleLine, AccScheduleName.Name, LibraryERM.CreateGLAccountNo(), AccScheduleLine.Show::Yes);
         LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        CreateColumnLayoutLine(ColumnLayout, ColumnLayoutName.Name, ColumnLayout."Column Type"::"Net Change", '');
+
         ColumnLayoutNames.OpenEdit();
         ColumnLayoutNames.GoToKey(ColumnLayoutName.Name);
         ColumnLayoutPage.Trap();
         ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
 
         // [WHEN] The column definition is previewed without a row definition for preview
-        // [THEN] An error asks the user to specify a row definition for preview
+        // [THEN] A specific error asks the user to specify a row definition for preview
         asserterror ColumnLayoutPage.Preview.Invoke();
+        Assert.ExpectedError(PreviewRowDefMissingErr);
 
         // [WHEN] A row definition for preview is set
         ColumnLayoutPage.PreviewRowDef.SetValue(AccScheduleName.Name);
@@ -3135,6 +3144,15 @@
         // [THEN] The financial report is opened with the current column definition and the row definition specified for preview
         AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
         AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+
+        // [THEN] It is shown as a view-only preview: preview caption and hidden financial report header fields
+        Assert.IsTrue(StrPos(AccScheduleOverview.Caption(), 'Preview:') > 0, 'The preview caption is not shown.');
+        Assert.IsFalse(AccScheduleOverview.FinancialReportName.Visible(), 'Financial report header fields should be hidden in preview.');
+
+        // [THEN] The row definition content is rendered
+        AccScheduleOverview.First();
+        AccScheduleOverview.Description.AssertEquals(AccScheduleLine.Description);
+
         AccScheduleOverview.Close();
         ColumnLayoutPage.Close();
     end;
@@ -3144,26 +3162,33 @@
     procedure PreviewRowDefWithColumnDef()
     var
         AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
         ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayout: Record "Column Layout";
         AccScheduleNames: TestPage "Account Schedule Names";
         AccountSchedule: TestPage "Account Schedule";
         AccScheduleOverview: TestPage "Acc. Schedule Overview";
     begin
+        // [FEATURE] [AI test 0.4]
         // [FEATURE] [UI]
-        // [SCENARIO] Previewing a row definition opens the financial report with the row definition itself, and the column definition specified for preview.
+        // [SCENARIO] Previewing a row definition opens a view-only financial report using the row definition itself and the column definition specified for preview.
         Initialize();
 
-        // [GIVEN] A row definition and a column definition
+        // [GIVEN] A row definition with a line, and a column definition with a net change column
         LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithGLAcc(AccScheduleLine, AccScheduleName.Name, LibraryERM.CreateGLAccountNo(), AccScheduleLine.Show::Yes);
         LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        CreateColumnLayoutLine(ColumnLayout, ColumnLayoutName.Name, ColumnLayout."Column Type"::"Net Change", '');
+
         AccScheduleNames.OpenEdit();
         AccScheduleNames.GoToKey(AccScheduleName.Name);
         AccountSchedule.Trap();
         AccScheduleNames.EditAccountSchedule.Invoke();
 
         // [WHEN] The row definition is previewed without a column definition for preview
-        // [THEN] An error asks the user to specify a column definition for preview
+        // [THEN] A specific error asks the user to specify a column definition for preview
         asserterror AccountSchedule.Preview.Invoke();
+        Assert.ExpectedError(PreviewColumnDefMissingErr);
 
         // [WHEN] A column definition for preview is set
         AccountSchedule.PreviewColumnDef.SetValue(ColumnLayoutName.Name);
@@ -3179,6 +3204,15 @@
         // [THEN] The financial report is opened with the current row definition and the column definition specified for preview
         AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
         AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+
+        // [THEN] It is shown as a view-only preview: preview caption and hidden financial report header fields
+        Assert.IsTrue(StrPos(AccScheduleOverview.Caption(), 'Preview:') > 0, 'The preview caption is not shown.');
+        Assert.IsFalse(AccScheduleOverview.FinancialReportName.Visible(), 'Financial report header fields should be hidden in preview.');
+
+        // [THEN] The row definition content is rendered
+        AccScheduleOverview.First();
+        AccScheduleOverview.Description.AssertEquals(AccScheduleLine.Description);
+
         AccScheduleOverview.Close();
         AccountSchedule.Close();
     end;
