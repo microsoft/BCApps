@@ -69,17 +69,6 @@ codeunit 135094 "Environment Info Test Library"
     end;
 
     /// <summary>
-    /// Clears the environment description.
-    /// </summary>
-    /// <remarks>
-    /// This function should only be used for testing purposes.
-    /// </remarks>
-    procedure ClearEnvironmentDescription()
-    begin
-        EnvironmentInformationImpl.ClearEnvironmentDescription();
-    end;
-
-    /// <summary>
     /// Sets the App ID that of the current application (for example, 'FIN' - Financials) when the sunscription is bound.
     /// Uses <see cref="OnBeforeGetApplicationIdentifier"/> event.
     /// </summary>
