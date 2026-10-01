@@ -161,13 +161,18 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 TempPurchaseLineComp.Reset();
                 TempPurchaseLineComp.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
                 TempPurchaseLineComp.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+                TempPurchaseLineComp.SetRange("No.", ProdOrderComponent."Item No.");
+                TempPurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
                 ExactPurchaseLineMatch := TempPurchaseLineComp.FindFirst();
                 if not ExactPurchaseLineMatch then begin
                     TempPurchaseLineComp.Reset();
                     TempPurchaseLineComp.SetRange("Subc. Prod. Ord. Comp Line No.", 0);
                     TempPurchaseLineComp.SetRange("No.", ProdOrderComponent."Item No.");
                     TempPurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
-                    LegacyPurchaseLineMatch := TempPurchaseLineComp.Count() = 1;
+                    LegacyPurchaseLineMatch :=
+                        (TempPurchaseLineComp.Count() = 1) and
+                        IsUniqueUnmatchedLegacySource(
+                            PurchaseLine, RequisitionLine, ProdOrderRoutingLine."Routing Link Code", ProdOrderComponent);
                 end;
 
                 if (ExactPurchaseLineMatch or LegacyPurchaseLineMatch) and TempPurchaseLineComp.FindFirst()
@@ -188,7 +193,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                     end;
 
                     if LegacyPurchaseLineMatch and
-                       (PurchaseLineComp."Subc. Prod. Ord. Comp Due Date" = 0D)
+                       (PurchaseLineComp."Subc. Prod. Ord. Comp Due Date" = 0D) and
+                       (RequisitionLine."Action Message" = RequisitionLine."Action Message"::"Change Qty.")
                     then begin
                         PurchaseLineComp."Subc. Prod. Ord. Comp Due Date" := ProdOrderComponent."Due Date";
                         PurchaseLineChanged := true;
@@ -211,6 +217,60 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         TempPurchaseLineComp.Reset();
         TempPurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
         SendComponentPurchaseLineMismatchNotification(MissingComponentPurchLineCount, TempPurchaseLineComp.Count());
+    end;
+
+    local procedure IsUniqueUnmatchedLegacySource(
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RoutingLinkCode: Code[10];
+        ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        CandidateProdOrderComponent: Record "Prod. Order Component";
+        UnmatchedSourceCount: Integer;
+    begin
+        CandidateProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        CandidateProdOrderComponent.SetRange("Prod. Order No.", RequisitionLine."Prod. Order No.");
+        CandidateProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
+        CandidateProdOrderComponent.SetRange("Routing Link Code", RoutingLinkCode);
+        CandidateProdOrderComponent.SetRange(
+            "Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+        CandidateProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
+        CandidateProdOrderComponent.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        if CandidateProdOrderComponent.FindSet() then
+            repeat
+                if not HasCompatibleExactPurchaseLine(
+                     PurchaseLine, RequisitionLine, CandidateProdOrderComponent)
+                then begin
+                    UnmatchedSourceCount += 1;
+                    if UnmatchedSourceCount > 1 then
+                        exit(false);
+                end;
+            until CandidateProdOrderComponent.Next() = 0;
+
+        exit(UnmatchedSourceCount = 1);
+    end;
+
+    local procedure HasCompatibleExactPurchaseLine(
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        ExactPurchaseLine: Record "Purchase Line";
+    begin
+        ExactPurchaseLine.SetRange("Document Type", PurchaseLine."Document Type");
+        ExactPurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
+        ExactPurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        ExactPurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        ExactPurchaseLine.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        ExactPurchaseLine.SetRange("Subc. Prod. Order No.", RequisitionLine."Prod. Order No.");
+        ExactPurchaseLine.SetRange(
+            "Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        ExactPurchaseLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        ExactPurchaseLine.SetRange("Subc. Routing No.", RequisitionLine."Routing No.");
+        ExactPurchaseLine.SetRange(
+            "Subc. Rtng Reference No.", RequisitionLine."Routing Reference No.");
+        ExactPurchaseLine.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
+        exit(not ExactPurchaseLine.IsEmpty());
     end;
 
     local procedure SendComponentPurchaseLineMismatchNotification(MissingComponentPurchLineCount: Integer; OrphanComponentPurchLineCount: Integer)
