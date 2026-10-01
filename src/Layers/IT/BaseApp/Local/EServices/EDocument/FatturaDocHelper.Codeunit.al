@@ -1501,7 +1501,9 @@ codeunit 12184 "Fattura Doc. Helper"
     var
         Customer: Record Customer;
     begin
-        if not SalesHeader.Invoice then
+        if not (SalesHeader.Invoice or
+                (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::"Credit Memo"]))
+        then
             exit;
 
         if SalesHeader."Bill-to Customer No." = '' then
