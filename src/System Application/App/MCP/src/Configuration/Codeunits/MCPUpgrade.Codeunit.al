@@ -19,7 +19,7 @@ codeunit 8356 "MCP Upgrade"
         UpgradeMCPSystemDefaultAsDefault();
         EnableApiToolsOnExistingConfigurations();
         UpgradeRegisterMCPCapability();
-#if not CLEAN30
+#if not CLEAN27
         UpgradeDataQueryToolsBilling();
 #endif
     end;
@@ -87,7 +87,7 @@ codeunit 8356 "MCP Upgrade"
         UpgradeTag.SetUpgradeTag(GetRegisterMCPCapabilityUpgradeTag());
     end;
 
-#if not CLEAN30
+#if not CLEAN27
     internal procedure UpgradeDataQueryToolsBilling()
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -111,7 +111,7 @@ codeunit 8356 "MCP Upgrade"
         PerDatabaseUpgradeTags.Add(GetMCPSystemDefaultAsDefaultUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMCPEnableApiToolsUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetRegisterMCPCapabilityUpgradeTag());
-#if not CLEAN30
+#if not CLEAN27
         PerDatabaseUpgradeTags.Add(GetMCPDataQueryToolsBillingUpgradeTag());
 #endif
     end;
@@ -136,7 +136,7 @@ codeunit 8356 "MCP Upgrade"
         exit('MS-641612-RegisterMCPCapability-20260612');
     end;
 
-#if not CLEAN30
+#if not CLEAN27
     local procedure GetMCPDataQueryToolsBillingUpgradeTag(): Text[250]
     begin
         exit('MS-652515-MCPDataQueryToolsBilling-20261001');

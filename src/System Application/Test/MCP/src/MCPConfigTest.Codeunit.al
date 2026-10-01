@@ -1781,7 +1781,7 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual(MCPLearnMoreUrlLbl, CopilotSettingsTestLibrary.GetLearnMoreUrl(), 'Unexpected MCP Server learn-more URL');
     end;
 
-#if not CLEAN30
+#if not CLEAN27
     [Test]
     procedure TestUpdateMCPCapabilityUsesMicrosoftBillingAndNewLearnMoreUrl()
     var

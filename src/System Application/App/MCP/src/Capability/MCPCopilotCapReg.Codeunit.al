@@ -34,7 +34,7 @@ codeunit 8358 "MCP Copilot Cap. Reg."
             MCPLearnMoreLbl);
     end;
 
-#if not CLEAN30
+#if not CLEAN27
     internal procedure UpdateMCPCapability()
     var
         CopilotCapability: Codeunit "Copilot Capability";
