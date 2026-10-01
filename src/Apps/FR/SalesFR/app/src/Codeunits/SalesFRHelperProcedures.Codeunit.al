@@ -4,9 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.SalesFR;
 
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.Sales.Customer;
+
 codeunit 10807 "Sales FR Helper Procedures"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     procedure TransferFields(TableId: Integer; SourceFieldNo: Integer; TargetFieldNo: Integer; DefaultValue: Variant)
     var
@@ -17,5 +22,14 @@ codeunit 10807 "Sales FR Helper Procedures"
         DataTransfer.AddFieldValue(SourceFieldNo, TargetFieldNo);
         DataTransfer.UpdateAuditFields := false;
         DataTransfer.CopyFields();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustVendBank-Update", 'OnAfterUpdateCustomer', '', false, false)]
+    local procedure PreserveCustomerSIRENNo(var Customer: Record Customer)
+    var
+        StoredCustomer: Record Customer;
+    begin
+        StoredCustomer.Get(Customer."No.");
+        Customer."SIREN No. FR" := StoredCustomer."SIREN No. FR";
     end;
 }

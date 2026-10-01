@@ -1331,7 +1331,11 @@ table 5050 Contact
 
         if "No." <> '' then
             if IsUpdateNeeded(ContactBeforeModify) then
+#if not CLEAN30
                 UpdateRelatedRecordsPreservingCustomerSIREN();
+#else
+                UpdateCustVendBank.Run(Rec);
+#endif
 
         if Type = Type::Company then begin
             RMSetup.Get();
@@ -3631,6 +3635,7 @@ table 5050 Contact
           WarningMessage);
     end;
 
+#if not CLEAN30
     local procedure UpdateRelatedRecordsPreservingCustomerSIREN()
     var
         Customer: Record Customer;
@@ -3663,6 +3668,7 @@ table 5050 Contact
         Customer."SIREN No." := SIRENNo;
         Customer.Modify();
     end;
+#endif
 
     internal procedure LookupNewVendorTemplate(): Code[20]
     var

@@ -55,7 +55,7 @@ codeunit 148004 "ERM Sales Report"
         Customer: Record Customer;
     begin
         // [FEATURE] [Sales Invoice]
-        // [SCENARIO 467032] Test Report "Standard Sales - Invoice FR" with Customer having SIREN No.
+        // [SCENARIO 467032] Test Report "Standard Sales - Invoice" with Customer having SIREN No.
         Initialize();
 
         // [GIVEN] A Customer with a Siren No.
@@ -68,13 +68,9 @@ codeunit 148004 "ERM Sales Report"
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesInvoiceHeader.SetRecFilter();
 
-        // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
+        // [WHEN] Run report "Standard Sales - Invoice" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
-#if CLEAN30
         Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
-#else
-        Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
-#endif
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
@@ -90,7 +86,7 @@ codeunit 148004 "ERM Sales Report"
         Customer: Record Customer;
     begin
         // [FEATURE] [Sales Draft Invoice]
-        // [SCENARIO 467032] Test Report "Stand. Sales-Draft Invoice FR" with Customer having SIREN No.
+        // [SCENARIO 467032] Test Report "Standard Sales - Draft Invoice" with Customer having SIREN No.
         Initialize();
 
         // [GIVEN] A Customer with a Siren No.
@@ -101,13 +97,9 @@ codeunit 148004 "ERM Sales Report"
         SalesHeader.SetRecFilter();
         Commit();
 
-        // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
+        // [WHEN] Run report "Standard Sales - Draft Invoice" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
-#if CLEAN30
         Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
-#else
-        Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
-#endif
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
@@ -124,7 +116,7 @@ codeunit 148004 "ERM Sales Report"
         Customer: Record Customer;
     begin
         // [FEATURE] [Sales Credit Memo]
-        // [SCENARIO 467032] Test Report "Standard Sales-Credit Memo FR" with Customer having SIREN No.
+        // [SCENARIO 467032] Test Report "Standard Sales - Credit Memo" with Customer having SIREN No.
         Initialize();
 
         // [GIVEN] A Customer with a Siren No.
@@ -137,13 +129,9 @@ codeunit 148004 "ERM Sales Report"
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesCrMemoHeader.SetRecFilter();
 
-        // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Invoice
+        // [WHEN] Run report "Standard Sales - Credit Memo" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
-#if CLEAN30
         Report.Run(Report::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
-#else
-        Report.Run(Report::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
-#endif
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
@@ -159,7 +147,7 @@ codeunit 148004 "ERM Sales Report"
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
         // [FEATURE] [Sales Invoice]
-        // [SCENARIO 467032] Test Report "Standard Sales - Invoice FR" with "VAT Paid on Debits" = true.
+        // [SCENARIO 467032] Test Report "Standard Sales - Invoice" with "VAT Paid on Debits" = true.
         Initialize();
 
         // [GIVEN] Create a Sales Invoice with "VAT Paid on Debits" = true
@@ -169,13 +157,9 @@ codeunit 148004 "ERM Sales Report"
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesInvoiceHeader.SetRecFilter();
 
-        // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
+        // [WHEN] Run report "Standard Sales - Invoice" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
-#if CLEAN30
         Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
-#else
-        Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
-#endif
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -191,7 +175,7 @@ codeunit 148004 "ERM Sales Report"
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
         // [FEATURE] [Sales Invoice]
-        // [SCENARIO 467032] Test Report "Standard Sales - Invoice FR" with "VAT Paid on Debits" = false.
+        // [SCENARIO 467032] Test Report "Standard Sales - Invoice" with "VAT Paid on Debits" = false.
         Initialize();
 
         // [GIVEN] Create a Sales Invoice with "VAT Paid on Debits" = false
@@ -201,13 +185,9 @@ codeunit 148004 "ERM Sales Report"
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesInvoiceHeader.SetRecFilter();
 
-        // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
+        // [WHEN] Run report "Standard Sales - Invoice" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
-#if CLEAN30
         Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
-#else
-        Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
-#endif
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -222,7 +202,7 @@ codeunit 148004 "ERM Sales Report"
         SalesHeader: Record "Sales Header";
     begin
         // [FEATURE] [Sales Draft Invoice]
-        // [SCENARIO 467032] Test Report "Stand. Sales-Draft Invoice FR" with "VAT Paid on Debits" = true.
+        // [SCENARIO 467032] Test Report "Standard Sales - Draft Invoice" with "VAT Paid on Debits" = true.
         Initialize();
 
         // [GIVEN] Create a Sales Invoice with "VAT Paid on Debits" = true
@@ -230,13 +210,9 @@ codeunit 148004 "ERM Sales Report"
         SalesHeader.SetRecFilter();
         Commit();
 
-        // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
+        // [WHEN] Run report "Standard Sales - Draft Invoice" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
-#if CLEAN30
         Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
-#else
-        Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
-#endif
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -251,7 +227,7 @@ codeunit 148004 "ERM Sales Report"
         SalesHeader: Record "Sales Header";
     begin
         // [FEATURE] [Sales Draft Invoice]
-        // [SCENARIO 467032] Test Report "Stand. Sales-Draft Invoice FR" with "VAT Paid on Debits" = false.
+        // [SCENARIO 467032] Test Report "Standard Sales - Draft Invoice" with "VAT Paid on Debits" = false.
         Initialize();
 
         // [GIVEN] Create a Sales Invoice with "VAT Paid on Debits" = false
@@ -259,13 +235,9 @@ codeunit 148004 "ERM Sales Report"
         SalesHeader.SetRecFilter();
         Commit();
 
-        // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
+        // [WHEN] Run report "Standard Sales - Draft Invoice" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
-#if CLEAN30
         Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
-#else
-        Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
-#endif
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -281,7 +253,7 @@ codeunit 148004 "ERM Sales Report"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
     begin
         // [FEATURE] [Sales Credit Memo]
-        // [SCENARIO 467032] Test Report "Standard Sales-Credit Memo FR" with "VAT Paid on Debits" = true.
+        // [SCENARIO 467032] Test Report "Standard Sales - Credit Memo" with "VAT Paid on Debits" = true.
         Initialize();
 
         // [GIVEN] Create a Sales Credit Memo with "VAT Paid on Debits" = true
@@ -291,13 +263,9 @@ codeunit 148004 "ERM Sales Report"
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesCrMemoHeader.SetRecFilter();
 
-        // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Credit Memo
+        // [WHEN] Run report "Standard Sales - Credit Memo" for Posted Sales Credit Memo
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
-#if CLEAN30
         REPORT.Run(REPORT::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
-#else
-        REPORT.Run(REPORT::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
-#endif
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -313,7 +281,7 @@ codeunit 148004 "ERM Sales Report"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
     begin
         // [FEATURE] [Sales Credit Memo]
-        // [SCENARIO 467032] Test Report "Standard Sales-Credit Memo FR" with "VAT Paid on Debits" = false.
+        // [SCENARIO 467032] Test Report "Standard Sales - Credit Memo" with "VAT Paid on Debits" = false.
         Initialize();
 
         // [GIVEN] Create a Sales Credit Memo with "VAT Paid on Debits" = false
@@ -323,13 +291,9 @@ codeunit 148004 "ERM Sales Report"
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesCrMemoHeader.SetRecFilter();
 
-        // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Credit Memo
+        // [WHEN] Run report "Standard Sales - Credit Memo" for Posted Sales Credit Memo
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
-#if CLEAN30
         REPORT.Run(REPORT::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
-#else
-        REPORT.Run(REPORT::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
-#endif
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -469,6 +433,12 @@ codeunit 148004 "ERM Sales Report"
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("SIREN No. FR", LibraryUtility.GenerateRandomNumericText(9));
+#if not CLEAN30
+#pragma warning disable AL0432
+        // Default builds still read the legacy BaseApp fields.
+        Customer.Validate("SIREN No.", Customer."SIREN No. FR");
+#pragma warning restore AL0432
+#endif
         Customer.Modify(true);
     end;
 
@@ -476,6 +446,11 @@ codeunit 148004 "ERM Sales Report"
     begin
         LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
         SalesHeader.Validate("VAT Paid on Debits FR", VATPaidOnDebits);
+#if not CLEAN30
+#pragma warning disable AL0432
+        SalesHeader.Validate("VAT Paid on Debits", VATPaidOnDebits);
+#pragma warning restore AL0432
+#endif
         SalesHeader.Modify();
     end;
 
@@ -483,6 +458,11 @@ codeunit 148004 "ERM Sales Report"
     begin
         LibrarySales.CreateSalesCreditMemoForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
         SalesHeader.Validate("VAT Paid on Debits FR", VATPaidOnDebits);
+#if not CLEAN30
+#pragma warning disable AL0432
+        SalesHeader.Validate("VAT Paid on Debits", VATPaidOnDebits);
+#pragma warning restore AL0432
+#endif
         SalesHeader.Modify();
     end;
 
@@ -507,11 +487,7 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-#if CLEAN30
     procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
-#else
-    procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice FR")
-#endif
     begin
         StandardSalesInvoice.DisplayShipmentInformation.SetValue(LibraryVariableStorage.DequeueBoolean());
         StandardSalesInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
@@ -519,11 +495,7 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-#if CLEAN30
     procedure DraftSalesInvoiceRequestPageHandler(var StandardSalesDraftInvoice: TestRequestPage "Standard Sales - Draft Invoice")
-#else
-    procedure DraftSalesInvoiceRequestPageHandler(var StandardSalesDraftInvoice: TestRequestPage "Stand. Sales-Draft Invoice FR")
-#endif
     begin
         // Consume the queued expectation so the test can assert the request page was opened exactly once.
         LibraryVariableStorage.DequeueBoolean();
@@ -532,11 +504,7 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-#if CLEAN30
     procedure StdSalesCrMemoRequestPageHandler(var StandardSalesCreditMemo: TestRequestPage "Standard Sales - Credit Memo")
-#else
-    procedure StdSalesCrMemoRequestPageHandler(var StandardSalesCreditMemo: TestRequestPage "Standard Sales-Credit Memo FR")
-#endif
     begin
         if StandardSalesCreditMemo.Editable then;
         StandardSalesCreditMemo.DisplayShipmentInformation.SetValue(LibraryVariableStorage.DequeueBoolean());
