@@ -575,7 +575,6 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     procedure PostLines(DocumentHeaderVar: Variant; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var Window: Dialog; var TotalAmount: Decimal)
     var
         GenJnlLine: Record "Gen. Journal Line";
-        JobPostingQueue: Record "Invoice Posting Buffer" temporary;
         JobPurchLine: Record "Purchase Line";
         PurchHeader: Record "Purchase Header";
         TempJobPostingQueue: Record "Invoice Posting Buffer" temporary;

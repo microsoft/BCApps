@@ -529,7 +529,6 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     var
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
-        JobPostingQueue: Record "Invoice Posting Buffer" temporary;
         JobPurchLine: Record "Purchase Line";
         PrepmtDiffVendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchHeader: Record "Purchase Header";
