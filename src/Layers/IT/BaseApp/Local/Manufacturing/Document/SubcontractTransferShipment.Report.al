@@ -312,9 +312,6 @@ report 12154 "Subcontract. Transfer Shipment"
                         column(EmptyString; '')
                         {
                         }
-                        column(RefProdOrd; RefProdOrd)
-                        {
-                        }
                         column(Transfer_Shipment_Line__Transfer_Shipment_Line___Line_No__; "Transfer Shipment Line"."Line No.")
                         {
                         }
@@ -417,21 +414,6 @@ report 12154 "Subcontract. Transfer Shipment"
                             SetRange("Line No.", 0, "Line No.");
                         end;
 
-                        trigger OnAfterGetRecord()
-                        var
-                            ProductionOrderNo: Code[20];
-                        begin
-#if not CLEAN28
-                            ProductionOrderNo := "Prod. Order No.";
-#endif
-                            "Transfer Shipment Line".GetProductionOrderNo(ProductionOrderNo);
-
-                            if (ProductionOrderNo <> PrevProdOrd) and (ProductionOrderNo <> '') then begin
-                                PrevProdOrd := ProductionOrderNo;
-                                RefProdOrd := ProdOrderNoLbl + ' ' + ProductionOrderNo;
-                            end else
-                                RefProdOrd := '';
-                        end;
                     }
                 }
 
@@ -572,8 +554,6 @@ report 12154 "Subcontract. Transfer Shipment"
         CopyText: Text[30];
         DimText: Text[120];
         OldDimText: Text[75];
-        RefProdOrd: Text[50];
-        PrevProdOrd: Code[20];
         MoreLines: Boolean;
         NoOfCopies: Integer;
         NoOfLoops: Integer;
@@ -603,7 +583,6 @@ report 12154 "Subcontract. Transfer Shipment"
         Header_DimensionsCaptionLbl: Label 'Header Dimensions';
         Text1130007Lbl: Label 'Continue';
         Line_DimensionsCaptionLbl: Label 'Line Dimensions';
-        ProdOrderNoLbl: Label 'Prod. Order No.';
 
     [Scope('OnPrem')]
     procedure TransferText()

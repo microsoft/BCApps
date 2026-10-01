@@ -35,22 +35,6 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
     TestType = IntegrationTest;
 
     [Test]
-    procedure GetProductionOrderNoReturnsSubcontractingProductionOrderNo()
-    var
-        TransferShipmentLine: Record "Transfer Shipment Line";
-        ProductionOrderNo: Code[20];
-    begin
-        // [SCENARIO 649580] The production order reference can be retrieved from a posted subcontracting transfer line.
-        TransferShipmentLine."Subc. Prod. Order No." := LibraryRandom.RandText(MaxStrLen(TransferShipmentLine."Subc. Prod. Order No."));
-
-        TransferShipmentLine.GetProductionOrderNo(ProductionOrderNo);
-
-        Assert.AreEqual(
-            TransferShipmentLine."Subc. Prod. Order No.", ProductionOrderNo,
-            'The subcontracting production order number should be returned.');
-    end;
-
-    [Test]
     procedure CreateTransferOrderWithWIPItemFlag_CreatesSimpleWIPTransferLine()
     var
         FromLocation, ToLocation, InTransitCode : Record Location;
