@@ -2055,8 +2055,9 @@ codeunit 137269 "SCM Transfer Reservation"
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.SetRange("No.", Item."No.");
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Outstanding Quantity", 1);
+        PurchaseLine.SetRange("Completely Received", false);
         PurchaseLine.FindFirst();
+        Assert.AreEqual(1, PurchaseLine."Outstanding Quantity", 'The planning-created purchase supply must have one outstanding unit.');
         VerifyUnreceivedTransferReservation(PurchaseLine, TransferLine, 1);
         Commit();
 
