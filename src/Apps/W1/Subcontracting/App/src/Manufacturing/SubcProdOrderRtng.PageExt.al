@@ -42,7 +42,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
                 ApplicationArea = Subcontracting;
-                Enabled = TransferWIPItemEnabled;
+                Enabled = SubcontractingUIEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
@@ -77,6 +77,29 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     }
     actions
     {
+        addafter("Co&mments")
+        {
+            action("Subc. Subcontracting Comments")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Comments';
+                Enabled = SubcontractingUIEnabled;
+                Image = ViewComments;
+                RunObject = Page "Subc. Prod. Rtng. Comments";
+                RunPageLink = Status = field(Status),
+                              "Prod. Order No." = field("Prod. Order No."),
+                              "Routing Reference No." = field("Routing Reference No."),
+                              "Routing No." = field("Routing No."),
+                              "Operation No." = field("Operation No.");
+                ToolTip = 'View or edit subcontracting comments for the production order routing line.';
+            }
+        }
+        addafter("Co&mments_Promoted")
+        {
+            actionref("Subc. SubcontractingComments_Promoted"; "Subc. Subcontracting Comments")
+            {
+            }
+        }
         addafter("Allocated Capacity")
         {
             action("Subcontracting Purchase Lines")
@@ -150,7 +173,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 #pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
-        TransferWIPItemEnabled: Boolean;
+        SubcontractingUIEnabled: Boolean;
         SubcontractingActionsEnabled: Boolean;
         CreateSubcontractingVisible: Boolean;
         NoPurchOrderCreatedMsg: Label 'No subcontracting order was created for the selected operations in production order %1. Please check whether the operation or operations have already been completed.', Comment = '%1=Production Order No.';
@@ -195,7 +218,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        TransferWIPItemEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
+        SubcontractingUIEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
     end;
 
     internal procedure CreateSubcontractingOrders(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")

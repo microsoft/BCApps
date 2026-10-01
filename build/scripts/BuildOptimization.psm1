@@ -178,26 +178,45 @@ function Get-AffectedApps {
     shallow clones (unlike three-dot diffs that need the merge base).
     Supports pull_request, merge_group, and push events.
     Returns $null when changed files cannot be determined (local, workflow_dispatch, git failure).
+    .PARAMETER DiffFilter
+    Optional git diff-filter value, for example 'A' to return only newly added files.
+    .PARAMETER CompareFromMergeBase
+    Compare the head against the merge base instead of the current base-branch tip.
+    .PARAMETER RequireChangeDetection
+    Throw instead of returning null when the change set cannot be determined.
 .OUTPUTS
     String array of changed file paths relative to repo root, or $null.
 #>
 function Get-ChangedFilesForCI {
     [CmdletBinding()]
     [OutputType([string[]])]
-    param()
+    param(
+        [string] $DiffFilter,
+        [switch] $CompareFromMergeBase,
+        [switch] $RequireChangeDetection
+    )
 
     if (-not $env:GITHUB_ACTIONS) {
+        if ($RequireChangeDetection) {
+            throw "Change detection requires a GitHub Actions environment."
+        }
         Write-Host "BUILD OPTIMIZATION: Change detection skipped - not running in GitHub Actions"
         return $null
     }
 
     if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+        if ($RequireChangeDetection) {
+            throw "Change detection is not supported for workflow_dispatch events."
+        }
         Write-Host "BUILD OPTIMIZATION: Change detection skipped - workflow_dispatch event"
         return $null
     }
 
     # Read GitHub event payload for base/head commit SHAs (works with shallow clones)
     if (-not $env:GITHUB_EVENT_PATH -or -not (Test-Path $env:GITHUB_EVENT_PATH)) {
+        if ($RequireChangeDetection) {
+            throw "GitHub event payload not found at '$($env:GITHUB_EVENT_PATH)'."
+        }
         Write-Host "BUILD OPTIMIZATION: GitHub event payload not found at '$($env:GITHUB_EVENT_PATH)'"
         return $null
     }
@@ -221,6 +240,9 @@ function Get-ChangedFilesForCI {
     }
 
     if (-not $baseSha -or -not $headSha) {
+        if ($RequireChangeDetection) {
+            throw "Could not extract commit SHAs from the GitHub event payload (event=$($env:GITHUB_EVENT_NAME))."
+        }
         Write-Host "BUILD OPTIMIZATION: Could not extract commit SHAs from event payload (event=$($env:GITHUB_EVENT_NAME))"
         return $null
     }
@@ -230,11 +252,40 @@ function Get-ChangedFilesForCI {
     $prevErrorAction = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        # Best-effort fetch of base commit (may not be in shallow clone)
-        git fetch origin $baseSha --depth=1 2>$null
-
-        $files = @(git diff --name-only $baseSha $headSha 2>$null)
+        # Fetch only when the event's base commit is not already available locally.
+        & git cat-file -e "$baseSha^{commit}" 2>$null
         if ($LASTEXITCODE -ne 0) {
+            if ($CompareFromMergeBase) {
+                & git fetch origin $baseSha 2>$null
+            }
+            else {
+                & git fetch origin $baseSha --depth=1 2>$null
+            }
+        }
+
+        $diffBase = $baseSha
+        if ($CompareFromMergeBase) {
+            $diffBase = (& git merge-base $baseSha $headSha 2>$null)
+            if ([string]::IsNullOrWhiteSpace($diffBase)) {
+                if ($RequireChangeDetection) {
+                    throw "Could not determine the merge base between '$baseSha' and '$headSha'."
+                }
+                Write-Host "BUILD OPTIMIZATION: Could not determine merge base"
+                return $null
+            }
+        }
+
+        $diffArguments = @('-c', 'core.quotePath=false', 'diff', '--name-only')
+        if (-not [string]::IsNullOrWhiteSpace($DiffFilter)) {
+            $diffArguments += "--diff-filter=$DiffFilter"
+        }
+        $diffArguments += @($diffBase, $headSha, '--')
+
+        $files = @(& git @diffArguments 2>$null)
+        if ($LASTEXITCODE -ne 0) {
+            if ($RequireChangeDetection) {
+                throw "Git diff failed with exit code $LASTEXITCODE."
+            }
             Write-Host "BUILD OPTIMIZATION: git diff failed (exitCode=$LASTEXITCODE)"
             return $null
         }

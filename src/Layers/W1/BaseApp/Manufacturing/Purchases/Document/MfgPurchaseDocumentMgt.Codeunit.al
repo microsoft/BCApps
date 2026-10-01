@@ -74,7 +74,7 @@ codeunit 99000789 "Mfg. Purchase Document Mgt."
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnIsSubcontractingCreditMemo', '', true, false)]
     local procedure OnIsSubcontractingCreditMemo(var PurchaseLine: Record "Purchase Line"; var Result: Boolean)
     begin
-        if (PurchaseLine."Document Type" = PurchaseLine."Document Type"::"Credit Memo") and PurchaseLine.IsProdOrder() and
+        if PurchaseLine.IsCreditDocType() and PurchaseLine.IsProdOrder() and
            (PurchaseLine."Operation No." <> '') and (PurchaseLine."Work Center No." <> '') then
             Result := true
         else

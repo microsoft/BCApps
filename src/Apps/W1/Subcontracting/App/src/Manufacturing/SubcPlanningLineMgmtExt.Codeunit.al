@@ -11,6 +11,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Purchases.Document;
 
 codeunit 20518 "Subc. Planning Line Mgmt Ext."
 {
@@ -37,6 +38,9 @@ codeunit 20518 "Subc. Planning Line Mgmt Ext."
 #pragma warning restore AL0432
             exit;
 #endif
+        PlanningRoutingLine."Transfer WIP Item" := RoutingLine."Transfer WIP Item";
+        PlanningRoutingLine."Transfer Description" := RoutingLine."Transfer Description";
+        PlanningRoutingLine."Transfer Description 2" := RoutingLine."Transfer Description 2";
         SubcPriceManagement.ApplySubcontractorPricingToPlanningRouting(ReqLine, RoutingLine, PlanningRoutingLine);
     end;
 
@@ -52,18 +56,16 @@ codeunit 20518 "Subc. Planning Line Mgmt Ext."
         PlanningComponent."Component Supply Method" := ProductionBOMLine."Component Supply Method";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Planning Line Management", OnTransferBOMOnBeforeUpdatePlanningComp, '', false, false)]
-    local procedure IgnorePurchaseComponentsFromSubcontracting_OnTransferBOMOnBeforeUpdatePlanningComp(var ProductionBOMLine: Record "Production BOM Line"; var UpdateCondition: Boolean; var IsHandled: Boolean; var ReqQty: Decimal)
+    [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterFilterLinesWithItemToPlan, '', false, false)]
+    local procedure PlanningComponent_OnAfterFilterLinesWithItemToPlan(var PlanningComponent: Record "Planning Component"; var Item: Record Item)
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
             exit;
-#endif
-        // Vendor-Supplied components must still be transferred as planning components so they appear
-        // in the Planning Worksheet component list (required for consumption registration).
-        // Exclusion from planning demand is handled by ProdOrderComponent_OnAfterFilterLinesWithItemToPlan.
+#endif        
+        PlanningComponent.SetFilter("Component Supply Method", '<>%1', "Component Supply Method"::"Vendor-Supplied");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterFilterLinesWithItemToPlan, '', false, false)]
@@ -76,6 +78,18 @@ codeunit 20518 "Subc. Planning Line Mgmt Ext."
             exit;
 #endif
         ProdOrderComponent.SetFilter("Component Supply Method", '<>%1', "Component Supply Method"::"Vendor-Supplied");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterFilterLinesWithItemToPlan, '', false, false)]
+    local procedure PurchaseLine_OnAfterFilterLinesWithItemToPlan(var PurchaseLine: Record "Purchase Line"; var Item: Record Item; DocumentType: Option)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        PurchaseLine.SetRange("Subc. Prod. Order No.", '');
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterFilterLinesWithItemToPlan, '', false, false)]

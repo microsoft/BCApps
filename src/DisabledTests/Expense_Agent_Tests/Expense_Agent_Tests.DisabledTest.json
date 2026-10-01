@@ -2,7 +2,87 @@
   {
     "codeunitId": 148315,
     "codeunitName": "Expense Users API Test",
+    "method": "EmployeesAPICanFilterExpenseUsers"
+  },
+  {
+    "codeunitId": 148315,
+    "codeunitName": "Expense Users API Test",
     "method": "UnlinkedExpenseUserIsHiddenFromAPI"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelersAPIMapsEmployeeNumberToExpenseUser"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelersAPIRejectsEmployeeWithoutExpenseUser"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "CreateExpenseReportActionRecreatesDeletedReport"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ApproveTravelRequestActionCreatesExpenseReport"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestDetailsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIPreservesAndUpdatesDates"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAreScopedByEmployeeNumber"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ExpenseReportAPIExposesLinkedTravelRequest"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestDetailsAPIExposesTypeAndCategory"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ApproverViewReturnsOnlyAssignedTravelRequests"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIAllowsOwnerOnInsertAndUnchangedPatch"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIRejectsLifecycleFieldChanges"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "LegacySpendRequestsAPIAllowsUnchangedOwner"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "LegacySpendRequestsAPIRejectsTravelRequestOwnerChange"
   },
   {
     "codeunitId": 148318,
@@ -23,6 +103,11 @@
     "codeunitId": 148318,
     "codeunitName": "Expense Capabilities API Test",
     "method": "ActivityLogCapabilityEnabledViaAPI"
+  },
+  {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "TravelRequestCapabilityEnabledViaAPI"
   },
   {
     "codeunitId": 148343,
@@ -203,5 +288,91 @@
     "codeunitId": 148319,
     "codeunitName": "Cancel Posted Exp. Report Test",
     "method": "CancelMultiLineReportGeneratesNewTransactionNoForReversedLines"
+  },
+  {
+    "codeunitId": 148348,
+    "codeunitName": "Expense VAT Spec. API Test",
+    "method": "AgentVATSpecificationIsInsertedThroughAPI"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DeleteTravelRequestWithPostedReportIsBlocked"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DeleteTravelRequestWithPostedLineIsBlocked"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportRejectsPostedHeader"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportRejectsPostedLine"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportAllowsOtherPostedTraveler"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "ReapproveTravelRequestWithPostedHeader"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "ReapproveTravelRequestWithPostedLine"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "AutoReapproveTravelRequestWithPostedHistory"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "ApproveTravelRequestPageAction"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "SubmitTravelRequestPageAction"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "RejectTravelRequestPageAction"
+  },
+  {
+    "bugId": 650245,
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtReadRetainsAppPermissions"
+  },
+  {
+    "bugId": 650245,
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtEditRetainsAppPermissions"
+  },
+  {
+    "bugId": 650245,
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtAdminRetainsAppPermissions"
   }
 ]

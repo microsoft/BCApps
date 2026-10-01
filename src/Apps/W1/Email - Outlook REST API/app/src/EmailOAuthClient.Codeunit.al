@@ -104,11 +104,45 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         if not EnvironmentInformation.IsSaaSInfrastructure() then begin
             EmailOutlookAPIHelper.GetClientIDAndSecret(ClientId, ClientSecret);
             RedirectURL := EmailOutlookAPIHelper.GetRedirectURL();
-            if RedirectURL = '' then
+            // Only pin the default when no redirect URL is configured; an explicit custom value is honored so existing OnPrem setups keep working.
+            if RedirectURL = '' then begin
                 OAuth2.GetDefaultRedirectUrl(RedirectURL);
+                ValidateRedirectUrl(RedirectURL);
+            end;
         end;
 
         IsInitialized := true;
+    end;
+
+    internal procedure ValidateRedirectUrl(RedirectUrlToValidate: Text)
+    var
+        RedirectUrlErrorInfo: ErrorInfo;
+        DefaultRedirectUrl: Text;
+    begin
+        OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
+        if RedirectUrlToValidate = DefaultRedirectUrl then
+            exit;
+
+        Session.LogMessage('0000VC9', InvalidRedirectUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EmailCategoryLbl);
+
+        RedirectUrlErrorInfo.Title := InvalidRedirectUrlTitleTxt;
+        RedirectUrlErrorInfo.Message := StrSubstNo(InvalidRedirectUrlErr, DefaultRedirectUrl);
+        RedirectUrlErrorInfo.DetailedMessage := StrSubstNo(InvalidRedirectUrlDetailTxt, DefaultRedirectUrl);
+        RedirectUrlErrorInfo.DataClassification := DataClassification::CustomerContent;
+        RedirectUrlErrorInfo.AddAction(RestoreDefaultRedirectUrlActionTxt, Codeunit::"Email - OAuth Client", 'RestoreDefaultRedirectUrl');
+        Error(RedirectUrlErrorInfo);
+    end;
+
+    internal procedure RestoreDefaultRedirectUrl(RedirectUrlErrorInfo: ErrorInfo)
+    var
+        Setup: Record "Email - Outlook API Setup";
+        DefaultRedirectUrl: Text;
+    begin
+        OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
+        if not Setup.Get() then
+            Setup.Insert();
+        Setup.RedirectURL := CopyStr(DefaultRedirectUrl, 1, MaxStrLen(Setup.RedirectURL));
+        Setup.Modify();
     end;
 
     internal procedure AuthorizationCodeTokenCacheExists(): Boolean
@@ -156,4 +190,9 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         EmailCategoryLbl: Label 'EmailOAuth', Locked = true;
         CouldNotAcquireAccessTokenErr: Label 'Failed to acquire access token.', Locked = true;
         ThirdPartyExtensionsNotAllowedErr: Label 'Third-party extensions are restricted from obtaining access tokens. Please contact your system administrator.';
+        InvalidRedirectUrlErr: Label 'The redirect URL must be %1.', Comment = '%1 = the allowed redirect URL';
+        InvalidRedirectUrlTitleTxt: Label 'Invalid redirect URL';
+        InvalidRedirectUrlDetailTxt: Label 'The redirect URL for the Outlook email app registration must be %1. Choose ''Restore default redirect URL'' to reset it to the required value.', Comment = '%1 = the allowed redirect URL';
+        InvalidRedirectUrlTelemetryTxt: Label 'A non-default OAuth redirect URL was rejected during Outlook email setup.', Locked = true;
+        RestoreDefaultRedirectUrlActionTxt: Label 'Restore default redirect URL';
 }

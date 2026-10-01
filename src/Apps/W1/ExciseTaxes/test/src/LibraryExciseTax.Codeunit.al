@@ -50,49 +50,76 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxEntryPermission.Insert(true);
     end;
 
-    procedure CreateExciseTaxItemRate(TaxTypeCode: Code[20]; ItemNo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
+    procedure CreateExciseTaxItemRate(TaxTypeCode: Code[20]; ItemNo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Rate"
     var
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
     begin
-        ExciseTaxItemFARate.Init();
-        ExciseTaxItemFARate."Excise Tax Type Code" := TaxTypeCode;
-        ExciseTaxItemFARate."Source Type" := "Excise Source Type"::Item;
-        ExciseTaxItemFARate."Source No." := ItemNo;
-        ExciseTaxItemFARate."Excise Duty" := ExciseDuty;
-        ExciseTaxItemFARate."Effective From Date" := EffectiveFromDate;
-        ExciseTaxItemFARate.Description := RateDescription;
-        ExciseTaxItemFARate.Insert(true);
-        exit(ExciseTaxItemFARate);
+        ExciseTaxRate.Init();
+        ExciseTaxRate."Excise Tax Type Code" := TaxTypeCode;
+        ExciseTaxRate."Source Type" := "Excise Source Type"::Item;
+        ExciseTaxRate."Source No." := ItemNo;
+        ExciseTaxRate."Excise Duty" := ExciseDuty;
+        ExciseTaxRate."Effective From Date" := EffectiveFromDate;
+        ExciseTaxRate.Description := RateDescription;
+        ExciseTaxRate.Insert(true);
+        exit(ExciseTaxRate);
     end;
 
-    procedure CreateExciseTaxFARate(TaxTypeCode: Code[20]; FANo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
+    procedure CreateExciseTaxFARate(TaxTypeCode: Code[20]; FANo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Rate"
     var
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
     begin
-        ExciseTaxItemFARate.Init();
-        ExciseTaxItemFARate."Excise Tax Type Code" := TaxTypeCode;
-        ExciseTaxItemFARate."Source Type" := "Excise Source Type"::"Fixed Asset";
-        ExciseTaxItemFARate."Source No." := FANo;
-        ExciseTaxItemFARate."Excise Duty" := ExciseDuty;
-        ExciseTaxItemFARate."Effective From Date" := EffectiveFromDate;
-        ExciseTaxItemFARate.Description := RateDescription;
-        ExciseTaxItemFARate.Insert(true);
-        exit(ExciseTaxItemFARate);
+        ExciseTaxRate.Init();
+        ExciseTaxRate."Excise Tax Type Code" := TaxTypeCode;
+        ExciseTaxRate."Source Type" := "Excise Source Type"::"Fixed Asset";
+        ExciseTaxRate."Source No." := FANo;
+        ExciseTaxRate."Excise Duty" := ExciseDuty;
+        ExciseTaxRate."Effective From Date" := EffectiveFromDate;
+        ExciseTaxRate.Description := RateDescription;
+        ExciseTaxRate.Insert(true);
+        exit(ExciseTaxRate);
     end;
 
-    procedure CreateExciseTaxItemFARate(TaxTypeCode: Code[20]; SourceType: Enum "Excise Source Type"; SourceNo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
+    procedure CreateExciseTaxItemFARate(TaxTypeCode: Code[20]; SourceType: Enum "Excise Source Type"; SourceNo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Rate"
     var
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
     begin
-        ExciseTaxItemFARate.Init();
-        ExciseTaxItemFARate."Excise Tax Type Code" := TaxTypeCode;
-        ExciseTaxItemFARate."Source Type" := SourceType;
-        ExciseTaxItemFARate."Source No." := SourceNo;
-        ExciseTaxItemFARate."Excise Duty" := ExciseDuty;
-        ExciseTaxItemFARate."Effective From Date" := EffectiveFromDate;
-        ExciseTaxItemFARate.Description := RateDescription;
-        ExciseTaxItemFARate.Insert(true);
-        exit(ExciseTaxItemFARate);
+        ExciseTaxRate.Init();
+        ExciseTaxRate."Excise Tax Type Code" := TaxTypeCode;
+        ExciseTaxRate."Source Type" := SourceType;
+        ExciseTaxRate."Source No." := SourceNo;
+        ExciseTaxRate."Excise Duty" := ExciseDuty;
+        ExciseTaxRate."Effective From Date" := EffectiveFromDate;
+        ExciseTaxRate.Description := RateDescription;
+        ExciseTaxRate.Insert(true);
+        exit(ExciseTaxRate);
+    end;
+
+    procedure CreateExciseTaxRate(TaxTypeCode: Code[20]; SourceType: Enum "Excise Source Type"; SourceNo: Code[20]; ItemCategoryCode: Code[20]; CalculationType: Enum "Excise Calculation Type"; ExciseDuty: Decimal; ExciseDutyPct: Decimal; EffectiveFromDate: Date): Record "Excise Tax Rate"
+    var
+        ExciseTaxRate: Record "Excise Tax Rate";
+    begin
+        ExciseTaxRate.Init();
+        ExciseTaxRate."Excise Tax Type Code" := TaxTypeCode;
+        ExciseTaxRate."Source Type" := SourceType;
+        ExciseTaxRate."Source No." := SourceNo;
+        ExciseTaxRate."Item Category Code" := ItemCategoryCode;
+        ExciseTaxRate."Excise Calculation Type" := CalculationType;
+        ExciseTaxRate."Excise Duty" := ExciseDuty;
+        ExciseTaxRate."Excise Duty %" := ExciseDutyPct;
+        ExciseTaxRate."Effective From Date" := EffectiveFromDate;
+        ExciseTaxRate.Insert(true);
+        exit(ExciseTaxRate);
+    end;
+
+    procedure CreateItemCategory(): Code[20]
+    var
+        ItemCategory: Record "Item Category";
+    begin
+        ItemCategory.Init();
+        ItemCategory.Code := LibraryUtility.GenerateRandomCode(ItemCategory.FieldNo(Code), Database::"Item Category");
+        ItemCategory.Insert(true);
+        exit(ItemCategory.Code);
     end;
 
     procedure CreateItemWithExciseTax(var Item: Record Item; TaxTypeCode: Code[20])
@@ -165,26 +192,26 @@ codeunit 148350 "Library - Excise Tax"
 
     procedure GetSourceSpecificRate(TaxTypeCode: Code[20]; SourceType: Enum "Excise Source Type"; SourceNo: Code[20]; EffectiveDate: Date): Decimal
     var
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
     begin
-        ExciseTaxItemFARate.SetRange("Excise Tax Type Code", TaxTypeCode);
-        ExciseTaxItemFARate.SetRange("Source Type", SourceType);
-        ExciseTaxItemFARate.SetRange("Source No.", SourceNo);
-        ExciseTaxItemFARate.SetFilter("Effective From Date", '<=%1', EffectiveDate);
-        if ExciseTaxItemFARate.FindLast() then
-            exit(ExciseTaxItemFARate."Excise Duty");
+        ExciseTaxRate.SetRange("Excise Tax Type Code", TaxTypeCode);
+        ExciseTaxRate.SetRange("Source Type", SourceType);
+        ExciseTaxRate.SetRange("Source No.", SourceNo);
+        ExciseTaxRate.SetFilter("Effective From Date", '<=%1', EffectiveDate);
+        if ExciseTaxRate.FindLast() then
+            exit(ExciseTaxRate."Excise Duty");
         exit(0);
     end;
 
     procedure GetGeneralRate(TaxTypeCode: Code[20]): Decimal
     var
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
     begin
-        ExciseTaxItemFARate.SetRange("Excise Tax Type Code", TaxTypeCode);
-        ExciseTaxItemFARate.SetRange("Source Type", "Excise Source Type"::" ");
-        ExciseTaxItemFARate.SetRange("Source No.", '');
-        if ExciseTaxItemFARate.FindFirst() then
-            exit(ExciseTaxItemFARate."Excise Duty");
+        ExciseTaxRate.SetRange("Excise Tax Type Code", TaxTypeCode);
+        ExciseTaxRate.SetRange("Source Type", "Excise Source Type"::" ");
+        ExciseTaxRate.SetRange("Source No.", '');
+        if ExciseTaxRate.FindFirst() then
+            exit(ExciseTaxRate."Excise Duty");
         exit(0);
     end;
 
@@ -212,12 +239,12 @@ codeunit 148350 "Library - Excise Tax"
     var
         ExciseTaxType: Record "Excise Tax Type";
         ExciseTaxEntryPermission: Record "Excise Tax Entry Permission";
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
         ItemExciseTax: Record "Item Excise Tax";
     begin
         ExciseTaxType.DeleteAll();
         ExciseTaxEntryPermission.DeleteAll();
-        ExciseTaxItemFARate.DeleteAll();
+        ExciseTaxRate.DeleteAll();
         ItemExciseTax.DeleteAll();
     end;
 }

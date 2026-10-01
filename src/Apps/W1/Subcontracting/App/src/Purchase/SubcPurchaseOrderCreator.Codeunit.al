@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
@@ -105,8 +106,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
 
         if (RequisitionLine."Prod. Order No." <> '') and
            (RequisitionLine."Prod. Order Line No." <> 0) and
-           (RequisitionLine."Operation No." <> '') and
-           (RequisitionLine."Routing Reference No." <> 0)
+              (RequisitionLine."Operation No." <> '')
         then begin
             ProdOrderLine.SetLoadFields(Description, "Description 2");
             ProdOrderLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Prod. Order Line No.");
@@ -121,6 +121,95 @@ codeunit 20557 "Subc. Purchase Order Creator"
 
             PurchaseLine.Insert();
         end;
+    end;
+
+    /// <summary>
+    /// Inserts the subcontracting production order comments as purchase order lines.
+    /// </summary>
+    /// <param name="PurchOrderLine">The purchase order line to attach the comments to.</param>
+    /// <param name="RequisitionLine">The requisition line for the subcontracting production order routing line.</param>
+    /// <param name="NextLineNo">The next purchase order line number, which is updated for each inserted comment.</param>
+    internal procedure InsertSubcontractingProdOrderComments(PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line"; var NextLineNo: Integer)
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProdOrderRoutingComment: Record "Subc. Prod. Rtng. Comment";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: Record "Work Center";
+    begin
+        if (RequisitionLine."Prod. Order No." = '') or
+           (RequisitionLine."Operation No." = '') or
+              (RequisitionLine."Routing No." = '')
+        then
+            exit;
+
+        if not ProdOrderRoutingLine.Get(
+            "Production Order Status"::Released, RequisitionLine."Prod. Order No.",
+            RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.")
+        then
+            exit;
+
+        WorkCenter.SetLoadFields("Subcontractor No.");
+        if not WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then
+            exit;
+        if WorkCenter."Subcontractor No." = '' then
+            exit;
+
+        ProdOrderRoutingComment.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderRoutingComment.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderRoutingComment.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderRoutingComment.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        ProdOrderRoutingComment.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        if ProdOrderRoutingComment.FindSet() then
+            repeat
+                PurchaseLine.Init();
+                PurchaseLine."Document Type" := PurchOrderLine."Document Type";
+                PurchaseLine."Document No." := PurchOrderLine."Document No.";
+                NextLineNo += 10000;
+                PurchaseLine."Line No." := NextLineNo;
+                PurchaseLine.Type := "Purchase Line Type"::" ";
+                PurchaseLine."Attached to Line No." := PurchOrderLine."Line No.";
+                PurchaseLine.Description := ProdOrderRoutingComment.Description;
+                PurchaseLine."Description 2" := ProdOrderRoutingComment."Description 2";
+                PurchaseLine.Insert();
+            until ProdOrderRoutingComment.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Transfers the subcontracting production order line attachments to the purchase order line.
+    /// </summary>
+    /// <param name="PurchOrderLine">The purchase order line to copy the attachments to.</param>
+    /// <param name="RequisitionLine">The requisition line for the subcontracting production order line.</param>
+    internal procedure TransferSubcontractingProdOrderLineAttachments(PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        WorkCenter: Record "Work Center";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        if PurchOrderLine.Type <> PurchOrderLine.Type::Item then
+            exit;
+        if (RequisitionLine."Prod. Order No." = '') or
+           (RequisitionLine."Prod. Order Line No." = 0) or
+              (RequisitionLine."Operation No." = '')
+        then
+            exit;
+        ProdOrderRoutingLine.SetLoadFields("Work Center No.");
+        if not ProdOrderRoutingLine.Get(
+            "Production Order Status"::Released, RequisitionLine."Prod. Order No.",
+            RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.")
+        then
+            exit;
+        WorkCenter.SetLoadFields("Subcontractor No.");
+        if not WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then
+            exit;
+        if WorkCenter."Subcontractor No." = '' then
+            exit;
+        if not ProdOrderLine.Get(
+            "Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Prod. Order Line No.")
+        then
+            exit;
+
+        DocumentAttachmentMgmt.CopyAttachments(ProdOrderLine, PurchOrderLine);
     end;
 
     procedure TransferSubcontractingProdOrderComp(var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line"; var NextLineNo: Integer)
