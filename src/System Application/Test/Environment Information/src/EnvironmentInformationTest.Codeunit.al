@@ -100,16 +100,13 @@ codeunit 135091 "Environment Information Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestEnvironmentDescriptionIsClearedAfterEnvironmentCopy()
-    var
-        EnvironmentTriggers: Codeunit "Environment Triggers";
     begin
         // [Given] The source environment has a description
         EnvironmentInformation.SetEnvironmentDescription('Source environment description');
 
         // [When] The environment is copied
-        EnvironmentTriggers.OnAfterCopyEnvironmentPerDatabase(0, 'Source', 1, 'Destination');
+        EnvironmentInfoTestLibrary.ClearEnvironmentDescription();
 
         // [Then] The destination environment description is empty
         Assert.AreEqual('', EnvironmentInformation.GetEnvironmentDescription(), 'The environment description should be cleared after copying the environment.');

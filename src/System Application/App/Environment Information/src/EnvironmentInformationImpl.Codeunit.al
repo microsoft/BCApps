@@ -89,6 +89,11 @@ codeunit 3702 "Environment Information Impl."
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearDatabaseConfig, '', false, false)]
     local procedure ClearEnvironmentDescriptionOnEnvironmentCopy(SourceEnv: Enum "Environment Type"; DestinationEnv: Enum "Environment Type")
+    begin
+        ClearEnvironmentDescription();
+    end;
+
+    procedure ClearEnvironmentDescription()
     var
         EnvironmentInformation: Record "Environment Information";
     begin
