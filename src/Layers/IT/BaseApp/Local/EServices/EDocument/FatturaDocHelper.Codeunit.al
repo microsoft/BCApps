@@ -435,7 +435,11 @@ codeunit 12184 "Fattura Doc. Helper"
               Customer, Customer.FieldNo("Last Name"), ErrorMessage."Message Type"::Error);
             ErrorMessage.LogIfEmpty(
               Customer, Customer.FieldNo("First Name"), ErrorMessage."Message Type"::Error);
-            ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error);
+            if Customer."Country/Region Code" = CompanyInformation."Country/Region Code" then
+                ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error)
+            else
+                if (Customer."VAT Registration No." = '') and (Customer."Fiscal Code" = '') then
+                    ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error);
         end else
             ErrorMessage.LogIfEmpty(
               Customer, Customer.FieldNo(Name), ErrorMessage."Message Type"::Error);
