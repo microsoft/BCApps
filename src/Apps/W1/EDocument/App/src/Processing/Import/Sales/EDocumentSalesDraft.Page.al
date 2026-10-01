@@ -277,6 +277,24 @@ page 6153 "E-Document Sales Draft"
                         FinalizeEDocument(TempEDocImportParameters);
                     end;
                 }
+                action(RejectOrder)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Reject order';
+                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    Image = Reject;
+                    Visible = ShowFinalizeDraftAction;
+
+                    trigger OnAction()
+                    var
+                        EDocumentProcessing: Codeunit "E-Document Processing";
+                        ConfirmManagement: Codeunit "Confirm Management";
+                    begin
+                        if not ConfirmManagement.GetResponseOrDefault(RejectOrderQst, false) then
+                            exit;
+                        EDocumentProcessing.SendOrderRejection(EDocument);
+                    end;
+                }
                 action(ResetDraftDocument)
                 {
                     ApplicationArea = Basic, Suite;
@@ -463,4 +481,5 @@ page 6153 "E-Document Sales Draft"
         PageEditable: Boolean;
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
         ProcessingDocumentMsg: Label 'Processing document...';
+        RejectOrderQst: Label 'Do you want to reject this order and notify the sender?';
 }
