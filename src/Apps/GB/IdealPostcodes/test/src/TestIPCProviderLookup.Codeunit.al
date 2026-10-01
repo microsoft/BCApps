@@ -23,7 +23,7 @@ codeunit 148120 "Test IPC Provider Lookup"
         ResolveRequestCount: Integer;
         OtherRequestCount: Integer;
         MyServiceKeyTok: Label 'IDEAL_POSTCODE_POSTCODE_SERVICE', Locked = true;
-        RetrieveAddressDetailsErr: Label 'Failed to retrieve address details.', Locked = true;
+        RetrieveAddressDetailsErr: Label 'Failed to retrieve address details.';
         RetrievedInvalidValueTok: Label 'Retrieved field value is incorrect.', Locked = true;
 
     [Test]
