@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
