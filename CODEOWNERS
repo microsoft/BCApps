@@ -1,17 +1,26 @@
 # CODEOWNERS is case sensitive and uses the last matching rule.
-# Only intentional mandatory approval gates belong in this file.
+# Only intentional, hand-selected mandatory approval gates belong in this file.
 # Unmatched paths use the repository's normal approval policy.
 
-# Base Application areas with mandatory Finance or SCM approval gates.
+# Platform and tooling approval gates.
+/src/System\ Application/ @microsoft/d365-bc-integrations
+/src/Business\ Foundation/ @microsoft/d365-bc-integrations
+/src/Tools/ @microsoft/d365-bc-integrations
+/tools/ @microsoft/d365-bc-integrations
+
+# Base Application areas with mandatory Finance, SCM, or Integrations gates.
 /src/Layers/*/BaseApp/Assembly/ @microsoft/d365-bc-scm
 /src/Layers/*/BaseApp/Bank/ @microsoft/d365-bc-finance-1
 /src/Layers/*/BaseApp/CashFlow/ @microsoft/d365-bc-finance-1
 /src/Layers/*/BaseApp/CostAccounting/ @microsoft/d365-bc-finance-1
 /src/Layers/*/BaseApp/CRM/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/eServices/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/Finance/ @microsoft/d365-bc-finance-1
 /src/Layers/*/BaseApp/FinancialMgt/ @microsoft/d365-bc-finance-1
 /src/Layers/*/BaseApp/FixedAssets/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/Foundation/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/HumanResources/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Integration/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/Inventory/ @microsoft/d365-bc-scm
 /src/Layers/*/BaseApp/Invoicing/ @microsoft/d365-bc-scm
 /src/Layers/*/BaseApp/Manufacturing/ @microsoft/d365-bc-scm
@@ -41,37 +50,71 @@
 /src/Apps/W1/BankAccRecWithAI/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/BankDeposits/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/CompanyHub/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/ConnectivityApps/ @microsoft/d365-bc-integrations
 /src/Apps/W1/CrossEnvironmentIntercompany/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/DataArchive/ @microsoft/d365-bc-integrations
 /src/Apps/W1/DataCorrectionFA/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/DataSearch/ @microsoft/d365-bc-integrations
+/src/Apps/W1/DynamicsGPHistoricalData/ @microsoft/d365-bc-integrations
+/src/Apps/W1/DynamicsGPHistorySmartLists/ @microsoft/d365-bc-integrations
+/src/Apps/W1/DynamicsSLHistoricalData/ @microsoft/d365-bc-integrations
 /src/Apps/W1/ESGStatisticalAccountsDemoTool/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/EU3PartyTradePurchase/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/Email\ -\ Current\ User\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Email\ -\ Microsoft\ 365\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Email\ -\ Outlook\ REST\ API/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Email\ -\ SMTP\ API/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Email\ -\ SMTP\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/EmailLogging/ @microsoft/d365-bc-integrations
 /src/Apps/W1/EnforcedDigitalVouchers/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/ErrorMessagesWithRecommendations/ @microsoft/d365-bc-integrations
 /src/Apps/W1/ExciseTaxes/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/External\ File\ Storage\ -\ Azure\ Blob\ Service\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/External\ File\ Storage\ -\ Azure\ File\ Service\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/External\ File\ Storage\ -\ SFTP\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/External\ File\ Storage\ -\ SharePoint\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/External\ Storage\ -\ Document\ Attachments/ @microsoft/d365-bc-integrations
 /src/Apps/W1/FieldServiceIntegration/ @microsoft/d365-bc-scm
+/src/Apps/W1/HybridAPI/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBC/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBC14/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBC14HistoricalData/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBCLast/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBaseDeployment/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridGP/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridSL/ @microsoft/d365-bc-integrations
 /src/Apps/W1/INTaxEngine/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/Intrastat/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/LatePaymentPredictor/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/MSWalletPayments/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/Manufacturing/ @microsoft/d365-bc-scm
 /src/Apps/W1/MasterDataManagement/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/MicrosoftUniversalPrint/ @microsoft/d365-bc-integrations
+/src/Apps/W1/OnboardingSignals/ @microsoft/d365-bc-integrations
 /src/Apps/W1/PayPalPaymentsStandard/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/PaymentPractices/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/PowerBIReports/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/QBMigration/ @microsoft/d365-bc-integrations
 /src/Apps/W1/Quality\ Management/ @microsoft/d365-bc-scm
+/src/Apps/W1/QuickbooksPayrollFileImport/ @microsoft/d365-bc-integrations
 /src/Apps/W1/ReviewGLEntries/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/SAF-T/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/SalesAndInventoryForecast/ @microsoft/d365-bc-scm
 /src/Apps/W1/SalesLinesSuggestions/ @microsoft/d365-bc-scm
 /src/Apps/W1/SalesOrderAgent/ @microsoft/d365-bc-scm
+/src/Apps/W1/SendToEmailPrinter/ @microsoft/d365-bc-integrations
 /src/Apps/W1/ServiceDeclaration/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/ServiceManagement/ @microsoft/d365-bc-scm
 /src/Apps/W1/Shopify/ @microsoft/d365-bc-integrations
 /src/Apps/W1/SimplifiedBankStatementImport/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/SmartList/ @microsoft/d365-bc-integrations
 /src/Apps/W1/StatisticalAccounts/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/Subcontracting/ @microsoft/d365-bc-scm
 /src/Apps/W1/Subscription\ Billing/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/Sustainability/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/SustainabilityCopilotSuggestion/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/SyncBase/ @microsoft/d365-bc-integrations
+/src/Apps/W1/TransactionStorage/ @microsoft/d365-bc-integrations
 /src/Apps/W1/UKSendRemittanceAdvice/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/VATGroupManagement/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/WithholdingTax/ @microsoft/d365-bc-finance-1
