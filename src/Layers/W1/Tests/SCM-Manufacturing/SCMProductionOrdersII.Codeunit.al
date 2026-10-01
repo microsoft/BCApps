@@ -8175,7 +8175,7 @@ codeunit 137072 "SCM Production Orders II"
     end;
 
     [Test]
-    [HandlerFunctions('ItemTrackingPageHandler,ConfirmHandlerTrue,MessageHandlerNoText')]
+    [HandlerFunctions('ItemTrackingPageHandler,ConfirmHandler,MessageHandlerNoText')]
     procedure ReverseLotTrackedProductionOutputPostedInNonBaseUnitOfMeasure()
     var
         Item: Record Item;
