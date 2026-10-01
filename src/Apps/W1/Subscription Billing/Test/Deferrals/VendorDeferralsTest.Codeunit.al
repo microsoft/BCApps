@@ -1196,6 +1196,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [WHEN] Billing covers start of the month to end of the month and the document is posted
         CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+CM>');
+        ClearPaymentTermsOnPurchaseHeader();
         PostPurchDocumentAndFetchDeferrals();
 
         // [THEN] Exactly 1 deferral period is created with Number of Days equal to the days in the month and Amount equal to Deferral Base Amount
@@ -1223,6 +1224,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [WHEN] Billing covers mid-month to last day of the month and the document is posted.
         CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+CM>');
+        ClearPaymentTermsOnPurchaseHeader();
         PostPurchDocumentAndFetchDeferrals();
 
         // [THEN] Verify exactly 1 deferral period is created with Number of Days equal to the remaining days in the month and Amount equal to Deferral Base Amount.
@@ -1250,6 +1252,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [WHEN] Billing starts on the 1st and ends mid-month and the document is posted.
         CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+14D>');
+        ClearPaymentTermsOnPurchaseHeader();
         PostPurchDocumentAndFetchDeferrals();
 
         // [THEN] Verify exactly 1 deferral period is created with Number of Days = 15 and Amount equal to Deferral Base Amount.
@@ -1277,6 +1280,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [WHEN] Billing starts mid-month and ends mid-month and the document is posted.
         CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+24D>');
+        ClearPaymentTermsOnPurchaseHeader();
         PostPurchDocumentAndFetchDeferrals();
 
         // [THEN] Verify exactly 1 deferral period is created with Number of Days = 11 and Amount equal to Deferral Base Amount
@@ -1303,6 +1307,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [WHEN] Billing starts mid-month and spans multiple months and the document is posted.
         CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<CY>');
+        ClearPaymentTermsOnPurchaseHeader();
         PostPurchDocumentAndFetchDeferrals();
 
         // [THEN] Verify multiple deferral periods are created and the first one has Number of Days equal to the remaining days in January
@@ -1327,6 +1332,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [WHEN] Billing covers 1st to mid-month in a later month and the document is posted.
         CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+6M+19D>');
+        ClearPaymentTermsOnPurchaseHeader();
         PostPurchDocumentAndFetchDeferrals();
 
         // [THEN] Verify the last deferral period has Number of Days equal to the day-of-month of the billing end date.
@@ -1351,6 +1357,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [WHEN] Billing covers 1st to last day of a later month (full months only) and the document is posted.
         CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+5M+CM>');
+        ClearPaymentTermsOnPurchaseHeader();
         PostPurchDocumentAndFetchDeferrals();
 
         // [THEN] Verify each deferral period has Number of Days equal to the calendar days in that month.
@@ -1385,6 +1392,7 @@ codeunit 139913 "Vendor Deferrals Test"
 
         // [WHEN] Billing covers partial first and last months and the document is posted.
         CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+6M+19D>');
+        ClearPaymentTermsOnPurchaseHeader();
         PostPurchDocumentAndFetchDeferrals();
 
         // [THEN] Verify first partial month has Number of Days equal to remaining days in the month.
@@ -1680,6 +1688,16 @@ codeunit 139913 "Vendor Deferrals Test"
         PostPurchCreditMemo();
         PurchaseCrMemoDeferral.SetRange("Document No.", CorrectedDocumentNo);
         PurchaseCrMemoDeferral.FindFirst();
+    end;
+
+    local procedure ClearPaymentTermsOnPurchaseHeader()
+    begin
+        // Some localizations (IT) build installment payment lines from the payment terms and, when the invoice is
+        // posted, also insert a general journal staging record whose primary key does not depend on the document.
+        // A test that commits after posting leaves one behind, so every later posting fails with "The record in
+        // table Payment Lines already exists". These tests assert deferral day counts only and need no payment terms.
+        PurchaseHeader.Validate("Payment Terms Code", '');
+        PurchaseHeader.Modify(false);
     end;
 
     local procedure PostPurchDocumentAndFetchDeferrals()
