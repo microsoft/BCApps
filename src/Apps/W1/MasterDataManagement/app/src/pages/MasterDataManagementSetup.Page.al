@@ -1,6 +1,7 @@
 namespace Microsoft.Integration.MDM;
 
 using Microsoft.Integration.SyncEngine;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
 using System.Threading;
@@ -29,7 +30,7 @@ page 7230 "Master Data Management Setup"
                 {
                     ApplicationArea = Suite;
                     Editable = IsEditable;
-                    Visible = not (CrossEnvConfigured and Rec."Is Enabled"); // same-env source company: blank under cross-env, so hide it once cross-env is set up and enabled (view cross-env details via the wizard)
+                    Visible = not CrossEnvConfigured; // same-env source company: blank under cross-env, so show the cross-env source fields instead once a source environment is configured
                     ToolTip = 'Specifies the name of the source company that you synchronize data from.';
                 }
                 field("Source Environment Name"; Rec."Source Environment Name")
@@ -42,6 +43,7 @@ page 7230 "Master Data Management Setup"
                 field("Source Company Name"; Rec."Source Company Name")
                 {
                     ApplicationArea = Suite;
+                    Caption = 'Source Company'; // match the same-environment source company field caption
                     Editable = false;
                     Visible = CrossEnvConfigured;
                     ToolTip = 'Specifies the company in the source environment that master data is read from. Use the Cross-Environment Setup action to change it.';
@@ -71,14 +73,16 @@ page 7230 "Master Data Management Setup"
                 ApplicationArea = Suite;
                 Caption = 'Cross-environment setup';
                 Image = LinkAccount;
-                ToolTip = 'Set up the connection to a company in a different Business Central environment for cross-environment synchronization.';
+                Enabled = IsSaaS; // cross-environment synchronization reads from the source over a cloud service; it is not available on-premises
+                ToolTip = 'Set up the connection to a company in a different Business Central environment for cross-environment synchronization. This is available only in Business Central online.';
 
                 trigger OnAction()
                 begin
                     Page.RunModal(Page::"MDM Connection Details");
-                    if Rec.Get() then; // the wizard may have configured or cleared the cross-environment connection
-                    RefreshData();
-                    CurrPage.Update(false);
+                    // The wizard may have configured or cleared the cross-environment connection, which changes which
+                    // source fields should be shown. The Visible property is only applied when the page opens, so reopen
+                    // the page to reflect the new configuration.
+                    ReopenPage();
                 end;
             }
             action(ClearCrossEnvSetup)
@@ -97,9 +101,9 @@ page 7230 "Master Data Management Setup"
                     Rec.Validate("Source Environment Name", ''); // clear the source env; runs the enabled guard and detector cleanup
                     Rec.ClearCrossEnvConnection();
                     Rec.Modify(true);
-                    if Rec.Get() then;
-                    RefreshData();
-                    CurrPage.Update(false);
+                    // Returning to same-environment mode changes which source fields should be shown, and the Visible
+                    // property is only applied when the page opens, so reopen the page to reflect the new configuration.
+                    ReopenPage();
                 end;
             }
             action(ResetConfiguration)
@@ -267,18 +271,25 @@ page 7230 "Master Data Management Setup"
 
     trigger OnOpenPage()
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         MasterDataManagement: Codeunit "Master Data Management";
     begin
         FeatureTelemetry.LogUptake('0000JIV', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        IsSaaS := EnvironmentInformation.IsSaaSInfrastructure();
         if not Rec.Get() then begin
             Rec.Init();
             Rec.Insert();
         end;
+        // Visibility of the same-environment vs. cross-environment source fields is driven by these flags. The Visible
+        // property is only applied when the page opens, so the flags must be set here (not just in OnAfterGetRecord).
+        UpdateEnableFlags();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
+        if ReopeningPage then
+            exit(true);
         if not Rec."Is Enabled" then
             if not Confirm(EnableServiceQst, true, CurrPage.Caption()) then
                 exit(false);
@@ -317,12 +328,23 @@ page 7230 "Master Data Management Setup"
         ClearCrossEnvConfirmQst: Label 'This removes the cross-environment connection and its stored credentials, and returns to same-environment synchronization. Do you want to continue?';
         IsEditable: Boolean;
         CrossEnvConfigured: Boolean;
+        ReopeningPage: Boolean;
+        IsSaaS: Boolean;
         SynchronizationImportedMsg: label 'The synchronization setup is imported. \\To view or edit the synchronization table setup, choose action Synchronization Tables.\\To view or edit the synchronization field setup, select a synchronization table and choose action Synchronization Fields.';
         NoCoupledRecordsMsg: label 'No records are currently coupled to records from the source company. \\Choose the action Start Initial Synchronization.';
 
     local procedure RefreshData()
     begin
         UpdateEnableFlags();
+    end;
+
+    // Reopen the page so the Visible property is re-applied after the cross-environment configuration changed.
+    // The Visible property can only be toggled when a page opens, so an in-place CurrPage.Update() is not enough.
+    local procedure ReopenPage()
+    begin
+        ReopeningPage := true;
+        Page.Run(Page::"Master Data Management Setup");
+        CurrPage.Close();
     end;
 
     local procedure UpdateEnableFlags()
