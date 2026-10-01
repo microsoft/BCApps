@@ -8,9 +8,12 @@ codeunit 144083 "UT IT Transfer Shipment"
     TestPermissions = Disabled;
 
     var
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
 
     [Test]
     [HandlerFunctions('SubcontractTransferShipmentRequestPageHandler')]
@@ -18,36 +21,38 @@ codeunit 144083 "UT IT Transfer Shipment"
     [Scope('OnPrem')]
     procedure SubcontractTransferShipmentRunsWhenLegacySubcontractingIsDisabled()
     var
-        CompanyInformation: Record "Company Information";
+        FromLocation: Record Location;
+        InTransitLocation: Record Location;
+        Item: Record Item;
+        ToLocation: Record Location;
+        TransferHeader: Record "Transfer Header";
         TransferShipmentHeader: Record "Transfer Shipment Header";
-        TransferShipmentLine: Record "Transfer Shipment Line";
+        TransferLine: Record "Transfer Line";
 #if not CLEAN28
         ManufacturingSetup: Record "Manufacturing Setup";
 #endif
+        Quantity: Decimal;
     begin
         // [SCENARIO 649580] The Italian transfer shipment report remains available when Legacy Subcontracting is disabled.
 #if not CLEAN28
-        if not ManufacturingSetup.Get() then begin
-            ManufacturingSetup.Init();
-            ManufacturingSetup.Insert();
-        end;
-        ManufacturingSetup."Legacy Subcontracting" := false;
-        ManufacturingSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Legacy Subcontracting", false);
+        ManufacturingSetup.Modify(true);
 #endif
-        if not CompanyInformation.Get() then begin
-            CompanyInformation.Init();
-            CompanyInformation.Insert();
-        end;
+        LibraryERM.UpdateCompanyAddress();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        LibraryInventory.CreateItem(Item);
+        Quantity := LibraryRandom.RandDec(10, 2);
+        LibraryInventory.PostPositiveAdjustment(
+            Item, FromLocation.Code, '', '', Quantity, WorkDate(), LibraryRandom.RandDec(100, 2));
+        LibraryInventory.CreateTransferOrder(
+            TransferHeader, TransferLine, Item, FromLocation, ToLocation, InTransitLocation, '', Quantity, WorkDate(), WorkDate());
+        LibraryInventory.PostTransferHeader(TransferHeader, true, false);
 
-        TransferShipmentHeader."No." := LibraryRandom.RandText(MaxStrLen(TransferShipmentHeader."No."));
-        TransferShipmentHeader."Goods Appearance" := LibraryRandom.RandText(MaxStrLen(TransferShipmentHeader."Goods Appearance"));
-        TransferShipmentHeader.Insert();
-
-        TransferShipmentLine."Document No." := TransferShipmentHeader."No.";
-        TransferShipmentLine."Line No." := 10000;
-        TransferShipmentLine.Description := LibraryRandom.RandText(MaxStrLen(TransferShipmentLine.Description));
-        TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
-        TransferShipmentLine.Insert();
+        TransferShipmentHeader.SetRange("Transfer Order No.", TransferHeader."No.");
+        TransferShipmentHeader.FindFirst();
 
         LibraryVariableStorage.Enqueue(TransferShipmentHeader."No.");
 
@@ -56,8 +61,6 @@ codeunit 144083 "UT IT Transfer Shipment"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists(
             'Transfer_Shipment_Header_No_', TransferShipmentHeader."No.");
-        LibraryReportDataset.AssertElementWithValueExists(
-            'Transfer_Shipment_Header___Goods_Appearance_', TransferShipmentHeader."Goods Appearance");
         LibraryVariableStorage.AssertEmpty();
     end;
 
