@@ -125,7 +125,9 @@ codeunit 5289 "Generate File SAF-T"
         AuditExportDataTypeSetup: Record "Audit Export Data Type Setup";
     begin
         AuditExportDataTypeSetup.SetRange("Audit File Export Format", Enum::"Audit File Export Format"::SAFT);
+#pragma warning disable AA0210
         AuditExportDataTypeSetup.SetRange("Export Enabled", true);
+#pragma warning restore AA0210
         if AuditExportDataTypeSetup.IsEmpty() then
             exit;
 
@@ -167,7 +169,9 @@ codeunit 5289 "Generate File SAF-T"
         AuditExportDataTypeSetup: Record "Audit Export Data Type Setup";
     begin
         AuditExportDataTypeSetup.SetRange("Audit File Export Format", Enum::"Audit File Export Format"::SAFT);
+#pragma warning disable AA0210
         AuditExportDataTypeSetup.SetRange("Export Enabled", true);
+#pragma warning restore AA0210
         if AuditExportDataTypeSetup.IsEmpty() then
             exit;
 
