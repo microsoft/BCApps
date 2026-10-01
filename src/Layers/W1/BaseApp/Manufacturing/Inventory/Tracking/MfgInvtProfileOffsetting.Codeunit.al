@@ -5,6 +5,7 @@
 namespace Microsoft.Inventory.Tracking;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
@@ -202,8 +203,11 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         if not ProdComponentItemOnMultipleLines(ReservationEntry) then
             exit;
 
-        if SupplyReservationEntry.Get(ReservationEntry."Entry No.", true) then
+        if SupplyReservationEntry.Get(ReservationEntry."Entry No.", true) then begin
+            if SupplyReservationEntry."Source Type" = Database::"Item Ledger Entry" then
+                exit;
             SupplyReservationEntry.Delete();
+        end;
         DeleteCondition := true;
     end;
 
@@ -215,15 +219,20 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         if DemandReservationEntry."Source Type" <> Database::"Prod. Order Component" then
             exit(false);
 
-        ProdOrderComponent.SetLoadFields(Status, "Prod. Order No.", "Item No.", "Line No.");
+        ProdOrderComponent.SetLoadFields(Status, "Prod. Order No.", "Prod. Order Line No.", "Item No.", "Line No.", "Remaining Qty. (Base)");
         if not ProdOrderComponent.Get(
              DemandReservationEntry."Source Subtype", DemandReservationEntry."Source ID",
              DemandReservationEntry."Source Prod. Order Line", DemandReservationEntry."Source Ref. No.")
         then
             exit(false);
 
+        ProdOrderComponent.CalcFields("Reserved Qty. (Base)");
+        if ProdOrderComponent."Reserved Qty. (Base)" = ProdOrderComponent."Remaining Qty. (Base)" then
+            exit(false);
+
         SameItemProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
         SameItemProdOrderComponent.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        SameItemProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
         SameItemProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
         SameItemProdOrderComponent.SetFilter("Line No.", '<>%1', ProdOrderComponent."Line No.");
         exit(not SameItemProdOrderComponent.IsEmpty());
