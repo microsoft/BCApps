@@ -23,6 +23,18 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
     var
         CannotRetrieveExternalFileErr: Label 'The file %1 could not be retrieved from external storage. Verify that the file exists and that the external file storage account is configured and accessible.', Comment = '%1 = File name';
+        MissingExternalPathReasonLbl: Label 'MissingExternalPath', Locked = true;
+        MissingFileAccountReasonLbl: Label 'MissingFileAccount', Locked = true;
+        ExternalDownloadReasonLbl: Label 'ExternalDownloadFailed', Locked = true;
+        ContentLengthReasonLbl: Label 'ContentLengthMismatch', Locked = true;
+        ContentHashReasonLbl: Label 'ContentHashMismatch', Locked = true;
+        ExternalCleanupReasonLbl: Label 'ExternalCleanupFailed', Locked = true;
+        MissingExternalPathTelemetryErr: Label 'The external attachment path is missing.', Locked = true;
+        MissingFileAccountTelemetryErr: Label 'The external file account is not configured.', Locked = true;
+        ExternalDownloadTelemetryErr: Label 'The external attachment could not be downloaded for verification.', Locked = true;
+        ContentLengthTelemetryErr: Label 'The external attachment length does not match the internal media.', Locked = true;
+        ContentHashTelemetryErr: Label 'The external attachment hash does not match the internal media.', Locked = true;
+        ExternalCleanupTelemetryErr: Label 'The failed external upload could not be deleted before retry.', Locked = true;
 
     #region File Scenario Interface Implementation
     /// <summary>
@@ -404,6 +416,9 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
         TenantMedia: Record "Tenant Media";
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+        VerificationFailureReason: Text;
+        VerificationErrorText: Text;
     begin
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
@@ -416,8 +431,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then
             exit(false);
 
-        if not ExternalContentMatchesInternal(DocumentAttachment, TenantMedia) then
+        if not ExternalContentMatchesInternal(DocumentAttachment, TenantMedia, VerificationFailureReason, VerificationErrorText) then begin
+            DAFeatureTelemetry.LogExternalContentVerificationFailed(
+                DocumentAttachment, VerificationFailureReason, VerificationErrorText, GetLastErrorCallStack());
+            ResetFailedExternalUpload(DocumentAttachment, DAFeatureTelemetry);
             exit(false);
+        end;
 
         // Attachments copied onto other documents share this Tenant Media row, so it may only be
         // deleted once this attachment is its last owner. Deleting it earlier destroys the content
@@ -430,7 +449,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         exit(true);
     end;
 
-    local procedure ExternalContentMatchesInternal(DocumentAttachment: Record "Document Attachment"; var TenantMedia: Record "Tenant Media"): Boolean
+    local procedure ExternalContentMatchesInternal(DocumentAttachment: Record "Document Attachment"; var TenantMedia: Record "Tenant Media"; var FailureReason: Text; var ErrorText: Text): Boolean
     var
         TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
@@ -441,25 +460,63 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         InternalInStream: InStream;
         HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
     begin
-        if DocumentAttachment."External File Path" = '' then
+        if DocumentAttachment."External File Path" = '' then begin
+            SetVerificationFailure(FailureReason, ErrorText, MissingExternalPathReasonLbl, MissingExternalPathTelemetryErr);
             exit(false);
+        end;
 
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then begin
+            SetVerificationFailure(FailureReason, ErrorText, MissingFileAccountReasonLbl, MissingFileAccountTelemetryErr);
             exit(false);
+        end;
 
         ExternalFileStorage.Initialize(FileScenario);
-        if not ExternalFileStorage.GetFile(DocumentAttachment."External File Path", ExternalInStream) then
+        ClearLastError();
+        if not ExternalFileStorage.GetFile(DocumentAttachment."External File Path", ExternalInStream) then begin
+            SetVerificationFailure(FailureReason, ErrorText, ExternalDownloadReasonLbl, ExternalDownloadTelemetryErr);
             exit(false);
+        end;
 
         TenantMedia.CalcFields(Content);
-        if TenantMedia.Content.Length() <> ExternalInStream.Length() then
+        if TenantMedia.Content.Length() <> ExternalInStream.Length() then begin
+            SetVerificationFailure(FailureReason, ErrorText, ContentLengthReasonLbl, ContentLengthTelemetryErr);
             exit(false);
+        end;
 
         TenantMedia.Content.CreateInStream(InternalInStream);
-        exit(
-            CryptographyManagement.GenerateHash(InternalInStream, HashAlgorithmType::SHA256) =
-            CryptographyManagement.GenerateHash(ExternalInStream, HashAlgorithmType::SHA256));
+        if CryptographyManagement.GenerateHash(InternalInStream, HashAlgorithmType::SHA256) <>
+           CryptographyManagement.GenerateHash(ExternalInStream, HashAlgorithmType::SHA256)
+        then begin
+            SetVerificationFailure(FailureReason, ErrorText, ContentHashReasonLbl, ContentHashTelemetryErr);
+            exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    local procedure SetVerificationFailure(var FailureReason: Text; var ErrorText: Text; NewFailureReason: Text; NewErrorText: Text)
+    begin
+        FailureReason := NewFailureReason;
+        ErrorText := NewErrorText;
+    end;
+
+    local procedure ResetFailedExternalUpload(var DocumentAttachment: Record "Document Attachment"; DAFeatureTelemetry: Codeunit "DA Feature Telemetry")
+    var
+        ExternalFilePath: Text;
+    begin
+        ExternalFilePath := DocumentAttachment."External File Path";
+        if ExternalFilePath = '' then
+            exit;
+
+        ClearLastError();
+        if DeleteExternalFile(ExternalFilePath, DocumentAttachment) then begin
+            DocumentAttachment.MarkAsNotUploadedToExternal();
+            exit;
+        end;
+
+        DAFeatureTelemetry.LogExternalContentVerificationFailed(
+            DocumentAttachment, ExternalCleanupReasonLbl, ExternalCleanupTelemetryErr, GetLastErrorCallStack());
     end;
 
     /// <summary>
