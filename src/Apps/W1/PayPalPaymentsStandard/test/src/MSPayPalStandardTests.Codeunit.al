@@ -828,7 +828,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
 
         // Exercise
-        // The webhook is processed in an error-trapped session, so a missing invoice doesn't surface an error to the caller.
+        // Processing runs inside an error-trapped Codeunit.Run, so a missing invoice doesn't surface an error to the caller.
         SendPaymentNotification(
             MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, MissingInvoiceNumberTxt,
             SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
@@ -1041,19 +1041,18 @@ codeunit 139500 "MS - PayPal Standard Tests"
 
     local procedure SendPaymentNotification(Receiver: Text; PaymentStatus: Text; InvoiceNo: Code[20]; Currency: Code[10]; Amount: Decimal);
     var
-        WebhookNotification: Record "Webhook Notification";
+        TempWebhookNotification: Record "Webhook Notification" temporary;
         OutStream: OutStream;
         NotificationJson: Text;
     begin
         NotificationJson := GetPaymentNotificationData(Receiver, PaymentStatus, InvoiceNo, Currency, Amount);
-        WebhookNotification.INIT();
-        WebhookNotification.VALIDATE(ID, CREATEGUID());
-        WebhookNotification.VALIDATE("Subscription ID", COPYSTR(Receiver, 1, MAXSTRLEN(WebhookNotification."Subscription ID")));
-        WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
+        TempWebhookNotification.INIT();
+        TempWebhookNotification.VALIDATE(ID, CREATEGUID());
+        TempWebhookNotification.VALIDATE("Subscription ID", COPYSTR(Receiver, 1, MAXSTRLEN(TempWebhookNotification."Subscription ID")));
+        TempWebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
         OutStream.WRITETEXT(NotificationJson);
-        // Commit the posted invoice and webhook subscription so the insert-trigger processing (Codeunit.Run + Commit) sees committed data, as in production.
-        COMMIT();
-        WebhookNotification.INSERT();
+        // Process in-session; the insert-event path routes to a background task the test cannot observe.
+        CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", TempWebhookNotification);
     end;
 
     local procedure VerifyRemainingAmount(var TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary; RemainingAmount: Decimal);
