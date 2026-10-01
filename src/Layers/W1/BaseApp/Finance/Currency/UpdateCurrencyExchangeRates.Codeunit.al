@@ -161,7 +161,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         if CurrExchRateUpdateSetup."Log Web Requests" then begin
             CustomDimensions.Add('Category', TelemetryCategoryTok);
             CustomDimensions.Add('Url', URL);
-            Session.LogMessage('', WebRequestTxt, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            Session.LogMessage('0000VSQ', WebRequestTxt, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
         end;
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
@@ -169,9 +169,9 @@ codeunit 1281 "Update Currency Exchange Rates"
 
         if CurrExchRateUpdateSetup."Log Web Requests" then
             if HttpResponseMessage.IsSuccessStatusCode() then
-                Session.LogMessage('', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok)
+                Session.LogMessage('0000VSR', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok)
             else
-                Session.LogMessage('', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+                Session.LogMessage('0000VSS', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
 
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ResponseErrorText);
