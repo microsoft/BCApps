@@ -73,7 +73,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeader: Record "Purchase Header";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
         PurchaseOrder: TestPage "Purchase Order";
     begin
@@ -483,7 +482,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         WorkCenter: array[2] of Record "Work Center";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 641284] Creating WIP transfer orders for purchase lines from production orders at different locations opens all transfer orders.
@@ -2300,7 +2298,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     var
         Location: Record Location;
         TransferRoute: Record "Transfer Route";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         LibraryWarehouse.CreateInTransitLocation(Location);
         LibraryWarehouse.CreateAndUpdateTransferRoute(
@@ -2447,7 +2444,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         for NumberIndex := 1 to ExpectedCount do
             ActualNumbers.Add(LibraryVariableStorage.DequeueText());
         foreach DocumentNo in ExpectedNumbers do
-            Assert.IsTrue(ActualNumbers.Contains(DocumentNo), StrSubstNo('The return page must include document %1.', DocumentNo));
+            Assert.IsTrue(ActualNumbers.Contains(DocumentNo), StrSubstNo(ReturnDocumentMissingErr, DocumentNo));
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2495,4 +2492,5 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         IsInitialized: Boolean;
         OpenedTransferOrderNo: Code[20];
         ProdOrderRoutingTransferWIPEnabledErr: Label 'Transfer WIP Item should not be enabled for a Machine Center prod. order routing line.';
+        ReturnDocumentMissingErr: Label 'The return page must include document %1.', Comment = '%1 = Transfer Order No.';
 }
