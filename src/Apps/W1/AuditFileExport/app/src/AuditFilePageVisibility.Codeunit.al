@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AuditFileExport;
 
-codeunit 5310 "Audit File Page Visibility" implements "Audit File Export Page Visibility"
+codeunit 5311 "Audit File Page Visibility" implements "Audit File Export Page Visibility"
 {
     Access = Internal;
     InherentEntitlements = X;
