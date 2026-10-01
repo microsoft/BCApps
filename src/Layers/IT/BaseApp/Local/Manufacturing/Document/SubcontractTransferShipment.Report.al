@@ -8,6 +8,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Shipping;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using System.Utilities;
 
@@ -412,7 +413,7 @@ report 12154 "Subcontract. Transfer Shipment"
                                 Continue := false;
 
                                 DimSetEntry.SetRange("Dimension Set ID", "Transfer Shipment Line"."Dimension Set ID");
-                                DimSetEntry.FindFirst();
+                                DimSetEntry.FindSet();
                                 repeat
                                     OldDimText := DimText;
                                     if DimText = '' then
@@ -490,6 +491,8 @@ report 12154 "Subcontract. Transfer Shipment"
 
             trigger OnPreDataItem()
             begin
+                AddLoadFields("Dimension Set ID", "Shipment Method Code", "Shipping Agent Code", "Transport Reason Code");
+
                 CompanyInfo.Get();
                 CompanyInfo.CalcFields(Picture);
                 FormatAddr.Company(CompanyAddr, CompanyInfo);

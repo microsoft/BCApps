@@ -17,7 +17,7 @@ codeunit 144083 "UT IT Transfer Shipment"
 
     [Test]
     [HandlerFunctions('SubcontractTransferShipmentRequestPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure SubcontractTransferShipmentRunsWhenLegacySubcontractingIsDisabled()
     var
