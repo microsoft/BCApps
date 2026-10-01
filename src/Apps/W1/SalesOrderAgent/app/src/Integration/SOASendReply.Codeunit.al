@@ -14,6 +14,7 @@ using System.Telemetry;
 codeunit 4419 "SOA Send Reply"
 {
     Access = Internal;
+    Permissions = tabledata "Email Inbox" = r;
     InherentEntitlements = X;
     InherentPermissions = X;
     TableNo = "Agent Task Message";
@@ -109,6 +110,20 @@ codeunit 4419 "SOA Send Reply"
         end;
 
         exit('');
+    end;
+
+    [TryFunction]
+    internal procedure TryGetMappedReplyCcRecipients(InputAgentTaskMessage: Record "Agent Task Message"; var CCRecipients: List of [Text]; var IsMappedReply: Boolean)
+    var
+        ToRecipients: List of [Text];
+        MappedContactEmail: Text;
+    begin
+        Clear(CCRecipients);
+        Clear(IsMappedReply);
+        MappedContactEmail := GetMappedContactEmail(InputAgentTaskMessage);
+        IsMappedReply := MappedContactEmail <> '';
+        if IsMappedReply then
+            GetMappedReplyRecipients(InputAgentTaskMessage, MappedContactEmail, ToRecipients, CCRecipients);
     end;
 
     /// <summary>

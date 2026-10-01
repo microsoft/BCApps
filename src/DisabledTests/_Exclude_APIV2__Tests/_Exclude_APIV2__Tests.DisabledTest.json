@@ -117,6 +117,11 @@
   {
     "codeunitId": 139806,
     "codeunitName": "APIV2 - Company Info. E2E",
+    "method": "TestGetCompanyAndEnvironmentDescriptions"
+  },
+  {
+    "codeunitId": 139806,
+    "codeunitName": "APIV2 - Company Info. E2E",
     "method": "TestModifyCompanyInformation"
   },
   {

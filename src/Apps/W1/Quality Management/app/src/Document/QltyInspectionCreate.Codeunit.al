@@ -848,6 +848,8 @@ codeunit 20404 "Qlty. Inspection - Create"
         CreatedReinspectionQltyInspectionHeader."Finished By User ID" := '';
         CreatedReinspectionQltyInspectionHeader."Finished Date" := 0DT;
         CreatedReinspectionQltyInspectionHeader.Validate("Result Code", '');
+        CreatedReinspectionQltyInspectionHeader."Pass Quantity" := 0;
+        CreatedReinspectionQltyInspectionHeader."Fail Quantity" := 0;
     end;
 
     /// <summary>

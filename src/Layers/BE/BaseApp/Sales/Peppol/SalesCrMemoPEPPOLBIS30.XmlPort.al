@@ -1478,7 +1478,7 @@ xmlport 1611 "Sales Cr.Memo - PEPPOL BIS 3.0"
                           TaxCategoryPercent,
                           TaxTotalTaxSchemeID);
 
-                        PEPPOLMgt.GetTaxExemptionReason(TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
+                        PEPPOLMgt.GetTaxExemptionReason(TempVATAmtLine, TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
                     end;
                 }
 
