@@ -36,8 +36,8 @@ codeunit 148000 "ERM FA Derogatory Depreciation"
 #pragma warning disable AL0432
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #pragma warning restore AL0432
-#endif
         Assert: Codeunit Assert;
+#endif
         IsInitialized: Boolean;
 
     [Test]
