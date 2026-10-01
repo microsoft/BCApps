@@ -54,7 +54,6 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
             PurchaseLineKey := StrSubstNo('%1|%2', PurchRcptLineToCheck."Order No.", PurchRcptLineToCheck."Order Line No.");
             if not CheckedPurchaseLines.ContainsKey(PurchaseLineKey) then begin
                 CheckedPurchaseLines.Add(PurchaseLineKey, true);
-                PurchaseLine.SetLoadFields("Outstanding Quantity");
                 if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchRcptLineToCheck."Order No.", PurchRcptLineToCheck."Order Line No.") and
                    IsWIPItem(PurchaseLine) and (PurchaseLine."Outstanding Quantity" = 0)
                 then
