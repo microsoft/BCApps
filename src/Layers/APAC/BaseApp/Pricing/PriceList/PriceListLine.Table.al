@@ -163,9 +163,16 @@ table 7001 "Price List Line"
                 TestStatusDraft();
                 if not FieldLookedUp then begin
                     CopyRecTo(PriceAsset);
+                    // Only validated units are carried forward when resolving the product.
+                    if "Unit of Measure Code" <> "Unit of Measure Code Lookup" then
+                        PriceAsset."Unit of Measure Code" := '';
                     PriceAsset.Validate("Asset No.", "Asset No.");
                 end;
                 CopyFrom(PriceAsset);
+                if (xRec."Asset No." = '') and (xRec."Unit of Measure Code" <> '') and
+                   (xRec."Unit of Measure Code" = xRec."Unit of Measure Code Lookup") and ("Asset No." <> '')
+                then
+                    UpdateUnitPriceByCostPlusPct();
                 "Product No." := "Asset No.";
                 "Variant Code Lookup" := "Variant Code";
                 "Unit of Measure Code Lookup" := "Unit of Measure Code";
@@ -291,7 +298,8 @@ table 7001 "Price List Line"
                     PriceAsset.Validate("Unit of Measure Code", "Unit of Measure Code");
                 end;
                 CopyFrom(PriceAsset);
-                UpdateUnitPriceByCostPlusPct();
+                if "Asset No." <> '' then
+                    UpdateUnitPriceByCostPlusPct();
                 "Unit of Measure Code Lookup" := "Unit of Measure Code";
             end;
 

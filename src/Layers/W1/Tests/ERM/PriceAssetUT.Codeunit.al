@@ -1124,6 +1124,54 @@ codeunit 134119 "Price Asset UT"
     end;
 
     [Test]
+    procedure WorksheetItemUOMBeforeProductPreservesUnit()
+    var
+        Item: Record Item;
+        PriceWorksheetLine: Record "Price Worksheet Line";
+        UnitOfMeasureCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Worksheet product selection retains an explicitly validated unit.
+        Initialize();
+
+        // [GIVEN] Item "I" has an alternate unit "U" entered on a draft worksheet line.
+        UnitOfMeasureCode := CreateItemWithAlternateUOM(Item);
+        PriceWorksheetLine.Validate("Asset Type", PriceWorksheetLine."Asset Type"::Item);
+        PriceWorksheetLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+
+        // [WHEN] Product "I" is selected.
+        PriceWorksheetLine.Validate("Product No.", Item."No.");
+
+        // [THEN] The validated unit is retained in both unit fields.
+        VerifyWorksheetLineUnit(PriceWorksheetLine, Item."No.", UnitOfMeasureCode);
+    end;
+
+    [Test]
+    procedure WorksheetRejectsValidatedUnitForAnotherItem()
+    var
+        Item: Record Item;
+        OtherItem: Record Item;
+        PriceWorksheetLine: Record "Price Worksheet Line";
+        UnitOfMeasureCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Worksheet product selection rejects an incompatible explicitly validated unit.
+        Initialize();
+
+        // [GIVEN] Unit "U" belongs to "J" and is entered before selecting item "I".
+        LibraryInventory.CreateItem(Item);
+        UnitOfMeasureCode := CreateItemWithAlternateUOM(OtherItem);
+        PriceWorksheetLine.Validate("Asset Type", PriceWorksheetLine."Asset Type"::Item);
+        PriceWorksheetLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+
+        // [WHEN] Product "I" is selected.
+        asserterror PriceWorksheetLine.Validate("Product No.", Item."No.");
+
+        // [THEN] Invalid explicit input is rejected rather than silently replaced.
+        VerifyMissingUnitError('Item Unit of Measure', UnitOfMeasureCode);
+    end;
+
+    [Test]
     procedure NewPurchaseItemLinePreservesUOMAndDefaultsOnChange()
     begin
         // [FEATURE] [AI test 0.3]
@@ -1342,6 +1390,13 @@ codeunit 134119 "Price Asset UT"
         Assert.ExpectedError(TableName + ' does not exist.');
         Assert.ExpectedError(UnitOfMeasureCode);
         Assert.ExpectedErrorCode('DB:RecordNotFound');
+    end;
+
+    local procedure VerifyWorksheetLineUnit(PriceWorksheetLine: Record "Price Worksheet Line"; ProductNo: Code[20]; UnitOfMeasureCode: Code[10])
+    begin
+        Assert.AreEqual(ProductNo, PriceWorksheetLine."Asset No.", 'The worksheet product must match the selection.');
+        Assert.AreEqual(UnitOfMeasureCode, PriceWorksheetLine."Unit of Measure Code", 'The validated worksheet unit must be retained.');
+        Assert.AreEqual(UnitOfMeasureCode, PriceWorksheetLine."Unit of Measure Code Lookup", 'The worksheet lookup unit must remain synchronized.');
     end;
 
     local procedure VerifyUnsupportedUnitError()
