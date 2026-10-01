@@ -173,14 +173,15 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
         if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
             exit;
-        if ItemLedgerEntry.IsEmpty() then
+
+        ToPurchLine.Validate(Quantity, PurchRcptLine."Qty. Rcd. Not Invoiced");
+        ToPurchLine.Modify(true);
+        if not CopyItemLedgerEntriesUpToQuantity(
+            TempItemLedgerEntry, ItemLedgerEntry, ToPurchLine."Quantity (Base)", PurchRcptLine."Qty. Invoiced (Base)")
+        then
             exit;
 
         IsHandled := true;
-        ToPurchLine.Validate(Quantity, PurchRcptLine."Qty. Rcd. Not Invoiced");
-        ToPurchLine.Modify(true);
-        CopyItemLedgerEntriesUpToQuantity(
-            TempItemLedgerEntry, ItemLedgerEntry, ToPurchLine."Quantity (Base)", PurchRcptLine."Qty. Invoiced (Base)");
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
             TempItemLedgerEntry, ToPurchLine, false, MissingExactCostReversingLink,
             false, false, true);
@@ -246,9 +247,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
             if not CapacityLedgerEntry.Get(RelatedCapacityLedgerEntryNo) then
                 exit(false);
             ItemLedgerEntry.SetRange("Item Register No.", CapacityLedgerEntry."Item Register No.");
-            CopyItemLedgerEntriesUpToQuantity(
-                TempItemLedgerEntry, ItemLedgerEntry, InvoicedQuantityBase, PreviouslyInvoicedQuantityBase);
-            exit(not TempItemLedgerEntry.IsEmpty());
+            exit(CopyItemLedgerEntriesUpToQuantity(
+                TempItemLedgerEntry, ItemLedgerEntry, InvoicedQuantityBase, PreviouslyInvoicedQuantityBase));
         end;
 
         if not ItemLedgerEntry.FindSet() then
@@ -266,7 +266,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         exit(not TempItemLedgerEntry.IsEmpty());
     end;
 
-    local procedure CopyItemLedgerEntriesUpToQuantity(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; QuantityBase: Decimal; QuantityAlreadyInvoicedBase: Decimal)
+    local procedure CopyItemLedgerEntriesUpToQuantity(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; QuantityBase: Decimal; QuantityAlreadyInvoicedBase: Decimal): Boolean
     var
         EntryQuantityBase: Decimal;
         QuantityToCopy: Decimal;
@@ -278,7 +278,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         RemainingQuantityBase := Abs(QuantityBase);
         QuantityToSkipBase := Abs(QuantityAlreadyInvoicedBase);
         if (RemainingQuantityBase = 0) or not ItemLedgerEntry.FindSet() then
-            exit;
+            exit(false);
 
         repeat
             EntryQuantityBase := Abs(ItemLedgerEntry.Quantity);
@@ -301,6 +301,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         until (ItemLedgerEntry.Next() = 0) or (RemainingQuantityBase = 0);
 
         TempItemLedgerEntry.Reset();
+        exit(not TempItemLedgerEntry.IsEmpty());
     end;
 
     local procedure CreateInvoiceTrackingSpecifications(PurchaseLine: Record "Purchase Line")
@@ -427,7 +428,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         PurchaseLine."Subc. Prod. Order Line No." := PurchRcptLine."Subc. Prod. Order Line No.";
         PurchaseLine."Subc. Routing No." := PurchRcptLine."Subc. Routing No.";
         PurchaseLine."Subc. Rtng Reference No." := PurchRcptLine."Subc. Rtng Reference No.";
-        PurchaseLine."Subc. Operation No." := PurchRcptLine."Operation No.";
+        PurchaseLine."Subc. Operation No." := PurchRcptLine."Subc. Operation No.";
         PurchaseLine."Subc. Work Center No." := PurchRcptLine."Subc. Work Center No.";
     end;
 
