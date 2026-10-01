@@ -1,5 +1,6 @@
-codeunit 139481 "Dummy Electronic Doc. Export"
+codeunit 139190 "Dummy Electronic Doc. Export"
 {
+    Access = Internal;
     TableNo = "Record Export Buffer";
 
     trigger OnRun()
