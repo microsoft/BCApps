@@ -14,7 +14,7 @@ codeunit 8358 "MCP Copilot Cap. Reg."
     InherentPermissions = X;
 
     var
-        MCPLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2300000', Locked = true;
+        MCPLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?LinkId=2383165', Locked = true;
 
     /// <summary>
     /// Registers the MCP server capability so it appears on the Copilot &amp; agent capabilities page
@@ -30,9 +30,27 @@ codeunit 8358 "MCP Copilot Cap. Reg."
         CopilotCapability.RegisterCapability(
             Enum::"Copilot Capability"::"MCP Server",
             Enum::"Copilot Availability"::"Generally Available",
-            Enum::"Copilot Billing Type"::"Not Billed",
+            Enum::"Copilot Billing Type"::"Microsoft Billed",
             MCPLearnMoreLbl);
     end;
+
+#if not CLEAN30
+    internal procedure UpdateMCPCapability()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
+    begin
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"MCP Server") then begin
+            RegisterMCPCapability();
+            exit;
+        end;
+
+        CopilotCapability.ModifyCapability(
+            Enum::"Copilot Capability"::"MCP Server",
+            Enum::"Copilot Availability"::"Generally Available",
+            Enum::"Copilot Billing Type"::"Microsoft Billed",
+            MCPLearnMoreLbl);
+    end;
+#endif
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
     local procedure OnRegisterCopilotCapability()

@@ -60,4 +60,20 @@ codeunit 130131 "MCP Config Test Library"
     begin
         exit(MCPConfigImplementation.EncodeForMCPHeaderIfNonAscii(Value));
     end;
+
+    procedure RegisterMCPCapability()
+    var
+        MCPCopilotCapReg: Codeunit "MCP Copilot Cap. Reg.";
+    begin
+        MCPCopilotCapReg.RegisterMCPCapability();
+    end;
+
+#if not CLEAN30
+    procedure UpdateMCPCapability()
+    var
+        MCPCopilotCapReg: Codeunit "MCP Copilot Cap. Reg.";
+    begin
+        MCPCopilotCapReg.UpdateMCPCapability();
+    end;
+#endif
 }
