@@ -321,8 +321,7 @@ codeunit 4014 "Notification Handler"
     begin
         HybridReplicationDetail.SetRange("Run ID", HybridReplicationSummary."Run ID");
         HybridReplicationDetail.SetRange(Status, HybridReplicationDetail.Status::InProgress);
-        HybridReplicationDetail.ModifyAll("Error Message", TableWasNotReplicatedRetryMsg);
-        HybridReplicationDetail.ModifyAll(Status, HybridReplicationDetail.Status::Failed);
+        HybridReplicationDetail.ModifyAll("Error Message", TableWasNotReplicatedRetryMsg, Status, HybridReplicationDetail.Status::Failed);
     end;
 
     local procedure ProcessCleanupNotification(SubscriptionID: Text)

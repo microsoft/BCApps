@@ -2119,8 +2119,7 @@ codeunit 7233 "Master Data Management"
             if IntegrationTableMapping."Table ID" <> 0 then begin
                 MasterDataMgtCoupling.SetRange("Table ID", IntegrationTableMapping."Table ID");
                 MasterDataMgtCoupling.SetRange(Skipped, true);
-                MasterDataMgtCoupling.ModifyAll("Consecutive Failure Count", 0);
-                MasterDataMgtCoupling.ModifyAll(Skipped, false);
+                MasterDataMgtCoupling.ModifyAll("Consecutive Failure Count", 0, Skipped, false);
                 // Clear the Skipped filter so the timestamp-reset block below operates on all
                 // couplings of the table, not just the rows we just unskipped.
                 MasterDataMgtCoupling.SetRange(Skipped);

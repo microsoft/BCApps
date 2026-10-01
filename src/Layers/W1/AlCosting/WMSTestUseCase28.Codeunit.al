@@ -1287,8 +1287,7 @@ codeunit 103322 "WMS Test Use Case 28"
         TestScriptMgmt.SetGlobalPreconditions();
 
         Item.SetFilter("No.", '%1|%2', '80100', '80002');
-        Item.ModifyAll("Purch. Unit of Measure", 'PALLET');
-        Item.ModifyAll(Item."Item Tracking Code", 'LOTALL');
+        Item.ModifyAll("Purch. Unit of Measure", 'PALLET', Item."Item Tracking Code", 'LOTALL');
 
         if LastIteration = '28-3-1-10' then exit;
 

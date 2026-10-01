@@ -643,8 +643,7 @@ codeunit 428 "IC Mapping"
                     ICDimensionValues.DeleteAll();
                     DimensionValue.SetFilter("Map-to IC Dimension Value Code", '<> ''''');
                     if not DimensionValue.IsEmpty() then begin
-                        DimensionValue.ModifyAll("Map-to IC Dimension Code", '');
-                        DimensionValue.ModifyAll("Map-to IC Dimension Value Code", '');
+                        DimensionValue.ModifyAll("Map-to IC Dimension Code", '', "Map-to IC Dimension Value Code", '');
                     end;
                 end;
                 exit;
@@ -716,8 +715,7 @@ codeunit 428 "IC Mapping"
         if ICDimensionValues.IsEmpty() then
             exit;
         if not TempPartnersICDimensionValue.IsEmpty() then begin
-            TempPartnersICDimensionValue.ModifyAll("Map-to Dimension Code", '');
-            TempPartnersICDimensionValue.ModifyAll("Map-to Dimension Value Code", '');
+            TempPartnersICDimensionValue.ModifyAll("Map-to Dimension Code", '', "Map-to Dimension Value Code", '');
         end;
 
         ICDimensionValues.FindSet();
@@ -730,8 +728,7 @@ codeunit 428 "IC Mapping"
             else begin
                 DimensionValue.SetRange("Map-to IC Dimension Value Code", ICDimensionValues.Code);
                 if not DimensionValue.IsEmpty() then begin
-                    DimensionValue.ModifyAll("Map-to IC Dimension Code", '');
-                    DimensionValue.ModifyAll("Map-to IC Dimension Value Code", '');
+                    DimensionValue.ModifyAll("Map-to IC Dimension Code", '', "Map-to IC Dimension Value Code", '');
                 end;
             end;
         until ICDimensionValues.Next() = 0;

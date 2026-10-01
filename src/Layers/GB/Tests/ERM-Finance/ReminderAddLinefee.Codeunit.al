@@ -1976,8 +1976,7 @@ codeunit 134997 "Reminder - Add. Line fee"
 
         // [GIVEN] Customer Posting Group have G/L account A for Additional fees and G/L account B for Line Fees without VAT
         FindTwoGLAccounts(GLAccountA, GLAccountB, Customer."VAT Bus. Posting Group");
-        CustomerPostingGroup.ModifyAll("Additional Fee Account", GLAccountA);
-        CustomerPostingGroup.ModifyAll("Add. Fee per Line Account", GLAccountB);
+        CustomerPostingGroup.ModifyAll("Additional Fee Account", GLAccountA, "Add. Fee per Line Account", GLAccountB);
 
         // [GIVEN] The reminder has an additional fee of Y
         ReminderLevel.Get(ReminderTermCode, 1);

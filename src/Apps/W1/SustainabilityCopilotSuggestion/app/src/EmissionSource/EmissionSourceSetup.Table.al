@@ -324,8 +324,7 @@ table 6291 "Emission Source Setup"
             Error(StartingDateLaterEndingDateErr);
         CheckSourceCO2EmissionExist();
         SourceCO2Emission.SetRange("Emission Source ID", Id);
-        SourceCO2Emission.ModifyAll("Starting Date", "Starting Date");
-        SourceCO2Emission.ModifyAll("Ending Date", "Ending Date");
+        SourceCO2Emission.ModifyAll("Starting Date", "Starting Date", "Ending Date", "Ending Date");
     end;
 
     var

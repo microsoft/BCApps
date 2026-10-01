@@ -1057,8 +1057,7 @@ codeunit 134180 "WF Demo Purch. Order Approvals"
         ApprovalEntry: Record "Approval Entry";
     begin
         LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, PurchaseHeader.RecordId);
-        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", UserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", "Approver ID", UserSetup."User ID", true);
     end;
 
     local procedure VerifyPurchaseDocumentStatus(var PurchaseHeader: Record "Purchase Header"; Status: Enum "Purchase Document Status")

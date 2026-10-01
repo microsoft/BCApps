@@ -910,8 +910,7 @@ codeunit 6196 "E-Doc. PO Matching"
         until PurchaseInvoiceLine.Next() = 0;
         PurchaseInvoiceLine.SetRange("Receipt No.");
         PurchaseInvoiceLine.SetRange("Receipt Line No.");
-        PurchaseInvoiceLine.ModifyAll("Receipt No.", '');
-        PurchaseInvoiceLine.ModifyAll("Receipt Line No.", 0);
+        PurchaseInvoiceLine.ModifyAll("Receipt No.", '', "Receipt Line No.", 0);
 
         TelemetryDimensions.Add('Category', EDocumentPurchaseHeader.FeatureName());
         TelemetryDimensions.Add('EDocumentEntryNo', Format(EDocumentPurchaseHeader."E-Document Entry No."));

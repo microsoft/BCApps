@@ -1000,8 +1000,7 @@ codeunit 139913 "Vendor Deferrals Test"
         // [GIVEN] All deferral amounts are set to 0 (simulating zero-amount service commitments)
         VendorContractDeferral.Reset();
         VendorContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        VendorContractDeferral.ModifyAll(Amount, 0, false);
-        VendorContractDeferral.ModifyAll("Discount Amount", 0, false);
+        VendorContractDeferral.ModifyAll(Amount, 0, "Discount Amount", 0, false);
         VendorContractDeferral.FindFirst();
 
         // [WHEN] Release deferrals is run

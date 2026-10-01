@@ -378,10 +378,7 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         ItemChargeAssgntSales.SetRange("Document No.", SalesLine."Document No.");
         ItemChargeAssgntSales.SetRange("Document Line No.", SalesLine."Line No.");
         if ItemChargeAssgntSales.FindFirst() then begin
-            ItemChargeAssgntSales.ModifyAll("Amount to Assign", 0);
-            ItemChargeAssgntSales.ModifyAll("Qty. to Assign", 0);
-            ItemChargeAssgntSales.ModifyAll("Amount to Handle", 0);
-            ItemChargeAssgntSales.ModifyAll("Qty. to Handle", 0);
+            ItemChargeAssgntSales.ModifyAll("Amount to Assign", 0, "Qty. to Assign", 0, "Amount to Handle", 0, "Qty. to Handle", 0);
 
             case SelectionTxt of
                 AssignEquallyMenuText():

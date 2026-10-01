@@ -1198,8 +1198,7 @@ codeunit 148153 "Usage Based Billing Test"
 
         // [GIVEN] Subscription lines are marked as usage-based with usage data billing records
         SubscriptionLine.SetFilter("Subscription Header No.", '%1|%2', SubscriptionHeader."No.", ServiceObject2."No.");
-        SubscriptionLine.ModifyAll("Usage Based Billing", true);
-        SubscriptionLine.ModifyAll("Usage Based Pricing", Enum::"Usage Based Pricing"::"Fixed Quantity");
+        SubscriptionLine.ModifyAll("Usage Based Billing", true, "Usage Based Pricing", Enum::"Usage Based Pricing"::"Fixed Quantity");
         QuantityOfServiceCommitments := SubscriptionLine.Count();
         SubscriptionLine.FindSet();
         repeat
@@ -1238,8 +1237,7 @@ codeunit 148153 "Usage Based Billing Test"
 
         // [GIVEN] Subscription lines are marked as usage-based with usage data billing records
         SubscriptionLine.SetFilter("Subscription Header No.", '%1|%2', SubscriptionHeader."No.", ServiceObject2."No.");
-        SubscriptionLine.ModifyAll("Usage Based Billing", true);
-        SubscriptionLine.ModifyAll("Usage Based Pricing", Enum::"Usage Based Pricing"::"Fixed Quantity");
+        SubscriptionLine.ModifyAll("Usage Based Billing", true, "Usage Based Pricing", Enum::"Usage Based Pricing"::"Fixed Quantity");
         QuantityOfServiceCommitments := SubscriptionLine.Count();
         SubscriptionLine.FindSet();
         repeat

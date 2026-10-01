@@ -51,8 +51,7 @@ codeunit 103101 "Test - Performance"
         InsertCust(CustNo);
 
         PurchSetup.ModifyAll("Ext. Doc. No. Mandatory", false, true);
-        NoSeriesLine.ModifyAll("Warning No.", '');
-        NoSeriesLine.ModifyAll("Ending No.", '9999999999');
+        NoSeriesLine.ModifyAll("Warning No.", '', "Ending No.", '9999999999');
     end;
 
     [Scope('OnPrem')]

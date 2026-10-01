@@ -334,8 +334,7 @@ table 1107 "Cost Allocation Target"
         TotalShare := CostAllocationTarget.Share + Rec.Share;
 
         if TotalShare = 0 then begin
-            CostAllocationTarget.ModifyAll(Percent, 0);
-            CostAllocationTarget.ModifyAll("Share Updated on", Today);
+            CostAllocationTarget.ModifyAll(Percent, 0, "Share Updated on", Today);
             Rec.Percent := 0;
             Rec."Share Updated on" := Today;
             exit;

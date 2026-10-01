@@ -474,9 +474,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
 
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine.ModifyAll("Requested Receipt Date", WorkDate());
-        PurchaseLine.ModifyAll("Promised Receipt Date", WorkDate());
-        PurchaseLine.ModifyAll("Job No.", Job."No.");
+        PurchaseLine.ModifyAll("Requested Receipt Date", WorkDate(), "Promised Receipt Date", WorkDate(), "Job No.", Job."No.");
         Commit();
 
         // [WHEN] Get request for purchase lines

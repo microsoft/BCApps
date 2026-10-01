@@ -837,8 +837,7 @@ codeunit 5632 "FA Jnl.-Post Line"
           "Document Type", FALedgEntry2."Document Type"::Invoice, FALedgEntry2."Document Type"::"Credit Memo");
         FALedgEntry2.SetFilter("Disposal Entry No.", '>%1', MaxDisposalNo);
         if FALedgEntry2.FindSet() then begin
-            FALedgEntry2.ModifyAll("Canceled from FA No.", FANo2);
-            FALedgEntry2.ModifyAll("FA No.", '');
+            FALedgEntry2.ModifyAll("Canceled from FA No.", FANo2, "FA No.", '');
         end;
     end;
 

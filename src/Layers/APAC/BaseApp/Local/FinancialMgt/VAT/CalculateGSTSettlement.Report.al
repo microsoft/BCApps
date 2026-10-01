@@ -479,8 +479,7 @@ report 11603 "Calculate GST Settlement"
                                     CODEUNIT.Run(Codeunit::"Gen. Jnl.-Post", GenJnlLine1);
                         end;
 
-                        VATEntry1.ModifyAll("Closed by Entry No.", VATApplyEntryNo);
-                        VATEntry1.ModifyAll(Closed, true);
+                        VATEntry1.ModifyAll("Closed by Entry No.", VATApplyEntryNo, Closed, true);
                     end;
 
                     trigger OnPreDataItem()

@@ -76,8 +76,7 @@ table 10835 "Payment Header FR"
                 if "Currency Code" <> xRec."Currency Code" then begin
                     PaymentLine.Init();
                     PaymentLine.SetRange("No.", "No.");
-                    PaymentLine.ModifyAll("Currency Code", "Currency Code");
-                    PaymentLine.ModifyAll("Currency Factor", "Currency Factor");
+                    PaymentLine.ModifyAll("Currency Code", "Currency Code", "Currency Factor", "Currency Factor");
                 end;
             end;
         }

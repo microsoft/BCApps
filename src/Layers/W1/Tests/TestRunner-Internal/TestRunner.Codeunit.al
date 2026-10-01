@@ -59,8 +59,7 @@ codeunit 130020 "Test Runner"
         AzureKeyVaultTestLibrary: Codeunit "Azure Key Vault Test Library";
     begin
         OpenWindow();
-        TestLine.ModifyAll(Result, TestLine.Result::" ");
-        TestLine.ModifyAll("First Error", '');
+        TestLine.ModifyAll(Result, TestLine.Result::" ", "First Error", '');
         Commit();
         Filter := TestLine.GetView();
         WindowNoOfTestCodeunitTotal := CountTestCodeunitsToRun(TestLine);
