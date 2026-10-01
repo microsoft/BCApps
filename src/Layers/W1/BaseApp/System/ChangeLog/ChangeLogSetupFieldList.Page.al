@@ -165,6 +165,7 @@ page 594 "Change Log Setup (Field) List"
 
     local procedure UpdateRec()
     var
+        ChangeLogSetupTable: Record "Change Log Setup (Table)";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -174,6 +175,13 @@ page 594 "Change Log Setup (Field) List"
 
         GetRec();
         TransToRec();
+        ChangeLogSetupTable.Get(ChangeLogSetupField."Table No.");
+        ChangeLogSetupTable.TestField("Monitor Sensitive Field", false);
+        if ChangeLogSetupField."Monitor Sensitive Field" then begin
+            ChangeLogSetupField.Validate("Monitor Sensitive Field", false);
+            ChangeLogSetupField.Validate(Notify, false);
+        end;
+
         if not (ChangeLogSetupField."Log Insertion" or ChangeLogSetupField."Log Modification" or ChangeLogSetupField."Log Deletion") then begin
             if ChangeLogSetupField.Delete() then;
         end else
@@ -211,4 +219,3 @@ page 594 "Change Log Setup (Field) List"
     begin
     end;
 }
-
