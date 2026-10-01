@@ -11,10 +11,15 @@ $w1Apps = @(Join-Path $sourceCodeFolder "Apps\W1")
 $w1Layers = @(Join-Path $sourceCodeFolder "Layers\W1")
 # All Folders (For Apps)
 $allApps = @(Join-Path $sourceCodeFolder "Apps")
+# The 'Layers' folder only exists on main and not on release branches. Guard the
+# Get-ChildItem call so it does not fail when the folder is missing.
+$layersFolder = Join-Path $sourceCodeFolder 'Layers'
 $allBaseApps = @(
-    Get-ChildItem -Path (Join-Path $sourceCodeFolder 'Layers') -Directory |
-        ForEach-Object { Join-Path $_.FullName 'BaseApp' } |
-        Where-Object { Test-Path -Path $_ }
+    if (Test-Path -Path $layersFolder) {
+        Get-ChildItem -Path $layersFolder -Directory |
+            ForEach-Object { Join-Path $_.FullName 'BaseApp' } |
+            Where-Object { Test-Path -Path $_ }
+    }
 )
 
 # Build path sets for different validations
