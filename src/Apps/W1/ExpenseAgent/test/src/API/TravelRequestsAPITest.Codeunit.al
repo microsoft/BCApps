@@ -135,6 +135,8 @@ codeunit 148347 "Travel Requests API Test"
             TargetURL += '&$expand=travelers,employees'
         else
             TargetURL += '?$expand=travelers,employees';
+        // LibraryGraphMgt appends to ResponseText, so clear it before reusing the variable.
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
 
         // [THEN] Each traveler itself returns the correct mapping, not just a nested employee entity.
@@ -174,10 +176,8 @@ codeunit 148347 "Travel Requests API Test"
         Employee: Record Employee;
         ExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
-        ErrorResponse: JsonToken;
-        ErrorMessage: JsonToken;
         Request: JsonObject;
-        Response: JsonObject;
+        ErrorText: Text;
         RequestBody: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -198,14 +198,12 @@ codeunit 148347 "Travel Requests API Test"
             Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
         TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelersServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+        ErrorText := GetLastErrorText();
 
         // [THEN] The API identifies the employee without an Expense User.
         Assert.ExpectedError(BadRequestResponseErr);
-        Response.ReadFrom(ResponseText);
-        Response.Get('error', ErrorResponse);
-        ErrorResponse.AsObject().Get('message', ErrorMessage);
         Assert.AreNotEqual(
-            0, StrPos(ErrorMessage.AsValue().AsText(), StrSubstNo(ExpenseUserNotLinkedErr, Employee."No.")),
+            0, StrPos(ErrorText, StrSubstNo(ExpenseUserNotLinkedErr, Employee."No.")),
             'The response must identify the employee without an Expense User.');
     end;
 
@@ -340,11 +338,10 @@ codeunit 148347 "Travel Requests API Test"
         TravelRequest: Record "Spend Request";
         Request: JsonObject;
         Response: JsonObject;
-        ErrorResponse: JsonToken;
-        ErrorMessage: JsonToken;
         RequestSystemId: Guid;
         StartDate: Date;
         EndDate: Date;
+        ErrorText: Text;
         TargetURL: Text;
         RecordURL: Text;
         RequestBody: Text;
@@ -355,10 +352,8 @@ codeunit 148347 "Travel Requests API Test"
 
         // [GIVEN] A linked user and a future pair, with id first and end before start in the payload.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        RequestSystemId := CreateGuid();
         StartDate := WorkDate() + 30;
         EndDate := WorkDate() + 33;
-        Request.Add('id', LibraryGraphMgt.StripBrackets(Format(RequestSystemId)));
         Request.Add('requestedBy', ExpenseUser."Employee No.");
         Request.Add('expectedEndDate', Format(EndDate, 0, 9));
         Request.Add('expectedStartDate', Format(StartDate, 0, 9));
@@ -372,11 +367,13 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
 
         // [THEN] POST, GET, and storage retain the supplied dates and identity.
+        RequestSystemId := GetResponseSystemId(ResponseText);
         AssertAPIDates(ResponseText, StartDate, EndDate);
         TravelRequest.GetBySystemId(RequestSystemId);
         Assert.AreEqual(StartDate, TravelRequest."Expected Start Date", 'The API start date must be persisted.');
         Assert.AreEqual(EndDate, TravelRequest."Expected End Date", 'The API end date must be persisted.');
         RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(RequestSystemId)) + ')');
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
         AssertAPIDates(ResponseText, StartDate, EndDate);
 
@@ -387,6 +384,7 @@ codeunit 148347 "Travel Requests API Test"
         Request.Add('expectedStartDate', Format(StartDate, 0, 9));
         Request.Add('expectedEndDate', Format(EndDate, 0, 9));
         Request.WriteTo(RequestBody);
+        Clear(ResponseText);
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
 
         // [THEN] The complete later range is accepted.
@@ -399,6 +397,7 @@ codeunit 148347 "Travel Requests API Test"
         Request.Add('expectedEndDate', Format(EndDate, 0, 9));
         Request.Add('expectedStartDate', Format(StartDate, 0, 9));
         Request.WriteTo(RequestBody);
+        Clear(ResponseText);
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
 
         // [THEN] The complete earlier range is accepted.
@@ -409,6 +408,7 @@ codeunit 148347 "Travel Requests API Test"
         Clear(Request);
         Request.Add('expectedEndDate', Format(EndDate, 0, 9));
         Request.WriteTo(RequestBody);
+        Clear(ResponseText);
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
 
         // [THEN] The omitted start remains unchanged.
@@ -419,13 +419,12 @@ codeunit 148347 "Travel Requests API Test"
         Request.Add('expectedStartDate', Format(EndDate + 1, 0, 9));
         Request.WriteTo(RequestBody);
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 400);
+        ErrorText := GetLastErrorText();
 
         // [THEN] The date-range error is returned and the previous valid pair remains stored.
         Assert.ExpectedError(BadRequestResponseErr);
-        Response.ReadFrom(ResponseText);
-        Response.Get('error', ErrorResponse);
-        ErrorResponse.AsObject().Get('message', ErrorMessage);
-        Assert.AreNotEqual(0, StrPos(ErrorMessage.AsValue().AsText(), InvalidTravelRequestDatesErr), 'The invalid date range must cause the rejection.');
+        Assert.AreNotEqual(0, StrPos(ErrorText, InvalidTravelRequestDatesErr), 'The invalid date range must cause the rejection.');
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
         AssertAPIDates(ResponseText, StartDate, EndDate);
     end;
@@ -478,6 +477,7 @@ codeunit 148347 "Travel Requests API Test"
         // [WHEN] The owner is renamed and the same GUID-based URL is requested.
         ExpenseUser.Rename(CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseUser."No.")));
         Commit();
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -632,11 +632,8 @@ codeunit 148347 "Travel Requests API Test"
         ExpenseUser: Record "Expense User";
         OtherExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
-        Response: JsonObject;
-        RequestId: JsonToken;
-        ErrorResponse: JsonToken;
-        ErrorMessage: JsonToken;
         TravelRequestSystemId: Guid;
+        ErrorText: Text;
         RequestBody: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -657,24 +654,21 @@ codeunit 148347 "Travel Requests API Test"
         // [WHEN] POST attempts to assign another employee under this user's GUID.
         RequestBody := StrSubstNo(RequestedByRequestBodyLbl, OtherExpenseUser."Employee No.");
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+        ErrorText := GetLastErrorText();
 
         // [THEN] The owner mismatch is rejected before a request can be inserted.
         Assert.ExpectedError(BadRequestResponseErr);
-        Response.ReadFrom(ResponseText);
-        Response.Get('error', ErrorResponse);
-        ErrorResponse.AsObject().Get('message', ErrorMessage);
         Assert.AreNotEqual(
-            0, StrPos(ErrorMessage.AsValue().AsText(), TravelRequest.FieldCaption("Requested By")),
+            0, StrPos(ErrorText, TravelRequest.FieldCaption("Requested By")),
             'The rejection must identify the owner mismatch.');
 
         // [WHEN] POST supplies the employee matching this user's GUID.
         RequestBody := StrSubstNo(RequestedByRequestBodyLbl, ExpenseUser."Employee No.");
+        Clear(ResponseText);
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
 
         // [THEN] The new travel request stores the supplied owner.
-        Response.ReadFrom(ResponseText);
-        Response.Get('id', RequestId);
-        Evaluate(TravelRequestSystemId, RequestId.AsValue().AsText());
+        TravelRequestSystemId := GetResponseSystemId(ResponseText);
         TravelRequest.GetBySystemId(TravelRequestSystemId);
         Assert.AreEqual(ExpenseUser."Employee No.", TravelRequest."Requested By", 'POST must accept the travel request owner.');
         Assert.AreEqual(TravelRequest."Document Type"::"Travel Request", TravelRequest."Document Type", 'POST must create a travel request.');
@@ -692,10 +686,7 @@ codeunit 148347 "Travel Requests API Test"
         OtherExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
         OriginalRequestedBy: Code[20];
-        Response: JsonObject;
-        ErrorResponse: JsonToken;
-        ErrorCode: JsonToken;
-        ErrorMessage: JsonToken;
+        ErrorText: Text;
         RequestBody: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -715,24 +706,21 @@ codeunit 148347 "Travel Requests API Test"
             Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
         RequestBody := StrSubstNo(RequestedByRequestBodyLbl, OtherExpenseUser."Employee No.");
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+        ErrorText := GetLastErrorText();
 
         // [THEN] The API identifies the immutable owner and the affected request.
         Assert.ExpectedError(BadRequestResponseErr);
-        AssertOwnerChangeError(ResponseText, TravelRequest);
+        AssertOwnerChangeError(ErrorText, TravelRequest);
 
         // [WHEN] PATCH attempts to change the status.
         Clear(ResponseText);
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(
             TargetURL, StatusRequestBodyLbl, ResponseText, 400);
+        ErrorText := GetLastErrorText();
 
         // [THEN] The API rejects the read-only status, leaving ownership and status unchanged.
         Assert.ExpectedError(BadRequestResponseErr);
-        Response.ReadFrom(ResponseText);
-        Response.Get('error', ErrorResponse);
-        ErrorResponse.AsObject().Get('code', ErrorCode);
-        ErrorResponse.AsObject().Get('message', ErrorMessage);
-        Assert.AreEqual('BadRequest', ErrorCode.AsValue().AsText(), 'The status update must be rejected by the OData read-only guard.');
-        Assert.AreNotEqual(0, StrPos(ErrorMessage.AsValue().AsText(), StatusReadOnlyErr), 'The API error must identify the read-only status control.');
+        Assert.AreNotEqual(0, StrPos(ErrorText, StatusReadOnlyErr), 'The API error must identify the read-only status control.');
         TravelRequest.Get(TravelRequest."No.");
         Assert.AreEqual(
             OriginalRequestedBy, TravelRequest."Requested By",
@@ -749,9 +737,7 @@ codeunit 148347 "Travel Requests API Test"
         OtherExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
         Traveler: Record Traveler;
-        Response: JsonObject;
-        ErrorResponse: JsonToken;
-        ErrorMessage: JsonToken;
+        ErrorText: Text;
         MessageText: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -772,13 +758,11 @@ codeunit 148347 "Travel Requests API Test"
             Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(
             TargetURL, StrSubstNo(RequestedForRequestBodyLbl, OtherExpenseUser."No."), ResponseText, 400);
+        ErrorText := GetLastErrorText();
 
         // [THEN] The API rejects the change and identifies Requested For.
         Assert.ExpectedError(BadRequestResponseErr);
-        Response.ReadFrom(ResponseText);
-        Response.Get('error', ErrorResponse);
-        ErrorResponse.AsObject().Get('message', ErrorMessage);
-        MessageText := ErrorMessage.AsValue().AsText();
+        MessageText := ErrorText;
         Assert.AreNotEqual(0, StrPos(MessageText, RequestedByCannotBeChangedErr), 'The API must reject the Requested For change.');
         Assert.AreNotEqual(0, StrPos(MessageText, TravelRequest.FieldCaption("Requested For")), 'The error must identify Requested For.');
 
@@ -839,6 +823,7 @@ codeunit 148347 "Travel Requests API Test"
             Format(TravelRequest.SystemId), Page::"Spend Requests API", SpendRequestsServiceNameTok);
         RequestBody := StrSubstNo(RequestedByRequestBodyLbl, OtherExpenseUser."Employee No.");
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+        ResponseText := GetLastErrorText();
 
         // [THEN] The owner change is rejected and the original owner is preserved.
         Assert.ExpectedError(BadRequestResponseErr);
@@ -869,7 +854,7 @@ codeunit 148347 "Travel Requests API Test"
         // [GIVEN] Configured LCY and a foreign currency with a non-unit exchange rate.
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.TestField("LCY Code");
-        ForeignCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(Today(), 1, 2);
+        ForeignCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(Today(), 2, 2);
         Currency.Get(ForeignCurrencyCode);
         ForeignExchangeRate := Currency.GetExchangeRate(Today());
         Assert.AreNotEqual(GeneralLedgerSetup."LCY Code", ForeignCurrencyCode, 'The fixture must use a foreign currency.');
@@ -877,12 +862,10 @@ codeunit 148347 "Travel Requests API Test"
         InvalidCurrencyCode := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(InvalidCurrencyCode));
         Assert.AreNotEqual(GeneralLedgerSetup."LCY Code", InvalidCurrencyCode, 'The invalid code must not be LCY.');
         Assert.IsFalse(Currency.Get(InvalidCurrencyCode), 'The invalid code must not exist in Currency.');
-        SystemId := CreateGuid();
         if IsDetail then
             AmountField := 'expectedAmount'
         else
             AmountField := 'totalExpectedAmount';
-        Request.Add('id', LibraryGraphMgt.StripBrackets(Format(SystemId)));
         Request.Add('currencyCode', GeneralLedgerSetup."LCY Code");
         Request.Add(AmountField, 100);
         Request.WriteTo(RequestBody);
@@ -892,12 +875,14 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
 
         // [THEN] It is stored as blank and returned as the configured LCY code.
+        SystemId := GetResponseSystemId(ResponseText);
         AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
         RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(SystemId)) + ')');
         if StrPos(RecordURL, '?') = 0 then
             SelectedCurrencyURL := RecordURL + '?$select=currencyCode'
         else
             SelectedCurrencyURL := RecordURL + '&$select=currencyCode';
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, SelectedCurrencyURL, 200);
         AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
 
@@ -911,6 +896,7 @@ codeunit 148347 "Travel Requests API Test"
         Clear(Request);
         Request.Add(AmountField, 200);
         Request.WriteTo(RequestBody);
+        Clear(ResponseText);
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
 
         // [THEN] Neither the foreign currency nor its exchange rate is reset to LCY.
@@ -924,12 +910,14 @@ codeunit 148347 "Travel Requests API Test"
 
         // [THEN] Both explicit LCY and blank inputs return the canonical ISO code.
         AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, SelectedCurrencyURL, 200);
         AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
 
         // [WHEN] PATCH supplies an unknown non-LCY code.
         // [THEN] Currency validation rejects it rather than treating it as local currency.
         AssertCurrencyPatchError(RecordURL, InvalidCurrencyCode, InvalidCurrencyCode);
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
         AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
 
@@ -945,6 +933,7 @@ codeunit 148347 "Travel Requests API Test"
         // [WHEN] PATCH attempts a currency change.
         // [THEN] The existing Open-status validation rejects it without changing currency.
         AssertCurrencyPatchError(RecordURL, ForeignCurrencyCode, StatusNotOpenErr);
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
         AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
     end;
@@ -956,26 +945,23 @@ codeunit 148347 "Travel Requests API Test"
     begin
         Request.Add('currencyCode', CurrencyCode);
         Request.WriteTo(RequestBody);
+        Clear(ResponseText);
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
     end;
 
     local procedure AssertCurrencyPatchError(TargetURL: Text; CurrencyCode: Code[10]; ExpectedError: Text)
     var
         Request: JsonObject;
-        Response: JsonObject;
-        ErrorResponse: JsonToken;
-        ErrorMessage: JsonToken;
+        ErrorText: Text;
         RequestBody: Text;
         ResponseText: Text;
     begin
         Request.Add('currencyCode', CurrencyCode);
         Request.WriteTo(RequestBody);
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+        ErrorText := GetLastErrorText();
         Assert.ExpectedError(BadRequestResponseErr);
-        Response.ReadFrom(ResponseText);
-        Response.Get('error', ErrorResponse);
-        ErrorResponse.AsObject().Get('message', ErrorMessage);
-        Assert.AreNotEqual(0, StrPos(ErrorMessage.AsValue().AsText(), ExpectedError), 'The expected table validation must cause the rejection.');
+        Assert.AreNotEqual(0, StrPos(ErrorText, ExpectedError), 'The expected table validation must cause the rejection.');
     end;
 
     local procedure AssertTravelRequestCurrency(ResponseText: Text; SystemId: Guid; IsDetail: Boolean; APICurrencyCode: Code[10]; StoredCurrencyCode: Code[10]; ExchangeRate: Decimal)
@@ -1044,6 +1030,18 @@ codeunit 148347 "Travel Requests API Test"
         Assert.AreEqual(EndDate, EndDateToken.AsValue().AsDate(), 'The API must return the effective end date.');
     end;
 
+    local procedure GetResponseSystemId(ResponseText: Text): Guid
+    var
+        Response: JsonObject;
+        Id: JsonToken;
+        SystemId: Guid;
+    begin
+        Response.ReadFrom(ResponseText);
+        Assert.IsTrue(Response.Get('id', Id), 'The API response must contain an id.');
+        Assert.IsTrue(Evaluate(SystemId, Id.AsValue().AsText()), 'The API response id must be a GUID.');
+        exit(SystemId);
+    end;
+
     local procedure AssertOwnerPreservingPatch(TargetURL: Text; TravelRequest: Record "Spend Request")
     var
         Request: JsonObject;
@@ -1067,20 +1065,12 @@ codeunit 148347 "Travel Requests API Test"
         Assert.AreEqual(ExpectedPurpose, Purpose.AsValue().AsText(), 'PATCH must update the purpose when the owner is unchanged.');
     end;
 
-    local procedure AssertOwnerChangeError(ResponseText: Text; TravelRequest: Record "Spend Request")
+    local procedure AssertOwnerChangeError(ErrorText: Text; TravelRequest: Record "Spend Request")
     var
-        Response: JsonObject;
-        ErrorResponse: JsonToken;
-        ErrorMessage: JsonToken;
-        MessageText: Text;
     begin
-        Response.ReadFrom(ResponseText);
-        Response.Get('error', ErrorResponse);
-        ErrorResponse.AsObject().Get('message', ErrorMessage);
-        MessageText := ErrorMessage.AsValue().AsText();
-        Assert.AreNotEqual(0, StrPos(MessageText, RequestedByCannotBeChangedErr), 'The API must reject the owner change.');
-        Assert.AreNotEqual(0, StrPos(MessageText, TravelRequest.FieldCaption("Requested By")), 'The error must identify Requested By.');
-        Assert.AreNotEqual(0, StrPos(MessageText, TravelRequest."No."), 'The error must identify the travel request.');
+        Assert.AreNotEqual(0, StrPos(ErrorText, RequestedByCannotBeChangedErr), 'The API must reject the owner change.');
+        Assert.AreNotEqual(0, StrPos(ErrorText, TravelRequest.FieldCaption("Requested By")), 'The error must identify Requested By.');
+        Assert.AreNotEqual(0, StrPos(ErrorText, TravelRequest."No."), 'The error must identify the travel request.');
     end;
 
     local procedure CreateTravelRequest(var TravelRequest: Record "Spend Request"; EmployeeNo: Code[20])

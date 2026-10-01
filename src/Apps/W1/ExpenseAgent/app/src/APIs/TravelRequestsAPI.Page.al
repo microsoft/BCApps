@@ -99,6 +99,8 @@ page 7134 "Travel Requests API"
                     trigger OnValidate()
                     begin
                         ExpectedStartDateProvided := true;
+                        // Mark the record as changed so date-only requests are persisted; the pair is validated on insert/modify.
+                        Rec."Expected Start Date" := ExpectedStartDate;
                     end;
                 }
                 field(expectedEndDate; ExpectedEndDate)
@@ -109,6 +111,8 @@ page 7134 "Travel Requests API"
                     trigger OnValidate()
                     begin
                         ExpectedEndDateProvided := true;
+                        // Mark the record as changed so date-only requests are persisted; the pair is validated on insert/modify.
+                        Rec."Expected End Date" := ExpectedEndDate;
                     end;
                 }
                 field(closedAt; Rec."Closed At")
@@ -282,12 +286,7 @@ page 7134 "Travel Requests API"
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
-    var
-        OwnerEmployeeNo: Code[20];
     begin
-        OwnerEmployeeNo := ProcessOwnerFilter();
-        if OwnerEmployeeNo <> '' then
-            Rec."Requested By" := OwnerEmployeeNo;
         Clear(CurrencyCodeDisplay);
         Clear(ExpectedStartDate);
         Clear(ExpectedEndDate);
@@ -406,6 +405,9 @@ page 7134 "Travel Requests API"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         Rec."Document Type" := Rec."Document Type"::"Travel Request";
+        // Default the owner here rather than in OnNewRecord: a pre-filled owner makes an owner-only POST look unchanged, so it would not be inserted.
+        if Rec."Requested By" = '' then
+            Rec."Requested By" := ProcessOwnerFilter();
         Rec.TestField("Requested By");
         CheckOwnerScope();
         Rec.SetExpectedDatesForAPIInsert(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
