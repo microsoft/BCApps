@@ -3827,7 +3827,7 @@ codeunit 5330 "CRM Integration Management"
         JobQueueEntryUpdate.ReadIsolation := IsolationLevel::UpdLock;
         JobQueueEntry.Reset();
         JobQueueEntry.ReadIsolation := IsolationLevel::ReadUncommitted;
-        JobQueueEntry.SetLoadFields(Status, "System Task ID", "Object Type to Run", "Object ID to Run", "Record ID to Process", Description);
+        JobQueueEntry.SetLoadFields(Status, "System Task ID", "Object Type to Run", "Object ID to Run", "Record ID to Process", Description, "Earliest Start Date/Time");
         JobQueueEntry.SetFilter(Status, Format(JobQueueEntry.Status::Ready) + '|' + Format(JobQueueEntry.Status::"On Hold with Inactivity Timeout"));
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetFilter("Object ID to Run", '%1|%2|%3|%4|%5', Codeunit::"Integration Synch. Job Runner", Codeunit::"CRM Statistics Job", Codeunit::"Int. Coupling Job Runner",
@@ -3853,21 +3853,34 @@ codeunit 5330 "CRM Integration Management"
             // Therefore the task will restart with a delay to lower a risk of use of "old" data.
             // If the task is scheduled to run soon (in 60 seconds from now) we don't reschedule
             NewEarliestStartDateTime := CurrentDateTime() + RescheduleOffsetInMs;
+            // "Not Before" of the scheduled task is not guaranteed to reflect a previous SetTaskReady call,
+            // so the job queue entry's "Earliest Start Date/Time" is also checked to avoid rescheduling the same task on every change.
             if DoesJobActOnTable(JobQueueEntry, TableNo) then
-                if ScheduledTask.Get(JobQueueEntry."System Task ID") then
-                    if (NewEarliestStartDateTime + RescheduleOffSetInMs) < ScheduledTask."Not Before" then
-                        if TaskScheduler.SetTaskReady(JobQueueEntry."System Task ID", NewEarliestStartDateTime) then begin
+                if not IsJobScheduledToRunSoon(JobQueueEntry, NewEarliestStartDateTime + RescheduleOffSetInMs) then
+                    if ScheduledTask.Get(JobQueueEntry."System Task ID") then
+                        if (NewEarliestStartDateTime + RescheduleOffSetInMs) < ScheduledTask."Not Before" then begin
                             JobQueueEntryUpdate.ID := JobQueueEntry.ID;
                             if JobQueueEntryUpdate.GetRecLockedExtendedTimeout() then
-                                if JobQueueEntryUpdate.Status in [JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold with Inactivity Timeout"] then begin
-                                    JobQueueEntryUpdate.Status := JobQueueEntry.Status::Ready;
-                                    JobQueueEntryUpdate."Earliest Start Date/Time" := NewEarliestStartDateTime;
-                                    JobQueueEntryUpdate."Parameter String" := Format(TableNo);
-                                    JobQueueEntryUpdate.Modify();
-                                    Session.LogMessage('0000JAV', StrSubstNo(RescheduledTaskTxt, Format(ScheduledTask.ID), Format(JobQueueEntry.ID), JobQueueEntry.Description, Format(ScheduledTask."Not Before")), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                                end;
+                                if (JobQueueEntryUpdate.Status in [JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold with Inactivity Timeout"]) and
+                                   (JobQueueEntryUpdate."System Task ID" = JobQueueEntry."System Task ID") and
+                                   not IsJobScheduledToRunSoon(JobQueueEntryUpdate, NewEarliestStartDateTime + RescheduleOffSetInMs)
+                                then
+                                    if TaskScheduler.SetTaskReady(JobQueueEntry."System Task ID", NewEarliestStartDateTime) then begin
+                                        JobQueueEntryUpdate.Status := JobQueueEntry.Status::Ready;
+                                        JobQueueEntryUpdate."Earliest Start Date/Time" := NewEarliestStartDateTime;
+                                        JobQueueEntryUpdate."Parameter String" := Format(TableNo);
+                                        JobQueueEntryUpdate.Modify();
+                                        Session.LogMessage('0000JAV', StrSubstNo(RescheduledTaskTxt, Format(ScheduledTask.ID), Format(JobQueueEntry.ID), JobQueueEntry.Description, Format(ScheduledTask."Not Before")), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+                                    end;
                         end;
         until JobQueueEntry.Next() = 0;
+    end;
+
+    local procedure IsJobScheduledToRunSoon(JobQueueEntry: Record "Job Queue Entry"; Threshold: DateTime): Boolean
+    begin
+        if JobQueueEntry."Earliest Start Date/Time" = 0DT then
+            exit(false);
+        exit((JobQueueEntry."Earliest Start Date/Time" > CurrentDateTime()) and (JobQueueEntry."Earliest Start Date/Time" <= Threshold));
     end;
 
     local procedure DoesJobActOnTable(JobQueueEntry: Record "Job Queue Entry"; TableNo: Integer): Boolean
