@@ -92,7 +92,8 @@ codeunit 12180 "FatturaPA Sales Validation"
             exit;
         end;
 
-        AutoValidateDocument(SalesHeader, SalesHeader."Sell-to Customer No.", DummyElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
+        if SalesHeader.Invoice then
+            AutoValidateDocument(SalesHeader, SalesHeader."Sell-to Customer No.", DummyElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
         FatturaDocHelper.AssignFatturaDocTypeFromVATPostingSetupToSalesHeader(SalesHeader, true);
     end;
 
