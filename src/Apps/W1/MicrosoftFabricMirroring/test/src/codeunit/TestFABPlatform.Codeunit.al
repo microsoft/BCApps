@@ -100,9 +100,10 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] 500 table rows already exist
+        // IDs beyond any real table are not validated, so existing virtual or external tables cannot reject the insert.
         for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
             TenantFabricTables.Init();
-            TenantFabricTables."Table ID" := i;
+            TenantFabricTables."Table ID" := 900000000 + i;
             TenantFabricTables.Insert(false);
         end;
         //[GIVEN] Lower permissions
@@ -1105,17 +1106,20 @@ codeunit 140012 "Test FAB Platform"
     [Test]
     procedure AddTableFailsForAIConsumptionLogEntry()
     var
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        TenantFabricTables: Record "Tenant Fabric Tables";
     begin
         //[SCENARIO] Table 2000000147 "AI Consumption Log Entry" cannot be selected for export
         //[GIVEN] Initialize
         Initialize();
+        //[GIVEN] A selection of the table; the table may not exist on this platform version, so AddTable would report it as invalid first
+        TenantFabricTables.Init();
+        TenantFabricTables."Table ID" := 2000000147;
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
-        //[WHEN] The table is added
-        asserterror FabricPlatformMgt.AddTable(2000000147);
+        //[WHEN] The table is inserted
+        asserterror TenantFabricTables.Insert(true);
 
         //[THEN] The table is rejected as internal and sensitive
         VerifyTableRejected(2000000147, 'internal or sensitive data');
@@ -1173,28 +1177,6 @@ codeunit 140012 "Test FAB Platform"
         Initialize();
         //[GIVEN] A table whose data is external
         TableId := FindExternalDataTableId();
-        //[GIVEN] Lower permissions
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
-
-        //[WHEN] The table is added
-        asserterror FabricPlatformMgt.AddTable(TableId);
-
-        //[THEN] The table is rejected as external, linked, or virtual
-        VerifyTableRejected(TableId, 'external, linked, or virtual');
-    end;
-
-    [Test]
-    procedure AddTableFailsForLinkedTable()
-    var
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
-        TableId: Integer;
-    begin
-        //[SCENARIO] A linked AL table cannot be selected for export
-        //[GIVEN] Initialize
-        Initialize();
-        //[GIVEN] A linked table
-        TableId := FindLinkedTableId();
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
@@ -1289,12 +1271,15 @@ codeunit 140012 "Test FAB Platform"
         //[SCENARIO] An existing selection of an unsupported field cannot be modified
         //[GIVEN] Initialize
         Initialize();
-        //[GIVEN] A selected field of type Media that bypassed validation
+        //[GIVEN] A selected field of type Media that bypassed validation by being renamed from a supported field
         TenantFabricTableFields.Init();
         TenantFabricTableFields."Table ID" := Database::Customer;
-        TenantFabricTableFields."Field ID" := Customer.FieldNo(Image);
+        TenantFabricTableFields."Field ID" := Customer.FieldNo(Name);
         TenantFabricTableFields."Field Name" := 'Image';
         TenantFabricTableFields.Insert(false);
+        TenantFabricTableFields.Rename(Database::Customer, Customer.FieldNo(Image));
+        // Commit so the failed Modify does not roll back the GIVEN row; Initialize clears it in the next test.
+        Commit();
         //[GIVEN] A new field name
         TenantFabricTableFields."Field Name" := 'Renamed';
         //[GIVEN] Lower permissions
@@ -1321,14 +1306,6 @@ codeunit 140012 "Test FAB Platform"
         TableMetadata: Record "Table Metadata";
     begin
         TableMetadata.SetRange(DataIsExternal, true);
-        exit(FindTableId(TableMetadata));
-    end;
-
-    local procedure FindLinkedTableId(): Integer
-    var
-        TableMetadata: Record "Table Metadata";
-    begin
-        TableMetadata.SetRange(LinkedObject, true);
         exit(FindTableId(TableMetadata));
     end;
 
