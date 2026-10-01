@@ -59,7 +59,7 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Deletes the specified MCP configuration.
+    /// Deletes the specified MCP configuration and its configured agents.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration to delete.</param>
     procedure DeleteConfiguration(ConfigId: Guid)
@@ -68,7 +68,7 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Copies an existing configuration to a new configuration, including its tools and permissions.
+    /// Copies an existing configuration to a new configuration, including its tools, permissions, and configured agents.
     /// </summary>
     /// <param name="SourceConfigId">The SystemId (GUID) of the configuration to copy.</param>
     /// <param name="NewName">The name of the new configuration.</param>
@@ -125,6 +125,18 @@ codeunit 8350 "MCP Config"
     procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
     begin
         MCPConfigImplementation.EnableDataQueryTools(ConfigId, Enable);
+    end;
+
+    /// <summary>
+    /// Enables or disables tools for Business Central agents for the specified configuration.
+    /// Agent discovery is limited to agents explicitly added to the configuration, including the default configuration.
+    /// Does nothing if the configuration does not exist.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable agent tools, false to disable.</param>
+    procedure EnableAgents(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableAgents(ConfigId, Enable);
     end;
 
     /// <summary>

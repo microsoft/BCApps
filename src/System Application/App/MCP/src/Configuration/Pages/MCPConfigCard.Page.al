@@ -102,7 +102,7 @@ page 8351 "MCP Config Card"
                 Visible = not IsDefault and APIToolsActive;
                 Editable = not Rec.Active;
             }
-            part(AgentToolList; "MCP Config Agent Tool List")
+            part(AgentList; "MCP Config Agent List")
             {
                 ApplicationArea = All;
                 SubPageLink = ID = field(SystemId);
@@ -241,7 +241,6 @@ page 8351 "MCP Config Card"
 
     trigger OnAfterGetCurrRecord()
     begin
-        InitializeAgentToolsState();
         RefreshSubPages();
     end;
 
@@ -265,19 +264,7 @@ page 8351 "MCP Config Card"
         IsDefault: Boolean;
         APIToolsActive: Boolean;
         AgentToolsActive: Boolean;
-        AgentToolsStateInitialized: Boolean;
-        LastInitializedConfigId: Guid;
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
-
-    local procedure InitializeAgentToolsState()
-    begin
-        if AgentToolsStateInitialized and (LastInitializedConfigId = Rec.SystemId) then
-            exit;
-
-        MCPConfigImplementation.ResetAgentToolsState(Rec.SystemId);
-        LastInitializedConfigId := Rec.SystemId;
-        AgentToolsStateInitialized := true;
-    end;
 
     local procedure RefreshSubPages()
     var
@@ -286,9 +273,10 @@ page 8351 "MCP Config Card"
         CurrPage.ServerFeatureList.Page.Reload(Rec.SystemId, not IsDefault and not Rec.Active);
         ServerFeature := "MCP Server Feature"::"API Tools";
         APIToolsActive := ServerFeature.IsActive(Rec.SystemId);
-        AgentToolsActive := MCPConfigImplementation.IsAgentToolsActive(Rec.SystemId);
+        ServerFeature := "MCP Server Feature"::"Agent Tools";
+        AgentToolsActive := ServerFeature.IsActive(Rec.SystemId);
         CurrPage.SystemToolList.Page.Reload(Rec.SystemId);
         CurrPage.ToolList.Page.SetConfigActive(Rec.Active);
-        CurrPage.AgentToolList.Page.SetConfigActive(Rec.Active);
+        CurrPage.AgentList.Page.SetConfigActive(Rec.Active);
     end;
 }

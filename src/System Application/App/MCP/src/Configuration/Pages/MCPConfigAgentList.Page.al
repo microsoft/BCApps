@@ -7,12 +7,12 @@ namespace System.MCP;
 
 using System.Agents;
 
-page 8378 "MCP Config Agent Tool List"
+page 8378 "MCP Config Agent List"
 {
     Caption = 'Available Agents';
     ApplicationArea = All;
     PageType = ListPart;
-    SourceTable = "MCP Config Agent Tool";
+    SourceTable = "MCP Configuration Agent";
     DelayedInsert = true;
     MultipleNewLines = true;
     Extensible = false;
@@ -26,25 +26,26 @@ page 8378 "MCP Config Agent Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Agent User Security ID"; Rec."Agent User Security ID")
+                field("Agent ID"; Rec."Agent ID")
                 {
                     Editable = not IsConfigActive;
-                    ToolTip = 'Specifies the security ID of the configured agent.';
+                    ToolTip = 'Specifies the agent enabled for this MCP configuration.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
                         AddAgents();
+                        exit(true);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        MCPConfigImplementation.SetAgentMetadata(Rec);
                     end;
                 }
-                field("Agent User Name"; Rec."Agent User Name")
+                field("Agent Name"; Rec."Agent Name")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the user name of the configured agent.';
-                }
-                field("Agent Display Name"; Rec."Agent Display Name")
-                {
-                    Editable = false;
-                    ToolTip = 'Specifies the display name of the configured agent.';
+                    ToolTip = 'Specifies the name of the configured agent.';
                 }
             }
         }
@@ -97,9 +98,9 @@ page 8378 "MCP Config Agent Tool List"
         MCPAgentLookup.GetSelectedAgents(SelectedAgent);
         if SelectedAgent.FindSet() then
             repeat
-                MCPConfigImplementation.AddAgentTool(Rec.ID, SelectedAgent."User Security ID");
+                MCPConfigImplementation.AddAgent(Rec.ID, SelectedAgent."User Security ID");
             until SelectedAgent.Next() = 0;
-        if IsNullGuid(Rec."Agent User Security ID") and not IsNullGuid(Rec.SystemId) then
+        if IsNullGuid(Rec."Agent ID") and not IsNullGuid(Rec.SystemId) then
             Rec.Delete();
         CurrPage.Update();
     end;

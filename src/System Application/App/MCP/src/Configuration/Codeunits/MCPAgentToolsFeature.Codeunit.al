@@ -10,29 +10,19 @@ codeunit 8376 "MCP Agent Tools Feature" implements "MCP Server Features"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    SingleInstance = true;
 
     procedure SetActive(ConfigId: Guid; Active: Boolean)
+    var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        if ActiveByConfig.ContainsKey(ConfigId) then
-            ActiveByConfig.Set(ConfigId, Active)
-        else
-            ActiveByConfig.Add(ConfigId, Active);
+        MCPConfigImplementation.EnableAgents(ConfigId, Active);
     end;
 
     procedure IsActive(ConfigId: Guid): Boolean
     var
-        Active: Boolean;
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        if not ActiveByConfig.Get(ConfigId, Active) then
-            exit(false);
-
-        exit(Active);
-    end;
-
-    internal procedure ResetActiveState(ConfigId: Guid)
-    begin
-        ActiveByConfig.Remove(ConfigId);
+        exit(MCPConfigImplementation.IsAgentsEnabled(ConfigId));
     end;
 
     procedure HasSettings(): Boolean
@@ -51,8 +41,8 @@ codeunit 8376 "MCP Agent Tools Feature" implements "MCP Server Features"
 
     procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
     begin
-        InsertTool(MCPSystemTool, 'lookup_agents', LookupAgentsDescriptionLbl);
-        InsertTool(MCPSystemTool, 'invoke_agent', InvokeAgentDescriptionLbl);
+        InsertTool(MCPSystemTool, 'bc_agents_list', ListAgentsDescriptionLbl);
+        InsertTool(MCPSystemTool, 'bc_agents_invoke', InvokeAgentDescriptionLbl);
     end;
 
     procedure TryGetParentFeature(var ParentFeature: Enum "MCP Server Feature"): Boolean
@@ -69,8 +59,7 @@ codeunit 8376 "MCP Agent Tools Feature" implements "MCP Server Features"
     end;
 
     var
-        ActiveByConfig: Dictionary of [Guid, Boolean];
-        DescriptionLbl: Label 'Exposes tools to discover and invoke agents selected in Available Agents. Agent invocation is in preview and may incur billable AI consumption.';
-        LookupAgentsDescriptionLbl: Label 'Discovers agents selected in Available Agents.';
-        InvokeAgentDescriptionLbl: Label 'Invokes an agent selected in Available Agents and may incur billable AI consumption while in preview.';
+        DescriptionLbl: Label 'Exposes tools to list configured Business Central agents and the reserved agent invocation tool.';
+        ListAgentsDescriptionLbl: Label 'Lists Business Central specialized agents. Invoke or ask questions to the agent using the bc_agents_invoke tool.';
+        InvokeAgentDescriptionLbl: Label 'Reserved for invoking a Business Central agent. This tool is not implemented and always returns an error without creating a task.';
 }

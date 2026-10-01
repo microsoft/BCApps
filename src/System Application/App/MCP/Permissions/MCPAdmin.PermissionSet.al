@@ -15,6 +15,6 @@ permissionset 8352 "MCP - Admin"
 
     Permissions = tabledata "MCP Entra Application" = IMD,
                   tabledata "MCP Configuration" = IMD,
-                  tabledata "MCP Configuration Tool" = IMD,
-                  tabledata "MCP Config Agent Tool" = IMD;
+                  tabledata "MCP Configuration Agent" = IMD,
+                  tabledata "MCP Configuration Tool" = IMD;
 }
