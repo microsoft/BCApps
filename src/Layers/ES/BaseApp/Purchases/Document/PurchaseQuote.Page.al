@@ -641,6 +641,12 @@ page 49 "Purchase Quote"
                                     if Rec."Pay-to Vendor No." <> Vendor."No." then  // if the user responds 'no' to questions
                                         error('');
                                 end;
+
+                                if Rec.GetFilter("Pay-to Vendor No.") = xRec."Pay-to Vendor No." then
+                                    if Rec."Pay-to Vendor No." <> xRec."Pay-to Vendor No." then
+                                        Rec.SetRange("Pay-to Vendor No.");
+
+                                CurrPage.Update();
                             end;
 
                             trigger OnValidate()

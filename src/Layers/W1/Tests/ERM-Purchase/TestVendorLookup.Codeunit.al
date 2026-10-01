@@ -159,6 +159,7 @@ codeunit 134836 "Test Vendor Lookup"
     [Scope('OnPrem')]
     procedure PayToVendorsWithSameName()
     var
+        PurchaseHeader: Record "Purchase Header";
         Vend: Record Vendor;
         PurchaseQuote: TestPage "Purchase Quote";
     begin
@@ -183,6 +184,8 @@ codeunit 134836 "Test Vendor Lookup"
 
         // [THEN] Pay-to fields match "V" - the vendor selected from the lookup, not "V1"
         VerifyPurchQuoteAgainstBillToVend(PurchaseQuote, Vend);
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::Quote, PurchaseQuote."No.".Value());
+        Assert.AreEqual(Vend."No.", PurchaseHeader."Pay-to Vendor No.", 'The selected pay-to vendor must be saved after lookup.');
 
         // [THEN] The Pay-to change confirm fired exactly once and every queued expectation was consumed
         LibraryVariableStorage.AssertEmpty();
@@ -271,4 +274,3 @@ codeunit 134836 "Test Vendor Lookup"
         VendorLookup.OK().Invoke();
     end;
 }
-
