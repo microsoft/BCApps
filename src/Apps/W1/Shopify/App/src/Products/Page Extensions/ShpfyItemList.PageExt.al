@@ -62,32 +62,18 @@ pageextension 30120 "Shpfy Item List" extends "Item List"
     local procedure SetIsProductMapped()
     var
         Shop: Record "Shpfy Shop";
-        ShopifyProduct: Record "Shpfy Product";
         ShopifyVariant: Record "Shpfy Variant";
     begin
         IsProductMapped := false;
-        ShopifyProduct.SetLoadFields("Item SystemId", "Shop Code");
-        ShopifyProduct.SetRange("Item SystemId", Rec.SystemId);
-        if ShopifyProduct.FindSet() then
+        ShopifyVariant.SetLoadFields("Item SystemId", "Shop Code");
+        ShopifyVariant.SetRange("Item SystemId", Rec.SystemId);
+        if ShopifyVariant.FindSet() then
             repeat
-                if Shop.Get(ShopifyProduct."Shop Code") then
+                if Shop.Get(ShopifyVariant."Shop Code") then
                     if Shop.Enabled then begin
                         IsProductMapped := true;
                         exit;
                     end;
-            until ShopifyProduct.Next() = 0;
-
-        if not IsProductMapped then begin
-            ShopifyVariant.SetLoadFields("Item SystemId", "Shop Code");
-            ShopifyVariant.SetRange("Item SystemId", Rec.SystemId);
-            if ShopifyVariant.FindSet() then
-                repeat
-                    if Shop.Get(ShopifyVariant."Shop Code") then
-                        if Shop.Enabled then begin
-                            IsProductMapped := true;
-                            exit;
-                        end;
-                until ShopifyVariant.Next() = 0;
-        end;
+            until ShopifyVariant.Next() = 0;
     end;
 }

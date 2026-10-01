@@ -246,6 +246,10 @@ table 8052 "Customer Subscription Contract"
         {
             Caption = 'Your Reference';
         }
+        field(100; "External Document No."; Code[35])
+        {
+            Caption = 'External Document No.';
+        }
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
@@ -848,13 +852,8 @@ table 8052 "Customer Subscription Contract"
         field(8051; "Without Contract Deferrals"; Boolean)
         {
             ObsoleteReason = 'Removed in favor of Create Contract Deferrals.';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
             Caption = 'Without Contract Deferrals';
         }
 #endif

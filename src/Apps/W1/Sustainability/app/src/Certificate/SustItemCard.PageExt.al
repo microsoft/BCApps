@@ -128,6 +128,14 @@ pageextension 6222 "Sust. Item Card" extends "Item Card"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("EUDR Relevant"; Rec."EUDR Relevant")
+                {
+                    ApplicationArea = ItemTracking;
+                }
+                field("EUDR Commodity"; Rec."EUDR Commodity")
+                {
+                    ApplicationArea = ItemTracking;
+                }
                 group("Product Classification")
                 {
                     Caption = 'Product Classification';

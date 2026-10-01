@@ -18,7 +18,8 @@ table 6840 "Spend Request"
     Caption = 'Spend Request';
     DataClassification = CustomerContent;
     DataCaptionFields = "No.", Purpose;
-    Permissions = tabledata "Spend Request Detail" = rimd,
+    Permissions = tabledata "Spend Request" = m,
+                  tabledata "Spend Request Detail" = rimd,
                   tabledata "Spend Request To G/L Link" = rimd;
 
     fields
@@ -83,6 +84,11 @@ table 6840 "Spend Request"
         {
             Caption = 'Purpose';
             ToolTip = 'Specifies the purpose of the spend request.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(9; "Currency Code"; Code[10])
         {

@@ -201,19 +201,40 @@ codeunit 6970 "Create Expense Agent Setup"
         UnitOfMeasure.SetFilter("International Standard Code", 'KMT|KM');
         if UnitOfMeasure.FindFirst() then
             exit(UnitOfMeasure.Code);
+
+        CreateUnitOfMeasure(
+            CopyStr(KilometerCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code)),
+            CopyStr(KilometerTxt, 1, MaxStrLen(UnitOfMeasure.Description)),
+            'KMT',
+            'km');
+
+        CreateUnitOfMeasure(
+            CopyStr(MilesCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code)),
+            CopyStr(MilesTxt, 1, MaxStrLen(UnitOfMeasure.Description)),
+            'SMI',
+            'mi');
+
         UnitOfMeasure.SetRange("International Standard Code");
         if UnitOfMeasure.Get(MilesCodeTxt) then
             exit(UnitOfMeasure.Code);
-        if not UnitOfMeasure.WritePermission then
-            exit('');
 
-        UnitOfMeasure.Code := CopyStr(MilesCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code));
-        UnitOfMeasure.Description := CopyStr(MilesTxt, 1, MaxStrLen(UnitOfMeasure.Description));
-        UnitOfMeasure."International Standard Code" := 'SMI';
-        UnitOfMeasure.Symbol := 'mi';
-        if UnitOfMeasure.Insert() then
-            exit(UnitOfMeasure.Code);
         exit('');
+    end;
+
+    local procedure CreateUnitOfMeasure(Code: Code[10]; Description: Text[50]; InternationalStandardCode: Code[10]; Symbol: Text[10])
+    var
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        if UnitOfMeasure.Get(Code) then
+            exit;
+        if not UnitOfMeasure.WritePermission then
+            exit;
+
+        UnitOfMeasure.Code := Code;
+        UnitOfMeasure.Description := Description;
+        UnitOfMeasure."International Standard Code" := InternationalStandardCode;
+        UnitOfMeasure.Symbol := Symbol;
+        if UnitOfMeasure.Insert() then;
     end;
 
     var
@@ -227,4 +248,6 @@ codeunit 6970 "Create Expense Agent Setup"
         XBANKTxt: Label 'Company paid by bank transfer', MaxLength = 100;
         MilesTxt: Label 'Miles';
         MilesCodeTxt: Label 'MILES';
+        KilometerTxt: Label 'Kilometer';
+        KilometerCodeTxt: Label 'KM';
 }
