@@ -1,6 +1,8 @@
 #pragma warning disable AA0247
 codeunit 1915 "MigrationQB Dashboard Mgt"
 {
+    Permissions = tabledata "Data Migration Status" = r;
+
     var
         HelperFunctions: Codeunit "MigrationQB Helper Functions";
         CloudMigrationTok: Label 'CloudMigration', Locked = true;

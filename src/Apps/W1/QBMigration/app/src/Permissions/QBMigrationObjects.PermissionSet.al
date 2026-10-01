@@ -7,8 +7,7 @@ permissionset 27226 "QBMigration - Objects"
     Access = Public;
     Caption = 'QB Migration - Objects';
 
-    Permissions = tabledata "Data Migration Status" = R,
-                     table "MigrationQB Account" = X,
+    Permissions = table "MigrationQB Account" = X,
                      codeunit "MigrationQB Account Migrator" = X,
                      page "MigrationQB AccountTable" = X,
                      table "MigrationQB Customer" = X,
