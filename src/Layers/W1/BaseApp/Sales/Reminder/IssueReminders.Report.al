@@ -62,6 +62,7 @@ report 190 "Issue Reminders"
                     Commit();
                     Mark := not ReminderIssue.Run();
                 end;
+
                 if PrintEmailDocument <> PrintEmailDocument::" " then begin
                     ReminderIssue.GetIssuedReminder(IssuedReminderHeader);
                     TempIssuedReminderHeader := IssuedReminderHeader;
@@ -74,16 +75,16 @@ report 190 "Issue Reminders"
             trigger OnPostDataItem()
             var
                 IssuedReminderHeaderPrint: Record "Issued Reminder Header";
-                ConfirmManagement: Codeunit "Confirm Management";
                 TempIssuedReminderHeaderToPrint: Record "Issued Reminder Header" temporary;
                 IssuedReminderHeaderRef: RecordRef;
                 SelectionFilterManagement: Codeunit SelectionFilterManagement;
+                ConfirmManagement: Codeunit "Confirm Management";
                 IsHandled: Boolean;
             begin
                 Window.Close();
                 Commit();
                 if PrintEmailDocument <> PrintEmailDocument::" " then begin
-                    if TempIssuedReminderHeader.FindSet() then
+                    if TempIssuedReminderHeader.FindSet() then begin
                         repeat
                             IssuedReminderHeaderPrint := TempIssuedReminderHeader;
                             IsHandled := false;
@@ -98,6 +99,7 @@ report 190 "Issue Reminders"
                                 end;
                             end;
                         until TempIssuedReminderHeader.Next() = 0;
+                    end;
                     if (PrintEmailDocument = PrintEmailDocument::Print) and TempIssuedReminderHeaderToPrint.FindSet() then begin
                         IssuedReminderHeaderRef.GetTable(TempIssuedReminderHeaderToPrint);
                         IssuedReminderHeaderPrint.Reset();
@@ -245,6 +247,7 @@ report 190 "Issue Reminders"
         begin
             GLSetup.Get();
             VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
+
             if GLSetup."Journal Templ. Name Mandatory" then begin
                 IsJournalTemplNameVisible := true;
                 SalesSetup.get();
