@@ -113,7 +113,7 @@ page 6347 "Power BI Report Deployments"
 
                         ReplaceCount := TempSelection.CountForOutcome(Enum::"Power BI Deployment Outcome"::Finished);
                         if ReplaceCount > 0 then
-                            if not Confirm(StrSubstNo(ReplaceDeployedReportQst, ReplaceCount)) then
+                            if not Confirm(ReplaceDeployedReportQst, false, ReplaceCount) then
                                 exit;
 
                         if TempSelection.IsEmpty() then begin
