@@ -49,9 +49,9 @@ codeunit 1281 "Update Currency Exchange Rates"
 #pragma warning restore AA0470
         ResponseTooLargeErr: Label 'The response from the currency exchange rate service exceeded the maximum allowed size and was rejected.';
         ResponseTooLargeTxt: Label 'The currency exchange rate update failed. The response exceeded the maximum allowed size.', Locked = true;
-        SecurityAuditResponseTooLargeTxt: Label 'The currency exchange rate service returned a response that         exceeded the maximum allowed size.', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The currency exchange rate service returned a response that exceeded the maximum allowed size.', Locked = true;
 
-            local procedure SyncCurrencyExchangeRates()
+    local procedure SyncCurrencyExchangeRates()
     var
         CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup";
         ResponseInStream: InStream;
