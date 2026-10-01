@@ -29,8 +29,9 @@ codeunit 1738 "OData Initializer"
             HttpRequestMessage.GetHeaders(HttpHeaders);
             HttpHeaders.Remove('User-Agent');
             HttpHeaders.Add('User-Agent', 'BusinessCentral-Warmup');
-            if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) and HttpResponseMessage.IsSuccessStatusCode() then
-                exit;
+            if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+                if HttpResponseMessage.IsSuccessStatusCode() then
+                    exit;
         end;
 
         Session.LogMessage('0000E52', MetadataEndpointCallFailedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTxt);
