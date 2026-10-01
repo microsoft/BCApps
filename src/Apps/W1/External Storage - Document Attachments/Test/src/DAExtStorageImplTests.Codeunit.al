@@ -351,18 +351,9 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         RefreshAttachment(DocumentAttachment);
         Assert.IsTrue(DocumentAttachment."Stored Internally", 'Document should remain stored internally');
         Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media should remain available');
-        Assert.IsFalse(DocumentAttachment."Stored Externally", 'Failed external content should be reset for retry');
-        Assert.AreEqual('', DocumentAttachment."External File Path", 'Failed external path should be cleared for retry');
-        Assert.AreNotEqual('', FileConnectorMock.GetLastDeletedPath(), 'Failed external copy should be deleted');
-
-        // [WHEN] The connector recovers and Move is retried
-        FileConnectorMock.SetFailOnGetFile(false);
-        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Retry upload should succeed');
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Retry delete from internal should succeed');
-
-        // [THEN] The attachment is moved successfully
-        RefreshAttachment(DocumentAttachment);
-        Assert.IsFalse(DocumentAttachment."Stored Internally", 'Successful retry should remove internal content');
+        Assert.IsTrue(DocumentAttachment."Stored Externally", 'External metadata should remain for investigation');
+        Assert.AreNotEqual('', DocumentAttachment."External File Path", 'External path should remain for investigation');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Verification failure must not delete the external file');
     end;
 
     [Test]
@@ -389,9 +380,9 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         RefreshAttachment(DocumentAttachment);
         Assert.IsTrue(DocumentAttachment."Stored Internally", 'Document should remain stored internally');
         Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media should remain available');
-        Assert.IsFalse(DocumentAttachment."Stored Externally", 'Mismatched external content should be reset for retry');
-        Assert.AreEqual('', DocumentAttachment."External File Path", 'Mismatched external path should be cleared for retry');
-        Assert.AreNotEqual('', FileConnectorMock.GetLastDeletedPath(), 'Mismatched external copy should be deleted');
+        Assert.IsTrue(DocumentAttachment."Stored Externally", 'External metadata should remain for investigation');
+        Assert.AreNotEqual('', DocumentAttachment."External File Path", 'External path should remain for investigation');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Content mismatch must not delete the external file');
     end;
 
     [Test]

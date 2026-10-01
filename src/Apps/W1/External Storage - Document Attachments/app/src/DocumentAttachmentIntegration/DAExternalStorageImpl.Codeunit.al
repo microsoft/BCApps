@@ -28,13 +28,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalDownloadReasonLbl: Label 'ExternalDownloadFailed', Locked = true;
         ContentLengthReasonLbl: Label 'ContentLengthMismatch', Locked = true;
         ContentHashReasonLbl: Label 'ContentHashMismatch', Locked = true;
-        ExternalCleanupReasonLbl: Label 'ExternalCleanupFailed', Locked = true;
         MissingExternalPathTelemetryErr: Label 'The external attachment path is missing.', Locked = true;
         MissingFileAccountTelemetryErr: Label 'The external file account is not configured.', Locked = true;
         ExternalDownloadTelemetryErr: Label 'The external attachment could not be downloaded for verification.', Locked = true;
         ContentLengthTelemetryErr: Label 'The external attachment length does not match the internal media.', Locked = true;
         ContentHashTelemetryErr: Label 'The external attachment hash does not match the internal media.', Locked = true;
-        ExternalCleanupTelemetryErr: Label 'The failed external upload could not be deleted before retry.', Locked = true;
 
     #region File Scenario Interface Implementation
     /// <summary>
@@ -434,7 +432,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalContentMatchesInternal(DocumentAttachment, TenantMedia, VerificationFailureReason, VerificationErrorText) then begin
             DAFeatureTelemetry.LogExternalContentVerificationFailed(
                 DocumentAttachment, VerificationFailureReason, VerificationErrorText, GetLastErrorCallStack());
-            ResetFailedExternalUpload(DocumentAttachment, DAFeatureTelemetry);
             exit(false);
         end;
 
@@ -499,24 +496,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         FailureReason := NewFailureReason;
         ErrorText := NewErrorText;
-    end;
-
-    local procedure ResetFailedExternalUpload(var DocumentAttachment: Record "Document Attachment"; DAFeatureTelemetry: Codeunit "DA Feature Telemetry")
-    var
-        ExternalFilePath: Text;
-    begin
-        ExternalFilePath := DocumentAttachment."External File Path";
-        if ExternalFilePath = '' then
-            exit;
-
-        ClearLastError();
-        if DeleteExternalFile(ExternalFilePath, DocumentAttachment) then begin
-            DocumentAttachment.MarkAsNotUploadedToExternal();
-            exit;
-        end;
-
-        DAFeatureTelemetry.LogExternalContentVerificationFailed(
-            DocumentAttachment, ExternalCleanupReasonLbl, ExternalCleanupTelemetryErr, GetLastErrorCallStack());
     end;
 
     /// <summary>
