@@ -1400,7 +1400,7 @@ codeunit 144200 "FatturaPA Test"
         CreateCountryRegionWithISOCode(AlternateCountryRegion, CompanyCountryRegion."ISO Code");
 
         Customer.Get(CreateCustomer());
-        Customer.Validate("Country/Region Code", AlternateCountryRegion.Code);
+        Customer."Country/Region Code" := AlternateCountryRegion.Code;
         FiscalCode := LibraryITLocalization.GetFiscalCode();
         Customer."Fiscal Code" := FiscalCode;
         Customer.Modify(true);
@@ -1449,7 +1449,7 @@ codeunit 144200 "FatturaPA Test"
         CompanyInformation.Get();
         CompanyCountryRegion.Get(CompanyInformation."Country/Region Code");
         CreateCountryRegionWithISOCode(AlternateCompanyCountryRegion, CompanyCountryRegion."ISO Code");
-        CompanyInformation.Validate("Country/Region Code", AlternateCompanyCountryRegion.Code);
+        CompanyInformation."Country/Region Code" := AlternateCompanyCountryRegion.Code;
         CompanyInformation.Modify(true);
 
         // [GIVEN] Tax Representative and Transmission Intermediary use non-ISO BC keys
