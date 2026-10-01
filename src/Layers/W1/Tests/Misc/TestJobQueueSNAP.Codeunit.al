@@ -19,7 +19,7 @@ codeunit 139020 "Test Job Queue SNAP"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryJobQueue: Codeunit "Library - Job Queue";
         JobQueueDispatcher: Codeunit "Job Queue Dispatcher";
-        JobRunInterruptedRetryMsg: Label 'This run (attempt %1) was interrupted because the service restarted or was updated. A new attempt is scheduled to retry automatically.', Comment = '%1 = the attempt number of the interrupted run';
+        JobSomethingWentWrongMsgErr: Label 'Something went wrong and the job has stopped. Likely causes are system updates or routine maintenance processes. The job will automatically run again. (Attempt %1)', Comment = '%1 = the attempt number of the interrupted run';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -1599,7 +1599,7 @@ codeunit 139020 "Test Job Queue SNAP"
 
         // [THEN] The error message explains the interruption and the attempt number of the interrupted run
         JobQueueLogEntry.FindFirst();
-        Assert.AreEqual(StrSubstNo(JobRunInterruptedRetryMsg, 1), JobQueueLogEntry."Error Message", 'Unexpected error message for an interrupted run.');
+        Assert.AreEqual(StrSubstNo(JobSomethingWentWrongMsgErr, 1), JobQueueLogEntry."Error Message", 'Unexpected error message for an interrupted run.');
     end;
 
     [Test]
@@ -1640,7 +1640,7 @@ codeunit 139020 "Test Job Queue SNAP"
         JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::Error);
         Assert.RecordCount(JobQueueLogEntry, 2);
         JobQueueLogEntry.FindLast();
-        Assert.AreEqual(StrSubstNo(JobRunInterruptedRetryMsg, 2), JobQueueLogEntry."Error Message", 'Unexpected attempt number for the interrupted run.');
+        Assert.AreEqual(StrSubstNo(JobSomethingWentWrongMsgErr, 2), JobQueueLogEntry."Error Message", 'Unexpected attempt number for the interrupted run.');
     end;
 
     local procedure InsertJobQueueLogEntry(JobQueueEntryId: Guid; SystemTaskId: Guid; Status: Option; ServiceInstanceId: Integer; SessionId: Integer)
