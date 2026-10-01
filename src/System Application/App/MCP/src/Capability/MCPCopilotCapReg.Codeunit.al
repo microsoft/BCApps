@@ -34,8 +34,7 @@ codeunit 8358 "MCP Copilot Cap. Reg."
             MCPLearnMoreLbl);
     end;
 
-#if not CLEAN27
-    internal procedure UpdateMCPCapability()
+    internal procedure UpdateMCPCapabilityBilling()
     var
         CopilotCapability: Codeunit "Copilot Capability";
     begin
@@ -50,7 +49,6 @@ codeunit 8358 "MCP Copilot Cap. Reg."
             Enum::"Copilot Billing Type"::"Microsoft Billed",
             MCPLearnMoreLbl);
     end;
-#endif
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
     local procedure OnRegisterCopilotCapability()
