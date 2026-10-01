@@ -500,7 +500,8 @@ codeunit 12184 "Fattura Doc. Helper"
         CountryRegion: Record "Country/Region";
     begin
         CountryRegion.Get(CountryRegionCode);
-        CountryRegion.TestField("ISO Code");
+        if StrLen(CountryRegion."ISO Code") <> 2 then
+            Error(InvalidISOCountryCodeErr);
         exit(CountryRegion."ISO Code");
     end;
 
