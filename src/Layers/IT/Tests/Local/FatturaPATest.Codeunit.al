@@ -281,9 +281,8 @@ codeunit 144200 "FatturaPA Test"
         // [GIVEN] A posted Sales Invoice with a company bank account
         CreateBankAccountWithIBAN(BankAccount);
         SalesInvoiceHeader.Get(
-          CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
-        SalesInvoiceHeader."Company Bank Account Code" := BankAccount."No.";
-        SalesInvoiceHeader.Modify();
+          CreateAndPostSalesInvoiceWithBankAccount(
+            DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), BankAccount."No."));
         SalesInvoiceHeader.SetRecFilter();
 
         // [WHEN] The document is exported to FatturaPA
@@ -314,9 +313,8 @@ codeunit 144200 "FatturaPA Test"
         // [GIVEN] A posted Sales Credit Memo with a company bank account
         CreateBankAccountWithIBAN(BankAccount);
         SalesCrMemoHeader.Get(
-          CreateAndPostSalesCrMemo(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
-        SalesCrMemoHeader."Company Bank Account Code" := BankAccount."No.";
-        SalesCrMemoHeader.Modify();
+          CreateAndPostSalesCrMemoWithBankAccount(
+            DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), BankAccount."No."));
         SalesCrMemoHeader.SetRecFilter();
 
         // [WHEN] The document is exported to FatturaPA
@@ -347,9 +345,8 @@ codeunit 144200 "FatturaPA Test"
         // [GIVEN] A posted Service Invoice with a company bank account
         CreateBankAccountWithIBAN(BankAccount);
         ServiceInvoiceHeader.Get(
-          CreateAndPostServiceInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
-        ServiceInvoiceHeader."Company Bank Account Code" := BankAccount."No.";
-        ServiceInvoiceHeader.Modify();
+          CreateAndPostServiceInvoiceWithBankAccount(
+            DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), BankAccount."No."));
         ServiceInvoiceHeader.SetRecFilter();
 
         // [WHEN] The document is exported to FatturaPA
@@ -380,9 +377,8 @@ codeunit 144200 "FatturaPA Test"
         // [GIVEN] A posted Service Credit Memo with a company bank account
         CreateBankAccountWithIBAN(BankAccount);
         ServiceCrMemoHeader.Get(
-          CreateAndPostServiceCrMemo(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
-        ServiceCrMemoHeader."Company Bank Account Code" := BankAccount."No.";
-        ServiceCrMemoHeader.Modify();
+          CreateAndPostServiceCrMemoWithBankAccount(
+            DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), BankAccount."No."));
         ServiceCrMemoHeader.SetRecFilter();
 
         // [WHEN] The document is exported to FatturaPA
@@ -2124,6 +2120,32 @@ codeunit 144200 "FatturaPA Test"
         exit(GetDocumentNo(DocumentRecordRef));
     end;
 
+    local procedure CreateAndPostSalesInvoiceWithBankAccount(var DocumentRecordRef: RecordRef; PaymentMethodCode: Code[10]; PaymentTermsCode: Code[10]; CustomerNo: Code[20]; BankAccountCode: Code[20]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        CreateSalesDocument(SalesHeader, PaymentMethodCode, PaymentTermsCode, CustomerNo, SalesHeader."Document Type"::Invoice);
+        SalesHeader.Validate("Company Bank Account Code", BankAccountCode);
+        SalesHeader.Modify(true);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        DocumentRecordRef.GetTable(SalesInvoiceHeader);
+        exit(GetDocumentNo(DocumentRecordRef));
+    end;
+
+    local procedure CreateAndPostSalesCrMemoWithBankAccount(var DocumentRecordRef: RecordRef; PaymentMethodCode: Code[10]; PaymentTermsCode: Code[10]; CustomerNo: Code[20]; BankAccountCode: Code[20]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+    begin
+        CreateSalesDocument(SalesHeader, PaymentMethodCode, PaymentTermsCode, CustomerNo, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader.Validate("Company Bank Account Code", BankAccountCode);
+        SalesHeader.Modify(true);
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        DocumentRecordRef.GetTable(SalesCrMemoHeader);
+        exit(GetDocumentNo(DocumentRecordRef));
+    end;
+
     local procedure CreateAndPostSalesInvoiceWithSecondLineZeroUnitPrice(PaymentMethodCode: Code[10]; PaymentTermsCode: Code[10]; CustomerNo: Code[20]): Code[20]
     var
         SalesHeader: Record "Sales Header";
@@ -2246,6 +2268,44 @@ codeunit 144200 "FatturaPA Test"
     begin
         CreateAndPostServiceDocument(
           ServiceHeader, PaymentMethodCode, PaymentTermsCode, CustomerNo, ServiceHeader."Document Type"::"Credit Memo");
+        ServiceCrMemoHeader.SetRange("Customer No.", CustomerNo);
+        ServiceCrMemoHeader.FindFirst();
+        DocumentRecordRef.GetTable(ServiceCrMemoHeader);
+        exit(GetDocumentNo(DocumentRecordRef));
+    end;
+
+    local procedure CreateAndPostServiceInvoiceWithBankAccount(var DocumentRecordRef: RecordRef; PaymentMethodCode: Code[10]; PaymentTermsCode: Code[10]; CustomerNo: Code[20]; BankAccountCode: Code[20]): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+    begin
+        CreateServiceHeader(ServiceHeader, CustomerNo, ServiceHeader."Document Type"::Invoice);
+        ServiceHeader.Validate("Payment Method Code", PaymentMethodCode);
+        ServiceHeader.Validate("Payment Terms Code", PaymentTermsCode);
+        ServiceHeader.Validate("Due Date", Today);
+        ServiceHeader.Validate("Company Bank Account Code", BankAccountCode);
+        ServiceHeader.Modify(true);
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        ServiceInvoiceHeader.SetRange("Customer No.", CustomerNo);
+        ServiceInvoiceHeader.FindFirst();
+        DocumentRecordRef.GetTable(ServiceInvoiceHeader);
+        exit(GetDocumentNo(DocumentRecordRef));
+    end;
+
+    local procedure CreateAndPostServiceCrMemoWithBankAccount(var DocumentRecordRef: RecordRef; PaymentMethodCode: Code[10]; PaymentTermsCode: Code[10]; CustomerNo: Code[20]; BankAccountCode: Code[20]): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+    begin
+        CreateServiceHeader(ServiceHeader, CustomerNo, ServiceHeader."Document Type"::"Credit Memo");
+        ServiceHeader.Validate("Payment Method Code", PaymentMethodCode);
+        ServiceHeader.Validate("Payment Terms Code", PaymentTermsCode);
+        ServiceHeader.Validate("Due Date", Today);
+        ServiceHeader.Validate("Company Bank Account Code", BankAccountCode);
+        ServiceHeader.Modify(true);
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
         ServiceCrMemoHeader.SetRange("Customer No.", CustomerNo);
         ServiceCrMemoHeader.FindFirst();
         DocumentRecordRef.GetTable(ServiceCrMemoHeader);
