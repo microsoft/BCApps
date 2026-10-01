@@ -8466,7 +8466,7 @@ codeunit 148301 "Expense Rule Test"
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', LibraryRandom.RandDec(100, 2));
 
         // [GIVEN] Create expense itemization and clear subcategory code without validation trigger.
-        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), Expense.Amount, 1);
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), 0, 1);
         ExpenseItemization."Expense Subcategory Code" := '';
         ExpenseItemization.Modify(false);
 
@@ -8506,7 +8506,7 @@ codeunit 148301 "Expense Rule Test"
         // [GIVEN] Create a subcategory, expense and valid itemization.
         LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', LibraryRandom.RandDec(100, 2));
-        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), Expense.Amount, 1);
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), 0, 1);
 
         // [GIVEN] Release expense and create expense report.
         ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
