@@ -25,4 +25,9 @@ enum 8350 "MCP Config Warning Type" implements "MCP Config Warning"
         Caption = 'Missing Read Tool';
         Implementation = "MCP Config Warning" = "MCP Config Missing Read Tool";
     }
+    value(3; "Invalid Agent")
+    {
+        Caption = 'Invalid Agent';
+        Implementation = "MCP Config Warning" = "MCP Config Invalid Agent";
+    }
 }

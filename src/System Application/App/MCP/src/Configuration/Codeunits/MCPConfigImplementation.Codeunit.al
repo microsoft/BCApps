@@ -5,6 +5,7 @@
 
 namespace System.MCP;
 
+using System.Agents;
 using System.Azure.Identity;
 using System.Environment;
 using System.Feedback;
@@ -71,6 +72,8 @@ codeunit 8351 "MCP Config Implementation"
         MCPServerFeedbackQst: Label 'What could we do to improve the MCP server experience?';
         NoActiveConfigsFeedbackTxt: Label 'No active configs feedback triggered', Locked = true;
         GeneralFeedbackTxt: Label 'General MCP feedback triggered', Locked = true;
+        AgentNotFoundErr: Label 'The selected agent no longer exists.';
+        AgentNotEligibleErr: Label 'Only active agents published by a user or third party can be added to an MCP configuration.';
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -194,6 +197,7 @@ codeunit 8351 "MCP Config Implementation"
         NewMCPConfiguration.Insert();
 
         CopyTools(SourceMCPConfiguration, NewMCPConfiguration);
+        CopyAgentTools(SourceMCPConfiguration, NewMCPConfiguration);
 
         LogConfigurationCreated(NewMCPConfiguration);
         exit(NewMCPConfiguration.SystemId);
@@ -213,6 +217,22 @@ codeunit 8351 "MCP Config Implementation"
             NewMCPConfigurationTool.ID := NewConfig.SystemId;
             NewMCPConfigurationTool.Insert();
         until SourceMCPConfigurationTool.Next() = 0;
+    end;
+
+    local procedure CopyAgentTools(SourceConfig: Record "MCP Configuration"; NewConfig: Record "MCP Configuration")
+    var
+        SourceMCPConfigAgentTool: Record "MCP Config Agent Tool";
+        NewMCPConfigAgentTool: Record "MCP Config Agent Tool";
+    begin
+        SourceMCPConfigAgentTool.SetRange(ID, SourceConfig.SystemId);
+        if not SourceMCPConfigAgentTool.FindSet() then
+            exit;
+
+        repeat
+            NewMCPConfigAgentTool.Copy(SourceMCPConfigAgentTool);
+            NewMCPConfigAgentTool.ID := NewConfig.SystemId;
+            NewMCPConfigAgentTool.Insert();
+        until SourceMCPConfigAgentTool.Next() = 0;
     end;
 
     internal procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)
@@ -307,6 +327,87 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             MCPConfiguration.Init(); // not persisted yet (new config): reflect the table default (InitValue)
         exit(MCPConfiguration.EnableAlQueryTools);
+    end;
+
+    internal procedure SetAgentToolsActive(ConfigId: Guid; Active: Boolean)
+    var
+        MCPAgentToolsFeature: Codeunit "MCP Agent Tools Feature";
+    begin
+        MCPAgentToolsFeature.SetActive(ConfigId, Active);
+    end;
+
+    internal procedure IsAgentToolsActive(ConfigId: Guid): Boolean
+    var
+        MCPAgentToolsFeature: Codeunit "MCP Agent Tools Feature";
+    begin
+        exit(MCPAgentToolsFeature.IsActive(ConfigId));
+    end;
+
+    internal procedure ResetAgentToolsState(ConfigId: Guid)
+    var
+        MCPAgentToolsFeature: Codeunit "MCP Agent Tools Feature";
+    begin
+        MCPAgentToolsFeature.ResetActiveState(ConfigId);
+    end;
+
+    internal procedure IsAgentEligible(Agent: Record Agent): Boolean
+    begin
+        if Agent.State <> Agent.State::Enabled then
+            exit(false);
+
+        exit(Agent."Publisher Type" in [Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party"]);
+    end;
+
+    internal procedure SetEligibleAgentFilters(var Agent: Record Agent)
+    begin
+        Agent.SetRange(State, Agent.State::Enabled);
+        Agent.SetFilter("Publisher Type", '%1|%2', Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party");
+    end;
+
+    internal procedure AddAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid)
+    var
+        MCPConfigAgentTool: Record "MCP Config Agent Tool";
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+
+        if MCPConfigAgentTool.Get(ConfigId, AgentUserSecurityId) then
+            exit;
+
+        ValidateAgentTool(AgentUserSecurityId);
+
+        MCPConfigAgentTool.ID := ConfigId;
+        MCPConfigAgentTool."Agent User Security ID" := AgentUserSecurityId;
+        MCPConfigAgentTool.Insert();
+    end;
+
+    internal procedure ValidateAgentTool(AgentUserSecurityId: Guid)
+    var
+        Agent: Record Agent;
+    begin
+        if not Agent.Get(AgentUserSecurityId) then
+            Error(AgentNotFoundErr);
+
+        if not IsAgentEligible(Agent) then
+            Error(AgentNotEligibleErr);
+    end;
+
+    internal procedure GetConfiguredAgents(ConfigId: Guid; var Agent: Record Agent): Boolean
+    var
+        MCPConfigAgentTool: Record "MCP Config Agent Tool";
+    begin
+        Agent.Reset();
+        MCPConfigAgentTool.SetRange(ID, ConfigId);
+        if MCPConfigAgentTool.FindSet() then
+            repeat
+                if Agent.Get(MCPConfigAgentTool."Agent User Security ID") then
+                    if IsAgentEligible(Agent) then
+                        Agent.Mark(true);
+            until MCPConfigAgentTool.Next() = 0;
+
+        Agent.MarkedOnly(true);
+        exit(not Agent.IsEmpty());
     end;
 
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
@@ -1436,6 +1537,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool: Record "MCP Configuration Tool";
         ConfigJson: JsonObject;
         ToolsArray: JsonArray;
+        AgentsArray: JsonArray;
         ToolJson: JsonObject;
         OutputText: Text;
     begin
@@ -1466,8 +1568,26 @@ codeunit 8351 "MCP Config Implementation"
             until MCPConfigurationTool.Next() = 0;
 
         ConfigJson.Add('tools', ToolsArray);
+        ExportAgentTools(ConfigId, AgentsArray);
+        ConfigJson.Add('agents', AgentsArray);
         ConfigJson.WriteTo(OutputText);
         OutStream.WriteText(OutputText);
+    end;
+
+    local procedure ExportAgentTools(ConfigId: Guid; var AgentsArray: JsonArray)
+    var
+        MCPConfigAgentTool: Record "MCP Config Agent Tool";
+        AgentJson: JsonObject;
+    begin
+        MCPConfigAgentTool.SetRange(ID, ConfigId);
+        if not MCPConfigAgentTool.FindSet() then
+            exit;
+
+        repeat
+            Clear(AgentJson);
+            AgentJson.Add('agentUserSecurityId', Format(MCPConfigAgentTool."Agent User Security ID", 0, 9));
+            AgentsArray.Add(AgentJson);
+        until MCPConfigAgentTool.Next() = 0;
     end;
 
     local procedure GetConfigFromJson(var InStream: InStream; var ConfigName: Text[100]; var ConfigDescription: Text[250]): Boolean
@@ -1496,7 +1616,9 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration: Record "MCP Configuration";
         ConfigJson: JsonObject;
         ToolsArray: JsonArray;
+        AgentsArray: JsonArray;
         ToolToken: JsonToken;
+        AgentToken: JsonToken;
         InputText: Text;
     begin
         InStream.ReadText(InputText);
@@ -1529,6 +1651,12 @@ codeunit 8351 "MCP Config Implementation"
             ToolsArray := ConfigJson.GetArray('tools');
             foreach ToolToken in ToolsArray do
                 ImportTool(MCPConfiguration.SystemId, ToolToken.AsObject());
+        end;
+
+        if ConfigJson.Contains('agents') then begin
+            AgentsArray := ConfigJson.GetArray('agents');
+            foreach AgentToken in AgentsArray do
+                ImportAgentTool(MCPConfiguration.SystemId, AgentToken.AsObject());
         end;
 
         exit(MCPConfiguration.SystemId);
@@ -1575,6 +1703,26 @@ codeunit 8351 "MCP Config Implementation"
 
         MCPConfigurationTool.Insert();
     end;
+
+    local procedure ImportAgentTool(ConfigId: Guid; AgentJson: JsonObject)
+    var
+        MCPConfigAgentTool: Record "MCP Config Agent Tool";
+        AgentUserSecurityIdToken: JsonToken;
+        AgentUserSecurityId: Guid;
+    begin
+        if not AgentJson.Get('agentUserSecurityId', AgentUserSecurityIdToken) then
+            Error(InvalidJsonErr);
+        if not AgentUserSecurityIdToken.IsValue() then
+            Error(InvalidJsonErr);
+        if AgentUserSecurityIdToken.AsValue().IsNull() then
+            Error(InvalidJsonErr);
+        if not Evaluate(AgentUserSecurityId, AgentUserSecurityIdToken.AsValue().AsText()) then
+            Error(InvalidJsonErr);
+
+        MCPConfigAgentTool.ID := ConfigId;
+        MCPConfigAgentTool."Agent User Security ID" := AgentUserSecurityId;
+        MCPConfigAgentTool.Insert();
+    end;
     #endregion
 
     #region Feedback
@@ -1609,6 +1757,16 @@ codeunit 8351 "MCP Config Implementation"
         exit(MCPConfiguration.IsEmpty());
     end;
     #endregion Feedback
+
+    [EventSubscriber(ObjectType::Table, Database::"MCP Configuration", OnAfterDeleteEvent, '', false, false)]
+    local procedure DeleteAgentToolsOnAfterDeleteMCPConfiguration(var Rec: Record "MCP Configuration"; RunTrigger: Boolean)
+    var
+        MCPConfigAgentTool: Record "MCP Config Agent Tool";
+    begin
+        MCPConfigAgentTool.SetRange(ID, Rec.SystemId);
+        MCPConfigAgentTool.DeleteAll();
+        ResetAgentToolsState(Rec.SystemId);
+    end;
 
     #region Telemetry
     local procedure GetDimensions(MCPConfiguration: Record "MCP Configuration") Dimensions: Dictionary of [Text, Text]
