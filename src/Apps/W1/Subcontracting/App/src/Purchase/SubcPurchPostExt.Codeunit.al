@@ -26,6 +26,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
 #endif
         CancelNotSupportedErr: Label 'You cannot cancel or correct this posted purchase invoice because it contains item charges assigned to a subcontracting order receipt.\Use the ''Create Corrective Credit Memo'' action to create a credit memo for this invoice.';
+        CancelNotSupportedTitleLbl: Label 'Posted purchase invoice cannot be cancelled';
+        CancelNotSupportedDetailedMsg: Label 'This invoice contains item charges assigned to a subcontracting order receipt. Create a corrective credit memo to reverse the invoice while preserving the subcontracting cost application.';
         ShowPostedPurchaseInvoiceLbl: Label 'Show Posted Purchase Invoice';
         ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
@@ -63,7 +65,9 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     internal procedure CreateCancelNotSupportedErrorInfo(PurchInvHeader: Record "Purch. Inv. Header") CancelNotSupportedErrorInfo: ErrorInfo
     begin
+        CancelNotSupportedErrorInfo.Title := CancelNotSupportedTitleLbl;
         CancelNotSupportedErrorInfo.Message := CancelNotSupportedErr;
+        CancelNotSupportedErrorInfo.DetailedMessage := CancelNotSupportedDetailedMsg;
         CancelNotSupportedErrorInfo.DataClassification := DataClassification::CustomerContent;
         CancelNotSupportedErrorInfo.ErrorType := ErrorType::Client;
         CancelNotSupportedErrorInfo.RecordId := PurchInvHeader.RecordId;
@@ -185,28 +189,52 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     local procedure CopyPostedInvoiceOutputEntriesToTemp(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; FromPurchInvLine: Record "Purch. Inv. Line"): Boolean
     var
-        TempTrackingSpecification: Record "Tracking Specification" temporary;
-        ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
+        ValueEntry: Record "Value Entry";
+        ValueEntryRelation: Record "Value Entry Relation";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        InvoiceRowID: Text[250];
+        InvoicedQuantityBase: Decimal;
+        RelatedValueEntries: Dictionary of [Integer, Boolean];
+        OutputInvoicedQuantities: Dictionary of [Integer, Decimal];
     begin
-        ItemTrackingDocMgt.FindInvoiceEntries(
-            TempTrackingSpecification, Database::"Purch. Inv. Line", 0,
-            FromPurchInvLine."Document No.", '', 0, FromPurchInvLine."Line No.", FromPurchInvLine.Description);
-        if not TempTrackingSpecification.FindSet() then
+        InvoiceRowID := ItemTrackingMgt.ComposeRowID(
+            Database::"Purch. Inv. Line", 0, FromPurchInvLine."Document No.", '', 0, FromPurchInvLine."Line No.");
+        ValueEntryRelation.SetCurrentKey("Source RowId");
+        ValueEntryRelation.SetRange("Source RowId", InvoiceRowID);
+        if not ValueEntryRelation.FindSet() then
+            exit(false);
+        repeat
+            RelatedValueEntries.Add(ValueEntryRelation."Value Entry No.", true);
+        until ValueEntryRelation.Next() = 0;
+
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", FromPurchInvLine."Document No.");
+        ValueEntry.SetRange("Document Line No.", FromPurchInvLine."Line No.");
+        if not ValueEntry.FindSet() then
+            exit(false);
+        repeat
+            if RelatedValueEntries.ContainsKey(ValueEntry."Entry No.") and (ValueEntry."Item Ledger Entry No." <> 0) then
+                if OutputInvoicedQuantities.Get(ValueEntry."Item Ledger Entry No.", InvoicedQuantityBase) then
+                    OutputInvoicedQuantities.Set(
+                        ValueEntry."Item Ledger Entry No.", InvoicedQuantityBase + Abs(ValueEntry."Invoiced Quantity"))
+                else
+                    OutputInvoicedQuantities.Add(ValueEntry."Item Ledger Entry No.", Abs(ValueEntry."Invoiced Quantity"));
+        until ValueEntry.Next() = 0;
+        if OutputInvoicedQuantities.Count() = 0 then
             exit(false);
 
         TempItemLedgerEntry.Reset();
         TempItemLedgerEntry.DeleteAll();
+        if not ItemLedgerEntry.FindSet() then
+            exit(false);
         repeat
-            ItemLedgerEntry.SetTrackingFilterFromSpec(TempTrackingSpecification);
-            ItemLedgerEntry.SetRange("Package No.", TempTrackingSpecification."Package No.");
-            if not ItemLedgerEntry.FindFirst() then
-                exit(false);
-
-            TempItemLedgerEntry := ItemLedgerEntry;
-            TempItemLedgerEntry.Quantity := Abs(TempTrackingSpecification."Quantity (Base)");
-            TempItemLedgerEntry."Remaining Quantity" := TempItemLedgerEntry.Quantity;
-            TempItemLedgerEntry.Insert();
-        until TempTrackingSpecification.Next() = 0;
+            if OutputInvoicedQuantities.Get(ItemLedgerEntry."Entry No.", InvoicedQuantityBase) then begin
+                TempItemLedgerEntry := ItemLedgerEntry;
+                TempItemLedgerEntry.Quantity := InvoicedQuantityBase;
+                TempItemLedgerEntry."Remaining Quantity" := InvoicedQuantityBase;
+                TempItemLedgerEntry.Insert();
+            end;
+        until ItemLedgerEntry.Next() = 0;
         TempItemLedgerEntry.Reset();
 
         exit(not TempItemLedgerEntry.IsEmpty());
@@ -326,7 +354,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        if not ItemJnlLine.Subcontracting or (PurchaseLine."Document Type" <> PurchaseLine."Document Type"::"Credit Memo") then
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::"Credit Memo" then
             exit;
         if not ItemLedgerEntry.Get(ItemJnlLine."Applies-to Entry") then
             exit;

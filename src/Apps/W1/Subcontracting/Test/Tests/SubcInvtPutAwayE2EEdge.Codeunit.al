@@ -655,9 +655,9 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
         InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
         InvoiceLine.FindFirst();
-        SetPurchaseLineSerialTrackingQuantity(InvoiceLine, 'PARTIAL-SN1', 1);
         InvoiceLine.Validate(Quantity, 1);
         InvoiceLine.Modify(true);
+        SetPurchaseLineSerialTrackingQuantity(InvoiceLine, 'PARTIAL-SN1', 1);
         FirstPostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
         VerifyPostedInvoiceSerialNo(FirstPostedInvoiceNo, PurchRcptLine, 'PARTIAL-SN1');
         PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
@@ -1112,6 +1112,8 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         // [THEN] The cancel action is blocked with a link back to the posted invoice
         Assert.ExpectedError('contains item charges assigned to a subcontracting order receipt');
         CancellationErrorInfo := SubcPurchPostExt.CreateCancelNotSupportedErrorInfo(PostedInvoiceHeader);
+        Assert.AreNotEqual('', CancellationErrorInfo.Title, 'The actionable error must have a title.');
+        Assert.AreNotEqual('', CancellationErrorInfo.DetailedMessage, 'The actionable error must explain the corrective action.');
         Assert.AreEqual(Page::"Posted Purchase Invoice", CancellationErrorInfo.PageNo, 'The error must open the posted purchase invoice.');
         Assert.AreEqual(PostedInvoiceHeader.RecordId, CancellationErrorInfo.RecordId, 'The error must open the invoice that could not be cancelled.');
     end;
