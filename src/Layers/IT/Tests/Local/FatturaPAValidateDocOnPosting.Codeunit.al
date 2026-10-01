@@ -16,6 +16,7 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryRandom: Codeunit "Library - Random";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryErrorMessage: Codeunit "Library - Error Message";
         LibraryITLocalization: Codeunit "Library - IT Localization";
         IsInitialized: Boolean;
@@ -278,6 +279,38 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
         LibraryErrorMessage.LoadErrorMessages();
         LibraryErrorMessage.AssertLogIfMessageExists(
           Customer, Customer.FieldNo("Fiscal Code"), DummyErrorMessage."Message Type"::Error);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesOrder_EnabledValidate_BlankedPACode_BlankedPmtMethod_ShipOnly()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Sales] [Order]
+        // [SCENARIO] FatturaPA validation does not block shipment-only posting
+        Initialize();
+
+        // [GIVEN] Sales Setup "Validate Document On Posting" = TRUE
+        LibraryITLocalization.SetValidateDocumentOnPostingSales(true, FatturaPATxt);
+
+        // [GIVEN] Sales order with blanked PA Code and blanked Payment Method
+        LibrarySales.CreateSalesHeader(
+          SalesHeader, SalesHeader."Document Type"::Order, CreateCustomerNo(''));
+        SalesHeader.Validate("Payment Method Code", '');
+        SalesHeader.Validate("Payment Terms Code", CreatePaymentTerms());
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+
+        // [WHEN] Post shipment only
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] Shipment is posted without invoice-only FatturaPA validation
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        Assert.RecordIsNotEmpty(SalesShipmentHeader);
     end;
 
     [Test]
@@ -592,6 +625,44 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
 
         // [THEN] An Error Message Log is shown with "Payment Method Code" field
         VerifyErrorMessageLog(SalesHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ServiceOrder_EnabledValidate_BlankedPACode_BlankedPmtMethod_ShipOnly()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceItem: Record "Service Item";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        ServiceShipmentHeader: Record "Service Shipment Header";
+    begin
+        // [FEATURE] [Service] [Order]
+        // [SCENARIO] FatturaPA validation does not block service shipment-only posting
+        Initialize();
+
+        // [GIVEN] Service Setup "Validate Document On Posting" = TRUE
+        LibraryITLocalization.SetValidateDocumentOnPostingService(true, FatturaPATxt);
+
+        // [GIVEN] Service order with blanked PA Code and blanked Payment Method
+        LibraryService.CreateServiceHeader(
+          ServiceHeader, ServiceHeader."Document Type"::Order, CreateCustomerNo(''));
+        ServiceHeader.Validate("Payment Method Code", '');
+        ServiceHeader.Validate("Payment Terms Code", CreatePaymentTerms());
+        ServiceHeader.Modify(true);
+        LibraryService.CreateServiceItem(ServiceItem, ServiceHeader."Customer No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, ServiceItem."No.");
+        LibraryService.CreateServiceLineWithQuantity(
+          ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+        ServiceLine.Validate("Service Item Line No.", ServiceItemLine."Line No.");
+        ServiceLine.Modify(true);
+
+        // [WHEN] Post shipment only
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
+
+        // [THEN] Shipment is posted without invoice-only FatturaPA validation
+        ServiceShipmentHeader.SetRange("Order No.", ServiceHeader."No.");
+        Assert.RecordIsNotEmpty(ServiceShipmentHeader);
     end;
 
     [Test]
