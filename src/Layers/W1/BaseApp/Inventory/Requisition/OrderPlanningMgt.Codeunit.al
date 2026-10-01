@@ -504,10 +504,7 @@ codeunit 5522 "Order Planning Mgt."
     local procedure IsItemBlocked(var Item: Record Item; ItemNo: Code[20]; ReqLine: Record "Requisition Line"): Boolean
     var
         ReqLineToCheck: Record "Requisition Line";
-        IsBlocked: Boolean;
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
         if Item."No." <> ItemNo then
             Item.Get(ItemNo);
         ReqLineToCheck := ReqLine;
