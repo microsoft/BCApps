@@ -1579,8 +1579,9 @@ codeunit 144200 "FatturaPA Test"
         DocumentRecRef: RecordRef;
     begin
         // [FEATURE] [Sales] [Invoice] [FatturaPA]
-        // [SCENARIO] A foreign customer without any fiscal identifier cannot be posted into an unsendable invoice
+        // [SCENARIO] Posting validation blocks a foreign customer without any fiscal identifier
         Initialize();
+        LibraryITLocalization.SetValidateDocumentOnPostingSales(true, FatturaPA_ElectronicFormatTxt);
 
         // [GIVEN] A foreign customer without VAT Registration No. or Fiscal Code
         LibraryERM.CreateCountryRegion(CountryRegion);
@@ -1592,6 +1593,7 @@ codeunit 144200 "FatturaPA Test"
         Customer.Validate("Post Code", CurrCustomer."Post Code");
         Customer.Validate(City, CurrCustomer.City);
         Customer.Validate(County, CurrCustomer.County);
+        Customer."PA Code" := '';
         Customer."VAT Registration No." := '';
         Customer."Fiscal Code" := '';
         Customer.Modify(true);
@@ -1600,7 +1602,7 @@ codeunit 144200 "FatturaPA Test"
         asserterror
             CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No.");
 
-        // [THEN] Posting is blocked before an unsendable posted invoice is created
+        // [THEN] Existing FatturaPA posting validation prevents an unsendable posted invoice
         Assert.IsTrue(
             StrPos(GetLastErrorText(), 'VAT Registration No.') > 0,
             GetLastErrorText());
