@@ -70,7 +70,6 @@ report 193 "Issue Finance Charge Memos"
                     Commit();
                     Mark := not FinChrgMemoIssue.Run();
                 end;
-
                 if (PrintDoc <> PrintDoc::" ") and not Mark() then begin
                     FinChrgMemoIssue.GetIssuedFinChrgMemo(IssuedFinChrgMemoHeader);
                     TempIssuedFinChrgMemoHeader := IssuedFinChrgMemoHeader;
@@ -89,7 +88,7 @@ report 193 "Issue Finance Charge Memos"
                 Window.Close();
                 Commit();
                 if PrintDoc <> PrintDoc::" " then begin
-                    if TempIssuedFinChrgMemoHeader.FindSet() then
+                    if TempIssuedFinChrgMemoHeader.FindSet() then begin
                         repeat
                             IssuedFinChrgMemoHeader := TempIssuedFinChrgMemoHeader;
                             IsHandled := false;
@@ -104,6 +103,7 @@ report 193 "Issue Finance Charge Memos"
                                 end;
                             end;
                         until TempIssuedFinChrgMemoHeader.Next() = 0;
+                    end;
                     if (PrintDoc = PrintDoc::Print) and TempIssuedFinChrgMemoHeaderToPrint.FindSet() then begin
                         IssuedFinChrgMemoHeaderRef.GetTable(TempIssuedFinChrgMemoHeaderToPrint);
                         IssuedFinChrgMemoHeader.Reset();
