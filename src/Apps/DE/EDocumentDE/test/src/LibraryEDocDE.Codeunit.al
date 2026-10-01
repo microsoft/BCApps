@@ -22,10 +22,10 @@ codeunit 13925 "Library - E-Doc DE"
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
+        CapturedPaymentMeansHeaderRecordId: RecordId;
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
         SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
         CapturedEDocumentServiceCode: Code[20];
-        CapturedPaymentMeansHeaderRecordId: RecordId;
         EDocumentServiceEventCount: Integer;
 
     /// <summary>
