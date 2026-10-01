@@ -7,6 +7,7 @@ namespace System.Test.Email;
 
 using System.DataAdministration;
 using System.Email;
+using System.TestLibraries.DataAdministration;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 codeunit 134706 "Email Retention Policy Tests"
@@ -197,9 +198,11 @@ codeunit 134706 "Email Retention Policy Tests"
     var
         SentEmail: Record "Sent Email";
         EmailInbox: Record "Email Inbox";
+        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
     begin
         SentEmail.DeleteAll();
         EmailInbox.DeleteAll();
+        RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
 
         if IsInitialized then
             exit;
