@@ -1400,7 +1400,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
         PaymentLines.SetRange("Journal Line No.", GenJnlLine."Line No.");
         PaymentLines.SetFilter("Discount %", '>%1', 0);
         PaymentLines.SetFilter("Pmt. Discount Date", '<>%1', 0D);
-        exit(PaymentLines.FindFirst());
+        exit(not PaymentLines.IsEmpty());
     end;
 
     /// <summary>
