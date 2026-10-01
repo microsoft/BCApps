@@ -1372,19 +1372,19 @@ codeunit 137087 "SCM Order Planning - II"
           SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', Item[1]."No.", Quantity, '', WorkDate());
         CreateSalesLine(SalesHeader, Item[2]."No.", '', Quantity, Quantity);
 
-        // [GIVEN] Block the second item.
-        Item[2].Get(Item[2]."No.");
-        Item[2].Validate(Blocked, true);
-        Item[2].Modify(true);
+        // [GIVEN] Block the first item.
+        Item[1].Get(Item[1]."No.");
+        Item[1].Validate(Blocked, true);
+        Item[1].Modify(true);
 
         // [WHEN] Calculate Order Plan for Sales.
         LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
 
-        // [THEN] Verify that the requisition line exists for the first item.
-        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[1]."No.", '');
+        // [THEN] Verify that the requisition line exists for the second item.
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[2]."No.", '');
 
-        // [THEN] Verify that no requisition line exists for the blocked second item.
-        asserterror FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[2]."No.", '');
+        // [THEN] Verify that no requisition line exists for the blocked first item.
+        asserterror FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[1]."No.", '');
 
         // Tear Down.
         RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
@@ -2281,4 +2281,3 @@ codeunit 137087 "SCM Order Planning - II"
         Reply := true;
     end;
 }
-

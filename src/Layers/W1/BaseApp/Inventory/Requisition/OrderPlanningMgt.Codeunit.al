@@ -167,7 +167,7 @@ codeunit 5522 "Order Planning Mgt."
 
         repeat
             if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then
-                if not IsItemBlocked(Item, TempUnplannedDemand."Item No.") then begin
+                if not IsItemBlocked(Item, TempUnplannedDemand."Item No.", ReqLine) then begin
                     if not HeaderExists then
                         InsertDemandHeader(UnplannedDemand, ReqLine);
                     HeaderExists := true;
@@ -501,19 +501,20 @@ codeunit 5522 "Order Planning Mgt."
         exit(AvailableQtyBaseTotal);
     end;
 
-    local procedure IsItemBlocked(var Item: Record Item; ItemNo: Code[20]): Boolean
+    local procedure IsItemBlocked(var Item: Record Item; ItemNo: Code[20]; ReqLine: Record "Requisition Line"): Boolean
     var
+        ReqLineToCheck: Record "Requisition Line";
         IsBlocked: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         if Item."No." <> ItemNo then
             Item.Get(ItemNo);
-        OnBeforeCheckBlockedItem(Item, ItemNo, IsHandled, IsBlocked);
-        if not IsHandled then
-            IsBlocked := Item.Blocked;
-
-        exit(IsBlocked);
+        ReqLineToCheck := ReqLine;
+        ReqLineToCheck.Type := ReqLineToCheck.Type::Item;
+        ReqLineToCheck."No." := ItemNo;
+        if ReqLineToCheck.IsItemBlocked() then
+            exit(true);
     end;
 
     [IntegrationEvent(false, false)]
@@ -611,11 +612,6 @@ codeunit 5522 "Order Planning Mgt."
 
     [InternalEvent(false, false)]
     local procedure OnSubstitutionPossibleOnAfterCheckReqLine(var RequisitionLine: Record "Requisition Line"; var ShouldExit: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckBlockedItem(var Item: Record Item; ItemNo: Code[20]; var IsHandled: Boolean; var IsBlocked: Boolean)
     begin
     end;
 }
