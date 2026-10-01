@@ -1034,7 +1034,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         CustomerContract.Modify(false);
 
         // [WHEN] Billing documents are created with a document date that differs from the posting date
-        NewDocumentDate := CalcDate('<1D>', WorkDate());
+        NewDocumentDate := CalcDate('<-1D>', WorkDate());
         LibraryVariableStorage.Enqueue(NewDocumentDate);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
         CreateBillingDocuments(false);
@@ -1072,7 +1072,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         CustomerContract.Modify(false);
 
         // [WHEN] Billing documents are created with a document date that differs from the posting date
-        NewDocumentDate := CalcDate('<1D>', WorkDate());
+        NewDocumentDate := CalcDate('<-1D>', WorkDate());
         LibraryVariableStorage.Enqueue(NewDocumentDate);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
         CreateBillingDocuments(false);
@@ -1109,7 +1109,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         VendorContract.Modify(false);
 
         // [WHEN] Billing documents are created with a document date that differs from the posting date
-        NewDocumentDate := CalcDate('<1D>', WorkDate());
+        NewDocumentDate := CalcDate('<-1D>', WorkDate());
         LibraryVariableStorage.Enqueue(NewDocumentDate);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
         CreateBillingDocuments(false);
@@ -1147,7 +1147,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         VendorContract.Modify(false);
 
         // [WHEN] Billing documents are created with a document date that differs from the posting date
-        NewDocumentDate := CalcDate('<1D>', WorkDate());
+        NewDocumentDate := CalcDate('<-1D>', WorkDate());
         LibraryVariableStorage.Enqueue(NewDocumentDate);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
         CreateBillingDocuments(false);
