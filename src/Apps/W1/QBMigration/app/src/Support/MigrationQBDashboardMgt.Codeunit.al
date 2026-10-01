@@ -3,8 +3,9 @@ codeunit 1915 "MigrationQB Dashboard Mgt"
 {
     var
         HelperFunctions: Codeunit "MigrationQB Helper Functions";
-        CloudMigrationLbl: Label 'CloudMigration', Locked = true;
-        QBOLbl: Label 'QuickBooks Online', Locked = true;
+        CloudMigrationTok: Label 'CloudMigration', Locked = true;
+        QBOTok: Label 'QuickBooks Online', Locked = true;
+        MigrationFinishedTelemetryTok: Label 'QuickBooks migration finished.', Locked = true;
 
     procedure InitMigrationStatus(TotalItemNb: Integer; TotalCustomerNb: Integer; TotalVendorNb: Integer; TotalChartOfAccountNb: Integer);
     var
@@ -16,16 +17,20 @@ codeunit 1915 "MigrationQB Dashboard Mgt"
         DataMigrationStatusFacade.InitStatusLine(CopyStr(HelperFunctions.GetMigrationTypeTxt(), 1, 10), Database::"G/L Account", TotalChartOfAccountNb, Database::"MigrationQB Account", Codeunit::"MigrationQB Account Migrator");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Migration Mgt.", 'OnAfterMigrationFinished', '', true, true)]
-    local procedure OnAfterMigrationFinishedSubscriber(var DataMigrationStatus: Record "Data Migration Status"; WasAborted: Boolean; StartTime: DateTime; Retry: Boolean)
+    internal procedure SendMigrationFinishedTelemetry(WasAborted: Boolean; Retry: Boolean; MigrationDateTime: DateTime)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        if DataMigrationStatus."Migration Type" <> HelperFunctions.GetMigrationTypeTxt() then
-            exit;
+        TelemetryDimensions.Add('Category', CloudMigrationTok);
+        TelemetryDimensions.Add('Product', QBOTok);
+        TelemetryDimensions.Add('WasAborted', Format(WasAborted, 0, 9));
+        TelemetryDimensions.Add('Retry', Format(Retry, 0, 9));
+        Session.LogMessage('0000NQS', MigrationFinishedTelemetryTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
 
         if WasAborted or Retry then
             exit;
 
-        SendCompletedMigrationTelemetry(CurrentDateTime());
+        SendCompletedMigrationTelemetry(MigrationDateTime);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Migration Facade", 'OnMigrationCompleted', '', false, false)]
@@ -38,36 +43,34 @@ codeunit 1915 "MigrationQB Dashboard Mgt"
         HelperFunctions.CleanupIsolatedStorage();
     end;
 
-    procedure GetCompletedMigrationDateTime(var MigrationDateTime: DateTime): Boolean
+    internal procedure GetCompletedMigrationDateTime(var MigrationDateTime: DateTime): Boolean
     var
         DataMigrationStatus: Record "Data Migration Status";
     begin
         DataMigrationStatus.SetRange("Migration Type", HelperFunctions.GetMigrationTypeTxt());
-        if not DataMigrationStatus.FindSet() then
+        DataMigrationStatus.SetRange(Status, DataMigrationStatus.Status::Completed);
+        DataMigrationStatus.SetCurrentKey("Migration Type", Status, SystemModifiedAt);
+        if not DataMigrationStatus.FindLast() then
             exit(false);
 
-        repeat
-            if DataMigrationStatus.Status <> DataMigrationStatus.Status::Completed then
-                exit(false);
-            if DataMigrationStatus.SystemModifiedAt > MigrationDateTime then
-                MigrationDateTime := DataMigrationStatus.SystemModifiedAt;
-        until DataMigrationStatus.Next() = 0;
-
+        MigrationDateTime := DataMigrationStatus.SystemModifiedAt;
         exit(true);
     end;
 
-    procedure SendCompletedMigrationTelemetry(MigrationDateTime: DateTime)
+    internal procedure SendCompletedMigrationTelemetry(MigrationDateTime: DateTime)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
+        FeatureTelemetry.LogUptake('0000JMS', 'Cloud Migration', Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000JMU', 'Cloud Migration', Enum::"Feature Uptake Status"::"Set up");
         FeatureTelemetry.LogUptake('0000JMQ', 'Cloud Migration', Enum::"Feature Uptake Status"::Used);
 
-        TelemetryDimensions.Add('Category', CloudMigrationLbl);
+        TelemetryDimensions.Add('Category', CloudMigrationTok);
         TelemetryDimensions.Add('NumberOfCompanies', Format(1, 0, 9));
         TelemetryDimensions.Add('TotalMigrationSize', Format(0, 0, 9));
         TelemetryDimensions.Add('TotalOnPremSize', Format(0, 0, 9));
-        TelemetryDimensions.Add('Product', QBOLbl);
+        TelemetryDimensions.Add('Product', QBOTok);
         TelemetryDimensions.Add('MigrationDateTime', Format(MigrationDateTime, 0, 9));
         FeatureTelemetry.LogUsage('0000JMR', 'Cloud Migration', 'Tenant was cloud migrated', TelemetryDimensions);
     end;

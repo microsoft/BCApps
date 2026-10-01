@@ -4,10 +4,16 @@ codeunit 1831 "MigrationQB Upgrade"
     Subtype = Upgrade;
 
     trigger OnUpgradePerCompany();
-    var
-        MigrationQBDashboardMgt: Codeunit "MigrationQB Dashboard Mgt";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        MigrationDateTime: DateTime;
+    begin
+        DeleteArchiveData();
+        SendQuickBooksMigrationTelemetry();
+    end;
+
+    trigger OnUpgradePerDatabase();
+    begin
+    end;
+
+    local procedure DeleteArchiveData()
     begin
         NavApp.DeleteArchiveData(1911);
         NavApp.DeleteArchiveData(1912);
@@ -17,7 +23,14 @@ codeunit 1831 "MigrationQB Upgrade"
         NavApp.DeleteArchiveData(1916);
         NavApp.DeleteArchiveData(1917);
         NavApp.DeleteArchiveData(1918);
+    end;
 
+    local procedure SendQuickBooksMigrationTelemetry()
+    var
+        MigrationQBDashboardMgt: Codeunit "MigrationQB Dashboard Mgt";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        MigrationDateTime: DateTime;
+    begin
         if UpgradeTag.HasUpgradeTag(GetSendQuickBooksMigrationTelemetryTag()) then
             exit;
 
@@ -25,10 +38,6 @@ codeunit 1831 "MigrationQB Upgrade"
             MigrationQBDashboardMgt.SendCompletedMigrationTelemetry(MigrationDateTime);
 
         UpgradeTag.SetUpgradeTag(GetSendQuickBooksMigrationTelemetryTag());
-    end;
-
-    trigger OnUpgradePerDatabase();
-    begin
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]

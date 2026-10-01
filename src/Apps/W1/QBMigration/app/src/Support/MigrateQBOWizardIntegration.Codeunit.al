@@ -126,8 +126,12 @@ codeunit 1830 "MigrateQBO Wizard Integration"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Migration Mgt.", 'OnAfterMigrationFinished', '', true, true)]
     local procedure OnAfterMigrationFinishedSubscriber(var DataMigrationStatus: Record "Data Migration Status"; WasAborted: Boolean; StartTime: DateTime; Retry: Boolean)
+    var
+        MigrationQBDashboardMgt: Codeunit "MigrationQB Dashboard Mgt";
     begin
         Codeunit.Run(Codeunit::"Categ. Generate Acc. Schedules");
+        if DataMigrationStatus."Migration Type" = HelperFunctions.GetMigrationTypeTxt() then
+            MigrationQBDashboardMgt.SendMigrationFinishedTelemetry(WasAborted, Retry, CurrentDateTime());
     end;
 
     local procedure SendTelemetryForSelectedEntities(var DataMigrationEntity: Record "Data Migration Entity")
