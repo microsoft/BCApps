@@ -31,7 +31,6 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         ReturnedTempBlob: Codeunit "Temp Blob";
         Content: HttpContent;
         TempBlobStream: InStream;
-        TempBlobOutStream: OutStream;
         FileIndex: Integer;
     begin
         if FailOnGetFile then
