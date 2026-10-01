@@ -12,6 +12,11 @@ codeunit 1873 "C5 Upgrade"
     Subtype = Upgrade;
 
     trigger OnUpgradePerCompany()
+    begin
+        SendC5MigrationTelemetry();
+    end;
+
+    local procedure SendC5MigrationTelemetry()
     var
         C5Telemetry: Codeunit "C5 Telemetry";
         UpgradeTag: Codeunit "Upgrade Tag";
