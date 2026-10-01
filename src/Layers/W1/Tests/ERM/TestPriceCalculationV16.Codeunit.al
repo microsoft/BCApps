@@ -29,6 +29,7 @@ codeunit 134159 "Test Price Calculation - V16"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         IsInitialized: Boolean;
         DiscountVetoCallCount: Integer;
+        DiscountVetoLineNo: Integer;
         AllowLineDiscErr: Label 'Allow Line Disc. must have a value in Sales Line';
         PickedWrongMinQtyErr: Label 'The quantity in the line is below the minimum quantity of the picked price list line.';
         CampaignActivatedMsg: Label 'Campaign %1 is now activated.';
@@ -6363,6 +6364,123 @@ codeunit 134159 "Test Price Calculation - V16"
         VerifyDiscountSelectionVeto("Price Amount Type"::Any, 30);
     end;
 
+    [Test]
+    procedure VetoedZeroDiscountAfterGenericKeepsWinner()
+    begin
+        // [FEATURE] [UT] [Variant] [Discount] [Event]
+        // [SCENARIO 649151] Vetoing a specific zero after accepting a generic discount preserves the generic winner.
+        VerifySpecificDiscountVetoKeepsGeneric("Price Amount Type"::Discount, 0, false);
+    end;
+
+    [Test]
+    procedure VetoedZeroDiscountBeforeGenericKeepsWinner()
+    begin
+        // [FEATURE] [UT] [Variant] [Discount] [Event]
+        // [SCENARIO 649151] A generic discount wins after an earlier specific zero is vetoed.
+        VerifySpecificDiscountVetoKeepsGeneric("Price Amount Type"::Discount, 0, true);
+    end;
+
+    [Test]
+    procedure VetoedPositiveDiscountAfterGenericKeepsWinner()
+    begin
+        // [FEATURE] [UT] [Variant] [Discount] [Event]
+        // [SCENARIO 649151] Vetoing a specific positive discount preserves the previously accepted generic winner.
+        VerifySpecificDiscountVetoKeepsGeneric("Price Amount Type"::Discount, 5, false);
+    end;
+
+    [Test]
+    procedure VetoedPositiveDiscountBeforeGenericKeepsWinner()
+    begin
+        // [FEATURE] [UT] [Variant] [Discount] [Event]
+        // [SCENARIO 649151] A generic discount wins after an earlier specific positive discount is vetoed.
+        VerifySpecificDiscountVetoKeepsGeneric("Price Amount Type"::Discount, 5, true);
+    end;
+
+    [Test]
+    procedure VetoedPositiveAnyAfterGenericKeepsWinner()
+    begin
+        // [FEATURE] [UT] [Variant] [Discount] [Event]
+        // [SCENARIO 649151] Vetoing a specific positive Any discount preserves the previously accepted generic winner.
+        VerifySpecificDiscountVetoKeepsGeneric("Price Amount Type"::Any, 5, false);
+    end;
+
+    [Test]
+    procedure VetoedPositiveAnyBeforeGenericKeepsWinner()
+    begin
+        // [FEATURE] [UT] [Variant] [Discount] [Event]
+        // [SCENARIO 649151] A generic discount wins after an earlier specific positive Any discount is vetoed.
+        VerifySpecificDiscountVetoKeepsGeneric("Price Amount Type"::Any, 5, true);
+    end;
+
+    local procedure VerifySpecificDiscountVetoKeepsGeneric(SpecificAmountType: Enum "Price Amount Type"; SpecificDiscountPct: Decimal; SpecificFirst: Boolean)
+    var
+        TempPriceListLine: Record "Price List Line" temporary;
+        GenericPriceListLine: Record "Price List Line";
+        SpecificPriceListLine: Record "Price List Line";
+        PriceCalculationBufferMgt: Codeunit "Price Calculation Buffer Mgt.";
+        PriceCalculationV16: Codeunit "Price Calculation - V16";
+        TestPriceCalculationV16: Codeunit "Test Price Calculation - V16";
+        FoundBestLine: Boolean;
+    begin
+        Initialize();
+        MockBuffer("Price Type"::Purchase, '', 1, PriceCalculationBufferMgt);
+
+        // [GIVEN] Two active candidates in one list, in the requested primary-key order.
+        if SpecificFirst then begin
+            AddDiscountCandidate(TempPriceListLine, 'V', SpecificAmountType, SpecificDiscountPct);
+            SpecificPriceListLine := TempPriceListLine;
+        end;
+        AddDiscountCandidate(TempPriceListLine, '', "Price Amount Type"::Discount, 30);
+        GenericPriceListLine := TempPriceListLine;
+        if not SpecificFirst then begin
+            AddDiscountCandidate(TempPriceListLine, 'V', SpecificAmountType, SpecificDiscountPct);
+            SpecificPriceListLine := TempPriceListLine;
+        end;
+        TempPriceListLine.Reset();
+        TempPriceListLine.SetCurrentKey("Price List Code", "Line No.");
+        Assert.AreEqual(2, TempPriceListLine.Count(), 'Both candidates must participate in selection.');
+        TempPriceListLine.FindFirst();
+        if SpecificFirst then
+            TempPriceListLine.TestField("Line No.", SpecificPriceListLine."Line No.")
+        else
+            TempPriceListLine.TestField("Line No.", GenericPriceListLine."Line No.");
+        TempPriceListLine.FindLast();
+        if SpecificFirst then
+            TempPriceListLine.TestField("Line No.", GenericPriceListLine."Line No.")
+        else
+            TempPriceListLine.TestField("Line No.", SpecificPriceListLine."Line No.");
+
+        // [GIVEN] The subscriber rejects only the specific candidate, not the generic discount.
+        TestPriceCalculationV16.SetDiscountVetoLineNo(SpecificPriceListLine."Line No.");
+        BindSubscription(TestPriceCalculationV16);
+
+        // [WHEN] The complete selector evaluates both candidates with the selective veto.
+        FoundBestLine := PriceCalculationV16.CalcBestAmount("Price Amount Type"::Discount, PriceCalculationBufferMgt, TempPriceListLine);
+        UnbindSubscription(TestPriceCalculationV16);
+
+        // [THEN] The exact generic record survives, not an empty result with FoundBestLine still true.
+        Assert.AreEqual(1, TestPriceCalculationV16.GetDiscountVetoCallCount(), 'The specific candidate must be accepted by default and vetoed exactly once.');
+        Assert.IsTrue(FoundBestLine, 'The generic discount must remain selected after the specific candidate is vetoed.');
+        TempPriceListLine.TestField("Price List Code", GenericPriceListLine."Price List Code");
+        TempPriceListLine.TestField("Line No.", GenericPriceListLine."Line No.");
+        TempPriceListLine.TestField("Variant Code", '');
+        TempPriceListLine.TestField("Amount Type", "Price Amount Type"::Discount);
+        TempPriceListLine.TestField("Line Discount %", 30);
+
+        // [WHEN] The same two candidates are evaluated without the subscriber.
+        TempPriceListLine.Reset();
+        Assert.AreEqual(2, TempPriceListLine.Count(), 'The control must use the same two candidates.');
+        FoundBestLine := PriceCalculationV16.CalcBestAmount("Price Amount Type"::Discount, PriceCalculationBufferMgt, TempPriceListLine);
+
+        // [THEN] Specificity still wins, including an explicit 0% over the generic 30%.
+        Assert.IsTrue(FoundBestLine, 'The specific discount must be selected without a veto.');
+        TempPriceListLine.TestField("Price List Code", SpecificPriceListLine."Price List Code");
+        TempPriceListLine.TestField("Line No.", SpecificPriceListLine."Line No.");
+        TempPriceListLine.TestField("Variant Code", 'V');
+        TempPriceListLine.TestField("Amount Type", SpecificAmountType);
+        TempPriceListLine.TestField("Line Discount %", SpecificDiscountPct);
+    end;
+
     local procedure VerifyDiscountSelectionVeto(AmountType: Enum "Price Amount Type"; DiscountPct: Decimal)
     var
         TempPriceListLine: Record "Price List Line" temporary;
@@ -6400,10 +6518,20 @@ codeunit 134159 "Test Price Calculation - V16"
         exit(DiscountVetoCallCount);
     end;
 
+    procedure SetDiscountVetoLineNo(LineNo: Integer)
+    begin
+        DiscountVetoLineNo := LineNo;
+        DiscountVetoCallCount := 0;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Price Calculation - V16", 'OnAfterIsBetterLine', '', false, false)]
     local procedure VetoDiscountOnAfterIsBetterLine(PriceListLine: Record "Price List Line"; AmountType: Enum "Price Amount Type"; BestPriceListLine: Record "Price List Line"; var Result: Boolean)
     begin
         if AmountType <> AmountType::Discount then
+            exit;
+        if (DiscountVetoLineNo <> 0) and (PriceListLine."Line No." <> DiscountVetoLineNo) then
+            exit;
+        if not Result then
             exit;
         DiscountVetoCallCount += 1;
         Result := false;
