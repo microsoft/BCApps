@@ -513,7 +513,7 @@ page 8903 "Manufacturing Manager RC"
                     action("Subcontracting Transfer Shipme")
                     {
                         ApplicationArea = Manufacturing;
-                        Caption = 'Subcontracting Transfer Shipment';
+                        Caption = 'Italian Transfer Shipment';
                         RunObject = report "Subcontract. Transfer Shipment";
                         ToolTip = 'Print an Italian transfer shipment document.';
                     }

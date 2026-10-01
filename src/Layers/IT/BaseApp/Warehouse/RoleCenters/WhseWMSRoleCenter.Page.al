@@ -180,7 +180,7 @@ page 9000 "Whse. WMS Role Center"
             action("Subcontract. Transfer Shipment")
             {
                 ApplicationArea = Warehouse;
-                Caption = 'Subcontract. Transfer Shipment';
+                Caption = 'Italian Transfer Shipment';
                 Image = "Report";
                 RunObject = Report "Subcontract. Transfer Shipment";
                 ToolTip = 'Print an Italian transfer shipment document.';
