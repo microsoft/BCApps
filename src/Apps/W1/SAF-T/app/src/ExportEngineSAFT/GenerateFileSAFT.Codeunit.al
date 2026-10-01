@@ -898,7 +898,9 @@ codeunit 5289 "Generate File SAF-T"
             TempItemLedgerEntryEnd.Insert();
         end;
 
+#pragma warning disable AA0210
         TempItemLedgerEntryEnd.SetFilter(Quantity, '<>%1', 0);
+#pragma warning restore AA0210
         if TempItemLedgerEntryStart.IsEmpty() and TempItemLedgerEntryEnd.IsEmpty() then
             exit;
 
