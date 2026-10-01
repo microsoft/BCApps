@@ -366,6 +366,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         JTaxLines: JsonArray;
         ShippingLineId: BigInteger;
         ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+        TaxTitle: Text[100];
     begin
         // [SCENARIO] The tax line of a shipping line is persisted against the shipping charge with all values preserved and Channel Liable = true.
         Initialize();
@@ -376,8 +377,9 @@ codeunit 139546 "Shpfy Shipping Charges Test"
 
         // [GIVEN] A shipping line with a single tax line where channelLiable is true
         ShippingLineId := LibraryRandom.RandInt(100000);
+        TaxTitle := 'METROPOLITAN COMMUTER TRANSPORTATION MOBILITY TAX';
         Clear(JTaxLines);
-        AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
+        AddTaxLineToArray(JTaxLines, TaxTitle, ChannelLiableScenario::TrueValue);
         AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);
 
         // [WHEN] Shipping cost infos are imported
@@ -387,7 +389,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         OrderTaxLine.SetRange("Parent Id", ShippingLineId);
         LibraryAssert.AreEqual(1, OrderTaxLine.Count(), 'Exactly one shipping tax line must be stored.');
         OrderTaxLine.FindFirst();
-        LibraryAssert.AreEqual('TAX1', OrderTaxLine.Title, 'Shipping tax line title must be preserved.');
+        LibraryAssert.AreEqual(TaxTitle, OrderTaxLine.Title, 'Shipping tax line title must be preserved.');
         LibraryAssert.AreEqual(0.1, OrderTaxLine.Rate, 'Shipping tax line rate must be preserved.');
         LibraryAssert.AreEqual(10, OrderTaxLine."Rate %", 'Shipping tax line rate percentage must be preserved.');
         LibraryAssert.AreEqual(5, OrderTaxLine.Amount, 'Shipping tax line shop amount must be preserved.');
