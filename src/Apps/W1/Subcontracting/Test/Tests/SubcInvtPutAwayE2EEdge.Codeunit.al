@@ -655,8 +655,6 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
         InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
         InvoiceLine.FindFirst();
-        InvoiceLine.Validate(Quantity, 1);
-        InvoiceLine.Modify(true);
         SetPurchaseLineSerialTrackingQuantity(InvoiceLine, 'PARTIAL-SN1', 1);
         FirstPostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
         VerifyPostedInvoiceSerialNo(FirstPostedInvoiceNo, PurchRcptLine, 'PARTIAL-SN1');
@@ -692,34 +690,31 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         VerifyCorrectiveCreditMemoSerialNo(SecondPostedInvoiceNo, Item."No.", 'PARTIAL-SN2');
     end;
 
-    local procedure SetPurchaseLineSerialTrackingQuantity(PurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; QuantityBase: Decimal)
+    local procedure SetPurchaseLineSerialTrackingQuantity(var PurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; QuantityBase: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
         TrackingSpecification: Record "Tracking Specification";
+        ReservationManagement: Codeunit "Reservation Management";
     begin
         ReservationEntry.SetSourceFilter(
             Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(),
             PurchaseLine."Document No.", PurchaseLine."Line No.", false);
         ReservationEntry.SetFilter("Serial No.", '<>%1', SerialNo);
-        if ReservationEntry.FindSet() then
-            repeat
-                if TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No.") then
-                    TrackingSpecification.Delete(true);
-            until ReservationEntry.Next() = 0;
-        ReservationEntry.DeleteAll(true);
+        ReservationManagement.SetReservSource(PurchaseLine);
+        ReservationManagement.DeleteReservEntries(true, 0, ReservationEntry);
+
+        PurchaseLine.Validate(Quantity, QuantityBase / PurchaseLine."Qty. per Unit of Measure");
+        PurchaseLine.Modify(true);
+
+        ReservationEntry.Reset();
         ReservationEntry.SetSourceFilter(
             Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(),
             PurchaseLine."Document No.", PurchaseLine."Line No.", false);
         ReservationEntry.SetRange("Serial No.", SerialNo);
         ReservationEntry.FindFirst();
-        ReservationEntry.Validate("Quantity (Base)", QuantityBase);
-        ReservationEntry.Modify(true);
+        Assert.AreEqual(QuantityBase, Abs(ReservationEntry."Quantity (Base)"), 'The selected serial number must match the partial invoice quantity.');
         TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No.");
-        TrackingSpecification."Quantity (Base)" := ReservationEntry."Quantity (Base)";
-        TrackingSpecification."Qty. to Handle" := 0;
-        TrackingSpecification."Qty. to Handle (Base)" := 0;
-        TrackingSpecification."Qty. to Invoice (Base)" := ReservationEntry."Qty. to Invoice (Base)";
-        TrackingSpecification.Modify(true);
+        Assert.AreEqual(QuantityBase, Abs(TrackingSpecification."Quantity (Base)"), 'The selected invoice tracking specification must match the partial invoice quantity.');
     end;
 
     local procedure VerifyCorrectiveCreditMemoSerialNo(PostedInvoiceNo: Code[20]; ItemNo: Code[20]; ExpectedSerialNo: Code[50])

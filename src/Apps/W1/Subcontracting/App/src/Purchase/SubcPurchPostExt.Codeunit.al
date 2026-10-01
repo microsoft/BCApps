@@ -68,7 +68,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         CancelNotSupportedErrorInfo.Title := CancelNotSupportedTitleLbl;
         CancelNotSupportedErrorInfo.Message := CancelNotSupportedErr;
         CancelNotSupportedErrorInfo.DetailedMessage := CancelNotSupportedDetailedMsg;
-        CancelNotSupportedErrorInfo.DataClassification := DataClassification::CustomerContent;
+        CancelNotSupportedErrorInfo.DataClassification := DataClassification::SystemMetadata;
         CancelNotSupportedErrorInfo.ErrorType := ErrorType::Client;
         CancelNotSupportedErrorInfo.RecordId := PurchInvHeader.RecordId;
         CancelNotSupportedErrorInfo.PageNo := Page::"Posted Purchase Invoice";
@@ -189,11 +189,15 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     local procedure CopyPostedInvoiceOutputEntriesToTemp(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; FromPurchInvLine: Record "Purch. Inv. Line"): Boolean
     var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ValueEntry: Record "Value Entry";
+        PreviousValueEntry: Record "Value Entry";
         ValueEntryRelation: Record "Value Entry Relation";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         InvoiceRowID: Text[250];
         InvoicedQuantityBase: Decimal;
+        PreviouslyInvoicedQuantityBase: Decimal;
+        RelatedCapacityLedgerEntryNo: Integer;
         RelatedValueEntries: Dictionary of [Integer, Boolean];
         OutputInvoicedQuantities: Dictionary of [Integer, Decimal];
     begin
@@ -213,18 +217,40 @@ codeunit 20535 "Subc. Purch. Post Ext"
         if not ValueEntry.FindSet() then
             exit(false);
         repeat
-            if RelatedValueEntries.ContainsKey(ValueEntry."Entry No.") and (ValueEntry."Item Ledger Entry No." <> 0) then
-                if OutputInvoicedQuantities.Get(ValueEntry."Item Ledger Entry No.", InvoicedQuantityBase) then
-                    OutputInvoicedQuantities.Set(
-                        ValueEntry."Item Ledger Entry No.", InvoicedQuantityBase + Abs(ValueEntry."Invoiced Quantity"))
-                else
-                    OutputInvoicedQuantities.Add(ValueEntry."Item Ledger Entry No.", Abs(ValueEntry."Invoiced Quantity"));
+            if RelatedValueEntries.ContainsKey(ValueEntry."Entry No.") then
+                if ValueEntry."Item Ledger Entry No." <> 0 then begin
+                    if OutputInvoicedQuantities.Get(ValueEntry."Item Ledger Entry No.", InvoicedQuantityBase) then
+                        OutputInvoicedQuantities.Set(
+                            ValueEntry."Item Ledger Entry No.", InvoicedQuantityBase + Abs(ValueEntry."Invoiced Quantity"))
+                    else
+                        OutputInvoicedQuantities.Add(ValueEntry."Item Ledger Entry No.", Abs(ValueEntry."Invoiced Quantity"));
+                end else
+                    if (ValueEntry."Capacity Ledger Entry No." <> 0) and (ValueEntry."Invoiced Quantity" <> 0) then begin
+                        RelatedCapacityLedgerEntryNo := ValueEntry."Capacity Ledger Entry No.";
+                        InvoicedQuantityBase += Abs(ValueEntry."Invoiced Quantity");
+
+                        PreviousValueEntry.SetRange("Capacity Ledger Entry No.", RelatedCapacityLedgerEntryNo);
+                        PreviousValueEntry.SetRange("Entry Type", ValueEntry."Entry Type");
+                        PreviousValueEntry.SetRange("Document Type", PreviousValueEntry."Document Type"::"Purchase Invoice");
+                        PreviousValueEntry.SetFilter("Entry No.", '<%1', ValueEntry."Entry No.");
+                        PreviousValueEntry.CalcSums("Invoiced Quantity");
+                        PreviouslyInvoicedQuantityBase += Abs(PreviousValueEntry."Invoiced Quantity");
+                    end;
         until ValueEntry.Next() = 0;
-        if OutputInvoicedQuantities.Count() = 0 then
-            exit(false);
 
         TempItemLedgerEntry.Reset();
         TempItemLedgerEntry.DeleteAll();
+        if OutputInvoicedQuantities.Count() = 0 then begin
+            if (RelatedCapacityLedgerEntryNo = 0) or (InvoicedQuantityBase = 0) then
+                exit(false);
+            if not CapacityLedgerEntry.Get(RelatedCapacityLedgerEntryNo) then
+                exit(false);
+            ItemLedgerEntry.SetRange("Item Register No.", CapacityLedgerEntry."Item Register No.");
+            CopyItemLedgerEntriesUpToQuantity(
+                TempItemLedgerEntry, ItemLedgerEntry, InvoicedQuantityBase, PreviouslyInvoicedQuantityBase);
+            exit(not TempItemLedgerEntry.IsEmpty());
+        end;
+
         if not ItemLedgerEntry.FindSet() then
             exit(false);
         repeat
@@ -364,6 +390,19 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ItemJnlLine."Subc. Purch. Order No." := ItemLedgerEntry."Subc. Purch. Order No.";
         ItemJnlLine."Subc. Purch. Order Line No." := ItemLedgerEntry."Subc. Purch. Order Line No.";
         ItemJnlLine."Subc. Operation No." := ItemLedgerEntry."Subc. Operation No.";
+        RestoreCorrectionCapacityApplication(ItemJnlLine, ItemLedgerEntry);
+    end;
+
+    local procedure RestoreCorrectionCapacityApplication(var ItemJnlLine: Record "Item Journal Line"; ItemLedgerEntry: Record "Item Ledger Entry")
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        CapacityLedgerEntry.SetRange("Item Register No.", ItemLedgerEntry."Item Register No.");
+        CapacityLedgerEntry.SetRange(Subcontracting, true);
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", ItemLedgerEntry."Subc. Purch. Order No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", ItemLedgerEntry."Subc. Purch. Order Line No.");
+        if CapacityLedgerEntry.FindFirst() then
+            ItemJnlLine."Item Shpt. Entry No." := CapacityLedgerEntry."Entry No.";
     end;
 
     local procedure SetSubcontractingPurchaseIdentity(var ItemJnlLine: Record "Item Journal Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
