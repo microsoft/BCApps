@@ -656,7 +656,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
         InvoiceLine.FindFirst();
         SetPurchaseLineSerialTrackingQuantity(InvoiceLine, 'PARTIAL-SN1', 1);
-        InvoiceLine.Validate(Quantity, 1);
+        InvoiceLine.Validate("Qty. to Invoice", 1);
         InvoiceLine.Modify(true);
         FirstPostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
         VerifyPostedInvoiceSerialNo(FirstPostedInvoiceNo, PurchRcptLine, 'PARTIAL-SN1');
@@ -787,7 +787,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,MessageHandler,PurchaseCreditMemoPageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CancelSeparateSubcontractingInvoiceReversesCapacityCost()
     begin
         VerifySeparateSubcontractingInvoiceReversal(true, false);
@@ -1805,7 +1805,9 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         Commit();
 
         if CancelInvoice then begin
-            CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
+            Assert.IsTrue(
+                CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader),
+                'The separate subcontracting invoice cancellation must post its corrective credit memo.');
             CancelledDocument.Get(Database::"Purch. Inv. Header", PostedInvoiceNo);
             PostedCreditMemoNo := CancelledDocument."Cancelled By Doc. No.";
         end
@@ -1823,8 +1825,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
             Assert.AreEqual(PurchRcptLine."Routing Reference No.", InvoiceLine."Routing Reference No.", 'The corrective line must retain the routing reference.');
             Assert.AreEqual(PurchRcptLine."Operation No.", InvoiceLine."Operation No.", 'The corrective line must retain the operation.');
             Assert.AreEqual(PurchRcptLine."Work Center No.", InvoiceLine."Work Center No.", 'The corrective line must retain the work center.');
-            Assert.AreEqual(PurchRcptLine."Document No.", InvoiceLine."Receipt No.", 'The corrective line must retain the receipt identity.');
-            Assert.AreEqual(PurchRcptLine."Line No.", InvoiceLine."Receipt Line No.", 'The corrective line must retain the receipt line identity.');
+            Assert.AreEqual(PurchRcptLine."Location Code", InvoiceLine."Location Code", 'The corrective line must retain the subcontracting output location.');
             if TrackOutput then begin
                 ReservationEntry.SetSourceFilter(
                     Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(), InvoiceLine."Document No.", InvoiceLine."Line No.", false);
