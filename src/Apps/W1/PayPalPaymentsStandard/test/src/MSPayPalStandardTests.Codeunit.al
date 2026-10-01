@@ -992,7 +992,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         DummyPaymentMethod: Record "Payment Method";
     begin
         CreateDefaultPayPalStandardAccount(MSPayPalStandardAccount);
-        SetupWebhookSubscription(MSPayPalStandardAccount."Account ID");
         CreatePaymentMethod(DummyPaymentMethod, FALSE);
         CreateSalesInvoice(SalesHeader, DummyPaymentMethod);
         SalesHeader.CALCFIELDS("Amount Including VAT");
@@ -1000,22 +999,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         PostSalesInvoice(SalesHeader, SalesInvoiceHeader);
         SalesInvoiceHeader.CALCFIELDS("Amount Including VAT");
         SalesInvoiceHeader.MODIFY(FALSE);
-    end;
-
-    local procedure SetupWebhookSubscription(AccountID: Text);
-    var
-        WebhookSubscription: Record "Webhook Subscription";
-        WebhookManagement: Codeunit "Webhook Management";
-        WebHooksAdapterUri: Text[250];
-    begin
-        WebHooksAdapterUri := WebhookManagement.GetNotificationUrl();
-        IF WebhookSubscription.GET(AccountID, WebHooksAdapterUri) THEN
-            EXIT;
-        WebhookSubscription.INIT();
-        WebhookSubscription.VALIDATE("Subscription ID", COPYSTR(AccountID, 1, MAXSTRLEN(WebhookSubscription."Subscription ID")));
-        WebhookSubscription.VALIDATE(Endpoint, WebHooksAdapterUri);
-        WebhookSubscription.VALIDATE("Created By", PayPalCreatedByTok);
-        WebhookSubscription.INSERT();
     end;
 
     local procedure GetPaymentNotificationURL(): Text;
@@ -1041,18 +1024,19 @@ codeunit 139500 "MS - PayPal Standard Tests"
 
     local procedure SendPaymentNotification(Receiver: Text; PaymentStatus: Text; InvoiceNo: Code[20]; Currency: Code[10]; Amount: Decimal);
     var
-        TempWebhookNotification: Record "Webhook Notification" temporary;
+        WebhookNotification: Record "Webhook Notification";
         OutStream: OutStream;
         NotificationJson: Text;
     begin
         NotificationJson := GetPaymentNotificationData(Receiver, PaymentStatus, InvoiceNo, Currency, Amount);
-        TempWebhookNotification.INIT();
-        TempWebhookNotification.VALIDATE(ID, CREATEGUID());
-        TempWebhookNotification.VALIDATE("Subscription ID", COPYSTR(Receiver, 1, MAXSTRLEN(TempWebhookNotification."Subscription ID")));
-        TempWebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
+        WebhookNotification.INIT();
+        WebhookNotification.VALIDATE(ID, CREATEGUID());
+        WebhookNotification.VALIDATE("Subscription ID", COPYSTR(Receiver, 1, MAXSTRLEN(WebhookNotification."Subscription ID")));
+        WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
         OutStream.WRITETEXT(NotificationJson);
-        // Process in-session; the insert-event path routes to a background task the test cannot observe.
-        CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", TempWebhookNotification);
+        WebhookNotification.INSERT();
+        // Run the handler directly: no subscription exists, so the insert event exits early, and background processing isn't observable by the test.
+        CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", WebhookNotification);
     end;
 
     local procedure VerifyRemainingAmount(var TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary; RemainingAmount: Decimal);
