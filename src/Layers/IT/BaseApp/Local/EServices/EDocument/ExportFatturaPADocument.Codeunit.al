@@ -413,7 +413,12 @@ codeunit 12179 "Export FatturaPA Document"
             TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
             TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
             TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."VAT Registration No.");
-        end;
+        end else
+            if Customer."Individual Person" and IsForeignCustomer(Customer) and (Customer."Fiscal Code" <> '') then begin
+                TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
+                TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
+                TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."Fiscal Code");
+            end;
         if CompanyInformation."Country/Region Code" = Customer."Country/Region Code" then
             TempXMLBuffer.AddNonEmptyElement('CodiceFiscale', Customer."Fiscal Code");
         // 1.4.1.3 Anagrafica
