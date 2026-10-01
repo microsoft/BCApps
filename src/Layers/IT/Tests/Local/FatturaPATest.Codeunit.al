@@ -1571,6 +1571,43 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure PostSalesInvoiceForForeignCustomerWithoutFiscalIdentifierFails()
+    var
+        Customer: Record Customer;
+        CurrCustomer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        DocumentRecRef: RecordRef;
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] A foreign customer without any fiscal identifier cannot be posted into an unsendable invoice
+        Initialize();
+
+        // [GIVEN] A foreign customer without VAT Registration No. or Fiscal Code
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'US';
+        CountryRegion.Modify();
+        Customer.Get(CreateCustomer());
+        CurrCustomer := Customer;
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Validate("Post Code", CurrCustomer."Post Code");
+        Customer.Validate(City, CurrCustomer.City);
+        Customer.Validate(County, CurrCustomer.County);
+        Customer."VAT Registration No." := '';
+        Customer."Fiscal Code" := '';
+        Customer.Modify(true);
+
+        // [WHEN] The sales invoice is posted
+        asserterror
+            CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No.");
+
+        // [THEN] Posting is blocked before an unsendable posted invoice is created
+        Assert.IsTrue(
+            StrPos(GetLastErrorText(), 'VAT Registration No.') > 0,
+            GetLastErrorText());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceWithForeignIndividualIncludesVATIdentification()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
