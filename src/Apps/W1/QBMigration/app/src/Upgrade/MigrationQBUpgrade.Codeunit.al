@@ -9,10 +9,6 @@ codeunit 1831 "MigrationQB Upgrade"
         SendQuickBooksMigrationTelemetry();
     end;
 
-    trigger OnUpgradePerDatabase();
-    begin
-    end;
-
     local procedure DeleteArchiveData()
     begin
         NavApp.DeleteArchiveData(1911);
