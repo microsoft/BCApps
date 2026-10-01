@@ -1708,9 +1708,9 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderHeader: Record "Shpfy Order Header";
         OrdersToImport: Record "Shpfy Orders to Import";
         ShopFilter: Record "Shpfy Shop";
+        SyncOrdersFromShopify: Report "Shpfy Sync Orders from Shopify";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
-        SyncOrdersFromShopify: Report "Shpfy Sync Orders from Shopify";
         JShopifyOrder: JsonObject;
         JShopifyLineItems: JsonArray;
         EntryNo: Integer;
