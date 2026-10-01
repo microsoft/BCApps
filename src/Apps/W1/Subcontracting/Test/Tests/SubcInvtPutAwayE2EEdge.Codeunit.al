@@ -656,7 +656,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
         InvoiceLine.FindFirst();
         SetPurchaseLineSerialTrackingQuantity(InvoiceLine, 'PARTIAL-SN1', 1);
-        InvoiceLine.Validate("Qty. to Invoice", 1);
+        InvoiceLine.Validate(Quantity, 1);
         InvoiceLine.Modify(true);
         FirstPostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
         VerifyPostedInvoiceSerialNo(FirstPostedInvoiceNo, PurchRcptLine, 'PARTIAL-SN1');

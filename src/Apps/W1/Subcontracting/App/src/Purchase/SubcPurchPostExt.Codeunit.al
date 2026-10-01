@@ -173,6 +173,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
 
         IsHandled := true;
+        ToPurchLine.Validate(Quantity, PurchRcptLine."Qty. Rcd. Not Invoiced");
+        ToPurchLine.Modify(true);
         CopyItemLedgerEntriesUpToQuantity(
             TempItemLedgerEntry, ItemLedgerEntry, ToPurchLine."Quantity (Base)", PurchRcptLine."Qty. Invoiced (Base)");
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
@@ -296,7 +298,6 @@ codeunit 20535 "Subc. Purch. Post Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", OnAfterPostItemJnlLineCopyProdOrder, '', false, false)]
     local procedure MfgPurchPostOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
     var
-        ItemLedgerEntry: Record "Item Ledger Entry";
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
 #if not CLEAN29
@@ -305,15 +306,6 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        if PurchLine."Document Type" = PurchLine."Document Type"::"Credit Memo" then
-            if ItemLedgerEntry.Get(ItemJnlLine."Applies-to Entry") then
-                if ItemLedgerEntry."Subc. Purch. Order No." <> '' then begin
-                    ItemJnlLine."Subc. Purch. Order No." := ItemLedgerEntry."Subc. Purch. Order No.";
-                    ItemJnlLine."Subc. Purch. Order Line No." := ItemLedgerEntry."Subc. Purch. Order Line No.";
-                    ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
-                    exit;
-                end;
-
         if PurchRcptLine.Get(PurchLine."Receipt No.", PurchLine."Receipt Line No.") then
             SetSubcontractingPurchaseIdentity(ItemJnlLine, PurchRcptLine)
         else begin
@@ -321,6 +313,29 @@ codeunit 20535 "Subc. Purch. Post Ext"
             ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
             ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemJnlLineOnBeforeItemJnlPostLineRunWithCheck, '', false, false)]
+    local procedure RestoreCorrectionSubcontractingPurchaseIdentity(var ItemJnlLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line")
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if not ItemJnlLine.Subcontracting or (PurchaseLine."Document Type" <> PurchaseLine."Document Type"::"Credit Memo") then
+            exit;
+        if not ItemLedgerEntry.Get(ItemJnlLine."Applies-to Entry") then
+            exit;
+        if ItemLedgerEntry."Subc. Purch. Order No." = '' then
+            exit;
+
+        ItemJnlLine."Subc. Purch. Order No." := ItemLedgerEntry."Subc. Purch. Order No.";
+        ItemJnlLine."Subc. Purch. Order Line No." := ItemLedgerEntry."Subc. Purch. Order Line No.";
+        ItemJnlLine."Subc. Operation No." := ItemLedgerEntry."Subc. Operation No.";
     end;
 
     local procedure SetSubcontractingPurchaseIdentity(var ItemJnlLine: Record "Item Journal Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
@@ -332,6 +347,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     local procedure RestoreSubcontractingIdentity(var PurchaseLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
     begin
+        Clear(PurchaseLine."Receipt No.");
+        PurchaseLine."Receipt Line No." := 0;
         PurchaseLine."Location Code" := PurchRcptLine."Location Code";
         PurchaseLine."Prod. Order No." := PurchRcptLine."Prod. Order No.";
         PurchaseLine."Prod. Order Line No." := PurchRcptLine."Prod. Order Line No.";
