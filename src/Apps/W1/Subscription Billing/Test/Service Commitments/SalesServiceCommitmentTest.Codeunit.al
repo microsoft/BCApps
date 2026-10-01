@@ -2312,6 +2312,7 @@ codeunit 139915 "Sales Service Commitment Test"
         Assert.RecordIsNotEmpty(SalesServiceCommitment);
 
         // [WHEN] Posting the Sales Invoice
+        ResetSalesPostingNoSeriesDateUsage();
         LibrarySales.PostSalesDocument(SalesInvoiceHeader2, true, true);
 
         // [THEN] No Sales Subscription Line of the posted Sales Invoice is left behind
@@ -2705,6 +2706,18 @@ codeunit 139915 "Sales Service Commitment Test"
 
         CarryOutActionMessage.UseRequestPage(false);
         CarryOutActionMessage.RunModal();
+    end;
+
+    local procedure ResetSalesPostingNoSeriesDateUsage()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        SalesReceivablesSetup.Get();
+        NoSeriesLine.SetFilter(
+            "Series Code", '%1|%2',
+            SalesReceivablesSetup."Posted Shipment Nos.", SalesReceivablesSetup."Posted Invoice Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
     end;
 
     local procedure RunGetSalesOrders(var NewRequisitionLine: Record "Requisition Line"; SourceSalesHeader: Record "Sales Header")
