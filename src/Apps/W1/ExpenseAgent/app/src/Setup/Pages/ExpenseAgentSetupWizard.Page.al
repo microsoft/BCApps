@@ -870,6 +870,14 @@ page 6991 "Expense Agent Setup Wizard"
                     }
                 }
             }
+            group(receipts)
+            {
+                Caption = 'Receipts';
+
+                field(NoReceipt; Rec."Allow No Receipt")
+                {
+                }
+            }
             group(CanaryGroup)
             {
                 Caption = 'Canary (allowlisted tenants)';

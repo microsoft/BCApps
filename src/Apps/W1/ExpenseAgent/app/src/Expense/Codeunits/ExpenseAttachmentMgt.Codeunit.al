@@ -361,18 +361,24 @@ codeunit 6989 "Expense Attachment Mgt."
 
     local procedure UpdateReceiptAttachedOnExpense(var Expense: Record Expense; DocumentAttachment: Record "Document Attachment")
     var
-        RecRef: RecordRef;
-        HasAttachments: Boolean;
+        OriginalReceipt: Record "Document Attachment";
+        HasOriginalReceipt: Boolean;
     begin
-        RecRef.GetTable(Expense);
-        HasAttachments := DocumentAttachmentMgmt.AttachedDocumentsExist(RecRef);
+        OriginalReceipt.SetRange("Document Type", OriginalReceipt."Document Type"::Expense);
+        OriginalReceipt.SetRange("Table ID", Database::Expense);
+        OriginalReceipt.SetRange("No.", Expense."No.");
+        OriginalReceipt.SetRange("Line No.", 0);
+        OriginalReceipt.SetRange("No Receipt Declaration", false);
+        HasOriginalReceipt := OriginalReceipt.FindFirst();
 
         if DocumentAttachment.HasContent() then
-            if Expense."Receipt Attached" <> HasAttachments then begin
-                Expense."Receipt Attached" := HasAttachments;
+            if (Expense."Receipt Attached" <> HasOriginalReceipt) or
+               (HasOriginalReceipt and (Expense."Receipt Entry" <> OriginalReceipt.ID))
+            then begin
+                Expense."Receipt Attached" := HasOriginalReceipt;
 
                 if Expense."Receipt Attached" then
-                    Expense."Receipt Entry" := DocumentAttachment.ID
+                    Expense."Receipt Entry" := OriginalReceipt.ID
                 else
                     Expense."Receipt Entry" := 0;
 
@@ -382,18 +388,24 @@ codeunit 6989 "Expense Attachment Mgt."
 
     local procedure UpdateReceiptAttachedOnExpenseReportLine(var ExpenseReportLine: Record "Expense Report Line"; DocumentAttachment: Record "Document Attachment")
     var
-        RecRef: RecordRef;
-        HasAttachments: Boolean;
+        OriginalReceipt: Record "Document Attachment";
+        HasOriginalReceipt: Boolean;
     begin
-        RecRef.GetTable(ExpenseReportLine);
-        HasAttachments := DocumentAttachmentMgmt.AttachedDocumentsExist(RecRef);
+        OriginalReceipt.SetRange("Document Type", OriginalReceipt."Document Type"::Expense);
+        OriginalReceipt.SetRange("Table ID", Database::"Expense Report Line");
+        OriginalReceipt.SetRange("No.", ExpenseReportLine."Document No.");
+        OriginalReceipt.SetRange("Line No.", ExpenseReportLine."Line No.");
+        OriginalReceipt.SetRange("No Receipt Declaration", false);
+        HasOriginalReceipt := OriginalReceipt.FindFirst();
 
         if DocumentAttachment.HasContent() then
-            if ExpenseReportLine."Receipt Attached" <> HasAttachments then begin
-                ExpenseReportLine."Receipt Attached" := HasAttachments;
+            if (ExpenseReportLine."Receipt Attached" <> HasOriginalReceipt) or
+               (HasOriginalReceipt and (ExpenseReportLine."Receipt Entry" <> OriginalReceipt.ID))
+            then begin
+                ExpenseReportLine."Receipt Attached" := HasOriginalReceipt;
 
                 if ExpenseReportLine."Receipt Attached" then
-                    ExpenseReportLine."Receipt Entry" := DocumentAttachment.ID
+                    ExpenseReportLine."Receipt Entry" := OriginalReceipt.ID
                 else
                     ExpenseReportLine."Receipt Entry" := 0;
 

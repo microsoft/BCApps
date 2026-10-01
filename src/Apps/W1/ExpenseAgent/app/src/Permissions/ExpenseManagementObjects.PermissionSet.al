@@ -223,7 +223,9 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense Projects Builder" = X,
         codeunit "Exp. Policies To Eval Builder" = X,
         codeunit "Import Expense User" = X,
+        codeunit "No Receipt Declaration Mgt." = X,
         report "Expense Report Cover Page" = X,
         report "Expense Report Summary Page" = X,
-        report "Expense Report Details" = X;
+        report "Expense Report Details" = X,
+        report "No Receipt Declaration" = X;
 }

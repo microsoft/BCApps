@@ -94,6 +94,10 @@ page 6942 "Expense Agent Setup API"
                 {
                     Caption = 'Display Anti-Corruption Attestation';
                 }
+                field(allowNoReceipt; Rec."Allow No Receipt")
+                {
+                    Caption = 'Allow No Receipt';
+                }
                 field(expenseReportsNos; Rec."Expense Reports Nos.")
                 {
                     Caption = 'Expense Reports Nos.';
