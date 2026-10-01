@@ -54,7 +54,6 @@ codeunit 139547 "MigrationQB Telemetry Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure MissingMigrationIsNotDetectedAsCompleted()
     var
-        DataMigrationStatus: Record "Data Migration Status";
         MigrationQBDashboardMgt: Codeunit "MigrationQB Dashboard Mgt";
         MigrationDateTime: DateTime;
     begin
