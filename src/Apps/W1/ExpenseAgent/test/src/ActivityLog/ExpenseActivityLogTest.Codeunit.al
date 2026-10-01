@@ -1597,8 +1597,14 @@ codeunit 148342 "Expense Activity Log Test"
     end;
 
     local procedure CreatePolicyHistoryAgentUser(var AgentUser: Record User)
+    var
+        PolicyAgentUserNameTok: Label 'EXPENSE POLICY AGENT', Locked = true;
     begin
-        LibraryPermissions.CreateUser(AgentUser, '', false);
+        // Reuse one user: tests share a transaction per codeunit and CI licenses cap the number of users.
+        AgentUser.SetRange("User Name", PolicyAgentUserNameTok);
+        if AgentUser.FindFirst() then
+            exit;
+        LibraryPermissions.CreateUser(AgentUser, PolicyAgentUserNameTok, false);
     end;
 
     local procedure AddHistoryLine(Header: Record "Expense Report Header"; var Line: Record "Expense Report Line")
@@ -1638,9 +1644,12 @@ codeunit 148342 "Expense Activity Log Test"
     var
         Category: Record "Expense Category";
     begin
-        // Categories in use cannot be renamed, so move the line to a new category with the requested code.
-        Category.Code := CategoryCode;
-        Category.Insert(false);
+        // Categories in use cannot be renamed, so move the line to a category with the requested code.
+        // Reuse it when an earlier test in the same codeunit transaction already created it.
+        if not Category.Get(CategoryCode) then begin
+            Category.Code := CategoryCode;
+            Category.Insert(false);
+        end;
         Line.Get(Line."Document No.", Line."Line No.");
         Line."Expense Category" := Category.Code;
         Line.Modify(false);
