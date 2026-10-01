@@ -7,6 +7,7 @@ namespace Microsoft.Finance.Currency;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.IO;
+using System.Telemetry;
 using System.Utilities;
 
 /// <summary>
@@ -46,7 +47,9 @@ codeunit 1281 "Update Currency Exchange Rates"
 #pragma warning disable AA0470
         ActivityLogDetailTxt: Label '%1 %2: %3', Locked = true, Comment = '%1 = HTTP status code, %2 = reason phrase, %3 = response body';
 #pragma warning restore AA0470
-
+        ResponseTooLargeErr: Label 'The response from the currency exchange rate service exceeded the maximum allowed size and was rejected.';
+        ResponseTooLargeTxt: Label 'The currency exchange rate update failed. The response exceeded the maximum allowed size.', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The currency exchange rate service returned a response that exceeded the         maximum allowed size.', Locked = true;
     local procedure SyncCurrencyExchangeRates()
     var
         CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup";
@@ -91,8 +94,29 @@ codeunit 1281 "Update Currency Exchange Rates"
             exit;
 
         ExecuteWebServiceRequest(CurrExchRateUpdateSetup, ResponseInStream);
+        // ExecuteWebServiceRequest copies the downloaded payload into TempBlobResponse and re-creates
+        // ResponseInStream from it, so TempBlobResponse.Length() reflects the actual response and drives the size check.
+        CheckResponseSize(TempBlobResponse);
         CurrExchRateUpdateSetup.GetWebServiceURL(ServiceUrl);
         SourceName := ServiceUrl;
+    end;
+
+    internal procedure CheckResponseSize(var TempBlob: Codeunit "Temp Blob")
+    var
+        AuditLog: Codeunit "Audit Log";
+    begin
+        if TempBlob.Length() <= GetMaxResponseSize() then
+            exit;
+
+        AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+        Session.LogMessage('0000VEP', ResponseTooLargeTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
+        Clear(TempBlob);
+        Error(ResponseTooLargeErr);
+    end;
+
+    local procedure GetMaxResponseSize(): Integer
+    begin
+        exit(10485760); // 10 MB - exchange rate feeds are small; larger responses are rejected as potentially malicious.
     end;
 
     local procedure CreateDataExchange(var DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def"; ResponseInStream: InStream; SourceName: Text[250])
@@ -123,6 +147,8 @@ codeunit 1281 "Update Currency Exchange Rates"
         HttpResponseMessage: HttpResponseMessage;
         HttpHeaders: HttpHeaders;
         CustomDimensions: Dictionary of [Text, Text];
+        HttpResponseInStream: InStream;
+        ResponseOutStream: OutStream;
         ResponseErrorText: Text;
         URL: Text;
     begin
@@ -153,7 +179,10 @@ codeunit 1281 "Update Currency Exchange Rates"
               StrSubstNo(ActivityLogDetailTxt, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseErrorText));
         end;
 
-        HttpResponseMessage.Content.ReadAs(ResponseInStream);
+        HttpResponseMessage.Content.ReadAs(HttpResponseInStream);
+        TempBlobResponse.CreateOutStream(ResponseOutStream);
+        CopyStream(ResponseOutStream, HttpResponseInStream);
+        TempBlobResponse.CreateInStream(ResponseInStream);
     end;
 
     procedure GenerateTempDataFromService(var TempCurrencyExchangeRate: Record "Currency Exchange Rate" temporary; CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup")

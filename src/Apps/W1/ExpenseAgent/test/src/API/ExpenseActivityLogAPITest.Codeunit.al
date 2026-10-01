@@ -25,9 +25,10 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         TestDescriptionPrefixLbl: Label 'ACTIVITY API TEST ', Locked = true;
+        SubmitterCommentPropertyTxt: Label '"submitterComment":"%1"', Locked = true;
         MethodNotAllowedResponseErr: Label 'Response code is 405', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
-        SubmitActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReport', Locked = true;
+        SubmitWithCommentActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReportWithComment', Locked = true;
         ApproveActionTok: Label 'Microsoft.NAV.approvedExpenseReport', Locked = true;
         RejectAndReopenActionTok: Label 'Microsoft.NAV.rejectAndReopenExpenseReport', Locked = true;
 
@@ -47,6 +48,7 @@ codeunit 148343 "Expense Activity Log API Test"
         Initialize();
         CreateTestExpenseUser(ExpenseUser);
         CreateTestExpenseReport(ExpenseReportHeader, ExpenseUser."No.");
+        CreateTestExpenseReportLine(ExpenseReportHeader, ExpenseUser."No.");
         EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
             ExpenseReportHeader,
             Enum::"Expense Activity Event Type"::Submitted,
@@ -118,9 +120,9 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Reports API",
             ExpenseReportsServiceNameTok,
             ServiceNameTok);
-        EntryURL :=
-            CollectionURL + '(' +
-            LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')';
+        EntryURL := LibraryGraphMgt.AppendPathToTargetURL(
+            CollectionURL,
+            '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')');
 
         // [WHEN] A POST is attempted.
         // [THEN] The API rejects it with Method Not Allowed.
@@ -171,7 +173,8 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Reports API",
             ExpenseReportsServiceNameTok,
             ServiceNameTok);
-        TargetURL += '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -278,7 +281,8 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.ExpectedError('The historyActorRole filter must be specified as Submitter or Approver.');
 
         // [WHEN] Submitter history is requested through the first Expense User.
-        TargetURL += '?$filter=historyActorRole eq ''Submitter''';
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$filter=historyActorRole eq ''Submitter''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -348,7 +352,8 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Users API",
             ExpenseUsersServiceNameTok,
             ServiceNameTok);
-        TargetURL += '?$filter=historyActorRole eq ''Approver''';
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$filter=historyActorRole eq ''Approver''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -385,17 +390,21 @@ codeunit 148343 "Expense Activity Log API Test"
 
         // [WHEN] The report is submitted, rejected/reopened, resubmitted, and approved through API actions.
         InvokeReportAction(
-            ExpenseReportHeader.SystemId, SubmitActionTok,
-            CreateActorRequestBody('submitterExpenseUserNo', SubmitterExpenseUser."No."));
+            ExpenseReportHeader.SystemId, SubmitWithCommentActionTok,
+            CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", ''));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         InvokeReportAction(
             ExpenseReportHeader.SystemId, RejectAndReopenActionTok,
             CreateRejectRequestBody(ApproverExpenseUser."No.", 'E2E send back ' + RunToken));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         InvokeReportAction(
-            ExpenseReportHeader.SystemId, SubmitActionTok,
-            CreateActorRequestBody('submitterExpenseUserNo', SubmitterExpenseUser."No."));
+            ExpenseReportHeader.SystemId, SubmitWithCommentActionTok,
+            CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", 'E2E submitter response ' + RunToken));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+
+        // [THEN] The report API exposes the latest submitter response.
+        VerifyReportSubmitterComment(ExpenseReportHeader.SystemId, 'E2E submitter response ' + RunToken);
+
         InvokeReportAction(
             ExpenseReportHeader.SystemId, ApproveActionTok,
             CreateActorRequestBody('approverExpenseUserNo', ApproverExpenseUser."No."));
@@ -490,6 +499,12 @@ codeunit 148343 "Expense Activity Log API Test"
         RequestBody.Add('rejectReason', RejectReason);
     end;
 
+    local procedure CreateSubmitWithCommentRequestBody(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text) RequestBody: JsonObject
+    begin
+        RequestBody.Add('submitterExpenseUserNo', SubmitterExpenseUserNo);
+        RequestBody.Add('submissionComment', SubmissionComment);
+    end;
+
     local procedure InvokeReportAction(ReportSystemID: Guid; ActionName: Text; RequestBody: JsonObject)
     var
         ResponseText: Text;
@@ -541,6 +556,20 @@ codeunit 148343 "Expense Activity Log API Test"
             'The report activity response does not contain the expected event type.');
     end;
 
+    local procedure VerifyReportSubmitterComment(ReportSystemID: Guid; ExpectedComment: Text)
+    var
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ReportSystemID), Page::"Expense Reports API", ExpenseReportsServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.AreNotEqual(
+            0,
+            StrPos(ResponseText, StrSubstNo(SubmitterCommentPropertyTxt, ExpectedComment)),
+            'The expense report API response must contain the latest submitter comment.');
+    end;
+
     local procedure VerifyUserHistory(ExpenseUserSystemID: Guid; HistoryRole: Text; SubjectSystemID: Guid)
     var
         ResponseText: Text;
@@ -551,7 +580,8 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Users API",
             ExpenseUsersServiceNameTok,
             ServiceNameTok);
-        TargetURL += '?$filter=historyActorRole eq ''' + HistoryRole + '''';
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$filter=historyActorRole eq ''' + HistoryRole + '''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         Assert.AreNotEqual(
             0,
@@ -569,6 +599,7 @@ codeunit 148343 "Expense Activity Log API Test"
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log API Test");
         CleanupTestData();
@@ -577,6 +608,7 @@ codeunit 148343 "Expense Activity Log API Test"
 
         BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();
             ExpenseAgentSetup.Insert();
@@ -598,6 +630,32 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportHeader.Description :=
             CopyStr(TestDescriptionPrefixLbl + Format(CreateGuid()), 1, MaxStrLen(ExpenseReportHeader.Description));
         ExpenseReportHeader.Modify();
+    end;
+
+    local procedure CreateTestExpenseReportLine(ExpenseReportHeader: Record "Expense Report Header"; ExpenseUserNo: Code[20])
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory,
+            ExpenseCategory."Reimbursement Type"::"Employee Paid",
+            ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCategory.Description :=
+            CopyStr(TestDescriptionPrefixLbl + Format(CreateGuid()), 1, MaxStrLen(ExpenseCategory.Description));
+        ExpenseCategory.Modify();
+        LibraryExpense.FindExpensePaymentMethod(
+            ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine,
+            ExpenseReportHeader,
+            ExpenseUserNo,
+            ExpenseCategory.Code,
+            ExpensePaymentMethod.Code,
+            true,
+            '',
+            100);
     end;
 
     local procedure CreateTestExpenseUser(var ExpenseUser: Record "Expense User")

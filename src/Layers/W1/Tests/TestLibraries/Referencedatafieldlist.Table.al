@@ -1,4 +1,6 @@
+#pragma warning disable AS0103, PTE0004 // Accepted: this test-only table is intentionally not exposed through production permission sets. Tracked by AB#640773.
 table 130060 "Reference data - field list"
+#pragma warning restore AS0103, PTE0004
 {
     ReplicateData = false;
     DataClassification = CustomerContent;
@@ -9,6 +11,7 @@ table 130060 "Reference data - field list"
         {
             NotBlank = true;
         }
+
         field(2; "Table ID"; Integer)
         {
             TableRelation = AllObj."Object ID" where("Object Type" = const(Table));
@@ -61,9 +64,9 @@ table 130060 "Reference data - field list"
     local procedure CheckForZeroValues()
     begin
         if "Table ID" = 0 then
-            Error(Text001, FieldName("Table ID"));
+            Error(Text001, FieldCaption("Table ID"));
         if "Field ID" = 0 then
-            Error(Text001, FieldName("Field ID"));
+            Error(Text001, FieldCaption("Field ID"));
     end;
 }
 

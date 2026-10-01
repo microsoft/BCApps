@@ -650,6 +650,7 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
         SalesHeader.Validate("Currency Code");
+        SalesHeader.Validate("External Document No.");
         SalesHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         SalesHeader."Posting Description" := CustomerContractLbl + ' ' + CustomerContract."No.";
@@ -706,6 +707,8 @@ codeunit 8060 "Create Billing Documents"
     end;
 
     local procedure CreateSalesHeaderForCustomerNo(CustomerNo: Code[20])
+    var
+        CustomerContract: Record "Customer Subscription Contract";
     begin
         SalesHeader.Init();
         SalesHeader."Document Type" := TempBillingLine.GetSalesDocumentTypeForCustomerNo();
@@ -717,6 +720,10 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
         SalesHeader.Validate("Currency Code");
+        CustomerContract.SetLoadFields("External Document No.");
+        if CustomerContract.Get(TempBillingLine."Subscription Contract No.") then
+            if CustomerContract."External Document No." <> '' then
+                SalesHeader.Validate("External Document No.", CustomerContract."External Document No.");
         SalesHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         SalesHeader."Posting Description" := CustomerContractLbl + ' ' + TempBillingLine."Subscription Contract No.";

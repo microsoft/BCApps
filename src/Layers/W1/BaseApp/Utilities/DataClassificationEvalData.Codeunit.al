@@ -703,6 +703,7 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(Database::"Bus. Unit In Cons. Process");
         SetTableFieldsToNormal(Database::"Consolidation Setup");
         SetTableFieldsToNormal(3700); // "Manual Setup" table
+        SetTableFieldsToNormal(3703); // "Environment Information" table
         SetTableFieldsToNormal(1876); // "Business Setup Icon" table
         SetTableFieldsToNormal(DATABASE::"VAT Setup Posting Groups");
         SetTableFieldsToNormal(DATABASE::"VAT Assisted Setup Templates");
@@ -3862,11 +3863,10 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToCompanyConfidential(40201, 7); // Entity Display Name
         SetFieldToCompanyConfidential(40201, 10); // Title
         SetFieldToCompanyConfidential(40201, 11); // Skill Text
+        SetFieldToPersonal(40201, 15); // Archived By
 
-        SetTableFieldsToNormal(40202); // "Business Skill Change Log"
-        SetFieldToPersonal(40202, 4); // Changed By
-        SetFieldToCompanyConfidential(40202, 6); // Previous Text
-        SetFieldToCompanyConfidential(40202, 7); // Skill Title
+        SetTableFieldsToNormal(40202); // "Business Skill Text Version"
+        SetFieldToCompanyConfidential(40202, 3); // Skill Text
 
         SetTableFieldsToNormal(40203); // "Business Skill Suggestion"
         SetFieldToCompanyConfidential(40203, 5); // Title

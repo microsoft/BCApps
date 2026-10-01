@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.Company;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Foundation.Address;
 
 tableextension 11747 "Company Information CZL" extends "Company Information"
 {
@@ -55,6 +56,12 @@ tableextension 11747 "Company Information CZL" extends "Company Information"
         {
             Caption = 'Tax Registration No.';
             DataClassification = CustomerContent;
+        }
+        field(11785; "Report Address Source CZL"; Enum "Report Address Source CZL")
+        {
+            Caption = 'Report Address Source';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the address used in reports, such as printed sales and purchase documents, is taken from Company Information or from the Responsibility Center.';
         }
     }
 

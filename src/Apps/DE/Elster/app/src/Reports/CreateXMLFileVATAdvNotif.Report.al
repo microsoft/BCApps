@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 #pragma warning disable AA0247
 
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 report 11016 "Create XML-File VAT Adv.Notif."
+#pragma warning restore AS0011
 {
     ProcessingOnly = true;
     UsageCategory = None;
