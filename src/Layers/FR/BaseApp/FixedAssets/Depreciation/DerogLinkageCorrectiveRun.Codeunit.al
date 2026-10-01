@@ -11,7 +11,7 @@ using System.Upgrade;
 /// relationships for an explicitly invoked operational repair. Feature and app upgrades call the shared
 /// procedure directly, without Codeunit.Run, to preserve the enclosing migration transaction.
 /// </summary>
-codeunit 104104 "Derog. Linkage Corrective Run"
+codeunit 5872 "Derog. Linkage Corrective Run"
 {
     Access = Internal;
 

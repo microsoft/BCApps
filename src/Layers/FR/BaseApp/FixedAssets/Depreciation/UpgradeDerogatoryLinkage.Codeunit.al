@@ -16,7 +16,7 @@ using System.Upgrade;
 /// unique pair. Sources with multiple possible matches, or with a match shared by another source, are marked
 /// as ambiguous so reversal can use the legacy matching logic. Sources without a counterpart remain unlinked.
 /// </summary>
-codeunit 104103 "Upgrade Derogatory Linkage"
+codeunit 5871 "Upgrade Derogatory Linkage"
 {
     Access = Internal;
     Subtype = Upgrade;
