@@ -67,6 +67,7 @@ codeunit 12184 "Fattura Doc. Helper"
         FatturaStampFieldNo: Integer;
         FatturaStampAmountFieldNo: Integer;
         MissingLinesErr: Label 'The document must contain lines in order to be sent through FatturaPA.';
+        MissingForeignFiscalIdentifierErr: Label 'A foreign customer must have either VAT Registration No. or Fiscal Code before an invoice or credit memo can be posted and sent through FatturaPA.';
         TxtTok: Label 'TXT%1', Locked = true;
         ExemptionDataMsg: Label '%1 del %2.', Locked = true;
         VATExemptionPrefixTok: Label 'Dich.Intento n.', Locked = true;
@@ -436,13 +437,14 @@ codeunit 12184 "Fattura Doc. Helper"
             ErrorMessage.LogIfEmpty(
               Customer, Customer.FieldNo("First Name"), ErrorMessage."Message Type"::Error);
             if Customer."Country/Region Code" = CompanyInformation."Country/Region Code" then
-                ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error)
-            else
-                if (Customer."VAT Registration No." = '') and (Customer."Fiscal Code" = '') then
-                    ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error);
+                ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error);
         end else
             ErrorMessage.LogIfEmpty(
               Customer, Customer.FieldNo(Name), ErrorMessage."Message Type"::Error);
+
+        if IsForeignCustomer(Customer) and not HasForeignFiscalIdentifier(Customer) then
+            ErrorMessage.LogMessage(
+              Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error, MissingForeignFiscalIdentifierErr);
 
         if TaxRepresentativeVendor.Get(CompanyInformation."Tax Representative No.") then begin
             ErrorMessage.LogIfEmpty(
@@ -467,6 +469,16 @@ codeunit 12184 "Fattura Doc. Helper"
 
         CheckFatturaPANos(ErrorMessage);
         OnAfterCheckMandatoryFields(HeaderRecRef, ErrorMessage);
+    end;
+
+    local procedure IsForeignCustomer(Customer: Record Customer): Boolean
+    begin
+        exit(Customer."Country/Region Code" <> CompanyInformation."Country/Region Code");
+    end;
+
+    local procedure HasForeignFiscalIdentifier(Customer: Record Customer): Boolean
+    begin
+        exit((Customer."VAT Registration No." <> '') or (Customer."Fiscal Code" <> ''));
     end;
 
     local procedure CheckCompanyInformationFields(var ErrorMessage: Record "Error Message")
@@ -1483,6 +1495,28 @@ codeunit 12184 "Fattura Doc. Helper"
         end;
     end;
 
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostSalesDoc', '', false, false)]
+    local procedure CheckForeignFiscalIdentifierOnBeforePostSalesDoc(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean; var HideProgressWindow: Boolean; var IsHandled: Boolean; var CalledBy: Integer)
+    var
+        Customer: Record Customer;
+    begin
+        if not SalesHeader.Invoice then
+            exit;
+
+        if SalesHeader."Bill-to Customer No." = '' then
+            exit;
+
+        Customer.Get(SalesHeader."Bill-to Customer No.");
+        CompanyInformation.Get();
+        if not IsForeignCustomer(Customer) then
+            exit;
+
+        if HasForeignFiscalIdentifier(Customer) then
+            exit;
+
+        Error(MissingForeignFiscalIdentifierErr);
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Quote to Invoice", 'OnBeforeInsertSalesInvoiceHeader', '', false, false)]
     local procedure AssignFatturaDocTypeOnBeforeInsertSalesInvoiceHeader(var SalesInvoiceHeader: Record "Sales Header"; QuoteSalesHeader: Record "Sales Header")
