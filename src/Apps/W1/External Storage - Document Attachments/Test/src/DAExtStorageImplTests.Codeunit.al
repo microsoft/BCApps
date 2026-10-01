@@ -919,6 +919,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     #region Shared Tenant Media Tests
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure DeleteFromInternalKeepsMediaSharedWithCopiedAttachment()
     var
         DocumentAttachment: Record "Document Attachment";
@@ -959,6 +960,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure DeleteFromInternalRemovesMediaWhenNotShared()
     var
         DocumentAttachment: Record "Document Attachment";
