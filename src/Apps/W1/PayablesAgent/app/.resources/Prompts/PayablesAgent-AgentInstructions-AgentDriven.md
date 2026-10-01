@@ -191,10 +191,9 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 
   #### Source B: Text-to-Account Mappings (TTA)
   - With the line selected, navigate to "Text-to-Account Mappings" from the line actions
-  - The page already shows only candidates whose Mapping Text is contained in the currently selected line description. Do not apply additional text searches.
-  - If the page is empty: record "no match" — the application has confirmed there are no TTA candidates for this line description. Do not infer or carry over a mapping from another line.
-  - If the page shows rows: verify that the Mapping Text of the row you select is indeed contained in the current line description, then record the G/L Account No. from Debit Acc. No. as the match.
-  - **Never reuse a TTA candidate across lines**: navigate to "Text-to-Account Mappings" separately for each draft line, as the candidate list is recalculated per line description.
+  - You must search for the current line description using letter-by-letter search. Opening the page and seeing a single row does not mean that row is a match.
+  - Verify that the Mapping Text of the selected row matches the current line description before recording the G/L Account No. from Debit Acc. No.
+  - If no matching Mapping Text is found after searching, record "no match".
 
   #### Source C: Historical Purchase Lines
   - With the line selected, navigate to "Historical Purchase Lines" from the line actions
