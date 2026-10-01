@@ -969,6 +969,250 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         Assert.AreEqual(ItemUnitOfMeasure.Weight, NetWeight, ItemUOMWeightErr);
     end;
 
+    [Test]
+    procedure ValidateCommentPackageRejectsMissingItem()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        Item: Record Item;
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 651132] Validate Relations reports a missing item referenced by a comment.
+        Initialize();
+        ItemNo := LibraryUtility.GenerateRandomCode20(Item.FieldNo("No."), Database::Item);
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, ItemNo, true);
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+
+        VerifyCommentPackageError(ConfigPackage.Code, ItemNo);
+        Assert.IsFalse(CommentLine.Get(CommentLine."Table Name"::Item, ItemNo, 10000), 'Validation must not insert a comment.');
+    end;
+
+    [Test]
+    procedure ApplyCommentPackageRejectsMissingItem()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        Item: Record Item;
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 651132] Apply Data rejects an orphan item comment without a preceding Validate Relations action.
+        Initialize();
+        ItemNo := LibraryUtility.GenerateRandomCode20(Item.FieldNo("No."), Database::Item);
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, ItemNo, true);
+
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        VerifyCommentPackageError(ConfigPackage.Code, ItemNo);
+        Assert.IsFalse(CommentLine.Get(CommentLine."Table Name"::Item, ItemNo, 10000), 'An orphan item comment must not be inserted.');
+    end;
+
+    [Test]
+    procedure ValidateAndApplyCommentPackageForExistingItem()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        Item: Record Item;
+    begin
+        // [SCENARIO 651132] A comment for an existing item passes validation and is applied.
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, Item."No.", true);
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        CommentLine.Get(CommentLine."Table Name"::Item, Item."No.", 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+    end;
+
+    [Test]
+    procedure ApplyCommentPackageWithoutNoValidation()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        Item: Record Item;
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 651132] Disabling No. validation retains the existing import behavior.
+        Initialize();
+        ItemNo := LibraryUtility.GenerateRandomCode20(Item.FieldNo("No."), Database::Item);
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, ItemNo, false);
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        CommentLine.Get(CommentLine."Table Name"::Item, ItemNo, 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+    end;
+
+    [Test]
+    procedure ApplyCommentPackageWithBlankItemNo()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+    begin
+        // [SCENARIO 651132] The item relation does not introduce a mandatory No. requirement.
+        Initialize();
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, '', true);
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        CommentLine.Get(CommentLine."Table Name"::Item, '', 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+    end;
+
+    [Test]
+    procedure ApplyNonItemCommentPackageWithoutItem()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        Customer: Record Customer;
+        Item: Record Item;
+        Vendor: Record Vendor;
+        CustomerNo: Code[20];
+        VendorNo: Code[20];
+    begin
+        // [SCENARIO 651132] Customer and vendor comments do not acquire an item existence check.
+        Initialize();
+        CustomerNo := LibraryUtility.GenerateRandomCode20(Customer.FieldNo("No."), Database::Customer);
+        VendorNo := LibraryUtility.GenerateRandomCode20(Vendor.FieldNo("No."), Database::Vendor);
+        Assert.IsFalse(Item.Get(CustomerNo), 'The customer comment number must not identify an item.');
+        Assert.IsFalse(Item.Get(VendorNo), 'The vendor comment number must not identify an item.');
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Customer, CustomerNo, true);
+        AddCommentPackageRecord(ConfigPackage.Code, 2, CommentLine."Table Name"::Vendor, VendorNo);
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        CommentLine.Get(CommentLine."Table Name"::Customer, CustomerNo, 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+        CommentLine.Get(CommentLine."Table Name"::Vendor, VendorNo, 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+    end;
+
+    [Test]
+    procedure ApplyItemAndMixedCommentsInSamePackage()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageRecord: Record "Config. Package Record";
+        ConfigPackageTable: Record "Config. Package Table";
+        Item: Record Item;
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 651132] An item can be imported with item and customer comments sharing its number.
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        ItemNo := Item."No.";
+        Item.Delete(true);
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, ItemNo, true);
+        AddCommentPackageRecord(ConfigPackage.Code, 2, CommentLine."Table Name"::Customer, ItemNo);
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, Database::Item);
+        LibraryRapidStart.SetIncludeAllFields(ConfigPackage.Code, Database::Item, false);
+        LibraryRapidStart.CreatePackageRecord(ConfigPackageRecord, ConfigPackage.Code, Database::Item, 1);
+        LibraryRapidStart.CreatePackageFieldData(ConfigPackageRecord, Item.FieldNo("No."), ItemNo);
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        Item.Get(ItemNo);
+        CommentLine.Get(CommentLine."Table Name"::Item, ItemNo, 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+        CommentLine.Get(CommentLine."Table Name"::Customer, ItemNo, 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+    end;
+
+    [Test]
+    procedure RenameItemWithImportedComment()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        Item: Record Item;
+        OldItemNo: Code[20];
+        NewItemNo: Code[20];
+    begin
+        // [SCENARIO 651132] Renaming an item preserves its comments without renaming customer comments.
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        OldItemNo := Item."No.";
+        NewItemNo := LibraryUtility.GenerateRandomCode20(Item.FieldNo("No."), Database::Item);
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, OldItemNo, true);
+        AddCommentPackageRecord(ConfigPackage.Code, 2, CommentLine."Table Name"::Customer, OldItemNo);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+
+        Item.Get(OldItemNo);
+        Item.Rename(NewItemNo);
+
+        Assert.IsFalse(CommentLine.Get(CommentLine."Table Name"::Item, OldItemNo, 10000), 'The old item comment key must not remain.');
+        CommentLine.Get(CommentLine."Table Name"::Item, NewItemNo, 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+        CommentLine.Get(CommentLine."Table Name"::Customer, OldItemNo, 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+        Assert.IsFalse(CommentLine.Get(CommentLine."Table Name"::Customer, NewItemNo, 10000), 'A customer comment must not follow an item rename.');
+    end;
+
+    local procedure CreateCommentPackage(var ConfigPackage: Record "Config. Package"; TableName: Enum "Comment Line Table Name"; ParentNo: Code[20]; ValidateNo: Boolean)
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackageTable: Record "Config. Package Table";
+    begin
+        LibraryRapidStart.CreatePackage(ConfigPackage);
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, Database::"Comment Line");
+        ConfigPackageTable.TestField("Skip Table Triggers", false);
+        LibraryRapidStart.SetIncludeAllFields(ConfigPackage.Code, Database::"Comment Line", false);
+        LibraryRapidStart.SetIncludeOneField(ConfigPackage.Code, Database::"Comment Line", CommentLine.FieldNo(Comment), true);
+        LibraryRapidStart.SetValidateOneField(ConfigPackage.Code, Database::"Comment Line", CommentLine.FieldNo("No."), ValidateNo);
+        AddCommentPackageRecord(ConfigPackage.Code, 1, TableName, ParentNo);
+    end;
+
+    local procedure AddCommentPackageRecord(PackageCode: Code[20]; RecordNo: Integer; TableName: Enum "Comment Line Table Name"; ParentNo: Code[20])
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackageRecord: Record "Config. Package Record";
+    begin
+        LibraryRapidStart.CreatePackageRecord(ConfigPackageRecord, PackageCode, Database::"Comment Line", RecordNo);
+        LibraryRapidStart.CreatePackageFieldData(ConfigPackageRecord, CommentLine.FieldNo("Table Name"), Format(TableName));
+        LibraryRapidStart.CreatePackageFieldData(ConfigPackageRecord, CommentLine.FieldNo("No."), ParentNo);
+        LibraryRapidStart.CreatePackageFieldData(ConfigPackageRecord, CommentLine.FieldNo("Line No."), Format(10000));
+        LibraryRapidStart.CreatePackageFieldData(ConfigPackageRecord, CommentLine.FieldNo(Comment), PackageCode);
+    end;
+
+    local procedure VerifyCommentPackageError(PackageCode: Code[20]; ItemNo: Code[20])
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackageError: Record "Config. Package Error";
+        Item: Record Item;
+    begin
+        ConfigPackageError.SetRange("Package Code", PackageCode);
+        Assert.RecordCount(ConfigPackageError, 1);
+        ConfigPackageError.FindFirst();
+        ConfigPackageError.TestField("Table ID", Database::"Comment Line");
+        ConfigPackageError.TestField("Field ID", CommentLine.FieldNo("No."));
+        Assert.ExpectedMessage(ItemNo, ConfigPackageError."Error Text");
+        Assert.ExpectedMessage(Item.TableCaption(), ConfigPackageError."Error Text");
+    end;
+
+    local procedure VerifyCommentPackageHasNoErrors(PackageCode: Code[20])
+    var
+        ConfigPackageError: Record "Config. Package Error";
+    begin
+        ConfigPackageError.SetRange("Package Code", PackageCode);
+        Assert.RecordCount(ConfigPackageError, 0);
+    end;
+
     local procedure SetupItemConfigPackageFields(PackageCode: Code[20]; TableID: Integer)
     var
         ConfigPackageField: Record "Config. Package Field";
