@@ -1635,12 +1635,7 @@ codeunit 144001 VATSTAT
         // [GIVEN] VAT Statement Line with Row No. '124' totaling a domestic 4.9% VAT base amount
         CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
         VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
-        CreateVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
-        VATStatementLine.SetRange("Row No.", VATTotalRowNo);
-        VATStatementLine.SetRange(Type, VATStatementLine.Type::"VAT Entry Totaling");
-        VATStatementLine.FindFirst();
-        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
-        VATStatementLine.Modify(true);
+        CreateBaseVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
         CreateRowTotVATStmtLine('124', VATTotalRowNo);
         CreateItem(Item, VATProPostingGroupCode);
         EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
@@ -1663,6 +1658,56 @@ codeunit 144001 VATSTAT
         // [THEN] The U30 form (FDF) shows the amount only in KZ000 (Zahl101), not in the 4.9% field Zahl116a1
         FdfFileHelper.ReadFdfFile(FdfFileName);
         VerifyFDFLineValue(FdfFileHelper, arguments::Zahl101, VATEntry.Base);
+        FdfFileHelper.VerifyCount(DefinedHeaderAndFooterLines + 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [Scope('OnPrem')]
+    procedure VAT49PctNegativeIntraCommunityReclassifiedToKZ070()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        VATStatementLine: Record "VAT Statement Line";
+        VATEntry: Record "VAT Entry";
+        Item: Record Item;
+        VATStatementAT: Report "VAT Statement AT";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+        VATTotalRowNo: Code[10];
+        DocNo: Code[20];
+        VATBusPostingGroupCode: Code[20];
+        VATProPostingGroupCode: Code[20];
+    begin
+        // [FEATURE] [VAT 4.9%]
+        // [SCENARIO 652286] A negative 4.9% intra-community base (KZ125) is reclassified into KZ070 and omitted from the U30 form (FDF field Zahl128a1), like the sibling intra-community columns.
+        Initialize();
+
+        // [GIVEN] VAT Statement Line with Row No. '125' totaling an intra-community 4.9% VAT base amount
+        CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
+        VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
+        CreateBaseVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
+        CreateRowTotVATStmtLine('125', VATTotalRowNo);
+        CreateItem(Item, VATProPostingGroupCode);
+        EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
+          ReportingType::"Defined period", false, false, false, false, 0);
+
+        // [GIVEN] Posted purchase credit memo producing a negative 4.9% base
+        DocNo := CreateAndPostPurchaseDocumentOnItem(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", VATBusPostingGroupCode, Item);
+
+        // [WHEN] Export VAT Statement
+        VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementAT.RunModal();
+
+        // [THEN] The negative base is folded into KZ070 and KZ125 is not emitted in the XML
+        GetVATEntry(VATEntry, DocNo, VATEntry."Document Type"::"Credit Memo", VATEntry.Type::Purchase);
+        LibraryXPathXMLReader.Initialize(XmlFileName, '');
+        VerifyXMLHeader(LibraryXPathXMLReader);
+        VerifyXMLLine(LibraryXPathXMLReader, 'LIEFERUNGEN_LEISTUNGEN_EIGENVERBRAUCH/KZ000', 0);
+        VerifyXMLLine(LibraryXPathXMLReader, 'INNERGEMEINSCHAFTLICHE_ERWERBE/KZ070', -VATEntry.Base);
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('descendant::*[@type="kz"]', 2);
+
+        // [THEN] The U30 form (FDF) shows the amount only in KZ070 (Zahl126), not in the 4.9% field Zahl128a1
+        FdfFileHelper.ReadFdfFile(FdfFileName);
+        VerifyFDFLineValue(FdfFileHelper, arguments::Zahl126, VATEntry.Base);
         FdfFileHelper.VerifyCount(DefinedHeaderAndFooterLines + 1);
     end;
 
@@ -2216,6 +2261,32 @@ codeunit 144001 VATSTAT
         VATStatementLine.Validate("VAT Bus. Posting Group", BusPostingGroup);
         VATStatementLine.Validate("VAT Prod. Posting Group", ProdPostingGroup);
         VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Amount);
+        VATStatementLine.Validate(Print, true);
+        VATStatementLine.Insert(true);
+    end;
+
+    local procedure CreateBaseVATEntTotVATStmtLine(RowNo: Code[10]; BusPostingGroup: Code[20]; ProdPostingGroup: Code[20])
+    var
+        VATStatementTemplate: Record "VAT Statement Template";
+        VATStatementLine: Record "VAT Statement Line";
+        LineNoToCreate: Integer;
+    begin
+        VATStatementTemplate.FindFirst();
+
+        VATStatementLine.SetRange("Statement Template Name", VATStatementTemplate.Name);
+        if VATStatementLine.FindLast() then
+            LineNoToCreate := VATStatementLine."Line No." + 10000
+        else
+            LineNoToCreate := 1;
+
+        VATStatementLine.Init();
+        VATStatementLine.Validate("Line No.", LineNoToCreate);
+        VATStatementLine.Validate("Row No.", RowNo);
+        VATStatementLine.Validate(Type, VATStatementLine.Type::"VAT Entry Totaling");
+        VATStatementLine.Validate("Gen. Posting Type", VATStatementLine."Gen. Posting Type"::Purchase);
+        VATStatementLine.Validate("VAT Bus. Posting Group", BusPostingGroup);
+        VATStatementLine.Validate("VAT Prod. Posting Group", ProdPostingGroup);
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
         VATStatementLine.Validate(Print, true);
         VATStatementLine.Insert(true);
     end;
