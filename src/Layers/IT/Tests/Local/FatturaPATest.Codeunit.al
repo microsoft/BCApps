@@ -1289,6 +1289,31 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure GetISOCountryCodeRejectsInvalidLength()
+    var
+        CountryRegion: Record "Country/Region";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [FEATURE] [FatturaPA]
+        // [SCENARIO] The shared ISO country getter rejects malformed nonblank ISO codes
+        Initialize();
+
+        // [GIVEN] A Country/Region with a one-character ISO Code inserted without field validation
+        CountryRegion.Init();
+        CountryRegion.Code := CopyStr(LibraryUtility.GenerateGUID(), 1, 3);
+        CountryRegion.Name := LibraryUtility.GenerateGUID();
+        CountryRegion."ISO Code" := 'U';
+        CountryRegion.Insert();
+
+        // [WHEN] The shared FatturaPA ISO country getter is called
+        asserterror FatturaDocHelper.GetISOCountryCode(CountryRegion.Code);
+
+        // [THEN] The malformed ISO Code is rejected
+        Assert.ExpectedError('The Country/Region must have a two-character ISO Code for FatturaPA.');
+    end;
+
+    [Test]
     [HandlerFunctions('InvalidISOCountryCodeErrorMessagesPageHandler')]
     [Scope('OnPrem')]
     procedure ExportSalesInvoiceRejectsMissingCountryRegionISOCode()
