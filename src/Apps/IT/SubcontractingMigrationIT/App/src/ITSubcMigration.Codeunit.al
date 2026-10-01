@@ -5,6 +5,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
@@ -325,63 +326,200 @@ codeunit 149951 "IT Subc. Migration"
 
     local procedure TryGetProductionBOMLineSupplyMethod(ProductionBOMLine: Record "Production BOM Line"; var ComponentSupplyMethod: Enum "Component Supply Method"): Boolean
     var
-        Item: Record Item;
-        StockkeepingUnit: Record "Stockkeeping Unit";
-        VersionManagement: Codeunit VersionManagement;
-        CandidateSupplyMethod: Enum "Component Supply Method";
+        VisitedBOMs: List of [Code[20]];
+        FromDate: Date;
+        ToDate: Date;
         HasResolvedUsage: Boolean;
     begin
+        if not GetBOMLineUsagePeriod(ProductionBOMLine, FromDate, ToDate) then
+            exit(false);
+        if not CollectBOMUsageSupplyMethods(ProductionBOMLine."Production BOM No.", ProductionBOMLine,
+             FromDate, ToDate, VisitedBOMs, ComponentSupplyMethod, HasResolvedUsage)
+        then
+            exit(false);
+        exit(HasResolvedUsage);
+    end;
+
+    local procedure GetBOMLineUsagePeriod(ProductionBOMLine: Record "Production BOM Line"; var FromDate: Date; var ToDate: Date): Boolean
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMVersion: Record "Production BOM Version";
+        VersionManagement: Codeunit VersionManagement;
+    begin
+        FromDate := 0D;
+        ToDate := 99991231D;
+        if ProductionBOMLine."Version Code" = '' then begin
+            if not ProductionBOMHeader.Get(ProductionBOMLine."Production BOM No.") then
+                exit(false);
+            if ProductionBOMHeader.Status <> ProductionBOMHeader.Status::Certified then
+                exit(false);
+        end else begin
+            if not ProductionBOMVersion.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code") then
+                exit(false);
+            if ProductionBOMVersion.Status <> ProductionBOMVersion.Status::Certified then
+                exit(false);
+            FromDate := ProductionBOMVersion."Starting Date";
+        end;
+        // A shared line must have one meaning throughout its effective lifetime, not just at WorkDate.
+        if VersionManagement.GetBOMVersion(ProductionBOMLine."Production BOM No.", FromDate, true) <> ProductionBOMLine."Version Code" then
+            exit(false);
+        ProductionBOMVersion.Reset();
+        ProductionBOMVersion.SetCurrentKey("Production BOM No.", "Starting Date");
+        ProductionBOMVersion.SetRange("Production BOM No.", ProductionBOMLine."Production BOM No.");
+        ProductionBOMVersion.SetRange(Status, ProductionBOMVersion.Status::Certified);
+        ProductionBOMVersion.SetFilter("Starting Date", '>%1', FromDate);
+        if ProductionBOMVersion.FindFirst() then
+            ToDate := ProductionBOMVersion."Starting Date" - 1;
+        if ProductionBOMLine."Starting Date" > FromDate then
+            FromDate := ProductionBOMLine."Starting Date";
+        if ProductionBOMLine."Ending Date" <> 0D then
+            if ProductionBOMLine."Ending Date" < ToDate then
+                ToDate := ProductionBOMLine."Ending Date";
+        exit(FromDate <= ToDate);
+    end;
+
+    local procedure CollectBOMUsageSupplyMethods(BOMNo: Code[20]; ComponentLine: Record "Production BOM Line"; FromDate: Date; ToDate: Date; var VisitedBOMs: List of [Code[20]]; var ComponentSupplyMethod: Enum "Component Supply Method"; var HasResolvedUsage: Boolean): Boolean
+    var
+        Item: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        ParentBOMLine: Record "Production BOM Line";
+        ParentFromDate: Date;
+        ParentToDate: Date;
+    begin
+        if VisitedBOMs.Contains(BOMNo) then
+            exit(false);
+        VisitedBOMs.Add(BOMNo);
         Item.SetCurrentKey("Production BOM No.");
-        Item.SetRange("Production BOM No.", ProductionBOMLine."Production BOM No.");
+        Item.SetRange("Production BOM No.", BOMNo);
         if Item.FindSet() then
             repeat
-                if VersionManagement.GetBOMVersion(Item."Production BOM No.", WorkDate(), true) = ProductionBOMLine."Version Code" then begin
-                    if not TryGetRoutingSupplyMethod(Item."Routing No.", ProductionBOMLine."Routing Link Code", ProductionBOMLine."No.", CandidateSupplyMethod) then
-                        exit(false);
-                    if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedUsage) then
-                        exit(false);
-                end;
+                if not CollectRoutingSupplyMethods(Item."Routing No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                    exit(false);
+                if not CollectFamilySupplyMethods(Item."No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                    exit(false);
+                StockkeepingUnit.Reset();
+                StockkeepingUnit.SetRange("Item No.", Item."No.");
+                StockkeepingUnit.SetRange("Production BOM No.", '');
+                if not CollectSKUSupplyMethods(StockkeepingUnit, ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                    exit(false);
             until Item.Next() = 0;
 
-        StockkeepingUnit.SetRange("Production BOM No.", ProductionBOMLine."Production BOM No.");
+        StockkeepingUnit.Reset();
+        StockkeepingUnit.SetRange("Production BOM No.", BOMNo);
+        if not CollectSKUSupplyMethods(StockkeepingUnit, ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+            exit(false);
+
+        ParentBOMLine.SetCurrentKey(Type, "No.");
+        ParentBOMLine.SetRange(Type, ParentBOMLine.Type::"Production BOM");
+        ParentBOMLine.SetRange("No.", BOMNo);
+        if ParentBOMLine.FindSet() then
+            repeat
+                if GetBOMLineUsagePeriod(ParentBOMLine, ParentFromDate, ParentToDate) then begin
+                    if ParentFromDate < FromDate then
+                        ParentFromDate := FromDate;
+                    if ParentToDate > ToDate then
+                        ParentToDate := ToDate;
+                    if ParentFromDate <= ParentToDate then
+                        if not CollectBOMUsageSupplyMethods(ParentBOMLine."Production BOM No.", ComponentLine,
+                             ParentFromDate, ParentToDate, VisitedBOMs, ComponentSupplyMethod, HasResolvedUsage)
+                        then
+                            exit(false);
+                end;
+            until ParentBOMLine.Next() = 0;
+        VisitedBOMs.Remove(BOMNo);
+        exit(true);
+    end;
+
+    local procedure CollectSKUSupplyMethods(var StockkeepingUnit: Record "Stockkeeping Unit"; ComponentLine: Record "Production BOM Line"; FromDate: Date; ToDate: Date; var ComponentSupplyMethod: Enum "Component Supply Method"; var HasResolvedUsage: Boolean): Boolean
+    var
+        Item: Record Item;
+        RoutingNo: Code[20];
+    begin
         if StockkeepingUnit.FindSet() then
             repeat
-                if VersionManagement.GetBOMVersion(StockkeepingUnit."Production BOM No.", WorkDate(), true) = ProductionBOMLine."Version Code" then begin
-                    if not TryGetRoutingSupplyMethod(StockkeepingUnit."Routing No.", ProductionBOMLine."Routing Link Code", ProductionBOMLine."No.", CandidateSupplyMethod) then
-                        exit(false);
-                    if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedUsage) then
-                        exit(false);
-                end;
+                if not Item.Get(StockkeepingUnit."Item No.") then
+                    exit(false);
+                RoutingNo := StockkeepingUnit."Routing No.";
+                if RoutingNo = '' then
+                    RoutingNo := Item."Routing No.";
+                if not CollectRoutingSupplyMethods(RoutingNo, ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                    exit(false);
+                if not CollectFamilySupplyMethods(Item."No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                    exit(false);
             until StockkeepingUnit.Next() = 0;
+        exit(true);
+    end;
 
-        exit(HasResolvedUsage);
+    local procedure CollectFamilySupplyMethods(ItemNo: Code[20]; ComponentLine: Record "Production BOM Line"; FromDate: Date; ToDate: Date; var ComponentSupplyMethod: Enum "Component Supply Method"; var HasResolvedUsage: Boolean): Boolean
+    var
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+    begin
+        FamilyLine.SetRange("Item No.", ItemNo);
+        if FamilyLine.FindSet() then
+            repeat
+                if not Family.Get(FamilyLine."Family No.") then
+                    exit(false);
+                if not CollectRoutingSupplyMethods(Family."Routing No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                    exit(false);
+            until FamilyLine.Next() = 0;
+        exit(true);
+    end;
+
+    local procedure CollectRoutingSupplyMethods(RoutingNo: Code[20]; ComponentLine: Record "Production BOM Line"; FromDate: Date; ToDate: Date; var ComponentSupplyMethod: Enum "Component Supply Method"; var HasResolvedUsage: Boolean): Boolean
+    var
+        RoutingVersion: Record "Routing Version";
+        CandidateSupplyMethod: Enum "Component Supply Method";
+    begin
+        if not TryGetRoutingSupplyMethod(RoutingNo, ComponentLine."Routing Link Code", ComponentLine."No.", FromDate, CandidateSupplyMethod) then
+            exit(false);
+        if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedUsage) then
+            exit(false);
+        RoutingVersion.SetRange("Routing No.", RoutingNo);
+        RoutingVersion.SetRange(Status, RoutingVersion.Status::Certified);
+        RoutingVersion.SetFilter("Starting Date", '>%1&<=%2', FromDate, ToDate);
+        if RoutingVersion.FindSet() then
+            repeat
+                if not TryGetRoutingSupplyMethod(RoutingNo, ComponentLine."Routing Link Code", ComponentLine."No.", RoutingVersion."Starting Date", CandidateSupplyMethod) then
+                    exit(false);
+                if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedUsage) then
+                    exit(false);
+            until RoutingVersion.Next() = 0;
+        exit(true);
     end;
 
     local procedure TryGetProdOrderComponentSupplyMethod(ProdOrderComponent: Record "Prod. Order Component"; var ComponentSupplyMethod: Enum "Component Supply Method"): Boolean
     var
+        ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         CandidateSupplyMethod: Enum "Component Supply Method";
         HasResolvedOperation: Boolean;
     begin
+        if not ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
+            exit(false);
         ProdOrderRoutingLine.SetRange(Status, ProdOrderComponent.Status);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
-        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderComponent."Prod. Order Line No.");
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+        ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
         ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
-        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Work Center");
         if not ProdOrderRoutingLine.FindSet() then
             exit(false);
 
         repeat
-            if TryGetWorkCenterSupplyMethod(ProdOrderRoutingLine."No.", ProdOrderComponent."Item No.", CandidateSupplyMethod) then
-                if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedOperation) then
-                    exit(false);
+            if ProdOrderRoutingLine.Type <> ProdOrderRoutingLine.Type::"Work Center" then
+                exit(false);
+            if not TryGetWorkCenterSupplyMethod(ProdOrderRoutingLine."No.", ProdOrderComponent."Item No.", CandidateSupplyMethod) then
+                exit(false);
+            if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedOperation) then
+                exit(false);
         until ProdOrderRoutingLine.Next() = 0;
 
         exit(HasResolvedOperation);
     end;
 
-    local procedure TryGetRoutingSupplyMethod(RoutingNo: Code[20]; RoutingLinkCode: Code[10]; ComponentItemNo: Code[20]; var ComponentSupplyMethod: Enum "Component Supply Method"): Boolean
+    local procedure TryGetRoutingSupplyMethod(RoutingNo: Code[20]; RoutingLinkCode: Code[10]; ComponentItemNo: Code[20]; UsageDate: Date; var ComponentSupplyMethod: Enum "Component Supply Method"): Boolean
     var
+        RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
         VersionManagement: Codeunit VersionManagement;
         CandidateSupplyMethod: Enum "Component Supply Method";
@@ -391,16 +529,24 @@ codeunit 149951 "IT Subc. Migration"
             exit(false);
 
         RoutingLine.SetRange("Routing No.", RoutingNo);
-        RoutingLine.SetRange("Version Code", VersionManagement.GetRtngVersion(RoutingNo, WorkDate(), true));
+        RoutingLine.SetRange("Version Code", VersionManagement.GetRtngVersion(RoutingNo, UsageDate, true));
+        if RoutingLine.GetRangeMin("Version Code") = '' then begin
+            if not RoutingHeader.Get(RoutingNo) then
+                exit(false);
+            if RoutingHeader.Status <> RoutingHeader.Status::Certified then
+                exit(false);
+        end;
         RoutingLine.SetRange("Routing Link Code", RoutingLinkCode);
-        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
         if not RoutingLine.FindSet() then
             exit(false);
 
         repeat
-            if TryGetWorkCenterSupplyMethod(RoutingLine."No.", ComponentItemNo, CandidateSupplyMethod) then
-                if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedOperation) then
-                    exit(false);
+            if RoutingLine.Type <> RoutingLine.Type::"Work Center" then
+                exit(false);
+            if not TryGetWorkCenterSupplyMethod(RoutingLine."No.", ComponentItemNo, CandidateSupplyMethod) then
+                exit(false);
+            if not MergeSupplyMethod(ComponentSupplyMethod, CandidateSupplyMethod, HasResolvedOperation) then
+                exit(false);
         until RoutingLine.Next() = 0;
 
         exit(HasResolvedOperation);
@@ -413,6 +559,14 @@ codeunit 149951 "IT Subc. Migration"
         WorkCenter: Record "Work Center";
         IsInventoryItem: Boolean;
     begin
+        if not InventoryItems.Get(ComponentItemNo, IsInventoryItem) then begin
+            if Item.Get(ComponentItemNo) then
+                IsInventoryItem := Item.Type = Item.Type::Inventory;
+            InventoryItems.Add(ComponentItemNo, IsInventoryItem);
+        end;
+        if not IsInventoryItem then
+            exit(false);
+
         if not WorkCenterSupplyMethods.Get(WorkCenterNo, ComponentSupplyMethod) then begin
             ComponentSupplyMethod := ComponentSupplyMethod::Empty;
             if WorkCenter.Get(WorkCenterNo) then
@@ -425,16 +579,7 @@ codeunit 149951 "IT Subc. Migration"
             WorkCenterSupplyMethods.Add(WorkCenterNo, ComponentSupplyMethod);
         end;
 
-        if ComponentSupplyMethod = ComponentSupplyMethod::Empty then
-            exit(false);
-        if ComponentSupplyMethod = ComponentSupplyMethod::"Consignment at Vendor" then
-            exit(true);
-        if not InventoryItems.Get(ComponentItemNo, IsInventoryItem) then begin
-            if Item.Get(ComponentItemNo) then
-                IsInventoryItem := Item.Type = Item.Type::Inventory;
-            InventoryItems.Add(ComponentItemNo, IsInventoryItem);
-        end;
-        exit(IsInventoryItem);
+        exit(ComponentSupplyMethod <> ComponentSupplyMethod::Empty);
     end;
 
     local procedure MergeSupplyMethod(var ComponentSupplyMethod: Enum "Component Supply Method"; CandidateSupplyMethod: Enum "Component Supply Method"; var HasResolvedMethod: Boolean): Boolean
