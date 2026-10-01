@@ -219,20 +219,18 @@ codeunit 7133 "Travel Request Approval"
     end;
 
     local procedure LogTravelRequestApproved(SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
+    var
+        ActorRole: Enum "Expense Activity Actor Role";
+        EventComment: Text;
     begin
+        // Without an approver, the request was approved automatically and the Business Central user is logged as the actor.
         if ApproverExpenseUserNo <> '' then
-            ExpenseActivityLogMgt.LogTravelRequestEvent(
-                SpendRequest,
-                Enum::"Expense Activity Event Type"::Approved,
-                Enum::"Expense Activity Actor Role"::Approver,
-                ApproverExpenseUserNo,
-                '')
+            ActorRole := ActorRole::Approver
         else
-            ExpenseActivityLogMgt.LogTravelRequestEventByBCUser(
-                SpendRequest,
-                Enum::"Expense Activity Event Type"::Approved,
-                Enum::"Expense Activity Actor Role"::" ",
-                AutomaticallyApprovedCommentTxt);
+            EventComment := AutomaticallyApprovedCommentTxt;
+
+        ExpenseActivityLogMgt.LogTravelRequestEvent(
+            SpendRequest, Enum::"Expense Activity Event Type"::Approved, ActorRole, ApproverExpenseUserNo, EventComment);
     end;
 
     local procedure GetExpenseReportWasNotCreatedError(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20]): ErrorInfo

@@ -82,7 +82,8 @@ codeunit 6926 "Expense Activity Log Mgt."
     end;
 
     /// <summary>
-    /// Appends an activity entry for a travel request performed by an expense user.
+    /// Appends an activity entry for a travel request.
+    /// The actor is the given expense user or, when no expense user is given, the current Business Central user.
     /// </summary>
     internal procedure LogTravelRequestEvent(
         SpendRequest: Record "Spend Request";
@@ -96,25 +97,10 @@ codeunit 6926 "Expense Activity Log Mgt."
     begin
         InitializeTravelRequestEntry(
             ExpenseActivityLogEntry, SpendRequest, EventType, ActorRole, EventComment, CurrentDateTime());
-        SetExpenseUserActor(ExpenseActivityLogEntry, ActorExpenseUserNo);
-        exit(InsertTravelRequestEntry(ExpenseActivityLogEntry, SpendRequest));
-    end;
-
-    /// <summary>
-    /// Appends a travel request activity entry performed directly by a Business Central user.
-    /// </summary>
-    internal procedure LogTravelRequestEventByBCUser(
-        SpendRequest: Record "Spend Request";
-        EventType: Enum "Expense Activity Event Type";
-        ActorRole: Enum "Expense Activity Actor Role";
-        EventComment: Text
-    ): BigInteger
-    var
-        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
-    begin
-        InitializeTravelRequestEntry(
-            ExpenseActivityLogEntry, SpendRequest, EventType, ActorRole, EventComment, CurrentDateTime());
-        SetBCUserActor(ExpenseActivityLogEntry, UserSecurityId());
+        if ActorExpenseUserNo <> '' then
+            SetExpenseUserActor(ExpenseActivityLogEntry, ActorExpenseUserNo)
+        else
+            SetBCUserActor(ExpenseActivityLogEntry, UserSecurityId());
         exit(InsertTravelRequestEntry(ExpenseActivityLogEntry, SpendRequest));
     end;
 
@@ -137,7 +123,7 @@ codeunit 6926 "Expense Activity Log Mgt."
             Enum::"Expense Activity Actor Role"::Submitter,
             '', OccurredAt);
 
-        // Travel requests are owned by the requesting employee; fall back to the BC user who created the record.
+        // Travel requests are owned by the requesting expense user; fall back to the BC user who created the record.
         Requester.SetLoadFields(SystemId);
         Requester.SetRange("Employee No.", SpendRequest."Requested By");
         if (SpendRequest."Requested By" <> '') and Requester.FindFirst() then
