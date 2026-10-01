@@ -23,6 +23,15 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
     var
         CannotRetrieveExternalFileErr: Label 'The file %1 could not be retrieved from external storage. Verify that the file exists and that the external file storage account is configured and accessible.', Comment = '%1 = File name';
+        FeatureDisabledErr: Label 'External storage is not enabled.';
+        NoInternalContentErr: Label 'The attachment has no file content in internal storage.';
+        InternalContentNotFoundErr: Label 'The attachment content could not be found in internal storage.';
+        AlreadyUploadedErr: Label 'The attachment already references a file in external storage.';
+        NotStoredExternallyErr: Label 'The attachment is not stored in external storage.';
+        NoFileAccountErr: Label 'No file account is assigned to the %1 file scenario.', Comment = '%1 = File scenario name';
+        AttachmentNotFoundErr: Label 'The attachment no longer exists.';
+        SharedExternalFileErr: Label 'The external file is shared with another attachment, so it was not deleted.';
+        ExternalOperationFailedErr: Label 'The external storage operation failed.';
 
     #region File Scenario Interface Implementation
     /// <summary>
@@ -136,6 +145,19 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if upload was successful, false otherwise.</returns>
     procedure UploadToExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
+        FailureReason: Text;
+    begin
+        exit(UploadToExternalStorage(DocumentAttachment, FailureReason));
+    end;
+
+    /// <summary>
+    /// Uploads a document attachment to external storage and explains why an upload was not performed.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to upload.</param>
+    /// <param name="FailureReason">Set to the reason the upload failed; empty on success.</param>
+    /// <returns>True if upload was successful, false otherwise.</returns>
+    procedure UploadToExternalStorage(var DocumentAttachment: Record "Document Attachment"; var FailureReason: Text): Boolean
+    var
         TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
@@ -146,17 +168,19 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         OutStream: OutStream;
         FileName: Text[2048];
     begin
+        FailureReason := '';
+
         // Check if feature is enabled
         if not IsFeatureEnabled() then
-            exit(false);
+            exit(FailWith(FeatureDisabledErr, FailureReason));
 
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
-            exit(false);
+            exit(FailWith(NoInternalContentErr, FailureReason));
 
         // Check if document is already uploaded
         if DocumentAttachment."External File Path" <> '' then
-            exit(false);
+            exit(FailWith(AlreadyUploadedErr, FailureReason));
 
         // Telemetry logging for feature usage
         DAFeatureTelemetry.LogFeatureUsed();
@@ -172,7 +196,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
         if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
-            exit(false);
+            exit(FailWith(GetNoFileAccountReason(), FailureReason));
 
         // Create the file with connector using the File Account framework
         ExternalFileStorage.Initialize(FileScenario);
@@ -186,7 +210,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(true);
         end;
 
-        exit(false);
+        exit(FailWithLastError(FailureReason));
     end;
 
     /// <summary>
@@ -243,6 +267,19 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if download and import was successful, false otherwise.</returns>
     procedure DownloadFromExternalStorageToInternal(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
+        FailureReason: Text;
+    begin
+        exit(DownloadFromExternalStorageToInternal(DocumentAttachment, FailureReason));
+    end;
+
+    /// <summary>
+    /// Downloads a document attachment from external storage, saves it to internal storage, and explains why a download was not performed.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to download and restore internally.</param>
+    /// <param name="FailureReason">Set to the reason the download failed; empty on success.</param>
+    /// <returns>True if download and import was successful, false otherwise.</returns>
+    procedure DownloadFromExternalStorageToInternal(var DocumentAttachment: Record "Document Attachment"; var FailureReason: Text): Boolean
+    var
         TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
@@ -250,12 +287,14 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         InStream: InStream;
         ExternalFilePath, FileName : Text;
     begin
+        FailureReason := '';
+
         // Validate input parameters
         if DocumentAttachment."External File Path" = '' then
-            exit(false);
+            exit(FailWith(NotStoredExternallyErr, FailureReason));
 
         if not DocumentAttachment."Stored Externally" then
-            exit(false);
+            exit(FailWith(NotStoredExternallyErr, FailureReason));
 
         // Use the stored external file path
         ExternalFilePath := DocumentAttachment."External File Path";
@@ -264,12 +303,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
         if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
-            exit(false);
+            exit(FailWith(GetNoFileAccountReason(), FailureReason));
 
         // Get the file with connector using the File Account framework
         ExternalFileStorage.Initialize(FileScenario);
         if not ExternalFileStorage.GetFile(ExternalFilePath, InStream) then
-            exit(false);
+            exit(FailWithLastError(FailureReason));
 
         // Media import also validates the filename, independently of the attachment's display fields.
         DocumentAttachment.ImportAttachment(InStream, SanitizeFileName(FileName));
@@ -345,23 +384,38 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="DocumentAttachment">The document attachment record to delete from external storage.</param>
     /// <returns>True if deletion was successful, false otherwise.</returns>
     procedure DeleteFromExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        FailureReason: Text;
     begin
+        exit(DeleteFromExternalStorage(DocumentAttachment, FailureReason));
+    end;
+
+    /// <summary>
+    /// Deletes a document attachment from external storage and explains why a deletion was not performed.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to delete from external storage.</param>
+    /// <param name="FailureReason">Set to the reason the deletion failed; empty on success.</param>
+    /// <returns>True if deletion was successful, false otherwise.</returns>
+    procedure DeleteFromExternalStorage(var DocumentAttachment: Record "Document Attachment"; var FailureReason: Text): Boolean
+    begin
+        FailureReason := '';
+
         // Check if feature is enabled
         if not IsFeatureEnabled() then
-            exit(false);
+            exit(FailWith(FeatureDisabledErr, FailureReason));
 
         if not DocumentAttachment.Find() then
-            exit(false);
+            exit(FailWith(AttachmentNotFoundErr, FailureReason));
 
         // Validate input parameters
         if DocumentAttachment."External File Path" = '' then
-            exit(false);
+            exit(FailWith(NotStoredExternallyErr, FailureReason));
 
         if not DocumentAttachment."Stored Externally" then
-            exit(false);
+            exit(FailWith(NotStoredExternallyErr, FailureReason));
 
         if DocumentAttachment."Skip Delete On Copy" then
-            exit(false);
+            exit(FailWith(SharedExternalFileErr, FailureReason));
 
         // Check if file belongs to another environment - if so, just clear the reference
         if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then begin
@@ -369,14 +423,14 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(true);
         end;
 
-        if not DeleteExternalFile(DocumentAttachment."External File Path", DocumentAttachment) then
+        if not DeleteExternalFile(DocumentAttachment."External File Path", DocumentAttachment, FailureReason) then
             exit(false);
 
         DocumentAttachment.MarkAsNotUploadedToExternal();
         exit(true);
     end;
 
-    local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"): Boolean
+    local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"; var FailureReason: Text): Boolean
     var
         TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
@@ -386,11 +440,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
         if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
-            exit(false);
+            exit(FailWith(GetNoFileAccountReason(), FailureReason));
 
         ExternalFileStorage.Initialize(FileScenario);
         if not ExternalFileStorage.DeleteFile(ExternalFilePath) then
-            exit(false);
+            exit(FailWithLastError(FailureReason));
 
         DAFeatureTelemetry.LogFileDeleted(DocumentAttachmentForTelemetry);
         exit(true);
@@ -403,18 +457,33 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if deletion was successful, false otherwise.</returns>
     procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
+        FailureReason: Text;
+    begin
+        exit(DeleteFromInternalStorage(DocumentAttachment, FailureReason));
+    end;
+
+    /// <summary>
+    /// Deletes a document attachment from internal storage and explains why a deletion was not performed.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to delete from internal storage.</param>
+    /// <param name="FailureReason">Set to the reason the deletion failed; empty on success.</param>
+    /// <returns>True if deletion was successful, false otherwise.</returns>
+    procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"; var FailureReason: Text): Boolean
+    var
         TenantMedia: Record "Tenant Media";
     begin
+        FailureReason := '';
+
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
-            exit(false);
+            exit(FailWith(NoInternalContentErr, FailureReason));
 
         // Check if file is uploaded externally before deleting internally
         if not DocumentAttachment."Stored Externally" then
-            exit(false);
+            exit(FailWith(NotStoredExternallyErr, FailureReason));
 
         if not TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then
-            exit(false);
+            exit(FailWith(InternalContentNotFoundErr, FailureReason));
 
         // Attachments copied onto other documents share this Tenant Media row, so it may only be
         // deleted once this attachment is its last owner. Deleting it earlier destroys the content
@@ -802,6 +871,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="RunTrigger">Indicates if the trigger should run.</param>
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterDeleteEvent, '', true, true)]
     local procedure OnAfterDeleteDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
+    var
+        FailureReason: Text;
     begin
         // Exit early if trigger is not running
         if not RunTrigger then
@@ -810,7 +881,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not IsEligibleForExternalFileDeletionOnRecordDelete(Rec) then
             exit;
 
-        DeleteExternalFile(Rec."External File Path", Rec);
+        DeleteExternalFile(Rec."External File Path", Rec, FailureReason);
     end;
 
     /// <summary>
@@ -976,5 +1047,26 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(false);
 
         exit(ExternalStorageSetup.Enabled);
+    end;
+
+    local procedure FailWith(Reason: Text; var FailureReason: Text): Boolean
+    begin
+        // Precondition failures have no platform error; clear any stale one so it is not reported instead.
+        ClearLastError();
+        FailureReason := Reason;
+        exit(false);
+    end;
+
+    local procedure FailWithLastError(var FailureReason: Text): Boolean
+    begin
+        FailureReason := GetLastErrorText();
+        if FailureReason = '' then
+            FailureReason := ExternalOperationFailedErr;
+        exit(false);
+    end;
+
+    local procedure GetNoFileAccountReason(): Text
+    begin
+        exit(StrSubstNo(NoFileAccountErr, Format(Enum::"File Scenario"::"Doc. Attach. - External Storage")));
     end;
 }

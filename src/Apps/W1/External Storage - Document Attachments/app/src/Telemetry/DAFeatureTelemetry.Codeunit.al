@@ -85,12 +85,12 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUsage('0000RNW', ExternalStorageTok, 'Auto Sync');
     end;
 
-    internal procedure LogSyncFailed(DocumentAttachment: Record "Document Attachment"; Operation: Text; ErrorText: Text; ErrorCallStack: Text)
+    internal procedure LogSyncFailed(DocumentAttachment: Record "Document Attachment"; Operation: Text; ErrorText: Text; ErrorCallStack: Text; IsInteractive: Boolean)
     var
         Dimensions: Dictionary of [Text, Text];
     begin
         GetFailureTelemetryDimensions(DocumentAttachment, Operation, Dimensions);
-        if GuiAllowed() then
+        if IsInteractive then
             Dimensions.Add('SyncMode', 'Interactive')
         else
             Dimensions.Add('SyncMode', 'Background');

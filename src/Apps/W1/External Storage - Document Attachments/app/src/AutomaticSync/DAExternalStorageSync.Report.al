@@ -11,8 +11,8 @@ using System.Utilities;
 /// <summary>
 /// Report for synchronizing document attachments between internal and external storage.
 /// Supports bulk upload, download, and cleanup operations.
-/// Shows all failures interactively and raises the first failure in background sessions.
-/// Logs each failed operation to telemetry in both session types.
+/// Records every failed attachment and its reason in the Error Message Register and logs it to telemetry.
+/// Interactive runs also show the failures; background runs complete without raising an error.
 /// </summary>
 report 8752 "DA External Storage Sync"
 {
@@ -23,7 +23,9 @@ report 8752 "DA External Storage Sync"
     ApplicationArea = All;
     UsageCategory = None;
     Permissions = tabledata "DA External Storage Setup" = r,
-                  tabledata "Document Attachment" = r;
+                  tabledata "Document Attachment" = r,
+                  tabledata "Error Message" = ri,
+                  tabledata "Error Message Register" = ri;
 
     dataset
     {
@@ -46,18 +48,19 @@ report 8752 "DA External Storage Sync"
                 ProcessedCount := 0;
                 FailedCount := 0;
 
-                if GuiAllowed() then
+                if IsInteractive then
                     Dialog.Open(ProcessingMsg, TotalCount);
             end;
 
             trigger OnAfterGetRecord()
             var
+                FailureReason: Text;
                 SyncSuccess: Boolean;
                 DeleteSuccess: Boolean;
             begin
                 ProcessedCount += 1;
 
-                if GuiAllowed() then
+                if IsInteractive then
                     Dialog.Update(1, ProcessedCount);
 
                 SyncSuccess := false;
@@ -65,24 +68,24 @@ report 8752 "DA External Storage Sync"
                 case SyncDirection of
                     SyncDirection::"To External Storage":
                         begin
-                            SyncSuccess := ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+                            SyncSuccess := ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment, FailureReason);
                             if SyncSuccess and (Operation = Operation::Move) then begin
                                 ClearLastError();
-                                DeleteSuccess := ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+                                DeleteSuccess := ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment, FailureReason);
                                 if not DeleteSuccess then
-                                    LogFailure(SourceCleanupFailedErr, 'DeleteInternal');
+                                    LogFailure(StrSubstNo(SourceCleanupFailedErr, FailureReason), FailureReason, 'DeleteInternal');
                             end;
                         end;
                     SyncDirection::"To Internal Storage":
                         begin
-                            SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment);
+                            SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment, FailureReason);
                             if SyncSuccess and (Operation = Operation::Move) then begin
                                 DocumentAttachment.SetRange("Stored Internally");
                                 DocumentAttachment.Find();
                                 ClearLastError();
-                                DeleteSuccess := ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment);
+                                DeleteSuccess := ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment, FailureReason);
                                 if not DeleteSuccess then
-                                    LogFailure(SourceCleanupFailedErr, 'DeleteExternal');
+                                    LogFailure(StrSubstNo(SourceCleanupFailedErr, FailureReason), FailureReason, 'DeleteExternal');
                                 DocumentAttachment.SetRange("Stored Internally", false);
                             end;
                         end;
@@ -90,9 +93,9 @@ report 8752 "DA External Storage Sync"
 
                 if not SyncSuccess then
                     if SyncDirection = SyncDirection::"To External Storage" then
-                        LogFailure(CopyFailedErr, 'Upload')
+                        LogFailure(StrSubstNo(CopyFailedErr, FailureReason), FailureReason, 'Upload')
                     else
-                        LogFailure(CopyFailedErr, 'Download');
+                        LogFailure(StrSubstNo(CopyFailedErr, FailureReason), FailureReason, 'Download');
 
                 Commit(); // Commit after each record to avoid lost in communication error with external storage service
 
@@ -104,13 +107,18 @@ report 8752 "DA External Storage Sync"
             begin
                 LogSyncTelemetry();
 
-                if GuiAllowed() then begin
+                if IsInteractive then begin
                     if TotalCount <> 0 then
                         Dialog.Close();
                     Message(ProcessedMsg, ProcessedCount - FailedCount, FailedCount);
                 end;
 
-                if FailedCount > 0 then
+                if FailedCount = 0 then
+                    exit;
+
+                // Persist every failure so background runs can be reviewed without failing the job queue entry.
+                RegisterFailures();
+                if IsInteractive then
                     TempErrorMessage.ShowErrors();
             end;
         }
@@ -158,6 +166,8 @@ report 8752 "DA External Storage Sync"
         TempErrorMessage: Record "Error Message" temporary;
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Dialog: Dialog;
+        HideDialog: Boolean;
+        IsInteractive: Boolean;
         FailedCount: Integer;
         MaxRecordsToProcess: Integer;
         ProcessedCount: Integer;
@@ -165,29 +175,57 @@ report 8752 "DA External Storage Sync"
         ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
         AttachmentFailedErr: Label 'Attachment %1: %2', Comment = '%1 = Original attachment filename, %2 = Failure reason';
-        CopyFailedErr: Label 'The attachment could not be copied. Check that external storage is enabled, a file account is assigned, and the source file is available.';
-        SourceCleanupFailedErr: Label 'The attachment was copied, but could not be removed from the source storage.';
+        CopyFailedErr: Label 'The attachment could not be copied. %1', Comment = '%1 = Failure reason';
+        SourceCleanupFailedErr: Label 'The attachment was copied, but could not be removed from the source storage. %1', Comment = '%1 = Failure reason';
+        FailuresRegisteredTxt: Label 'External Storage Synchronization: %1 of %2 attachments failed.', Comment = '%1 = Number of failed attachments, %2 = Number of processed attachments';
         SyncDirection: Option "To External Storage","To Internal Storage";
         Operation: Option Copy,Move;
 
-    local procedure LogFailure(FailureReason: Text; FailureOperation: Text)
+    trigger OnPreReport()
+    begin
+        IsInteractive := GuiAllowed() and not HideDialog;
+    end;
+
+    /// <summary>
+    /// Runs the report as it would run in a background session, without dialogs, messages or pages.
+    /// </summary>
+    /// <param name="NewHideDialog">True to suppress all user interface.</param>
+    internal procedure SetHideDialog(NewHideDialog: Boolean)
+    begin
+        HideDialog := NewHideDialog;
+    end;
+
+    local procedure LogFailure(FailureMessage: Text; FailureReason: Text; FailureOperation: Text)
     var
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-        LastErrorText: Text;
         TelemetryErrorText: Text;
     begin
-        LastErrorText := GetLastErrorText();
         TelemetryErrorText := GetLastErrorText(true);
         if TelemetryErrorText = '' then
             TelemetryErrorText := FailureReason;
-        DAFeatureTelemetry.LogSyncFailed(DocumentAttachment, FailureOperation, TelemetryErrorText, GetLastErrorCallStack());
-
-        if LastErrorText <> '' then
-            FailureReason := LastErrorText;
+        DAFeatureTelemetry.LogSyncFailed(DocumentAttachment, FailureOperation, TelemetryErrorText, GetLastErrorCallStack(), IsInteractive);
 
         FailedCount += 1;
         TempErrorMessage.LogMessage(DocumentAttachment, DocumentAttachment.FieldNo("File Name"), TempErrorMessage."Message Type"::Error,
-            StrSubstNo(AttachmentFailedErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension", FailureReason));
+            StrSubstNo(AttachmentFailedErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension", FailureMessage));
+    end;
+
+    local procedure RegisterFailures()
+    var
+        ErrorMessage: Record "Error Message";
+        ErrorMessageRegister: Record "Error Message Register";
+        RegisterID: Guid;
+    begin
+        RegisterID := ErrorMessageRegister.New(CopyStr(StrSubstNo(FailuresRegisteredTxt, FailedCount, ProcessedCount), 1, 250));
+        TempErrorMessage.Reset();
+        if TempErrorMessage.FindSet() then
+            repeat
+                ErrorMessage := TempErrorMessage;
+                ErrorMessage.ID := 0;
+                ErrorMessage."Register ID" := RegisterID;
+                ErrorMessage.SetErrorCallStack(TempErrorMessage.GetErrorCallStack());
+                ErrorMessage.Insert();
+            until TempErrorMessage.Next() = 0;
     end;
 
     local procedure SetFilters()
@@ -208,8 +246,8 @@ report 8752 "DA External Storage Sync"
     var
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
     begin
-        // Log manual sync when run from UI (GuiAllowed), auto sync when run from job queue
-        if GuiAllowed() then
+        // Log manual sync when run interactively, auto sync when run from job queue
+        if IsInteractive then
             DAFeatureTelemetry.LogManualSync()
         else
             DAFeatureTelemetry.LogAutoSync();
