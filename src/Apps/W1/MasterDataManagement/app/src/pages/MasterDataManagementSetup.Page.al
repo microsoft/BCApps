@@ -43,7 +43,6 @@ page 7230 "Master Data Management Setup"
                 field("Source Company Name"; Rec."Source Company Name")
                 {
                     ApplicationArea = Suite;
-                    Caption = 'Source Company'; // match the same-environment source company field caption
                     Editable = false;
                     Visible = CrossEnvConfigured;
                     ToolTip = 'Specifies the company in the source environment that master data is read from. Use the Cross-Environment Setup action to change it.';
