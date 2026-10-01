@@ -3860,7 +3860,9 @@ codeunit 5330 "CRM Integration Management"
                     if ScheduledTask.Get(JobQueueEntry."System Task ID") then
                         if (NewEarliestStartDateTime + RescheduleOffSetInMs) < ScheduledTask."Not Before" then begin
                             JobQueueEntryUpdate.ID := JobQueueEntry.ID;
-                            if JobQueueEntryUpdate.GetRecLockedExtendedTimeout() then
+                            if JobQueueEntryUpdate.GetRecLockedExtendedTimeout() then begin
+                                // Waiting for the lock can take a while, so the new start time is calculated again
+                                NewEarliestStartDateTime := CurrentDateTime() + RescheduleOffsetInMs;
                                 if (JobQueueEntryUpdate.Status in [JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold with Inactivity Timeout"]) and
                                    (JobQueueEntryUpdate."System Task ID" = JobQueueEntry."System Task ID") and
                                    not IsJobScheduledToRunSoon(JobQueueEntryUpdate, NewEarliestStartDateTime + RescheduleOffSetInMs)
@@ -3872,6 +3874,7 @@ codeunit 5330 "CRM Integration Management"
                                         JobQueueEntryUpdate.Modify();
                                         Session.LogMessage('0000JAV', StrSubstNo(RescheduledTaskTxt, Format(ScheduledTask.ID), Format(JobQueueEntry.ID), JobQueueEntry.Description, Format(ScheduledTask."Not Before")), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                                     end;
+                            end;
                         end;
         until JobQueueEntry.Next() = 0;
     end;
