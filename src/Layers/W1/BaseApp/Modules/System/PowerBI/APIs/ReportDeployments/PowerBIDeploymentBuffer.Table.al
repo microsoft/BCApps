@@ -55,7 +55,7 @@ table 6318 "Power BI Deployment Buffer"
         field(9; "Deployed Workspace Name"; Text[200])
         {
             Caption = 'Deployed Workspace Name';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
         field(10; Outcome; Enum "Power BI Deployment Outcome")
         {
@@ -157,6 +157,6 @@ table 6318 "Power BI Deployment Buffer"
         end;
 
         Rec."Deployment Status" := PowerBIDeployment.GetDeploymentStatus();
-        Rec.Outcome := PowerBIDeployment.GetDeploymentOutcome();
+        Rec.Outcome := PowerBIDeployment.GetDeploymentOutcome(Rec."Deployment Status");
     end;
 }

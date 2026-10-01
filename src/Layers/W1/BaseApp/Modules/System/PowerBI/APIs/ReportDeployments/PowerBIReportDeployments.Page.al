@@ -1,5 +1,4 @@
 namespace System.Integration.PowerBI;
-using System.Environment;
 using System.Threading;
 
 page 6347 "Power BI Report Deployments"
@@ -93,7 +92,6 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Deploy';
                     Image = Setup;
-                    Enabled = IsEvaluationCompany;
                     ToolTip = 'Installs the selected reports in your Power BI workspace, or replaces them with a fresh copy if they are already deployed.';
 
                     trigger OnAction()
@@ -134,7 +132,7 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Update';
                     Image = UpdateXML;
-                    Enabled = IsEvaluationCompany and CanUpdate;
+                    Enabled = CanUpdate;
                     ToolTip = 'Updates the selected reports to the latest available version.';
 
                     trigger OnAction()
@@ -163,7 +161,7 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Retry';
                     Image = ResetStatus;
-                    Enabled = IsEvaluationCompany and CanRetry;
+                    Enabled = CanRetry;
                     ToolTip = 'Resets the failed deployment and retries from scratch.';
 
                     trigger OnAction()
@@ -192,7 +190,6 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Download PBIX';
                     Image = ExportFile;
-                    Enabled = IsEvaluationCompany;
                     ToolTip = 'Downloads the PBIX file of the selected report.';
 
                     trigger OnAction()
@@ -212,7 +209,6 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Reload';
                     Image = Refresh;
-                    Enabled = IsEvaluationCompany;
                     ToolTip = 'Refreshes the deployment status of the reports.';
 
                     trigger OnAction()
@@ -225,7 +221,6 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Clear Deployment Records';
                     Image = ClearLog;
-                    Enabled = IsEvaluationCompany;
                     ToolTip = 'Deletes all data in Business Central about Power BI deployments (shown in this list). Reports already uploaded to the Power BI workspace are not removed.';
 
                     trigger OnAction()
@@ -247,7 +242,7 @@ page 6347 "Power BI Report Deployments"
                 ApplicationArea = All;
                 Caption = 'Open in Power BI';
                 Image = Open;
-                Enabled = IsEvaluationCompany and CanOpenInPowerBI;
+                Enabled = CanOpenInPowerBI;
                 ToolTip = 'Opens the deployed report in Power BI.';
 
                 trigger OnAction()
@@ -317,11 +312,7 @@ page 6347 "Power BI Report Deployments"
     }
 
     trigger OnOpenPage()
-    var
-        Company: Record Company;
     begin
-        Company.Get(CompanyName());
-        IsEvaluationCompany := Company."Evaluation Company";
         Rec.LoadReports();
     end;
 
@@ -363,7 +354,6 @@ page 6347 "Power BI Report Deployments"
         CanUpdate: Boolean;
         CanRetry: Boolean;
         CanOpenInPowerBI: Boolean;
-        IsEvaluationCompany: Boolean;
         NoReportSelectedErr: Label 'No report has been selected for deployment.';
         DeploymentInProgressMsg: Label 'A deployment is already in progress for %1 of the selected reports, they were not re-deployed.', Comment = '%1 = the number of reports that are currently being deployed';
         ReplaceDeployedReportQst: Label 'Deploying replaces the %1 selected report(s) that are already deployed with a fresh copy in your Power BI workspace, instead of updating them in place. To move a deployed report to its latest available version, use the Update action.\Do you want to continue?', Comment = '%1 = the number of reports that are already deployed';

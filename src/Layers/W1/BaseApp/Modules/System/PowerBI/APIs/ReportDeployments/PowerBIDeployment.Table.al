@@ -174,16 +174,12 @@ table 6316 "Power BI Deployment"
             Enum::"Power BI Upload Status"::Failed]));
     end;
 
-    local procedure IsDeployed(): Boolean
-    begin
-        exit(Rec.GetUploadStatus() = Enum::"Power BI Upload Status"::Completed);
-    end;
-
     procedure GetDeploymentStatus(): Enum "Power BI Deployment Status"
     var
+        PowerBIDeployment: Record "Power BI Deployment";
         UploadStatus: Enum "Power BI Upload Status";
     begin
-        if not GetDeployment(Rec."Report Id") then
+        if not PowerBIDeployment.Get(Rec."Report Id") then
             exit(Enum::"Power BI Deployment Status"::"Not Installed");
 
         UploadStatus := GetUploadStatus();
@@ -203,29 +199,20 @@ table 6316 "Power BI Deployment"
         exit(Enum::"Power BI Deployment Status"::"Up to Date");
     end;
 
-    procedure GetDeploymentOutcome(): Enum "Power BI Deployment Outcome"
+    procedure GetDeploymentOutcome(DeploymentStatus: Enum "Power BI Deployment Status"): Enum "Power BI Deployment Outcome"
     begin
-        if not GetDeployment(Rec."Report Id") then
-            exit(Enum::"Power BI Deployment Outcome"::"Not Deployed");
-
-        if GetUploadStatus() = Enum::"Power BI Upload Status"::Failed then
-            exit(Enum::"Power BI Deployment Outcome"::Failed);
-
-        if IsDeploymentInProgress() then
-            exit(Enum::"Power BI Deployment Outcome"::"In Progress");
-
-        if IsDeployed() then
-            exit(Enum::"Power BI Deployment Outcome"::Finished);
-
-        exit(Enum::"Power BI Deployment Outcome"::"Not Deployed");
-    end;
-
-    local procedure GetDeployment(PowerBIDeployableReport: Enum "Power BI Deployable Report"): Boolean
-    begin
-        if Rec."Report Id" = PowerBIDeployableReport then
-            exit(true);
-        Clear(Rec);
-        exit(Rec.Get(PowerBIDeployableReport));
+        case DeploymentStatus of
+            Enum::"Power BI Deployment Status"::"Not Installed":
+                exit(Enum::"Power BI Deployment Outcome"::"Not Deployed");
+            Enum::"Power BI Deployment Status"::Queued,
+            Enum::"Power BI Deployment Status"::Installing:
+                exit(Enum::"Power BI Deployment Outcome"::"In Progress");
+            Enum::"Power BI Deployment Status"::Error:
+                exit(Enum::"Power BI Deployment Outcome"::Failed);
+            Enum::"Power BI Deployment Status"::"Up to Date",
+            Enum::"Power BI Deployment Status"::"Update Available":
+                exit(Enum::"Power BI Deployment Outcome"::Finished);
+        end;
     end;
 
     internal procedure QueueForDeployment(ReportId: Enum "Power BI Deployable Report")
