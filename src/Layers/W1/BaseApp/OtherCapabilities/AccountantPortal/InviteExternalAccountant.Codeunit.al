@@ -327,11 +327,11 @@ codeunit 9033 "Invite External Accountant"
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('', InvokeWebRequestSendFailedTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+        Session.LogMessage('0000VT2', InvokeWebRequestSendFailedTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
 
         CustomDimensions.Add('Category', InviteExternalAccountantTelemetryCategoryTxt);
         CustomDimensions.Add('ErrorText', ErrorText);
-        Session.LogMessage('', InvokeWebRequestSendFailedDetailedTxt, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        Session.LogMessage('0000VT3', InvokeWebRequestSendFailedDetailedTxt, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     local procedure LogInvokeRequestFailure(HttpStatusCode: Integer; ResponseErrorMessage: Text; ResponseErrorDetails: Text)

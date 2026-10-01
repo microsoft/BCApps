@@ -1,4 +1,4 @@
-﻿namespace System.Integration;
+namespace System.Integration;
 
 using System;
 using System.Apps;
@@ -677,7 +677,7 @@ codeunit 6710 ODataUtility
         Endpoint := GetUrl(CLIENTTYPE::ODataV4) + '/$metadata';
         Token := AzureAdMgt.GetAccessTokenAsSecretText(UrlHelper.GetFixedEndpointWebServiceUrl(), '', false);
         if Token.IsEmpty() then begin
-            Session.LogMessage('', NoTokenForMetadataTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ODataUtilityTelemetryCategoryTxt);
+            Session.LogMessage('0000VSX', NoTokenForMetadataTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ODataUtilityTelemetryCategoryTxt);
             exit(false);
         end;
 
