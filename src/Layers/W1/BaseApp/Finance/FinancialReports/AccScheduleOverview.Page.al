@@ -1474,7 +1474,7 @@ page 490 "Acc. Schedule Overview"
         PreserveCurrentPageFilters: Boolean;
         IsPreview: Boolean;
         PreviewCaption: Text;
-        PreviewLbl: Label 'Preview: %1', Comment = '%1 = row definition';
+        PreviewLbl: Label 'Preview: %1', Comment = '%1 = row or column definition';
 
     protected var
         AnalysisView: Record "Analysis View";
@@ -1542,7 +1542,7 @@ page 490 "Acc. Schedule Overview"
         ViewOnlyModeSet := true;
     end;
 
-    procedure SetPreview(NewPreviewCaption: Text)
+    internal procedure SetPreview(NewPreviewCaption: Text)
     begin
         IsPreview := true;
         PreviewCaption := NewPreviewCaption;
