@@ -31,6 +31,7 @@ tableextension 5285 "VAT Posting Setup SAF-T" extends "VAT Posting Setup"
         field(5285; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            DataClassification = CustomerContent;
         }
     }
 
