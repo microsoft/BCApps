@@ -1908,32 +1908,21 @@ codeunit 130130 "MCP Config Test"
 
     local procedure AssertAgentSystemTools(var MCPConfigCard: TestPage "MCP Config Card")
     var
+        MCPUtilities: Codeunit "MCP Utilities";
+        ExpectedSystemTools: Dictionary of [Text, Text];
+        ToolName: Text;
         ToolCount: Integer;
-        ListAgentsFound: Boolean;
-        InvokeAgentFound: Boolean;
     begin
+        ExpectedSystemTools := MCPUtilities.GetSystemToolsInAgents();
         if MCPConfigCard.SystemToolList.First() then
             repeat
                 ToolCount += 1;
-                case MCPConfigCard.SystemToolList."Tool Name".Value of
-                    'bc_agents_list':
-                        begin
-                            Assert.AreEqual('Lists Business Central specialized agents. Invoke or ask questions to the agent using the bc_agents_invoke tool.', MCPConfigCard.SystemToolList."Tool Description".Value, 'bc_agents_list description mismatch');
-                            ListAgentsFound := true;
-                        end;
-                    'bc_agents_invoke':
-                        begin
-                            Assert.AreEqual('Reserved for invoking a Business Central agent. This tool is not implemented and always returns an error without creating a task.', MCPConfigCard.SystemToolList."Tool Description".Value, 'bc_agents_invoke description mismatch');
-                            InvokeAgentFound := true;
-                        end;
-                    else
-                        Error('Unexpected active system tool: %1.', MCPConfigCard.SystemToolList."Tool Name".Value);
-                end;
+                ToolName := MCPConfigCard.SystemToolList."Tool Name".Value;
+                Assert.IsTrue(ExpectedSystemTools.ContainsKey(ToolName), 'Unexpected active system tool: ' + ToolName);
+                Assert.AreEqual(ExpectedSystemTools.Get(ToolName), MCPConfigCard.SystemToolList."Tool Description".Value, 'Agent system tool description mismatch');
             until not MCPConfigCard.SystemToolList.Next();
 
-        Assert.AreEqual(2, ToolCount, 'Unexpected Active System Tools count');
-        Assert.IsTrue(ListAgentsFound, 'bc_agents_list is missing');
-        Assert.IsTrue(InvokeAgentFound, 'bc_agents_invoke is missing');
+        Assert.AreEqual(ExpectedSystemTools.Count(), ToolCount, 'Unexpected Active System Tools count');
     end;
 
     local procedure EnsureSystemDefaultExists()

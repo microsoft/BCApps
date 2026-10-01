@@ -40,9 +40,14 @@ codeunit 8376 "MCP Agent Tools Feature" implements "MCP Server Features"
     end;
 
     procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
+    var
+        MCPUtilities: Codeunit "MCP Utilities";
+        SystemTools: Dictionary of [Text, Text];
+        ToolName: Text;
     begin
-        InsertTool(MCPSystemTool, 'bc_agents_list', ListAgentsDescriptionLbl);
-        InsertTool(MCPSystemTool, 'bc_agents_invoke', InvokeAgentDescriptionLbl);
+        SystemTools := MCPUtilities.GetSystemToolsInAgents();
+        foreach ToolName in SystemTools.Keys() do
+            InsertTool(MCPSystemTool, CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
     end;
 
     procedure TryGetParentFeature(var ParentFeature: Enum "MCP Server Feature"): Boolean
@@ -60,6 +65,4 @@ codeunit 8376 "MCP Agent Tools Feature" implements "MCP Server Features"
 
     var
         DescriptionLbl: Label 'Exposes tools to list configured Business Central agents and the reserved agent invocation tool.';
-        ListAgentsDescriptionLbl: Label 'Lists Business Central specialized agents. Invoke or ask questions to the agent using the bc_agents_invoke tool.';
-        InvokeAgentDescriptionLbl: Label 'Reserved for invoking a Business Central agent. This tool is not implemented and always returns an error without creating a task.';
 }
