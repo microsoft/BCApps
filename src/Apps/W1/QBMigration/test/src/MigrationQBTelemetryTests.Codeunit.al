@@ -1,4 +1,4 @@
-codeunit 139532 "MigrationQB Telemetry Tests"
+codeunit 139533 "MigrationQB Telemetry Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
