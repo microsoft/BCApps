@@ -263,6 +263,11 @@ table 5745 "Transfer Shipment Line"
         ItemTrackingDocMgt.ShowItemTrackingForShptRcptLine(DATABASE::"Transfer Shipment Line", 0, "Document No.", '', 0, "Line No.");
     end;
 
+    procedure GetProductionOrderNo(var ProductionOrderNo: Code[20])
+    begin
+        OnGetProductionOrderNo(Rec, ProductionOrderNo);
+    end;
+
     procedure CopyFromTransferLine(TransLine: Record "Transfer Line")
     begin
         "Line No." := TransLine."Line No.";
@@ -301,6 +306,11 @@ table 5745 "Transfer Shipment Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromTransferLine(var TransferShipmentLine: Record "Transfer Shipment Line"; TransferLine: Record "Transfer Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetProductionOrderNo(TransferShipmentLine: Record "Transfer Shipment Line"; var ProductionOrderNo: Code[20])
     begin
     end;
 }
