@@ -524,7 +524,8 @@ codeunit 13926 "E-Document DE Tests"
         PaymentMethodCode := LibraryEDocDE.CreatePaymentMethodWithMeansCode(UnsupportedMeansCodeTok);
         CreateSalesInvoiceWithPaymentMethod(SalesHeader, PaymentMethodCode);
 
-        // [GIVEN] An extension subscribes to OnBeforeCheckPaymentMeansCodeSupported and handles the code
+        // [GIVEN] An extension subscribes to OnBeforeCheckPaymentMeansCodeSupported and handles exactly that code
+        PaymentMeansHandler.SetExpectedPaymentMeansCode(UnsupportedMeansCodeTok);
         BindSubscription(PaymentMeansHandler);
 
         // [WHEN] The payment data is checked

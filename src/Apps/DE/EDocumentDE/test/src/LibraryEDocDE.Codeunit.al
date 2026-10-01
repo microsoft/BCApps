@@ -25,6 +25,7 @@ codeunit 13925 "Library - E-Doc DE"
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
         SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
         CapturedEDocumentServiceCode: Code[20];
+        CapturedPaymentMeansHeaderRecordId: RecordId;
         EDocumentServiceEventCount: Integer;
 
     /// <summary>
@@ -73,11 +74,42 @@ codeunit 13925 "Library - E-Doc DE"
 #pragma warning restore AL0432
 #endif
 
+    /// <summary>
+    /// Returns the record ID of the header carried by the last payment means event of the XRechnung or
+    /// ZUGFeRD export. Bind this codeunit with BindSubscription before the export and unbind afterwards.
+    /// </summary>
+    /// <returns>The record ID of the header carried by the last captured payment means event.</returns>
+    procedure GetCapturedPaymentMeansHeaderRecordId(): RecordId
+    begin
+        exit(CapturedPaymentMeansHeaderRecordId);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertPaymentMeansOnBeforeAddToRoot, '', false, false)]
+    local procedure CaptureXRechnungOnInsertPaymentMeansOnBeforeAddToRoot(var PaymentMeansElement: XmlElement; HeaderRecRef: RecordRef)
+    begin
+        CapturedPaymentMeansHeaderRecordId := HeaderRecRef.RecordId();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", OnInsertPaymentMethodOnBeforeAddToRoot, '', false, false)]
+    local procedure CaptureZUGFeRDOnInsertPaymentMethodOnBeforeAddToRoot(var PaymentMethodElement: XmlElement; HeaderRecRef: RecordRef)
+    begin
+        CapturedPaymentMeansHeaderRecordId := HeaderRecRef.RecordId();
+    end;
+
+    /// <summary>
+    /// Creates a payment method with the SEPA direct debit payment means code '59'.
+    /// </summary>
+    /// <returns>The Code of the new payment method.</returns>
     procedure CreateDirectDebitPaymentMethod(): Code[10]
     begin
         exit(CreatePaymentMethodWithMeansCode(SEPADirectDebitMeansCodeTok));
     end;
 
+    /// <summary>
+    /// Creates a payment method with the given UNCL4461 payment means code.
+    /// </summary>
+    /// <param name="PaymentMeansCode">The payment means code to set up on the payment method.</param>
+    /// <returns>The Code of the new payment method.</returns>
     procedure CreatePaymentMethodWithMeansCode(PaymentMeansCode: Code[3]): Code[10]
     var
         PaymentMethod: Record "Payment Method";
@@ -88,6 +120,13 @@ codeunit 13925 "Library - E-Doc DE"
         exit(PaymentMethod.Code);
     end;
 
+    /// <summary>
+    /// Creates a customer with a bank account with an IBAN and a SEPA direct debit mandate for it.
+    /// </summary>
+    /// <param name="SEPADirectDebitMandate">Returns the new mandate.</param>
+    /// <param name="CustomerBankAccount">Returns the new customer bank account the mandate refers to.</param>
+    /// <param name="PaymentMethodCode">The payment method to set on the customer.</param>
+    /// <returns>The No. of the new customer.</returns>
     procedure CreateCustomerWithDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; PaymentMethodCode: Code[10]): Code[20]
     var
         Customer: Record Customer;
@@ -101,6 +140,11 @@ codeunit 13925 "Library - E-Doc DE"
     /// Use this when the test needs a customer built by its own suite, for example one with the
     /// address and VAT data a format requires.
     /// </summary>
+    /// <param name="SEPADirectDebitMandate">Returns the new mandate.</param>
+    /// <param name="CustomerBankAccount">Returns the new customer bank account the mandate refers to.</param>
+    /// <param name="CustomerNo">The customer that gets the bank account and the mandate.</param>
+    /// <param name="PaymentMethodCode">The payment method to set on the customer.</param>
+    /// <returns>The No. of the customer.</returns>
     procedure AddDirectDebitMandateToCustomer(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; CustomerNo: Code[20]; PaymentMethodCode: Code[10]): Code[20]
     var
         Customer: Record Customer;

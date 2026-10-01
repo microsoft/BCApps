@@ -42,6 +42,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
         EDocItemChargeMapping: Codeunit "E-Doc. Item Charge Mapping";
         DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
+        SourceDocumentRecordRef: RecordRef;
         ItemChargeStructures: Dictionary of [Integer, Integer];
         LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
         LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
@@ -305,6 +306,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesInvoiceHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -345,6 +348,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesCrMemoHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -396,6 +401,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceInvoiceHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -446,6 +453,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceCrMemoHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -1266,8 +1275,13 @@ codeunit 13917 "Export ZUGFeRD Document"
                 InsertDirectDebitPayment(PaymentMethodElement, DirectDebitMandateID);
         end;
 
-        if DataTypeManagement.GetRecordRef(RecordVariant, HeaderRecordRef) then
-            OnInsertPaymentMethodOnBeforeAddToRoot(PaymentMethodElement, HeaderRecordRef);
+        // The original source document, so that a subscriber sees the service header and not the sales header it was transferred to.
+        // The passed header is only used when InsertSupplyChainTradeTransaction is called directly, without CreateXML.
+        if SourceDocumentRecordRef.Number() <> 0 then
+            OnInsertPaymentMethodOnBeforeAddToRoot(PaymentMethodElement, SourceDocumentRecordRef)
+        else
+            if DataTypeManagement.GetRecordRef(RecordVariant, HeaderRecordRef) then
+                OnInsertPaymentMethodOnBeforeAddToRoot(PaymentMethodElement, HeaderRecordRef);
         RootXMLNode.Add(PaymentMethodElement);
     end;
 

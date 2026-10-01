@@ -904,6 +904,27 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatPassesServiceHeaderToPaymentMeansEvent();
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] OnInsertPaymentMeansOnBeforeAddToRoot carries the posted service invoice, not the sales invoice header it is transferred to for the export
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice.
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+
+        // [WHEN] Export XRechnung Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The payment means event carried the posted service invoice
+        Assert.AreEqual(ServiceInvoiceHeader.RecordId(), LibraryEDocDE.GetCapturedPaymentMeansHeaderRecordId(), 'The payment means event should carry the posted service invoice');
+    end;
+
+    [Test]
     procedure ExportPostedServiceInvoiceInXRechnungFormatVerifyDirectDebitPaymentMeans();
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";

@@ -23,13 +23,18 @@ codeunit 11043 "DE Payment Means Helper"
         CompanyBankAccountMissingErr: Label 'SEPA direct debit requires the company bank account that holds the creditor identifier. Set the Company Bank Account Code on the document.';
         CompanyBankAccountNotFoundErr: Label 'Company bank account %1 does not exist.', Comment = '%1 = Bank Account Code';
         CreditorNoMissingErr: Label 'Bank account %1 has no creditor identifier (Creditor No.). Set it up before releasing the document.', Comment = '%1 = Bank Account Code';
+        CreditorNoMissingTitleLbl: Label 'The creditor identifier is missing';
         IBANMissingErr: Label 'Customer bank account %1 on mandate %2 has no IBAN. Set up the IBAN before releasing the document.', Comment = '%1 = Bank Account Code, %2 = Mandate ID';
+        IBANMissingTitleLbl: Label 'The customer IBAN is missing';
         MandateIDMissingErr: Label 'Direct debit mandate ID is missing on the document. Set it in the Payment tab before releasing.';
         MandateNotFoundErr: Label 'SEPA Direct Debit Mandate %1 does not exist.', Comment = '%1 = Mandate ID';
         SEPADDOnCrMemoErr: Label 'Payment means code %1 (SEPA direct debit) cannot be used on a credit memo or return order. Use a credit transfer code (30 or 58) instead.', Comment = '%1 = UNCL4461 payment means code';
+        SEPADDOnCrMemoTitleLbl: Label 'SEPA direct debit is not possible on a credit document';
         ShowBankAccountLbl: Label 'Show Bank Account';
         ShowCustomerBankAccountLbl: Label 'Show Customer Bank Account';
+        ShowPaymentMethodLbl: Label 'Show Payment Method';
         UnsupportedPaymentMeansCodeErr: Label 'Payment means code %1 is not supported for German electronic documents. Use a credit transfer code (30 or 58) or a SEPA direct debit code (49 or 59), or install an extension that supplies the data that code requires.', Comment = '%1 = UNCL4461 payment means code';
+        UnsupportedPaymentMeansCodeTitleLbl: Label 'The payment means code is not supported';
 
     /// <summary>
     /// Returns the UNCL4461 payment means code for the given Payment Method Code.
@@ -41,10 +46,12 @@ codeunit 11043 "DE Payment Means Helper"
     var
         PaymentMethod: Record "Payment Method";
     begin
-        if PaymentMethodCode <> '' then
+        if PaymentMethodCode <> '' then begin
+            PaymentMethod.SetLoadFields(PaymentMethod."Payment Means Code");
             if PaymentMethod.Get(PaymentMethodCode) then
                 if PaymentMethod."Payment Means Code" <> '' then
                     exit(PaymentMethod."Payment Means Code");
+        end;
         exit('58');
     end;
 
@@ -128,7 +135,7 @@ codeunit 11043 "DE Payment Means Helper"
                     // A credit document never carries a mandate. This has to stay in front of the mandate
                     // FieldRef below, because the posted credit memo tables have no Direct Debit Mandate ID field.
                     if IsCreditDocument(SourceDocumentHeader) then
-                        Error(SEPADDOnCrMemoErr, PaymentMeansCode);
+                        RaisePaymentMethodError(PaymentMethodCode, SEPADDOnCrMemoTitleLbl, StrSubstNo(SEPADDOnCrMemoErr, PaymentMeansCode));
                     DirectDebitMandateIDFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Direct Debit Mandate ID"));
                     DirectDebitMandateID := DirectDebitMandateIDFieldRef.Value();
                     if DirectDebitMandateID = '' then
@@ -137,7 +144,7 @@ codeunit 11043 "DE Payment Means Helper"
                     CheckCreditorNoAvailable(SourceDocumentHeader);
                 end;
             else
-                CheckPaymentMeansCodeSupported(PaymentMeansCode, SourceDocumentHeader);
+                CheckPaymentMeansCodeSupported(PaymentMeansCode, PaymentMethodCode, SourceDocumentHeader);
         end;
     end;
 
@@ -184,7 +191,9 @@ codeunit 11043 "DE Payment Means Helper"
             Error(BankAccountNotFoundErr, SEPADirectDebitMandate."Customer Bank Account Code", DirectDebitMandateID);
         if CustomerBankAccount.IBAN = '' then begin
             // The bank account exists, so the user can be taken straight to the record that needs the IBAN.
+            IBANMissingErrorInfo.Title := IBANMissingTitleLbl;
             IBANMissingErrorInfo.Message := StrSubstNo(IBANMissingErr, SEPADirectDebitMandate."Customer Bank Account Code", DirectDebitMandateID);
+            IBANMissingErrorInfo.DataClassification := DataClassification::CustomerContent;
             IBANMissingErrorInfo.RecordId := CustomerBankAccount.RecordId();
             IBANMissingErrorInfo.PageNo := Page::"Customer Bank Account Card";
             IBANMissingErrorInfo.AddNavigationAction(ShowCustomerBankAccountLbl);
@@ -215,7 +224,9 @@ codeunit 11043 "DE Payment Means Helper"
         if not BankAccount.Get(CompanyBankAccountCode) then
             Error(CompanyBankAccountNotFoundErr, CompanyBankAccountCode);
         if BankAccount."Creditor No." = '' then begin
+            CreditorNoMissingErrorInfo.Title := CreditorNoMissingTitleLbl;
             CreditorNoMissingErrorInfo.Message := StrSubstNo(CreditorNoMissingErr, CompanyBankAccountCode);
+            CreditorNoMissingErrorInfo.DataClassification := DataClassification::CustomerContent;
             CreditorNoMissingErrorInfo.RecordId := BankAccount.RecordId();
             CreditorNoMissingErrorInfo.PageNo := Page::"Bank Account Card";
             CreditorNoMissingErrorInfo.AddNavigationAction(ShowBankAccountLbl);
@@ -223,7 +234,7 @@ codeunit 11043 "DE Payment Means Helper"
         end;
     end;
 
-    local procedure CheckPaymentMeansCodeSupported(PaymentMeansCode: Code[3]; SourceDocumentHeader: RecordRef)
+    local procedure CheckPaymentMeansCodeSupported(PaymentMeansCode: Code[3]; PaymentMethodCode: Code[10]; SourceDocumentHeader: RecordRef)
     var
         IsHandled: Boolean;
     begin
@@ -234,7 +245,25 @@ codeunit 11043 "DE Payment Means Helper"
         OnBeforeCheckPaymentMeansCodeSupported(PaymentMeansCode, SourceDocumentHeader, IsHandled);
         if IsHandled then
             exit;
-        Error(UnsupportedPaymentMeansCodeErr, PaymentMeansCode);
+        RaisePaymentMethodError(PaymentMethodCode, UnsupportedPaymentMeansCodeTitleLbl, StrSubstNo(UnsupportedPaymentMeansCodeErr, PaymentMeansCode));
+    end;
+
+    local procedure RaisePaymentMethodError(PaymentMethodCode: Code[10]; ErrorTitle: Text; ErrorMessage: Text)
+    var
+        PaymentMethod: Record "Payment Method";
+        PaymentMethodErrorInfo: ErrorInfo;
+    begin
+        // Only reached for a code configured on the payment method, so the payment method exists and the user
+        // can be taken straight to it to change the payment means code.
+        PaymentMethod.SetLoadFields(PaymentMethod.Code);
+        PaymentMethod.Get(PaymentMethodCode);
+        PaymentMethodErrorInfo.Title := ErrorTitle;
+        PaymentMethodErrorInfo.Message := ErrorMessage;
+        PaymentMethodErrorInfo.DataClassification := DataClassification::CustomerContent;
+        PaymentMethodErrorInfo.RecordId := PaymentMethod.RecordId();
+        PaymentMethodErrorInfo.PageNo := Page::"Payment Methods";
+        PaymentMethodErrorInfo.AddNavigationAction(ShowPaymentMethodLbl);
+        Error(PaymentMethodErrorInfo);
     end;
 
     /// <summary>

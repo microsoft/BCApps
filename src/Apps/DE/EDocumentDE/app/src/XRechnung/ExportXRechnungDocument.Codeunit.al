@@ -46,6 +46,7 @@ codeunit 13916 "Export XRechnung Document"
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
         EDocItemChargeMapping: Codeunit "E-Doc. Item Charge Mapping";
         DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
+        SourceDocumentRecordRef: RecordRef;
         ItemChargeStructures: Dictionary of [Integer, Integer];
         LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
         LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
@@ -186,6 +187,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesInvoiceHeader);
         CurrencyCode := GetCurrencyCode(SalesInvoiceHeader."Currency Code", Currency);
 
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
@@ -203,7 +206,7 @@ codeunit 13916 "Export XRechnung Document"
         InsertAccountingSupplierParty(SalesInvoiceHeader."Responsibility Center", SalesInvoiceHeader."Salesperson Code", RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesInvoiceHeader);
         InsertDelivery(RootXMLNode, SalesInvoiceHeader);
-        InsertPaymentMeans(RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code", SalesInvoiceHeader."Direct Debit Mandate ID", SalesInvoiceHeader);
+        InsertPaymentMeans(RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code", SalesInvoiceHeader."Direct Debit Mandate ID");
         InsertPaymentTerms(RootXMLNode, SalesInvoiceHeader."Payment Terms Code");
         InsertVATAmounts(SalesInvLine, LineVATAmount, LineAmount, LineDiscAmount, SalesInvoiceHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, SalesInvLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -236,6 +239,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesCrMemoHeader);
         CurrencyCode := GetCurrencyCode(SalesCrMemoHeader."Currency Code", Currency);
 
         XmlDocument.ReadFrom(GetCrMemoXMLHeader(), XMLDoc);
@@ -253,7 +258,7 @@ codeunit 13916 "Export XRechnung Document"
         InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesCrMemoHeader);
         InsertDelivery(RootXMLNode, SalesCrMemoHeader);
-        InsertPaymentMeans(RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '', SalesCrMemoHeader);
+        InsertPaymentMeans(RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '');
         InsertPaymentTerms(RootXMLNode, SalesCrMemoHeader."Payment Terms Code");
         InsertVATAmounts(SalesCrMemoLine, LineVATAmount, LineAmount, LineDiscAmount, SalesCrMemoHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, SalesCrMemoLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -298,6 +303,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceInvoiceHeader);
         CurrencyCode := GetCurrencyCode(SalesInvoiceHeader."Currency Code", Currency);
 
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
@@ -314,7 +321,7 @@ codeunit 13916 "Export XRechnung Document"
         InsertAccountingSupplierParty(SalesInvoiceHeader."Responsibility Center", SalesInvoiceHeader."Salesperson Code", RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesInvoiceHeader);
         InsertDelivery(RootXMLNode, SalesInvoiceHeader);
-        InsertPaymentMeans(RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code", SalesInvoiceHeader."Direct Debit Mandate ID", SalesInvoiceHeader);
+        InsertPaymentMeans(RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code", SalesInvoiceHeader."Direct Debit Mandate ID");
         InsertPaymentTerms(RootXMLNode, SalesInvoiceHeader."Payment Terms Code");
         InsertVATAmounts(TempSalesInvLine, LineVATAmount, LineAmount, LineDiscAmount, SalesInvoiceHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, TempSalesInvLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -357,6 +364,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceCrMemoHeader);
         CurrencyCode := GetCurrencyCode(SalesCrMemoHeader."Currency Code", Currency);
 
         XmlDocument.ReadFrom(GetCrMemoXMLHeader(), XMLDoc);
@@ -373,7 +382,7 @@ codeunit 13916 "Export XRechnung Document"
         InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesCrMemoHeader);
         InsertDelivery(RootXMLNode, SalesCrMemoHeader);
-        InsertPaymentMeans(RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '', SalesCrMemoHeader);
+        InsertPaymentMeans(RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '');
         InsertPaymentTerms(RootXMLNode, SalesCrMemoHeader."Payment Terms Code");
         InsertVATAmounts(TempSalesCrMemoLine, LineVATAmount, LineAmount, LineDiscAmount, SalesCrMemoHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, TempSalesCrMemoLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -1080,16 +1089,12 @@ codeunit 13916 "Export XRechnung Document"
         AddressElement.Add(CountryElement);
     end;
 
-    local procedure InsertPaymentMeans(var RootXMLNode: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35]; RecordVariant: Variant)
+    local procedure InsertPaymentMeans(var RootXMLNode: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35])
     var
-        DataTypeManagement: Codeunit "Data Type Management";
-        HeaderRecordRef: RecordRef;
         PaymentMeansElement: XmlElement;
         PaymentMeansCode: Code[3];
     begin
         PaymentMeansCode := DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode);
-        if PaymentMeansCode = '' then
-            exit;
         PaymentMeansElement := XmlElement.Create('PaymentMeans', XmlNamespaceCAC);
         PaymentMeansElement.Add(XmlElement.Create('PaymentMeansCode', XmlNamespaceCBC, PaymentMeansCode));
 
@@ -1100,8 +1105,8 @@ codeunit 13916 "Export XRechnung Document"
                 InsertDirectDebitPaymentMeans(PaymentMeansElement, DirectDebitMandateID);
         end;
 
-        if DataTypeManagement.GetRecordRef(RecordVariant, HeaderRecordRef) then
-            OnInsertPaymentMeansOnBeforeAddToRoot(PaymentMeansElement, HeaderRecordRef);
+        // The original source document, so that a subscriber sees the service header and not the sales header it was transferred to.
+        OnInsertPaymentMeansOnBeforeAddToRoot(PaymentMeansElement, SourceDocumentRecordRef);
         RootXMLNode.Add(PaymentMeansElement);
     end;
 

@@ -1769,6 +1769,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedServiceInvoiceInZUGFeRDFormatPassesServiceHeaderToPaymentMeansEvent();
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] OnInsertPaymentMethodOnBeforeAddToRoot carries the posted service invoice, not the sales invoice header it is transferred to for the export
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice.
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The payment means event carried the posted service invoice
+        Assert.AreEqual(ServiceInvoiceHeader.RecordId(), LibraryEDocDE.GetCapturedPaymentMeansHeaderRecordId(), 'The payment means event should carry the posted service invoice');
+    end;
+
+    [Test]
     procedure ExportPostedServiceInvoiceInZUGFeRDFormatVerifyDirectDebitPaymentMeans();
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
