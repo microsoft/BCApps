@@ -70,9 +70,6 @@ codeunit 12180 "FatturaPA Sales Validation"
         if not Customer.Get(CustomerNo) then
             exit;
 
-        if Customer."PA Code" = '' then
-            exit;
-
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup.TestField("Fattura PA Electronic Format");
 
