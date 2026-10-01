@@ -1096,7 +1096,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
            VATPostingSetup."Adjust for Payment Discount"
         then begin
             GenJnlLine.TestField("Gen. Prod. Posting Group", ErrorInfo.Create());
-            if (GenJnlLine."Payment Discount %" <> 0) and (GenJnlLine."Pmt. Discount Date" <> 0D) then
+            if HasPaymentDiscount(GenJnlLine) then
                 CheckGenPostingSetupExists(
                         GenJnlLine."Gen. Bus. Posting Group",
                         GenJnlLine."Gen. Prod. Posting Group");
@@ -1121,7 +1121,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
            VATPostingSetup."Adjust for Payment Discount"
         then begin
             GenJnlLine.TestField("Bal. Gen. Prod. Posting Group", ErrorInfo.Create());
-            if (GenJnlLine."Payment Discount %" <> 0) and (GenJnlLine."Pmt. Discount Date" <> 0D) then
+            if HasPaymentDiscount(GenJnlLine) then
                 CheckGenPostingSetupExists(
                         GenJnlLine."Bal. Gen. Bus. Posting Group",
                         GenJnlLine."Bal. Gen. Prod. Posting Group");
@@ -1387,6 +1387,20 @@ codeunit 11 "Gen. Jnl.-Check Line"
         GeneralPostingSetup: Record "General Posting Setup";
     begin
         GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup);
+    end;
+
+    local procedure HasPaymentDiscount(GenJnlLine: Record "Gen. Journal Line"): Boolean
+    var
+        PaymentLines: Record "Payment Lines";
+    begin
+        PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::" ");
+        PaymentLines.SetRange(Type, PaymentLines.Type::"General Journal");
+        PaymentLines.SetRange(Code, GenJnlLine."Journal Batch Name");
+        PaymentLines.SetRange("Journal Template Name", GenJnlLine."Journal Template Name");
+        PaymentLines.SetRange("Journal Line No.", GenJnlLine."Line No.");
+        PaymentLines.SetFilter("Discount %", '>%1', 0);
+        PaymentLines.SetFilter("Pmt. Discount Date", '<>%1', 0D);
+        exit(PaymentLines.FindFirst());
     end;
 
     /// <summary>

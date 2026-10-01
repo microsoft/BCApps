@@ -1585,8 +1585,6 @@ codeunit 134097 "ERM Check Posting Groups"
         GenJournalLine."Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
         GenJournalLine.Modify(true);
 
-        GenJournalLine.TestField("Pmt. Discount Date");
-        GenJournalLine.TestField("Payment Discount %");
         Assert.IsFalse(
             GeneralPostingSetup.Get('', GenProductPostingGroup.Code),
             'Unexpected General Posting Setup exists for the test combination.');
@@ -1629,23 +1627,21 @@ codeunit 134097 "ERM Check Posting Groups"
             GenJournalBatch."Journal Template Name",
             GenJournalBatch.Name,
             GenJournalLine."Document Type"::Invoice,
-            GenJournalLine."Account Type"::"G/L Account",
-            GLAccountNo,
-            GenJournalLine."Bal. Account Type"::Vendor,
+            GenJournalLine."Account Type"::Vendor,
             Vendor."No.",
-            LibraryRandom.RandDec(10, 2));
+            GenJournalLine."Bal. Account Type"::"G/L Account",
+            GLAccountNo,
+            -LibraryRandom.RandDec(10, 2));
 
         GenJournalLine.Validate("Document Date", WorkDate());
         GenJournalLine.Validate("Payment Terms Code", Vendor."Payment Terms Code");
-        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
-        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        GenJournalLine."Gen. Bus. Posting Group" := '';
-        GenJournalLine."Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
+        GenJournalLine.Validate("Bal. Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("Bal. VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("Bal. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenJournalLine."Bal. Gen. Bus. Posting Group" := '';
+        GenJournalLine."Bal. Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
         GenJournalLine.Modify(true);
 
-        GenJournalLine.TestField("Pmt. Discount Date");
-        GenJournalLine.TestField("Payment Discount %");
         Assert.IsFalse(
             GeneralPostingSetup.Get('', GenProductPostingGroup.Code),
             'Unexpected General Posting Setup exists for the test combination.');
