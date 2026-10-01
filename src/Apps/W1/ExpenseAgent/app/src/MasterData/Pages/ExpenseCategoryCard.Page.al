@@ -109,11 +109,18 @@ page 6945 "Expense Category Card"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
-            CheckShowConfirmationForSubCategories(Rec);
+        if not IsDeletingCategory then
+            if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+                CheckShowConfirmationForSubCategories(Rec);
+    end;
+
+    trigger OnDeleteRecord(): Boolean
+    begin
+        IsDeletingCategory := true;
     end;
 
     var
+        IsDeletingCategory: Boolean;
         ContinueWithMissingSubcategoryQst: Label 'You have not added any subcategories for expense category %1 where %2 is %3.\\ It will be required to be added before you can use this expense category.\\ Do you want to continue without adding subcategories ?', Comment = '%1 - Expense Category Code, %2 - Field Name "Expense Detail Required", %3 - Expense Detail Required';
 
     local procedure CheckShowConfirmationForSubCategories(ExpenseCategory: Record "Expense Category")

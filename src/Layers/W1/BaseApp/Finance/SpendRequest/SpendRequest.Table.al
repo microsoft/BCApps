@@ -84,6 +84,11 @@ table 6840 "Spend Request"
         {
             Caption = 'Purpose';
             ToolTip = 'Specifies the purpose of the spend request.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(9; "Currency Code"; Code[10])
         {

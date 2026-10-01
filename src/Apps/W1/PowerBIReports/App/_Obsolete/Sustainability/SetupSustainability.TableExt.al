@@ -17,13 +17,8 @@ tableextension 36957 "Setup - Sustainability" extends "PowerBI Reports Setup"
             OptionCaption = ' ,Start/End Date,Relative Date';
             OptionMembers = " ","Start/End Date","Relative Date";
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = PendingMove;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Tableextension moved to the Sustainability app, please add it to your dependencies';
             MovedTo = 'b3780cd9-f8f8-4a83-a4d5-0c2ad87b28af';
         }
@@ -31,13 +26,8 @@ tableextension 36957 "Setup - Sustainability" extends "PowerBI Reports Setup"
         {
             Caption = 'Sustainability Report Start Date';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = PendingMove;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Tableextension moved to the Sustainability app, please add it to your dependencies';
             MovedTo = 'b3780cd9-f8f8-4a83-a4d5-0c2ad87b28af';
         }
@@ -45,13 +35,8 @@ tableextension 36957 "Setup - Sustainability" extends "PowerBI Reports Setup"
         {
             Caption = 'Sustainability Report End Date';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = PendingMove;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Tableextension moved to the Sustainability app, please add it to your dependencies';
             MovedTo = 'b3780cd9-f8f8-4a83-a4d5-0c2ad87b28af';
         }
@@ -59,13 +44,8 @@ tableextension 36957 "Setup - Sustainability" extends "PowerBI Reports Setup"
         {
             Caption = 'Sustainability Report Date Formula';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = PendingMove;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Tableextension moved to the Sustainability app, please add it to your dependencies';
             MovedTo = 'b3780cd9-f8f8-4a83-a4d5-0c2ad87b28af';
         }
@@ -73,13 +53,8 @@ tableextension 36957 "Setup - Sustainability" extends "PowerBI Reports Setup"
         {
             Caption = 'Sustainability Report ID';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = PendingMove;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Tableextension moved to the Sustainability app, please add it to your dependencies';
             MovedTo = 'b3780cd9-f8f8-4a83-a4d5-0c2ad87b28af';
         }
@@ -87,13 +62,8 @@ tableextension 36957 "Setup - Sustainability" extends "PowerBI Reports Setup"
         {
             Caption = 'Sustainability Report Name';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = PendingMove;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Tableextension moved to the Sustainability app, please add it to your dependencies';
             MovedTo = 'b3780cd9-f8f8-4a83-a4d5-0c2ad87b28af';
         }

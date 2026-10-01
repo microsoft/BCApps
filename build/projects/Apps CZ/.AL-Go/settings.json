@@ -1,5 +1,5 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/91b96c2b294be6f823277dafe6f03350abfb9d23/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps CZ",
     "country":  "CZ",
     "appFolders":  [
@@ -222,6 +222,7 @@
                         "../../../src/Layers/W1/Tests/Bank",
                         "../../../src/Layers/W1/Tests/BCPT-SampleTests",
                         "../../../src/Layers/W1/Tests/Cash Flow",
+                        "../../../src/Layers/W1/Tests/Company Creation",
                         "../../../src/Layers/W1/Tests/Cost Accounting",
                         "../../../src/Layers/W1/Tests/CRM integration",
                         "../../../src/Layers/W1/Tests/Data Exchange",

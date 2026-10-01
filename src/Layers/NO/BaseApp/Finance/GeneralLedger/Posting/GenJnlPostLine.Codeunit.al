@@ -1062,7 +1062,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         LastNextEntryNo: Integer;
     begin
         if not NonDeductibleVAT.IsNonDeductibleVATEnabled() then begin
-            if GenJnlLine."System-Created Entry" and (GenJnlLine."Source Currency Code" <> GLSetup."LCY Code") then begin
+            if GenJnlLine."System-Created Entry" and (GenJnlLine."Source Currency Code" <> '') and (GenJnlLine."Source Currency Code" <> GLSetup."LCY Code") then begin
                 FullVATAmountSrcCurr := GenJnlLine."Source Curr. VAT Amount";
                 FullVATAmountWithPropDeductionSrcCurr := -GenJnlLine."Source Curr. VAT Amount";
                 if not VATPostingParameters."Unrealized VAT" then
