@@ -2367,7 +2367,13 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     local procedure CreateBankAccountWithIBAN(var BankAccount: Record "Bank Account")
+    var
+        CompanyInformation: Record "Company Information";
     begin
+        CompanyInformation.Get();
+        CompanyInformation.IBAN := 'IT33X0542811101000000654321';
+        CompanyInformation.Modify();
+
         LibraryERM.CreateBankAccount(BankAccount);
         BankAccount.IBAN := 'IT60X0542811101000000123456';
         BankAccount.Modify();
