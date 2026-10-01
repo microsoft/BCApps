@@ -86,7 +86,8 @@ page 10503 "Postcode Configuration Page GB"
             Rec.SaveServiceKey(DisabledTok);
         end;
 
-        PrevValue := Rec.GetServiceKey();
+        ServiceKeyText := Rec.GetServiceKey();
+        PrevValue := ServiceKeyText;
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
