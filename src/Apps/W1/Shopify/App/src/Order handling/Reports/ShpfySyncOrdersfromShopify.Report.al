@@ -139,6 +139,7 @@ report 30104 "Shpfy Sync Orders from Shopify"
                 ShopifyOrderHeader."Has Error" := false;
                 ShopifyOrderHeader."Error Message" := '';
                 ShopifyOrderHeader.Processed := true;
+                ShopifyOrderHeader."Processed Currency Handling" := Shop."Currency Handling";
             end;
             ShopifyOrderHeader.Modify(true);
             Commit();
