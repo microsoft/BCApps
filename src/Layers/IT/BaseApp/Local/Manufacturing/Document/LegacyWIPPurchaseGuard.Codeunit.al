@@ -23,7 +23,7 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
             exit;
         if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
             exit;
-        if not IsWIPItem(xPurchaseLine) then
+        if not IsWIPItem(PurchaseLine) then
             exit;
         if xPurchaseLine."Outstanding Quantity" <> 0 then
             exit;
