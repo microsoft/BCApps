@@ -266,6 +266,172 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportSalesInvoiceUsesDocumentBankAccountIBAN()
+    var
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [Payment]
+        Initialize();
+
+        // [GIVEN] A posted Sales Invoice with a company bank account
+        CreateBankAccountWithIBAN(BankAccount);
+        SalesInvoiceHeader.Get(
+          CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+        SalesInvoiceHeader."Company Bank Account Code" := BankAccount."No.";
+        SalesInvoiceHeader.Modify();
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The company bank account IBAN is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaBody/DatiPagamento/DettaglioPagamento/IBAN',
+          BankAccount.IBAN);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesCreditMemoUsesDocumentBankAccountIBAN()
+    var
+        BankAccount: Record "Bank Account";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Credit Memo] [Payment]
+        Initialize();
+
+        // [GIVEN] A posted Sales Credit Memo with a company bank account
+        CreateBankAccountWithIBAN(BankAccount);
+        SalesCrMemoHeader.Get(
+          CreateAndPostSalesCrMemo(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+        SalesCrMemoHeader."Company Bank Account Code" := BankAccount."No.";
+        SalesCrMemoHeader.Modify();
+        SalesCrMemoHeader.SetRecFilter();
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesCrMemoHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The company bank account IBAN is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaBody/DatiPagamento/DettaglioPagamento/IBAN',
+          BankAccount.IBAN);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportServiceInvoiceUsesDocumentBankAccountIBAN()
+    var
+        BankAccount: Record "Bank Account";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Service] [Invoice] [Payment]
+        Initialize();
+
+        // [GIVEN] A posted Service Invoice with a company bank account
+        CreateBankAccountWithIBAN(BankAccount);
+        ServiceInvoiceHeader.Get(
+          CreateAndPostServiceInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+        ServiceInvoiceHeader."Company Bank Account Code" := BankAccount."No.";
+        ServiceInvoiceHeader.Modify();
+        ServiceInvoiceHeader.SetRecFilter();
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, ServiceInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The company bank account IBAN is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaBody/DatiPagamento/DettaglioPagamento/IBAN',
+          BankAccount.IBAN);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportServiceCreditMemoUsesDocumentBankAccountIBAN()
+    var
+        BankAccount: Record "Bank Account";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Service] [Credit Memo] [Payment]
+        Initialize();
+
+        // [GIVEN] A posted Service Credit Memo with a company bank account
+        CreateBankAccountWithIBAN(BankAccount);
+        ServiceCrMemoHeader.Get(
+          CreateAndPostServiceCrMemo(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+        ServiceCrMemoHeader."Company Bank Account Code" := BankAccount."No.";
+        ServiceCrMemoHeader.Modify();
+        ServiceCrMemoHeader.SetRecFilter();
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, ServiceCrMemoHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The company bank account IBAN is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaBody/DatiPagamento/DettaglioPagamento/IBAN',
+          BankAccount.IBAN);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithoutDocumentBankAccountUsesCompanyIBAN()
+    var
+        CompanyInformation: Record "Company Information";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [Payment]
+        Initialize();
+
+        // [GIVEN] Company Information has an IBAN and the posted Sales Invoice has no company bank account
+        CompanyInformation.Get();
+        CompanyInformation.IBAN := 'IT60X0542811101000000123456';
+        CompanyInformation.Modify();
+        SalesInvoiceHeader.Get(
+          CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+        SalesInvoiceHeader.TestField("Company Bank Account Code", '');
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Company Information IBAN is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaBody/DatiPagamento/DettaglioPagamento/IBAN',
+          CompanyInformation.IBAN);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceBatch()
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
@@ -2198,6 +2364,13 @@ codeunit 144200 "FatturaPA Test"
         SalesHeader.Modify(true);
         CreateSalesLineWithVATPostingGroup(SalesLine, SalesHeader, SalesLine.Type::Item, VATPostingSetup."VAT Prod. Posting Group");
         DocumentNo := NoSeriesBatch.GetNextNo(SalesHeader."Posting No. Series");
+    end;
+
+    local procedure CreateBankAccountWithIBAN(var BankAccount: Record "Bank Account")
+    begin
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.IBAN := 'IT60X0542811101000000123456';
+        BankAccount.Modify();
     end;
 
     local procedure CreatePaymentMethod(): Code[10]
