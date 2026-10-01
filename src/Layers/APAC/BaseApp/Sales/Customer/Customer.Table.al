@@ -3776,8 +3776,11 @@ table 18 Customer
 
         // OnModify runs before the database write, so Get retrieves
         // the persisted customer values from before the modification.
-        if not IsTemporary then
+        if not IsTemporary then begin
             CustomerBeforeModify.Get("No.");
+            if CustomerBeforeModify.SystemRowVersion <> xRec.SystemRowVersion then
+                CustomerBeforeModify := xRec;
+        end;
 
         UpdateNeeded :=
           (Name <> CustomerBeforeModify.Name) or
