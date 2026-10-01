@@ -347,13 +347,15 @@ codeunit 9033 "Invite External Accountant"
         ErrorObjectValue: Text;
         MessageValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseContent);
+        if not JSONManagement.InitializeFromString(ResponseContent) then
+            exit(RequestFailedNoDetailsErr);
         JSONManagement.GetJSONObject(JsonObject);
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, ErrorTxt, ErrorObjectValue) then begin
-            JSONManagement.InitializeObject(ErrorObjectValue);
-            JSONManagement.GetJSONObject(JsonObject);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, MessageTxt, MessageValue);
-        end;
+        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, ErrorTxt, ErrorObjectValue) then
+            if JSONManagement.InitializeFromString(ErrorObjectValue) then begin
+                JSONManagement.GetJSONObject(JsonObject);
+                JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, MessageTxt, MessageValue);
+            end else
+                MessageValue := ErrorObjectValue;
 
         if MessageValue <> '' then
             exit(MessageValue);
