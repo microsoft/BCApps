@@ -54,11 +54,14 @@ codeunit 1915 "MigrationQB Dashboard Mgt"
     begin
         DataMigrationStatus.SetRange("Migration Type", HelperFunctions.GetMigrationTypeTxt());
         DataMigrationStatus.SetRange(Status, DataMigrationStatus.Status::Completed);
-        DataMigrationStatus.SetCurrentKey("Migration Type", Status, SystemModifiedAt);
-        if not DataMigrationStatus.FindLast() then
+        if not DataMigrationStatus.FindSet() then
             exit(false);
 
-        MigrationDateTime := DataMigrationStatus.SystemModifiedAt;
+        repeat
+            if DataMigrationStatus.SystemModifiedAt > MigrationDateTime then
+                MigrationDateTime := DataMigrationStatus.SystemModifiedAt;
+        until DataMigrationStatus.Next() = 0;
+
         exit(true);
     end;
 
