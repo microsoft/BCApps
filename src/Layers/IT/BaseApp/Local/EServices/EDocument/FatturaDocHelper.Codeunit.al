@@ -1496,30 +1496,6 @@ codeunit 12184 "Fattura Doc. Helper"
     end;
 
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostSalesDoc', '', false, false)]
-    local procedure CheckForeignFiscalIdentifierOnBeforePostSalesDoc(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean; var HideProgressWindow: Boolean; var IsHandled: Boolean; var CalledBy: Integer)
-    var
-        Customer: Record Customer;
-    begin
-        if not (SalesHeader.Invoice or
-                (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::"Credit Memo"]))
-        then
-            exit;
-
-        if SalesHeader."Bill-to Customer No." = '' then
-            exit;
-
-        Customer.Get(SalesHeader."Bill-to Customer No.");
-        CompanyInformation.Get();
-        if not IsForeignCustomer(Customer) then
-            exit;
-
-        if HasForeignFiscalIdentifier(Customer) then
-            exit;
-
-        Error(MissingForeignFiscalIdentifierErr);
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Quote to Invoice", 'OnBeforeInsertSalesInvoiceHeader', '', false, false)]
     local procedure AssignFatturaDocTypeOnBeforeInsertSalesInvoiceHeader(var SalesInvoiceHeader: Record "Sales Header"; QuoteSalesHeader: Record "Sales Header")
     begin
