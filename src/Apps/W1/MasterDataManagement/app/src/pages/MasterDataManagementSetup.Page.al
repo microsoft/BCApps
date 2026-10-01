@@ -78,10 +78,9 @@ page 7230 "Master Data Management Setup"
                 trigger OnAction()
                 begin
                     Page.RunModal(Page::"MDM Connection Details");
-                    // The wizard may have configured or cleared the cross-environment connection, which changes which
-                    // source fields should be shown. The Visible property is only applied when the page opens, so reopen
-                    // the page to reflect the new configuration.
-                    ReopenPage();
+                    if Rec.Get() then; // the wizard may have configured or cleared the cross-environment connection
+                    RefreshData();
+                    CurrPage.Update(false);
                 end;
             }
             action(ClearCrossEnvSetup)
@@ -100,9 +99,9 @@ page 7230 "Master Data Management Setup"
                     Rec.Validate("Source Environment Name", ''); // clear the source env; runs the enabled guard and detector cleanup
                     Rec.ClearCrossEnvConnection();
                     Rec.Modify(true);
-                    // Returning to same-environment mode changes which source fields should be shown, and the Visible
-                    // property is only applied when the page opens, so reopen the page to reflect the new configuration.
-                    ReopenPage();
+                    if Rec.Get() then;
+                    RefreshData();
+                    CurrPage.Update(false);
                 end;
             }
             action(ResetConfiguration)
@@ -287,8 +286,6 @@ page 7230 "Master Data Management Setup"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if ReopeningPage then
-            exit(true);
         if not Rec."Is Enabled" then
             if not Confirm(EnableServiceQst, true, CurrPage.Caption()) then
                 exit(false);
@@ -327,7 +324,6 @@ page 7230 "Master Data Management Setup"
         ClearCrossEnvConfirmQst: Label 'This removes the cross-environment connection and its stored credentials, and returns to same-environment synchronization. Do you want to continue?';
         IsEditable: Boolean;
         CrossEnvConfigured: Boolean;
-        ReopeningPage: Boolean;
         IsSaaS: Boolean;
         SynchronizationImportedMsg: label 'The synchronization setup is imported. \\To view or edit the synchronization table setup, choose action Synchronization Tables.\\To view or edit the synchronization field setup, select a synchronization table and choose action Synchronization Fields.';
         NoCoupledRecordsMsg: label 'No records are currently coupled to records from the source company. \\Choose the action Start Initial Synchronization.';
@@ -335,15 +331,6 @@ page 7230 "Master Data Management Setup"
     local procedure RefreshData()
     begin
         UpdateEnableFlags();
-    end;
-
-    // Reopen the page so the Visible property is re-applied after the cross-environment configuration changed.
-    // The Visible property can only be toggled when a page opens, so an in-place CurrPage.Update() is not enough.
-    local procedure ReopenPage()
-    begin
-        ReopeningPage := true;
-        Page.Run(Page::"Master Data Management Setup");
-        CurrPage.Close();
     end;
 
     local procedure UpdateEnableFlags()
