@@ -23,14 +23,17 @@ codeunit 1915 "MigrationQB Dashboard Mgt"
     var
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        if WasAborted or Retry then begin
+        if WasAborted then begin
             TelemetryDimensions.Add('Category', CloudMigrationTok);
             TelemetryDimensions.Add('Product', QBOTok);
             TelemetryDimensions.Add('WasAborted', Format(WasAborted, 0, 9));
             TelemetryDimensions.Add('Retry', Format(Retry, 0, 9));
-            Session.LogMessage('0000VTQ', MigrationFinishedTelemetryTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+            Session.LogMessage('0000VTQ', MigrationFinishedTelemetryTok, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
             exit;
         end;
+
+        if Retry then
+            exit;
 
         SendCompletedMigrationTelemetry(MigrationDateTime);
     end;
