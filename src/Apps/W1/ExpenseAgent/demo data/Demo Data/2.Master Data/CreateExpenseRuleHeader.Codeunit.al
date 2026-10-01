@@ -10,13 +10,7 @@ codeunit 8212 "Create Expense Rule Header"
     InherentPermissions = X;
 
     trigger OnRun()
-    var
-        CreateExpenseCategories: Codeunit "Create Expense Categories DM";
-        ContosoExpenseAgent: Codeunit "Contoso Expense Agent";
     begin
-        ContosoExpenseAgent.InsertExpenseRuleHeader(CreateExpenseCategories.Entertain(), '', 0D, Enum::"Expense Justification"::"Against Conditions", false, '', '', '');
-        ContosoExpenseAgent.InsertExpenseRuleHeader(CreateExpenseCategories.Hotels(), '', 0D, Enum::"Expense Justification"::" ", false, '', '', '');
-        ContosoExpenseAgent.InsertExpenseRuleHeader(CreateExpenseCategories.Mileage(), '', 0D, Enum::"Expense Justification"::" ", false, '', '', '');
-        ContosoExpenseAgent.InsertExpenseRuleHeader(CreateExpenseCategories.Morale(), '', 0D, Enum::"Expense Justification"::" ", false, '', '', '');
+        Codeunit.Run(Codeunit::"Create Expense Rule Headers"); // in the expense app
     end;
 }

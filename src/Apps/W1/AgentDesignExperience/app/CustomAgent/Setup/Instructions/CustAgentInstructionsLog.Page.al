@@ -90,6 +90,7 @@ page 4352 "Cust. Agent Instructions Log"
                 Caption = 'Set as current instructions';
                 ToolTip = 'Apply these instructions to the agent.';
                 Image = Restore;
+                Enabled = not AgentIsArchived;
 
                 trigger OnAction()
                 var
@@ -129,6 +130,7 @@ page 4352 "Cust. Agent Instructions Log"
         Rec.Ascending(false);
         if Rec.FindFirst() then;
         SetupFiltering();
+        CurrPage.Editable(not AgentIsArchived);
         CurrPage.InstructionsLogPart.Page.SetReadOnlyMode(true);
     end;
 
@@ -172,6 +174,7 @@ page 4352 "Cust. Agent Instructions Log"
     begin
         ValidateUserSecurityId();
         Agent.Get(GlobalAgentUserSecurityId);
+        AgentIsArchived := Agent.Substate = Agent.Substate::Archived;
         Rec.FilterGroup(4);
         Rec.SetRange("User Security ID", GlobalAgentUserSecurityId);
         Rec.FilterGroup(0);
@@ -201,5 +204,6 @@ page 4352 "Cust. Agent Instructions Log"
         GlobalAgentUserSecurityId: Guid;
         StyleExpression: Text;
         RestoredPreviousVersionOfInstructions: Boolean;
+        AgentIsArchived: Boolean;
         MissingUserSecurityIdErr: Label 'User Security ID must be set before opening this page.';
 }

@@ -128,7 +128,7 @@ page 7091 "Accountant Expense Reports"
                     Caption = 'Approve';
                     Image = Approve;
                     ToolTip = 'Approve the selected expense report.';
-                    Enabled = Rec.Status = Rec.Status::"Pending Approval";
+                    Enabled = (Rec.Status = Rec.Status::"Pending Approval") or (Rec.Status = Rec.Status::"Interim Approved");
 
                     trigger OnAction()
                     var
@@ -145,7 +145,7 @@ page 7091 "Accountant Expense Reports"
                     Caption = 'Reject';
                     Image = Reject;
                     ToolTip = 'Reject the selected expense report.';
-                    Enabled = Rec.Status = Rec.Status::"Pending Approval";
+                    Enabled = (Rec.Status = Rec.Status::"Pending Approval") or (Rec.Status = Rec.Status::"Interim Approved");
 
                     trigger OnAction()
                     var
@@ -253,6 +253,8 @@ page 7091 "Accountant Expense Reports"
             Rec.Status::Released:
                 StatusStyleExpr := 'Favorable';
             Rec.Status::"Pending Approval":
+                StatusStyleExpr := 'Attention';
+            Rec.Status::"Interim Approved":
                 StatusStyleExpr := 'Attention';
             Rec.Status::Approved:
                 StatusStyleExpr := 'Strong';

@@ -127,6 +127,7 @@ report 20502 "Subc. Create SubCReturnOrder"
             TransferHeader."Trsf.-from Country/Region Code" := Vendor."Country/Region Code";
 
             TransferHeader.Modify();
+            OnAfterInsertTransferHeader(TransferHeader, Vendor);
             LineNo := 0;
         end else begin
             TransferLine.SetRange("Document No.", TransferHeader."No.");
@@ -262,7 +263,13 @@ report 20502 "Subc. Create SubCReturnOrder"
     local procedure ShowDocument()
     var
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeShowDocument(TransferHeader, IsHandled);
+        if IsHandled then
+            exit;
+
         Commit(); // Used for following call of Transfer Pages
 
         SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder("Purchase Line", true, true);
@@ -278,6 +285,7 @@ report 20502 "Subc. Create SubCReturnOrder"
         TransferLine2.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
         TransferLine2.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
         TransferLine2.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLine2.SetRange("Derived From Line No.", 0);
         TransferLine2.SetRange("Subc. Return Order", true);
         exit(not TransferLine2.IsEmpty());
     end;
@@ -411,8 +419,19 @@ report 20502 "Subc. Create SubCReturnOrder"
         TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
         TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
+        TransferLineToCheck.SetRange("Derived From Line No.", 0);
         TransferLineToCheck.SetRange("Transfer WIP Item", true);
         TransferLineToCheck.SetRange("Subc. Return Order", true);
         exit(not TransferLineToCheck.IsEmpty());
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertTransferHeader(var TransferHeader: Record "Transfer Header"; Vendor: Record Vendor)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeShowDocument(var TransferHeader: Record "Transfer Header"; var IsHandled: Boolean)
+    begin
     end;
 }

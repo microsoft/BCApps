@@ -5,7 +5,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Address;
 
+#if CLEAN28
+#pragma warning disable AS0103, PTE0004 // Accepted: this obsolete compatibility table is retained until schema cleanup and is intentionally excluded from current permission sets. Tracked by AB#640773.
+#endif
 table 10501 "Postcode Notification Memory"
+#if CLEAN28
+#pragma warning restore AS0103, PTE0004
+#endif
 {
     Caption = 'Postcode Notification Memory';
     DataClassification = CustomerContent;
@@ -35,4 +41,3 @@ table 10501 "Postcode Notification Memory"
     }
 }
 #endif
-

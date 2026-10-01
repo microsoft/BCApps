@@ -1371,12 +1371,13 @@ codeunit 139195 "CDS Integration Mgt Test"
     local procedure InitializeSetup(HostName: Text; IsEnabled: Boolean)
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         CDSConnectionSetup.DeleteAll();
         CDSConnectionSetup.Init();
         CDSConnectionSetup."Server Address" := CopyStr(HostName, 1, MaxStrLen(CDSConnectionSetup."Server Address"));
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         if IsEnabled then
             CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup."Is Enabled" := IsEnabled;

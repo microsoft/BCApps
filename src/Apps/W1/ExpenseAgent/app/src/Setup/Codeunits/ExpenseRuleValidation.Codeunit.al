@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
+using Microsoft.HumanResources.Employee;
 
 codeunit 6902 "Expense Rule Validation"
 {
@@ -49,6 +50,8 @@ codeunit 6902 "Expense Rule Validation"
         MerchantNameMandatoryOnReportLineErr: Label 'Merchant Name is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
         ExpenseAlreadyExistErr: Label 'An expense already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
         ExpenseReportAlreadyExistErr: Label 'An expense report already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
+        EmployeePostingGroupMandatoryErr: Label '%1 is mandatory on %2 %3.', Comment = '%1 = Field Caption, %2 = Table Caption, %3 = Employee No.';
+        EmployeePostingGroupMandatoryOnExpenseReportErr: Label '%1 is mandatory on Expense Report No. %2.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
 
     procedure ValidateExpenseAgainstRule(var Expense: Record Expense)
     var
@@ -117,6 +120,7 @@ codeunit 6902 "Expense Rule Validation"
 
         CheckAttachmentsOnExpense(Expense);
         CheckForDuplicateExpense(Expense);
+        CheckEmployeePostingGroupOnExpense(Expense);
 
         if ExpenseAgentSetup."Receipt No. Mandatory" then
             if (Expense."Expense Ext. Doc. No." = '') and (Expense."Expense Detail Required" <> Expense."Expense Detail Required"::Mileage) then
@@ -138,6 +142,7 @@ codeunit 6902 "Expense Rule Validation"
 
         CheckAttachmentsOnExpenseReportLine(ExpenseReportLine);
         CheckForDuplicateExpenseReportLine(ExpenseReportLine);
+        CheckEmployeePostingGroupOnExpenseReport(ExpenseReportLine);
 
         if ExpenseAgentSetup."Receipt No. Mandatory" then
             if (ExpenseReportLine."Expense Ext. Doc. No." = '') and (ExpenseReportLine."Expense Detail Required" <> ExpenseReportLine."Expense Detail Required"::Mileage) then
@@ -167,6 +172,47 @@ codeunit 6902 "Expense Rule Validation"
 
         if JustificationRequired and (Expense.Justification = '') then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", JustificationRequiredErr);
+    end;
+
+    local procedure CheckEmployeePostingGroupOnExpense(Expense: Record Expense)
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+    begin
+        if Expense."Expense User No." = '' then
+            exit;
+
+        ExpenseUser.SetLoadFields("Employee No.");
+        if not ExpenseUser.Get(Expense."Expense User No.") then
+            exit;
+
+        if ExpenseUser."Employee No." = '' then
+            exit;
+
+        if not Employee.Get(ExpenseUser."Employee No.") then
+            exit;
+
+        if Employee."Employee Posting Group" <> '' then
+            exit;
+
+        ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(EmployeePostingGroupMandatoryErr, Employee.FieldCaption("Employee Posting Group"), Employee.TableCaption(), Employee."No."));
+    end;
+
+    local procedure CheckEmployeePostingGroupOnExpenseReport(var ExpenseReportLine: Record "Expense Report Line")
+    var
+        Currency: Record Currency;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+    begin
+        ExpenseReportLine.GetExpenseReportHeader(ExpenseReportHeader, Currency);
+        if ExpenseReportHeader."Employee Posting Group" <> '' then
+            exit;
+
+        ExpenseReportRuleViolation.AddRuleViolation(
+            ExpenseReportLine."Document No.",
+            ExpenseReportLine."Line No.",
+            StrSubstNo(EmployeePostingGroupMandatoryOnExpenseReportErr, ExpenseReportHeader.FieldCaption("Employee Posting Group"), ExpenseReportHeader."No."));
     end;
 
     local procedure CheckJustificationFromConditions(Expense: Record Expense; ExpenseRuleHeader: Record "Expense Rule Header"): Boolean
@@ -360,10 +406,11 @@ codeunit 6902 "Expense Rule Validation"
     local procedure ExistDuplicateInPostedExpenseReportLine(ExpenseReportLine: Record "Expense Report Line"): Boolean
     var
         PostedExpenseReportLine: Record "Posted Expense Report Line";
+        NegativeExpenseDateFormula: DateFormula;
     begin
         PostedExpenseReportLine.SetRange("Expense Ext. Doc. No.", ExpenseReportLine."Expense Ext. Doc. No.");
-        if Format(ExpenseAgentSetup."Do Not Allow Exp. Older Than") <> '' then
-            PostedExpenseReportLine.SetRange("Expense Date", CalcDate(StrSubstNo('<-%1>', ExpenseAgentSetup."Do Not Allow Exp. Older Than"), Today()), Today())
+        if TryGetNegativeExpenseDateFormula(NegativeExpenseDateFormula) then
+            PostedExpenseReportLine.SetRange("Expense Date", CalcDate(NegativeExpenseDateFormula, Today()), Today())
         else
             PostedExpenseReportLine.SetRange("Expense Date", ExpenseReportLine."Expense Date");
 
@@ -371,6 +418,20 @@ codeunit 6902 "Expense Rule Validation"
         PostedExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
         if not PostedExpenseReportLine.IsEmpty() then
             exit(true);
+    end;
+
+    local procedure TryGetNegativeExpenseDateFormula(var NegativeExpenseAgeFormula: DateFormula): Boolean
+    var
+        DateFormulaText: Text;
+    begin
+        DateFormulaText := DelChr(Format(ExpenseAgentSetup."Do Not Allow Exp. Older Than", 0, 9), '=', '<>');
+        if DateFormulaText = '' then
+            exit(false);
+
+        if not DateFormulaText.StartsWith('-') then
+            DateFormulaText := '-' + DateFormulaText;
+
+        exit(Evaluate(NegativeExpenseAgeFormula, '<' + DateFormulaText + '>', 9));
     end;
 
     local procedure ShowMissingAttachmentNotification(ExpenseReportLine: Record "Expense Report Line")
@@ -610,9 +671,9 @@ codeunit 6902 "Expense Rule Validation"
         else
             ExpenseCurrency.Get(Expense."Currency Code");
 
-        StandardRate := ExpenseAgentSetup."Standard Rate of Mileage";
+        StandardRate := ExpenseAutoPopulation.GetStandardRateOfMileage(Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage", Expense."Vehicle Type");
         EffectiveDistance := ExpenseAutoPopulation.GetEffectiveDistance(Expense.Mileage, Expense."Round Trip");
-        CalculatedAmount := Round(EffectiveDistance * ExpenseAutoPopulation.GetStandardRateOfMileage(Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor", StandardRate), ExpenseCurrency."Amount Rounding Precision");
+        CalculatedAmount := Round(EffectiveDistance * StandardRate, ExpenseCurrency."Amount Rounding Precision");
 
         if CalculatedAmount <> Expense.Amount then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(MileageCalculationMismatchErr, EffectiveDistance, StandardRate, CalculatedAmount, Expense.Amount));
@@ -914,9 +975,9 @@ codeunit 6902 "Expense Rule Validation"
         else
             ExpenseCurrency.Get(ExpenseReportLine."Expense Currency Code");
 
-        StandardRate := ExpenseAgentSetup."Standard Rate of Mileage";
+        StandardRate := ExpenseAutoPopulation.GetStandardRateOfMileage(ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage", ExpenseReportLine."Vehicle Type");
         EffectiveDistance := ExpenseAutoPopulation.GetEffectiveDistance(ExpenseReportLine.Mileage, ExpenseReportLine."Round Trip");
-        CalculatedAmount := Round(EffectiveDistance * ExpenseAutoPopulation.GetStandardRateOfMileage(ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor", StandardRate), ExpenseCurrency."Amount Rounding Precision");
+        CalculatedAmount := Round(EffectiveDistance * StandardRate, ExpenseCurrency."Amount Rounding Precision");
 
         if CalculatedAmount <> ExpenseReportLine.Amount then
             ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(MileageCalculationMismatchErr, EffectiveDistance, StandardRate, CalculatedAmount, ExpenseReportLine.Amount));
