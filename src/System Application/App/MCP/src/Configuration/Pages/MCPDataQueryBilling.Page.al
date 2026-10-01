@@ -21,7 +21,7 @@ page 8377 "MCP Data Query Billing"
             label(BillingNotice)
             {
                 ApplicationArea = All;
-                Caption = 'Use of Data Query Tools will incur additional charges. By activating Data Query Tools, you acknowledge that charges will apply according to the applicable pricing and terms. Choose Learn more for details.';
+                Caption = 'Use of Data Query Tools will incur additional charges. By activating Data Query Tools, you acknowledge that charges will apply according to the applicable pricing and terms.';
                 MultiLine = true;
                 ShowCaption = false;
             }
