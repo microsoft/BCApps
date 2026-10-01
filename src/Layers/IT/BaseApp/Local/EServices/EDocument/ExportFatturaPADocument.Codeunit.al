@@ -326,6 +326,15 @@ codeunit 12179 "Export FatturaPA Document"
         exit(Customer."Country/Region Code" <> CompanyInformation."Country/Region Code");
     end;
 
+    local procedure GetForeignFiscalIdentifier(Customer: Record Customer): Text[20]
+    begin
+        if Customer."VAT Registration No." <> '' then
+            exit(Customer."VAT Registration No.");
+
+        exit(Customer."Fiscal Code");
+    end;
+
+
     local procedure PopulateCompanyInformation(Customer: Record Customer)
     begin
         // 1.2 CedentePrestatore - Seller
@@ -404,20 +413,23 @@ codeunit 12179 "Export FatturaPA Document"
     end;
 
     local procedure PopulateCustomerData(Customer: Record Customer)
+    var
+        ForeignFiscalIdentifier: Text[20];
     begin
         // 1.4 CessionarioCommittente
         TempXMLBuffer.AddGroupElement('DatiAnagrafici');
-        if (Customer."VAT Registration No." <> '') and
-           ((not Customer."Individual Person") or IsForeignCustomer(Customer))
-        then begin
-            TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
-            TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
-            TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."VAT Registration No.");
-        end else
-            if Customer."Individual Person" and IsForeignCustomer(Customer) and (Customer."Fiscal Code" <> '') then begin
+        if IsForeignCustomer(Customer) then begin
+            ForeignFiscalIdentifier := GetForeignFiscalIdentifier(Customer);
+            if ForeignFiscalIdentifier <> '' then begin
                 TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
                 TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
-                TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."Fiscal Code");
+                TempXMLBuffer.AddNonEmptyLastElement('IdCodice', ForeignFiscalIdentifier);
+            end;
+        end else
+            if (Customer."VAT Registration No." <> '') and (not Customer."Individual Person") then begin
+                TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
+                TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
+                TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."VAT Registration No.");
             end;
         if CompanyInformation."Country/Region Code" = Customer."Country/Region Code" then
             TempXMLBuffer.AddNonEmptyElement('CodiceFiscale', Customer."Fiscal Code");
