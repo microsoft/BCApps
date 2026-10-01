@@ -8,6 +8,7 @@ using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using System.TestLibraries.Utilities;
 
 codeunit 148163 "Depr. Diff. Calculation FI"
@@ -64,6 +65,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     var
         FAClass: Record "FA Class";
         GeneralPostingSetup: Record "General Posting Setup";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
         LibraryVariableStorage.Clear();
@@ -75,6 +77,10 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
         LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
         LibraryFixedAsset.CreateFAClass(FAClass);
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Posted Invoice Nos."));
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
@@ -775,8 +781,11 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         FAJournalTemplate: Record "FA Journal Template";
     begin
         FAJournalTemplate.SetRange(Recurring, false);
-        LibraryFixedAsset.FindFAJournalTemplate(FAJournalTemplate);
+        if not FAJournalTemplate.FindFirst() then
+            LibraryFixedAsset.CreateJournalTemplate(FAJournalTemplate);
         LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        FAJournalBatch.Modify(true);
     end;
 
     local procedure MockFADepreciationLedgerEntry(var FALedgerEntry: Record "FA Ledger Entry"; FANo: Code[20]; DeprBookCode: Code[10])
