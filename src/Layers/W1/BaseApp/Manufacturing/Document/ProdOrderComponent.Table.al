@@ -2083,7 +2083,9 @@ table 5407 "Prod. Order Component"
             exit;
 
         UnroundedBaseQty := Qty * "Qty. per Unit of Measure";
-        if (FromFieldName = FieldCaption(Quantity)) and (UnroundedBaseQty <> 0) and
+        if (FromFieldName = FieldCaption(Quantity)) and
+           ("Qty. per Unit of Measure" > 0) and ("Qty. per Unit of Measure" < 1) and
+           (UnroundedBaseQty <> 0) and
            (UOMMgt.RoundQty(UnroundedBaseQty, "Qty. Rounding Precision (Base)") = 0)
         then
             exit(UnroundedBaseQty);
