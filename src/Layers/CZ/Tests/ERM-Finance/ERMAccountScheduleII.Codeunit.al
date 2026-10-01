@@ -3066,6 +3066,94 @@
         Assert.IsTrue(FILE.Exists(LibraryReportValidation.GetFileName()), AccScheduleExportErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreviewColumnDefWithRowDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayoutNames: TestPage "Column Layout Names";
+        ColumnLayoutPage: TestPage "Column Layout";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+    begin
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a column definition opens the financial report with the column definition itself, and the row definition specified for preview.
+        Initialize();
+
+        // [GIVEN] A row definition and a column definition
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        ColumnLayoutNames.OpenEdit();
+        ColumnLayoutNames.GoToKey(ColumnLayoutName.Name);
+        ColumnLayoutPage.Trap();
+        ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
+
+        // [WHEN] The column definition is previewed without a row definition for preview
+        // [THEN] An error asks the user to specify a row definition for preview
+        asserterror ColumnLayoutPage.Preview.Invoke();
+
+        // [WHEN] A row definition for preview is set
+        ColumnLayoutPage.PreviewRowDef.SetValue(AccScheduleName.Name);
+
+        // [THEN] The row definition for preview is saved
+        ColumnLayoutName.Get(ColumnLayoutName.Name);
+        Assert.AreEqual(AccScheduleName.Name, ColumnLayoutName."Preview Row Def.", 'Preview row definition was not saved.');
+
+        // [WHEN] The column definition is previewed
+        AccScheduleOverview.Trap();
+        ColumnLayoutPage.Preview.Invoke();
+
+        // [THEN] The financial report is opened with the current column definition and the row definition specified for preview
+        AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
+        AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+        AccScheduleOverview.Close();
+        ColumnLayoutPage.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreviewRowDefWithColumnDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+        AccScheduleNames: TestPage "Account Schedule Names";
+        AccountSchedule: TestPage "Account Schedule";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+    begin
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a row definition opens the financial report with the row definition itself, and the column definition specified for preview.
+        Initialize();
+
+        // [GIVEN] A row definition and a column definition
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        AccScheduleNames.OpenEdit();
+        AccScheduleNames.GoToKey(AccScheduleName.Name);
+        AccountSchedule.Trap();
+        AccScheduleNames.EditAccountSchedule.Invoke();
+
+        // [WHEN] The row definition is previewed without a column definition for preview
+        // [THEN] An error asks the user to specify a column definition for preview
+        asserterror AccountSchedule.Preview.Invoke();
+
+        // [WHEN] A column definition for preview is set
+        AccountSchedule.PreviewColumnDef.SetValue(ColumnLayoutName.Name);
+
+        // [THEN] The column definition for preview is saved
+        AccScheduleName.Get(AccScheduleName.Name);
+        Assert.AreEqual(ColumnLayoutName.Name, AccScheduleName."Preview Column Def.", 'Preview column definition was not saved.');
+
+        // [WHEN] The row definition is previewed
+        AccScheduleOverview.Trap();
+        AccountSchedule.Preview.Invoke();
+
+        // [THEN] The financial report is opened with the current row definition and the column definition specified for preview
+        AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
+        AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+        AccScheduleOverview.Close();
+        AccountSchedule.Close();
+    end;
+
     local procedure Initialize()
     var
         FinancialReportMgt: Codeunit "Financial Report Mgt.";

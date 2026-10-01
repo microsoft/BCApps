@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
-using Microsoft.Finance.GeneralLedger.Setup;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
@@ -310,21 +309,18 @@ page 104 "Account Schedule"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Preview';
                 Image = View;
-                ToolTip = 'Preview the financial report using the current row definition. You can specify a column definition used for preview on the current definition itself, or on the general ledger setup.';
+                ToolTip = 'Preview the financial report using the current row definition and the column definition specified for preview.';
 
                 trigger OnAction()
                 var
-                    GLSetup: Record "General Ledger Setup";
                     AccScheduleOverview: Page "Acc. Schedule Overview";
                 begin
+                    if PreviewColumnDef = '' then
+                        Error(MissingPreviewColumnDefErr);
                     AccScheduleOverview.SetViewOnlyMode(true);
                     AccScheduleOverview.SetPreview(AccSchedManagement.GetAccountScheduleCaption(CurrentSchedName));
                     AccScheduleOverview.SetAccSchedName(CurrentSchedName);
-                    if PreviewColumnDef <> '' then
-                        AccScheduleOverview.SetColumnDefinition(PreviewColumnDef)
-                    else
-                        if GLSetup.Get() and (GLSetup."Fin. Rep. Preview Column Def." <> '') then
-                            AccScheduleOverview.SetColumnDefinition(GLSetup."Fin. Rep. Preview Column Def.");
+                    AccScheduleOverview.SetColumnDefinition(PreviewColumnDef);
                     AccScheduleOverview.Run();
                 end;
             }
@@ -570,6 +566,7 @@ page 104 "Account Schedule"
         TotalingDisplayed: Text[250];
         HeaderHidden: Boolean;
         ExcelFileNameTxt: Label 'Row Definition - ScheduleName %1', Comment = '%1 = Schedule Name';
+        MissingPreviewColumnDefErr: Label 'Specify a column definition in the Column Definition (for Preview) field before you preview this row definition.';
 
     /// <summary>
     /// Sets the current account schedule name for page context and line filtering.

@@ -130,6 +130,12 @@ table 84 "Acc. Schedule Name"
             FieldClass = FlowField;
             ToolTip = 'Specifies the status code is a blocked status.';
         }
+        field(8; "Preview Column Def."; Code[10])
+        {
+            Caption = 'Column Definition (for Preview)';
+            TableRelation = "Column Layout Name";
+            ToolTip = 'Specifies the column layout used when previewing this row definition.';
+        }
         field(12400; "Used in Statutory Report"; Boolean)
         {
             CalcFormula = exist("Stat. Report Table Mapping" where("Int. Source Type" = const("Acc. Schedule"),

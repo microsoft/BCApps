@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.CostAccounting.Account;
-using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
 
@@ -355,21 +354,18 @@ page 489 "Column Layout"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Preview';
                 Image = View;
-                ToolTip = 'Preview the financial report using the current column definition. You can specify a row definition used for preview on the current definition itself, or on the general ledger setup.';
+                ToolTip = 'Preview the financial report using the current column definition and the row definition specified for preview.';
 
                 trigger OnAction()
                 var
-                    GLSetup: Record "General Ledger Setup";
                     AccScheduleOverview: Page "Acc. Schedule Overview";
                 begin
+                    if PreviewRowDef = '' then
+                        Error(MissingPreviewRowDefErr);
                     AccScheduleOverview.SetViewOnlyMode(true);
                     AccScheduleOverview.SetPreview(AccSchedManagement.GetColumnLayoutCaption(CurrentColumnName));
                     AccScheduleOverview.SetColumnDefinition(CurrentColumnName);
-                    if PreviewRowDef <> '' then
-                        AccScheduleOverview.SetAccSchedName(PreviewRowDef)
-                    else
-                        if GLSetup.Get() and (GLSetup."Fin. Rep. Preview Row Def." <> '') then
-                            AccScheduleOverview.SetAccSchedName(GLSetup."Fin. Rep. Preview Row Def.");
+                    AccScheduleOverview.SetAccSchedName(PreviewRowDef);
                     AccScheduleOverview.Run();
                 end;
             }
@@ -471,6 +467,7 @@ page 489 "Column Layout"
         InternalDescription: Text[500];
         PreviewRowDef: Code[10];
         HeaderHidden: Boolean;
+        MissingPreviewRowDefErr: Label 'Specify a row definition in the Row Definition (for Preview) field before you preview this column definition.';
 
     local procedure GetDescriptions()
     var
