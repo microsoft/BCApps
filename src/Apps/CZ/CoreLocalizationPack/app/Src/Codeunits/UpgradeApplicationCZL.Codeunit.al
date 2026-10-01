@@ -663,7 +663,7 @@ codeunit 31017 "Upgrade Application CZL"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetOriginalVATAmountsACYInVATEntriesUpgradeTag());
     end;
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 
     local procedure UpgradeStatutoryReportingSetupOfficialFullName()
     var
