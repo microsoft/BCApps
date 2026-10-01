@@ -42,7 +42,6 @@ codeunit 7442 "EA Create Corp Card Setup"
                 EnsureDefaultCorpCardLinks(CorpCardProvider.Code);
             until CorpCardProvider.Next() = 0;
 
-        AssignCorpCardBankAccount();
         EnsureCorpCardSetup();
         CorpCardMCCMgt.InitializeDefaultMCCMappings();
     end;
@@ -68,14 +67,6 @@ codeunit 7442 "EA Create Corp Card Setup"
         if BankExportImportSetup.Get(SepaCamtImportFormatTok) then
             BankAccount."Bank Statement Import Format" := BankExportImportSetup.Code;
         BankAccount.Insert(true);
-    end;
-
-    local procedure AssignCorpCardBankAccount()
-    var
-        CorpCard: Record "EA Corp Card";
-    begin
-        CorpCard.SetRange("Bank Account No.", '');
-        CorpCard.ModifyAll("Bank Account No.", CorpCardBankAccountTok, true);
     end;
 
     internal procedure EnsureDataExchangeForProvider(var CorpCardProvider: Record "EA Corp Card Provider")

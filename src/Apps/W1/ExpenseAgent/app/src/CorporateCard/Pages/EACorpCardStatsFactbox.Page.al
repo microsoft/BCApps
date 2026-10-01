@@ -20,11 +20,11 @@ page 7442 "EA Corp Card Stats Factbox"
                 ShowCaption = true;
                 Enabled = false;
 
-                field(TotalBatches; TotalBatches)
+                field(TotalStatements; TotalStatements)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Total Batches';
-                    ToolTip = 'Specifies the total number of import batches in the last 30 days.';
+                    Caption = 'Total Statements';
+                    ToolTip = 'Specifies the total number of imported statements in the last 30 days.';
                 }
                 field(TotalTransactions; TotalTransactions)
                 {
@@ -124,7 +124,7 @@ page 7442 "EA Corp Card Stats Factbox"
         if TaskId <> StatisticsTaskId then
             exit;
 
-        Evaluate(TotalBatches, Results.Get(CorpCardStatsCalculator.GetTotalBatchesKey()));
+        Evaluate(TotalStatements, Results.Get(CorpCardStatsCalculator.GetTotalStatementsKey()));
         Evaluate(TotalTransactions, Results.Get(CorpCardStatsCalculator.GetTotalTransactionsKey()));
         Evaluate(MatchSuccessRate, Results.Get(CorpCardStatsCalculator.GetMatchSuccessRateKey()));
         Evaluate(ExceptionRate, Results.Get(CorpCardStatsCalculator.GetExceptionRateKey()));
@@ -147,7 +147,7 @@ page 7442 "EA Corp Card Stats Factbox"
         ExceptionCount: Integer;
         ScheduledImports: Integer;
         TotalActiveCards: Integer;
-        TotalBatches: Integer;
+        TotalStatements: Integer;
         TotalTransactions: Integer;
         UnmatchedCount: Integer;
         StatisticsTaskId: Integer;

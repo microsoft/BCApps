@@ -64,10 +64,20 @@ page 7434 "EA Corp Card Providers"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the date-time of the latest import run.';
                 }
-                field("Last Batch No."; Rec."Last Batch No.")
+                field("Last Statement Entry No."; Rec."Last Statement Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the latest import batch number.';
+                    ToolTip = 'Specifies the latest imported statement entry.';
+                }
+                field("Corp Card Bank Account No."; Rec."Corp Card Bank Account No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the bank account that represents the corporate card liability.';
+                }
+                field("Payment Bank Account No."; Rec."Payment Bank Account No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the real bank account from which settlements are paid.';
                 }
             }
         }
@@ -113,16 +123,16 @@ page 7434 "EA Corp Card Providers"
                     RunTestImportForProvider();
                 end;
             }
-            action(OpenLatestBatch)
+            action(OpenLatestStatement)
             {
-                Caption = 'Open latest batch';
+                Caption = 'Open latest statement';
                 ApplicationArea = Basic, Suite;
                 Image = Navigate;
-                ToolTip = 'Opens the latest import batch for the selected provider.';
+                ToolTip = 'Opens the latest imported statement for the selected provider.';
 
                 trigger OnAction()
                 begin
-                    OpenLatestBatchForProvider();
+                    OpenLatestStatementForProvider();
                 end;
             }
             action(ScheduleImport)
@@ -186,7 +196,7 @@ page 7434 "EA Corp Card Providers"
         ScheduleManagementMsg: Label 'Import scheduling is managed via the Schedule Import and Unschedule Import actions.';
         DataExchangeInitializedMsg: Label 'Data Exchange setup is ready for provider %1 (Definition: %2, Mapping: %3).', Comment = '%1 = Provider code, %2 = Data Exch Def Code, %3 = Data Exch Map Code';
         ReplacePayloadQst: Label 'Provider %1 already has source payload. Do you want to replace it?', Comment = '%1 = Provider code';
-        NoBatchFoundErr: Label 'No import batch exists yet for provider %1.', Comment = '%1 = Provider code';
+        NoStatementFoundErr: Label 'No imported statement exists yet for provider %1.', Comment = '%1 = Provider code';
         CsvLbl: Label 'CSV', Locked = true;
         XmlLbl: Label 'XML', Locked = true;
         CamtLbl: Label 'CAMT', Locked = true;
@@ -240,16 +250,16 @@ page 7434 "EA Corp Card Providers"
         Message(ImportTriggeredMsg, Rec.Code);
     end;
 
-    local procedure OpenLatestBatchForProvider()
+    local procedure OpenLatestStatementForProvider()
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
     begin
-        if Rec."Last Batch No." = 0 then
-            Error(NoBatchFoundErr, Rec.Code);
+        if Rec."Last Statement Entry No." = 0 then
+            Error(NoStatementFoundErr, Rec.Code);
 
-        CorpCardBatch.SetRange("Provider Code", Rec.Code);
-        CorpCardBatch.SetRange("Batch No.", Rec."Last Batch No.");
-        Page.RunModal(Page::"EA Corp Card Batches", CorpCardBatch);
+        CorpCardStatement.SetRange("Provider Code", Rec.Code);
+        CorpCardStatement.SetRange("Statement Entry No.", Rec."Last Statement Entry No.");
+        Page.RunModal(Page::"EA Corp Card Statement", CorpCardStatement);
     end;
 
     local procedure ScheduleProviderImport()

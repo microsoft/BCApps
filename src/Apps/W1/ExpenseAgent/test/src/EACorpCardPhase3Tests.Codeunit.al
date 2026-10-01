@@ -21,9 +21,9 @@ codeunit 148353 EACorpCardPhase3Tests
         IsInitialized: Boolean;
 
     [Test]
-    procedure XmlImportWithMalformedPayloadFailsBatch()
+    procedure XmlImportWithMalformedPayloadFailsStatement()
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
@@ -38,31 +38,31 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'Failed imports must clear the source payload.');
         Assert.AreEqual(0, CorpCardProvider."Source Payload Record Count", 'Failed imports must clear the source payload record count.');
 
-        CorpCardBatch.SetRange("Provider Code", CorpCardXmlProviderCodeTok);
-        Assert.IsTrue(CorpCardBatch.FindLast(), 'Failed import must create a batch.');
-        Assert.AreEqual(CorpCardBatch.Status::Failed, CorpCardBatch.Status, 'Failed imports must finalize the batch as failed.');
-        Assert.IsTrue(CorpCardBatch."Ended DT" <> 0DT, 'Failed imports must record the batch end date and time.');
-        Assert.AreEqual(CorpCardBatch."Batch No.", CorpCardProvider."Last Batch No.", 'Failed imports must update the provider with the failed batch number.');
+        CorpCardStatement.SetRange("Provider Code", CorpCardXmlProviderCodeTok);
+        Assert.IsTrue(CorpCardStatement.FindLast(), 'Failed import must create a statement.');
+        Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'Failed imports must finalize the statement as failed.');
+        Assert.IsTrue(CorpCardStatement."Ended DT" <> 0DT, 'Failed imports must record the statement end date and time.');
+        Assert.AreEqual(CorpCardStatement."Statement Entry No.", CorpCardProvider."Last Statement Entry No.", 'Failed imports must update the provider with the failed statement entry number.');
     end;
 
     [Test]
     procedure ImportClearsSourcePayloadAndRetainsMetadata()
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardProvider: Record "EA Corp Card Provider";
     begin
         Initialize();
 
-        RunImportAndGetLastBatch(CorpCardCsvProviderCodeTok, CorpCardBatch);
+        RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, CorpCardStatement);
 
         CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
         CorpCardProvider.CalcFields("Source Payload");
         Assert.IsFalse(CorpCardProvider."Source Payload".HasValue(), 'Successful imports must clear the source payload.');
         Assert.AreEqual(0, CorpCardProvider."Source Payload Record Count", 'Successful imports must clear the source payload record count.');
         Assert.AreEqual(CorpCardCsvSampleFileNameTok, CorpCardProvider."Source File Name", 'Successful imports must retain the source file name.');
-        Assert.AreEqual(CorpCardCsvSampleFileNameTok, CorpCardBatch."Source File Name", 'The batch must retain the source file name.');
-        Assert.IsTrue(CorpCardBatch."Source Payload Hash" <> '', 'The batch must retain the source payload hash.');
-        Assert.AreEqual(0, CorpCardBatch."Data Exch Entry No.", 'Successful imports must remove the temporary data exchange record.');
+        Assert.AreEqual(CorpCardCsvSampleFileNameTok, CorpCardStatement."Source File Name", 'The statement must retain the source file name.');
+        Assert.IsTrue(CorpCardStatement."Source Payload Hash" <> '', 'The statement must retain the source payload hash.');
+        Assert.AreEqual(0, CorpCardStatement."Data Exch Entry No.", 'Successful imports must remove the temporary data exchange record.');
     end;
 
     [Test]
@@ -101,13 +101,13 @@ codeunit 148353 EACorpCardPhase3Tests
     [Test]
     procedure DeletingTransactionDeletesOwnedDetailsAndExceptions()
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardException: Record "EA Corp Card Exception";
         CorpCardTrans: Record "EA Corp Card Trans";
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
     begin
         Initialize();
-        CreateCleanupTestRecords(CorpCardBatch, CorpCardTrans, CorpCardTransDetail, CorpCardException);
+        CreateCleanupTestRecords(CorpCardStatement, CorpCardTrans, CorpCardTransDetail, CorpCardException);
 
         CorpCardTrans.Delete(true);
 
@@ -118,26 +118,26 @@ codeunit 148353 EACorpCardPhase3Tests
     end;
 
     [Test]
-    procedure DeletingBatchDeletesOwnedTransactionsDetailsAndExceptions()
+    procedure DeletingStatementDeletesOwnedTransactionsDetailsAndExceptions()
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardException: Record "EA Corp Card Exception";
         CorpCardTrans: Record "EA Corp Card Trans";
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
         TransEntryNo: Integer;
     begin
         Initialize();
-        CreateCleanupTestRecords(CorpCardBatch, CorpCardTrans, CorpCardTransDetail, CorpCardException);
+        CreateCleanupTestRecords(CorpCardStatement, CorpCardTrans, CorpCardTransDetail, CorpCardException);
         TransEntryNo := CorpCardTrans."Entry No.";
 
-        CorpCardBatch.Delete(true);
+        CorpCardStatement.Delete(true);
 
-        CorpCardTrans.SetRange("Batch No.", CorpCardBatch."Batch No.");
-        Assert.IsTrue(CorpCardTrans.IsEmpty(), 'Deleting a batch must delete its transactions.');
+        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        Assert.IsTrue(CorpCardTrans.IsEmpty(), 'Deleting a statement must delete its transactions.');
         CorpCardTransDetail.SetRange("Trans Entry No.", TransEntryNo);
-        Assert.IsTrue(CorpCardTransDetail.IsEmpty(), 'Deleting a batch must delete transaction detail lines.');
-        CorpCardException.SetRange("Batch No.", CorpCardBatch."Batch No.");
-        Assert.IsTrue(CorpCardException.IsEmpty(), 'Deleting a batch must delete its exceptions.');
+        Assert.IsTrue(CorpCardTransDetail.IsEmpty(), 'Deleting a statement must delete transaction detail lines.');
+        CorpCardException.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        Assert.IsTrue(CorpCardException.IsEmpty(), 'Deleting a statement must delete its exceptions.');
     end;
 
     [Test]
@@ -169,23 +169,23 @@ codeunit 148353 EACorpCardPhase3Tests
     [Test]
     procedure XmlImportMapsMandatoryFields()
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
     begin
         Initialize();
 
-        RunImportAndGetLastBatch(CorpCardXmlProviderCodeTok, CorpCardBatch);
+        RunImportAndGetLastStatement(CorpCardXmlProviderCodeTok, CorpCardStatement);
 
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'XML import batch must complete successfully.');
-        Assert.IsTrue(CorpCardBatch.Imported > 0, 'XML sample payload must import at least one transaction.');
-        AssertAnyTransactionHasMandatoryFields(CorpCardBatch."Batch No.", CorpCardXmlProviderCodeTok);
+        Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'XML statement import must complete successfully.');
+        Assert.IsTrue(CorpCardStatement.Imported > 0, 'XML sample payload must import at least one transaction.');
+        AssertAnyTransactionHasMandatoryFields(CorpCardStatement."Statement Entry No.", CorpCardXmlProviderCodeTok);
     end;
 
-    local procedure AssertAnyTransactionHasMandatoryFields(BatchNo: Integer; ProviderCode: Code[20])
+    local procedure AssertAnyTransactionHasMandatoryFields(StatementEntryNo: Integer; ProviderCode: Code[20])
     var
         CorpCardTrans: Record "EA Corp Card Trans";
         FoundMapped: Boolean;
     begin
-        CorpCardTrans.SetRange("Batch No.", BatchNo);
+        CorpCardTrans.SetRange("Statement Entry No.", StatementEntryNo);
         CorpCardTrans.SetRange("Provider Code", ProviderCode);
         if CorpCardTrans.FindSet() then
             repeat
@@ -198,7 +198,7 @@ codeunit 148353 EACorpCardPhase3Tests
                 end;
             until CorpCardTrans.Next() = 0;
 
-        Assert.IsTrue(FoundMapped, 'No transaction with mandatory mapped fields found for provider ' + ProviderCode + ' in batch ' + Format(BatchNo) + '.');
+        Assert.IsTrue(FoundMapped, 'No transaction with mandatory mapped fields found for provider ' + ProviderCode + ' in statement ' + Format(StatementEntryNo) + '.');
     end;
 
     local procedure GetMalformedXmlPayload(): Text
@@ -248,23 +248,23 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
         CorpCardException: Record "EA Corp Card Exception";
         CorpCardTrans: Record "EA Corp Card Trans";
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
     begin
         CorpCardTransDetail.DeleteAll();
         CorpCardException.DeleteAll();
         CorpCardTrans.DeleteAll();
-        CorpCardBatch.DeleteAll();
+        CorpCardStatement.DeleteAll();
     end;
 
-    local procedure CreateCleanupTestRecords(var CorpCardBatch: Record "EA Corp Card Batch"; var CorpCardTrans: Record "EA Corp Card Trans"; var CorpCardTransDetail: Record "EA Corp Card Trans Detail"; var CorpCardException: Record "EA Corp Card Exception")
+    local procedure CreateCleanupTestRecords(var CorpCardStatement: Record "EA Corp Card Statement"; var CorpCardTrans: Record "EA Corp Card Trans"; var CorpCardTransDetail: Record "EA Corp Card Trans Detail"; var CorpCardException: Record "EA Corp Card Exception")
     begin
-        CorpCardBatch.Init();
-        CorpCardBatch."Provider Code" := CorpCardXmlProviderCodeTok;
-        CorpCardBatch.Insert(true);
+        CorpCardStatement.Init();
+        CorpCardStatement."Provider Code" := CorpCardXmlProviderCodeTok;
+        CorpCardStatement.Insert(true);
 
         CorpCardTrans.Init();
-        CorpCardTrans."Batch No." := CorpCardBatch."Batch No.";
-        CorpCardTrans."Provider Code" := CorpCardBatch."Provider Code";
+        CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
+        CorpCardTrans."Provider Code" := CorpCardStatement."Provider Code";
         CorpCardTrans."Provider Trans Id" := 'DELETE-TEST';
         CorpCardTrans."Card Id" := 'DELETE-TEST';
         CorpCardTrans."Trans Date" := Today();
@@ -276,20 +276,20 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardTransDetail.Insert(true);
 
         CorpCardException.Init();
-        CorpCardException."Batch No." := CorpCardBatch."Batch No.";
+        CorpCardException."Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardException."Trans Entry No." := CorpCardTrans."Entry No.";
         CorpCardException.Insert(true);
     end;
 
-    local procedure RunImportAndGetLastBatch(ProviderCode: Code[20]; var CorpCardBatch: Record "EA Corp Card Batch")
+    local procedure RunImportAndGetLastStatement(ProviderCode: Code[20]; var CorpCardStatement: Record "EA Corp Card Statement")
     var
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         CorpCardFeedMgt.RunImport(ProviderCode);
 
-        CorpCardBatch.Reset();
-        CorpCardBatch.SetRange("Provider Code", ProviderCode);
-        Assert.IsTrue(CorpCardBatch.FindLast(), 'No batch was created for provider ' + ProviderCode + '.');
+        CorpCardStatement.Reset();
+        CorpCardStatement.SetRange("Provider Code", ProviderCode);
+        Assert.IsTrue(CorpCardStatement.FindLast(), 'No statement was created for provider ' + ProviderCode + '.');
     end;
 
     local procedure SetProviderSourcePayload(ProviderCode: Code[20]; SourcePayload: Text; SourceFileName: Text[250])

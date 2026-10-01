@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
 
 table 7421 "EA Corp Card"
@@ -74,13 +73,6 @@ table 7421 "EA Corp Card"
             Caption = 'Valid To';
             DataClassification = AccountData;
             ToolTip = 'Specifies the date until which the card is valid.';
-        }
-        field(10; "Bank Account No."; Code[20])
-        {
-            Caption = 'Bank Account No.';
-            DataClassification = AccountData;
-            TableRelation = "Bank Account"."No.";
-            ToolTip = 'Specifies the corporate card bank account used to create payment reconciliation lines after linked expenses are posted.';
         }
     }
 

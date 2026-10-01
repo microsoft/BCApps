@@ -4,9 +4,24 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-interface "EA Corp Card Provider"
+enum 7437 "EA Corp Card Settle Status"
 {
-    procedure Download(var CorpCardStatement: Record "EA Corp Card Statement");
-    procedure ParseToStaging(StatementEntryNo: Integer);
-    procedure Ack(StatementEntryNo: Integer);
+    Caption = 'Corp Card Settlement Status';
+
+    value(0; Open)
+    {
+        Caption = 'Open';
+    }
+    value(1; ReadyToPost)
+    {
+        Caption = 'Ready to Post';
+    }
+    value(2; Posted)
+    {
+        Caption = 'Posted';
+    }
+    value(3; Reversed)
+    {
+        Caption = 'Reversed';
+    }
 }

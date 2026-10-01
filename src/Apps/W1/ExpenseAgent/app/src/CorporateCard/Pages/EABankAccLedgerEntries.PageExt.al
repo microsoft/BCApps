@@ -17,6 +17,11 @@ pageextension 7442 "EA Bank Acc. Ledger Entries" extends "Bank Account Ledger En
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the corporate card transaction that created this bank account ledger entry.';
             }
+            field("EA Corp Card Settle Entry No."; Rec."EA Corp Card Settle Entry No.")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the corporate card settlement that created this bank account ledger entry.';
+            }
         }
     }
 }

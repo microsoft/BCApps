@@ -14,10 +14,10 @@ codeunit 7437 "EA Corp Card Map Mgt"
     var
         MandatoryFieldMapMissingErr: Label 'Missing Data Exchange field mapping for %1 on provider %2 (Definition: %3).', Comment = '%1 = Field caption, %2 = Provider code, %3 = Data Exchange Definition Code';
 
-    internal procedure InitTransForBatch(var CorpCardTrans: Record "EA Corp Card Trans"; BatchNo: Integer; ProviderCode: Code[20])
+    internal procedure InitTransForStatement(var CorpCardTrans: Record "EA Corp Card Trans"; StatementEntryNo: Integer; ProviderCode: Code[20])
     begin
         CorpCardTrans.Init();
-        CorpCardTrans."Batch No." := BatchNo;
+        CorpCardTrans."Statement Entry No." := StatementEntryNo;
         CorpCardTrans."Provider Code" := ProviderCode;
         CorpCardTrans.Status := CorpCardTrans.Status::Imported;
     end;
@@ -48,7 +48,7 @@ codeunit 7437 "EA Corp Card Map Mgt"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Corp Card Data Exch Prov", 'OnBeforeInjectSourceContent', '', false, false)]
-    local procedure OnBeforeInjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardBatch: Record "EA Corp Card Batch"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
+    local procedure OnBeforeInjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardStatement: Record "EA Corp Card Statement"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
     var
         ProviderRefreshed: Record "EA Corp Card Provider";
         SourceInStr: InStream;

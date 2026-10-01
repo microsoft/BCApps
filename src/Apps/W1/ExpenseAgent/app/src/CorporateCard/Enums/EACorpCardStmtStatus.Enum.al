@@ -4,20 +4,32 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 7436 "EA Corp Card Batch Status"
+enum 7436 "EA Corp Card Stmt Status"
 {
-    Caption = 'Corp Card Batch Status';
+    Caption = 'Corp Card Statement Status';
 
-    value(0; Started)
+    value(0; Importing)
     {
-        Caption = 'Started';
+        Caption = 'Importing';
     }
-    value(1; Completed)
+    value(1; Imported)
     {
-        Caption = 'Completed';
+        Caption = 'Imported';
     }
     value(2; Failed)
     {
         Caption = 'Failed';
+    }
+    value(3; Validated)
+    {
+        Caption = 'Validated';
+    }
+    value(4; Closed)
+    {
+        Caption = 'Closed';
+    }
+    value(5; ReconciliationRequired)
+    {
+        Caption = 'Reconciliation Required';
     }
 }

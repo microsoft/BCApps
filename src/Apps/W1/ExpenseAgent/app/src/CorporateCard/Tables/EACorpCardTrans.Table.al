@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Ledger;
-using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
 
@@ -27,12 +24,12 @@ table 7428 "EA Corp Card Trans"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the unique entry number of the corporate card transaction.';
         }
-        field(2; "Batch No."; Integer)
+        field(2; "Statement Entry No."; Integer)
         {
-            Caption = 'Batch No.';
+            Caption = 'Statement Entry No.';
             DataClassification = SystemMetadata;
-            TableRelation = "EA Corp Card Batch"."Batch No.";
-            Tooltip = 'Specifies the batch number of the corporate card transaction batch that this transaction belongs to.';
+            TableRelation = "EA Corp Card Statement"."Statement Entry No.";
+            Tooltip = 'Specifies the corporate card statement that contains this transaction.';
         }
         field(3; "Provider Code"; Code[20])
         {
@@ -146,55 +143,21 @@ table 7428 "EA Corp Card Trans"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the hash of the source payload of the corporate card transaction.';
         }
-        field(20; "Bank Account No."; Code[20])
-        {
-            Caption = 'Bank Account No.';
-            DataClassification = AccountData;
-            Editable = false;
-            TableRelation = "Bank Account"."No.";
-            ToolTip = 'Specifies the corporate card bank account used for payment reconciliation.';
-        }
-        field(21; "Bank Acc. Reconciliation No."; Code[20])
-        {
-            Caption = 'Bank Acc. Reconciliation No.';
-            DataClassification = SystemMetadata;
-            Editable = false;
-            TableRelation = "Bank Acc. Reconciliation"."Statement No." where("Statement Type" = const("Payment Application"),
-                                                                              "Bank Account No." = field("Bank Account No."));
-            ToolTip = 'Specifies the payment reconciliation that contains this corporate card transaction.';
-        }
-        field(22; "Bank Acc. Rec. Line No."; Integer)
-        {
-            Caption = 'Bank Acc. Rec. Line No.';
-            DataClassification = SystemMetadata;
-            Editable = false;
-            TableRelation = "Bank Acc. Reconciliation Line"."Statement Line No." where("Statement Type" = const("Payment Application"),
-                                                                                        "Bank Account No." = field("Bank Account No."),
-                                                                                        "Statement No." = field("Bank Acc. Reconciliation No."));
-            ToolTip = 'Specifies the payment reconciliation line created for this corporate card transaction.';
-        }
         field(23; "Posted Expense Report No."; Code[20])
         {
             Caption = 'Posted Expense Report No.';
             DataClassification = AccountData;
             Editable = false;
             TableRelation = "Posted Expense Report Header"."No.";
-            ToolTip = 'Specifies the posted expense report that made this corporate card transaction ready for payment reconciliation.';
+            ToolTip = 'Specifies the posted expense report linked to this corporate card transaction.';
         }
-        field(24; "Bank Account Statement No."; Code[20])
+        field(24; "Provider Statement No."; Code[50])
         {
-            Caption = 'Bank Account Statement No.';
-            DataClassification = SystemMetadata;
+            Caption = 'Provider Statement No.';
+            CalcFormula = lookup("EA Corp Card Statement"."Statement No." where("Statement Entry No." = field("Statement Entry No.")));
             Editable = false;
-            ToolTip = 'Specifies the posted bank account statement that contains this corporate card transaction.';
-        }
-        field(25; "Bank Acc. Ledger Entry No."; Integer)
-        {
-            Caption = 'Bank Acc. Ledger Entry No.';
-            DataClassification = SystemMetadata;
-            Editable = false;
-            TableRelation = "Bank Account Ledger Entry"."Entry No.";
-            ToolTip = 'Specifies the bank account ledger entry created from this corporate card transaction.';
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the corporate card provider statement linked to this transaction.';
         }
     }
 
@@ -208,13 +171,11 @@ table 7428 "EA Corp Card Trans"
         {
             Unique = true;
         }
-        key(Batch; "Batch No.")
+        key(Statement; "Statement Entry No.")
         {
+            SumIndexFields = Amount;
         }
         key(Status; Status)
-        {
-        }
-        key(BankReconciliation; "Bank Account No.", "Bank Acc. Reconciliation No.", "Bank Acc. Rec. Line No.")
         {
         }
     }
@@ -224,10 +185,32 @@ table 7428 "EA Corp Card Trans"
         CorpCardException: Record "EA Corp Card Exception";
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
     begin
+        EnsureStatementNotClosed();
+
         CorpCardTransDetail.SetRange("Trans Entry No.", "Entry No.");
         CorpCardTransDetail.DeleteAll(true);
 
         CorpCardException.SetRange("Trans Entry No.", "Entry No.");
         CorpCardException.DeleteAll(true);
     end;
+
+    trigger OnModify()
+    begin
+        EnsureStatementNotClosed();
+    end;
+
+    local procedure EnsureStatementNotClosed()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        if "Statement Entry No." = 0 then
+            exit;
+        if not CorpCardStatement.Get("Statement Entry No.") then
+            exit;
+        if CorpCardStatement.Status = CorpCardStatement.Status::Closed then
+            Error(ClosedStatementTransactionCannotChangeErr, "Entry No.", CorpCardStatement."Statement No.");
+    end;
+
+    var
+        ClosedStatementTransactionCannotChangeErr: Label 'Corporate card transaction %1 cannot be changed because statement %2 is closed.', Comment = '%1 = transaction entry number, %2 = statement number';
 }

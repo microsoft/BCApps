@@ -22,12 +22,12 @@ table 7423 "EA Corp Card Exception"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the entry number for the corporate card exception.';
         }
-        field(2; "Batch No."; Integer)
+        field(2; "Statement Entry No."; Integer)
         {
-            Caption = 'Batch No.';
+            Caption = 'Statement Entry No.';
             DataClassification = SystemMetadata;
-            TableRelation = "EA Corp Card Batch"."Batch No.";
-            ToolTip = 'Specifies the batch number for the corporate card exception.';
+            TableRelation = "EA Corp Card Statement"."Statement Entry No.";
+            ToolTip = 'Specifies the statement entry that contains the transaction exception.';
         }
         field(3; "Trans Entry No."; Integer)
         {

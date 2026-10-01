@@ -12,7 +12,7 @@ codeunit 148357 EACorpCardTestLib
     var
         Assert: Codeunit "Assert";
         LibraryExpense: Codeunit "Library - Expense";
-        NoBatchCreatedForProviderTxt: Label 'No batch was created for provider %1.', Comment = '%1 = provider code', Locked = true;
+        NoStatementCreatedForProviderTxt: Label 'No statement was created for provider %1.', Comment = '%1 = provider code', Locked = true;
         ProviderTransactionNotImportedTxt: Label 'Provider transaction %1 was not imported for provider %2.', Comment = '%1 = provider transaction ID, %2 = provider code', Locked = true;
         ProviderNotFoundTxt: Label 'Provider %1 was not found.', Comment = '%1 = provider code', Locked = true;
 
@@ -24,6 +24,7 @@ codeunit 148357 EACorpCardTestLib
     begin
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
+        LibraryExpense.InitializeExpenseSourceCode();
         DeleteCorpCardTransactionalData();
         CorpCard.DeleteAll();
 
@@ -37,42 +38,59 @@ codeunit 148357 EACorpCardTestLib
     var
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
         CorpCardException: Record "EA Corp Card Exception";
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
         CorpCardTrans: Record "EA Corp Card Trans";
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
     begin
         CorpCardTransDetail.DeleteAll();
         CorpCardException.DeleteAll();
+        CorpCardSettlementLine.DeleteAll();
+        CorpCardSettlement.DeleteAll();
         CorpCardTrans.DeleteAll();
-        CorpCardBatch.DeleteAll();
+        CorpCardStatement.DeleteAll();
     end;
 
-    internal procedure RunImportAndGetLastBatch(ProviderCode: Code[20]; var CorpCardBatch: Record "EA Corp Card Batch")
+    internal procedure RunImportAndGetLastStatement(ProviderCode: Code[20]; var CorpCardStatement: Record "EA Corp Card Statement")
     var
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         CorpCardFeedMgt.RunImport(ProviderCode);
 
-        CorpCardBatch.Reset();
-        CorpCardBatch.SetRange("Provider Code", ProviderCode);
-        Assert.IsTrue(CorpCardBatch.FindLast(), StrSubstNo(NoBatchCreatedForProviderTxt, ProviderCode));
+        CorpCardStatement.Reset();
+        CorpCardStatement.SetRange("Provider Code", ProviderCode);
+        Assert.IsTrue(CorpCardStatement.FindLast(), StrSubstNo(NoStatementCreatedForProviderTxt, ProviderCode));
     end;
 
-    internal procedure CountTransForBatch(BatchNo: Integer; ProviderCode: Code[20]): Integer
+    internal procedure EnsureCorpCardProvider(ProviderCode: Code[20])
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+    begin
+        if CorpCardProvider.Get(ProviderCode) then
+            exit;
+
+        CorpCardProvider.Init();
+        CorpCardProvider.Code := ProviderCode;
+        CorpCardProvider.Description := ProviderCode;
+        CorpCardProvider.Insert(true);
+    end;
+
+    internal procedure CountTransForStatement(StatementEntryNo: Integer; ProviderCode: Code[20]): Integer
     var
         CorpCardTrans: Record "EA Corp Card Trans";
     begin
-        CorpCardTrans.SetRange("Batch No.", BatchNo);
+        CorpCardTrans.SetRange("Statement Entry No.", StatementEntryNo);
         CorpCardTrans.SetRange("Provider Code", ProviderCode);
         exit(CorpCardTrans.Count());
     end;
 
-    internal procedure CountTransDetailsForBatch(BatchNo: Integer; ProviderCode: Code[20]): Integer
+    internal procedure CountTransDetailsForStatement(StatementEntryNo: Integer; ProviderCode: Code[20]): Integer
     var
         CorpCardTrans: Record "EA Corp Card Trans";
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
         DetailCount: Integer;
     begin
-        CorpCardTrans.SetRange("Batch No.", BatchNo);
+        CorpCardTrans.SetRange("Statement Entry No.", StatementEntryNo);
         CorpCardTrans.SetRange("Provider Code", ProviderCode);
         if not CorpCardTrans.FindSet() then
             exit(0);
@@ -85,10 +103,10 @@ codeunit 148357 EACorpCardTestLib
         exit(DetailCount);
     end;
 
-    internal procedure FindTransInBatchByProviderTransId(BatchNo: Integer; ProviderCode: Code[20]; ProviderTransId: Code[100]; var CorpCardTrans: Record "EA Corp Card Trans")
+    internal procedure FindTransInStatementByProviderTransId(StatementEntryNo: Integer; ProviderCode: Code[20]; ProviderTransId: Code[100]; var CorpCardTrans: Record "EA Corp Card Trans")
     begin
         CorpCardTrans.Reset();
-        CorpCardTrans.SetRange("Batch No.", BatchNo);
+        CorpCardTrans.SetRange("Statement Entry No.", StatementEntryNo);
         CorpCardTrans.SetRange("Provider Code", ProviderCode);
         CorpCardTrans.SetRange("Provider Trans Id", ProviderTransId);
         Assert.IsTrue(CorpCardTrans.FindFirst(), StrSubstNo(ProviderTransactionNotImportedTxt, ProviderTransId, ProviderCode));

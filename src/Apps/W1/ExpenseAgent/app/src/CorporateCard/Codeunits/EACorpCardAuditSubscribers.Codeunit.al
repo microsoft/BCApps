@@ -17,9 +17,9 @@ codeunit 7424 "EA Corp Card Audit Subscribers"
 
     var
         CorpCardTelemetryCategoryTok: Label 'Corporate Card', Locked = true;
-        ImportStartedMsg: Label 'Corp Card import started for provider %1. Batch No. %2.', Locked = true;
-        ImportCompletedMsg: Label 'Corp Card import completed for provider %1. Batch No. %2. Imported: %3, Exceptions: %4, Duplicates: %5.', Locked = true;
-        ImportFailedMsg: Label 'Corp Card import failed for provider %1. Batch No. %2. Error: %3.', Locked = true;
+        ImportStartedMsg: Label 'Corp Card statement import started for provider %1. Statement Entry No. %2.', Locked = true;
+        ImportCompletedMsg: Label 'Corp Card statement import completed for provider %1. Statement Entry No. %2. Imported: %3, Exceptions: %4, Duplicates: %5.', Locked = true;
+        ImportFailedMsg: Label 'Corp Card statement import failed for provider %1. Statement Entry No. %2. Error: %3.', Locked = true;
         MatchingCompletedMsg: Label 'Corp Card matching completed. Matched: %1, Unmatched: %2.', Locked = true;
         DraftCreatedMsg: Label 'Corp Card draft created. Transaction: %1, Expense No.: %2.', Locked = true;
         JobQueueScheduledMsg: Label 'Corp Card import job queue scheduled for provider %1 with frequency %2.', Locked = true;
@@ -28,19 +28,19 @@ codeunit 7424 "EA Corp Card Audit Subscribers"
         ReportApprovedMsg: Label 'Expense report approved for posting.', Locked = true;
         ReportRejectedMsg: Label 'Expense report rejected.', Locked = true;
 
-    internal procedure LogImportStarted(ProviderCode: Code[20]; BatchNo: Integer)
+    internal procedure LogImportStarted(ProviderCode: Code[20]; StatementEntryNo: Integer)
     begin
-        Session.LogMessage('0000UCS', StrSubstNo(ImportStartedMsg, ProviderCode, BatchNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Session.LogMessage('0000UCS', StrSubstNo(ImportStartedMsg, ProviderCode, StatementEntryNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
     end;
 
-    internal procedure LogImportCompleted(ProviderCode: Code[20]; BatchNo: Integer; Imported: Integer; Exceptions: Integer; Duplicates: Integer)
+    internal procedure LogImportCompleted(ProviderCode: Code[20]; StatementEntryNo: Integer; Imported: Integer; Exceptions: Integer; Duplicates: Integer)
     begin
-        Session.LogMessage('0000UCT', StrSubstNo(ImportCompletedMsg, ProviderCode, BatchNo, Imported, Exceptions, Duplicates), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Session.LogMessage('0000UCT', StrSubstNo(ImportCompletedMsg, ProviderCode, StatementEntryNo, Imported, Exceptions, Duplicates), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
     end;
 
-    internal procedure LogImportFailed(ProviderCode: Code[20]; BatchNo: Integer; ErrorMsg: Text)
+    internal procedure LogImportFailed(ProviderCode: Code[20]; StatementEntryNo: Integer; ErrorMsg: Text)
     begin
-        Session.LogMessage('0000UCU', StrSubstNo(ImportFailedMsg, ProviderCode, BatchNo, CopyStr(ErrorMsg, 1, 250)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Session.LogMessage('0000UCU', StrSubstNo(ImportFailedMsg, ProviderCode, StatementEntryNo, CopyStr(ErrorMsg, 1, 250)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
     end;
 
     internal procedure LogMatchingCompleted(Matched: Integer; Unmatched: Integer)

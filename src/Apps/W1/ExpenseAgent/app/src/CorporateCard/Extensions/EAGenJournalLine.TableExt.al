@@ -17,5 +17,12 @@ tableextension 7443 "EA Gen. Journal Line" extends "Gen. Journal Line"
             Editable = false;
             TableRelation = "EA Corp Card Trans"."Entry No.";
         }
+        field(7421; "EA Corp Card Settle Entry No."; Integer)
+        {
+            Caption = 'Corp Card Settlement Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "EA Corp Card Settlement"."Settlement Entry No.";
+        }
     }
 }

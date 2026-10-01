@@ -15,7 +15,7 @@ codeunit 6913 "EA Corp Card Stats Calculator"
     var
         Results: Dictionary of [Text, Text];
     begin
-        Results.Add(GetTotalBatchesKey(), Format(GetTotalBatches()));
+        Results.Add(GetTotalStatementsKey(), Format(GetTotalStatements()));
         Results.Add(GetTotalTransactionsKey(), Format(GetTotalTransactions()));
         Results.Add(GetMatchSuccessRateKey(), Format(GetMatchSuccessRate()));
         Results.Add(GetExceptionRateKey(), Format(GetExceptionRate()));
@@ -29,9 +29,9 @@ codeunit 6913 "EA Corp Card Stats Calculator"
         Page.SetBackgroundTaskResult(Results);
     end;
 
-    internal procedure GetTotalBatchesKey(): Text
+    internal procedure GetTotalStatementsKey(): Text
     begin
-        exit('totalBatches');
+        exit('totalStatements');
     end;
 
     internal procedure GetTotalTransactionsKey(): Text
@@ -84,21 +84,21 @@ codeunit 6913 "EA Corp Card Stats Calculator"
         exit('totalActiveCards');
     end;
 
-    local procedure GetTotalBatches(): Integer
+    local procedure GetTotalStatements(): Integer
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
     begin
-        SetRecentBatchFilter(CorpCardBatch);
-        exit(CorpCardBatch.Count());
+        SetRecentStatementFilter(CorpCardStatement);
+        exit(CorpCardStatement.Count());
     end;
 
     local procedure GetTotalTransactions(): Integer
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
     begin
-        SetRecentBatchFilter(CorpCardBatch);
-        CorpCardBatch.CalcSums(Imported);
-        exit(CorpCardBatch.Imported);
+        SetRecentStatementFilter(CorpCardStatement);
+        CorpCardStatement.CalcSums(Imported);
+        exit(CorpCardStatement.Imported);
     end;
 
     local procedure GetMatchSuccessRate(): Decimal
@@ -135,17 +135,17 @@ codeunit 6913 "EA Corp Card Stats Calculator"
 
     local procedure GetDuplicateRate(): Decimal
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         TotalCount: Integer;
         DuplicateCount: Integer;
     begin
-        SetRecentBatchFilter(CorpCardBatch);
-        CorpCardBatch.CalcSums(Imported, Duplicates);
-        TotalCount := CorpCardBatch.Imported;
+        SetRecentStatementFilter(CorpCardStatement);
+        CorpCardStatement.CalcSums(Imported, Duplicates);
+        TotalCount := CorpCardStatement.Imported;
         if TotalCount = 0 then
             exit(0);
 
-        DuplicateCount := CorpCardBatch.Duplicates;
+        DuplicateCount := CorpCardStatement.Duplicates;
         exit((DuplicateCount / TotalCount) * 100);
     end;
 
@@ -201,8 +201,8 @@ codeunit 6913 "EA Corp Card Stats Calculator"
         exit(CorpCard.Count());
     end;
 
-    local procedure SetRecentBatchFilter(var CorpCardBatch: Record "EA Corp Card Batch")
+    local procedure SetRecentStatementFilter(var CorpCardStatement: Record "EA Corp Card Statement")
     begin
-        CorpCardBatch.SetFilter("Started DT", '>=%1', CreateDateTime(Today() - 30, 0T));
+        CorpCardStatement.SetFilter("Started DT", '>=%1', CreateDateTime(Today() - 30, 0T));
     end;
 }

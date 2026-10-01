@@ -17,7 +17,7 @@ page 7438 "EA Corp Card Dashboard"
         {
             group(Group1)
             {
-                part(RecentBatches; "EA Corp Card Dashboard Fact")
+                part(RecentStatements; "EA Corp Card Dashboard Fact")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -54,13 +54,21 @@ page 7438 "EA Corp Card Dashboard"
                     RunObject = Page "EA Corp Card Trans List";
                     ToolTip = 'View imported corporate card transactions.';
                 }
-                action(Batches)
+                action(ProviderStatements)
                 {
-                    Caption = 'Import Batches';
+                    Caption = 'Provider Statements';
                     ApplicationArea = Basic, Suite;
-                    Image = History;
-                    RunObject = Page "EA Corp Card Batches";
-                    ToolTip = 'View all import batches.';
+                    Image = Documents;
+                    RunObject = Page "EA Corp Card Statements";
+                    ToolTip = 'View and validate corporate card provider statements.';
+                }
+                action(Settlements)
+                {
+                    Caption = 'Settlements';
+                    ApplicationArea = Basic, Suite;
+                    Image = Payment;
+                    RunObject = Page "EA Corp Card Settlements";
+                    ToolTip = 'View and prepare corporate card provider settlements.';
                 }
                 action(Exceptions)
                 {

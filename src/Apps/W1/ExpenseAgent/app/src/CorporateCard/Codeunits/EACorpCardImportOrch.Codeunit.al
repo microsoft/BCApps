@@ -10,7 +10,7 @@ codeunit 7432 "EA Corp Card Import Orch"
 {
     Access = Internal;
     Permissions = tabledata "Data Exch." = d;
-    TableNo = "EA Corp Card Batch";
+    TableNo = "EA Corp Card Statement";
 
     trigger OnRun()
     begin
@@ -24,72 +24,72 @@ codeunit 7432 "EA Corp Card Import Orch"
 
     internal procedure RunProvider(CorpCardProvider: Record "EA Corp Card Provider"; RaiseImportError: Boolean)
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         ImportErrorText: Text;
     begin
-        CorpCardBatch.Init();
-        CorpCardBatch."Provider Code" := CorpCardProvider.Code;
-        CorpCardBatch."Started DT" := CurrentDateTime();
-        CorpCardBatch.Status := CorpCardBatch.Status::Started;
-        CorpCardBatch.Insert(true);
+        CorpCardStatement.Init();
+        CorpCardStatement."Provider Code" := CorpCardProvider.Code;
+        CorpCardStatement."Started DT" := CurrentDateTime();
+        CorpCardStatement.Status := CorpCardStatement.Status::Importing;
+        CorpCardStatement.Insert(true);
 
-        AuditSubscribers.LogImportStarted(CorpCardProvider.Code, CorpCardBatch."Batch No.");
+        AuditSubscribers.LogImportStarted(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.");
 
         Commit();
-        if not CorpCardImportOrch.Run(CorpCardBatch) then begin
+        if not CorpCardImportOrch.Run(CorpCardStatement) then begin
             ImportErrorText := GetLastErrorText();
-            MarkImportFailed(CorpCardBatch);
-            AuditSubscribers.LogImportFailed(CorpCardProvider.Code, CorpCardBatch."Batch No.", ImportErrorText);
-            ClearSourcePayload(CorpCardProvider.Code, CorpCardBatch);
-            UpdateProviderLastBatchNo(CorpCardProvider.Code, CorpCardBatch."Batch No.");
+            MarkImportFailed(CorpCardStatement);
+            AuditSubscribers.LogImportFailed(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", ImportErrorText);
+            ClearSourcePayload(CorpCardProvider.Code, CorpCardStatement);
+            UpdateProviderLastStatementEntryNo(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.");
             Commit();
             if RaiseImportError then
                 Error(ImportErrorText);
             exit;
         end;
 
-        CorpCardBatch.Get(CorpCardBatch."Batch No.");
-        if CorpCardBatch.Status <> CorpCardBatch.Status::Failed then
-            CorpCardBatch.Status := CorpCardBatch.Status::Completed;
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+        if CorpCardStatement.Status <> CorpCardStatement.Status::Failed then
+            CorpCardStatement.Status := CorpCardStatement.Status::Imported;
 
-        CorpCardBatch."Ended DT" := CurrentDateTime();
-        CorpCardBatch.Modify();
+        CorpCardStatement."Ended DT" := CurrentDateTime();
+        CorpCardStatement.Modify();
 
-        if CorpCardBatch.Status = CorpCardBatch.Status::Completed then
-            AuditSubscribers.LogImportCompleted(CorpCardProvider.Code, CorpCardBatch."Batch No.", CorpCardBatch.Imported, CorpCardBatch.Exceptions, CorpCardBatch.Duplicates);
+        if CorpCardStatement.Status = CorpCardStatement.Status::Imported then
+            AuditSubscribers.LogImportCompleted(CorpCardProvider.Code, CorpCardStatement."Statement Entry No.", CorpCardStatement.Imported, CorpCardStatement.Exceptions, CorpCardStatement.Duplicates);
 
-        ClearSourcePayload(CorpCardProvider.Code, CorpCardBatch);
+        ClearSourcePayload(CorpCardProvider.Code, CorpCardStatement);
 
         CorpCardProvider.Get(CorpCardProvider.Code);
         CorpCardProvider."Last Import DT" := CurrentDateTime();
-        CorpCardProvider."Last Batch No." := CorpCardBatch."Batch No.";
+        CorpCardProvider."Last Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardProvider.Modify();
     end;
 
-    local procedure ProcessProviderImport(var CorpCardBatch: Record "EA Corp Card Batch")
+    local procedure ProcessProviderImport(var CorpCardStatement: Record "EA Corp Card Statement")
     var
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardProvReg: Codeunit "EA Corp Card Prov Reg";
         CorpCardProviderImpl: Interface "EA Corp Card Provider";
     begin
-        CorpCardProvider.Get(CorpCardBatch."Provider Code");
+        CorpCardProvider.Get(CorpCardStatement."Provider Code");
         CorpCardProvReg.ResolveProvider(CorpCardProvider, CorpCardProviderImpl);
-        CorpCardProviderImpl.Download(CorpCardBatch);
-        CorpCardProviderImpl.ParseToStaging(CorpCardBatch."Batch No.");
-        CorpCardProviderImpl.Ack(CorpCardBatch."Batch No.");
+        CorpCardProviderImpl.Download(CorpCardStatement);
+        CorpCardProviderImpl.ParseToStaging(CorpCardStatement."Statement Entry No.");
+        CorpCardProviderImpl.Ack(CorpCardStatement."Statement Entry No.");
     end;
 
-    local procedure MarkImportFailed(var CorpCardBatch: Record "EA Corp Card Batch")
+    local procedure MarkImportFailed(var CorpCardStatement: Record "EA Corp Card Statement")
     begin
-        CorpCardBatch.Get(CorpCardBatch."Batch No.");
-        CorpCardBatch.Status := CorpCardBatch.Status::Failed;
-        CorpCardBatch."Ended DT" := CurrentDateTime();
-        CorpCardBatch.Modify();
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+        CorpCardStatement.Status := CorpCardStatement.Status::Failed;
+        CorpCardStatement."Ended DT" := CurrentDateTime();
+        CorpCardStatement.Modify();
     end;
 
-    local procedure ClearSourcePayload(ProviderCode: Code[20]; var CorpCardBatch: Record "EA Corp Card Batch")
+    local procedure ClearSourcePayload(ProviderCode: Code[20]; var CorpCardStatement: Record "EA Corp Card Statement")
     var
         CorpCardProvider: Record "EA Corp Card Provider";
         DataExch: Record "Data Exch.";
@@ -100,20 +100,20 @@ codeunit 7432 "EA Corp Card Import Orch"
             CorpCardProvider.Modify();
         end;
 
-        CorpCardBatch.Get(CorpCardBatch."Batch No.");
-        if DataExch.Get(CorpCardBatch."Data Exch Entry No.") then
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+        if DataExch.Get(CorpCardStatement."Data Exch Entry No.") then
             DataExch.Delete(true);
 
-        CorpCardBatch."Data Exch Entry No." := 0;
-        CorpCardBatch.Modify();
+        CorpCardStatement."Data Exch Entry No." := 0;
+        CorpCardStatement.Modify();
     end;
 
-    local procedure UpdateProviderLastBatchNo(ProviderCode: Code[20]; BatchNo: Integer)
+    local procedure UpdateProviderLastStatementEntryNo(ProviderCode: Code[20]; StatementEntryNo: Integer)
     var
         CorpCardProvider: Record "EA Corp Card Provider";
     begin
         CorpCardProvider.Get(ProviderCode);
-        CorpCardProvider."Last Batch No." := BatchNo;
+        CorpCardProvider."Last Statement Entry No." := StatementEntryNo;
         CorpCardProvider.Modify();
     end;
 }

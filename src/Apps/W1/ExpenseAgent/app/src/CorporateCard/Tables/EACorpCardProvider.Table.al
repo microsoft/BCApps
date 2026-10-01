@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Bank.BankAccount;
 using System.IO;
 using System.Threading;
 
@@ -17,7 +18,7 @@ table 7426 "EA Corp Card Provider"
     ReplicateData = false;
     Permissions =
         tabledata "EA Corp Card" = rimd,
-        tabledata "EA Corp Card Batch" = rimd,
+        tabledata "EA Corp Card Statement" = rimd,
         tabledata "EA Corp Card Exception" = rimd,
         tabledata "EA Corp Card Trans" = rimd,
         tabledata "EA Corp Card Trans Detail" = rimd,
@@ -77,12 +78,12 @@ table 7426 "EA Corp Card Provider"
             Editable = false;
             ToolTip = 'Specifies the date and time of the last import for the corporate card provider.';
         }
-        field(12; "Last Batch No."; Integer)
+        field(12; "Last Statement Entry No."; Integer)
         {
-            Caption = 'Last Batch No.';
+            Caption = 'Last Statement Entry No.';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies the last batch number for the corporate card provider.';
+            ToolTip = 'Specifies the last imported statement entry for the corporate card provider.';
         }
         field(13; "Source File Name"; Text[250])
         {
@@ -104,6 +105,30 @@ table 7426 "EA Corp Card Provider"
             Editable = false;
             MinValue = 0;
             ToolTip = 'Specifies the number of transaction records detected in the uploaded source payload.';
+        }
+        field(16; "Corp Card Bank Account No."; Code[20])
+        {
+            Caption = 'Corporate Card Bank Account No.';
+            DataClassification = AccountData;
+            TableRelation = "Bank Account"."No.";
+            ToolTip = 'Specifies the bank account that represents the provider liability and receives corporate card settlement transfers.';
+
+            trigger OnValidate()
+            begin
+                CheckSettlementAccountsDiffer();
+            end;
+        }
+        field(17; "Payment Bank Account No."; Code[20])
+        {
+            Caption = 'Payment Bank Account No.';
+            DataClassification = AccountData;
+            TableRelation = "Bank Account"."No.";
+            ToolTip = 'Specifies the real bank account from which settlements for this provider are paid.';
+
+            trigger OnValidate()
+            begin
+                CheckSettlementAccountsDiffer();
+            end;
         }
     }
 
@@ -156,6 +181,14 @@ table 7426 "EA Corp Card Provider"
                     "Source Payload Record Count" := CountOccurrences(PayloadTxt, '<Ntry>')
                 else
                     "Source Payload Record Count" := CountOccurrences(PayloadTxt, '<Transaction>');
+    end;
+
+    local procedure CheckSettlementAccountsDiffer()
+    begin
+        if ("Corp Card Bank Account No." <> '') and
+           ("Corp Card Bank Account No." = "Payment Bank Account No.")
+        then
+            Error(SettlementAccountsMustDifferErr);
     end;
 
     local procedure ReadStreamAsText(var PayloadInStr: InStream): Text
@@ -243,7 +276,8 @@ table 7426 "EA Corp Card Provider"
     local procedure HasRelatedData(): Boolean
     var
         CorpCard: Record "EA Corp Card";
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
         DataExch: Record "Data Exch.";
         JobQueueEntry: Record "Job Queue Entry";
@@ -252,8 +286,12 @@ table 7426 "EA Corp Card Provider"
         if not CorpCard.IsEmpty() then
             exit(true);
 
-        CorpCardBatch.SetRange("Provider Code", Code);
-        if not CorpCardBatch.IsEmpty() then
+        CorpCardSettlement.SetRange("Provider Code", Code);
+        if not CorpCardSettlement.IsEmpty() then
+            exit(true);
+
+        CorpCardStatement.SetRange("Provider Code", Code);
+        if not CorpCardStatement.IsEmpty() then
             exit(true);
 
         CorpCardTrans.SetRange("Provider Code", Code);
@@ -271,7 +309,8 @@ table 7426 "EA Corp Card Provider"
     local procedure DeleteRelatedData()
     var
         CorpCard: Record "EA Corp Card";
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardStatement: Record "EA Corp Card Statement";
         DataExch: Record "Data Exch.";
         JobQueueEntry: Record "Job Queue Entry";
     begin
@@ -281,8 +320,11 @@ table 7426 "EA Corp Card Provider"
         DataExch.SetRange("Related Record", RecordId);
         DataExch.DeleteAll(true);
 
-        CorpCardBatch.SetRange("Provider Code", Code);
-        CorpCardBatch.DeleteAll(true);
+        CorpCardSettlement.SetRange("Provider Code", Code);
+        CorpCardSettlement.DeleteAll(true);
+
+        CorpCardStatement.SetRange("Provider Code", Code);
+        CorpCardStatement.DeleteAll(true);
 
         CorpCard.SetRange("Provider Code", Code);
         CorpCard.DeleteAll(true);
@@ -291,4 +333,5 @@ table 7426 "EA Corp Card Provider"
     var
         DeleteProviderWithRelatedDataQst: Label 'Provider %1 has related corp card data or setup. Do you want to delete the provider and all related records?', Comment = '%1 = Provider code';
         DeleteProviderCanceledErr: Label 'Deletion canceled.';
+        SettlementAccountsMustDifferErr: Label 'The corporate card bank account and payment bank account must be different.';
 }

@@ -17,11 +17,21 @@ tableextension 7442 "EA Bank Acc. Ledger Entry" extends "Bank Account Ledger Ent
             Editable = false;
             TableRelation = "EA Corp Card Trans"."Entry No.";
         }
+        field(7421; "EA Corp Card Settle Entry No."; Integer)
+        {
+            Caption = 'Corp Card Settlement Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "EA Corp Card Settlement"."Settlement Entry No.";
+        }
     }
 
     keys
     {
         key(EACorpCardTrans; "EA Corp Card Trans Entry No.")
+        {
+        }
+        key(EACorpCardSettlement; "EA Corp Card Settle Entry No.")
         {
         }
     }

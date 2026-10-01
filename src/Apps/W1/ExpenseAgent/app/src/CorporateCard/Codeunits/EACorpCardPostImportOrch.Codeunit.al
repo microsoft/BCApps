@@ -12,9 +12,9 @@ codeunit 7423 "EA Corp Card Post Import Orch"
 {
     Access = Internal;
 
-    internal procedure ProcessBatchPostImport(BatchNo: Integer; ExpenseWriter: Interface "EA Corp Card Expense Writer")
+    internal procedure ProcessStatementPostImport(StatementEntryNo: Integer; ExpenseWriter: Interface "EA Corp Card Expense Writer")
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         MerchantNorm: Codeunit "EA Corp Card Merchant Norm";
@@ -25,13 +25,13 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         MatchedCount: Integer;
         UnmatchedCount: Integer;
     begin
-        if not CorpCardBatch.Get(BatchNo) then
+        if not CorpCardStatement.Get(StatementEntryNo) then
             exit;
 
         if not ExpenseAgentSetup.Get() then
             ExpenseAgentSetup.Init();
 
-        CorpCardTrans.SetRange("Batch No.", BatchNo);
+        CorpCardTrans.SetRange("Statement Entry No.", StatementEntryNo);
         CorpCardTrans.SetRange(Status, CorpCardTrans.Status::Imported);
 
         if not CorpCardTrans.FindSet() then

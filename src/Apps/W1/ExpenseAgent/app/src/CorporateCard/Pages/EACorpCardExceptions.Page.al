@@ -24,7 +24,7 @@ page 7432 "EA Corp Card Exceptions"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the exception entry number.';
                 }
-                field("Batch No."; Rec."Batch No.")
+                field("Statement Entry No."; Rec."Statement Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the batch where this exception was raised.';

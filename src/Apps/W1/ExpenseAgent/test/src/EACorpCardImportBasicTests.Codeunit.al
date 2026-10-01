@@ -21,39 +21,39 @@ codeunit 148356 EACorpCardImportBasicTests
         IsInitialized: Boolean;
 
     [Test]
-    procedure CsvImportCreatesCompletedBatchAndTransactions()
+    procedure CsvImportCreatesCompletedStatementAndTransactions()
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         ImportedTransCount: Integer;
     begin
         Initialize();
 
-        CorpCardTestLib.RunImportAndGetLastBatch(CorpCardCsvProviderCodeTok, CorpCardBatch);
-        ImportedTransCount := CorpCardTestLib.CountTransForBatch(CorpCardBatch."Batch No.", CorpCardCsvProviderCodeTok);
+        CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, CorpCardStatement);
+        ImportedTransCount := CorpCardTestLib.CountTransForStatement(CorpCardStatement."Statement Entry No.", CorpCardCsvProviderCodeTok);
 
-        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'CSV import batch must complete successfully.');
-        Assert.IsTrue(CorpCardBatch.Imported > 0, 'CSV sample import must create at least one transaction.');
-        Assert.AreEqual(CorpCardBatch.Imported, ImportedTransCount, 'Imported counter must match staged transaction rows for the batch.');
-        Assert.IsTrue(CorpCardBatch.Rejected >= CorpCardBatch.Exceptions, 'Rejected count must be greater than or equal to exception count.');
+        Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'CSV statement import must complete successfully.');
+        Assert.IsTrue(CorpCardStatement.Imported > 0, 'CSV sample import must create at least one transaction.');
+        Assert.AreEqual(CorpCardStatement.Imported, ImportedTransCount, 'Imported counter must match staged transaction rows for the statement.');
+        Assert.IsTrue(CorpCardStatement.Rejected >= CorpCardStatement.Exceptions, 'Rejected count must be greater than or equal to exception count.');
     end;
 
     [Test]
     procedure CsvImportSecondRunCountsDuplicates()
     var
-        FirstBatch: Record "EA Corp Card Batch";
-        SecondBatch: Record "EA Corp Card Batch";
+        FirstStatement: Record "EA Corp Card Statement";
+        SecondStatement: Record "EA Corp Card Statement";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
         Initialize();
 
-        CorpCardTestLib.RunImportAndGetLastBatch(CorpCardCsvProviderCodeTok, FirstBatch);
-        Assert.IsTrue(FirstBatch.Imported > 0, 'First CSV import must import transactions before duplicate rerun is tested.');
+        CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, FirstStatement);
+        Assert.IsTrue(FirstStatement.Imported > 0, 'First CSV import must import transactions before duplicate rerun is tested.');
 
         CreateCorpCardSetup.CreateDefaults();
-        CorpCardTestLib.RunImportAndGetLastBatch(CorpCardCsvProviderCodeTok, SecondBatch);
+        CorpCardTestLib.RunImportAndGetLastStatement(CorpCardCsvProviderCodeTok, SecondStatement);
 
-        Assert.IsTrue(SecondBatch.Duplicates > 0, 'Second CSV import must count the previously imported transactions as duplicates.');
-        Assert.AreEqual(0, SecondBatch.Imported, 'Second CSV import must not import duplicate transactions.');
+        Assert.IsTrue(SecondStatement.Duplicates > 0, 'Second CSV import must count the previously imported transactions as duplicates.');
+        Assert.AreEqual(0, SecondStatement.Imported, 'Second CSV import must not import duplicate transactions.');
     end;
 
     [Test]

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Corporate Card module for Expense Agent provides automated import, normalization, draft creation, reporting, and payment reconciliation of corporate card transactions in Business Central.
+The Corporate Card module for Expense Agent provides automated import, normalization, draft creation, and reporting of corporate card transactions in Business Central.
 
 **Namespace:** `Microsoft.ExpenseAgent`  
 **Access Level:** `Internal` (all objects)  
@@ -18,9 +18,9 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 2. **Multi-Format Support** - CSV, XML, ISO20022, CAMT.053, and CAMT.054 mapping profiles
 3. **Configurable Creation Mode** - AutoDraft can create one draft per imported transaction
 4. **Scheduled Processing** - Job Queue integration for recurring imports with retry resilience
-5. **Standard Workflows** - Leverages platform Expense Report approval, GL posting, Payment Reconciliation, and Bank Account posting
+5. **Standard Workflows** - Leverages platform Expense Report approval and G/L posting
 6. **Comprehensive Observability** - Telemetry at every step: import → normalization → matching → reporting
-7. **Low-Risk Banking Integration** - Retains `EACorpCardTrans` as the provider and audit record while using standard banking records for financial settlement
+7. **Accounting Boundary** - A dedicated corporate-card bank account represents the provider liability; the payment bank account represents real cash
 
 ### Workflow Stages
 
@@ -79,13 +79,44 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│ STAGE 7: PAYMENT RECONCILIATION                                     │
-│ - Credit-card expense posting marks the source transaction ready    │
-│ - Configured cards create standard Payment Application lines        │
-│ - Lines debit the card-paid clearing account and credit the bank    │
-│ - Standard posting creates Bank Account Ledger/Statement entries    │
-│ - Durable links retain transaction and posted report traceability   │
-│ - Codeunit: EA Corp Card Bank Rec Mgt (7440)                        │
+│ STAGE 7: POSTED EXPENSE TRACEABILITY                                │
+│ - Credit-card expense posting links the posted report               │
+│ - Source corporate-card transaction status becomes Posted           │
+│ - Credits the provider's Corporate Card Bank Account                │
+│ - Creates no activity on the real Payment Bank Account              │
+│ - Codeunit: EA Corp Card Post Mgt (7440)                            │
+└─────────────────────────────────────────────────────────────────────┘
+                                ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ STAGE 8: SETTLEMENT PREPARATION AND POSTING                         │
+│ - Provider setup defines Corporate Card and Payment Bank Accounts   │
+│ - One settlement groups one or more validated statements            │
+│ - Account, currency, identity, and total snapshots are validated    │
+│ - Ready to Post creates no journal or ledger entries                │
+│ - Posting transfers Payment Bank to Corporate Card Bank             │
+│ - Stores both bank ledger entries, transaction, and G/L register    │
+│ - Codeunit: EA Corp Card Settlement Mgt (7443)                      │
+└─────────────────────────────────────────────────────────────────────┘
+                                ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ STAGE 9: RECONCILIATION AND PERIOD CLOSURE                          │
+│ - Matches every transaction to exactly one card-bank ledger entry   │
+│ - Verifies amount, currency, bank account, and posted report        │
+│ - Revalidates the two posted settlement bank entries                │
+│ - Captures reconciliation totals and closes the statement period    │
+│ - Real payment-bank withdrawal uses standard Bank Acc. Reconcile    │
+│ - Codeunit: EA Corp Card Statement Mgt (7441)                       │
+└─────────────────────────────────────────────────────────────────────┘
+                                ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ STAGE 10: REVERSAL AND CORRECTION                                   │
+│ - Standard transaction reversal reverses both settlement entries    │
+│ - Stores reversal bank entries, transaction, G/L register, and user │
+│ - Preserves original settlement lines as inactive audit history     │
+│ - Invalidates closed statements and preserves prior closure details │
+│ - Corrected statements can be settled and closed again              │
+│ - Canceling a posted expense returns its transaction to Matched      │
+│ - Codeunits: Settlement, Statement, and Post Mgt                    │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -93,14 +124,14 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 
 ## Objects Created
 
-### Codeunits (12 total)
+### Corporate Card Codeunits
 
 | ID | Name | Purpose | Key Procedures |
 |----|------|---------|-----------------|
 | 7420 | EACorpCardMerchantNorm | Merchant name normalization via regex patterns | NormalizeTransaction, FindMatchingRule, PatternMatches |
 | 7421 | EACorpCardMatchMgt | Basic transaction matching (reference only) | MatchTransaction |
 | 7422 | EACorpCardExpWriter | Draft Expense creation from transactions | CreateDraftFromTrans, LinkPosted, GetExpenseCategoryFromMCC |
-| 7423 | EACorpCardPostImportOrch | Post-import orchestration pipeline | ProcessBatchPostImport |
+| 7423 | EACorpCardPostImportOrch | Post-import orchestration pipeline | ProcessStatementPostImport |
 | 7424 | EACorpCardAuditSubscribers | Centralized telemetry logging | LogImportStarted/Completed/Failed, LogMatchingCompleted, LogDraftCreated, LogReportCreatedFromCorpCard, LogReportSubmittedForApproval, LogReportApprovedForPosting, LogReportRejected |
 | 7425 | EACorpCardJQMgt | Job Queue entry lifecycle management | ScheduleProviderImport, UnscheduleProviderImport, UpdateJobQueueFrequency |
 | 7426 | EACorpCardEnhancedMatchMgt | Multi-strategy matching with fuzzy algorithm | EnhancedMatchTransaction, CalculateSimilarity, LevenshteinDistance |
@@ -108,13 +139,14 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 | 7428 | EACorpCardApprovalMgt | Expense Report approval workflow | SubmitReportForApproval, ReleaseReportForPosting, RejectReport |
 | 7429 | EACorpCardReportMgt | Expense Report aggregation | CreateReportFromCorpCardExpenses, AddExpenseToReport, ReleaseExpenseForReporting |
 | 7433 | EACorpCardJQRunner | Job Queue entry point with error resilience | OnRun (Job Queue trigger) |
-| 7440 | EA Corp Card Bank Rec Mgt | Creates Payment Application reconciliations and maintains posted banking links | CreateReconciliation, expense-posting and bank-posting subscribers |
+| 7440 | EA Corp Card Post Mgt | Links posted expense reports and propagates posted-expense cancellation to corporate-card reconciliation | LinkPostedExpense, HandleCanceledPostedExpense |
+| 7441 | EA Corp Card Statement Mgt | Validates imports, closes reconciled statement periods, and invalidates closure after corrections | ValidateStatement, ReopenStatement, GetReconciliationSummary, CloseStatement, InvalidateReconciliation |
+| 7443 | EA Corp Card Settlement Mgt | Prepares, posts, validates, and reverses provider settlements | SetReadyToPost, Reopen, PostSettlement, ReverseSettlement |
 
-### Pages and Page Extensions (16 total)
+### Corporate Card Pages and Page Extensions
 
 | ID | Name | Type | Purpose |
 |----|------|------|----------|
-| 7430 | EACorpCardBatches | List | Import batch listing with transaction/exception drill-down |
 | 7431 | EACorpCardCards | List | Corporate card transaction list (import staging) |
 | 7432 | EACorpCardExceptions | List | Import exceptions with resolution tracking |
 | 7433 | EACorpCardTransList | List | Imported transaction listing with expense linking |
@@ -124,19 +156,28 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 | 7438 | EACorpCardDashboard | RoleCenter | Import reconciliation dashboard with navigation |
 | 7439 | EACorpCardJQSchedule | List+Card | Job Queue schedule management UI for providers |
 | 7445 | EACorpCardJQScheduleSubpage | Subpage | Read-only Job Queue entry details filtered by provider |
-| 7441 | EACorpCardDashboardFactbox | ListPart | Recent import batches sorted chronologically |
+| 7441 | EACorpCardDashboardFactbox | ListPart | Recent import statements sorted chronologically |
 | 7442 | EACorpCardStatisticsFactbox | CardPart | KPI statistics (30-day rolling aggregation) |
+| 7443 | EA Corp Card Statements | List | Provider statement list and status overview |
+| 7444 | EA Corp Card Statement | Document | Provider statement header, matching, and validation |
 | 7099 | EACorpCardL3Details | List | Imported Level 3 VAT/tax detail lines per transaction |
+| 7446 | EA Corp Card Statement Trans | ListPart | Read-only transactions belonging to the provider statement |
+| 7430 | EA Corp Card Settlements | List | Provider settlement list and status overview |
+| 7447 | EA Corp Card Settlement | Document | Settlement header, statement selection, and readiness validation |
+| 7448 | EA Corp Card Settlement Lines | ListPart | Validated provider statements included in a settlement |
 | 7440 | EA Payment Rec. Journal | Page extension | Shows corporate card transaction and posted expense report references |
 | 7441 | EA Bank Account Stmt. Lines | Page extension | Shows durable corporate card and posted expense report references |
 | 7442 | EA Bank Acc. Ledger Entries | Page extension | Shows the originating corporate card transaction |
 
 ### Tables and Table Extensions
 
-The module retains its existing Expense Agent records and extends standard banking records:
+The module retains its existing Expense Agent records and models provider statements separately from standard banking records:
 
-- **EACorpCardTrans** - Provider transaction, enrichment, matching, workflow, and audit record
-- **EACorpCard** - Card configuration, including the optional Bank Account used for reconciliation
+- **EA Corp Card Statement** - Imported statement header, source metadata, period, currency, total, counters, and validation status
+- **EA Corp Card Settlement** - Provider settlement identity, amount, account snapshots, posting references, reversal references, and lifecycle status
+- **EA Corp Card Settlement Line** - Links complete validated statements to one settlement, snapshots statement values, and retains inactive reversed relationships for audit
+- **EACorpCardTrans** - Child statement transaction, enrichment, expense matching, workflow, and audit record
+- **EACorpCard** - Card configuration and employee assignment
 - **Expense** - Individual expense records (platform)
 - **Expense Report Header / Line** - Report aggregation (platform)
 - **Data Exch.** / **Data Exch. Field** - File import mapping (platform)
@@ -162,9 +203,9 @@ Provider.ParseToStaging()
     → Imports data to EACorpCardTrans (Status=Imported)
     → Includes mapped MCC values for XML/L3 transactions
     → Imports Level 3 detail rows to EACorpCardTransDetail (when present)
-    → Calls EACorpCardPostImportOrch.ProcessBatchPostImport()
+    → Calls EACorpCardPostImportOrch.ProcessStatementPostImport()
             ↓
-EACorpCardPostImportOrch.ProcessBatchPostImport()
+EACorpCardPostImportOrch.ProcessStatementPostImport()
     → For each transaction:
         1. EACorpCardMerchantNorm.NormalizeTransaction()
         2. If Create Mode = AutoDraft: EACorpCardExpWriter.CreateDraftFromTrans()
@@ -174,7 +215,7 @@ EACorpCardPostImportOrch.ProcessBatchPostImport()
     → Log results via AuditSubscribers
             ↓
 Provider.Ack()
-    → Mark batch as Completed
+    → Mark statement as Completed
     → Send audit notification
 ```
 
@@ -239,26 +280,42 @@ Platform ExpenseReportPost (Codeunit 6987)
     → Creates GL journal lines
     → Creates Expense Ledger Entries
     → Status: Released → Posted
-    → Credit-card lines credit the employee posting group's card-paid account
-    → EACorpCardTrans status becomes ReadyForReconciliation
-            ↓
-EA Corp Card Bank Rec Mgt (Codeunit 7440)
-    → If the card has no Bank Account No.: stops at ReadyForReconciliation
-    → If configured: creates/reuses a Payment Application reconciliation
-    → Creates one fully applied line for each posted corporate-card expense
-    → Statement amount = -(Amount - Non-Refundable Amount)
-    → Converts expense currency to reimbursement currency when required
-    → Applies the line to the card-paid G/L clearing account
-    → Status: ReadyForReconciliation → ReconciliationCreated
-            ↓
-Standard Bank Acc. Reconciliation Post
-    → Posts the applied journal line and creates Bank Account Ledger Entry
-    → Full posting also creates Bank Account Statement/Line
-    → Status: BankEntryCreated → Reconciled
-    → Removes transient reconciliation references when working lines are deleted
+    → Credit-card lines credit the provider's Corporate Card Bank Account
+    → EA Corp Card Post Mgt links the posted report
+    → EACorpCardTrans status becomes Posted
+    → Does not create Payment Application or Bank Account Ledger entries
 ```
 
-Payment Application reconciliations are grouped by posted expense report and Bank Account. `EACorpCardTrans` remains the source audit record; `Bank Account Statement Line` is a posted archive and is not used as an import or staging table.
+`EACorpCardTrans` remains the source audit record for matching the provider transaction to the expense. Provider-statement settlement and bank reconciliation are separate processes and are not initiated by expense-report posting.
+
+### Provider Statement Reconciliation
+
+```
+Provider statement header
+    → Identifies provider, statement number, period, currency, and provider total
+            ↓
+EACorpCardTrans child records
+    → Are imported directly as the statement transactions
+    → Preserve provider transaction identity, card, date, amount, and currency
+            ↓
+Statement validation
+    → Rejects missing imported transactions
+    → Rejects duplicate provider statement identities and incomplete imports
+    → Rejects transactions that are not matched to an expense
+    → Verifies period, currency, and statement total
+            ↓
+Status = Validated
+```
+
+Provider statement validation creates no journal, Payment Application, Bank Account Ledger Entry, or bank reconciliation. Settlement posting is a later and separate process.
+
+### Reversal and Correction Lifecycle
+
+Posted settlements are reversed through the standard Business Central transaction reversal API. The reversal creates the compensating G/L and Bank Account Ledger Entries and applies the standard safeguards for already-reversed, closed, or reconciled bank entries. The settlement retains the original and reversal entry references, transaction number, G/L register, reason, date-time, and user.
+
+Reversal marks the original settlement-to-statement lines as inactive instead of deleting them. A closed statement moves to `ReconciliationRequired`; its prior closure count, amount, date-time, and user are preserved as audit history. The corrected statement can then be included in a replacement settlement and closed again after reconciliation.
+
+Canceling a posted expense report follows the same correction boundary: the related statement closure is invalidated, the corporate-card transaction returns from `Posted` to `Matched`, and its posted report reference is cleared after the standard accounting reversal.
 
 ---
 
@@ -277,13 +334,7 @@ Payment Application reconciliations are grouped by posted expense report and Ban
     - Select the feed type and configure its Data Exchange definition and mapping
     - Upload a source payload
 
-3. **Configure Corporate Card Bank Accounts (Optional)**
-   - Navigate: Corporate Cards
-   - Set **Bank Account No.** on each card that should use standard Payment Reconciliation
-   - The Bank Account currency must equal the posted expense report reimbursement currency
-   - Leave the field blank to retain the existing expense-only workflow
-
-4. **Configure Import Parameters**
+3. **Configure Import Parameters**
     - Navigate: Expense Agent Setup → Corporate Card
     - Corp Card Create Mode
     - Corp Card Date Match Window (first-time default: 7)
@@ -301,7 +352,7 @@ Payment Application reconciliations are grouped by posted expense report and Ban
 1. **Apply Corp Card Default Settings**
     - Navigate: Expense Agent Setup → Setup → Apply corp card default settings
     - Runs codeunit EACreateCorpCardSetup and now also initializes MCC mappings and related Expense Categories.
-    - Creates the LCY bank account `CORPCARD` and assigns it to cards whose Bank Account No. is blank.
+    - Creates the LCY bank account `CORPCARD` for future provider-settlement scenarios, but does not assign it to individual cards.
     - Reuses `CHECKING`, `PREC`, and `SEPA CAMT` configuration when those standard records are available.
     - MCC/category seeding is idempotent (existing records are not duplicated).
 
@@ -325,7 +376,6 @@ Payment Application reconciliations are grouped by posted expense report and Ban
 2. **Contoso Demo Data**
     - Adds the dedicated LCY bank account `CORPCARD` for corporate card settlement
     - Configures the standard Payment Reconciliation number series and bank statement import format
-    - Assigns `CORPCARD` to corporate cards only when their Bank Account No. is blank
 
 ### VAT Specification Line Numbering
 
@@ -338,7 +388,7 @@ When VAT specification rows are created from imported Level 3 details:
 3. **Access Corporate Card Features**
    - Navigate: Expense Management Role Center → Corporate Card group
    - Available actions:
-     - **Corp Card Dashboard:** View import statistics & recent batches
+     - **Corp Card Dashboard:** View import statistics & recent statements
      - **Corp Card Providers:** Manage providers & scheduling
     - **Corp Card Setup:** Opens Expense Agent Setup (Corporate Card group)
      - **Merchant Normalization Rules:** Add custom regex patterns
@@ -376,9 +426,9 @@ All events logged to platform telemetry with:
 
 | Event ID | Event | Trigger | Verbosity | Data |
 |----------|-------|---------|-----------|------|
-| 0000UCS | ImportStarted | Provider starts import | Normal | Provider Code, Batch No. |
-| 0000UCT | ImportCompleted | Batch finishes successfully | Normal | Provider Code, Batch No., Imported count, Exception count, Duplicate count |
-| 0000UCU | ImportFailed | Batch fails with error | Warning | Provider Code, Batch No., Error message |
+| 0000UCS | ImportStarted | Provider starts import | Normal | Provider Code, Statement No. |
+| 0000UCT | ImportCompleted | Statement finishes successfully | Normal | Provider Code, Statement No., Imported count, Exception count, Duplicate count |
+| 0000UCU | ImportFailed | Statement fails with error | Warning | Provider Code, Statement No., Error message |
 
 ### Processing Pipeline (0000UCV - 0000UCX)
 
@@ -408,10 +458,9 @@ All events logged to platform telemetry with:
 | **Data Exchange Framework** | Used for file parsing | Validates field mappings via EACorpCardMapMgt |
 | **Expense Table** | Receives drafted transactions | Individual expense records created on no match |
 | **Expense Report Header/Line** | Aggregates expenses | Report-level approval & GL posting |
-| **Bank Acc. Reconciliation/Line** | Standard Payment Application working document | Applies the card settlement to the card-paid G/L account |
-| **Bank Account Ledger Entry** | Standard bank posting output | Records the corporate-card settlement against the configured Bank Account |
-| **Bank Account Statement/Line** | Standard posted reconciliation archive | Retains transaction and posted expense report references |
-| **Gen. Journal Line** | Standard posting bridge | Carries the corporate-card transaction reference into the bank ledger entry |
+| **EA Corp Card Statement/Transaction** | Provider statement reconciliation | Verifies imported statement transactions against expenses |
+| **Bank Acc. Reconciliation/Line** | Not used by provider statement validation | Matches the posted settlement withdrawal on the Payment Bank Account to the real bank statement |
+| **Bank Account Ledger Entry** | Corporate-card liability and settlement accounting | Expense posting creates the card-account liability; settlement posting and reversal create the bank-to-bank transfer entries |
 | **Job Queue Entry** | Schedules recurring imports | Retry logic: max 3 attempts, status updates |
 | **Expense Status Enum** | Defines workflow states | Open → Released → Pending Approval → (Posted via Report) |
 | **MCC Merchant Category Codes** | Category mapping | 4-digit codes map to Expense Category for G/L account determination |
@@ -423,7 +472,7 @@ All events logged to platform telemetry with:
 |--------|--------|---------|
 | **Bank/Card Processor** | Provider.Download() | File payload import via Data Exchange |
 | **GL (via Report Posting)** | ExpenseReportPost (6987) | Platform handles journal creation |
-| **Banking (via Payment Application)** | Bank Acc. Reconciliation Post | Platform creates bank ledger and posted statement records |
+| **Banking** | Standard journal posting, transaction reversal, and Bank Acc. Reconciliation | Posts and reverses settlement transfers; reconciles the Payment Bank Account withdrawal |
 | **Approval Workflow** | Standard Expense Agent workflow | Uses existing approval rules & routes |
 
 ---
@@ -438,8 +487,8 @@ A **"Corporate Card"** section is available in the main Expense Management Role 
 ExpenseManagementRoleCenter (6933)
 └── Corporate Card Group
     ├─ Corp Card Dashboard (7438)
-    │  └─ Shows: Recent batches, statistics, import status
-    │  └─ Actions: Providers, Transactions, Batches, Exceptions, Setup
+    │  └─ Shows: Recent statements, statistics, import status
+    │  └─ Actions: Providers, Transactions, Statements, Exceptions, Setup
     ├─ Corp Card Providers (7434)
     │  └─ Manage provider credentials & scheduling
     ├─ Corp Card Setup
@@ -460,7 +509,7 @@ The **EACorpCardDashboard** (RoleCenter 7438) provides drill-down navigation:
 |-----------------|--------|---------|
 | Providers | EACorpCardProviders (7434) | View/manage all providers |
 | Transactions | EACorpCardTransList (7433) | View imported transactions |
-| Batches | EACorpCardBatches (7430) | View import batches |
+| Statements | EA Corp Card Statements (7443) | View imported statements |
 | Exceptions | EACorpCardExceptions (7432) | View & resolve import errors |
 | Setup | Expense Agent Setup (6996) | Configure import parameters |
 
@@ -479,9 +528,9 @@ Pages are interlinked with drill-down actions:
 
 | Page | Drill-Down Actions |
 |------|-------------------|
-| EACorpCardBatches (7430) | → Show Transactions, Run Matching |
-| EACorpCardTransList (7433) | → Open Matched Expense, Show Level 3 Details |
-| EACorpCardExceptions (7432) | → Mark Resolved, View Batch, View Transaction |
+| EA Corp Card Statements (7443) | → Open statement, validate statement |
+| EACorpCardTransList (7433) | → Open Provider Statement, Open Matched Expense, Show Level 3 Details |
+| EACorpCardExceptions (7432) | → Mark Resolved, View Statement, View Transaction |
 
 ---
 
@@ -521,14 +570,28 @@ Pages are interlinked with drill-down actions:
 ✅ **Error Tracking:** Warnings on import/rejection failures  
 ✅ **No PII:** SystemMetadata classification only  
 
-### Standard Payment Reconciliation
+### Expense Posting Boundary
 
-- ✅ **Opt-In:** Existing behavior is unchanged when a card has no Bank Account configured
-- ✅ **Standard Posting:** Uses Payment Application instead of custom bank-ledger posting
-- ✅ **Accounting Accuracy:** Clears the posted card-paid amount after non-refundable reductions and currency conversion
-- ✅ **Traceability:** Links the source transaction, posted expense report, reconciliation, bank ledger entry, and statement line
-- ✅ **Idempotency:** A transaction cannot create a second reconciliation while linked to an existing working line
-- ✅ **Recovery:** Deleting a working line clears stale references and makes an unposted transaction ready again
+- ✅ **No Employee Reimbursement:** Credit-card expenses do not create employee reimbursement entries
+- ✅ **Liability Posting:** Credit-card lines credit the employee posting group's card-paid account
+- ✅ **No Premature Bank Activity:** Posting an expense report creates no Payment Application or Bank Account Ledger Entry
+- ✅ **Traceability:** The corporate-card transaction retains its linked expense and posted expense report
+
+### Provider Statement Boundary
+
+- ✅ **Single Imported Model:** The statement header owns the imported corporate-card transactions directly
+- ✅ **No Duplicate Storage:** No second statement-line copy or transaction-linking step is required
+- ✅ **Reconciliation Controls:** Incomplete imports, duplicate statements, import exceptions, and expense-unmatched transactions block validation
+- ✅ **Balanced Statement:** Period, currency, and total must agree before validation
+- ✅ **No Bank Activity:** Statement matching and validation create no banking records
+
+### Reversal Boundary
+
+- ✅ **Standard Accounting Reversal:** Settlement correction uses the standard transaction reversal API
+- ✅ **Immutable Audit History:** Reversed settlement relationships remain as inactive lines
+- ✅ **Closure Invalidation:** Corrections move closed statements to `ReconciliationRequired` and preserve the previous closure snapshot
+- ✅ **Replacement Lifecycle:** Corrected statements can be settled and closed again
+- ✅ **Bank Reconciliation Safeguards:** Standard reversal restrictions prevent reversal of closed or reconciled bank entries
 
 ---
 
@@ -538,9 +601,9 @@ Pages are interlinked with drill-down actions:
 
 | Scenario | Action | Result |
 |----------|--------|--------|
-| Provider file format error | Logged as exception | Transaction marked Status=Exception, batch continues |
-| Field mapping missing | Validation error raised | Import stops, user notified, batch marked Failed |
-| No data in file | Import fails with explicit error | Batch marked Failed with diagnostics |
+| Provider file format error | Logged as exception | Transaction marked Status=Exception, statement continues |
+| Field mapping missing | Validation error raised | Import stops, user notified, statement marked Failed |
+| No data in file | Import fails with explicit error | Statement marked Failed with diagnostics |
 
 ### Matching Errors
 
@@ -556,17 +619,6 @@ When Level 3 detail rows are present, draft creation compares the summed detail 
 
 If values differ (rounded to 2 decimals), processing continues but a warning is written to transaction field `Reject Reason` for manual review before report submission.
 
-### Payment Reconciliation Errors
-
-| Scenario | Action | Result |
-|----------|--------|--------|
-| Card has no Bank Account No. | Skip automatic reconciliation creation | Transaction remains ReadyForReconciliation; existing expense behavior is preserved |
-| Bank Account currency differs from reimbursement currency | Raise an explicit validation error | No reconciliation line is created |
-| Linked posted expense is not Credit Card reimbursement type | Raise standard field validation | No reconciliation line is created |
-| Transaction already has a reconciliation reference | Reject duplicate creation | Existing working reference is preserved |
-| Working reconciliation line is manually deleted | Clear transient reference | Unposted transaction returns to ReadyForReconciliation |
-| Reconciliation is posted as payments only | Create the bank ledger entry and clear the deleted working reference | Status remains BankEntryCreated; no posted statement is created |
-
 ### Job Queue Errors
 
 | Scenario | Action | Result |
@@ -579,23 +631,23 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 
 ## Performance Considerations
 
-### Batch Processing
+### Statement Processing
 
-- **Typical batch size:** 100-500 transactions per provider per cycle
+- **Typical statement size:** 100-500 transactions per provider per cycle
 - **Matching time:** ~10ms per transaction (Levenshtein + query)
-- **Post-import time:** ~500-2000ms per batch (normalization + matching + draft creation)
-- **Recommendation:** Run imports in background (Job Queue) for batches >1000 records
+- **Post-import time:** ~500-2000ms per statement (normalization + matching + draft creation)
+- **Recommendation:** Run imports in background (Job Queue) for statements >1000 records
 
 ### Memory
 
 - **Levenshtein matrix:** 100×100 dynamic programming (capped at 100 chars per string)
 - **Merchant rules:** Loaded into memory (cache friendly, typically <1000 rules)
-- **Transaction buffer:** ProcessBatchPostImport uses FindSet/Next (streaming, low memory)
+- **Transaction buffer:** ProcessStatementPostImport uses FindSet/Next (streaming, low memory)
 
 ### Database
 
 - **Indexes recommended:**
-  - EACorpCardTrans: (Batch No., Status)
+  - EACorpCardTrans: (Statement No., Status)
   - EACorpCardTrans: (Expense User No., Trans Date, Amount)
   - Expense: (Expense User No., Status, Currency)
   - Expense: (Expense Report No.)
@@ -611,12 +663,28 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 - [ ] Submit report for approval
 - [ ] Manager approves/rejects (if approval workflow enabled)
 - [ ] Post report and verify GL journal entries created
-- [ ] Configure Bank Account No. on the corporate card and post a credit-card expense report
-- [ ] Verify one Payment Application reconciliation is created per posted report and Bank Account
-- [ ] Verify statement amounts are negative and exclude non-refundable amounts
-- [ ] Verify different expense and reimbursement currencies use the reimbursement amount
-- [ ] Post payments and reconcile; verify Bank Account Ledger Entry and Bank Account Statement Line links
-- [ ] Delete an unposted reconciliation line and verify the transaction returns to ReadyForReconciliation
+- [ ] Verify the corporate-card transaction is linked to the posted expense report and has status Posted
+- [ ] Verify expense-report posting creates no Payment Application reconciliation
+- [ ] Verify credit-card expense posting credits only the provider Corporate Card Bank Account
+- [ ] Import a provider statement with its transactions
+- [ ] Verify missing, duplicate, and expense-unmatched transactions block statement validation
+- [ ] Verify statement period, currency, and total validation
+- [ ] Verify a validated statement creates no journal or banking records
+- [ ] Verify settlement posting debits the Corporate Card Bank Account and credits the Payment Bank Account
+- [ ] Verify settlement posting stores both bank ledger entry numbers, transaction number, and G/L register
+- [ ] Verify a posted settlement cannot be posted again
+- [ ] Verify each statement transaction has exactly one correctly signed corporate-card bank entry
+- [ ] Verify missing, duplicate, wrong-account, wrong-currency, and wrong-amount bank entries block closure
+- [ ] Verify the posted settlement pair is unchanged before closure
+- [ ] Verify statement closure captures reconciled count, amount, user, and date-time
+- [ ] Verify the statement-period corporate-card liability clears to zero
+- [ ] Verify closed statements and their transactions are immutable
+- [ ] Reverse a posted settlement and verify compensating bank entries and reversal audit references
+- [ ] Verify reversal invalidates statement closure and preserves the previous closure snapshot
+- [ ] Verify reversed settlement lines remain as inactive audit history
+- [ ] Post a replacement settlement and verify the corrected statement can be closed again
+- [ ] Cancel a posted expense and verify its statement requires reconciliation and its transaction returns to Matched
+- [ ] Verify already-reversed, closed, or bank-reconciled settlement entries cannot be reversed
 - [ ] Check telemetry events in Application Insights (if configured)
 
 ---
@@ -628,9 +696,8 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 3. **Regex Performance:** Complex regex patterns may slow normalization (use specific patterns)
 4. **Single Approver:** Approval workflow uses first approver from setup (no chain routing)
 5. **No Receipt Matching:** Does not support image-based receipt OCR (future enhancement)
-6. **Opt-In Reconciliation:** Cards without Bank Account No. do not create Payment Application reconciliations
-7. **Currency Constraint:** The configured Bank Account currency must match the expense report reimbursement currency
-8. **Runtime Test Infrastructure:** Reconciliation integration tests require a Business Central AL test runtime; compiler validation alone does not execute them
+6. **Reversal Prerequisites:** Standard Business Central reversal restrictions apply; closed, reconciled, or already-reversed bank entries must be corrected through the relevant standard process
+7. **Runtime Test Infrastructure:** Posting and reversal integration tests require a Business Central AL test runtime; compiler validation alone does not execute them
 
 ---
 
@@ -684,18 +751,6 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 **Symptom:** Need to inspect imported VAT/tax sub-lines for one transaction  
 **Check:** Corp Card Transactions page → action `Show Level 3 Details`
 
-### Payment Reconciliation Not Created
-
-**Symptom:** The expense report was posted, but no Payment Application reconciliation exists
-
-**Check:**
-1. Corporate Card has **Bank Account No.** configured
-2. Posted Expense Report Line has Reimbursement Type = Company Credit Card
-3. Bank Account currency matches the Posted Expense Report reimbursement currency
-4. Corporate Card Transaction contains the Posted Expense Report No.
-5. Transaction status is Ready for Reconciliation and has no existing reconciliation reference
-6. Use `Create Payment Reconciliation` on Corp Card Transactions to retry after correcting configuration
-
 ### "Card Id is missing" Validation Exceptions
 
 **Symptom:** Import exceptions show `Card Id is missing.` and no transactions are inserted  
@@ -714,8 +769,8 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 
 ---
 
-**Document Version:** 1.6
+**Document Version:** 1.7
 
-**Last Updated:** 2026-09-25
+**Last Updated:** 2026-10-01
 
-**Module Status:** Active (multi-format import, AutoDraft 1:1, Level 3 details, and opt-in standard Payment Reconciliation enabled)
+**Module Status:** Active (multi-format import, AutoDraft 1:1, Level 3 details, and expense-posting traceability enabled)

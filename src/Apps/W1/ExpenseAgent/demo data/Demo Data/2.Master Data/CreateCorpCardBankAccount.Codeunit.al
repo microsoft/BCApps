@@ -18,7 +18,6 @@ codeunit 8223 "Create Corp Card Bank Account"
     trigger OnRun()
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
-        CorpCard: Record "EA Corp Card";
         ContosoBank: Codeunit "Contoso Bank";
         CreateBankAccPostingGrp: Codeunit "Create Bank Acc. Posting Grp";
         CreateBankExImportSetup: Codeunit "Create Bank Ex/Import Setup";
@@ -33,9 +32,6 @@ codeunit 8223 "Create Corp Card Bank Account"
             ContosoCoffeeDemoDataSetup."Country/Region Code", '', CreateNoSeries.PaymentReconciliationJournals(),
             '', '', '', CreateBankExImportSetup.SEPACAMT());
         CreateCorpCardSetup.CreateDefaults();
-
-        CorpCard.SetRange("Bank Account No.", '');
-        CorpCard.ModifyAll("Bank Account No.", CorpCardBankAccount(), true);
     end;
 
     procedure CorpCardBankAccount(): Code[20]

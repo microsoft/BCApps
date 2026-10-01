@@ -7,23 +7,23 @@ namespace Microsoft.ExpenseAgent;
 page 7441 "EA Corp Card Dashboard Fact"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Recent Import Batches';
+    Caption = 'Recent Statements';
     PageType = ListPart;
-    SourceTable = "EA Corp Card Batch";
+    SourceTable = "EA Corp Card Statement";
     SourceTableTemporary = true;
-    SourceTableView = sorting("Batch No.") order(descending);
+    SourceTableView = sorting("Statement Entry No.") order(descending);
 
     layout
     {
         area(Content)
         {
-            repeater(Batches)
+            repeater(Statements)
             {
                 ShowCaption = false;
-                field("Batch No."; Rec."Batch No.")
+                field("Statement Entry No."; Rec."Statement Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the batch number.';
+                    ToolTip = 'Specifies the internal statement entry number.';
                 }
                 field("Provider Code"; Rec."Provider Code")
                 {
@@ -33,7 +33,7 @@ page 7441 "EA Corp Card Dashboard Fact"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the batch status.';
+                    ToolTip = 'Specifies the statement import or validation status.';
                 }
                 field(Imported; Rec.Imported)
                 {
@@ -59,12 +59,12 @@ page 7441 "EA Corp Card Dashboard Fact"
                 field("Started DT"; Rec."Started DT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the batch start date-time.';
+                    ToolTip = 'Specifies when statement import started.';
                 }
                 field("Ended DT"; Rec."Ended DT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the batch end date-time.';
+                    ToolTip = 'Specifies when statement import ended.';
                 }
             }
         }
@@ -72,16 +72,16 @@ page 7441 "EA Corp Card Dashboard Fact"
 
     trigger OnOpenPage()
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
-        BatchCount: Integer;
+        CorpCardStatement: Record "EA Corp Card Statement";
+        StatementCount: Integer;
     begin
-        CorpCardBatch.SetCurrentKey("Batch No.");
-        CorpCardBatch.Ascending := false;
-        if CorpCardBatch.Find('-') then
+        CorpCardStatement.SetCurrentKey("Statement Entry No.");
+        CorpCardStatement.Ascending := false;
+        if CorpCardStatement.Find('-') then
             repeat
-                Rec := CorpCardBatch;
+                Rec := CorpCardStatement;
                 Rec.Insert();
-                BatchCount += 1;
-            until (CorpCardBatch.Next() = 0) or (BatchCount = 50);
+                StatementCount += 1;
+            until (CorpCardStatement.Next() = 0) or (StatementCount = 50);
     end;
 }

@@ -29,13 +29,13 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         ProviderTransIdXmlTok: Label '<ProviderTransId>%1</ProviderTransId>', Locked = true, Comment = '%1 = Provider Trans Id';
         ShowItLbl: Label 'Show it';
 
-    procedure Download(var CorpCardBatch: Record "EA Corp Card Batch")
+    procedure Download(var CorpCardStatement: Record "EA Corp Card Statement")
     var
         DataExch: Record "Data Exch.";
         CorpCardProvider: Record "EA Corp Card Provider";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
-        CorpCardProvider.Get(CorpCardBatch."Provider Code");
+        CorpCardProvider.Get(CorpCardStatement."Provider Code");
         CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
         if CorpCardProvider."Data Exch Def Code" = '' then
             Error(FieldMustBeSetOnRecordErr, CorpCardProvider.FieldCaption("Data Exch Def Code"), CorpCardProvider.TableCaption(), CorpCardProvider.Code);
@@ -46,23 +46,23 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         DataExch."Related Record" := CorpCardProvider.RecordId;
         DataExch.Insert(true);
 
-        CorpCardBatch."Data Exch Entry No." := DataExch."Entry No.";
-        CorpCardBatch.Modify();
+        CorpCardStatement."Data Exch Entry No." := DataExch."Entry No.";
+        CorpCardStatement.Modify();
 
-        InjectSourceContent(CorpCardProvider, CorpCardBatch, DataExch);
+        InjectSourceContent(CorpCardProvider, CorpCardStatement, DataExch);
 
-        CorpCardBatch."Source Ref" := CopyStr(
+        CorpCardStatement."Source Ref" := CopyStr(
             DataExch."File Name",
             1,
-            MaxStrLen(CorpCardBatch."Source Ref"));
-        CorpCardBatch.Modify();
+            MaxStrLen(CorpCardStatement."Source Ref"));
+        CorpCardStatement.Modify();
 
-        OnAfterDownload(CorpCardProvider, CorpCardBatch, DataExch);
+        OnAfterDownload(CorpCardProvider, CorpCardStatement, DataExch);
     end;
 
-    procedure ParseToStaging(BatchNo: Integer)
+    procedure ParseToStaging(StatementEntryNo: Integer)
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardProvider: Record "EA Corp Card Provider";
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
@@ -72,13 +72,13 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         ExpenseWriterImpl: Codeunit "EA Corp Card Expense Writer";
         ExpenseWriter: Interface "EA Corp Card Expense Writer";
     begin
-        CorpCardBatch.Get(BatchNo);
-        if CorpCardBatch."Data Exch Entry No." = 0 then
+        CorpCardStatement.Get(StatementEntryNo);
+        if CorpCardStatement."Data Exch Entry No." = 0 then
             exit;
 
-        CorpCardProvider.Get(CorpCardBatch."Provider Code");
+        CorpCardProvider.Get(CorpCardStatement."Provider Code");
         CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
-        DataExch.Get(CorpCardBatch."Data Exch Entry No.");
+        DataExch.Get(CorpCardStatement."Data Exch Entry No.");
         EnsureDataExchFileContentFromProviderPayload(DataExch, CorpCardProvider);
         if DataExch."Data Exch. Line Def Code" = '' then begin
             DataExch."Data Exch. Line Def Code" := CorpCardProvider."Data Exch Map Code";
@@ -88,38 +88,38 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         CorpCardMapMgt.ValidateMandatoryFieldMappings(CorpCardProvider);
 
         if not DataExch.ImportToDataExch(DataExchDef) then begin
-            CorpCardBatch.Status := CorpCardBatch.Status::Failed;
-            CorpCardBatch.Rejected += 1;
-            CorpCardBatch.Modify();
+            CorpCardStatement.Status := CorpCardStatement.Status::Failed;
+            CorpCardStatement.Rejected += 1;
+            CorpCardStatement.Modify();
             exit;
         end;
 
         if HasParsedFields(DataExch) then
-            MapDataExchToTrans(CorpCardBatch, CorpCardProvider, DataExch)
+            MapDataExchToTrans(CorpCardStatement, CorpCardProvider, DataExch)
         else
             if CorpCardProvider."Feed Type" = CorpCardProvider."Feed Type"::CSV then
-                ParseCsvPayloadToTrans(CorpCardBatch, CorpCardProvider, DataExch)
+                ParseCsvPayloadToTrans(CorpCardStatement, CorpCardProvider, DataExch)
             else begin
-                CorpCardBatch.Status := CorpCardBatch.Status::Failed;
-                CorpCardBatch.Rejected += 1;
-                CorpCardBatch.Modify();
+                CorpCardStatement.Status := CorpCardStatement.Status::Failed;
+                CorpCardStatement.Rejected += 1;
+                CorpCardStatement.Modify();
                 Error(CreateProviderSetupErrorInfo(
                     StrSubstNo(NonCsvFallbackErr, CorpCardProvider.Code, CorpCardProvider."Feed Type", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code"),
                     CorpCardProvider));
             end;
 
-        ImportLevel3DetailsFromDataExch(CorpCardBatch, CorpCardProvider, DataExch);
+        ImportLevel3DetailsFromDataExch(CorpCardStatement, CorpCardProvider, DataExch);
 
         ExpenseWriter := ExpenseWriterImpl;
-        PostImportOrch.ProcessBatchPostImport(BatchNo, ExpenseWriter);
+        PostImportOrch.ProcessStatementPostImport(StatementEntryNo, ExpenseWriter);
     end;
 
-    procedure Ack(BatchNo: Integer)
+    procedure Ack(StatementEntryNo: Integer)
     begin
-        OnAfterAck(BatchNo);
+        OnAfterAck(StatementEntryNo);
     end;
 
-    local procedure InjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardBatch: Record "EA Corp Card Batch"; var DataExch: Record "Data Exch.")
+    local procedure InjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardStatement: Record "EA Corp Card Statement"; var DataExch: Record "Data Exch.")
     var
         TempBlob: Codeunit "Temp Blob";
         CryptographyManagement: Codeunit "Cryptography Management";
@@ -131,7 +131,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         Handled: Boolean;
     begin
         Handled := false;
-        OnBeforeInjectSourceContent(CorpCardProvider, CorpCardBatch, TempBlob, SourceFileName, Handled);
+        OnBeforeInjectSourceContent(CorpCardProvider, CorpCardStatement, TempBlob, SourceFileName, Handled);
         if not Handled then
             exit;
 
@@ -141,17 +141,17 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
         if SourceFileName <> '' then begin
             DataExch."File Name" := CopyStr(SourceFileName, 1, MaxStrLen(DataExch."File Name"));
-            CorpCardBatch."Source File Name" := SourceFileName;
+            CorpCardStatement."Source File Name" := SourceFileName;
         end;
 
         DataExch.Modify();
 
         TempBlob.CreateInStream(HashInStr);
-        CorpCardBatch."Source Payload Hash" := CopyStr(
+        CorpCardStatement."Source Payload Hash" := CopyStr(
             LowerCase(CryptographyManagement.GenerateHash(HashInStr, HashAlgorithmType::SHA256)),
             1,
-            MaxStrLen(CorpCardBatch."Source Payload Hash"));
-        CorpCardBatch.Modify();
+            MaxStrLen(CorpCardStatement."Source Payload Hash"));
+        CorpCardStatement.Modify();
     end;
 
     local procedure EnsureDataExchFileContentFromProviderPayload(var DataExch: Record "Data Exch."; CorpCardProvider: Record "EA Corp Card Provider")
@@ -185,7 +185,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         exit(not DataExchField.IsEmpty());
     end;
 
-    local procedure ParseCsvPayloadToTrans(var CorpCardBatch: Record "EA Corp Card Batch"; CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch.")
+    local procedure ParseCsvPayloadToTrans(var CorpCardStatement: Record "EA Corp Card Statement"; CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch.")
     var
         CorpCardTrans: Record "EA Corp Card Trans";
         CorpCardDedupMgt: Codeunit "EA Corp Card Dedup Mgt";
@@ -215,7 +215,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
             Clear(CorpCardTrans);
             CorpCardTrans.Init();
-            CorpCardTrans."Batch No." := CorpCardBatch."Batch No.";
+            CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
             CorpCardTrans."Provider Code" := CorpCardProvider.Code;
             CorpCardTrans.Status := CorpCardTrans.Status::Imported;
 
@@ -226,27 +226,27 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                 CorpCardTrans.Status := CorpCardTrans.Status::Exception;
                 if ValidationReason = '' then
                     ValidationReason := StrSubstNo(InvalidTransErr, CorpCardTrans."Provider Trans Id");
-                InsertException(CorpCardBatch, CorpCardTrans, Enum::"EA Corp Card Exception Type"::Validation, ValidationReason);
-                CorpCardBatch.Exceptions += 1;
-                CorpCardBatch.Rejected += 1;
+                InsertException(CorpCardStatement, CorpCardTrans, Enum::"EA Corp Card Exception Type"::Validation, ValidationReason);
+                CorpCardStatement.Exceptions += 1;
+                CorpCardStatement.Rejected += 1;
                 continue;
             end;
 
             if CorpCardDedupMgt.IsDuplicate(CorpCardTrans) then begin
-                CorpCardBatch.Duplicates += 1;
+                CorpCardStatement.Duplicates += 1;
                 continue;
             end;
 
             CorpCardTrans.Insert(true);
-            CorpCardBatch.Imported += 1;
+            CorpCardStatement.Imported += 1;
         end;
 
-        CorpCardBatch.Modify();
+        CorpCardStatement.Modify();
 
-        if (CorpCardBatch.Imported = 0) and (CorpCardBatch.Duplicates = 0) then begin
-            CorpCardBatch.Status := CorpCardBatch.Status::Failed;
-            CorpCardBatch.Rejected += 1;
-            CorpCardBatch.Modify();
+        if (CorpCardStatement.Imported = 0) and (CorpCardStatement.Duplicates = 0) then begin
+            CorpCardStatement.Status := CorpCardStatement.Status::Failed;
+            CorpCardStatement.Rejected += 1;
+            CorpCardStatement.Modify();
             Error(CreateProviderSetupErrorInfo(
                 StrSubstNo(NoParsedLinesErr, DataExch."File Name", CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code"),
                 CorpCardProvider));
@@ -342,7 +342,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         exit(AmountTxt);
     end;
 
-    local procedure MapDataExchToTrans(var CorpCardBatch: Record "EA Corp Card Batch"; CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch.")
+    local procedure MapDataExchToTrans(var CorpCardStatement: Record "EA Corp Card Statement"; CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch.")
     var
         CorpCardTrans: Record "EA Corp Card Trans";
         DataExchField: Record "Data Exch. Field";
@@ -377,7 +377,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
             Clear(CorpCardTrans);
             CorpCardTrans.Init();
-            CorpCardTrans."Batch No." := CorpCardBatch."Batch No.";
+            CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
             CorpCardTrans."Provider Code" := CorpCardProvider.Code;
             CorpCardTrans.Status := CorpCardTrans.Status::Imported;
 
@@ -403,9 +403,9 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                 ValidationReason := '';
                 if not ValidateStrictMappedFields(CorpCardProvider, CurrentLineNo, CorpCardTrans, ValidationReason) then begin
                     CorpCardTrans.Status := CorpCardTrans.Status::Exception;
-                    InsertException(CorpCardBatch, CorpCardTrans, Enum::"EA Corp Card Exception Type"::Validation, ValidationReason);
-                    CorpCardBatch.Exceptions += 1;
-                    CorpCardBatch.Rejected += 1;
+                    InsertException(CorpCardStatement, CorpCardTrans, Enum::"EA Corp Card Exception Type"::Validation, ValidationReason);
+                    CorpCardStatement.Exceptions += 1;
+                    CorpCardStatement.Rejected += 1;
                     continue;
                 end;
             end else
@@ -416,22 +416,22 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                 CorpCardTrans.Status := CorpCardTrans.Status::Exception;
                 if ValidationReason = '' then
                     ValidationReason := StrSubstNo(InvalidTransErr, CorpCardTrans."Provider Trans Id");
-                InsertException(CorpCardBatch, CorpCardTrans, Enum::"EA Corp Card Exception Type"::Validation, ValidationReason);
-                CorpCardBatch.Exceptions += 1;
-                CorpCardBatch.Rejected += 1;
+                InsertException(CorpCardStatement, CorpCardTrans, Enum::"EA Corp Card Exception Type"::Validation, ValidationReason);
+                CorpCardStatement.Exceptions += 1;
+                CorpCardStatement.Rejected += 1;
                 continue;
             end;
 
             if CorpCardDedupMgt.IsDuplicate(CorpCardTrans) then begin
-                CorpCardBatch.Duplicates += 1;
+                CorpCardStatement.Duplicates += 1;
                 continue;
             end;
 
             CorpCardTrans.Insert(true);
-            CorpCardBatch.Imported += 1;
+            CorpCardStatement.Imported += 1;
         until DataExchField.Next() = 0;
 
-        CorpCardBatch.Modify();
+        CorpCardStatement.Modify();
     end;
 
     local procedure NormalizeMappedCurrencyCode(DataExchFieldMapping: Record "Data Exch. Field Mapping"; var DataExchField: Record "Data Exch. Field"; CorpCardTrans: Record "EA Corp Card Trans"; CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt")
@@ -446,7 +446,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         DataExchField.SetValueWithoutModifying(CurrencyCode);
     end;
 
-    local procedure ImportLevel3DetailsFromDataExch(CorpCardBatch: Record "EA Corp Card Batch"; CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch.")
+    local procedure ImportLevel3DetailsFromDataExch(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch.")
     var
         DataExchField: Record "Data Exch. Field";
         CurrentLineNo: Integer;
@@ -455,7 +455,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         TransEntryNosByProviderTransId: Dictionary of [Code[100], Integer];
         MissingDetailsReason: Text[250];
     begin
-        LoadBatchTransactionEntries(CorpCardBatch, CorpCardProvider.Code, TransEntryNosByProviderTransId, NextDetailLineNosByTransEntryNo);
+        LoadStatementTransactionEntries(CorpCardStatement, CorpCardProvider.Code, TransEntryNosByProviderTransId, NextDetailLineNosByTransEntryNo);
 
         DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
         DataExchField.SetRange("Data Exch. Line Def Code", Level3DetailLineCodeTok);
@@ -483,16 +483,16 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
         if IsStrictMappingProvider(CorpCardProvider) then begin
             MissingDetailsReason := '';
-            if not ValidateStrictLevel3Details(CorpCardBatch, CorpCardProvider, MissingDetailsReason) then
+            if not ValidateStrictLevel3Details(CorpCardStatement, CorpCardProvider, MissingDetailsReason) then
                 Error(MissingDetailsReason);
         end;
     end;
 
-    local procedure LoadBatchTransactionEntries(CorpCardBatch: Record "EA Corp Card Batch"; ProviderCode: Code[20]; var TransEntryNosByProviderTransId: Dictionary of [Code[100], Integer]; var NextDetailLineNosByTransEntryNo: Dictionary of [Integer, Integer])
+    local procedure LoadStatementTransactionEntries(CorpCardStatement: Record "EA Corp Card Statement"; ProviderCode: Code[20]; var TransEntryNosByProviderTransId: Dictionary of [Code[100], Integer]; var NextDetailLineNosByTransEntryNo: Dictionary of [Integer, Integer])
     var
         CorpCardTrans: Record "EA Corp Card Trans";
     begin
-        CorpCardTrans.SetRange("Batch No.", CorpCardBatch."Batch No.");
+        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         CorpCardTrans.SetRange("Provider Code", ProviderCode);
         if CorpCardTrans.FindSet() then
             repeat
@@ -541,12 +541,12 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         NextDetailLineNosByTransEntryNo.Set(TransEntryNo, NextDetailLineNo + 10000);
     end;
 
-    local procedure ValidateStrictLevel3Details(CorpCardBatch: Record "EA Corp Card Batch"; CorpCardProvider: Record "EA Corp Card Provider"; var ValidationReason: Text[250]): Boolean
+    local procedure ValidateStrictLevel3Details(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardProvider: Record "EA Corp Card Provider"; var ValidationReason: Text[250]): Boolean
     var
         CorpCardTrans: Record "EA Corp Card Trans";
         CorpCardTransDetail: Record "EA Corp Card Trans Detail";
     begin
-        CorpCardTrans.SetRange("Batch No.", CorpCardBatch."Batch No.");
+        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         CorpCardTrans.SetRange("Provider Code", CorpCardProvider.Code);
         if not CorpCardTrans.FindSet() then
             exit(true);
@@ -650,12 +650,12 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         exit(TempDataExchFieldMapping.FindFirst());
     end;
 
-    local procedure InsertException(CorpCardBatch: Record "EA Corp Card Batch"; CorpCardTrans: Record "EA Corp Card Trans"; ExcpType: Enum "EA Corp Card Exception Type"; Message: Text[250])
+    local procedure InsertException(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardTrans: Record "EA Corp Card Trans"; ExcpType: Enum "EA Corp Card Exception Type"; Message: Text[250])
     var
         CorpCardException: Record "EA Corp Card Exception";
     begin
         CorpCardException.Init();
-        CorpCardException."Batch No." := CorpCardBatch."Batch No.";
+        CorpCardException."Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardException."Trans Entry No." := CorpCardTrans."Entry No.";
         CorpCardException."Exception Type" := ExcpType;
         CorpCardException.Message := Message;
@@ -926,17 +926,17 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterDownload(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardBatch: Record "EA Corp Card Batch"; var DataExch: Record "Data Exch.")
+    local procedure OnAfterDownload(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardStatement: Record "EA Corp Card Statement"; var DataExch: Record "Data Exch.")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardBatch: Record "EA Corp Card Batch"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
+    local procedure OnBeforeInjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardStatement: Record "EA Corp Card Statement"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterAck(BatchNo: Integer)
+    local procedure OnAfterAck(StatementEntryNo: Integer)
     begin
     end;
 
