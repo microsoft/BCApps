@@ -469,8 +469,8 @@ page 30115 "Shpfy Orders"
 
     trigger OnFindRecord(Which: Text): Boolean
     begin
-        HasOrdersInCurrentView := not Rec.IsEmpty();
-        exit(Rec.Find(Which));
+        HasOrdersInCurrentView := Rec.Find(Which);
+        exit(HasOrdersInCurrentView);
     end;
 
     trigger OnOpenPage()
