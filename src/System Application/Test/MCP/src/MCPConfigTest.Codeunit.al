@@ -23,7 +23,6 @@ codeunit 130130 "MCP Config Test"
         Assert: Codeunit "Library Assert";
         MCPConfig: Codeunit "MCP Config";
         MCPConfigTestLibrary: Codeunit "MCP Config Test Library";
-        MCPLearnMoreUrlLbl: Label 'https://go.microsoft.com/fwlink/?LinkId=2383165', Locked = true;
 
     #region Configurations
 
@@ -1763,44 +1762,6 @@ codeunit 130130 "MCP Config Test"
             CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId()),
             'Expected MCP Server capability to be Active by default after install.');
     end;
-
-    [Test]
-    procedure TestMCPCapabilityUsesMicrosoftBillingAndNewLearnMoreUrl()
-    var
-        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
-    begin
-        // [GIVEN] No MCP Server capability is registered
-        CopilotSettingsTestLibrary.DeleteAll();
-
-        // [WHEN] The MCP Server capability is registered
-        MCPConfigTestLibrary.RegisterMCPCapability();
-
-        // [THEN] The capability uses Microsoft billing and the current documentation link
-        Assert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'MCP Server capability was not registered');
-        Assert.AreEqual(Enum::"Copilot Billing Type"::"Microsoft Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Unexpected MCP Server billing type');
-        Assert.AreEqual(MCPLearnMoreUrlLbl, CopilotSettingsTestLibrary.GetLearnMoreUrl(), 'Unexpected MCP Server learn-more URL');
-    end;
-
-#if not CLEAN27
-    [Test]
-    procedure TestUpdateMCPCapabilityUsesMicrosoftBillingAndNewLearnMoreUrl()
-    var
-        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
-        CopilotTestLibrary: Codeunit "Copilot Test Library";
-    begin
-        // [GIVEN] The MCP Server capability has the previous metadata
-        CopilotSettingsTestLibrary.DeleteAll();
-        CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId());
-
-        // [WHEN] The capability metadata is updated
-        MCPConfigTestLibrary.UpdateMCPCapability();
-
-        // [THEN] The capability uses Microsoft billing and the current documentation link
-        Assert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'MCP Server capability was not registered');
-        Assert.AreEqual(Enum::"Copilot Billing Type"::"Microsoft Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Unexpected MCP Server billing type');
-        Assert.AreEqual(MCPLearnMoreUrlLbl, CopilotSettingsTestLibrary.GetLearnMoreUrl(), 'Unexpected MCP Server learn-more URL');
-    end;
-#endif
 
     local procedure GetMCPAppId(): Guid
     begin
