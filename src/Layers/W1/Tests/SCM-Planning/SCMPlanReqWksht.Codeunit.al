@@ -5734,6 +5734,58 @@
         Assert.IsTrue(RequisitionLine."Starting Date" < RequisitionLine."Order Date", 'Starting Date is not earlier than Order Date');
     end;
 
+    [Test]
+    procedure ManualDirectUnitCostOnReqWkshIsPreservedOnCarryOut()
+    var
+        Item: Record Item;
+        PriceListLine: Record "Price List Line";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 651097] Carry Out overwrites manually changed Requisition Worksheet Direct Unit Cost
+        // [FEATURE] [Requisition Worksheet] [Purchase Price Calculation]
+        Initialize();
+
+        // [GIVEN] Active purchase price of 500 for an item with a vendor.
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        CreateLotForLotItem(Item, 0, '<1D>');
+        LibraryPurchase.CreateVendor(Vendor);
+        UpdateItemVendorNo(Item, Vendor."No.");
+
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, PriceListLine."Price List Code",
+            "Price Source Type"::Vendor, Vendor."No.", "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Direct Unit Cost", 500);
+        PriceListLine.Validate("Unit of Measure Code", Item."Base Unit of Measure");
+        PriceListLine.Status := PriceListLine.Status::Active;
+        PriceListLine.Validate("Starting Date", WorkDate());
+        PriceListLine.Modify(true);
+
+        CreateSalesOrder(SalesHeader, SalesLine, Item."No.", 1);
+        CalculatePlanForRequisitionWorksheet(RequisitionWkshName, Item, WorkDate(), WorkDate());
+        SelectRequisitionLine(RequisitionLine, Item."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine.TestField("Direct Unit Cost", 500);
+
+        // [WHEN] Change Direct Unit Cost to 450 and carry out the action message.
+        RequisitionLine.Validate("Direct Unit Cost", 450);
+        RequisitionLine.Validate("Accept Action Message", true);
+        RequisitionLine.Modify(true);
+        RequisitionLine.TestField("Direct Unit Cost", 450);
+
+        LibraryPlanning.CarryOutReqWksh(RequisitionLine, WorkDate(), WorkDate(), WorkDate(), WorkDate(), '');
+
+        // [THEN] The purchase order line retains the manually entered Direct Unit Cost.
+        SelectPurchaseLine(PurchaseLine, Item."No.");
+        PurchaseLine.TestField("Direct Unit Cost", 450);
+    end;
+
     local procedure Initialize()
     var
         AllProfile: Record "All Profile";
