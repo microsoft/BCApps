@@ -138,12 +138,22 @@ page 7129 "Travel Request Card"
                     Importance = Additional;
                     Editable = Rec.Status = Rec.Status::Open;
                     ShowMandatory = Rec."Per Diem Included";
+
+                    trigger OnValidate()
+                    begin
+                        Rec.CheckActualDateTimes();
+                    end;
                 }
                 field("Actual End Date and Time"; Rec."Actual End Date and Time")
                 {
                     Importance = Additional;
                     Editable = Rec.Status = Rec.Status::Open;
                     ShowMandatory = Rec."Per Diem Included";
+
+                    trigger OnValidate()
+                    begin
+                        Rec.CheckActualDateTimes();
+                    end;
                 }
             }
             group("Travel Details")
@@ -222,11 +232,36 @@ page 7129 "Travel Request Card"
                     Importance = Promoted;
                     ToolTip = 'Specifies when the travel request was approved or rejected.';
                 }
-                field("Submitter Comment"; Rec."Submitter Comment")
+                group("Approval Comments")
                 {
-                    Importance = Additional;
-                    MultiLine = true;
-                    Editable = false;
+                    Caption = 'Approval Comments';
+
+                    field("Rejection Reason"; Rec."Rejection Reason")
+                    {
+                        DrillDown = true;
+                        Editable = false;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the reason the travel request was rejected. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if Rec."Rejection Reason" <> '' then
+                                Message(Rec."Rejection Reason");
+                        end;
+                    }
+                    field("Submitter Comment"; Rec."Submitter Comment")
+                    {
+                        DrillDown = true;
+                        Editable = false;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the submitter. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if Rec."Submitter Comment" <> '' then
+                                Message(Rec."Submitter Comment");
+                        end;
+                    }
                 }
             }
         }

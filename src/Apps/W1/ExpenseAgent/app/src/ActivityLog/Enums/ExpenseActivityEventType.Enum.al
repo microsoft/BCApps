@@ -26,10 +26,6 @@ enum 6922 "Expense Activity Event Type"
     {
         Caption = 'Expense removed from report';
     }
-    value(4; ExpenseReportCreated)
-    {
-        Caption = 'Expense report created';
-    }
     value(10; Submitted)
     {
         Caption = 'Submitted';

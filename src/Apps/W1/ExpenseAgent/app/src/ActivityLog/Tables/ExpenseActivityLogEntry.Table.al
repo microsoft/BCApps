@@ -162,18 +162,18 @@ table 7100 "Expense Activity Log Entry"
         }
         field(23; "Total Expected Amount"; Decimal)
         {
-            AutoFormatExpression = "Currency Code";
+            AutoFormatExpression = "Total Expected Amt. Cur. Code";
             AutoFormatType = 1;
             Caption = 'Total Expected Amount';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the total expected amount of the travel request at the time it was submitted or resubmitted. Blank for other activities.';
         }
-        field(24; "Currency Code"; Code[10])
+        field(24; "Total Expected Amt. Cur. Code"; Code[10])
         {
-            Caption = 'Currency Code';
+            Caption = 'Total Expected Amount Currency Code';
             DataClassification = CustomerContent;
             TableRelation = Currency;
-            ToolTip = 'Specifies the currency of the travel request at the time it was submitted or resubmitted. Blank for the local currency and for other activities.';
+            ToolTip = 'Specifies the currency of the total expected amount of the travel request at the time it was submitted or resubmitted. Blank for the local currency and for other activities.';
         }
         field(50; Comment; Text[2048])
         {

@@ -222,7 +222,7 @@ page 7134 "Travel Requests API"
                     Caption = 'Approved/Rejected By Expense User Display Name';
                     Editable = false;
                 }
-                field(approvedRejectedByExpUserNo; ApprovedRejectedByExpUserNo)
+                field(approvedRejectedByExpUserNo; Rec."Approval Expense User No.")
                 {
                     Caption = 'Approved/Rejected By Expense User Number';
                     ToolTip = 'Specifies the expense user who approved or rejected the travel request.';
@@ -275,7 +275,7 @@ page 7134 "Travel Requests API"
 
     trigger OnOpenPage()
     begin
-        Rec.AddLoadFields("Currency Code", "Expected Start Date", "Expected End Date", "Approval Expense User No.");
+        Rec.AddLoadFields("Currency Code", "Expected Start Date", "Expected End Date");
     end;
 
     trigger OnAfterGetRecord()
@@ -283,7 +283,6 @@ page 7134 "Travel Requests API"
         CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code");
         ExpectedStartDate := Rec."Expected Start Date";
         ExpectedEndDate := Rec."Expected End Date";
-        ApprovedRejectedByExpUserNo := Rec."Approval Expense User No.";
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -294,7 +293,6 @@ page 7134 "Travel Requests API"
         Clear(CurrencyCodeDisplay);
         Clear(ExpectedStartDate);
         Clear(ExpectedEndDate);
-        Clear(ApprovedRejectedByExpUserNo);
     end;
 
     [ServiceEnabled]
@@ -415,6 +413,7 @@ page 7134 "Travel Requests API"
             Rec."Requested By" := ProcessOwnerFilter();
         Rec.TestField("Requested By");
         CheckOwnerScope();
+        CheckTravelDetails();
 
         // The table's OnInsert defaults both dates to WorkDate, so supplied dates are applied after the insert.
         StartDate := Rec."Expected Start Date";
@@ -449,7 +448,15 @@ page 7134 "Travel Requests API"
             Rec.Validate("Expected Start Date");
         if Rec."Expected End Date" <> xRec."Expected End Date" then
             Rec.Validate("Expected End Date");
+        CheckTravelDetails();
         exit(true);
+    end;
+
+    local procedure CheckTravelDetails()
+    begin
+        // Checked on save rather than per field, so that the order of the fields in the request does not matter.
+        Rec.CheckExpenseLocation();
+        Rec.CheckActualDateTimes();
     end;
 
     local procedure ProcessOwnerFilter() OwnerEmployeeNo: Code[20]
@@ -517,8 +524,6 @@ page 7134 "Travel Requests API"
         CurrencyCodeDisplay: Code[10];
         ExpectedStartDate: Date;
         ExpectedEndDate: Date;
-        // Match the expense report API's string length without changing the existing travel-request field.
-        ApprovedRejectedByExpUserNo: Code[50];
         RequestedByProvided: Boolean;
         StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, rejecting, or reopening the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';

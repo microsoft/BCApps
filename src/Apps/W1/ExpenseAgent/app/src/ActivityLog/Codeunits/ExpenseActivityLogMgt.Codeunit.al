@@ -96,7 +96,8 @@ codeunit 6926 "Expense Activity Log Mgt."
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
     begin
         InitializeTravelRequestEntry(
-            ExpenseActivityLogEntry, SpendRequest, EventType, ActorRole, EventComment, CurrentDateTime());
+            ExpenseActivityLogEntry, SpendRequest, EventType,
+            Enum::"Expense Activity Initiator"::User, ActorRole, EventComment, CurrentDateTime());
         if ActorExpenseUserNo <> '' then
             SetExpenseUserActor(ExpenseActivityLogEntry, ActorExpenseUserNo)
         else
@@ -120,6 +121,7 @@ codeunit 6926 "Expense Activity Log Mgt."
         InitializeTravelRequestEntry(
             ExpenseActivityLogEntry, SpendRequest,
             Enum::"Expense Activity Event Type"::Created,
+            Enum::"Expense Activity Initiator"::User,
             Enum::"Expense Activity Actor Role"::Submitter,
             '', OccurredAt);
 
@@ -153,18 +155,21 @@ codeunit 6926 "Expense Activity Log Mgt."
     end;
 
     /// <summary>
-    /// Logs once on an approved travel request that the Expense Agent created its expense reports automatically.
+    /// Logs on an approved travel request that the Expense Agent created an expense report for one of its travelers.
+    /// The entry is a Created entry of the travel request; its document number and description identify the expense report.
     /// </summary>
-    internal procedure LogTravelRequestExpenseReportsCreated(SpendRequest: Record "Spend Request"): BigInteger
+    internal procedure LogTravelRequestExpenseReportCreated(SpendRequest: Record "Spend Request"; ExpenseReportHeader: Record "Expense Report Header"): BigInteger
     var
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
     begin
         InitializeTravelRequestEntry(
             ExpenseActivityLogEntry, SpendRequest,
-            Enum::"Expense Activity Event Type"::ExpenseReportCreated,
+            Enum::"Expense Activity Event Type"::Created,
+            Enum::"Expense Activity Initiator"::Agent,
             Enum::"Expense Activity Actor Role"::" ",
             '', CurrentDateTime());
-        ExpenseActivityLogEntry."Initiated By" := Enum::"Expense Activity Initiator"::Agent;
+        ExpenseActivityLogEntry."Document No." := ExpenseReportHeader."No.";
+        ExpenseActivityLogEntry."Document Description" := ExpenseReportHeader.Description;
         SetExpenseAgentActor(ExpenseActivityLogEntry);
         exit(InsertTravelRequestEntry(ExpenseActivityLogEntry, SpendRequest));
     end;
@@ -178,25 +183,18 @@ codeunit 6926 "Expense Activity Log Mgt."
     )
     var
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
-        EntryNumbers: List of [BigInteger];
-        EntryNumber: BigInteger;
     begin
-        // Capture the primary keys before changing fields used by the source filter.
-        ExpenseActivityLogEntry.SetLoadFields("Entry No.");
+        // Two set-based updates instead of one per entry. Both run in the posting transaction,
+        // so no entry is left with only one of the two source fields changed.
+        // Expense report entries keep the report as their subject, so the subject filter limits the second update
+        // to the entries moved by the first one.
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Expense Report Header");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", ExpenseReportHeader.SystemId);
-        if ExpenseActivityLogEntry.FindSet() then
-            repeat
-                EntryNumbers.Add(ExpenseActivityLogEntry."Entry No.");
-            until ExpenseActivityLogEntry.Next() = 0;
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.ModifyAll("Source Record System ID", PostedExpenseReportHeader.SystemId, false);
 
-        // Update both source fields together so an entry cannot be left with an intermediate source identity.
-        foreach EntryNumber in EntryNumbers do begin
-            ExpenseActivityLogEntry.Get(EntryNumber);
-            ExpenseActivityLogEntry."Source Table ID" := Database::"Posted Expense Report Header";
-            ExpenseActivityLogEntry."Source Record System ID" := PostedExpenseReportHeader.SystemId;
-            ExpenseActivityLogEntry.Modify(false);
-        end;
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", PostedExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.ModifyAll("Source Table ID", Database::"Posted Expense Report Header", false);
     end;
 
     /// <summary>
@@ -331,6 +329,7 @@ codeunit 6926 "Expense Activity Log Mgt."
         var ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         SpendRequest: Record "Spend Request";
         EventType: Enum "Expense Activity Event Type";
+        InitiatedBy: Enum "Expense Activity Initiator";
         ActorRole: Enum "Expense Activity Actor Role";
         EventComment: Text;
         OccurredAt: DateTime
@@ -346,7 +345,7 @@ codeunit 6926 "Expense Activity Log Mgt."
             CopyStr(SpendRequest.Purpose, 1, MaxStrLen(ExpenseActivityLogEntry."Document Description"));
         ExpenseActivityLogEntry."Event Type" := EventType;
         ExpenseActivityLogEntry."Occurred At" := OccurredAt;
-        ExpenseActivityLogEntry."Initiated By" := Enum::"Expense Activity Initiator"::User;
+        ExpenseActivityLogEntry."Initiated By" := InitiatedBy;
         ExpenseActivityLogEntry."Actor Role" := ActorRole;
         SetEntryComment(ExpenseActivityLogEntry, EventComment);
     end;
@@ -370,7 +369,7 @@ codeunit 6926 "Expense Activity Log Mgt."
             ExpenseActivityLogEntry."Event Type"::Resubmitted]
         then begin
             ExpenseActivityLogEntry."Total Expected Amount" := SpendRequest."Total Expected Amount";
-            ExpenseActivityLogEntry."Currency Code" := SpendRequest."Currency Code";
+            ExpenseActivityLogEntry."Total Expected Amt. Cur. Code" := SpendRequest."Currency Code";
             ExpenseActivityLogEntry."Amount (LCY)" := SpendRequest."Total Expected Amount (LCY)";
         end;
 
@@ -447,13 +446,9 @@ codeunit 6926 "Expense Activity Log Mgt."
     local procedure SetExpenseAgentActor(var ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        ExpenseAgentNameTxt: Label 'Expense Agent';
     begin
         ExpenseAgentSetup.GetRecordOnce();
         SetBCUserActor(ExpenseActivityLogEntry, ExpenseAgentSetup."User Security ID");
-        // Without a configured agent user, the entry is still shown as performed by the Expense Agent.
-        if ExpenseActivityLogEntry."Actor Display Name" = '' then
-            ExpenseActivityLogEntry."Actor Display Name" := ExpenseAgentNameTxt;
     end;
 
     local procedure SetAmountSnapshot(

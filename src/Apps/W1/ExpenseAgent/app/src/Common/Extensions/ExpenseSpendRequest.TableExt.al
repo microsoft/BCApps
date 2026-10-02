@@ -237,19 +237,6 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             Editable = false;
         }
     }
-    trigger OnInsert()
-    begin
-        CheckExpenseLocation();
-        CheckActualDateTimes();
-    end;
-
-    trigger OnModify()
-    begin
-        // Checked on save rather than per field, so that the order of the fields in an API request does not matter.
-        CheckExpenseLocation();
-        CheckActualDateTimes();
-    end;
-
     trigger OnAfterInsert()
     begin
         if Rec."Document Type" = Rec."Document Type"::"Travel Request" then

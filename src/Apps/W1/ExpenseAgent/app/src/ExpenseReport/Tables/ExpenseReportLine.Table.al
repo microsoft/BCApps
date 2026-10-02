@@ -445,7 +445,7 @@ table 6907 "Expense Report Line"
                 end;
 
                 if Rec.Refundable and (Rec."Expense User No." <> '') then
-                    LinkToHeaderSpendRequest();
+                    InheritSpendRequestFromHeader();
 
                 UpdateAmounts();
             end;
@@ -1829,7 +1829,11 @@ table 6907 "Expense Report Line"
         SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Refundable Amount (LCY)");
     end;
 
-    local procedure LinkToHeaderSpendRequest()
+    /// <summary>
+    /// Links a line that becomes refundable to the travel request of its expense report header,
+    /// with the same close setting as the header.
+    /// </summary>
+    local procedure InheritSpendRequestFromHeader()
     begin
         if IsSpendRequestClosed(ExpenseReportHeader."Spend Request No.") then begin
             // The shared travel request was closed. Keep the line linked so the report can still be edited;
@@ -1839,6 +1843,7 @@ table 6907 "Expense Report Line"
             exit;
         end;
 
+        // Only the header decides whether the travel request is closed, so do not ask again for the line.
         Rec.SetSkipSpendRequestClose(true);
         Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
         Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";

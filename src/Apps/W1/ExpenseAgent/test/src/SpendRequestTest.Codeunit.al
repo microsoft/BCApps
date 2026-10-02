@@ -24,6 +24,7 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryPermissions: Codeunit "Library - Permissions";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -35,7 +36,7 @@ codeunit 148339 "Spend Request Test"
         PolicyErr: Label 'acknowledge the travel policy', Locked = true;
         NoTravelersErr: Label 'add at least one traveler', Locked = true;
         FieldRequiredErr: Label 'You must specify', Locked = true;
-        FieldRequiredCaptionErr: Label 'You must specify %1', Locked = true;
+        FieldRequiredCaptionErr: Label 'You must specify %1', Comment = '%1 = Field Caption', Locked = true;
         StatusNotOpenErr: Label 'must have the status', Locked = true;
         ExpenseLocationRequiresPerDiemErr: Label 'Expense Location can only be specified when Per Diem Included is selected.', Locked = true;
         ActualEndBeforeStartErr: Label 'Actual End Date and Time cannot be before Actual Start Date and Time.', Locked = true;
@@ -598,50 +599,27 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    procedure ExpenseLocationRequiresPerDiemIncluded()
+    procedure ReleaseTravelReqFailsWhenExpenseLocationWithoutPerDiem()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ExpenseLocation: Record "Expense Location";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
     begin
-        // [SCENARIO] An expense location can only be set on a travel request that includes per diem.
+        // [SCENARIO] An expense location can only be used on a travel request that includes per diem; release enforces it for every client.
         Initialize();
 
-        // [GIVEN] An open travel request without per diem and an expense location.
+        // [GIVEN] A releasable travel request without per diem, saved with an expense location.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreateExpenseLocation(ExpenseLocation);
-
-        // [WHEN] The expense location is set and the request is saved.
         SpendRequest.Validate("Expense Location", ExpenseLocation."No.");
-        asserterror SpendRequest.Modify(true);
-
-        // [THEN] It fails because per diem is not included.
-        Assert.ExpectedError(ExpenseLocationRequiresPerDiemErr);
-    end;
-
-    [Test]
-    procedure ExpenseLocationCanBeSetBeforePerDiemIncluded()
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        ExpenseLocation: Record "Expense Location";
-    begin
-        // [SCENARIO] The expense location and per diem can be set in any order in one update, as an API PATCH does.
-        Initialize();
-
-        // [GIVEN] An open travel request without per diem and an expense location.
-        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        CreateExpenseLocation(ExpenseLocation);
-
-        // [WHEN] The expense location is set before per diem is included, and the request is saved.
-        SpendRequest.Validate("Expense Location", ExpenseLocation."No.");
-        SpendRequest.Validate("Per Diem Included", true);
         SpendRequest.Modify(true);
 
-        // [THEN] Both values are saved.
-        SpendRequest.Get(SpendRequest."No.");
-        SpendRequest.TestField("Per Diem Included", true);
-        SpendRequest.TestField("Expense Location", ExpenseLocation."No.");
+        // [WHEN] The travel request is released.
+        asserterror ReleaseSpendRequest.Release(SpendRequest);
+
+        // [THEN] Release fails because per diem is not included.
+        Assert.ExpectedError(ExpenseLocationRequiresPerDiemErr);
     end;
 
     [Test]
@@ -666,52 +644,26 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    procedure ActualEndBeforeActualStartFailsOnModify()
+    procedure ActualEndBeforeActualStartFailsOnCard()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
+        TravelRequestCard: TestPage "Travel Request Card";
     begin
-        // [SCENARIO] A travel request cannot be saved with an actual end before its actual start.
+        // [SCENARIO] On the travel request card, the actual end cannot be set before the actual start.
         Initialize();
 
         // [GIVEN] An open travel request with actual dates.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         SetPerDiemDetails(SpendRequest);
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
 
-        // [WHEN] The actual end is moved before the actual start and the request is saved.
-        SpendRequest.Validate("Actual End Date and Time", SpendRequest."Actual Start Date and Time" - 3600000);
-        asserterror SpendRequest.Modify(true);
+        // [WHEN] The actual end is set before the actual start on the card.
+        asserterror TravelRequestCard."Actual End Date and Time".SetValue(SpendRequest."Actual Start Date and Time" - 3600000);
 
         // [THEN] It fails because the actual end cannot be before the actual start.
         Assert.ExpectedError(ActualEndBeforeStartErr);
-    end;
-
-    [Test]
-    procedure ActualDatesCanBeMovedTogetherInOneUpdate()
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        NewStart: DateTime;
-        NewEnd: DateTime;
-    begin
-        // [SCENARIO] Both actual dates can be moved past the previous range in one update, as an API PATCH does.
-        Initialize();
-
-        // [GIVEN] An open travel request with actual dates.
-        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
-        NewStart := CreateDateTime(DT2Date(SpendRequest."Actual End Date and Time") + 10, 080000T);
-        NewEnd := CreateDateTime(DT2Date(SpendRequest."Actual End Date and Time") + 12, 180000T);
-
-        // [WHEN] The actual start is moved after the old actual end, then the actual end is moved, and the request is saved.
-        SpendRequest.Validate("Actual Start Date and Time", NewStart);
-        SpendRequest.Validate("Actual End Date and Time", NewEnd);
-        SpendRequest.Modify(true);
-
-        // [THEN] The new actual dates are saved.
-        SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(NewStart, SpendRequest."Actual Start Date and Time", 'The actual start date and time must be updated.');
-        Assert.AreEqual(NewEnd, SpendRequest."Actual End Date and Time", 'The actual end date and time must be updated.');
     end;
 
     [Test]
@@ -2631,7 +2583,7 @@ codeunit 148339 "Spend Request Test"
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Submitted, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
         Assert.AreEqual(SpendRequest."Total Expected Amount (LCY)", ExpenseActivityLogEntry."Amount (LCY)", 'The submission entry must capture the expected amount in LCY.');
         Assert.AreEqual(SpendRequest."Total Expected Amount", ExpenseActivityLogEntry."Total Expected Amount", 'The submission entry must capture the expected amount.');
-        Assert.AreEqual(SpendRequest."Currency Code", ExpenseActivityLogEntry."Currency Code", 'The submission entry must capture the header currency.');
+        Assert.AreEqual(SpendRequest."Currency Code", ExpenseActivityLogEntry."Total Expected Amt. Cur. Code", 'The submission entry must capture the currency of the total expected amount.');
         ExpenseActivityLogEntry.Next();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Rejected, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
         Assert.AreEqual(RejectReason, ExpenseActivityLogEntry.Comment, 'The rejection entry must preserve the rejection reason.');
@@ -2640,7 +2592,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry.Next();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Approved, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
         ExpenseActivityLogEntry.Next();
-        VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
+        VerifyExpenseReportCreatedActivity(ExpenseActivityLogEntry, SpendRequest, ExpenseUser);
     end;
 
     [Test]
@@ -2741,7 +2693,7 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(Enum::"Expense Activity Actor Role"::" ", ExpenseActivityLogEntry."Actor Role", 'An automatic approval has no approver role.');
         Assert.AreNotEqual('', ExpenseActivityLogEntry.Comment, 'An automatic approval must explain why it was approved automatically.');
         ExpenseActivityLogEntry.Next();
-        VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
+        VerifyExpenseReportCreatedActivity(ExpenseActivityLogEntry, SpendRequest, ExpenseUser);
     end;
 
     [Test]
@@ -2754,7 +2706,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
-        // [SCENARIO] Approving a travel request logs one entry on the travel request that the Expense Agent created the expense reports,
+        // [SCENARIO] Approving a travel request logs on the travel request one Created entry by the Expense Agent per created expense report,
         // [SCENARIO] and each created expense report logs its own creation by the Expense Agent.
         Initialize();
 
@@ -2769,12 +2721,14 @@ codeunit 148339 "Spend Request Test"
         // [WHEN] The travel request is approved, which creates an expense report for each traveler.
         TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
 
-        // [THEN] The travel request has a single entry for the automatic creation of the expense reports.
-        Assert.AreEqual(1, FindTravelRequestActivity(SpendRequest, ExpenseActivityLogEntry."Event Type"::ExpenseReportCreated, ExpenseActivityLogEntry), 'The travel request must have one expense report creation entry.');
-        VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
-        Assert.AreEqual(SpendRequest."No.", ExpenseActivityLogEntry."Document No.", 'The entry must reference the travel request number.');
+        // [THEN] The travel request has three Created entries: its own creation and one per created expense report.
+        Assert.AreEqual(3, FindTravelRequestActivity(SpendRequest, ExpenseActivityLogEntry."Event Type"::Created, ExpenseActivityLogEntry), 'The travel request must have its own Created entry and one per created expense report.');
 
-        // [THEN] The entry is part of the history of the travel request's submitter and approver.
+        // [THEN] Each expense report creation entry identifies the report and is part of the history of the travel request's submitter and approver.
+        FindTravelRequestReportCreatedActivity(SpendRequest, TravelerExpenseUser, ExpenseActivityLogEntry);
+        VerifyExpenseReportCreatedActivity(ExpenseActivityLogEntry, SpendRequest, TravelerExpenseUser);
+        FindTravelRequestReportCreatedActivity(SpendRequest, ExpenseUser, ExpenseActivityLogEntry);
+        VerifyExpenseReportCreatedActivity(ExpenseActivityLogEntry, SpendRequest, ExpenseUser);
         VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
         VerifyInUserHistory(ExpenseActivityLogEntry, ApproverExpenseUser, Enum::"Expense Activity Actor Role"::Approver);
 
@@ -2816,7 +2770,7 @@ codeunit 148339 "Spend Request Test"
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Approved, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
         VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
         ExpenseActivityLogEntry.Next();
-        VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry);
+        VerifyExpenseReportCreatedActivity(ExpenseActivityLogEntry, SpendRequest, ExpenseUser);
     end;
 
     [Test]
@@ -3004,6 +2958,21 @@ codeunit 148339 "Spend Request Test"
         Assert.IsTrue(IsNullGuid(SpendRequest."Approved/Rejected by User ID"), 'A released travel request must not keep the user who rejected it.');
     end;
 
+    local procedure SetExpenseAgentUser()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentUser: Record User;
+        AgentUserNameTok: Label 'EXPENSE AGENT TEST USER', Locked = true;
+    begin
+        // The Expense Agent logs its activities as the agent user; reuse one user because CI licenses cap the number of users.
+        AgentUser.SetRange("User Name", AgentUserNameTok);
+        if not AgentUser.FindFirst() then
+            LibraryPermissions.CreateUser(AgentUser, AgentUserNameTok, false);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."User Security ID" := AgentUser."User Security ID";
+        ExpenseAgentSetup.Modify(false);
+    end;
+
     local procedure Initialize()
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
@@ -3029,6 +2998,7 @@ codeunit 148339 "Spend Request Test"
         GeneralLedgerSetup.Modify();
 
         LibraryExpense.UpdateEnableAgentInAgentSetup(false);
+        SetExpenseAgentUser();
 
         if IsInitialized then
             exit;
@@ -3463,10 +3433,36 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(ExpectedActor.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'The event must be attributed to the expected expense user.');
     end;
 
-    local procedure VerifyExpenseReportsCreatedActivity(ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
+    local procedure FindTravelRequestReportCreatedActivity(SpendRequest: Record "Spend Request"; TravelerExpenseUser: Record "Expense User"; var ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
     begin
-        Assert.AreEqual(Enum::"Expense Activity Event Type"::ExpenseReportCreated, ExpenseActivityLogEntry."Event Type", 'The entry must record the automatic creation of the expense reports.');
+        ExpenseActivityLogEntry.Reset();
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::Created);
+        ExpenseActivityLogEntry.SetRange("Document No.", GetTravelerExpenseReport(SpendRequest, TravelerExpenseUser)."No.");
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
+        ExpenseActivityLogEntry.Reset();
+    end;
+
+    local procedure VerifyExpenseReportCreatedActivity(ExpenseActivityLogEntry: Record "Expense Activity Log Entry"; SpendRequest: Record "Spend Request"; TravelerExpenseUser: Record "Expense User")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        ExpenseReportHeader := GetTravelerExpenseReport(SpendRequest, TravelerExpenseUser);
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Created, ExpenseActivityLogEntry."Event Type", 'The entry must record the creation of the expense report.');
+        Assert.AreEqual(Database::"Spend Request", ExpenseActivityLogEntry."Subject Table ID", 'The travel request must be the activity subject.');
+        Assert.AreEqual(SpendRequest.SystemId, ExpenseActivityLogEntry."Subject System ID", 'The activity subject must be the travel request.');
+        Assert.AreEqual(ExpenseReportHeader."No.", ExpenseActivityLogEntry."Document No.", 'The entry must reference the created expense report number.');
+        Assert.AreEqual(ExpenseReportHeader.Description, ExpenseActivityLogEntry."Document Description", 'The entry must reference the created expense report description.');
         VerifyExpenseAgentActivity(ExpenseActivityLogEntry);
+    end;
+
+    local procedure GetTravelerExpenseReport(SpendRequest: Record "Spend Request"; TravelerExpenseUser: Record "Expense User") ExpenseReportHeader: Record "Expense Report Header"
+    begin
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUser."No.");
+        ExpenseReportHeader.FindFirst();
     end;
 
     local procedure VerifyExpenseReportCreatedByAgent(SpendRequest: Record "Spend Request"; TravelerExpenseUser: Record "Expense User")
@@ -3487,9 +3483,16 @@ codeunit 148339 "Spend Request Test"
     end;
 
     local procedure VerifyExpenseAgentActivity(ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentUser: Record User;
     begin
         Assert.AreEqual(Enum::"Expense Activity Initiator"::Agent, ExpenseActivityLogEntry."Initiated By", 'The activity must be initiated by the Expense Agent.');
         Assert.AreEqual(Enum::"Expense Activity Actor Role"::" ", ExpenseActivityLogEntry."Actor Role", 'The Expense Agent has no submitter or approver role.');
+        ExpenseAgentSetup.Get();
+        AgentUser.Get(ExpenseAgentSetup."User Security ID");
+        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'The activity must be attributed to the Expense Agent user.');
+        Assert.AreEqual(AgentUser.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'The activity must be attributed to the Expense Agent user.');
         Assert.AreNotEqual('', ExpenseActivityLogEntry."Actor Display Name", 'The activity must show that the Expense Agent performed it.');
         Assert.AreEqual('', ExpenseActivityLogEntry.Comment, 'The event type and initiator describe the automatic creation without a comment.');
     end;

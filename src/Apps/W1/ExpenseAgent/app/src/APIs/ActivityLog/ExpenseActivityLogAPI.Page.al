@@ -145,15 +145,15 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'Expense Count';
                 }
+                field(totalExpectedAmountCurrencyCode; TotalExpectedAmountCurrencyCode)
+                {
+                    Caption = 'Total Expected Amount Currency Code';
+                    ToolTip = 'Specifies the currency of the travel request total expected amount at the time of submission. The local currency is represented by its currency code in the API.';
+                }
                 field(totalExpectedAmount; Rec."Total Expected Amount")
                 {
                     Caption = 'Total Expected Amount';
                     ToolTip = 'Specifies the travel request total expected amount at the time of submission.';
-                }
-                field(currencyCode; CurrencyCode)
-                {
-                    Caption = 'Currency Code';
-                    ToolTip = 'Specifies the travel request currency at the time of submission. The local currency is represented by its currency code in the API.';
                 }
                 field(historyActorRole; Rec."History Actor Role Filter")
                 {
@@ -181,10 +181,10 @@ page 7122 "Expense Activity Log API"
 
     var
         CurrencyHelper: Codeunit "Expense API Currency Helper";
-        CurrencyCode: Code[10];
         CurrencyLCY: Code[10];
         HistoryScopeApplied: Boolean;
         ReimbursementCurrencyCode: Code[10];
+        TotalExpectedAmountCurrencyCode: Code[10];
         HistoryActorRoleRequiredErr: Label 'The historyActorRole filter must be specified as Submitter or Approver.';
         ActivityScopeRequiredErr: Label 'Activity log entries must be requested through an expense report, posted expense report, travel request, or expense user.';
 
@@ -198,19 +198,19 @@ page 7122 "Expense Activity Log API"
     trigger OnOpenPage()
     begin
         // Avoid JIT load consistency errors by including fields read in OnAfterGetRecord in the initial record buffer.
-        Rec.AddLoadFields("Reimbursement Currency Code", "Currency Code");
+        Rec.AddLoadFields("Reimbursement Currency Code", "Total Expected Amt. Cur. Code");
     end;
 
     trigger OnAfterGetRecord()
     begin
-        Clear(CurrencyCode);
         Clear(CurrencyLCY);
         Clear(ReimbursementCurrencyCode);
+        Clear(TotalExpectedAmountCurrencyCode);
         if Rec."Event Type" in [Rec."Event Type"::Submitted, Rec."Event Type"::Resubmitted, Rec."Event Type"::Posted] then begin
             CurrencyLCY := CurrencyHelper.GetCurrencyCodeForAPI('');
-            // Travel requests capture their header currency; expense reports capture a reimbursement currency.
+            // Travel requests capture their total expected amount; expense reports capture a reimbursement currency.
             if Rec."Source Table ID" = Database::"Spend Request" then
-                CurrencyCode := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code")
+                TotalExpectedAmountCurrencyCode := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Total Expected Amt. Cur. Code")
             else
                 ReimbursementCurrencyCode := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Reimbursement Currency Code");
         end;

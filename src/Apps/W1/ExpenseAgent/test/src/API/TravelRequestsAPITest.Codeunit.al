@@ -29,6 +29,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryERM: Codeunit "Library - ERM";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
@@ -53,6 +54,8 @@ codeunit 148347 "Travel Requests API Test"
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
         ExpenseUserNotLinkedErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.';
         StatusNotOpenErr: Label 'must have the status', Locked = true;
+        ExpenseLocationRequiresPerDiemErr: Label 'Expense Location can only be specified when Per Diem Included is selected.', Locked = true;
+        ActualEndBeforeStartErr: Label 'Actual End Date and Time cannot be before Actual Start Date and Time.', Locked = true;
 
     [Test]
     procedure TravelersAPIMapsEmployeeNumberToExpenseUser()
@@ -781,6 +784,115 @@ codeunit 148347 "Travel Requests API Test"
         Traveler.SetRange("Spend Request No.", TravelRequest."No.");
         Traveler.SetRange("Expense User No.", OtherExpenseUser."No.");
         Assert.RecordIsEmpty(Traveler);
+    end;
+
+    [Test]
+    procedure TravelRequestsAPIValidatesExpenseLocationOnSave()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseLocation: Record "Expense Location";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        RequestBody: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] The expense location requires per diem, regardless of the order of the fields in the PATCH payload.
+        Initialize();
+
+        // [GIVEN] An open travel request without per diem and an expense location.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        LibraryExpense.CreateExpenseLocation(ExpenseLocation, '', CopyStr(LibraryRandom.RandText(MaxStrLen(ExpenseLocation.City)), 1, MaxStrLen(ExpenseLocation.City)));
+        Commit();
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+
+        // [WHEN] PATCH sets only the expense location.
+        Request.Add('expenseLocation', ExpenseLocation."No.");
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The API rejects it because per diem is not included, and nothing is saved.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(ExpenseLocationRequiresPerDiemErr);
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField("Expense Location", '');
+
+        // [WHEN] PATCH sets the expense location before per diem in the same payload.
+        Clear(Request);
+        Request.Add('expenseLocation', ExpenseLocation."No.");
+        Request.Add('perDiemIncluded', true);
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
+
+        // [THEN] Both values are saved.
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField("Per Diem Included", true);
+        TravelRequest.TestField("Expense Location", ExpenseLocation."No.");
+    end;
+
+    [Test]
+    procedure TravelRequestsAPIValidatesActualDatesOnSave()
+    var
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        ActualStart: DateTime;
+        ActualEnd: DateTime;
+        RequestBody: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] The actual end cannot be before the actual start, but both can be moved together in one PATCH.
+        Initialize();
+
+        // [GIVEN] An open travel request with actual dates.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        ActualStart := CreateDateTime(WorkDate() + 30, 080000T);
+        ActualEnd := CreateDateTime(WorkDate() + 32, 180000T);
+        TravelRequest.Validate("Actual Start Date and Time", ActualStart);
+        TravelRequest.Validate("Actual End Date and Time", ActualEnd);
+        TravelRequest.Modify(true);
+        Commit();
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+
+        // [WHEN] PATCH moves the actual start past the old actual end, together with the actual end.
+        ActualStart := CreateDateTime(WorkDate() + 40, 080000T);
+        ActualEnd := CreateDateTime(WorkDate() + 42, 180000T);
+        Request.Add('actualStartDateAndTime', ActualStart);
+        Request.Add('actualEndDateAndTime', ActualEnd);
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
+
+        // [THEN] The new actual dates are saved.
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        Assert.AreEqual(ActualStart, TravelRequest."Actual Start Date and Time", 'The actual start date and time must be updated.');
+        Assert.AreEqual(ActualEnd, TravelRequest."Actual End Date and Time", 'The actual end date and time must be updated.');
+
+        // [WHEN] PATCH moves the actual end before the actual start.
+        Clear(Request);
+        Request.Add('actualEndDateAndTime', ActualStart - 3600000);
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The API rejects it and the previous actual dates remain saved.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(ActualEndBeforeStartErr);
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        Assert.AreEqual(ActualEnd, TravelRequest."Actual End Date and Time", 'The actual end date and time must not change.');
     end;
 
 #if not CLEAN30

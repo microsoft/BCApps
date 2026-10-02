@@ -175,6 +175,13 @@ page 7099 "Spend Requests API"
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
 
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        // Checked on save rather than per field, so that the order of the fields in the request does not matter.
+        Rec.CheckActualDateTimes();
+        exit(true);
+    end;
+
     trigger OnModifyRecord(): Boolean
     begin
         // Protect travel request ownership while the legacy endpoint remains available before CLEAN30.
@@ -184,6 +191,7 @@ page 7099 "Spend Requests API"
             if Rec."Requested For" <> xRec."Requested For" then
                 Rec.FieldError("Requested For", RequestedByCannotBeChangedErr);
         end;
+        Rec.CheckActualDateTimes();
 
         exit(true);
     end;
