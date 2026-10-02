@@ -1509,12 +1509,13 @@ codeunit 144001 VATSTAT
     end;
 
     [Test]
-    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [HandlerFunctions('VATStmtATRequestPageHandler')]
     [Scope('OnPrem')]
     procedure VAT49PctDomesticInvoiceKZ124()
     var
         PurchaseHeader: Record "Purchase Header";
         VATStatementLine: Record "VAT Statement Line";
+        VATStatementName: Record "VAT Statement Name";
         VATEntry: Record "VAT Entry";
         Item: Record Item;
         VATStatementAT: Report "VAT Statement AT";
@@ -1531,13 +1532,9 @@ codeunit 144001 VATSTAT
         // [GIVEN] VAT Statement Line with Row No. '124' totaling a domestic VAT base amount
         CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
         VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
-        CreateVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
-        VATStatementLine.SetRange("Row No.", VATTotalRowNo);
-        VATStatementLine.SetRange(Type, VATStatementLine.Type::"VAT Entry Totaling");
-        VATStatementLine.FindFirst();
-        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
-        VATStatementLine.Modify(true);
-        CreateRowTotVATStmtLine('124', VATTotalRowNo);
+        CreateDedicatedVATStatementName(VATStatementName);
+        CreateVATEntTotLineInStatement(VATStatementName, VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Base);
+        CreateRowTotLineInStatement(VATStatementName, '124', VATTotalRowNo);
         CreateItem(Item, VATProPostingGroupCode);
         EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
           ReportingType::"Defined period", false, false, false, false, 0);
@@ -1547,6 +1544,8 @@ codeunit 144001 VATSTAT
 
         // [WHEN] Export VAT Statement
         VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementName.SetRecFilter();
+        VATStatementAT.SetTableView(VATStatementName);
         VATStatementAT.RunModal();
 
         // [THEN] XML file has KZ124 in LIEFERUNGEN_LEISTUNGEN_EIGENVERBRAUCH/VERSTEUERT
@@ -1561,12 +1560,13 @@ codeunit 144001 VATSTAT
     end;
 
     [Test]
-    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [HandlerFunctions('VATStmtATRequestPageHandler')]
     [Scope('OnPrem')]
     procedure VAT49PctIntraCommunityInvoiceKZ125()
     var
         PurchaseHeader: Record "Purchase Header";
         VATStatementLine: Record "VAT Statement Line";
+        VATStatementName: Record "VAT Statement Name";
         VATEntry: Record "VAT Entry";
         Item: Record Item;
         VATStatementAT: Report "VAT Statement AT";
@@ -1583,13 +1583,9 @@ codeunit 144001 VATSTAT
         // [GIVEN] VAT Statement Line with Row No. '125' totaling an intra-community VAT base amount
         CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
         VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
-        CreateVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
-        VATStatementLine.SetRange("Row No.", VATTotalRowNo);
-        VATStatementLine.SetRange(Type, VATStatementLine.Type::"VAT Entry Totaling");
-        VATStatementLine.FindFirst();
-        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
-        VATStatementLine.Modify(true);
-        CreateRowTotVATStmtLine('125', VATTotalRowNo);
+        CreateDedicatedVATStatementName(VATStatementName);
+        CreateVATEntTotLineInStatement(VATStatementName, VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Base);
+        CreateRowTotLineInStatement(VATStatementName, '125', VATTotalRowNo);
         CreateItem(Item, VATProPostingGroupCode);
         EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
           ReportingType::"Defined period", false, false, false, false, 0);
@@ -1599,6 +1595,8 @@ codeunit 144001 VATSTAT
 
         // [WHEN] Export VAT Statement
         VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementName.SetRecFilter();
+        VATStatementAT.SetTableView(VATStatementName);
         VATStatementAT.RunModal();
 
         // [THEN] XML file has KZ125 in INNERGEMEINSCHAFTLICHE_ERWERBE/VERSTEUERT_IGE
@@ -1613,12 +1611,13 @@ codeunit 144001 VATSTAT
     end;
 
     [Test]
-    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [HandlerFunctions('VATStmtATRequestPageHandler')]
     [Scope('OnPrem')]
     procedure VAT49PctNegativeDomesticReclassifiedToKZ000()
     var
         PurchaseHeader: Record "Purchase Header";
         VATStatementLine: Record "VAT Statement Line";
+        VATStatementName: Record "VAT Statement Name";
         VATEntry: Record "VAT Entry";
         Item: Record Item;
         VATStatementAT: Report "VAT Statement AT";
@@ -1635,8 +1634,9 @@ codeunit 144001 VATSTAT
         // [GIVEN] VAT Statement Line with Row No. '124' totaling a domestic 4.9% VAT base amount
         CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
         VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
-        CreateBaseVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
-        CreateRowTotVATStmtLine('124', VATTotalRowNo);
+        CreateDedicatedVATStatementName(VATStatementName);
+        CreateVATEntTotLineInStatement(VATStatementName, VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Base);
+        CreateRowTotLineInStatement(VATStatementName, '124', VATTotalRowNo);
         CreateItem(Item, VATProPostingGroupCode);
         EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
           ReportingType::"Defined period", false, false, false, false, 0);
@@ -1646,6 +1646,8 @@ codeunit 144001 VATSTAT
 
         // [WHEN] Export VAT Statement
         VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementName.SetRecFilter();
+        VATStatementAT.SetTableView(VATStatementName);
         VATStatementAT.RunModal();
 
         // [THEN] The negative base is folded into KZ000 and KZ124 is not emitted in the XML
@@ -1662,12 +1664,13 @@ codeunit 144001 VATSTAT
     end;
 
     [Test]
-    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [HandlerFunctions('VATStmtATRequestPageHandler')]
     [Scope('OnPrem')]
     procedure VAT49PctNegativeIntraCommunityReclassifiedToKZ070()
     var
         PurchaseHeader: Record "Purchase Header";
         VATStatementLine: Record "VAT Statement Line";
+        VATStatementName: Record "VAT Statement Name";
         VATEntry: Record "VAT Entry";
         Item: Record Item;
         VATStatementAT: Report "VAT Statement AT";
@@ -1684,8 +1687,9 @@ codeunit 144001 VATSTAT
         // [GIVEN] VAT Statement Line with Row No. '125' totaling an intra-community 4.9% VAT base amount
         CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
         VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
-        CreateBaseVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
-        CreateRowTotVATStmtLine('125', VATTotalRowNo);
+        CreateDedicatedVATStatementName(VATStatementName);
+        CreateVATEntTotLineInStatement(VATStatementName, VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Base);
+        CreateRowTotLineInStatement(VATStatementName, '125', VATTotalRowNo);
         CreateItem(Item, VATProPostingGroupCode);
         EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
           ReportingType::"Defined period", false, false, false, false, 0);
@@ -1695,6 +1699,8 @@ codeunit 144001 VATSTAT
 
         // [WHEN] Export VAT Statement
         VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementName.SetRecFilter();
+        VATStatementAT.SetTableView(VATStatementName);
         VATStatementAT.RunModal();
 
         // [THEN] The negative base is folded into KZ070 and KZ125 is not emitted in the XML
@@ -1712,12 +1718,13 @@ codeunit 144001 VATSTAT
     end;
 
     [Test]
-    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [HandlerFunctions('VATStmtATRequestPageHandler')]
     [Scope('OnPrem')]
     procedure VAT49PctKZ124PositionCheckBalanced()
     var
         PurchaseHeader: Record "Purchase Header";
         VATStatementLine: Record "VAT Statement Line";
+        VATStatementName: Record "VAT Statement Name";
         Item: Record Item;
         VATStatementAT: Report "VAT Statement AT";
         VATTotalRowNo: Code[10];
@@ -1731,14 +1738,10 @@ codeunit 144001 VATSTAT
         // [GIVEN] The same revenue base feeds KZ000 and the new KZ124 (Row '124'), so the taxed-revenue check balances
         CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
         VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
-        CreateVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
-        VATStatementLine.SetRange("Row No.", VATTotalRowNo);
-        VATStatementLine.SetRange(Type, VATStatementLine.Type::"VAT Entry Totaling");
-        VATStatementLine.FindFirst();
-        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
-        VATStatementLine.Modify(true);
-        CreateRowTotVATStmtLine('124', VATTotalRowNo);
-        CreateRowTotVATStmtLine('1000', VATTotalRowNo);
+        CreateDedicatedVATStatementName(VATStatementName);
+        CreateVATEntTotLineInStatement(VATStatementName, VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Base);
+        CreateRowTotLineInStatement(VATStatementName, '124', VATTotalRowNo);
+        CreateRowTotLineInStatement(VATStatementName, '1000', VATTotalRowNo);
         CreateItem(Item, VATProPostingGroupCode);
 
         // [GIVEN] Position check is enabled
@@ -1748,6 +1751,8 @@ codeunit 144001 VATSTAT
 
         // [WHEN] Run VAT Statement AT report with CheckPositions = true
         VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementName.SetRecFilter();
+        VATStatementAT.SetTableView(VATStatementName);
         VATStatementAT.RunModal();
 
         // [THEN] No position-check error is raised (KZ124 included in the taxed-revenue total) and the file is generated
@@ -2312,6 +2317,61 @@ codeunit 144001 VATSTAT
         VATStatementLine.Validate("Row Totaling", RowTotaling);
         VATStatementLine.Validate(Print, true);
         VATStatementLine.Insert(true);
+    end;
+
+    local procedure CreateDedicatedVATStatementName(var VATStatementName: Record "VAT Statement Name")
+    var
+        VATStatementTemplate: Record "VAT Statement Template";
+    begin
+        LibraryERM.CreateVATStatementTemplate(VATStatementTemplate);
+        VATStatementName.Init();
+        VATStatementName.Validate("Statement Template Name", VATStatementTemplate.Name);
+        VATStatementName.Validate(Name, LibraryUtility.GenerateRandomCode(VATStatementName.FieldNo(Name), DATABASE::"VAT Statement Name"));
+        VATStatementName.Insert(true);
+    end;
+
+    local procedure CreateVATEntTotLineInStatement(VATStatementName: Record "VAT Statement Name"; RowNo: Code[10]; BusPostingGroup: Code[20]; ProdPostingGroup: Code[20]; AmountType: Enum "VAT Statement Line Amount Type")
+    var
+        VATStatementLine: Record "VAT Statement Line";
+    begin
+        VATStatementLine.Init();
+        VATStatementLine.Validate("Statement Template Name", VATStatementName."Statement Template Name");
+        VATStatementLine.Validate("Statement Name", VATStatementName.Name);
+        VATStatementLine.Validate("Line No.", NextVATStatementLineNo(VATStatementName));
+        VATStatementLine.Validate("Row No.", RowNo);
+        VATStatementLine.Validate(Type, VATStatementLine.Type::"VAT Entry Totaling");
+        VATStatementLine.Validate("Gen. Posting Type", VATStatementLine."Gen. Posting Type"::Purchase);
+        VATStatementLine.Validate("VAT Bus. Posting Group", BusPostingGroup);
+        VATStatementLine.Validate("VAT Prod. Posting Group", ProdPostingGroup);
+        VATStatementLine.Validate("Amount Type", AmountType);
+        VATStatementLine.Validate(Print, true);
+        VATStatementLine.Insert(true);
+    end;
+
+    local procedure CreateRowTotLineInStatement(VATStatementName: Record "VAT Statement Name"; RowNo: Code[10]; RowTotaling: Code[10])
+    var
+        VATStatementLine: Record "VAT Statement Line";
+    begin
+        VATStatementLine.Init();
+        VATStatementLine.Validate("Statement Template Name", VATStatementName."Statement Template Name");
+        VATStatementLine.Validate("Statement Name", VATStatementName.Name);
+        VATStatementLine.Validate("Line No.", NextVATStatementLineNo(VATStatementName));
+        VATStatementLine.Validate("Row No.", RowNo);
+        VATStatementLine.Validate(Type, VATStatementLine.Type::"Row Totaling");
+        VATStatementLine.Validate("Row Totaling", RowTotaling);
+        VATStatementLine.Validate(Print, true);
+        VATStatementLine.Insert(true);
+    end;
+
+    local procedure NextVATStatementLineNo(VATStatementName: Record "VAT Statement Name"): Integer
+    var
+        VATStatementLine: Record "VAT Statement Line";
+    begin
+        VATStatementLine.SetRange("Statement Template Name", VATStatementName."Statement Template Name");
+        VATStatementLine.SetRange("Statement Name", VATStatementName.Name);
+        if VATStatementLine.FindLast() then
+            exit(VATStatementLine."Line No." + 10000);
+        exit(10000);
     end;
 
     local procedure GetDomesticGroup(): Code[20]
