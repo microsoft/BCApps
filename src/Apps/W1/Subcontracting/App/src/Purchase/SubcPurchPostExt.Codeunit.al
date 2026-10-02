@@ -286,13 +286,19 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     local procedure CopyItemLedgerEntriesUpToQuantity(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; QuantityBase: Decimal; QuantityAlreadyInvoicedBase: Decimal): Boolean
     var
+        BufferMustBeTemporaryErrorInfo: ErrorInfo;
         EntryQuantityBase: Decimal;
         QuantityToCopy: Decimal;
         QuantityToSkipBase: Decimal;
         RemainingQuantityBase: Decimal;
     begin
-        if not TempItemLedgerEntry.IsTemporary() then
-            Error(ItemLedgerEntryBufferMustBeTemporaryErr);
+        if not TempItemLedgerEntry.IsTemporary() then begin
+            BufferMustBeTemporaryErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            BufferMustBeTemporaryErrorInfo.ErrorType := ErrorType::Internal;
+            BufferMustBeTemporaryErrorInfo.Verbosity := Verbosity::Error;
+            BufferMustBeTemporaryErrorInfo.Message := ItemLedgerEntryBufferMustBeTemporaryErr;
+            Error(BufferMustBeTemporaryErrorInfo);
+        end;
 
         TempItemLedgerEntry.Reset();
         TempItemLedgerEntry.DeleteAll();
