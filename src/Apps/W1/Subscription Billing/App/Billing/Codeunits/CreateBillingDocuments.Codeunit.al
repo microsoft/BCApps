@@ -1070,7 +1070,7 @@ codeunit 8060 "Create Billing Documents"
                 ErrorTextInfo.TableId := Database::"Billing Template";
             end;
             ErrorTextInfo.Verbosity := Verbosity::Error;
-            Error(ErrorText);
+            Error(ErrorTextInfo);
         end;
     end;
 
@@ -1097,7 +1097,7 @@ codeunit 8060 "Create Billing Documents"
             ErrorTextInfo.SystemId := BillingLine.SystemId;
             ErrorTextInfo.TableId := Database::"Billing Line";
             ErrorTextInfo.Verbosity := Verbosity::Error;
-            Error(ErrorText);
+            Error(ErrorTextInfo);
         end;
     end;
 
