@@ -30,6 +30,15 @@ codeunit 20535 "Subc. Purch. Post Ext"
         CancelNotSupportedDetailedMsg: Label 'This invoice contains item charges assigned to a subcontracting order receipt. Create a corrective credit memo to reverse the invoice while preserving the subcontracting cost application.';
         ShowPostedPurchaseInvoiceLbl: Label 'Show Posted Purchase Invoice';
         ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
+        GetTrackedSubcontractingRcptNotSupportedErr: Label 'You cannot copy tracked subcontracting receipt lines into this document. Invoice tracked subcontracting receipts from the subcontracting order instead.';
+
+    [EventSubscriber(ObjectType::Table, Database::"Purch. Rcpt. Line", OnBeforeInsertInvLineFromRcptLine, '', false, false)]
+    local procedure BlockTrackedSubcontractingReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var PurchLine: Record "Purchase Line"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+        if (PurchRcptLine."Prod. Order No." <> '') and ItemIsTracked(PurchRcptLine."No.") then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
     local procedure ExcludeSubcontractingLinesOnGetPurchaseOrderLines(var PurchaseLineOrder: Record "Purchase Line"; PurchaseHeaderInvoice: Record "Purchase Header")
     begin
