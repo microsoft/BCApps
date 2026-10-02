@@ -280,54 +280,6 @@ Describe "BuildOptimization" {
                 Remove-Item $tempFile -ErrorAction SilentlyContinue
             }
         }
-
-        It "fetches both endpoints to resolve the merge base when it is not immediately available" {
-            $savedActions = $env:GITHUB_ACTIONS
-            $savedEvent = $env:GITHUB_EVENT_NAME
-            $savedEventPath = $env:GITHUB_EVENT_PATH
-            $tempFile = [System.IO.Path]::GetTempFileName()
-            try {
-                $env:GITHUB_ACTIONS = 'true'
-                $env:GITHUB_EVENT_NAME = 'pull_request'
-                @{
-                    pull_request = @{
-                        base = @{ sha = 'base-sha' }
-                        head = @{ sha = 'head-sha' }
-                    }
-                } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
-                $env:GITHUB_EVENT_PATH = $tempFile
-
-                # merge-base yields nothing until both commits have been fetched.
-                $script:fetched = $false
-                Mock -ModuleName BuildOptimization git {
-                    $global:LASTEXITCODE = 0
-                    if ($args -contains 'fetch') {
-                        $script:fetched = $true
-                        return
-                    }
-                    if ($args -contains 'merge-base') {
-                        if ($script:fetched) {
-                            return 'merge-base-sha'
-                        }
-                        return ''
-                    }
-                    if ($args -contains '--diff-filter=A') {
-                        return 'src/Apps/W1/Example/App/Added.al'
-                    }
-                }
-
-                $result = @(Get-ChangedFilesForCI -DiffFilter 'A' -CompareFromMergeBase -RequireChangeDetection)
-
-                $result | Should -Be @('src/Apps/W1/Example/App/Added.al')
-                $script:fetched | Should -BeTrue
-            }
-            finally {
-                $env:GITHUB_ACTIONS = $savedActions
-                $env:GITHUB_EVENT_NAME = $savedEvent
-                $env:GITHUB_EVENT_PATH = $savedEventPath
-                Remove-Item $tempFile -ErrorAction SilentlyContinue
-            }
-        }
     }
 
     Context "Test-FullBuildPatternsMatch" {

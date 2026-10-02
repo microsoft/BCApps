@@ -126,7 +126,7 @@ else {
     $repositoryRoot = (Resolve-Path -Path (Get-BaseFolder)).Path
     $addedFilePaths = @($addedFiles | ForEach-Object { Join-Path -Path $repositoryRoot -ChildPath $_ })
 
-    # 'build\projects.json' only exists on main; pass it only when present.
+    # 'build\projects.json' is absent on some branches; pass it only when present.
     $projectsJsonPath = Join-Path -Path $repositoryRoot -ChildPath 'build\projects.json'
     $getALGoTestFoldersParams = @{
         ProjectsPath   = Join-Path -Path $repositoryRoot -ChildPath 'build\projects'
