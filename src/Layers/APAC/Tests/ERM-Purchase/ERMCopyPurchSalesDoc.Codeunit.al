@@ -7151,18 +7151,18 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
     begin
         // [SCENARIO 649626] Each sales return uses the current restore-order-quantity setting.
         Initialize();
-        SetRestoreOrderQtyOnReturn(true);
+        SetRestoreOrderQtyOnReturn(false);
 
-        // [GIVEN] A sales order with Quantity 2 partially shipped and invoiced while another line keeps the order open.
+        // [GIVEN] A sales order with Quantity 3 partially shipped and invoiced while another line keeps the order open.
         LibrarySales.CreateCustomer(Customer);
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItem(Item2);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
         SalesOrderNo := SalesHeader."No.";
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 3);
         SalesOrderLineNo := SalesLine."Line No.";
-        SalesLine.Validate("Qty. to Ship", 1);
-        SalesLine.Validate("Qty. to Invoice", 1);
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 2);
         SalesLine.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", 1);
         SalesLine.Validate("Qty. to Ship", 0);
@@ -7170,16 +7170,16 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesLine.Modify(true);
         PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        // [WHEN] A return of Quantity 1 is posted while restoring order quantities is enabled.
+        // [WHEN] A return of Quantity 1 is posted while restoring order quantities is disabled.
         CreateSalesReturnOrder(
             SalesReturnOrderHeader, Customer."No.", PostedDocumentNo, Item."No.", 1);
         LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
 
-        // [THEN] Quantity 1 is restored to the originating sales order.
-        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 0, 0, 2, 2);
+        // [THEN] The return does not restore quantity to the originating sales order.
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 2, 2, 1, 1);
 
-        // [GIVEN] Restoring order quantities is disabled for a second return against the same sales order.
-        SetRestoreOrderQtyOnReturn(false);
+        // [GIVEN] Restoring order quantities is enabled for a second return against the same sales order.
+        SetRestoreOrderQtyOnReturn(true);
         Clear(SalesReturnOrderHeader);
         CreateSalesReturnOrder(
             SalesReturnOrderHeader, Customer."No.", PostedDocumentNo, Item."No.", 1);
@@ -7187,8 +7187,8 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         // [WHEN] The second return is posted.
         LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
 
-        // [THEN] The second return does not restore any additional quantity.
-        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 1, 1);
+        // [THEN] The second return restores Quantity 1 to the originating sales order.
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 2, 2);
     end;
 
     [Test]

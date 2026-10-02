@@ -1560,7 +1560,7 @@
             SalesLineOrder[1]."Quantity Shipped", SalesLineOrder[1]."Quantity Invoiced", SalesLineOrder[1]."Quantity Shipped");
         VerifySalesShipmentLine(
             SalesLineOrder[2],
-             SalesLineOrder[2]."Quantity Shipped", SalesLineOrder[2]."Quantity Invoiced", SalesLineOrder[1]."Quantity Shipped");
+             SalesLineOrder[2]."Quantity Shipped", SalesLineOrder[2]."Quantity Invoiced", SalesLineOrder[2]."Quantity Shipped");
 
         CreateSalesInvoiceFromShipment(SalesHeaderInvoice, SalesLineInvoice, SalesHeaderOrder."Sell-to Customer No.", SalesLineOrder);
 
@@ -1622,7 +1622,7 @@
             SalesLineOrder[1]."Quantity Shipped", SalesLineOrder[1]."Quantity Invoiced", SalesLineOrder[1]."Quantity Shipped");
         VerifySalesShipmentLine(
             SalesLineOrder[2],
-             SalesLineOrder[2]."Quantity Shipped", SalesLineOrder[2]."Quantity Invoiced", SalesLineOrder[1]."Quantity Shipped");
+             SalesLineOrder[2]."Quantity Shipped", SalesLineOrder[2]."Quantity Invoiced", SalesLineOrder[2]."Quantity Shipped");
 
         CreateSalesInvoiceFromShipment(SalesHeaderInvoice, SalesLineInvoice, SalesHeaderOrder[1]."Sell-to Customer No.", SalesLineOrder);
 

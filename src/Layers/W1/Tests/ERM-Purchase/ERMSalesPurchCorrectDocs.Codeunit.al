@@ -1805,7 +1805,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CorrectPostedPurchInvoiceWithZeroQuantityItemCharge()
+    procedure CorrectPostedPurchInvoiceWithZeroQuantityItemChargeWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1815,6 +1815,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         // [FEATURE] [Purchase] [Order] 
         // [SCENARIO 417381] It is be possible to correct posted invoice with zero quantity item charge
         Initialize();
+        SetPurchaseRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create purchase order with item "I" line
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
@@ -2075,7 +2076,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerSalesVerifyQuestion')]
-    procedure VerifyConfirmMessageWhenCorrectedThePostedSalesInvoice()
+    procedure VerifyConfirmMessageWhenCorrectedThePostedSalesInvoiceWhenRestoreQtyEnabled()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -2084,6 +2085,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     begin
         // [SCENARIO 578414] Verify the expected confirmation message appears upon canceling the posted sales invoice.
         Initialize();
+        SetSalesRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create a Sales Order.
         CreateSalesHeaderWithItemWithType(
@@ -2111,7 +2113,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerPurchaseVerifyQuestion')]
-    procedure VerifyConfirmMessageWhenCorrectedThePostedPurchaseInvoice()
+    procedure VerifyConfirmMessageWhenCorrectedThePostedPurchaseInvoiceWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -2120,6 +2122,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     begin
         // [SCENARIO 578414] Verify the expected confirmation message appears upon canceling the posted purchase invoice. 
         Initialize();
+        SetPurchaseRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create a Purchase Order.
         CreatePurchaseOrder(PurchaseHeader, PurchaseLine);

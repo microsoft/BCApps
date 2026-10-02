@@ -2130,7 +2130,6 @@ codeunit 134327 "ERM Purchase Order"
 
         // [THEN] "Qty. to Receive " in Purchase Order Line is "X"
         Assert.AreEqual(Qty, PurchaseLine4."Qty. to Receive", StrSubstNo(QtyToReceiveUpdateErr, Qty));
-
     end;
 
     [Test]
@@ -7994,7 +7993,7 @@ codeunit 134327 "ERM Purchase Order"
     end;
 
     [Test]
-    procedure VerifyQtyReceivedBaseAfterCorrectOnPartialInvoice()
+    procedure VerifyQtyReceivedBaseAfterCorrectOnPartialInvoiceWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -8004,6 +8003,7 @@ codeunit 134327 "ERM Purchase Order"
     begin
         // [SCENARIO 494646] Verify Qty. Received (Base) on Purchase Line after Correct Posted Purchase Invoice on Partial Invoice
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create Purchase Order
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor());
@@ -8914,7 +8914,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler,PostedPurchaseDocumentLinesHandler')]
-    procedure VerifyManuallyCreatedPurchaseCrMemoUpdateExistingPurchaseOrder()
+    procedure VerifyManuallyCreatedPurchaseCrMemoUpdateExistingPurchaseOrderWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -8925,6 +8925,7 @@ codeunit 134327 "ERM Purchase Order"
     begin
         // [SCENARIO 578769] Verify manually created Purchase Credit Memo with get posted document lines to reverse should update the existing Purchase Order.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -9025,7 +9026,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyQuantityToReceiveOnPurchOrderUpdatedWithGLAccountWithCorrectiveCreditMemoWhenRestoreQtyEnabled()
+    procedure PurchOrderQuantitiesRetainedAfterGLAccountCorrectiveCreditMemoWhenRestoreQtyEnabled()
     var
         GLAccount: Record "G/L Account";
         PurchaseHeader: Record "Purchase Header";
@@ -9039,8 +9040,9 @@ codeunit 134327 "ERM Purchase Order"
         GLAccountCode: Code[20];
         Quantity: Decimal;
     begin
-        // [SCENARIO 615866] Verify Qty. to Receive and  Qty. to Invoice are updated for G/L Account lines
+        // [SCENARIO 615866] Verify Qty. to Receive and Qty. to Invoice are retained for G/L Account lines
         // after creating a Corrective Credit Memo from the Posted Purchase Invoice.
+        // [SCENARIO 649626] Temporary scenario for testing behavior per current design.
         Initialize();
         SetRestoreOrderQtyOnReturn(true);
         Quantity := LibraryRandom.RandIntInRange(10, 10);
@@ -9076,8 +9078,8 @@ codeunit 134327 "ERM Purchase Order"
         PurchCreditMemo.GotoRecord(PurchaseHeader2);
         PurchCreditMemo.Post.Invoke();
 
-        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice are updated in Purchase line.
-        VerifyPurchaseOrderAfterPartialPostCorrectiveCreditMemo(PurchaseHeader."No.", Quantity);
+        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice retain the unposted quantity.
+        VerifyPurchaseOrderAfterPartialPostCorrectiveCreditMemo(PurchaseHeader."No.", Quantity / 2);
     end;
 
     [Test]
@@ -9105,7 +9107,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseCrMemoUpdateExistingPurchaseOrderForNonInventoryAndServiceItemWhenRestoreQtyEnabled()
+    procedure PurchOrderQuantitiesRetainedAfterReversingNonInventoryAndServiceItemsWhenRestoreQtyEnabled()
     var
         FromPurchInvLine: Record "Purch. Inv. Line";
         NonInvItem: Record Item;
@@ -9122,7 +9124,8 @@ codeunit 134327 "ERM Purchase Order"
         MissingExCostRevLink: Boolean;
     begin
         // [SCENARIO 620074] When you use "Get Posted Document Lines to Reverse" in the Purchase credit Memo
-        // the Quantity to receive and the Quantity to invoice should be corrected For Non-Inventory and Service Items
+        // the Quantity to Receive and the Quantity to Invoice are retained for Non-Inventory and Service Items.
+        // [SCENARIO 649626] Temporary scenario for testing behavior per current design.
         Initialize();
         SetRestoreOrderQtyOnReturn(true);
 
@@ -9167,8 +9170,8 @@ codeunit 134327 "ERM Purchase Order"
         PurchCreditMemo.GotoRecord(PurchaseHeader2);
         PurchCreditMemo.Post.Invoke();
 
-        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice are updated as Quantity in the Purchase line.
-        VerifyPurchaseOrderQuantityforManualPurchaseCreditMemo(PurchaseHeader."No.", Quantity);
+        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice retain the unposted quantity.
+        VerifyPurchaseOrderQuantityforManualPurchaseCreditMemo(PurchaseHeader."No.", Quantity / 2);
     end;
 
     [Test]
@@ -12357,7 +12360,6 @@ codeunit 134327 "ERM Purchase Order"
         ReturnShipmentLine.SetRange("No.", PurchaseLine."No.");
         ReturnShipmentLine.FindLast();
         ReturnShipmentLine.TestField(Quantity, -1 * PurchaseLine."Return Qty. to Ship");
-
     end;
 
     local procedure SetupMyNotificationsForPostingSetup()
