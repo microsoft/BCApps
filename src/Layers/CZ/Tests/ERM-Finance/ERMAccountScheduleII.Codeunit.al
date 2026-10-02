@@ -3070,6 +3070,32 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure PreviewColumnDefRequiresPreviewRowDef()
+    var
+        ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayoutNames: TestPage "Column Layout Names";
+        ColumnLayoutPage: TestPage "Column Layout";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a column definition without a row definition for preview is blocked with an actionable error.
+        Initialize();
+
+        // [GIVEN] A column definition with no row definition for preview
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        ColumnLayoutNames.OpenEdit();
+        ColumnLayoutNames.GoToKey(ColumnLayoutName.Name);
+        ColumnLayoutPage.Trap();
+        ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
+
+        // [WHEN] The column definition is previewed
+        // [THEN] A specific error asks the user to specify a row definition for preview
+        asserterror ColumnLayoutPage.Preview.Invoke();
+        Assert.ExpectedError(PreviewRowDefMissingErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PreviewColumnDefWithRowDef()
     var
         AccScheduleName: Record "Acc. Schedule Name";
@@ -3095,11 +3121,6 @@
         ColumnLayoutNames.GoToKey(ColumnLayoutName.Name);
         ColumnLayoutPage.Trap();
         ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
-
-        // [WHEN] The column definition is previewed without a row definition for preview
-        // [THEN] A specific error asks the user to specify a row definition for preview
-        asserterror ColumnLayoutPage.Preview.Invoke();
-        Assert.ExpectedError(PreviewRowDefMissingErr);
 
         // [WHEN] A row definition for preview is set
         ColumnLayoutPage.PreviewRowDef.SetValue(AccScheduleName.Name);
@@ -3130,6 +3151,32 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure PreviewRowDefRequiresPreviewColumnDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleNames: TestPage "Account Schedule Names";
+        AccountSchedule: TestPage "Account Schedule";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a row definition without a column definition for preview is blocked with an actionable error.
+        Initialize();
+
+        // [GIVEN] A row definition with no column definition for preview
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        AccScheduleNames.OpenEdit();
+        AccScheduleNames.GoToKey(AccScheduleName.Name);
+        AccountSchedule.Trap();
+        AccScheduleNames.EditAccountSchedule.Invoke();
+
+        // [WHEN] The row definition is previewed
+        // [THEN] A specific error asks the user to specify a column definition for preview
+        asserterror AccountSchedule.Preview.Invoke();
+        Assert.ExpectedError(PreviewColumnDefMissingErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PreviewRowDefWithColumnDef()
     var
         AccScheduleName: Record "Acc. Schedule Name";
@@ -3155,11 +3202,6 @@
         AccScheduleNames.GoToKey(AccScheduleName.Name);
         AccountSchedule.Trap();
         AccScheduleNames.EditAccountSchedule.Invoke();
-
-        // [WHEN] The row definition is previewed without a column definition for preview
-        // [THEN] A specific error asks the user to specify a column definition for preview
-        asserterror AccountSchedule.Preview.Invoke();
-        Assert.ExpectedError(PreviewColumnDefMissingErr);
 
         // [WHEN] A column definition for preview is set
         AccountSchedule.PreviewColumnDef.SetValue(ColumnLayoutName.Name);
