@@ -256,6 +256,9 @@ report 99000789 "Subcontractor - Dispatch List"
             Type = Word;
             LayoutFile = './Manufacturing/Reports/SubcontractorDispatchList.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout(ExcelLayout)
         {
@@ -274,6 +277,14 @@ report 99000789 "Subcontractor - Dispatch List"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Manufacturing/Reports/SubcontractorDispatchListBody.docx';
+            Caption = 'Subcontractor Dispatch List (Word)';
+            Summary = 'Landscape orientated. Shows the routing line for each vendor and work center with operation, dates, remaining and outstanding purchase quantity, and unit of measure, together with the components that are needed.';
+        }
     }
 
     labels

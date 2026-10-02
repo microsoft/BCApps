@@ -108,6 +108,17 @@ report 99000769 "Output Item Label"
             Type = Word;
             LayoutFile = './Manufacturing/Document/OutputItemLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Manufacturing/Document/OutputItemLabelBody.docx';
+            Caption = 'Body-only: Production Output Item Label (Word)';
+            Summary = 'Portrait orientated. Shows the item description, number, and base unit of measure with a linear barcode and a QR code. Use it to print labels for manufacturing output.';
         }
     }
 
