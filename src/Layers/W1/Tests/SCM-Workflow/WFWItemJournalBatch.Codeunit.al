@@ -26,6 +26,9 @@ codeunit 139491 "WFW Item Journal Batch"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryERM: Codeunit "Library - ERM";
+        RestrictionCheckBatchId: RecordId;
+        BatchRestrictionCheckCount: Integer;
+        HandleItemJournalLineRestrictions: Boolean;
         IsInitialized: Boolean;
         BogusUserIdTxt: Label 'CONTOSO';
         DynamicRequestPageParametersItemJournalBatchTxt: Label '<?xml version="1.0" encoding="utf-8" standalone="yes"?><ReportParameters><DataItems><DataItem name="Item Journal Line">VERSION(1) SORTING(Field1,Field51,Field2)</DataItem></DataItems></ReportParameters>', Locked = true;
@@ -56,6 +59,7 @@ codeunit 139491 "WFW Item Journal Batch"
         ApprovalCommentActionMustNotBeVisibleLbl: Label 'Approval Comment action must not be visible.';
         PageContainsWrongNumberOfCommentsLbl: Label 'The %1 page contains the wrong number of comments. Comments must be equal to %2', Comment = '%1 = Page Name, %2 = No. of Comments';
         TestCommentLbl: Label 'Test Comment';
+        RestrictionCheckCountMustBeOneLbl: Label 'The journal batch must be checked exactly once.';
 
     [Test]
     procedure TestEnsureNecessaryTableRelationsAreSetup()
@@ -2292,6 +2296,87 @@ codeunit 139491 "WFW Item Journal Batch"
         VerifyApprovalEntryIsOpen(ApprovalEntry);
     end;
 
+    [Test]
+    procedure TestHandledLineAndItemRestrictionsAllowUnrestrictedBatch()
+    var
+        Item: Record Item;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+        WFWItemJournalBatch: Codeunit "WFW Item Journal Batch";
+    begin
+        // [SCENARIO 630177] An extension can replace line and item checks while the batch remains unrestricted.
+        Initialize();
+
+        // [GIVEN] A journal line and its item are restricted, and the extension handles their validation.
+        CreateItemJournalBatchWithOneJournalLine(ItemJournalBatch, ItemJournalLine);
+        Item.Get(ItemJournalLine."Item No.");
+        RecordRestrictionMgt.RestrictRecordUsage(ItemJournalLine, ImposedRestrictionLbl);
+        RecordRestrictionMgt.RestrictRecordUsage(Item, ImposedRestrictionLbl);
+        WFWItemJournalBatch.ConfigureRestrictionChecks(ItemJournalBatch.RecordId(), true);
+        BindSubscription(WFWItemJournalBatch);
+
+        // [WHEN] Posting restrictions are checked.
+        ItemJournalLine.CheckItemJournalLineRestriction();
+
+        // [THEN] The restricted line and item do not raise an error, and the batch is checked once.
+        Assert.AreEqual(1, WFWItemJournalBatch.GetBatchRestrictionCheckCount(), RestrictionCheckCountMustBeOneLbl);
+    end;
+
+    [Test]
+    procedure TestHandledLineAndItemRestrictionsDoNotBypassRestrictedBatch()
+    var
+        Item: Record Item;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+        WFWItemJournalBatch: Codeunit "WFW Item Journal Batch";
+    begin
+        // [SCENARIO 630177] Handling line and item validation must not bypass the batch approval restriction.
+        Initialize();
+
+        // [GIVEN] The line, item and batch are restricted, and the extension handles line and item validation.
+        CreateItemJournalBatchWithOneJournalLine(ItemJournalBatch, ItemJournalLine);
+        Item.Get(ItemJournalLine."Item No.");
+        RecordRestrictionMgt.RestrictRecordUsage(ItemJournalLine, ImposedRestrictionLbl);
+        RecordRestrictionMgt.RestrictRecordUsage(Item, ImposedRestrictionLbl);
+        RecordRestrictionMgt.RestrictRecordUsage(ItemJournalBatch, ImposedRestrictionLbl);
+        WFWItemJournalBatch.ConfigureRestrictionChecks(ItemJournalBatch.RecordId(), true);
+        BindSubscription(WFWItemJournalBatch);
+
+        // [WHEN] Posting restrictions are checked.
+        asserterror ItemJournalLine.CheckItemJournalLineRestriction();
+
+        // [THEN] The error identifies the restricted batch, rather than the line or item.
+        Assert.ExpectedError(StrSubstNo(RecordRestrictedErr, Format(ItemJournalBatch.RecordId(), 0, 1)));
+    end;
+
+    [Test]
+    procedure TestItemJournalBatchRestrictionCheckedOnce()
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        UnrelatedItem: Record Item;
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+        WFWItemJournalBatch: Codeunit "WFW Item Journal Batch";
+    begin
+        // [SCENARIO 630177] The consolidated subscriber checks the batch once without the legacy subscriber running again.
+        Initialize();
+
+        // [GIVEN] An unrestricted journal and an unrelated restriction to avoid the empty restriction table shortcut.
+        CreateItemJournalBatchWithOneJournalLine(ItemJournalBatch, ItemJournalLine);
+        LibraryInventory.CreateItem(UnrelatedItem);
+        RecordRestrictionMgt.RestrictRecordUsage(UnrelatedItem, ImposedRestrictionLbl);
+        WFWItemJournalBatch.ConfigureRestrictionChecks(ItemJournalBatch.RecordId(), false);
+        BindSubscription(WFWItemJournalBatch);
+
+        // [WHEN] Posting restrictions are checked without replacing the line or item validation.
+        ItemJournalLine.CheckItemJournalLineRestriction();
+
+        // [THEN] The batch check executes exactly once.
+        Assert.AreEqual(1, WFWItemJournalBatch.GetBatchRestrictionCheckCount(), RestrictionCheckCountMustBeOneLbl);
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -3108,6 +3193,37 @@ codeunit 139491 "WFW Item Journal Batch"
             LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
             LibraryERM.SetGeneralPostingSetupSalesAccounts(GeneralPostingSetup);
         end;
+    end;
+
+    procedure ConfigureRestrictionChecks(ItemJournalBatchId: RecordId; HandleLineAndItemRestrictions: Boolean)
+    begin
+        RestrictionCheckBatchId := ItemJournalBatchId;
+        HandleItemJournalLineRestrictions := HandleLineAndItemRestrictions;
+        BatchRestrictionCheckCount := 0;
+    end;
+
+    procedure GetBatchRestrictionCheckCount(): Integer
+    begin
+        exit(BatchRestrictionCheckCount);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Record Restriction Mgt.", 'OnBeforeItemJournalLineCheckItemPostRestrictions', '', false, false)]
+    local procedure HandleLineAndItemRestrictionChecks(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        if not HandleItemJournalLineRestrictions then
+            exit;
+        if ItemJournalBatch.Get(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name") then
+            if ItemJournalBatch.RecordId() = RestrictionCheckBatchId then
+                IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Record Restriction Mgt.", 'OnCheckRecordHasUsageRestrictionsOnBeforeSetFilter', '', false, false)]
+    local procedure CountBatchRestrictionChecks(var RestrictedRecord: Record "Restricted Record"; RecordReference: RecordRef)
+    begin
+        if RecordReference.RecordId() = RestrictionCheckBatchId then
+            BatchRestrictionCheckCount += 1;
     end;
 
     [MessageHandler]
