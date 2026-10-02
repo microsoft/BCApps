@@ -27,11 +27,25 @@ codeunit 4415 "SOA Create Task Impl"
 
     internal procedure OpenCreateTaskPage(AgentUserSecurityID: Guid)
     var
+        TempAgentTaskFile: Record "Agent Task File" temporary;
+        SenderEmail: Text[250];
+        MessageText: Text;
+    begin
+        if not OpenCreateTaskPageForData(AgentUserSecurityID, SenderEmail, MessageText, TempAgentTaskFile) then
+            exit;
+
+        SetAgentUserSecurityID(AgentUserSecurityID);
+        CreateTask(SenderEmail, MessageText, TempAgentTaskFile);
+    end;
+
+    internal procedure OpenCreateTaskPageForData(AgentUserSecurityID: Guid; var SenderEmail: Text[250]; var MessageText: Text; var TempAgentTaskFile: Record "Agent Task File" temporary): Boolean
+    var
         SOACreateTask: Page "SOA Create Task";
     begin
         SOACreateTask.SetAgentUserSecurityID(AgentUserSecurityID);
         SOACreateTask.LookupMode(true);
         SOACreateTask.RunModal();
+        exit(SOACreateTask.GetConfirmedTaskData(SenderEmail, MessageText, TempAgentTaskFile));
     end;
 
     internal procedure GetCurrentUserSalespersonCode(): Code[20]
@@ -79,26 +93,34 @@ codeunit 4415 "SOA Create Task Impl"
         Clear(CachedAvailBalance);
     end;
 
-    internal procedure CreateTask(SenderEmail: Text[250]; MessageText: Text; var TempAgentTaskFile: Record "Agent Task File" temporary)
-    var
-        SOASetup: Record "SOA Setup";
-        SOARetrieveEmails: Codeunit "SOA Retrieve Emails";
-        AgentTaskBuilder: Codeunit "Agent Task Builder";
-        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
-        AgentTaskTitle: Text[150];
+    internal procedure ValidateTaskData(SenderEmail: Text[250]; MessageText: Text)
     begin
         if SenderEmail = '' then
             Error(YouMustSetSenderEmailErr);
 
         if MessageText = '' then
             Error(YouMustSetMessageTextErr);
+    end;
+
+    internal procedure CreateTask(SenderEmail: Text[250]; MessageText: Text; var TempAgentTaskFile: Record "Agent Task File" temporary)
+    var
+        SOASetup: Record "SOA Setup";
+        SOARetrieveEmails: Codeunit "SOA Retrieve Emails";
+        SOATaskMessage: Codeunit "SOA Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        AgentTaskTitle: Text[150];
+    begin
+        ValidateTaskData(SenderEmail, MessageText);
 
         SOASetup.SetRange("User Security ID", GlobalAgentUserSecurityID);
         if not SOASetup.FindFirst() then
             Error(SOASetupNotFoundErr);
 
         AgentTaskTitle := SOARetrieveEmails.GetAgentTaskTitle(SenderEmail);
-        AgentTaskMessageBuilder.Initialize(SenderEmail, MessageText).SetIgnoreAttachment(not SOASetup."Analyze Attachments");
+        AgentTaskMessageBuilder.Initialize(SenderEmail, MessageText)
+            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, SenderEmail, true))
+            .SetIgnoreAttachment(not SOASetup."Analyze Attachments");
         AddAttachmentsToTaskMessage(AgentTaskMessageBuilder, TempAgentTaskFile);
         AgentTaskBuilder.Initialize(SOASetup."User Security ID", AgentTaskTitle).AddTaskMessage(AgentTaskMessageBuilder);
         AgentTaskBuilder.Create();
@@ -200,7 +222,7 @@ codeunit 4415 "SOA Create Task Impl"
     local procedure EnsureSampleSenderDefaults(SenderEmail: Text[250]; SenderName: Text[250])
     begin
         if SampleSenderEmail = '' then
-            SampleSenderEmail := SenderEmail;
+            SampleSenderEmail := LowerCase(SenderEmail);
         if SampleSenderName = '' then
             SampleSenderName := SenderName;
         if SampleSenderCompany = '' then
@@ -209,14 +231,14 @@ codeunit 4415 "SOA Create Task Impl"
 
     local procedure SyncSelectionWithSenderEmail(SenderEmail: Text[250])
     begin
-        if (SampleSenderEmail <> '') and (SampleSenderEmail <> SenderEmail) then
+        if (SampleSenderEmail <> '') and (SampleSenderEmail <> LowerCase(SenderEmail)) then
             ClearSelectedSender();
     end;
 
     local procedure SetSampleSenderFields(Name: Text; Email: Text; Company: Text; Address: Text; PostCode: Text; City: Text; Phone: Text; LanguageCode: Code[10])
     begin
         SampleSenderName := CopyStr(Name, 1, MaxStrLen(SampleSenderName));
-        SampleSenderEmail := CopyStr(Email, 1, MaxStrLen(SampleSenderEmail));
+        SampleSenderEmail := CopyStr(LowerCase(Email), 1, MaxStrLen(SampleSenderEmail));
         SampleSenderCompany := CopyStr(Company, 1, MaxStrLen(SampleSenderCompany));
         SampleSenderAddress := CopyStr(Address, 1, MaxStrLen(SampleSenderAddress));
         SampleSenderCity := CopyStr(DelChr(PostCode + ' ' + City, '<>', ' '), 1, MaxStrLen(SampleSenderCity));

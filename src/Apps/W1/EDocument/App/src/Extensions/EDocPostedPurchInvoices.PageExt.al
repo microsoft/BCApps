@@ -22,9 +22,6 @@ pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invo
         }
     }
 
-    var
-        ShowEDocumentPdfPreview: Boolean;
-
     trigger OnAfterGetCurrRecord()
     var
         EDocumentHelper: Codeunit "E-Document Helper";
@@ -34,4 +31,7 @@ pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invo
         ShowEDocumentPdfPreview := EDocDataStorageEntryNo <> 0;
         CurrPage.EDocumentPdfPreview.Page.SetRecFilterByEDocDataStorageEntryNo(EDocDataStorageEntryNo);
     end;
+
+    var
+        ShowEDocumentPdfPreview: Boolean;
 }

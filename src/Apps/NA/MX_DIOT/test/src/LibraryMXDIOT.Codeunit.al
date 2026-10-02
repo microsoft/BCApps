@@ -66,13 +66,11 @@ codeunit 148042 "Library - MX DIOT"
     var
         DIOTConceptLink: Record "DIOT Concept Link";
     begin
-        with DIOTConceptLink do begin
-            Init();
-            "DIOT Concept No." := ConceptNo;
-            "VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
-            "VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
-            Insert(true);
-        end;
+        DIOTConceptLink.Init();
+        DIOTConceptLink."DIOT Concept No." := ConceptNo;
+        DIOTConceptLink."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
+        DIOTConceptLink."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        DIOTConceptLink.Insert(true);
     end;
 
     procedure MockPurchaseVATEntry(var VATEntry: Record "VAT Entry"; VATPostingSetup: Record "VAT Posting Setup"; PostingDate: Date; VendorNo: Code[20])

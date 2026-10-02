@@ -44,12 +44,13 @@ page 30172 "Shpfy Order Totals FactBox"
                     ShowCaption = false;
                     Visible = not PresentmentVisible;
 
-                    field("Subtotal Amount"; Rec."Subtotal Amount")
+                    field("Subtotal Amount"; ShopifySubtotalAmount)
                     {
                         ApplicationArea = All;
+                        Caption = 'Subtotal Amount';
                         AutoFormatExpression = Rec."Currency Code";
                         AutoFormatType = 1;
-                        ToolTip = 'Specifies the subtotal amount of the order.';
+                        ToolTip = 'Specifies the subtotal amount of the order, excluding any exchange items that are invoiced separately.';
                     }
                     field("Shipping Charges Amount"; Rec."Shipping Charges Amount")
                     {
@@ -58,20 +59,21 @@ page 30172 "Shpfy Order Totals FactBox"
                         AutoFormatType = 1;
                         ToolTip = 'Specifies the shipping charges amount of the order.';
                     }
-                    field("Total Amount"; Rec."Total Amount")
+                    field("Total Amount"; ShopifyTotalAmount)
                     {
                         ApplicationArea = All;
+                        Caption = 'Total Amount';
                         AutoFormatExpression = Rec."Currency Code";
                         AutoFormatType = 1;
-                        ToolTip = 'Specifies the total amount of the order.';
+                        ToolTip = 'Specifies the total amount of the order, excluding any exchange items that are invoiced separately.';
                     }
-                    field(VATAmount; Rec."VAT Amount")
+                    field(VATAmount; ShopifyVATAmount)
                     {
                         ApplicationArea = All;
                         AutoFormatExpression = Rec."Currency Code";
                         AutoFormatType = 1;
                         CaptionClass = DocumentTotals.GetTotalVATCaption(Rec."Currency Code");
-                        ToolTip = 'Specifies the sum of tax amounts on all lines in the document.';
+                        ToolTip = 'Specifies the sum of tax amounts on all lines in the document, excluding any exchange items that are invoiced separately.';
                     }
                     field(RoundingAmount; Rec."Payment Rounding Amount")
                     {
@@ -87,12 +89,13 @@ page 30172 "Shpfy Order Totals FactBox"
                     ShowCaption = false;
                     Visible = PresentmentVisible;
 
-                    field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
+                    field("Presentment Subtotal Amount"; PresentmentSubtotalAmount)
                     {
                         ApplicationArea = All;
+                        Caption = 'Presentment Subtotal Amount';
                         AutoFormatExpression = Rec."Presentment Currency Code";
                         AutoFormatType = 1;
-                        ToolTip = 'Specifies the presentment subtotal amount of the order.';
+                        ToolTip = 'Specifies the presentment subtotal amount of the order, excluding any exchange items that are invoiced separately.';
                     }
                     field("Presentment Shipping Charges Amount"; Rec."Pres. Shipping Charges Amount")
                     {
@@ -101,20 +104,21 @@ page 30172 "Shpfy Order Totals FactBox"
                         AutoFormatType = 1;
                         ToolTip = 'Specifies the presentment shipping charges amount of the order.';
                     }
-                    field("Presentment Total Amount"; Rec."Presentment Total Amount")
+                    field("Presentment Total Amount"; PresentmentTotalAmount)
                     {
                         ApplicationArea = All;
+                        Caption = 'Presentment Total Amount';
                         AutoFormatExpression = Rec."Presentment Currency Code";
                         AutoFormatType = 1;
-                        ToolTip = 'Specifies the presentment total amount of the order.';
+                        ToolTip = 'Specifies the presentment total amount of the order, excluding any exchange items that are invoiced separately.';
                     }
-                    field("Presentment VAT Amount"; Rec."Presentment VAT Amount")
+                    field("Presentment VAT Amount"; PresentmentVATAmount)
                     {
                         ApplicationArea = All;
                         AutoFormatExpression = Rec."Presentment Currency Code";
                         AutoFormatType = 1;
                         CaptionClass = DocumentTotals.GetTotalVATCaption(Rec."Presentment Currency Code");
-                        ToolTip = 'Specifies the sum of presentment tax amounts on all lines in the document.';
+                        ToolTip = 'Specifies the sum of presentment tax amounts on all lines in the document, excluding any exchange items that are invoiced separately.';
                     }
                     field("Presentment Payment Rounding Amount"; Rec."Pres. Payment Rounding Amount")
                     {
@@ -249,6 +253,7 @@ page 30172 "Shpfy Order Totals FactBox"
     trigger OnAfterGetRecord()
     begin
         PresentmentVisible := Rec.IsPresentmentCurrencyOrder();
+        CalcShopifyTotalsExcludingExchange();
         UpdateSalesDocumentInfo();
     end;
 
@@ -267,6 +272,37 @@ page 30172 "Shpfy Order Totals FactBox"
             SalesDocumentType::"Posted Sales Invoice":
                 UpdatePostedSalesInvoiceTotals();
         end;
+    end;
+
+    local procedure CalcShopifyTotalsExcludingExchange()
+    var
+        OrderLine: Record "Shpfy Order Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ExchangeSubtotal: Decimal;
+        ExchangePresentmentSubtotal: Decimal;
+        ExchangeTax: Decimal;
+        ExchangePresentmentTax: Decimal;
+    begin
+        // Exclude exchange items from the shown Shopify totals; they are invoiced separately, not on the BC sales doc.
+        OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
+        OrderLine.SetRange("Is Exchange Item", true);
+        if OrderLine.FindSet() then
+            repeat
+                ExchangeSubtotal += (OrderLine."Unit Price" * OrderLine.Quantity) - OrderLine."Discount Amount";
+                ExchangePresentmentSubtotal += (OrderLine."Presentment Unit Price" * OrderLine.Quantity) - OrderLine."Presentment Discount Amount";
+
+                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
+                OrderTaxLine.CalcSums(Amount, "Presentment Amount");
+                ExchangeTax += OrderTaxLine.Amount;
+                ExchangePresentmentTax += OrderTaxLine."Presentment Amount";
+            until OrderLine.Next() = 0;
+
+        ShopifySubtotalAmount := Rec."Subtotal Amount" - ExchangeSubtotal;
+        ShopifyVATAmount := Rec."VAT Amount" - ExchangeTax;
+        ShopifyTotalAmount := Rec."Total Amount" - (ExchangeSubtotal + ExchangeTax);
+        PresentmentSubtotalAmount := Rec."Presentment Subtotal Amount" - ExchangePresentmentSubtotal;
+        PresentmentVATAmount := Rec."Presentment VAT Amount" - ExchangePresentmentTax;
+        PresentmentTotalAmount := Rec."Presentment Total Amount" - (ExchangePresentmentSubtotal + ExchangePresentmentTax);
     end;
 
     local procedure ResolveSalesDocument(var DocumentType: Enum "Shpfy Document Type"; var ResolvedDocumentNo: Code[20]): Boolean
@@ -402,4 +438,10 @@ page 30172 "Shpfy Order Totals FactBox"
         VATAmount: Decimal;
         TotalAmountExclVAT: Decimal;
         TotalAmountInclVAT: Decimal;
+        ShopifySubtotalAmount: Decimal;
+        ShopifyTotalAmount: Decimal;
+        ShopifyVATAmount: Decimal;
+        PresentmentSubtotalAmount: Decimal;
+        PresentmentTotalAmount: Decimal;
+        PresentmentVATAmount: Decimal;
 }

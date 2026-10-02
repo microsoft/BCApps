@@ -33,9 +33,11 @@ report 99001020 "Carry Out Action Msg. - Plan."
                 if not "Accept Action Message" then
                     CurrReport.Skip();
 
-                Commit();
+                if not SimulationMode then
+                    Commit();
                 RunCarryOutActionsByRefOrderType("Requisition Line");
-                Commit();
+                if not SimulationMode then
+                    Commit();
 
                 OnAfterRequisitionLineOnAfterGetRecord("Requisition Line", ProdOrderChoice.AsInteger());
             end;
@@ -62,10 +64,13 @@ report 99001020 "Carry Out Action Msg. - Plan."
                         PrintOrders := (PurchOrderChoice = PurchOrderChoice::"Make Purch. Orders & Print");
 
                         Clear(ReqWkshMakeOrders);
+                        ReqWkshMakeOrders.SetSimulationMode(SimulationMode);
                         ReqWkshMakeOrders.SetCreatedDocumentBuffer(TempDocumentEntry);
                         ReqWkshMakeOrders.Set(PurchOrderHeader, EndOrderDate, PrintOrders);
                         if not NoPlanningResiliency then
                             ReqWkshMakeOrders.SetPlanningResiliency();
+                        if SimulationMode then
+                            ReqWkshMakeOrders.SetSuppressCommit(true);
                         ReqWkshMakeOrders.CarryOutBatchAction("Requisition Line");
                         CounterFailed := CounterFailed + ReqWkshMakeOrders.GetFailedCounter();
                     end;
@@ -322,6 +327,7 @@ report 99001020 "Carry Out Action Msg. - Plan."
         EndOrderDate: Date;
         PurchOrderCopyToReqWksh: Boolean;
         TransOrderCopyToReqWksh: Boolean;
+        SimulationMode: Boolean;
 
 #pragma warning disable AA0074
         Text000: Label 'There are no planning lines to make orders for.';
@@ -335,6 +341,8 @@ report 99001020 "Carry Out Action Msg. - Plan."
         Text013: Label 'Not all Requisition Lines were carried out.\A total of %1 lines were not carried out because of errors encountered.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+        WrongProdCopyDestErr: Label 'Worksheet %1/%2 cannot be used to copy a production supply proposal. Choose a non-recurring worksheet of type Planning instead.', Comment = '%1 = worksheet template name, %2 = worksheet batch name';
+        ProdWkshNotSpecifiedErr: Label 'You must specify a planning worksheet template and batch to copy the production proposal to.';
 
     protected var
         ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order";
@@ -355,6 +363,16 @@ report 99001020 "Carry Out Action Msg. - Plan."
                 CounterFailed := CounterFailed + 1;
                 OnCarryOutActionsOnAfterUpdateCounterFailed("Requisition Line", WkshTempl, WkshName);
             end;
+    end;
+
+    internal procedure SetSimulationMode(NewSimulationMode: Boolean)
+    begin
+        SimulationMode := NewSimulationMode;
+    end;
+
+    internal procedure SetPlanningResiliency(NewPlanningResiliency: Boolean)
+    begin
+        NoPlanningResiliency := NewPlanningResiliency;
     end;
 
     local procedure RunCarryOutActionsByRefOrderType(var RequisitionLine: Record "Requisition Line")
@@ -415,6 +433,9 @@ report 99001020 "Carry Out Action Msg. - Plan."
         ProdWkshName := MfgUserTempl."Prod. Wksh. Name";
         TransWkshTemp := MfgUserTempl."Transfer Req. Wksh. Template";
         TransWkshName := MfgUserTempl."Transfer Wksh. Name";
+
+        if MfgUserTempl."Create Production Order" = MfgUserTempl."Create Production Order"::"Copy to Req. Wksh" then
+            CheckProdCopyDestination(ProdWkshTempl, ProdWkshName);
 
         case MfgUserTempl."Make Orders" of
             MfgUserTempl."Make Orders"::"The Active Line":
@@ -488,6 +509,31 @@ report 99001020 "Carry Out Action Msg. - Plan."
 
         if (ToReqWkshTempl = '') or (ToReqWkshName = '') then
             Error(Text009);
+
+        if ProdOrderChoice = ProdOrderChoice::"Copy to Req. Wksh" then
+            CheckProdCopyDestination(ProdWkshTempl, ProdWkshName);
+    end;
+
+    internal procedure CheckProdCopyDestination(TemplateName: Code[10]; BatchName: Code[10])
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        if (TemplateName = '') or (BatchName = '') then
+            Error(ProdWkshNotSpecifiedErr);
+
+        if not ReqWkshTemplate.Get(TemplateName) then
+            Error(WrongProdCopyDestErr, TemplateName, BatchName);
+
+        if ReqWkshTemplate.Type <> ReqWkshTemplate.Type::Planning then
+            Error(WrongProdCopyDestErr, TemplateName, BatchName);
+
+        if not RequisitionWkshName.Get(TemplateName, BatchName) then
+            Error(WrongProdCopyDestErr, TemplateName, BatchName);
+
+        RequisitionWkshName.CalcFields(Recurring);
+        if RequisitionWkshName.Recurring then
+            Error(WrongProdCopyDestErr, TemplateName, BatchName);
     end;
 
     local procedure CheckPreconditions()

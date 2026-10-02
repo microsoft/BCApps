@@ -485,6 +485,12 @@ codeunit 134483 "ERM Change Global Dimensions"
         Initialize();
         // [GIVEN] There is another active session
         ActiveSessionNo := MockActiveSessions(1);
+        // [GIVEN] The current session is a web client shown in the session list.
+        ActiveSession.SetRange("Server Instance ID", ServiceInstanceId());
+        ActiveSession.SetRange("Session ID", SessionId());
+        ActiveSession.FindFirst();
+        ActiveSession."Client Type" := ActiveSession."Client Type"::"Web Client";
+        ActiveSession.Modify();
         // [GIVEN] Open page "Change Global Dimensions"
         ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(ExperienceTierSetup.FieldCaption(Essential));
         OpenPageForParalllelProcessing(ChangeGlobalDimensionsPage);
@@ -4445,4 +4451,3 @@ codeunit 134483 "ERM Change Global Dimensions"
             end;
     end;
 }
-

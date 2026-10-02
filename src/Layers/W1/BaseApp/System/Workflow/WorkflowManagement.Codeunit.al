@@ -106,7 +106,7 @@ codeunit 1501 "Workflow Management"
         WorkflowStepInstanceLoop.SetRange("Function Name", FunctionName);
         WorkflowStepInstanceLoop.SetFilter("Previous Workflow Step ID", '<>%1', 0); // "Previous Workflow Step ID" is used as primary key in `WorkflowStepInstance2.Get` inside the loop below
         OnFindWorkflowStepInstanceWithOptionalWorkflowStartOnAfterSetWorkflowStepInstanceLoopFi1ters(RecRef, WorkflowStepInstanceLoop, FunctionName, StartWorkflow);
-        WorkflowStepInstanceLoop.SetCurrentKey("Sequence No.");
+        WorkflowStepInstanceLoop.SetCurrentKey(Type, Status, "Function Name", "Sequence No.");
 
         WorkflowStepInstance2.SetLoadFields(Status, "Record ID");
         WorkflowStepInstance2.ReadIsolation := WorkflowStepInstance2.ReadIsolation::ReadUncommitted;
