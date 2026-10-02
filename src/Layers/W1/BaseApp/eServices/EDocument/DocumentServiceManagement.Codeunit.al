@@ -98,6 +98,8 @@ codeunit 9510 "Document Service Management"
         SharepointUnexpectedErr: Label 'OneDrive returned an unexpected value. Try again later.';
         SharepointItemIdMsg: Label 'OneDrive item: %1', Comment = '%1 = Item id of file', Locked = true;
         SharepointUnableToGetDownloadUrlMsg: Label 'No download url returned by sharepoint.', Locked = true;
+        SharepointSendFailedTelemetryMsg: Label 'The HTTP request to Sharepoint failed to send.', Locked = true;
+        SharepointRequestFailedErr: Label 'The request to OneDrive failed. Details: %1', Comment = '%1 = The error text from the failed HTTP request';
 
     [Scope('OnPrem')]
     procedure TestConnection()
@@ -384,14 +386,11 @@ codeunit 9510 "Document Service Management"
         UrlHelper: Codeunit "Url Helper";
         AzureAdMgt: Codeunit "Azure AD Mgt.";
         UriBuilder: Codeunit "Uri Builder";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        ResponseHeaders: DotNet NameValueCollection;
-        StatusCode: DotNet HttpStatusCode;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         DriveJsonObject: JsonObject;
         Location: Text;
         ResponseContent: Text;
-        ResponseErrorMessage: Text;
-        ResponseErrorDetails: Text;
         Endpoint: Text;
         Token: SecretText;
     begin
@@ -403,18 +402,17 @@ codeunit 9510 "Document Service Management"
             Error(AccessTokenEmptyErr);
         end;
 
-        HttpWebRequestMgt.Initialize(Endpoint);
-        HttpWebRequestMgt.DisableUI();
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.AddHeader('Authorization', SecretStrSubstNo('Bearer %1', Token));
+        InitializeWebRequest(Endpoint, 'GET', 'application/json', HttpRequestMessage, Token);
+        SendWebRequest(HttpRequestMessage, HttpResponseMessage);
+        HttpResponseMessage.Content.ReadAs(ResponseContent);
 
-        if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseContent, ResponseErrorMessage, ResponseErrorDetails, StatusCode, ResponseHeaders) then begin
-            if StatusCode in [401, 404] then // Seems to mostly occur when the backend is still provisioning
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            if HttpResponseMessage.HttpStatusCode() in [401, 404] then // Seems to mostly occur when the backend is still provisioning
                 Error(CantFindMySiteTryLoginErr);
 
-            CheckLicenseError(StatusCode, ResponseErrorDetails);
+            CheckLicenseError(HttpResponseMessage.HttpStatusCode(), ResponseContent);
 
-            Session.LogMessage('0000FJY', StrSubstNo(DefaultLocationErrCodeErr, StatusCode.ToString()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DocumentServiceCategoryLbl);
+            Session.LogMessage('0000FJY', StrSubstNo(DefaultLocationErrCodeErr, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DocumentServiceCategoryLbl);
             Error(UnknownLocationErr);
         end;
 
@@ -551,20 +549,19 @@ codeunit 9510 "Document Service Management"
     [TryFunction]
     local procedure GetDriveFolderInfo(FolderUrl: Text; var FolderJson: JsonObject)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         ResponseBody: Text;
-        ErrorMessage: Text;
-        ErrorDetails: Text;
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
     begin
-        InitializeGraphWebRequest(FolderUrl, HttpWebRequestMgt, 'application/json', 'GET');
+        InitializeGraphWebRequest(FolderUrl, HttpRequestMessage, 'application/json', 'GET');
+        SendWebRequest(HttpRequestMessage, HttpResponseMessage);
+        HttpResponseMessage.Content.ReadAs(ResponseBody);
 
-        if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
-            Session.LogMessage('0000FML', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            Session.LogMessage('0000FML', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
 
-            CheckLicenseError(HttpStatusCode, ErrorDetails);
-            Error(SharepointUnexpectedStatusCodeErr, HttpStatusCode);
+            CheckLicenseError(HttpResponseMessage.HttpStatusCode(), ResponseBody);
+            Error(SharepointUnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
         end;
 
         if not FolderJson.ReadFrom(ResponseBody) then
@@ -574,26 +571,32 @@ codeunit 9510 "Document Service Management"
     [TryFunction]
     local procedure GetFileContent(var DocumentSharing: Record "Document Sharing")
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         TempBlob: Codeunit "Temp Blob";
-        ErrorMessage: Text;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         ErrorDetails: Text;
         FileUrl: Text;
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
         InStream: InStream;
+        ResponseInStream: InStream;
         OutStream: OutStream;
+        TempBlobOutStream: OutStream;
     begin
         ResolveItemId(DocumentSharing);
         GetFileDownloadUrl(DocumentSharing, FileUrl);
-        InitializeOneDriveWebRequest(FileUrl, HttpWebRequestMgt, '');
+        InitializeOneDriveWebRequest(FileUrl, HttpRequestMessage, '');
+        SendWebRequest(HttpRequestMessage, HttpResponseMessage);
 
-        if not HttpWebRequestMgt.SendRequestAndReadResponse(TempBlob, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
-            Session.LogMessage('0000IN8', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            HttpResponseMessage.Content.ReadAs(ErrorDetails);
+            Session.LogMessage('0000IN8', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
 
-            CheckLicenseError(HttpStatusCode, ErrorDetails);
-            Error(SharepointUnexpectedStatusCodeErr, HttpStatusCode);
+            CheckLicenseError(HttpResponseMessage.HttpStatusCode(), ErrorDetails);
+            Error(SharepointUnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
         end;
+
+        HttpResponseMessage.Content.ReadAs(ResponseInStream);
+        TempBlob.CreateOutStream(TempBlobOutStream);
+        CopyStream(TempBlobOutStream, ResponseInStream);
 
         if TempBlob.Length() = 0 then
             Session.LogMessage('0000IN9', SharepointEmptyFileTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt)
@@ -608,26 +611,27 @@ codeunit 9510 "Document Service Management"
     [TryFunction]
     local procedure GetFileDownloadUrl(var DocumentSharing: Record "Document Sharing"; var FileUrl: Text)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        ErrorMessage: Text;
-        ErrorDetails: Text;
-        MetadataUrl: Text;
-        ResponseBody: Text;
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpHeaders: HttpHeaders;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         JsonObject: JsonObject;
         JsonToken: JsonToken;
+        MetadataUrl: Text;
+        ResponseBody: Text;
     begin
         MetadataUrl := GetGraphFileByIdUrl(DocumentSharing."Item Id");
         // Add Prefer header to get the new downloadurl for the onedrive content while hitting the GetFileContent function
-        InitializeGraphWebRequest(MetadataUrl, HttpWebRequestMgt, 'application/json', 'GET');
-        HttpWebRequestMgt.AddHeader('Prefer', 'pacToken=N');
+        InitializeGraphWebRequest(MetadataUrl, HttpRequestMessage, 'application/json', 'GET');
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Prefer', 'pacToken=N');
+        SendWebRequest(HttpRequestMessage, HttpResponseMessage);
+        HttpResponseMessage.Content.ReadAs(ResponseBody);
 
-        if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
-            Session.LogMessage('0000IN8', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            Session.LogMessage('0000IN8', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
 
-            CheckLicenseError(HttpStatusCode, ErrorDetails);
-            Error(SharepointUnexpectedStatusCodeErr, HttpStatusCode);
+            CheckLicenseError(HttpResponseMessage.HttpStatusCode(), ResponseBody);
+            Error(SharepointUnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
         end;
 
         if not JsonObject.ReadFrom(ResponseBody) then
@@ -644,50 +648,48 @@ codeunit 9510 "Document Service Management"
     [TryFunction]
     local procedure DeleteDriveItem(DocumentSharing: Record "Document Sharing")
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        ResponseBody: Text;
-        ErrorMessage: Text;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         ErrorDetails: Text;
         FileUrl: Text;
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
     begin
         ResolveItemId(DocumentSharing);
         FileUrl := GetGraphFileByIdUrl(DocumentSharing."Item Id");
-        InitializeGraphWebRequest(FileUrl, HttpWebRequestMgt, 'application/json', 'DELETE');
+        InitializeGraphWebRequest(FileUrl, HttpRequestMessage, 'application/json', 'DELETE');
+        SendWebRequest(HttpRequestMessage, HttpResponseMessage);
 
-        if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
-            Session.LogMessage('0000J18', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            HttpResponseMessage.Content.ReadAs(ErrorDetails);
+            Session.LogMessage('0000J18', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
 
-            CheckLicenseError(HttpStatusCode, ErrorDetails);
+            CheckLicenseError(HttpResponseMessage.HttpStatusCode(), ErrorDetails);
         end;
     end;
 
     local procedure ResolveItemId(var DocumentSharing: Record "Document Sharing")
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         JsonObject: JsonObject;
         JsonToken: JsonToken;
         JsonValue: JsonValue;
         ResponseBody: Text;
-        ErrorMessage: Text;
-        ErrorDetails: Text;
         FileUrl: Text;
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
     begin
         // Item Id has already been retrieved.
         if DocumentSharing."Item Id" <> '' then
             exit;
 
         FileUrl := GetGraphItemIdUrl(DocumentSharing);
-        InitializeGraphWebRequest(FileUrl, HttpWebRequestMgt, 'application/json', 'GET');
+        InitializeGraphWebRequest(FileUrl, HttpRequestMessage, 'application/json', 'GET');
+        SendWebRequest(HttpRequestMessage, HttpResponseMessage);
+        HttpResponseMessage.Content.ReadAs(ResponseBody);
 
-        if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
-            Session.LogMessage('0000J19', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            Session.LogMessage('0000J19', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
 
-            CheckLicenseError(HttpStatusCode, ErrorDetails);
-            Error(SharepointUnexpectedStatusCodeErr, HttpStatusCode);
+            CheckLicenseError(HttpResponseMessage.HttpStatusCode(), ResponseBody);
+            Error(SharepointUnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
         end;
 
         if not JsonObject.ReadFrom(ResponseBody) then
@@ -705,40 +707,60 @@ codeunit 9510 "Document Service Management"
         Session.LogMessage('0000JB5', StrSubstNo(SharepointItemIdMsg, DocumentSharing."Item Id"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
     end;
 
-    local procedure InitializeGraphWebRequest(FileUrl: Text; var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; ReturnType: Text; RequestMethod: Text)
+    local procedure InitializeGraphWebRequest(FileUrl: Text; var HttpRequestMessage: HttpRequestMessage; ReturnType: Text; RequestMethod: Text)
     var
         AzureADMgt: Codeunit "Azure AD Mgt.";
         Token: SecretText;
     begin
         Token := AzureADMgt.GetAccessTokenAsSecretText(GetGraphDomain(), AzureADMgt.GetO365ResourceName(), false);
-        InitializeWebRequest(FileUrl, RequestMethod, ReturnType, HttpWebRequestMgt, Token);
+        InitializeWebRequest(FileUrl, RequestMethod, ReturnType, HttpRequestMessage, Token);
     end;
 
-    local procedure InitializeOneDriveWebRequest(FileUrl: Text; var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; ReturnType: Text)
+    local procedure InitializeOneDriveWebRequest(FileUrl: Text; var HttpRequestMessage: HttpRequestMessage; ReturnType: Text)
     var
         AzureADMgt: Codeunit "Azure AD Mgt.";
         Token: SecretText;
     begin
         Token := AzureADMgt.GetOnBehalfAccessTokenAsSecretText(GetResourceUrl(FileUrl));
-        InitializeWebRequest(FileUrl, 'GET', ReturnType, HttpWebRequestMgt, Token);
+        InitializeWebRequest(FileUrl, 'GET', ReturnType, HttpRequestMessage, Token);
     end;
 
+    [NonDebuggable]
     local procedure InitializeWebRequest(
             Url: Text;
             Method: Text;
             ReturnType: Text;
-            var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+            var HttpRequestMessage: HttpRequestMessage;
             Token: SecretText)
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        HttpHeaders: HttpHeaders;
     begin
         if Token.IsEmpty() then begin
             Session.LogMessage('0000FMK', EmptyTokenTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
             LicenseError();
         end;
-        HttpWebRequestMgt.Initialize(Url);
-        HttpWebRequestMgt.DisableUI();
-        HttpWebRequestMgt.SetMethod(Method);
-        HttpWebRequestMgt.SetReturnType(ReturnType);
-        HttpWebRequestMgt.AddHeader('Authorization', SecretStrSubstNo('Bearer %1', Token));
+
+        if not EnvironmentInformation.IsSaaS() then
+            OnOverrideRequestUrl(Url);
+
+        HttpRequestMessage.Method(Method);
+        HttpRequestMessage.SetRequestUri(Url);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        if ReturnType <> '' then
+            HttpHeaders.Add('Accept', ReturnType);
+        HttpHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', Token));
+    end;
+
+    local procedure SendWebRequest(var HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage)
+    var
+        HttpClient: HttpClient;
+    begin
+        HttpClient.Timeout(60000);
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            Session.LogMessage('', SharepointSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
+            Error(SharepointRequestFailedErr, GetLastErrorText());
+        end;
     end;
 
     local procedure LicenseError()
@@ -1466,6 +1488,14 @@ codeunit 9510 "Document Service Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnGetSharePointRedirectURL(var RedirectURL: Text)
+    begin
+    end;
+
+    /// <summary>
+    /// Allows tests to redirect OneDrive and Microsoft Graph requests to a mock service. Raised only in non-SaaS environments.
+    /// </summary>
+    [InternalEvent(false)]
+    local procedure OnOverrideRequestUrl(var Url: Text)
     begin
     end;
 }

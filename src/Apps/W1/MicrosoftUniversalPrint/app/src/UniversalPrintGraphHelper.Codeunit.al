@@ -4,10 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Device.UniversalPrint;
 
-using System;
 using System.Azure.Identity;
 using System.Device;
-using System.Integration;
 using System.Utilities;
 
 /// <summary>
@@ -78,12 +76,12 @@ codeunit 2752 "Universal Print Graph Helper"
     var
         ResponseContent: Text;
         ErrorMessage: Text;
-        StatusCode: DotNet HttpStatusCode;
+        StatusCode: Integer;
     begin
         if this.InvokeRequest(this.GetGraphPrintSharesUrl(), 'GET', '', ResponseContent, ErrorMessage, StatusCode) then
             exit(true);
 
-        if not IsNull(StatusCode) then
+        if StatusCode <> 0 then
             exit(not (StatusCode in [401, 403, 404]));
 
         exit(false);
@@ -161,21 +159,29 @@ codeunit 2752 "Universal Print Graph Helper"
 
     procedure UploadDataRequest(PrintShareId: Text; UploadUrl: Text; TempBlob: Codeunit "Temp Blob"; From: BigInteger; "To": BigInteger; TotalSize: BigInteger; JobId: Text; DocumentId: Text; var ErrorMessage: Text): Boolean
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpContent: HttpContent;
+        HttpContentHeaders: HttpHeaders;
+        HttpRequestMessage: HttpRequestMessage;
+        BlobInStream: InStream;
+        StatusCode: Integer;
         ContentRange: Text;
         ResponseContent: Text;
-        StatusCode: DotNet HttpStatusCode;
     begin
-        if not this.AddHeaders(UploadUrl, 'PUT', HttpWebRequestMgt) then
+        if not this.InitializeRequest(UploadUrl, 'PUT', HttpRequestMessage) then
             exit(false);
 
         // E.g. value for 'Content-Range' is 'bytes 0-72796/4533322'
+        // Content-Length is computed by the platform from the request body.
         ContentRange := 'bytes ' + Format(From) + '-' + Format("To") + '/' + Format(TotalSize);
-        HttpWebRequestMgt.AddHeader('Content-Range', ContentRange);
-        HttpWebRequestMgt.SetContentLength(TotalSize);
-        HttpWebRequestMgt.AddBodyBlob(TempBlob);
+        TempBlob.CreateInStream(BlobInStream);
+        HttpContent.WriteFrom(BlobInStream);
+        HttpContent.GetHeaders(HttpContentHeaders);
+        HttpContentHeaders.Remove('Content-Type');
+        HttpContentHeaders.Add('Content-Type', 'application/octet-stream');
+        HttpContentHeaders.Add('Content-Range', ContentRange);
+        HttpRequestMessage.Content(HttpContent);
 
-        exit(this.InvokeRequestAndReadResponse(HttpWebRequestMgt, ResponseContent, ErrorMessage, StatusCode));
+        exit(this.InvokeRequestAndReadResponse(HttpRequestMessage, ResponseContent, ErrorMessage, StatusCode));
     end;
 
     procedure StartPrintJobRequest(PrintShareId: Text; JobId: Text; var JobStateDescription: Text; var ErrorMessage: Text): Boolean
@@ -220,51 +226,67 @@ codeunit 2752 "Universal Print Graph Helper"
 
     local procedure InvokeRequest(Url: Text; Verb: Text; Body: Text; var ResponseContent: Text; var ErrorMessage: Text): Boolean
     var
-        StatusCode: DotNet HttpStatusCode;
+        StatusCode: Integer;
     begin
         exit(InvokeRequest(Url, Verb, Body, ResponseContent, ErrorMessage, StatusCode));
     end;
 
-    local procedure InvokeRequest(Url: Text; Verb: Text; Body: Text; var ResponseContent: Text; var ErrorMessage: Text; var StatusCode: DotNet HttpStatusCode): Boolean
+    local procedure InvokeRequest(Url: Text; Verb: Text; Body: Text; var ResponseContent: Text; var ErrorMessage: Text; var StatusCode: Integer): Boolean
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpContent: HttpContent;
+        HttpContentHeaders: HttpHeaders;
+        HttpRequestMessage: HttpRequestMessage;
     begin
-        if not AddHeaders(Url, Verb, HttpWebRequestMgt) then
+        if not this.InitializeRequest(Url, Verb, HttpRequestMessage) then
             exit(false);
 
-        HttpWebRequestMgt.SetContentType('application/json');
-        if Verb <> 'GET' then
-            HttpWebRequestMgt.AddBodyAsText(Body);
+        if Verb <> 'GET' then begin
+            HttpContent.WriteFrom(Body);
+            HttpContent.GetHeaders(HttpContentHeaders);
+            HttpContentHeaders.Remove('Content-Type');
+            HttpContentHeaders.Add('Content-Type', 'application/json');
+            HttpRequestMessage.Content(HttpContent);
+        end;
 
-        exit(this.InvokeRequestAndReadResponse(HttpWebRequestMgt, ResponseContent, ErrorMessage, StatusCode));
+        exit(this.InvokeRequestAndReadResponse(HttpRequestMessage, ResponseContent, ErrorMessage, StatusCode));
     end;
 
-    local procedure InvokeRequestAndReadResponse(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; var ResponseContent: Text; var ErrorMessage: Text; var StatusCode: DotNet HttpStatusCode): Boolean
+    local procedure InvokeRequestAndReadResponse(var HttpRequestMessage: HttpRequestMessage; var ResponseContent: Text; var ErrorMessage: Text; var StatusCode: Integer): Boolean
     var
-        ResponseHeaders: DotNet NameValueCollection;
-        ResponseErrorMessage: Text;
-        ResponseErrorDetails: Text;
+        HttpClient: HttpClient;
+        HttpResponseMessage: HttpResponseMessage;
         RequestId: Text;
+        ResponseErrorDetails: Text;
+        ResponseErrorMessage: Text;
         TraceId: Text;
     begin
-        if HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseContent, ResponseErrorMessage, ResponseErrorDetails, StatusCode, ResponseHeaders) then
-            exit(true);
+        Clear(StatusCode);
+        Clear(ResponseContent);
+        RequestId := this.NotFoundTelemetryTxt;
+        TraceId := this.NotFoundTelemetryTxt;
 
-        if not this.TryGetRequestIdfromHeaders(ResponseHeaders, RequestId) then
-            RequestId := this.NotFoundTelemetryTxt;
+        if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            StatusCode := HttpResponseMessage.HttpStatusCode();
+            if HttpResponseMessage.IsSuccessStatusCode() then begin
+                HttpResponseMessage.Content.ReadAs(ResponseContent);
+                exit(true);
+            end;
 
-        if not this.TryGetTraceIdfromHeaders(ResponseHeaders, TraceId) then
-            TraceId := this.NotFoundTelemetryTxt;
+            HttpResponseMessage.Content.ReadAs(ResponseErrorDetails);
+            ResponseErrorMessage := StrSubstNo(this.HttpErrorStatusErr, StatusCode, HttpResponseMessage.ReasonPhrase());
+            RequestId := this.GetResponseHeaderValue(HttpResponseMessage, 'Request-Id');
+            TraceId := this.GetResponseHeaderValue(HttpResponseMessage, 'X-MSEdge-Ref');
+        end else
+            ResponseErrorMessage := GetLastErrorText();
 
         Session.LogMessage('0000EG1', StrSubstNo(this.InvokeWebRequestFailedTelemetryTxt, StatusCode, ResponseErrorMessage, RequestId, TraceId),
         Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.UniversalPrintTelemetryCategoryTxt);
 
         Clear(ErrorMessage);
-        if not IsNull(StatusCode) then
-            if StatusCode in [401, 403, 404] then begin
-                ErrorMessage := this.NoAccessTxt;
-                exit(false);
-            end;
+        if StatusCode in [401, 403, 404] then begin
+            ErrorMessage := this.NoAccessTxt;
+            exit(false);
+        end;
 
         if ErrorMessage = '' then
             ErrorMessage := this.GetMessageFromErrorJSON(ResponseErrorDetails);
@@ -275,16 +297,16 @@ codeunit 2752 "Universal Print Graph Helper"
         exit(false);
     end;
 
-    [TryFunction]
-    local procedure TryGetRequestIdfromHeaders(ResponseHeaders: DotNet NameValueCollection; var RequestId: Text)
+    local procedure GetResponseHeaderValue(var HttpResponseMessage: HttpResponseMessage; HeaderName: Text): Text
+    var
+        HeaderValues: List of [Text];
     begin
-        RequestId := ResponseHeaders.Get('Request-Id');
-    end;
+        if HttpResponseMessage.Headers().Contains(HeaderName) then
+            if HttpResponseMessage.Headers().GetValues(HeaderName, HeaderValues) then
+                if HeaderValues.Count() > 0 then
+                    exit(HeaderValues.Get(1));
 
-    [TryFunction]
-    local procedure TryGetTraceIdfromHeaders(ResponseHeaders: DotNet NameValueCollection; var RequestId: Text)
-    begin
-        RequestId := ResponseHeaders.Get('X-MSEdge-Ref');
+        exit(this.NotFoundTelemetryTxt);
     end;
 
     internal procedure GetPaperSizeFromUniversalPrintMediaSize(textValue: Text): Enum "Printer Paper Kind"
@@ -340,17 +362,19 @@ codeunit 2752 "Universal Print Graph Helper"
             exit(MessageValue);
     end;
 
-    local procedure AddHeaders(Url: Text; Verb: Text; var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."): Boolean
+    [NonDebuggable]
+    local procedure InitializeRequest(Url: Text; Verb: Text; var HttpRequestMessage: HttpRequestMessage): Boolean
     var
+        HttpHeaders: HttpHeaders;
         AccessToken: SecretText;
     begin
         if not this.TryGetAccessToken(AccessToken, false) then
             exit(false);
-        HttpWebRequestMgt.Initialize(Url);
-        HttpWebRequestMgt.DisableUI();
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.SetMethod(Verb);
-        HttpWebRequestMgt.AddHeader('Authorization', SecretStrSubstNo('Bearer %1', AccessToken));
+        HttpRequestMessage.Method(Verb);
+        HttpRequestMessage.SetRequestUri(Url);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Accept', 'application/json');
+        HttpHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', AccessToken));
         exit(true);
     end;
 
@@ -438,6 +462,7 @@ codeunit 2752 "Universal Print Graph Helper"
         NoTokenTelemetryTxt: Label 'Access token could not be retrieved.', Locked = true;
         InvokeWebRequestFailedTelemetryTxt: Label 'Invoking web request has failed. Status %1, Message %2, RequestId %3, TraceId %4', Locked = true;
         NotFoundTelemetryTxt: Label 'Not Found.', Locked = true;
+        HttpErrorStatusErr: Label 'The remote service returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 500; %2 = HTTP reason phrase, for example Internal Server Error';
         UniversalPrintPortalUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2153618', Locked = true;
         JPNHagakiSizeTxt: Label 'JPN Hagaki', Locked = true;
         NorthAmericaExecutiveSizeTxt: Label 'North America Executive', Locked = true;
