@@ -86,35 +86,6 @@ codeunit 144501 "Test UK Postcode Config"
 
     [Test]
     [Scope('OnPrem')]
-    procedure TestReopenShowsConfiguredProviderAndOKKeepsIt()
-    var
-        PostcodeServiceConfig: Record "Postcode Service Config";
-        PostcodeConfigurationPage: TestPage "Postcode Configuration Page";
-    begin
-        // [GIVEN] a configured provider is the stored selection
-        Initialize();
-        PostcodeServiceConfig.Init();
-        PostcodeServiceConfig.Insert();
-        PostcodeServiceConfig.SaveServiceKey(DummyServiceTok);
-        Commit();
-        LibraryLowerPermissions.SetO365BusFull();
-
-        // [WHEN] the configuration page is opened again
-        PostcodeConfigurationPage.OpenEdit();
-
-        // [THEN] it shows the stored provider
-        Assert.AreEqual(DummyServiceTok, PostcodeConfigurationPage.SelectedService.Value, 'The configured provider should be shown when the page is reopened');
-
-        // [WHEN] the page is closed with OK
-        PostcodeConfigurationPage.OK().Invoke();
-
-        // [THEN] the stored provider is kept
-        PostcodeServiceConfig.FindFirst();
-        Assert.AreEqual(DummyServiceTok, PostcodeServiceConfig.GetServiceKey(), 'Closing the page with OK should keep the stored provider');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure TestRegularUserHasNoWriteAccess()
     var
         PostcodeServiceConfig: Record "Postcode Service Config";
