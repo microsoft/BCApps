@@ -47,7 +47,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookDeleteSubscriptionErrorTxt: Label 'Error Expecting Webhook to be deleted for Account %1', Locked = true;
         WebhookProcessedErr: Label 'The webhook notification should have been processed successfully.';
         WebhookNotProcessedErr: Label 'The webhook notification for a missing invoice should not have been processed.';
-        UnexpectedInvoiceErr: Label 'is unexpected', Locked = true;
+        UnexpectedInvoiceErr: Label 'Invoice number', Locked = true;
 
     local procedure Initialize();
     var
@@ -1051,10 +1051,13 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
         OutStream.WRITETEXT(NotificationJson);
         WebhookNotification.INSERT();
-        // Run the handler directly so processing happens in the current session and is observable by the test.
-        // Return the Codeunit.Run result so the caller asserts the expected outcome: an error (e.g. a notification for a
-        // missing invoice) is trapped - as it would be in the error-trapped background session used in production -
-        // instead of surfacing to the test.
+        // Commit the inserted notification before processing it, mirroring the production webhook flow where the
+        // notification is persisted first. The Boolean-return (error-trapping) form of Codeunit.Run starts an isolated
+        // transaction and is rejected while an uncommitted write transaction is still open.
+        COMMIT();
+        // Run the handler in the current session and return the Codeunit.Run result so the caller asserts the outcome:
+        // an error (e.g. a notification for a missing invoice) is trapped - as it would be in the background session used
+        // in production - instead of surfacing to the test.
         EXIT(CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", WebhookNotification));
     end;
 
