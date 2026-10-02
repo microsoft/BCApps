@@ -393,6 +393,22 @@ codeunit 139210 "JSON Buffer Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure BookingItemRejectsInvalidDate()
+    var
+        TempBookingItem: Record "Booking Item" temporary;
+        OutStream: OutStream;
+    begin
+        // [SCENARIO] Booking Item rejects malformed dateTime values
+        LibraryLowerPermissions.SetO365Basic();
+        TempBookingItem."Start Date".CreateOutStream(OutStream, TEXTENCODING::UTF8);
+        OutStream.WriteText('{"dateTime":"not a datetime"}');
+
+        asserterror TempBookingItem.GetStartDate();
+        Assert.ExpectedError('can''t be evaluated into type');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure RejectJsonNetOnlyInput()
     begin
         // [SCENARIO] Native JSON parsing rejects Json.NET extensions that are not standard JSON

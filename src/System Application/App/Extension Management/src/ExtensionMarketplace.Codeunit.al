@@ -323,7 +323,7 @@ codeunit 2501 "Extension Marketplace"
     begin
         HttpWebRequest.KeepAlive := true;
         HttpWebRequest.AllowAutoRedirect := true;
-        HttpWebRequest.UseDefaultCredentials := true;
+        HttpWebRequest.UseDefaultCredentials := false;
         HttpWebRequest.Timeout := 60000;
         CookieContainer := CookieContainer.CookieContainer();
         HttpWebRequest.CookieContainer := CookieContainer;

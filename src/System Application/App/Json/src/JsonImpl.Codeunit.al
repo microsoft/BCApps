@@ -193,7 +193,7 @@ codeunit 5461 "Json Impl."
             exit(true);
 
         if not TryGetJsonBoolean(JsonValue, Value) then
-            if not Evaluate(Value, JsonValue.AsText(), 2) then;
+            Evaluate(Value, JsonValue.AsText(), 2);
         exit(true);
     end;
 
@@ -211,7 +211,7 @@ codeunit 5461 "Json Impl."
             exit(true);
 
         if not TryGetJsonDecimal(JsonValue, Value) then
-            if not Evaluate(Value, JsonValue.AsText()) then;
+            Evaluate(Value, JsonValue.AsText());
         exit(true);
     end;
 
@@ -229,7 +229,7 @@ codeunit 5461 "Json Impl."
             exit(true);
 
         if not TryGetJsonInteger(JsonValue, Value) then
-            if not Evaluate(Value, JsonValue.AsText()) then;
+            Evaluate(Value, JsonValue.AsText());
         exit(true);
     end;
 
@@ -246,7 +246,7 @@ codeunit 5461 "Json Impl."
         if JsonValue.IsNull() or JsonValue.IsUndefined() then
             exit(true);
 
-        if not TryGetJsonGuid(JsonValue, Value) then;
+        Evaluate(Value, JsonValue.AsText());
         exit(true);
     end;
 
@@ -426,12 +426,6 @@ codeunit 5461 "Json Impl."
     local procedure TryGetJsonBoolean(JsonValue: JsonValue; var BooleanValue: Boolean)
     begin
         BooleanValue := JsonValue.AsBoolean();
-    end;
-
-    [TryFunction]
-    local procedure TryGetJsonGuid(JsonValue: JsonValue; var GuidValue: Guid)
-    begin
-        Evaluate(GuidValue, JsonValue.AsText());
     end;
 
     [TryFunction]

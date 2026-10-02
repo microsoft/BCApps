@@ -206,7 +206,7 @@ table 6707 "Booking Item"
             JsonObject.ReadFrom(DateBlobString);
             if JsonObject.Get('dateTime', JsonToken) and JsonToken.IsValue() then
                 if not JsonToken.AsValue().IsNull() and not JsonToken.AsValue().IsUndefined() then
-                    if not Evaluate(ParsedDateTime, JsonToken.AsValue().AsText()) then;
+                    Evaluate(ParsedDateTime, JsonToken.AsValue().AsText());
         end;
     end;
 

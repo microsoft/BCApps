@@ -780,7 +780,7 @@ codeunit 139910 "Json Test"
     end;
 
     [Test]
-    procedure TestTypedGettersHandleMismatchedScalars()
+    procedure TestTypedGettersRejectMismatchedScalars()
     var
         Json: Codeunit "Json";
         BooleanValue: Boolean;
@@ -789,20 +789,18 @@ codeunit 139910 "Json Test"
         IntegerValue: Integer;
     begin
         Json.InitializeObject('{"boolean":"not boolean","decimal":"not decimal","guid":"not guid","integer":"not integer"}');
-        BooleanValue := true;
-        DecimalValue := 1;
-        GuidValue := CreateGuid();
-        IntegerValue := 1;
 
-        Assert.IsTrue(Json.GetBoolPropertyValueFromJObjectByName('boolean', BooleanValue), 'Boolean property was not found.');
-        Assert.IsTrue(Json.GetDecimalPropertyValueFromJObjectByName('decimal', DecimalValue), 'Decimal property was not found.');
-        Assert.IsTrue(Json.GetGuidPropertyValueFromJObjectByName('guid', GuidValue), 'Guid property was not found.');
-        Assert.IsTrue(Json.GetIntegerPropertyValueFromJObjectByName('integer', IntegerValue), 'Integer property was not found.');
+        asserterror Json.GetBoolPropertyValueFromJObjectByName('boolean', BooleanValue);
+        Assert.ExpectedError('can''t be evaluated into type');
 
-        Assert.IsFalse(BooleanValue, 'Mismatched Boolean value was not cleared.');
-        Assert.AreEqual(0, DecimalValue, 'Mismatched Decimal value was not cleared.');
-        Assert.IsTrue(IsNullGuid(GuidValue), 'Mismatched Guid value was not cleared.');
-        Assert.AreEqual(0, IntegerValue, 'Mismatched Integer value was not cleared.');
+        asserterror Json.GetDecimalPropertyValueFromJObjectByName('decimal', DecimalValue);
+        Assert.ExpectedError('can''t be evaluated into type');
+
+        asserterror Json.GetGuidPropertyValueFromJObjectByName('guid', GuidValue);
+        Assert.ExpectedError('can''t be evaluated into type');
+
+        asserterror Json.GetIntegerPropertyValueFromJObjectByName('integer', IntegerValue);
+        Assert.ExpectedError('can''t be evaluated into type');
     end;
 
     [Test]
