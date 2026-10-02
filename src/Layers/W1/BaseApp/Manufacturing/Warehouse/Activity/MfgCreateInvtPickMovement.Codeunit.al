@@ -14,9 +14,6 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
 {
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-#if not CLEAN27
-        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
-#endif
         ProdAsmJobWhseHandlingTelemetryCategoryTok: Label 'Prod/Asm/Project Whse. Handling', Locked = true;
         ProdAsmJobWhseHandlingTelemetryTok: Label 'Prod/Asm/Project Whse. Handling in used for warehouse pick.', Locked = true;
 
@@ -108,9 +105,6 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
 
                 IsHandled := false;
                 OnBeforeCreatePickOrMoveLineFromProductionLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderComponent);
-#if not CLEAN27
-                CreateInventoryPickMovement.RunOnBeforeCreatePickOrMoveLineFromProductionLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderComponent);
-#endif
                 if not IsHandled and CanPickProdOrderComponent(ProdOrderComponent, ReservedFromStock) then
                     if not
                        NewWarehouseActivityLine.ActivityExists(
@@ -139,9 +133,6 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
                         else
                             RemQtyToPickBase := ProdOrderComponent."Expected Qty. (Base)" - ProdOrderComponent."Qty. Picked (Base)";
                         OnBeforeNewWhseActivLineInsertFromComp(NewWarehouseActivityLine, ProdOrderComponent, WarehouseActivityHeader, RemQtyToPickBase);
-#if not CLEAN27
-                        CreateInventoryPickMovement.RunOnBeforeNewWhseActivLineInsertFromComp(NewWarehouseActivityLine, ProdOrderComponent, WarehouseActivityHeader, RemQtyToPickBase);
-#endif
                         ProdOrderComponent.CalcFields(ProdOrderComponent."Reserved Quantity");
                         sender.CreatePickOrMoveLine(
                             NewWarehouseActivityLine, RemQtyToPickBase, RemQtyToPickBase, ProdOrderComponent."Reserved Quantity" <> 0);
@@ -175,9 +166,6 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
         end;
 
         OnBeforeFindProdOrderComp(ProdOrderComponent, ProductionOrder, WarehouseActivityHeader);
-#if not CLEAN27
-        CreateInventoryPickMovement.RunOnBeforeFindProdOrderComp(ProdOrderComponent, ProductionOrder, WarehouseActivityHeader);
-#endif
         exit(ProdOrderComponent.Find('-'));
     end;
 
