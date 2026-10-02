@@ -1035,8 +1035,10 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
         OutStream.WRITETEXT(NotificationJson);
         WebhookNotification.INSERT();
-        // Run the handler directly: no subscription exists, so the insert event exits early, and background processing isn't observable by the test.
-        CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", WebhookNotification);
+        // Run the handler directly so processing happens in the current session and is observable by the test.
+        // Capture the Codeunit.Run result so an error (e.g. a notification for a missing invoice) is trapped the same way
+        // it would be in the error-trapped background session used in production, instead of surfacing it to the test.
+        IF CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", WebhookNotification) THEN;
     end;
 
     local procedure VerifyRemainingAmount(var TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary; RemainingAmount: Decimal);
