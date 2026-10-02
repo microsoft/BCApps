@@ -138,6 +138,64 @@ codeunit 139189 "CRM Job Queue Entry Inactivity"
 
     [Test]
     [Scope('OnPrem')]
+    procedure T112_ScheduledJobIsRescheduledToRunSoonOnRecordChange()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        CRMIntegrationManagement: Codeunit "CRM Integration Management";
+        SystemTaskId: Guid;
+        CurrDT: DateTime;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO] A synch job that is scheduled to run later is rescheduled to run soon when a record of the mapped table is changed.
+        Initialize();
+        // [GIVEN] Job 'ITEM' is "Ready", its scheduled task and "Earliest Start Date/Time" are in one hour
+        PrepareJobQueueEntryWithScheduledTask(JobQueueEntry, Database::Item, CurrentDateTime() + 3600000, CurrentDateTime() + 3600000);
+        SystemTaskId := JobQueueEntry."System Task ID";
+
+        // [WHEN] Synch jobs are rescheduled because an Item is changed
+        CurrDT := CurrentDateTime();
+        CRMIntegrationManagement.RescheduleJobQueueEntriesForTable(Database::Item);
+
+        // [THEN] The same task of job 'ITEM' is rescheduled to run in about 30 seconds
+        JobQueueEntry.Find();
+        JobQueueEntry.TestField(Status, JobQueueEntry.Status::Ready);
+        JobQueueEntry.TestField("System Task ID", SystemTaskId);
+        Assert.IsTrue(JobQueueEntry."Earliest Start Date/Time" >= CurrDT + 29000, 'Start time should be shifted to about 30 seconds from now');
+        Assert.IsTrue(JobQueueEntry."Earliest Start Date/Time" < CurrDT + 3600000, 'Start time should be moved closer');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure T113_JobAlreadyRescheduledToRunSoonIsNotRescheduledAgainOnRecordChange()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        CRMIntegrationManagement: Codeunit "CRM Integration Management";
+        SystemTaskId: Guid;
+        EarliestStartDateTime: DateTime;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 576352] A synch job that was already rescheduled to run soon is not rescheduled again on every record change,
+        // even if "Not Before" of the scheduled task still shows the original start time.
+        Initialize();
+        // [GIVEN] Job 'ITEM' is "Ready", "Earliest Start Date/Time" is in 20 seconds, while "Not Before" of its scheduled task is in one hour
+        PrepareJobQueueEntryWithScheduledTask(JobQueueEntry, Database::Item, CurrentDateTime() + 20000, CurrentDateTime() + 3600000);
+        SystemTaskId := JobQueueEntry."System Task ID";
+        EarliestStartDateTime := JobQueueEntry."Earliest Start Date/Time";
+
+        // [WHEN] Synch jobs are rescheduled several times because Items are changed
+        CRMIntegrationManagement.RescheduleJobQueueEntriesForTable(Database::Item);
+        CRMIntegrationManagement.RescheduleJobQueueEntriesForTable(Database::Item);
+        CRMIntegrationManagement.RescheduleJobQueueEntriesForTable(Database::Item);
+
+        // [THEN] Job 'ITEM' is not rescheduled
+        JobQueueEntry.Find();
+        JobQueueEntry.TestField(Status, JobQueueEntry.Status::Ready);
+        JobQueueEntry.TestField("System Task ID", SystemTaskId);
+        JobQueueEntry.TestField("Earliest Start Date/Time", EarliestStartDateTime);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure T121_InactiveCRMStatsJobBecomesActiveOnCompanyOpen()
     var
         CRMSynchStatus: Record "CRM Synch Status";
@@ -266,6 +324,26 @@ codeunit 139189 "CRM Job Queue Entry Inactivity"
         JobQueueEntry."Inactivity Timeout Period" := InactivityPeriod;
         JobQueueEntry."System Task ID" := CreateGuid(); // As if TASKSCHEDULER defined it
         JobQueueEntry.Modify();
+    end;
+
+    local procedure PrepareJobQueueEntryWithScheduledTask(var JobQueueEntry: Record "Job Queue Entry"; TableNo: Integer; EarliestStartDateTime: DateTime; TaskNotBefore: DateTime)
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        IntegrationTableMapping.SetRange("Table ID", TableNo);
+        IntegrationTableMapping.FindFirst();
+        JobQueueEntry.SetRange("Record ID to Process", IntegrationTableMapping.RecordId);
+        JobQueueEntry.FindFirst();
+        JobQueueEntry."Parameter String" := Format(TableNo);
+        JobQueueEntry.Modify();
+        JobQueueEntry.Find();
+        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
+        JobQueueEntry."Earliest Start Date/Time" := EarliestStartDateTime;
+        JobQueueEntry."System Task ID" :=
+            TaskScheduler.CreateTask(
+                Codeunit::"Job Queue Dispatcher", Codeunit::"Job Queue Error Handler", false, CompanyName(), TaskNotBefore, JobQueueEntry.RecordId);
+        JobQueueEntry.Modify();
+        JobQueueEntry.Find();
     end;
 
     local procedure MockRecordNeedsSync(RecID: RecordID)

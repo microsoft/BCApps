@@ -3776,15 +3776,10 @@ codeunit 5330 "CRM Integration Management"
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
         CDSConnectionSetup: Record "CDS Connection Setup";
-        JobQueueEntry: Record "Job Queue Entry";
-        JobQueueEntryUpdate: Record "Job Queue Entry";
-        ScheduledTask: Record "Scheduled Task";
         IntegrationTableMapping: Record "Integration Table Mapping";
         DataUpgradeMgt: Codeunit "Data Upgrade Mgt.";
-        NewEarliestStartDateTime: DateTime;
         Enabled: Boolean;
         IsCRMIntRec: Boolean;
-        RescheduleOffsetInMs: Integer;
     begin
         if CDSConnectionSetup.Get() then
             Enabled := CDSConnectionSetup."Is Enabled";
@@ -3824,6 +3819,17 @@ codeunit 5330 "CRM Integration Management"
         if not UserCanRescheduleJob() then
             exit;
 
+        RescheduleJobQueueEntriesForTable(TableNo);
+    end;
+
+    internal procedure RescheduleJobQueueEntriesForTable(TableNo: Integer)
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueEntryUpdate: Record "Job Queue Entry";
+        ScheduledTask: Record "Scheduled Task";
+        NewEarliestStartDateTime: DateTime;
+        RescheduleOffsetInMs: Integer;
+    begin
         JobQueueEntryUpdate.ReadIsolation := IsolationLevel::UpdLock;
         JobQueueEntry.Reset();
         JobQueueEntry.ReadIsolation := IsolationLevel::ReadUncommitted;
