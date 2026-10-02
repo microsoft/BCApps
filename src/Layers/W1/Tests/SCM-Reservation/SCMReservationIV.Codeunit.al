@@ -4289,25 +4289,23 @@ codeunit 137271 "SCM Reservation IV"
     local procedure MakeSupplyOrdersActiveLineWithCopyToReqWksh(ItemNo: Code[20])
     var
         ManufacturingUserTemplate: Record "Manufacturing User Template";
-        ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         RequisitionLine: Record "Requisition Line";
+        UserID: Code[50];
     begin
-        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"Req.");
-        ReqWkshTemplate.SetRange(Recurring, false);
-        ReqWkshTemplate.FindFirst();
-        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::"Req.");
 
-        if not ManufacturingUserTemplate.Get(UserId()) then
+        UserID := CopyStr(UserId(), 1, MaxStrLen(UserID));
+        if not ManufacturingUserTemplate.Get(UserID) then
             LibraryPlanning.CreateManufUserTemplate(
-                ManufacturingUserTemplate, UserId(),
+                ManufacturingUserTemplate, UserID,
                 ManufacturingUserTemplate."Make Orders"::"The Active Line",
                 ManufacturingUserTemplate."Create Purchase Order"::"Copy to Req. Wksh",
                 ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
                 ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
         ManufacturingUserTemplate.Validate("Make Orders", ManufacturingUserTemplate."Make Orders"::"The Active Line");
         ManufacturingUserTemplate.Validate("Create Purchase Order", ManufacturingUserTemplate."Create Purchase Order"::"Copy to Req. Wksh");
-        ManufacturingUserTemplate.Validate("Purchase Req. Wksh. Template", ReqWkshTemplate.Name);
+        ManufacturingUserTemplate.Validate("Purchase Req. Wksh. Template", RequisitionWkshName."Worksheet Template Name");
         ManufacturingUserTemplate.Validate("Purchase Wksh. Name", RequisitionWkshName.Name);
         ManufacturingUserTemplate.Modify(true);
 
@@ -4577,4 +4575,3 @@ codeunit 137271 "SCM Reservation IV"
         Response := Action::LookupOK;
     end;
 }
-
