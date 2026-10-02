@@ -29,7 +29,6 @@ permissionset 3352 "E-Documents MX User"
         page "Interfactura Connection Setup" = X,
         page "MX PAC Web Service Details" = X,
         page "MX PAC WS Detail Edit Dlg" = X,
-        page "Payment Occurrences" = X,
         page "MX CFDI Cancel Reason Dlg" = X,
         report "EDoc CFDI Sales Invoice MX" = X,
         report "EDoc CFDI Sales Credit Memo MX" = X,
