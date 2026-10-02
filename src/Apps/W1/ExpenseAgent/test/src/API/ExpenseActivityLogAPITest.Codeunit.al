@@ -483,6 +483,7 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::PolicyEvaluated);
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
         ExpenseActivityLogEntry.FindFirst();
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, ReportURL + '/' + ServiceNameTok, 200);
         VerifyPolicyCategoryCode(ResponseText, ExpenseCategory.Code);
         ResponseText := LowerCase(ResponseText);
@@ -496,6 +497,7 @@ codeunit 148343 "Expense Activity Log API Test"
         // [WHEN] Submitter and approver participation history is requested.
         HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(SubmitterExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, HistoryURL + '?$filter=historyActorRole eq ''Submitter''', 200);
 
         // [THEN] The real submitter sees the agent snapshot in the complete timeline.
@@ -504,6 +506,7 @@ codeunit 148343 "Expense Activity Log API Test"
         // [WHEN] The assigned approver has not acted on the report.
         HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(ApproverExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, HistoryURL + '?$filter=historyActorRole eq ''Approver''', 200);
 
         // [THEN] The agent event must not grant approver participation.
