@@ -199,15 +199,45 @@ codeunit 149927 "Subc. Get Receipt Lines"
     [Test]
     [HandlerFunctions('MessageHandler')]
     procedure CancelSeparateSubcontractingInvoiceReversesCapacityCost()
+    var
+        PostedCreditMemoNo: Code[20];
     begin
-        VerifySeparateSubcontractingInvoiceReversal(true, false);
+        VerifySeparateSubcontractingInvoiceReversal(true, false, PostedCreditMemoNo);
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CorrectiveCreditMemoForSeparateSubcontractingInvoiceReversesCapacityCost()
+    var
+        PostedCreditMemoNo: Code[20];
     begin
-        VerifySeparateSubcontractingInvoiceReversal(false, false);
+        VerifySeparateSubcontractingInvoiceReversal(false, false, PostedCreditMemoNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure CopyPostedCorrectiveCreditMemoForSeparateSubcontractingInvoiceCopiesLine()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        PostedCreditMemoNo: Code[20];
+    begin
+        // [SCENARIO 649862] A posted corrective credit memo for a separate subcontracting invoice can be copied
+        VerifySeparateSubcontractingInvoiceReversal(false, false, PostedCreditMemoNo);
+
+        // [WHEN] The posted credit memo is copied to a purchase invoice
+        PurchaseHeader.Init();
+        PurchaseHeader.Validate("Document Type", PurchaseHeader."Document Type"::Invoice);
+        PurchaseHeader.Insert(true);
+        CopyDocumentMgt.SetProperties(true, false, false, false, false, false, false);
+        CopyDocumentMgt.CopyPurchDoc("Purchase Document Type From"::"Posted Credit Memo", PostedCreditMemoNo, PurchaseHeader);
+
+        // [THEN] The item line is copied without attempting to load an Item Ledger Entry for the capacity-only value entry
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        Assert.RecordIsNotEmpty(PurchaseLine);
     end;
 
     [Test]
@@ -653,7 +683,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
             'The invoice lot tracking specification must preserve the exact output application.');
     end;
 
-    local procedure VerifySeparateSubcontractingInvoiceReversal(CancelInvoice: Boolean; TrackOutput: Boolean)
+    local procedure VerifySeparateSubcontractingInvoiceReversal(CancelInvoice: Boolean; TrackOutput: Boolean; var PostedCreditMemoNo: Code[20])
     var
         CancelledDocument: Record "Cancelled Document";
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
@@ -677,7 +707,6 @@ codeunit 149927 "Subc. Get Receipt Lines"
         CapacityLedgerEntryCount: Integer;
         CapacityLedgerEntryNo: Integer;
         OutputItemLedgerEntryCount: Integer;
-        PostedCreditMemoNo: Code[20];
         PostedInvoiceNo: Code[20];
         ExpectedCost: Decimal;
         Quantity: Decimal;
