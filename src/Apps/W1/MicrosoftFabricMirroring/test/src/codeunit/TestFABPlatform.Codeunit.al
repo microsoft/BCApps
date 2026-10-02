@@ -1,5 +1,6 @@
 namespace Microsoft.FabricExport;
 
+using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Fabric;
 using System.Reflection;
@@ -26,6 +27,7 @@ codeunit 140012 "Test FAB Platform"
     var
         TenantFabricSetup: Record "Tenant Fabric Setup";
         TenantFabricTables: Record "Tenant Fabric Tables";
+        TenantFabricTableFields: Record "Tenant Fabric Table Fields";
         TenantFabricCompanies: Record "Tenant Fabric Companies";
         FabricTableClaim: Record "Fabric Table Claim";
         TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
@@ -33,6 +35,7 @@ codeunit 140012 "Test FAB Platform"
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
         TenantFabricTables.DeleteAll(false);
+        TenantFabricTableFields.DeleteAll(false);
         TenantFabricSetup.DeleteAll(false);
         TenantFabricCompanies.DeleteAll(false);
         FabricTableClaim.DeleteAll(false);
@@ -97,9 +100,10 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] 500 table rows already exist
+        // IDs beyond any real table are not validated, so existing virtual or external tables cannot reject the insert.
         for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
             TenantFabricTables.Init();
-            TenantFabricTables."Table ID" := i;
+            TenantFabricTables."Table ID" := 900000000 + i;
             TenantFabricTables.Insert(false);
         end;
         //[GIVEN] Lower permissions
@@ -1059,6 +1063,315 @@ codeunit 140012 "Test FAB Platform"
         Assert.IsFalse(
             FabricPlatformMgt.IsClaimedByOthers(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A'),
             'Expected no other claimant once the Manual claim is gone.');
+    end;
+
+    [Test]
+    procedure AddTableFailsForTenantApplicationStorage()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Table 2000000239 "Tenant Application Storage" cannot be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The table is added
+        asserterror FabricPlatformMgt.AddTable(2000000239);
+
+        //[THEN] The table is rejected as internal and sensitive
+        VerifyTableRejected(2000000239, 'internal or sensitive data');
+    end;
+
+    [Test]
+    procedure AddTableFailsForTokenCache()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Table 2000000197 "Token Cache" cannot be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The table is added
+        asserterror FabricPlatformMgt.AddTable(2000000197);
+
+        //[THEN] The table is rejected as internal and sensitive
+        VerifyTableRejected(2000000197, 'internal or sensitive data');
+    end;
+
+    [Test]
+    procedure AddTableFailsForAIConsumptionLogEntry()
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+    begin
+        //[SCENARIO] Table 2000000147 "AI Consumption Log Entry" cannot be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A selection of the table; the table may not exist on this platform version, so AddTable would report it as invalid first
+        TenantFabricTables.Init();
+        TenantFabricTables."Table ID" := 2000000147;
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The table is inserted
+        asserterror TenantFabricTables.Insert(true);
+
+        //[THEN] The table is rejected as internal and sensitive
+        VerifyTableRejected(2000000147, 'internal or sensitive data');
+    end;
+
+    [Test]
+    procedure AddTableFailsForAgentData()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Table 2000000258 "Agent Data" cannot be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The table is added
+        asserterror FabricPlatformMgt.AddTable(2000000258);
+
+        //[THEN] The table is rejected as internal and sensitive
+        VerifyTableRejected(2000000258, 'internal or sensitive data');
+    end;
+
+    [Test]
+    procedure AddTableFailsForVirtualTable()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        TableId: Integer;
+    begin
+        //[SCENARIO] A table whose type is not Normal cannot be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A table with a table type other than Normal
+        TableId := FindVirtualTableId();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The table is added
+        asserterror FabricPlatformMgt.AddTable(TableId);
+
+        //[THEN] The table is rejected as external, linked, or virtual
+        VerifyTableRejected(TableId, 'external, linked, or virtual');
+    end;
+
+    [Test]
+    procedure AddTableFailsForExternalDataTable()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        TableId: Integer;
+    begin
+        //[SCENARIO] A table with an external data source cannot be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A table whose data is external
+        TableId := FindExternalDataTableId();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The table is added
+        asserterror FabricPlatformMgt.AddTable(TableId);
+
+        //[THEN] The table is rejected as external, linked, or virtual
+        VerifyTableRejected(TableId, 'external, linked, or virtual');
+    end;
+
+    [Test]
+    procedure InsertFieldSucceedsForSupportedTypes()
+    var
+        Customer: Record Customer;
+        FieldIds: List of [Integer];
+    begin
+        //[SCENARIO] Fields of every supported type can be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Fields of type Code, Text, Decimal, Option/Enum and Date
+        FieldIds.Add(Customer.FieldNo("No."));
+        FieldIds.Add(Customer.FieldNo(Name));
+        FieldIds.Add(Customer.FieldNo("Credit Limit (LCY)"));
+        FieldIds.Add(Customer.FieldNo(Blocked));
+        FieldIds.Add(Customer.FieldNo("Last Date Modified"));
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The fields are inserted
+        InsertFields(Database::Customer, FieldIds);
+
+        //[THEN] Every field exists in the platform table
+        VerifyFieldsExist(Database::Customer, FieldIds);
+    end;
+
+    [Test]
+    procedure InsertFieldFailsForUnsupportedType()
+    var
+        Customer: Record Customer;
+        TenantFabricTableFields: Record "Tenant Fabric Table Fields";
+    begin
+        //[SCENARIO] A field of an unsupported type cannot be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A field of type Media
+        TenantFabricTableFields.Init();
+        TenantFabricTableFields."Table ID" := Database::Customer;
+        TenantFabricTableFields."Field ID" := Customer.FieldNo(Image);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The field is inserted
+        asserterror TenantFabricTableFields.Insert(true);
+
+        //[THEN] The field is rejected because of its type
+        VerifyFieldInsertRejected(Database::Customer, Customer.FieldNo(Image), 'is not supported');
+    end;
+
+    [Test]
+    procedure InsertFieldFailsForFlowField()
+    var
+        Customer: Record Customer;
+        TenantFabricTableFields: Record "Tenant Fabric Table Fields";
+    begin
+        //[SCENARIO] A FlowField cannot be selected for export
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A FlowField of a supported type
+        TenantFabricTableFields.Init();
+        TenantFabricTableFields."Table ID" := Database::Customer;
+        TenantFabricTableFields."Field ID" := Customer.FieldNo("Balance (LCY)");
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The field is inserted
+        asserterror TenantFabricTableFields.Insert(true);
+
+        //[THEN] The field is rejected because it is a FlowField
+        VerifyFieldInsertRejected(Database::Customer, Customer.FieldNo("Balance (LCY)"), 'FlowField or FlowFilter');
+    end;
+
+    [Test]
+    procedure ModifyFieldFailsForUnsupportedType()
+    var
+        Customer: Record Customer;
+        TenantFabricTableFields: Record "Tenant Fabric Table Fields";
+    begin
+        //[SCENARIO] An existing selection of an unsupported field cannot be modified
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A selected field of type Media that bypassed validation by being renamed from a supported field
+        TenantFabricTableFields.Init();
+        TenantFabricTableFields."Table ID" := Database::Customer;
+        TenantFabricTableFields."Field ID" := Customer.FieldNo(Name);
+        TenantFabricTableFields."Field Name" := 'Image';
+        TenantFabricTableFields.Insert(false);
+        TenantFabricTableFields.Rename(Database::Customer, Customer.FieldNo(Image));
+        // Commit so the failed Modify does not roll back the GIVEN row; Initialize clears it in the next test.
+        Commit();
+        //[GIVEN] A new field name
+        TenantFabricTableFields."Field Name" := 'Renamed';
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The field is modified
+        asserterror TenantFabricTableFields.Modify(true);
+
+        //[THEN] The modification is rejected and the stored name is unchanged
+        VerifyFieldModifyRejected(Database::Customer, Customer.FieldNo(Image), 'Image', 'is not supported');
+    end;
+
+    local procedure FindVirtualTableId(): Integer
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        TableMetadata.SetFilter(TableType, '<>%1', TableMetadata.TableType::Normal);
+        exit(FindTableId(TableMetadata));
+    end;
+
+    local procedure FindExternalDataTableId(): Integer
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        TableMetadata.SetRange(DataIsExternal, true);
+        exit(FindTableId(TableMetadata));
+    end;
+
+    local procedure FindTableId(var TableMetadata: Record "Table Metadata"): Integer
+    var
+        AllObjWithCaption: Record AllObjWithCaption;
+        NoMatchingTableErr: Label 'No table matching the requested characteristics was found in Table Metadata.';
+    begin
+        TableMetadata.SetLoadFields(ID);
+        if TableMetadata.FindSet() then
+            repeat
+                if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, TableMetadata.ID) then
+                    exit(TableMetadata.ID);
+            until TableMetadata.Next() = 0;
+
+        Assert.Fail(NoMatchingTableErr);
+    end;
+
+    local procedure InsertFields(TableId: Integer; FieldIds: List of [Integer])
+    var
+        TenantFabricTableFields: Record "Tenant Fabric Table Fields";
+        FieldId: Integer;
+    begin
+        foreach FieldId in FieldIds do begin
+            TenantFabricTableFields.Init();
+            TenantFabricTableFields."Table ID" := TableId;
+            TenantFabricTableFields."Field ID" := FieldId;
+            TenantFabricTableFields.Insert(true);
+        end;
+    end;
+
+    local procedure VerifyTableRejected(TableId: Integer; ExpectedError: Text)
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        TableNotSelectedErr: Label 'Expected table %1 not to be selected for export.', Comment = '%1 = Table ID';
+    begin
+        Assert.ExpectedError(ExpectedError);
+        Assert.IsFalse(TenantFabricTables.Get(TableId), StrSubstNo(TableNotSelectedErr, TableId));
+    end;
+
+    local procedure VerifyFieldsExist(TableId: Integer; FieldIds: List of [Integer])
+    var
+        TenantFabricTableFields: Record "Tenant Fabric Table Fields";
+        FieldId: Integer;
+        FieldSelectedErr: Label 'Expected field %1 of table %2 to be selected for export.', Comment = '%1 = Field ID, %2 = Table ID';
+    begin
+        foreach FieldId in FieldIds do
+            Assert.IsTrue(TenantFabricTableFields.Get(TableId, FieldId), StrSubstNo(FieldSelectedErr, FieldId, TableId));
+    end;
+
+    local procedure VerifyFieldInsertRejected(TableId: Integer; FieldId: Integer; ExpectedError: Text)
+    var
+        TenantFabricTableFields: Record "Tenant Fabric Table Fields";
+        FieldNotSelectedErr: Label 'Expected field %1 of table %2 not to be selected for export.', Comment = '%1 = Field ID, %2 = Table ID';
+    begin
+        Assert.ExpectedError(ExpectedError);
+        Assert.IsFalse(TenantFabricTableFields.Get(TableId, FieldId), StrSubstNo(FieldNotSelectedErr, FieldId, TableId));
+    end;
+
+    local procedure VerifyFieldModifyRejected(TableId: Integer; FieldId: Integer; ExpectedFieldName: Text; ExpectedError: Text)
+    var
+        TenantFabricTableFields: Record "Tenant Fabric Table Fields";
+    begin
+        Assert.ExpectedError(ExpectedError);
+        TenantFabricTableFields.Get(TableId, FieldId);
+        Assert.AreEqual(ExpectedFieldName, TenantFabricTableFields."Field Name", 'Expected the stored field name to be unchanged.');
     end;
 
     #region Handlers
