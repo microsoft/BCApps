@@ -3259,6 +3259,56 @@
         AccountSchedule.Close();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeletingColumnDefClearsPreviewColumnDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Deleting a column definition clears the preview column reference on row definitions that point to it.
+        Initialize();
+
+        // [GIVEN] A row definition that uses a column definition for preview
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        AccScheduleName."Preview Column Def." := ColumnLayoutName.Name;
+        AccScheduleName.Modify();
+
+        // [WHEN] The column definition is deleted
+        ColumnLayoutName.Delete(true);
+
+        // [THEN] The preview column reference on the row definition is cleared
+        AccScheduleName.Get(AccScheduleName.Name);
+        Assert.AreEqual('', AccScheduleName."Preview Column Def.", 'Preview column definition reference was not cleared.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeletingRowDefClearsPreviewRowDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Deleting a row definition clears the preview row reference on column definitions that point to it.
+        Initialize();
+
+        // [GIVEN] A column definition that uses a row definition for preview
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        ColumnLayoutName."Preview Row Def." := AccScheduleName.Name;
+        ColumnLayoutName.Modify();
+
+        // [WHEN] The row definition is deleted
+        AccScheduleName.Delete(true);
+
+        // [THEN] The preview row reference on the column definition is cleared
+        ColumnLayoutName.Get(ColumnLayoutName.Name);
+        Assert.AreEqual('', ColumnLayoutName."Preview Row Def.", 'Preview row definition reference was not cleared.');
+    end;
+
     local procedure Initialize()
     var
         FinancialReportMgt: Codeunit "Financial Report Mgt.";

@@ -133,10 +133,14 @@ table 333 "Column Layout Name"
     begin
         ColumnLayout.SetRange("Column Layout Name", Name);
         ColumnLayout.DeleteAll();
+
+        AccScheduleName.SetRange("Preview Column Def.", Name);
+        AccScheduleName.ModifyAll("Preview Column Def.", '');
     end;
 
     var
         ColumnLayout: Record "Column Layout";
+        AccScheduleName: Record "Acc. Schedule Name";
         PackageImportErr: Label 'The imported package is not valid.';
         TelemetryEventTxt: Label 'Financial Report Column Definition %1: %2', Comment = '%1 = event type, %2 = column definition', Locked = true;
 
