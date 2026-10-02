@@ -151,8 +151,13 @@ page 8368 "MCP Server Feature List"
 
     local procedure SetActive(NewActive: Boolean)
     var
+        MCPDataQueryBilling: Page "MCP Data Query Billing";
         ServerFeature: Interface "MCP Server Features";
     begin
+        if NewActive and (Rec.Feature = Rec.Feature::"Data Query Tools") then
+            if MCPDataQueryBilling.RunModal() <> Action::Yes then
+                exit;
+
         ServerFeature := Rec.Feature;
         ServerFeature.SetActive(ParentSystemId, NewActive);
 
