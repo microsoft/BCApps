@@ -758,7 +758,7 @@ codeunit 9510 "Document Service Management"
     begin
         HttpClient.Timeout(60000);
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            Session.LogMessage('', SharepointSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
+            Session.LogMessage('0000VUC', SharepointSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
             Error(SharepointRequestFailedErr, GetLastErrorText());
         end;
     end;
