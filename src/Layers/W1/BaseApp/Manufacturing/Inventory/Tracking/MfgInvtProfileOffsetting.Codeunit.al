@@ -204,17 +204,95 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
             exit;
 
         if SupplyReservationEntry.Get(ReservationEntry."Entry No.", true) then begin
-            if SupplyReservationEntry."Source Type" = Database::"Item Ledger Entry" then
+            if IsRetainedInvtReservation(ReservationEntry, SupplyReservationEntry) then
                 exit;
             SupplyReservationEntry.Delete();
         end;
         DeleteCondition := true;
     end;
 
+    local procedure IsRetainedInvtReservation(DemandReservationEntry: Record "Reservation Entry"; SupplyReservationEntry: Record "Reservation Entry"): Boolean
+    begin
+        exit(
+          (SupplyReservationEntry."Source Type" = Database::"Item Ledger Entry") and
+          (DemandReservationEntry."Reservation Status" = DemandReservationEntry."Reservation Status"::Reservation));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Comp. Invt.Profile", 'OnAfterTransferInventoryProfileFromProdOrderComponent', '', true, false)]
+    local procedure ExcludeRetainedInvtReservFromComponentDemand(var InventoryProfile: Record "Inventory Profile"; var ProdOrderComponent: Record "Prod. Order Component")
+    var
+        DemandReservationEntry: Record "Reservation Entry";
+    begin
+        if InventoryProfile."Untracked Quantity" <= 0 then
+            exit;
+        if not ItemOnMultipleProdOrderComponentLines(ProdOrderComponent) then
+            exit;
+
+        ProdOrderComponent.SetReservationFilters(DemandReservationEntry);
+        SetRetainedInvtReservFilters(DemandReservationEntry, false);
+        ReduceUntrackedQtyByRetainedInvtReservation(InventoryProfile, RetainedInvtReservedQtyOnDemand(DemandReservationEntry));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Profile", 'OnAfterTransferFromItemLedgerEntry', '', true, false)]
+    local procedure ExcludeRetainedInvtReservFromInventorySupply(var InventoryProfile: Record "Inventory Profile"; ItemLedgerEntry: Record "Item Ledger Entry")
+    var
+        SupplyReservationEntry: Record "Reservation Entry";
+    begin
+        if InventoryProfile."Untracked Quantity" <= 0 then
+            exit;
+
+        ItemLedgerEntry.SetReservationFilters(SupplyReservationEntry);
+        SetRetainedInvtReservFilters(SupplyReservationEntry, true);
+        ReduceUntrackedQtyByRetainedInvtReservation(InventoryProfile, RetainedInvtReservedQtyOnSupply(SupplyReservationEntry));
+    end;
+
+    local procedure SetRetainedInvtReservFilters(var ReservationEntry: Record "Reservation Entry"; IsPositive: Boolean)
+    begin
+        ReservationEntry.SetLoadFields("Quantity (Base)", "Reservation Status", "Source Type");
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
+        ReservationEntry.SetRange(Binding, ReservationEntry.Binding::"Order-to-Order");
+        ReservationEntry.SetRange(Positive, IsPositive);
+    end;
+
+    local procedure RetainedInvtReservedQtyOnDemand(var DemandReservationEntry: Record "Reservation Entry") RetainedQty: Decimal
+    var
+        SupplyReservationEntry: Record "Reservation Entry";
+    begin
+        if DemandReservationEntry.FindSet() then
+            repeat
+                if SupplyReservationEntry.Get(DemandReservationEntry."Entry No.", true) then
+                    if IsRetainedInvtReservation(DemandReservationEntry, SupplyReservationEntry) then
+                        RetainedQty -= DemandReservationEntry."Quantity (Base)"; // demand quantities are negative
+            until DemandReservationEntry.Next() = 0;
+    end;
+
+    local procedure RetainedInvtReservedQtyOnSupply(var SupplyReservationEntry: Record "Reservation Entry") RetainedQty: Decimal
+    var
+        DemandReservationEntry: Record "Reservation Entry";
+    begin
+        if SupplyReservationEntry.FindSet() then
+            repeat
+                if DemandReservationEntry.Get(SupplyReservationEntry."Entry No.", false) then
+                    if IsRetainedInvtReservation(DemandReservationEntry, SupplyReservationEntry) then
+                        if ProdComponentItemOnMultipleLines(DemandReservationEntry) then
+                            RetainedQty += SupplyReservationEntry."Quantity (Base)";
+            until SupplyReservationEntry.Next() = 0;
+    end;
+
+    local procedure ReduceUntrackedQtyByRetainedInvtReservation(var InventoryProfile: Record "Inventory Profile"; RetainedQty: Decimal)
+    begin
+        if RetainedQty <= 0 then
+            exit;
+
+        if RetainedQty >= InventoryProfile."Untracked Quantity" then
+            InventoryProfile."Untracked Quantity" := 0
+        else
+            InventoryProfile."Untracked Quantity" -= RetainedQty;
+    end;
+
     local procedure ProdComponentItemOnMultipleLines(DemandReservationEntry: Record "Reservation Entry"): Boolean
     var
         ProdOrderComponent: Record "Prod. Order Component";
-        SameItemProdOrderComponent: Record "Prod. Order Component";
     begin
         if DemandReservationEntry."Source Type" <> Database::"Prod. Order Component" then
             exit(false);
@@ -226,6 +304,13 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         then
             exit(false);
 
+        exit(ItemOnMultipleProdOrderComponentLines(ProdOrderComponent));
+    end;
+
+    local procedure ItemOnMultipleProdOrderComponentLines(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        SameItemProdOrderComponent: Record "Prod. Order Component";
+    begin
         ProdOrderComponent.CalcFields("Reserved Qty. (Base)");
         if ProdOrderComponent."Reserved Qty. (Base)" = ProdOrderComponent."Remaining Qty. (Base)" then
             exit(false);
