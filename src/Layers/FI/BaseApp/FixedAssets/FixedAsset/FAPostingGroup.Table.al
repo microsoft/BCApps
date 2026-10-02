@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -489,16 +489,36 @@ table 5606 "FA Posting Group"
                 CheckGLAcc("Book Val. Acc. on Disp. (Loss)", false);
             end;
         }
+#if not CLEANSCHEMA33
+#pragma warning disable AA0232
         field(13400; "Depr. Difference Acc."; Code[20])
         {
             Caption = 'Depr. Difference Acc.';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
             TableRelation = "G/L Account";
         }
         field(13401; "Depr. Difference Bal. Acc."; Code[20])
         {
             Caption = 'Depr. Difference Bal. Acc.';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
             TableRelation = "G/L Account";
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys

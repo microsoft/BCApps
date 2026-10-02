@@ -2,7 +2,9 @@ namespace System.Security.AccessControl;
 
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 
 permissionset 1002 "LOCAL READ"
 {
@@ -10,7 +12,12 @@ permissionset 1002 "LOCAL READ"
     Assignable = true;
     Caption = 'Country/region-specific read only access.';
 
-    Permissions = tabledata "Depr. Diff. Posting Buffer" = R,
+    Permissions =
+#if not CLEAN30
+#pragma warning disable AL0432
+                  tabledata "Depr. Diff. Posting Buffer" = R,
+#pragma warning restore AL0432
+#endif
                   tabledata "Foreign Payment Types" = R,
                   tabledata "Ref. Payment - Exported" = R,
                   tabledata "Ref. Payment - Exported Buffer" = R,
