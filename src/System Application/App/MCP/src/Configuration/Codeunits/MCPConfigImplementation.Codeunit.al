@@ -361,10 +361,12 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure SetEligibleAgentFilters(var Agent: Record Agent)
     begin
         Agent.SetRange(State, Agent.State::Enabled);
+        Agent.SetRange("Can Access Current Company", true);
+        Agent.SetRange("Can Current User Use Agent", true);
         Agent.SetFilter("Publisher Type", '%1|%2', Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party");
     end;
 
-    internal procedure AddAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid)
+    internal procedure AddAgentTool(ConfigId: Guid; AgentCompanyName: Text[30]; AgentUserSecurityId: Guid)
     var
         MCPConfigAgentTool: Record "MCP Config Agent Tool";
         MCPConfiguration: Record "MCP Configuration";
@@ -372,12 +374,13 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             Error(ConfigurationNotFoundErr);
 
-        if MCPConfigAgentTool.Get(ConfigId, AgentUserSecurityId) then
+        if MCPConfigAgentTool.Get(ConfigId, AgentCompanyName, AgentUserSecurityId) then
             exit;
 
         ValidateAgentTool(AgentUserSecurityId);
 
         MCPConfigAgentTool.ID := ConfigId;
+        MCPConfigAgentTool."Company Name" := AgentCompanyName;
         MCPConfigAgentTool."Agent User Security ID" := AgentUserSecurityId;
         MCPConfigAgentTool.Insert();
     end;
@@ -399,6 +402,7 @@ codeunit 8351 "MCP Config Implementation"
     begin
         Agent.Reset();
         MCPConfigAgentTool.SetRange(ID, ConfigId);
+        MCPConfigAgentTool.SetRange("Company Name", CompanyName());
         if MCPConfigAgentTool.FindSet() then
             repeat
                 if Agent.Get(MCPConfigAgentTool."Agent User Security ID") then
@@ -1586,6 +1590,7 @@ codeunit 8351 "MCP Config Implementation"
         repeat
             Clear(AgentJson);
             AgentJson.Add('agentUserSecurityId', Format(MCPConfigAgentTool."Agent User Security ID", 0, 9));
+            AgentJson.Add('companyName', MCPConfigAgentTool."Company Name");
             AgentsArray.Add(AgentJson);
         until MCPConfigAgentTool.Next() = 0;
     end;
@@ -1720,6 +1725,10 @@ codeunit 8351 "MCP Config Implementation"
             Error(InvalidJsonErr);
 
         MCPConfigAgentTool.ID := ConfigId;
+        if AgentJson.Contains('companyName') then
+            MCPConfigAgentTool."Company Name" := CopyStr(AgentJson.GetText('companyName'), 1, MaxStrLen(MCPConfigAgentTool."Company Name"))
+        else
+            MCPConfigAgentTool."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(MCPConfigAgentTool."Company Name"));
         MCPConfigAgentTool."Agent User Security ID" := AgentUserSecurityId;
         MCPConfigAgentTool.Insert();
     end;

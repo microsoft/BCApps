@@ -6,6 +6,7 @@
 namespace System.MCP;
 
 using System.Agents;
+using System.Environment;
 
 table 8376 "MCP Config Agent Tool"
 {
@@ -13,6 +14,7 @@ table 8376 "MCP Config Agent Tool"
     Extensible = false;
     Caption = 'MCP Configuration Agent Tool';
     DataClassification = SystemMetadata;
+    DataPerCompany = false;
     ReplicateData = false;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;
@@ -35,6 +37,8 @@ table 8376 "MCP Config Agent Tool"
             var
                 MCPConfigImplementation: Codeunit "MCP Config Implementation";
             begin
+                if "Company Name" = '' then
+                    "Company Name" := CopyStr(CompanyName(), 1, MaxStrLen("Company Name"));
                 MCPConfigImplementation.ValidateAgentTool("Agent User Security ID");
             end;
         }
@@ -59,13 +63,24 @@ table 8376 "MCP Config Agent Tool"
             FieldClass = FlowField;
             CalcFormula = lookup(Agent."Publisher Type" where("User Security ID" = field("Agent User Security ID")));
         }
+        field(6; "Company Name"; Text[30])
+        {
+            Caption = 'Company';
+            ToolTip = 'Specifies the company in which the agent is available.';
+            TableRelation = Company.Name;
+            DataClassification = OrganizationIdentifiableInformation;
+            NotBlank = true;
+        }
     }
 
     keys
     {
-        key(PK; ID, "Agent User Security ID")
+        key(PK; ID, "Company Name", "Agent User Security ID")
         {
             Clustered = true;
+        }
+        key(ByConfig; ID)
+        {
         }
     }
 }

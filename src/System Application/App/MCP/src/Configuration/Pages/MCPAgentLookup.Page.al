@@ -37,17 +37,25 @@ page 8377 "MCP Agent Lookup"
                     Caption = 'Display Name';
                     ToolTip = 'Specifies the display name of the agent.';
                 }
+                field(Company; CurrentCompanyName)
+                {
+                    Caption = 'Company';
+                    Editable = false;
+                    ToolTip = 'Specifies the company in which the agent is available.';
+                }
             }
         }
     }
 
     trigger OnOpenPage()
     begin
+        CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(CurrentCompanyName));
         MCPConfigImplementation.SetEligibleAgentFilters(Rec);
     end;
 
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        CurrentCompanyName: Text[30];
 
     internal procedure GetSelectedAgents(var SelectedAgent: Record Agent)
     begin
