@@ -26,6 +26,7 @@ codeunit 130454 "Test Runner - Mgt"
     var
         TestMethodLine: Record "Test Method Line";
         ALCodeCoverageMgt: Codeunit "AL Code Coverage Mgt.";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         BackupTestFilter: Text;
     begin
@@ -39,6 +40,7 @@ codeunit 130454 "Test Runner - Mgt"
 
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
 
+        TestDataSourceContext.StartRun();
         ALCodeCoverageMgt.Initialize(TestMethodLine."Test Suite");
         OnRunTestSuite(TestMethodLine);
 
@@ -55,6 +57,7 @@ codeunit 130454 "Test Runner - Mgt"
             until TestMethodLine.Next() = 0;
 
         OnAfterRunTestSuite(TestMethodLine);
+        TestDataSourceContext.EndRun();
     end;
 
     /// This method is called when the caller needs to run a test codeunit but does not want to log results or the caller has 
@@ -97,7 +100,8 @@ codeunit 130454 "Test Runner - Mgt"
         end;
 
         if not GetTestFunction(TestMethodLineFunction, FunctionName, TestSuite, CodeunitID, LineNoTestFilter) then
-            exit(false);
+            if not TryCreateDataDrivenTestFunction(TestMethodLineFunction, FunctionName, TestSuite, CodeunitID, LineNoTestFilter) then
+                exit(false);
 
         if not TestMethodLineFunction.Run then
             exit(false);
@@ -119,9 +123,11 @@ codeunit 130454 "Test Runner - Mgt"
     var
         TestMethodLine: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
     begin
         if SkipLoggingResults then begin
             OnAfterTestMethodRun(TestMethodLine, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, IsSuccess);
+            TestDataSourceContext.ClearCurrent();
             exit;
         end;
 
@@ -141,6 +147,7 @@ codeunit 130454 "Test Runner - Mgt"
         ClearLastError();
 
         OnAfterTestMethodRun(TestMethodLine, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, IsSuccess);
+        TestDataSourceContext.ClearCurrent();
     end;
 
     local procedure UpdateCodeunitLine(var CodeunitTestMethodLine: Record "Test Method Line"; TestMethodLine: Record "Test Method Line"; IsSuccess: Boolean)
@@ -231,6 +238,49 @@ codeunit 130454 "Test Runner - Mgt"
         exit(true);
     end;
 
+    local procedure TryCreateDataDrivenTestFunction(var TestMethodLineFunction: Record "Test Method Line"; FunctionName: Text[128]; TestSuite: Code[10]; TestCodeunit: Integer; LineNoTestFilter: Text): Boolean
+    var
+        BaseTestMethodLine: Record "Test Method Line";
+        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+        BaseFunctionName: Text[128];
+        TestCaseName: Text[250];
+        OpenBracketPosition: Integer;
+    begin
+        if not FunctionName.EndsWith(']') then
+            exit(false);
+
+        OpenBracketPosition := FunctionName.IndexOf('[');
+        if OpenBracketPosition <= 1 then
+            exit(false);
+
+        BaseFunctionName := CopyStr(FunctionName.Substring(1, OpenBracketPosition - 1), 1, MaxStrLen(BaseFunctionName));
+        if not GetTestFunction(BaseTestMethodLine, BaseFunctionName, TestSuite, TestCodeunit, LineNoTestFilter) then
+            exit(false);
+
+        if not BaseTestMethodLine.Run then begin
+            TestMethodLineFunction := BaseTestMethodLine;
+            exit(true);
+        end;
+
+        TestCaseName := CopyStr(FunctionName.Substring(OpenBracketPosition + 1, StrLen(FunctionName) - OpenBracketPosition - 1), 1, MaxStrLen(TestCaseName));
+
+        TestMethodLineFunction.Init();
+        TestMethodLineFunction."Test Suite" := BaseTestMethodLine."Test Suite";
+        TestMethodLineFunction."Line No." := TestSuiteMgt.GetNextMethodNumber(BaseTestMethodLine) + 1;
+        TestMethodLineFunction."Line Type" := TestMethodLineFunction."Line Type"::Function;
+        TestMethodLineFunction."Test Codeunit" := BaseTestMethodLine."Test Codeunit";
+        TestMethodLineFunction.Name := BaseTestMethodLine.Name;
+        TestMethodLineFunction.Function := FunctionName;
+        TestMethodLineFunction.Run := BaseTestMethodLine.Run;
+        TestMethodLineFunction.Level := BaseTestMethodLine.Level;
+        TestMethodLineFunction."Skip Logging Results" := BaseTestMethodLine."Skip Logging Results";
+        TestMethodLineFunction."Data Input Group Code" := BaseTestMethodLine."Data Input Group Code";
+        TestMethodLineFunction."Data Input" := CopyStr(TestCaseName, 1, MaxStrLen(TestMethodLineFunction."Data Input"));
+        TestMethodLineFunction.Insert(true);
+
+        exit(true);
+    end;
+
     local procedure GetTestCodeunit(var CodeunitTestMethodLineFunction: Record "Test Method Line"; TestSuite: Code[10]; TestCodeunit: Integer): Boolean
     begin
         CodeunitTestMethodLineFunction.SetRange("Test Suite", TestSuite);
@@ -271,4 +321,3 @@ codeunit 130454 "Test Runner - Mgt"
     begin
     end;
 }
-
