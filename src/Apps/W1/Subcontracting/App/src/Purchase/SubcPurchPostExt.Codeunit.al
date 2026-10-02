@@ -17,6 +17,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 using Microsoft.Utilities;
+using Microsoft.Warehouse.History;
 codeunit 20535 "Subc. Purch. Post Ext"
 {
     var
@@ -559,6 +560,10 @@ codeunit 20535 "Subc. Purch. Post Ext"
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
+        if IsWarehouseReceiptOrigin(PurchRcptLine) then
+            exit(false);
+        if not UsesBaseUnitOfMeasure(PurchRcptLine) then
+            exit(false);
         if not ItemUsesSupportedFullTracking(PurchRcptLine."No.") then
             exit(false);
         if PurchRcptLine."Qty. Invoiced (Base)" <> 0 then
@@ -569,6 +574,31 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit(false);
 
         exit(IsFullTrackedOutputSetSupported(PurchRcptLine, ItemLedgerEntry));
+    end;
+
+    local procedure IsWarehouseReceiptOrigin(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        PostedWhseReceiptLine: Record "Posted Whse. Receipt Line";
+    begin
+        PostedWhseReceiptLine.SetRange(
+            "Posted Source Document", PostedWhseReceiptLine."Posted Source Document"::"Posted Receipt");
+        PostedWhseReceiptLine.SetRange("Posted Source No.", PurchRcptLine."Document No.");
+        PostedWhseReceiptLine.SetRange("Source No.", PurchRcptLine."Order No.");
+        PostedWhseReceiptLine.SetRange("Source Line No.", PurchRcptLine."Order Line No.");
+        exit(not PostedWhseReceiptLine.IsEmpty());
+    end;
+
+    local procedure UsesBaseUnitOfMeasure(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        Item: Record Item;
+    begin
+        Item.SetLoadFields("Base Unit of Measure");
+        if not Item.Get(PurchRcptLine."No.") then
+            exit(false);
+
+        exit(
+            (PurchRcptLine."Unit of Measure Code" = Item."Base Unit of Measure") and
+            (PurchRcptLine."Qty. per Unit of Measure" = 1));
     end;
 
     local procedure ItemUsesSupportedFullTracking(ItemNo: Code[20]): Boolean
