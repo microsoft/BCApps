@@ -297,7 +297,9 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
             InventoryProfile."Untracked Quantity" -= RetainedQty;
     end;
 
-    local procedure ProdComponentItemOnMultipleLines(DemandReservationEntry: Record "Reservation Entry"; IgnoreFullyReservedCheck: Boolean): Boolean
+    local procedure ProdComponentItemOnMultipleLines(
+        DemandReservationEntry: Record "Reservation Entry";
+        IgnoreFullyReservedCheck: Boolean): Boolean
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
@@ -315,7 +317,9 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         exit(ItemOnMultipleProdOrderComponentLines(ProdOrderComponent, IgnoreFullyReservedCheck));
     end;
 
-    local procedure ItemOnMultipleProdOrderComponentLines(ProdOrderComponent: Record "Prod. Order Component"; IgnoreFullyReservedCheck: Boolean): Boolean
+    local procedure ItemOnMultipleProdOrderComponentLines(
+        ProdOrderComponent: Record "Prod. Order Component";
+        IgnoreFullyReservedCheck: Boolean): Boolean
     var
         SameItemProdOrderComponent: Record "Prod. Order Component";
     begin
