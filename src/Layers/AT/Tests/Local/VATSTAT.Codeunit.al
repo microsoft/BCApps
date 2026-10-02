@@ -1622,6 +1622,7 @@ codeunit 144001 VATSTAT
         VATStatementAT: Report "VAT Statement AT";
         LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         VATTotalRowNo: Code[10];
+        VATTaxRowNo: Code[10];
         DocNo: Code[20];
         VATBusPostingGroupCode: Code[20];
         VATProPostingGroupCode: Code[20];
@@ -1630,12 +1631,15 @@ codeunit 144001 VATSTAT
         // [SCENARIO 652286] A negative 4.9% domestic base (KZ124) is reclassified into KZ000 and omitted from the U30 form (FDF field Zahl116a1), like the sibling taxed-base columns.
         Initialize();
 
-        // [GIVEN] VAT Statement Line with Row No. '124' totaling a domestic 4.9% VAT base amount
+        // [GIVEN] VAT Statement Line with Row No. '124' (base) and '1124' (tax) totaling a domestic 4.9% VAT entry
         CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
         VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
+        VATTaxRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
         CreateDedicatedVATStatementName(VATStatementName);
         CreateVATEntTotLineInStatement(VATStatementName, VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Base);
+        CreateVATEntTotLineInStatement(VATStatementName, VATTaxRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Amount);
         CreateRowTotLineInStatement(VATStatementName, '124', VATTotalRowNo);
+        CreateRowTotLineInStatement(VATStatementName, '1124', VATTaxRowNo);
         CreateItem(Item, VATProPostingGroupCode);
         EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
           ReportingType::"Defined period", false, false, false, false, 0);
@@ -1649,17 +1653,20 @@ codeunit 144001 VATSTAT
         VATStatementAT.SetTableView(VATStatementName);
         VATStatementAT.RunModal();
 
-        // [THEN] The negative base is folded into KZ000 and KZ124 is not emitted in the XML
+        // [THEN] The negative base is folded into KZ000, the related tax into KZ090, and KZ124 is not emitted in the XML
         GetVATEntry(VATEntry, DocNo, VATEntry."Document Type"::"Credit Memo", VATEntry.Type::Purchase);
         LibraryXPathXMLReader.Initialize(XmlFileName, '');
         VerifyXMLHeader(LibraryXPathXMLReader);
         VerifyXMLLine(LibraryXPathXMLReader, 'LIEFERUNGEN_LEISTUNGEN_EIGENVERBRAUCH/KZ000', -VATEntry.Base);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('descendant::*[@type="kz"]', 1);
+        VerifyXMLLine(LibraryXPathXMLReader, 'VORSTEUER/KZ090', VATEntry.Amount);
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('descendant::*[@type="kz"]', 2);
 
-        // [THEN] The U30 form (FDF) shows the amount only in KZ000 (Zahl101), not in the 4.9% field Zahl116a1
+        // [THEN] The U30 form (FDF) shows the base in KZ000 (Zahl101) and the reclassified tax in KZ090 (Zahl143), not in the 4.9% field Zahl116a1
         FdfFileHelper.ReadFdfFile(FdfFileName);
         VerifyFDFLineValue(FdfFileHelper, arguments::Zahl101, VATEntry.Base);
-        FdfFileHelper.VerifyCount(DefinedHeaderAndFooterLines + 1);
+        VerifyFDFLineMinus(FdfFileHelper, arguments::DD143);
+        VerifyFDFLineValue(FdfFileHelper, arguments::Zahl143, VATEntry.Amount);
+        FdfFileHelper.VerifyCount(DefinedHeaderAndFooterLines + 3);
     end;
 
     [Test]
@@ -1675,6 +1682,7 @@ codeunit 144001 VATSTAT
         VATStatementAT: Report "VAT Statement AT";
         LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         VATTotalRowNo: Code[10];
+        VATTaxRowNo: Code[10];
         DocNo: Code[20];
         VATBusPostingGroupCode: Code[20];
         VATProPostingGroupCode: Code[20];
@@ -1683,12 +1691,15 @@ codeunit 144001 VATSTAT
         // [SCENARIO 652286] A negative 4.9% intra-community base (KZ125) is reclassified into KZ070 and omitted from the U30 form (FDF field Zahl128a1), like the sibling intra-community columns.
         Initialize();
 
-        // [GIVEN] VAT Statement Line with Row No. '125' totaling an intra-community 4.9% VAT base amount
+        // [GIVEN] VAT Statement Line with Row No. '125' (base) and '1125' (tax) totaling an intra-community 4.9% VAT entry
         CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
         VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
+        VATTaxRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
         CreateDedicatedVATStatementName(VATStatementName);
         CreateVATEntTotLineInStatement(VATStatementName, VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Base);
+        CreateVATEntTotLineInStatement(VATStatementName, VATTaxRowNo, VATBusPostingGroupCode, VATProPostingGroupCode, "VAT Statement Line Amount Type"::Amount);
         CreateRowTotLineInStatement(VATStatementName, '125', VATTotalRowNo);
+        CreateRowTotLineInStatement(VATStatementName, '1125', VATTaxRowNo);
         CreateItem(Item, VATProPostingGroupCode);
         EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
           ReportingType::"Defined period", false, false, false, false, 0);
@@ -1702,18 +1713,21 @@ codeunit 144001 VATSTAT
         VATStatementAT.SetTableView(VATStatementName);
         VATStatementAT.RunModal();
 
-        // [THEN] The negative base is folded into KZ070 and KZ125 is not emitted in the XML
+        // [THEN] The negative base is folded into KZ070, the related tax into KZ090, and KZ125 is not emitted in the XML
         GetVATEntry(VATEntry, DocNo, VATEntry."Document Type"::"Credit Memo", VATEntry.Type::Purchase);
         LibraryXPathXMLReader.Initialize(XmlFileName, '');
         VerifyXMLHeader(LibraryXPathXMLReader);
         VerifyXMLLine(LibraryXPathXMLReader, 'LIEFERUNGEN_LEISTUNGEN_EIGENVERBRAUCH/KZ000', 0);
         VerifyXMLLine(LibraryXPathXMLReader, 'INNERGEMEINSCHAFTLICHE_ERWERBE/KZ070', -VATEntry.Base);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('descendant::*[@type="kz"]', 2);
+        VerifyXMLLine(LibraryXPathXMLReader, 'VORSTEUER/KZ090', VATEntry.Amount);
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('descendant::*[@type="kz"]', 3);
 
-        // [THEN] The U30 form (FDF) shows the amount only in KZ070 (Zahl126), not in the 4.9% field Zahl128a1
+        // [THEN] The U30 form (FDF) shows the base in KZ070 (Zahl126) and the reclassified tax in KZ090 (Zahl143), not in the 4.9% field Zahl128a1
         FdfFileHelper.ReadFdfFile(FdfFileName);
         VerifyFDFLineValue(FdfFileHelper, arguments::Zahl126, VATEntry.Base);
-        FdfFileHelper.VerifyCount(DefinedHeaderAndFooterLines + 1);
+        VerifyFDFLineMinus(FdfFileHelper, arguments::DD143);
+        VerifyFDFLineValue(FdfFileHelper, arguments::Zahl143, VATEntry.Amount);
+        FdfFileHelper.VerifyCount(DefinedHeaderAndFooterLines + 3);
     end;
 
     [Test]
