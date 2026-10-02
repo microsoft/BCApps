@@ -262,6 +262,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
     var
         SupplyReservationEntry: Record "Reservation Entry";
     begin
+        SupplyReservationEntry.SetLoadFields("Source Type");
         if DemandReservationEntry.FindSet() then
             repeat
                 if SupplyReservationEntry.Get(DemandReservationEntry."Entry No.", true) then
@@ -274,6 +275,8 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
     var
         DemandReservationEntry: Record "Reservation Entry";
     begin
+        DemandReservationEntry.SetLoadFields(
+            "Reservation Status", "Source Type", "Source Subtype", "Source ID", "Source Prod. Order Line", "Source Ref. No.");
         if SupplyReservationEntry.FindSet() then
             repeat
                 if DemandReservationEntry.Get(SupplyReservationEntry."Entry No.", false) then
