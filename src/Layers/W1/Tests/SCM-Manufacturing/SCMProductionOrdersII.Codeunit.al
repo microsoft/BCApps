@@ -8226,8 +8226,17 @@ codeunit 137072 "SCM Production Orders II"
         VerifyProdOrderComponentReservedQtyFromInventory(
           ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
 
-        // [WHEN] The demand on both component lines grows and regenerative planning runs again.
+        // [WHEN] Only the standard component line grows and regenerative planning runs again.
         UpdateProdOrderComponentQty(ProductionOrder, StdComponentLineNo, UpdatedStdQtyPer);
+        CalcRegenPlanForSingleItem(CompItem."No.");
+
+        // [THEN] The fully reserved fixed line keeps its inventory reservation while the standard line is topped up.
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", StdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
+
+        // [WHEN] The fixed component line grows too and regenerative planning runs again.
         UpdateProdOrderComponentQty(ProductionOrder, FixedComponentLineNo, UpdatedFixedQty);
         CalcRegenPlanForSingleItem(CompItem."No.");
 
@@ -11075,4 +11084,3 @@ codeunit 137072 "SCM Production Orders II"
     end;
 
 }
-

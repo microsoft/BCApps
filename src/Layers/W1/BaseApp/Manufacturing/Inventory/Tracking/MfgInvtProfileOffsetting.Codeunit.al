@@ -200,7 +200,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
             exit;
         if ReservationEntry.Positive then
             exit;
-        if not ProdComponentItemOnMultipleLines(ReservationEntry) then
+        if not ProdComponentItemOnMultipleLines(ReservationEntry, false) then
             exit;
 
         if SupplyReservationEntry.Get(ReservationEntry."Entry No.", true) then begin
@@ -229,7 +229,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
 
         ComponentWithReservedQty := ProdOrderComponent;
         ComponentWithReservedQty.CalcFields("Reserved Qty. (Base)");
-        if not ItemOnMultipleProdOrderComponentLines(ComponentWithReservedQty) then
+        if not ItemOnMultipleProdOrderComponentLines(ComponentWithReservedQty, false) then
             exit;
 
         ProdOrderComponent.SetReservationFilters(DemandReservationEntry);
@@ -281,7 +281,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
             repeat
                 if DemandReservationEntry.Get(SupplyReservationEntry."Entry No.", false) then
                     if IsRetainedInvtReservation(DemandReservationEntry, SupplyReservationEntry) then
-                        if ProdComponentItemOnMultipleLines(DemandReservationEntry) then
+                        if ProdComponentItemOnMultipleLines(DemandReservationEntry, true) then
                             RetainedQty += SupplyReservationEntry."Quantity (Base)";
             until SupplyReservationEntry.Next() = 0;
     end;
@@ -297,7 +297,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
             InventoryProfile."Untracked Quantity" -= RetainedQty;
     end;
 
-    local procedure ProdComponentItemOnMultipleLines(DemandReservationEntry: Record "Reservation Entry"): Boolean
+    local procedure ProdComponentItemOnMultipleLines(DemandReservationEntry: Record "Reservation Entry"; IgnoreFullyReservedCheck: Boolean): Boolean
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
@@ -312,14 +312,16 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         then
             exit(false);
 
-        exit(ItemOnMultipleProdOrderComponentLines(ProdOrderComponent));
+        exit(ItemOnMultipleProdOrderComponentLines(ProdOrderComponent, IgnoreFullyReservedCheck));
     end;
 
-    local procedure ItemOnMultipleProdOrderComponentLines(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    local procedure ItemOnMultipleProdOrderComponentLines(ProdOrderComponent: Record "Prod. Order Component"; IgnoreFullyReservedCheck: Boolean): Boolean
     var
         SameItemProdOrderComponent: Record "Prod. Order Component";
     begin
-        if ProdOrderComponent."Reserved Qty. (Base)" = ProdOrderComponent."Remaining Qty. (Base)" then
+        if not IgnoreFullyReservedCheck and
+           (ProdOrderComponent."Reserved Qty. (Base)" = ProdOrderComponent."Remaining Qty. (Base)")
+        then
             exit(false);
 
         SameItemProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
