@@ -130,6 +130,8 @@ From **External Storage Synchronize** report:
 - **From External Storage**: Download multiple files from external storage
 - **Delete Expired Files**: Clean up files based on retention policy
 
+Before automatic externalization or **Move** removes an internal attachment after upload, Business Central downloads the persisted external path and verifies that it returns non-empty content. This adds a synchronous full download when a new attachment is automatically moved outside Business Central. Byte-for-byte equality is not required because providers such as SharePoint can legitimately rewrite Office and `.msg` files during upload. If retrieval fails or returns empty content, both internal content and external metadata are retained, and the failure reason is logged to telemetry for support investigation. Business Central does not automatically delete or detach the external file because it may be shared with another attachment, owned by another environment, or temporarily inaccessible.
+
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality
 - Document preview, download, and management work seamlessly

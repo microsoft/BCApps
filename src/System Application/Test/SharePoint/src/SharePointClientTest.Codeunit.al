@@ -25,6 +25,74 @@ codeunit 132970 "SharePoint Client Test"
         IsInitialized: Boolean;
 
     [Test]
+    procedure TestDownloadFileContentByServerRelativePathEscapesHashAndPercent()
+    var
+        FileInStream: InStream;
+        ServerRelativePath: Text;
+        IsSuccess: Boolean;
+    begin
+        // [SCENARIO] ResourcePath-based downloads preserve legal # and % filename characters.
+        Initialize();
+        ServerRelativePath := '/sites/Test/Shared Documents/Invoice #50%.pdf';
+
+        IsSuccess := SharePointClient.DownloadFileContentByServerRelativePath(ServerRelativePath, FileInStream);
+
+        Assert.IsTrue(IsSuccess, 'The ResourcePath-based download should succeed');
+        Assert.IsTrue(
+            SharePointTestLibrary.GetLastRequestUri().Contains(
+                '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/$value/'),
+            'The decodedurl endpoint should preserve the decoded server-relative path');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
+    end;
+
+    [Test]
+    procedure TestDeleteFileByServerRelativePathEscapesHashAndPercent()
+    var
+        ServerRelativePath: Text;
+        IsSuccess: Boolean;
+    begin
+        // [SCENARIO] ResourcePath-based deletes preserve legal # and % filename characters.
+        Initialize();
+        ServerRelativePath := '/sites/Test/Shared Documents/Invoice #50%.pdf';
+
+        IsSuccess := SharePointClient.DeleteFileByServerRelativePath(ServerRelativePath);
+
+        Assert.IsTrue(IsSuccess, 'The ResourcePath-based delete should succeed');
+        Assert.IsTrue(
+            SharePointTestLibrary.GetLastRequestUri().Contains(
+                '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/'),
+            'The decodedurl endpoint should preserve the decoded server-relative path');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
+    end;
+
+    [Test]
+    procedure TestAddFileToFolderEscapesHashAndPercent()
+    var
+        TempSharePointFile: Record "SharePoint File" temporary;
+        FileInStream: InStream;
+        ParentUrl: Text;
+        IsSuccess: Boolean;
+    begin
+        // [SCENARIO] ResourcePath-based uploads encode legal # and % filename characters.
+        Initialize();
+        InitDummyFile(FileInStream);
+        ParentUrl := BaseUrl.Substring(StrPos(BaseUrl, '/')).TrimEnd('/');
+
+        IsSuccess := SharePointClient.AddFileToFolder(
+            ParentUrl + '/Lists/Test Documents/Attachments', 'Invoice #50%.pdf', FileInStream, TempSharePointFile);
+
+        Assert.IsTrue(IsSuccess, 'The ResourcePath-based upload should succeed');
+        Assert.IsTrue(
+            SharePointTestLibrary.GetLastRequestUri().Contains(
+                '/Files/AddUsingPath(decodedurl=''Invoice #50%.pdf'',overwrite=false)/'),
+            'The AddUsingPath endpoint should preserve the decoded file name');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
+    end;
+
+    [Test]
     procedure TestGetLists()
     var
         TempSharePointList: Record "SharePoint List" temporary;

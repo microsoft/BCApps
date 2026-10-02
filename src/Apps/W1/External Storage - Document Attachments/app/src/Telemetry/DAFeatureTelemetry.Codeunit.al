@@ -62,6 +62,15 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogError('0000RNY', ExternalStorageTok, 'Downloading file from external storage', ErrorText, ErrorCallStack, Dimensions);
     end;
 
+    internal procedure LogExternalContentVerificationFailed(DocumentAttachment: Record "Document Attachment"; FailureReason: Text; ErrorText: Text; ErrorCallStack: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        GetFailureTelemetryDimensions(DocumentAttachment, 'VerifyExternalContent', Dimensions);
+        Dimensions.Add('FailureReason', FailureReason);
+        FeatureTelemetry.LogError('0000RO0', ExternalStorageTok, 'Verifying external attachment content', ErrorText, ErrorCallStack, Dimensions);
+    end;
+
     internal procedure LogFileDeleted(DocumentAttachment: Record "Document Attachment")
     var
         Dimensions: Dictionary of [Text, Text];

@@ -580,6 +580,22 @@ codeunit 9101 "SharePoint Client Impl."
         exit(true);
     end;
 
+    internal procedure DownloadFileContentByServerRelativePath(ServerRelativePath: Text; var FileInStream: InStream): Boolean
+    begin
+        // GET https://{site_url}/_api/web/GetFileByServerRelativePath(decodedurl='/Folder/File#1%.pdf')/$value
+        SharePointUriBuilder.ResetPath();
+        SharePointUriBuilder.SetMethodWithNamedTextParameter('GetFileByServerRelativePath', 'decodedurl', ServerRelativePath);
+        SharePointUriBuilder.SetObject('$value');
+
+        SharePointRequestHelper.SetAuthorization(Authorization);
+        SharePointOperationResponse := SharePointRequestHelper.Get(SharePointUriBuilder);
+        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
+            exit(false);
+
+        SharePointOperationResponse.GetResultAsStream(FileInStream);
+        exit(true);
+    end;
+
     procedure DeleteFile(OdataId: Text): Boolean
     begin
         //DELETE https://{site_url}/_api/web/GetFileByServerRelativeUrl('/Folder Name/{file_name}')
@@ -598,6 +614,20 @@ codeunit 9101 "SharePoint Client Impl."
         //DELETE https://{site_url}/_api/web/GetFileByServerRelativeUrl('/Folder Name/{file_name}')
         SharePointUriBuilder.ResetPath();
         SharePointUriBuilder.SetMethod('GetFileByServerRelativeUrl', ServerRelativeUrl);
+
+        SharePointRequestHelper.SetAuthorization(Authorization);
+        SharePointOperationResponse := SharePointRequestHelper.Delete(SharePointUriBuilder);
+        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
+            exit(false);
+
+        exit(true);
+    end;
+
+    internal procedure DeleteFileByServerRelativePath(ServerRelativePath: Text): Boolean
+    begin
+        // DELETE https://{site_url}/_api/web/GetFileByServerRelativePath(decodedurl='/Folder/File#1%.pdf')
+        SharePointUriBuilder.ResetPath();
+        SharePointUriBuilder.SetMethodWithNamedTextParameter('GetFileByServerRelativePath', 'decodedurl', ServerRelativePath);
 
         SharePointRequestHelper.SetAuthorization(Authorization);
         SharePointOperationResponse := SharePointRequestHelper.Delete(SharePointUriBuilder);
@@ -709,11 +739,11 @@ codeunit 9101 "SharePoint Client Impl."
         if not UploadIntoStream('', '', '', FileName, FileInStream) then
             exit;
 
-        //GET https://{site_url}/_api/web/lists/getbytitle('{list_title}')/items({item_id})/AttachmentFiles('{file_name}')/$value
+        // POST https://{site_url}/_api/web/GetFolderByServerRelativePath(decodedurl='{folder}')/Files/AddUsingPath(decodedurl='{file_name}',overwrite=false)
         SharePointUriBuilder.ResetPath();
-        SharePointUriBuilder.SetMethod('GetFolderByServerRelativeUrl', ServerRelativeUrl);
+        SharePointUriBuilder.SetMethodWithNamedTextParameter('GetFolderByServerRelativePath', 'decodedurl', ServerRelativeUrl);
         SharePointUriBuilder.SetObject('Files');
-        SharePointUriBuilder.SetMethod('add', 'url', '''' + FileName + '''');
+        SharePointUriBuilder.SetMethodWithNamedTextAndBooleanParameters('AddUsingPath', 'decodedurl', FileName, 'overwrite', false);
         if ListAllFields then
             SharePointUriBuilder.AddQueryParameter('$expand', 'ListItemAllFields');
 
@@ -734,11 +764,11 @@ codeunit 9101 "SharePoint Client Impl."
         SharePointHttpContent: Codeunit "SharePoint Http Content";
         Result: Text;
     begin
-        //GET https://{site_url}/_api/web/lists/getbytitle('{list_title}')/items({item_id})/AttachmentFiles('{file_name}')/$value
+        // POST https://{site_url}/_api/web/GetFolderByServerRelativePath(decodedurl='{folder}')/Files/AddUsingPath(decodedurl='{file_name}',overwrite=false)
         SharePointUriBuilder.ResetPath();
-        SharePointUriBuilder.SetMethod('GetFolderByServerRelativeUrl', ServerRelativeUrl);
+        SharePointUriBuilder.SetMethodWithNamedTextParameter('GetFolderByServerRelativePath', 'decodedurl', ServerRelativeUrl);
         SharePointUriBuilder.SetObject('Files');
-        SharePointUriBuilder.SetMethod('add', 'url', '''' + FileName + '''');
+        SharePointUriBuilder.SetMethodWithNamedTextAndBooleanParameters('AddUsingPath', 'decodedurl', FileName, 'overwrite', false);
         if ListAllFields then
             SharePointUriBuilder.AddQueryParameter('$expand', 'ListItemAllFields');
 
