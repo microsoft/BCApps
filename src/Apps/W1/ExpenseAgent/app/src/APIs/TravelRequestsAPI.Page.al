@@ -103,9 +103,8 @@ page 7134 "Travel Requests API"
 
                     trigger OnValidate()
                     begin
-                        // Mark the record changed while deferring validation until the complete date pair is available.
+                        // Assigned without validation so the pair is checked once on insert/modify, regardless of field order.
                         Rec."Expected Start Date" := ExpectedStartDate;
-                        ExpectedStartDateProvided := true;
                     end;
                 }
                 field(expectedEndDate; ExpectedEndDate)
@@ -115,8 +114,8 @@ page 7134 "Travel Requests API"
 
                     trigger OnValidate()
                     begin
+                        // Assigned without validation so the pair is checked once on insert/modify, regardless of field order.
                         Rec."Expected End Date" := ExpectedEndDate;
-                        ExpectedEndDateProvided := true;
                     end;
                 }
                 field(closedAt; Rec."Closed At")
@@ -285,8 +284,6 @@ page 7134 "Travel Requests API"
         ExpectedStartDate := Rec."Expected Start Date";
         ExpectedEndDate := Rec."Expected End Date";
         ApprovedRejectedByExpUserNo := Rec."Approval Expense User No.";
-        ExpectedStartDateProvided := false;
-        ExpectedEndDateProvided := false;
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -298,8 +295,6 @@ page 7134 "Travel Requests API"
         Clear(ExpectedStartDate);
         Clear(ExpectedEndDate);
         Clear(ApprovedRejectedByExpUserNo);
-        ExpectedStartDateProvided := false;
-        ExpectedEndDateProvided := false;
     end;
 
     [ServiceEnabled]
@@ -410,6 +405,9 @@ page 7134 "Travel Requests API"
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        StartDate: Date;
+        EndDate: Date;
     begin
         Rec."Document Type" := Rec."Document Type"::"Travel Request";
         // Default the owner only at insertion so an owner-only POST remains a record change.
@@ -417,8 +415,23 @@ page 7134 "Travel Requests API"
             Rec."Requested By" := ProcessOwnerFilter();
         Rec.TestField("Requested By");
         CheckOwnerScope();
-        Rec.SetExpectedDatesForAPIInsert(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
-        exit(true);
+
+        // The table's OnInsert defaults both dates to WorkDate, so supplied dates are applied after the insert.
+        StartDate := Rec."Expected Start Date";
+        EndDate := Rec."Expected End Date";
+        Rec.Insert(true);
+        if (StartDate <> 0D) or (EndDate <> 0D) then begin
+            if StartDate <> 0D then
+                Rec."Expected Start Date" := StartDate;
+            if EndDate <> 0D then
+                Rec."Expected End Date" := EndDate;
+            Rec.Validate("Expected Start Date");
+            Rec.Validate("Expected End Date");
+            Rec.Modify(true);
+        end;
+        ExpectedStartDate := Rec."Expected Start Date";
+        ExpectedEndDate := Rec."Expected End Date";
+        exit(false);
     end;
 
     trigger OnModifyRecord(): Boolean
@@ -432,7 +445,10 @@ page 7134 "Travel Requests API"
             Rec.FieldError("Requested For", RequestedByCannotBeChangedErr);
 
         CheckOwnerScope();
-        Rec.ApplyExpectedDatesFromAPI(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
+        if Rec."Expected Start Date" <> xRec."Expected Start Date" then
+            Rec.Validate("Expected Start Date");
+        if Rec."Expected End Date" <> xRec."Expected End Date" then
+            Rec.Validate("Expected End Date");
         exit(true);
     end;
 
@@ -503,8 +519,6 @@ page 7134 "Travel Requests API"
         ExpectedEndDate: Date;
         // Match the expense report API's string length without changing the existing travel-request field.
         ApprovedRejectedByExpUserNo: Code[50];
-        ExpectedStartDateProvided: Boolean;
-        ExpectedEndDateProvided: Boolean;
         RequestedByProvided: Boolean;
         StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, rejecting, or reopening the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';

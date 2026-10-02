@@ -238,17 +238,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         }
     }
     trigger OnInsert()
-    var
-        StartDateProvided: Boolean;
-        EndDateProvided: Boolean;
     begin
-        StartDateProvided := APIStartDateProvided;
-        EndDateProvided := APIEndDateProvided;
-        APIStartDateProvided := false;
-        APIEndDateProvided := false;
-
-        // The base OnInsert initializes both dates to WorkDate. Restore API inputs before persistence.
-        ApplyExpectedDatesFromAPI(APIExpectedStartDate, APIExpectedEndDate, StartDateProvided, EndDateProvided);
         CheckExpenseLocation();
         CheckActualDateTimes();
     end;
@@ -306,10 +296,6 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     end;
 
     var
-        APIExpectedStartDate: Date;
-        APIExpectedEndDate: Date;
-        APIStartDateProvided: Boolean;
-        APIEndDateProvided: Boolean;
         ReplaceRequestedForTravelerQst: Label 'The %1 was changed. A traveler was automatically added for the previous %1. Do you want to remove that traveler and add a new one for the current %1 instead?', Comment = '%1 = Requested For field caption';
         ExpenseLocationRequiresPerDiemErr: Label '%1 can only be specified when %2 is selected.', Comment = '%1 = Expense Location field caption, %2 = Per Diem Included field caption';
         ActualEndBeforeStartErr: Label '%1 cannot be before %2.', Comment = '%1 = Actual End Date and Time field caption, %2 = Actual Start Date and Time field caption';
@@ -346,28 +332,6 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         LinkedReportError.PageNo := ReportPageNo;
         LinkedReportError.AddNavigationAction(ShowItLbl);
         exit(LinkedReportError);
-    end;
-
-    internal procedure SetExpectedDatesForAPIInsert(StartDate: Date; EndDate: Date; StartDateProvided: Boolean; EndDateProvided: Boolean)
-    begin
-        APIExpectedStartDate := StartDate;
-        APIExpectedEndDate := EndDate;
-        APIStartDateProvided := StartDateProvided;
-        APIEndDateProvided := EndDateProvided;
-    end;
-
-    internal procedure ApplyExpectedDatesFromAPI(StartDate: Date; EndDate: Date; StartDateProvided: Boolean; EndDateProvided: Boolean)
-    begin
-        // Populate the final pair before either field trigger validates it; omitted values remain unchanged.
-        if StartDateProvided then
-            Rec."Expected Start Date" := StartDate;
-        if EndDateProvided then
-            Rec."Expected End Date" := EndDate;
-
-        if StartDateProvided then
-            Rec.Validate("Expected Start Date");
-        if EndDateProvided then
-            Rec.Validate("Expected End Date");
     end;
 
     internal procedure InsertRequestedForTraveler()
