@@ -358,13 +358,13 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure DeleteFromInternalFailsWhenExternalContentDiffers()
+    procedure DeleteFromInternalSucceedsWhenExternalContentDiffers()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Result: Boolean;
     begin
-        // [SCENARIO] Internal content is retained when external content has the same length but a different hash.
+        // [SCENARIO] Provider-side file transformations do not block a Move when the external file remains retrievable.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeature();
@@ -376,13 +376,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
 
-        Assert.IsFalse(Result, 'Delete from internal should fail');
+        Assert.IsTrue(Result, 'Delete from internal should succeed for retrievable transformed content');
         RefreshAttachment(DocumentAttachment);
-        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Document should remain stored internally');
-        Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media should remain available');
-        Assert.IsTrue(DocumentAttachment."Stored Externally", 'External metadata should remain for investigation');
-        Assert.AreNotEqual('', DocumentAttachment."External File Path", 'External path should remain for investigation');
-        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Content mismatch must not delete the external file');
+        Assert.IsFalse(DocumentAttachment."Stored Internally", 'Document should no longer be stored internally');
+        Assert.IsFalse(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media reference should be released');
+        Assert.IsTrue(DocumentAttachment."Stored Externally", 'Document should remain stored externally');
     end;
 
     [Test]

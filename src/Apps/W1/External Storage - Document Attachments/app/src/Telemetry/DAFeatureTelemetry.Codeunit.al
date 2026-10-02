@@ -68,7 +68,7 @@ codeunit 8754 "DA Feature Telemetry"
     begin
         GetFailureTelemetryDimensions(DocumentAttachment, 'VerifyExternalContent', Dimensions);
         Dimensions.Add('FailureReason', FailureReason);
-        FeatureTelemetry.LogError('', ExternalStorageTok, 'Verifying external attachment content', ErrorText, ErrorCallStack, Dimensions);
+        FeatureTelemetry.LogError('0000RO0', ExternalStorageTok, 'Verifying external attachment content', ErrorText, ErrorCallStack, Dimensions);
     end;
 
     internal procedure LogFileDeleted(DocumentAttachment: Record "Document Attachment")

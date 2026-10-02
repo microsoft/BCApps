@@ -26,13 +26,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         MissingExternalPathReasonLbl: Label 'MissingExternalPath', Locked = true;
         MissingFileAccountReasonLbl: Label 'MissingFileAccount', Locked = true;
         ExternalDownloadReasonLbl: Label 'ExternalDownloadFailed', Locked = true;
-        ContentLengthReasonLbl: Label 'ContentLengthMismatch', Locked = true;
-        ContentHashReasonLbl: Label 'ContentHashMismatch', Locked = true;
+        EmptyExternalContentReasonLbl: Label 'EmptyExternalContent', Locked = true;
         MissingExternalPathTelemetryErr: Label 'The external attachment path is missing.', Locked = true;
         MissingFileAccountTelemetryErr: Label 'The external file account is not configured.', Locked = true;
         ExternalDownloadTelemetryErr: Label 'The external attachment could not be downloaded for verification.', Locked = true;
-        ContentLengthTelemetryErr: Label 'The external attachment length does not match the internal media.', Locked = true;
-        ContentHashTelemetryErr: Label 'The external attachment hash does not match the internal media.', Locked = true;
+        EmptyExternalContentTelemetryErr: Label 'The external attachment is empty.', Locked = true;
 
     #region File Scenario Interface Implementation
     /// <summary>
@@ -429,7 +427,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then
             exit(false);
 
-        if not ExternalContentMatchesInternal(DocumentAttachment, TenantMedia, VerificationFailureReason, VerificationErrorText) then begin
+        if not ExternalContentCanBeRetrieved(DocumentAttachment, VerificationFailureReason, VerificationErrorText) then begin
             DAFeatureTelemetry.LogExternalContentVerificationFailed(
                 DocumentAttachment, VerificationFailureReason, VerificationErrorText, GetLastErrorCallStack());
             exit(false);
@@ -446,16 +444,13 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         exit(true);
     end;
 
-    local procedure ExternalContentMatchesInternal(DocumentAttachment: Record "Document Attachment"; var TenantMedia: Record "Tenant Media"; var FailureReason: Text; var ErrorText: Text): Boolean
+    local procedure ExternalContentCanBeRetrieved(DocumentAttachment: Record "Document Attachment"; var FailureReason: Text; var ErrorText: Text): Boolean
     var
         TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
-        CryptographyManagement: Codeunit "Cryptography Management";
         FileScenario: Enum "File Scenario";
         ExternalInStream: InStream;
-        InternalInStream: InStream;
-        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
     begin
         if DocumentAttachment."External File Path" = '' then begin
             SetVerificationFailure(FailureReason, ErrorText, MissingExternalPathReasonLbl, MissingExternalPathTelemetryErr);
@@ -475,17 +470,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(false);
         end;
 
-        TenantMedia.CalcFields(Content);
-        if TenantMedia.Content.Length() <> ExternalInStream.Length() then begin
-            SetVerificationFailure(FailureReason, ErrorText, ContentLengthReasonLbl, ContentLengthTelemetryErr);
-            exit(false);
-        end;
-
-        TenantMedia.Content.CreateInStream(InternalInStream);
-        if CryptographyManagement.GenerateHash(InternalInStream, HashAlgorithmType::SHA256) <>
-           CryptographyManagement.GenerateHash(ExternalInStream, HashAlgorithmType::SHA256)
-        then begin
-            SetVerificationFailure(FailureReason, ErrorText, ContentHashReasonLbl, ContentHashTelemetryErr);
+        if ExternalInStream.Length() = 0 then begin
+            SetVerificationFailure(FailureReason, ErrorText, EmptyExternalContentReasonLbl, EmptyExternalContentTelemetryErr);
             exit(false);
         end;
 
