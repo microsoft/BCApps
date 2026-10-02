@@ -147,21 +147,6 @@
   {
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
-    "method": "DeleteTravelRequestWithReportIsBlocked"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "DeleteTravelRequestWithUnpostedLineIsBlocked"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "TravelRequestAPIDatesKeepValidation"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
     "method": "DefaultApproverFilterQuotesWildcardUserNo"
   }
 ]
