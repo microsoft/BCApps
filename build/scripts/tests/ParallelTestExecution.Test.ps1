@@ -263,7 +263,6 @@ Describe "ParallelTestExecution transient retry scheduling" {
                 "InvokeInteractions failed with status code 500"
                 "at InteractionManager.InvokeInteractions in InteractionManager.cs:line 203"
                 "Cannot open page 130455`nClientSession State is InError (Wait time 25 seconds)"
-                "GET request failed. Response code is 500 (InternalServerError), expected code is 200. Error message: Object reference not set to an instance of an object."
             ) | ForEach-Object {
                 Test-TransientTestFailure -Output $_ | Should -BeTrue
             }
@@ -281,6 +280,10 @@ Describe "ParallelTestExecution transient retry scheduling" {
                 'Cannot open page 130456'
                 'InvokeInteractions failed with status code 403'
                 'Nullable object must have a value.'
+                'Object reference not set to an instance of an object.'
+                'Assertion failed: expected 2 but was 1'
+                'GET request failed. Response code is 500 (InternalServerError), expected code is 200. Error message: Object reference not set to an instance of an object.'
+                "Opened page 130455 successfully.`nGET request failed. Response code is 500 (InternalServerError), expected code is 200. Error message: Object reference not set to an instance of an object."
             ) | ForEach-Object {
                 Test-TransientTestFailure -Output $_ | Should -BeFalse
             }
@@ -299,9 +302,11 @@ Describe "ParallelTestExecution transient retry scheduling" {
 
             Mock Receive-Job { "Assertion failed`nClientSession State is InError" } -RemoveParameterType Job
             (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Failed'
+            Mock Receive-Job { 'GET request failed. Response code is 500 (InternalServerError), expected code is 200. Error message: Object reference not set to an instance of an object.' } -RemoveParameterType Job
+            (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Failed'
             $job.State = 'Completed'
             (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Passed'
-            Should -Invoke Remove-Job -Times 4 -Exactly
+            Should -Invoke Remove-Job -Times 5 -Exactly
         }
     }
 
@@ -1145,6 +1150,63 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             )
         }, $true))
         $overrides.Count | Should -Be 0
+    }
+}
+
+Describe "RunTestsInBcContainer platform-race transcript classification" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+        $tokens = $null
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $PSScriptRoot '../RunTestsInBcContainer.ps1'), [ref]$tokens, [ref]$parseErrors)
+        $parseErrors.Count | Should -Be 0
+        $function = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq 'Invoke-RunTestsWithCancellationDetection'
+        }, $true)
+        . ([scriptblock]::Create($function.Extent.Text))
+    }
+
+    BeforeEach {
+        $script:transcriptPath = $null
+        Mock Start-Transcript {
+            $script:transcriptPath = $Path
+            Set-Content -LiteralPath $Path -Value $script:transcript
+        }
+        Mock Stop-Transcript {}
+        Mock Run-TestsInBcContainer { $false }
+        Mock Write-Host {}
+    }
+
+    AfterEach {
+        $script:transcriptPath | Should -Not -BeNullOrEmpty
+        Test-Path -LiteralPath $script:transcriptPath | Should -BeFalse
+    }
+
+    It "does not emit a platform marker for an ordinary API failure or unrelated page mention" -ForEach @(
+        @{ Transcript = 'GET request failed. Response code is 500 (InternalServerError), expected code is 200. Error message: Object reference not set to an instance of an object.' }
+        @{ Transcript = "Opened page 130455 successfully.`nGET request failed. Response code is 500 (InternalServerError), expected code is 200. Error message: Object reference not set to an instance of an object." }
+        @{ Transcript = 'Assertion failed: expected 2 but was 1' }
+    ) {
+        $script:transcript = $Transcript
+        Invoke-RunTestsWithCancellationDetection -parameters @{ appName = 'API Tests'; tenant = 'default' } |
+            Should -BeFalse
+        Should -Invoke Write-Host -Times 0 -ParameterFilter { $Object -like '*TRANSIENT TEST PLATFORM RACE*' }
+    }
+
+    It "emits the platform marker for established runtime races" -ForEach @(
+        @{ Transcript = 'Cannot open page 130455' }
+        @{ Transcript = 'InvokeInteractions failed with status code 500' }
+        @{ Transcript = 'at InteractionManager.InvokeInteractions in InteractionManager.cs:line 203' }
+        @{ Transcript = "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nOffset and length were out of bounds for the array" }
+        @{ Transcript = "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nNullable object must have a value." }
+    ) {
+        $script:transcript = $Transcript
+        Invoke-RunTestsWithCancellationDetection -parameters @{ appName = 'API Tests'; tenant = 'default' } |
+            Should -BeFalse
+        Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter { $Object -like '*TRANSIENT TEST PLATFORM RACE*' }
     }
 }
 
