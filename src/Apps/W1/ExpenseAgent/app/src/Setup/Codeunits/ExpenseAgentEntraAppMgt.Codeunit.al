@@ -38,7 +38,6 @@ codeunit 6922 "Expense Agent Entra App Mgt."
     begin
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit(true);
-
         if not AadApplication.Get(GetAadAppId()) then
             exit(false);
 
@@ -76,7 +75,6 @@ codeunit 6922 "Expense Agent Entra App Mgt."
             AadApplication.Validate(State, AadApplication.State::Enabled);
             AadApplication.Modify(true);
         end;
-
         if HasPermissionForCurrentCompany(AadApplication) then
             exit;
 
@@ -117,19 +115,6 @@ codeunit 6922 "Expense Agent Entra App Mgt."
         if UserPermissions.IsSuper(UserSecurityId()) then
             exit;
 
-        GetAgentAdminPermissionSet(AggregatePermissionSet);
-        if not UserPermissions.HasUserPermissionSetAssigned(
-            UserSecurityId(),
-            GetCurrentCompanyName(),
-            AggregatePermissionSet."Role ID",
-            AggregatePermissionSet.Scope,
-            AggregatePermissionSet."App ID")
-        then
-            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
-
-        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
-            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
-
         GetExpenseManagementAdminPermissionSet(AggregatePermissionSet);
         if not UserPermissions.HasUserPermissionSetAssigned(
             UserSecurityId(),
@@ -140,6 +125,9 @@ codeunit 6922 "Expense Agent Entra App Mgt."
         then
             Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
 
+        // Users without SUPER need SECURITY permission sets to enable the Entra App for
+        // authentication, plus they need the permission set they will assign to the
+        // new application (otherwise it would be permission escalation).
         if not HasSecurityPermission(UserPermissions) then
             Error(SecurityPermissionRequiredErr);
 
@@ -151,6 +139,20 @@ codeunit 6922 "Expense Agent Entra App Mgt."
             AggregatePermissionSet.Scope,
             AggregatePermissionSet."App ID")
         then
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
+
+        // Agent framework requires this permission to run the Agent configuration wizard
+        // and activate the agent
+        GetAgentAdminPermissionSet(AggregatePermissionSet);
+        if not UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityId(),
+            GetCurrentCompanyName(),
+            AggregatePermissionSet."Role ID",
+            AggregatePermissionSet.Scope,
+            AggregatePermissionSet."App ID")
+        then
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
+        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
     end;
 
