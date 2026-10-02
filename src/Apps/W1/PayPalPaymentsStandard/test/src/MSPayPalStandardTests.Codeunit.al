@@ -47,6 +47,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookDeleteSubscriptionErrorTxt: Label 'Error Expecting Webhook to be deleted for Account %1', Locked = true;
         WebhookProcessedErr: Label 'The webhook notification should have been processed successfully.';
         WebhookNotProcessedErr: Label 'The webhook notification for a missing invoice should not have been processed.';
+        UnexpectedInvoiceErr: Label 'is unexpected', Locked = true;
 
     local procedure Initialize();
     var
@@ -839,6 +840,8 @@ codeunit 139500 "MS - PayPal Standard Tests"
                 MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, MissingInvoiceNumberTxt,
                 SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT"),
             WebhookNotProcessedErr);
+        // Pin the trapped error to the unexpected-invoice reason so an unrelated failure can't pass the test unnoticed.
+        Assert.ExpectedError(UnexpectedInvoiceErr);
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
 
         // Verify
