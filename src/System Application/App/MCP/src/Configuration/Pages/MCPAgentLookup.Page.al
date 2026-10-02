@@ -37,11 +37,6 @@ page 8377 "MCP Agent Lookup"
                     Caption = 'Display Name';
                     ToolTip = 'Specifies the display name of the agent.';
                 }
-                field("Publisher Type"; Rec."Publisher Type")
-                {
-                    Caption = 'Publisher Type';
-                    ToolTip = 'Specifies the publisher type of the agent.';
-                }
             }
         }
     }

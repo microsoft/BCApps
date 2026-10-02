@@ -13,8 +13,7 @@ page 8378 "MCP Config Agent List"
     ApplicationArea = All;
     PageType = ListPart;
     SourceTable = "MCP Configuration Agent";
-    DelayedInsert = true;
-    MultipleNewLines = true;
+    InsertAllowed = false;
     Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -26,21 +25,11 @@ page 8378 "MCP Config Agent List"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Agent ID"; Rec."Agent ID")
+                field(AgentUserName; AgentUserName)
                 {
-                    Editable = not IsConfigActive;
-                    ToolTip = 'Specifies the agent enabled for this MCP configuration.';
-
-                    trigger OnLookup(var Text: Text): Boolean
-                    begin
-                        AddAgents();
-                        exit(true);
-                    end;
-
-                    trigger OnValidate()
-                    begin
-                        MCPConfigImplementation.SetAgentMetadata(Rec);
-                    end;
+                    Caption = 'Agent User Name';
+                    Editable = false;
+                    ToolTip = 'Specifies the user name of the configured agent.';
                 }
                 field("Agent Name"; Rec."Agent Name")
                 {
@@ -76,6 +65,15 @@ page 8378 "MCP Config Agent List"
         SetConfigActive(MCPConfigImplementation.IsConfigurationActive(Rec.ID));
     end;
 
+    trigger OnAfterGetRecord()
+    var
+        Agent: Record Agent;
+    begin
+        Clear(AgentUserName);
+        if Agent.Get(Rec."Agent ID") then
+            AgentUserName := Agent."User Name";
+    end;
+
     internal procedure SetConfigActive(IsActive: Boolean)
     begin
         IsConfigActive := IsActive;
@@ -84,6 +82,7 @@ page 8378 "MCP Config Agent List"
 
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        AgentUserName: Code[50];
         IsConfigActive: Boolean;
 
     local procedure AddAgents()
@@ -100,8 +99,6 @@ page 8378 "MCP Config Agent List"
             repeat
                 MCPConfigImplementation.AddAgent(Rec.ID, SelectedAgent."User Security ID");
             until SelectedAgent.Next() = 0;
-        if IsNullGuid(Rec."Agent ID") and not IsNullGuid(Rec.SystemId) then
-            Rec.Delete();
         CurrPage.Update();
     end;
 }
