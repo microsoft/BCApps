@@ -6,7 +6,8 @@ namespace Microsoft.Purchases.History;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000151 "SII Posted Purch.CrMemo Update" extends "Posted Purch. Cr.Memo - Update"
+#pragma warning disable AS0088
+pageextension 7000051 "SII Posted Purch.CrMemo Update" extends "Posted Purch. Cr.Memo - Update"
 {
     layout
     {
