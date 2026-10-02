@@ -1006,6 +1006,48 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
+    [HandlerFunctions('ComponentPurchLineMismatchNotificationHandler')]
+    procedure OneLegacyPurchaseLineForComponentsAcrossOutputsIsNotAssigned()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RemovedPurchaseLine: Record "Purchase Line";
+        SiblingProdOrderComponent: Record "Prod. Order Component";
+        OriginalPurchaseQuantity: Decimal;
+        SiblingProdOrderLineNo: Integer;
+    begin
+        // [SCENARIO 650504] A legacy line is not assigned when compatible source components exist on different production-order outputs.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        FindDuplicateComponentsAndPurchaseLines(
+            ProductionOrder, ComponentItem, PurchaseLine."Document No.",
+            ProdOrderComponent, RemovedPurchaseLine, SiblingProdOrderComponent, PurchaseLineComp);
+        SiblingProdOrderLineNo := ProdOrderComponent."Prod. Order Line No." + 10000;
+        SiblingProdOrderComponent.Rename(
+            SiblingProdOrderComponent.Status, SiblingProdOrderComponent."Prod. Order No.",
+            SiblingProdOrderLineNo, SiblingProdOrderComponent."Line No.");
+        RemovedPurchaseLine.Delete(true);
+        ClearComponentPurchaseLineIdentity(PurchaseLineComp);
+        OriginalPurchaseQuantity := PurchaseLineComp.Quantity;
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("Subc. Prod. Order Line No.", 0);
+        PurchaseLineComp.TestField("Subc. Prod. Ord. Comp Line No.", 0);
+        PurchaseLineComp.TestField(Quantity, OriginalPurchaseQuantity);
+    end;
+
+    [Test]
     procedure FirstLegacyRescheduleAppliesComponentDueDate()
     var
         ComponentItem: Record Item;
