@@ -1,6 +1,5 @@
 codeunit 139921 "APIV2 - Workflows E2E"
 {
-
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
@@ -20,6 +19,8 @@ codeunit 139921 "APIV2 - Workflows E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Check that workflows can be retrieved via API
         // [GIVEN] A workflow exists
         LibraryWorkflow.CreateWorkflow(Workflow);
@@ -36,5 +37,11 @@ codeunit 139921 "APIV2 - Workflows E2E"
             Assert.ExpectedError('Request failed with error: ' + GetLastErrorText());
 
         Assert.IsTrue(LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', WorkFlowId), 'Could not find workflow');
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

@@ -53,6 +53,9 @@ codeunit 139881 "E2E PowerBI Sales Test"
         if IsInitialized then
             exit;
 
+        LibGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         IsInitialized := true;
         Commit();
     end;
