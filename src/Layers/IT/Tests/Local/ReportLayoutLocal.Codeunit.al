@@ -56,6 +56,76 @@ codeunit 144005 "Report Layout - Local"
         DateFilterErr: Label 'You must specify a date range in the Date Filter field in the request page, such as the past quarter or the current year.';
 
     [Test]
+    [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure StandardSalesInvoiceShowsPostedPaymentLines()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedPaymentLines: Record "Posted Payment Lines";
+        PostedPaymentLines2: Record "Posted Payment Lines";
+        Currency: Record Currency;
+        StandardSalesInvoice: Report "Standard Sales - Invoice";
+        PmtRate: array[2] of Integer;
+        Days: array[2] of Integer;
+        ExpectedAmount: Decimal;
+        ResidualAmount: Decimal;
+        AmountRoundingPrecision: Decimal;
+    begin
+        // [FEATURE] [Sales] [Invoice] [Payment Terms]
+        // [SCENARIO] Standard Sales Invoice exposes the persisted Italian payment installment schedule
+        Initialize();
+        PmtRate[1] := 40;
+        PmtRate[2] := 60;
+        Days[1] := 10;
+        Days[2] := 20;
+
+        // [GIVEN] A posted Sales Invoice with two payment installments
+        CreateSalesInvoiceWithPaymentTerms(
+          SalesHeader, CreatePaymentTermsWithTwoLines(PmtRate, Days), LibraryRandom.RandIntInRange(100, 1000));
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        PostedPaymentLines.SetRange("Sales/Purchase", PostedPaymentLines."Sales/Purchase"::Sales);
+        PostedPaymentLines.SetRange(Type, PostedPaymentLines.Type::Invoice);
+        PostedPaymentLines.SetRange(Code, SalesInvoiceHeader."No.");
+        Assert.AreEqual(2, PostedPaymentLines.Count, 'Two posted payment lines were expected for the posted sales invoice.');
+
+        SalesInvoiceHeader.CalcFields("Amount Including VAT");
+        if SalesInvoiceHeader."Currency Code" = '' then begin
+            Currency.InitRoundingPrecision();
+            AmountRoundingPrecision := Currency."Amount Rounding Precision";
+        end else begin
+            Currency.Get(SalesInvoiceHeader."Currency Code");
+            AmountRoundingPrecision := Currency."Amount Rounding Precision";
+        end;
+
+        // [WHEN] Standard Sales Invoice is exported as a report dataset
+        SalesInvoiceHeader.SetRecFilter();
+        Commit();
+        StandardSalesInvoice.SetTableView(SalesInvoiceHeader);
+        StandardSalesInvoice.Run();
+        LibraryReportDataSet.LoadDataSetFile();
+
+        // [THEN] Each posted installment exposes its due date and calculated amount
+        PostedPaymentLines.FindSet();
+        repeat
+            PostedPaymentLines2.Copy(PostedPaymentLines);
+            if PostedPaymentLines2.Next() = 0 then
+                ExpectedAmount := SalesInvoiceHeader."Amount Including VAT" - ResidualAmount
+            else begin
+                ExpectedAmount := Round(
+                    PostedPaymentLines."Payment %" * SalesInvoiceHeader."Amount Including VAT" / 100, AmountRoundingPrecision);
+                ResidualAmount += ExpectedAmount;
+            end;
+
+            LibraryReportDataSet.AssertElementWithValueExists(
+              'PostedPaymentLineDueDate', Format(PostedPaymentLines."Due Date", 0, 4));
+            LibraryReportDataSet.AssertElementWithValueExists(
+              'PostedPaymentLineAmount', ExpectedAmount);
+        until PostedPaymentLines.Next() = 0;
+    end;
+
+    [Test]
     [HandlerFunctions('VendorAccountBillsListRequestPageHandler')]
     [Scope('OnPrem')]
     procedure TestVendorAccountBillsList()
@@ -3395,6 +3465,13 @@ codeunit 144005 "Report Layout - Local"
         VendorAccountBillsList.EndingDate.SetValue(LibraryRandom.RandDate(10));  // Using random Date.
         VendorAccountBillsList.Vendor.SetFilter("No.", LibraryVariableStorage.DequeueText());
         VendorAccountBillsList.SaveAsXml(LibraryReportDataSet.GetParametersFileName(), LibraryReportDataSet.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
+    begin
+        StandardSalesInvoice.SaveAsXml(LibraryReportDataSet.GetParametersFileName(), LibraryReportDataSet.GetFileName());
     end;
 }
 
