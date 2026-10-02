@@ -96,6 +96,14 @@ codeunit 6349 "PBI Deploy. Upload Tracker" implements "Power BI Upload Tracker"
         PowerBIDeployment."Uploaded Report Name" := CopyStr(ReportName, 1, MaxStrLen(PowerBIDeployment."Uploaded Report Name"));
     end;
 
+    procedure SetTargetWorkspace(WorkspaceId: Guid)
+    var
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+    begin
+        PowerBIDeployment."Power BI Workspace Id" := WorkspaceId;
+        PowerBIDeployment."Deployed Workspace Name" := PowerBIWorkspaceMgt.GetTargetWorkspaceDisplayName();
+    end;
+
     procedure GetUploadedReportName(): Text
     begin
         exit(PowerBIDeployment."Uploaded Report Name");
