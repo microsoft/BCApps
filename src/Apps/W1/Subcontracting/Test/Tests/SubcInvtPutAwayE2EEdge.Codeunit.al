@@ -567,7 +567,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         // [THEN] Posting the separate invoice does not create duplicate capacity or output entries
         CapacityLedgerEntry.Reset();
         CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", PurchRcptLine."Work Center No.");
         Assert.AreEqual(CapacityLedgerEntryCount, CapacityLedgerEntry.Count(), 'Separate invoicing must not duplicate capacity output.');
         ItemLedgerEntry.Reset();
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
@@ -1489,11 +1489,8 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         Item: Record Item;
         ItemLedgerEntry: Record "Item Ledger Entry";
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
         PostedCreditMemoHeader: Record "Purch. Cr. Memo Hdr.";
         PostedInvoiceHeader: Record "Purch. Inv. Header";
-        ProdOrderLine: Record "Prod. Order Line";
         ProductionOrder: Record "Production Order";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         ReasonCode: Record "Reason Code";
@@ -1505,9 +1502,6 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         PurchaseLine: Record "Purchase Line";
         ValueEntry: Record "Value Entry";
         Vendor: Record Vendor;
-        WarehouseActivityHeader: Record "Warehouse Activity Header";
-        WarehouseActivityLine: Record "Warehouse Activity Line";
-        WorkCenter: array[2] of Record "Work Center";
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
         CapacityLedgerEntryCount: Integer;
@@ -1518,67 +1512,9 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         ExpectedCost: Decimal;
         Quantity: Decimal;
     begin
-        Initialize();
-        if TrackOutput then
-            Quantity := 2
-        else
-            Quantity := LibraryRandom.RandIntInRange(5, 10);
-        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
-        if TrackOutput then
-            SubcWarehouseLibrary.CreateSerialTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter)
-        else
-            SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
-
-        Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subc. Location Code" := Location.Code;
-        Vendor."Location Code" := Location.Code;
-        Vendor.Modify(true);
-
-        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released,
-            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
-        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
-        if TrackOutput then begin
-            ProdOrderLine.SetRange(Status, ProductionOrder.Status);
-            ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-            ProdOrderLine.FindFirst();
-            LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, 'REV-SN1', '', 1);
-            LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, 'REV-SN2', '', 1);
-        end;
-        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
-        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
-        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
-        if TrackOutput then begin
-            WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
-            WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
-            WarehouseActivityLine.FindSet();
-            WarehouseActivityLine.Validate("Qty. to Handle", 1);
-            WarehouseActivityLine.Validate("Serial No.", 'REV-SN1');
-            WarehouseActivityLine.Modify(true);
-            WarehouseActivityLine.Next();
-            WarehouseActivityLine.Validate("Qty. to Handle", 1);
-            WarehouseActivityLine.Validate("Serial No.", 'REV-SN2');
-            WarehouseActivityLine.Modify(true);
-        end else
-            LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
-        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
-
-        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
-        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
-        PurchRcptLine.FindFirst();
-        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
-        CapacityLedgerEntryCount := CapacityLedgerEntry.Count();
-        CapacityLedgerEntry.FindFirst();
-        CapacityLedgerEntryNo := CapacityLedgerEntry."Entry No.";
-        ItemLedgerEntry.SetRange("Item No.", Item."No.");
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        OutputItemLedgerEntryCount := ItemLedgerEntry.Count();
+        CreateSubcontractingReceiptForSeparateInvoice(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, TrackOutput);
 
         LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
         PurchRcptLine.SetRecFilter();
@@ -1654,13 +1590,99 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
         CapacityLedgerEntry.Reset();
         CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", PurchRcptLine."Work Center No.");
         Assert.AreEqual(CapacityLedgerEntryCount, CapacityLedgerEntry.Count(), 'Reversing the invoice must not create capacity entries.');
         ItemLedgerEntry.Reset();
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Reversing the invoice must not create output entries.');
+    end;
+
+    local procedure CreateSubcontractingReceiptForSeparateInvoice(
+        var Item: Record Item;
+        var Vendor: Record Vendor;
+        var ProductionOrder: Record "Production Order";
+        var PurchRcptLine: Record "Purch. Rcpt. Line";
+        var PurchaseHeader: Record "Purchase Header";
+        var PurchaseLine: Record "Purchase Line";
+        var CapacityLedgerEntryNo: Integer;
+        var CapacityLedgerEntryCount: Integer;
+        var OutputItemLedgerEntryCount: Integer;
+        var Quantity: Decimal;
+        TrackOutput: Boolean)
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ReservationEntry: Record "Reservation Entry";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        Initialize();
+        if TrackOutput then
+            Quantity := 2
+        else
+            Quantity := LibraryRandom.RandIntInRange(5, 10);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        if TrackOutput then
+            SubcWarehouseLibrary.CreateSerialTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter)
+        else
+            SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify(true);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        if TrackOutput then begin
+            ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+            ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderLine.FindFirst();
+            LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, 'REV-SN1', '', 1);
+            LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, 'REV-SN2', '', 1);
+        end;
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+        if TrackOutput then begin
+            WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+            WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+            WarehouseActivityLine.FindSet();
+            WarehouseActivityLine.Validate("Qty. to Handle", 1);
+            WarehouseActivityLine.Validate("Serial No.", 'REV-SN1');
+            WarehouseActivityLine.Modify(true);
+            WarehouseActivityLine.Next();
+            WarehouseActivityLine.Validate("Qty. to Handle", 1);
+            WarehouseActivityLine.Validate("Serial No.", 'REV-SN2');
+            WarehouseActivityLine.Modify(true);
+        end else
+            LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+        CapacityLedgerEntryCount := CapacityLedgerEntry.Count();
+        CapacityLedgerEntry.FindFirst();
+        CapacityLedgerEntryNo := CapacityLedgerEntry."Entry No.";
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        OutputItemLedgerEntryCount := ItemLedgerEntry.Count();
     end;
 
     local procedure VerifyCorrectiveApplication(ItemLedgerEntry: Record "Item Ledger Entry"; ProductionOrder: Record "Production Order"; PurchRcptLine: Record "Purch. Rcpt. Line")
