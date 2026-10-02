@@ -19,15 +19,26 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     TestPermissions = Disabled;
     Permissions = tabledata "Document Attachment" = rimd,
                   tabledata "Tenant Media" = r,
-                  tabledata "DA External Storage Setup" = rimd;
+                  tabledata "DA External Storage Setup" = rimd,
+                  tabledata "Error Message" = rd,
+                  tabledata "Error Message Register" = rd;
 
     var
         Any: Codeunit Any;
         FileConnectorMock: Codeunit "File Connector Mock";
         FileScenarioMock: Codeunit "File Scenario Mock";
         Assert: Codeunit "Library Assert";
+        ExpectedSyncSummary: Text;
+        SyncToInternalStorage: Boolean;
+        MoveAttachments: Boolean;
         CannotRetrieveExternalFileErr: Label 'could not be retrieved from external storage', Locked = true;
         DialogErrorCodeTok: Label 'Dialog', Locked = true;
+        FeatureDisabledErr: Label 'External storage is not enabled.', Locked = true;
+        NoInternalContentErr: Label 'The attachment has no file content in internal storage.', Locked = true;
+        AlreadyUploadedErr: Label 'The attachment already references a file in external storage.', Locked = true;
+        NotStoredExternallyErr: Label 'The attachment is not stored in external storage.', Locked = true;
+        NoFileAccountErr: Label 'No file account is assigned to the Document Attachments - External Storage file scenario.', Locked = true;
+        SharedExternalFileErr: Label 'The external file is shared with another attachment, so it was not deleted.', Locked = true;
 
     #region Successful Operations Tests
 
@@ -192,6 +203,397 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     #endregion
 
+    #region File Name Migration Tests
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure InvalidFileNameCharactersRoundTrip()
+    var
+        InvalidCharacters: Text;
+        InvalidCharacter: Char;
+    begin
+        // [SCENARIO] Invalid path characters, including a leading slash, do not change the attachment name or content.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+
+        VerifyFileNameRoundTrip('Invoice Nov''25', 'pdf');
+        InvalidCharacters := '"''<>/\|';
+        foreach InvalidCharacter in InvalidCharacters do
+            VerifyFileNameRoundTrip(Format(InvalidCharacter) + 'Invoice Nov25', 'pdf');
+        VerifyFileNameRoundTrip('Invoice/Nov25', 'pdf');
+        VerifyFileNameRoundTrip(InvalidCharacters, 'pdf');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure InvalidFileExtensionCharactersRoundTrip()
+    var
+        InvalidCharacters: Text;
+        InvalidCharacter: Char;
+    begin
+        // [SCENARIO] Only the external path is sanitized when an extension contains invalid characters.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+
+        InvalidCharacters := '"''<>/\|';
+        foreach InvalidCharacter in InvalidCharacters do
+            VerifyFileNameRoundTrip('Invoice Nov25', 'p' + Format(InvalidCharacter) + 'df');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure ValidFileNameRoundTrip()
+    begin
+        // [SCENARIO] Valid filename characters and the existing path layout remain unchanged.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+
+        VerifyFileNameRoundTrip('Invoice Nov25 (final)_100%+v1', 'pdf');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure SanitizedFileNamesDoNotCollide()
+    var
+        FirstFilePath: Text;
+        SecondFilePath: Text;
+    begin
+        // [SCENARIO] Names that sanitize to the same value retain distinct paths and round-trip independently.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+
+        FirstFilePath := VerifyFileNameRoundTrip('Invoice Nov''25', 'pdf');
+        SecondFilePath := VerifyFileNameRoundTrip('Invoice Nov25', 'pdf');
+
+        Assert.AreNotEqual(FirstFilePath, SecondFilePath, 'Sanitized file names must not collide');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure CompanyMigrationSanitizesFileName()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        OriginalContent: Text;
+        OriginalPath: Text;
+    begin
+        // [SCENARIO] Migration to the current environment also sanitizes the new path without renaming the attachment.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        OriginalContent := GetAttachmentContent(DocumentAttachment);
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Initial upload should succeed');
+        OriginalPath := DocumentAttachment."External File Path";
+        DocumentAttachment."File Name" := 'Invoice Nov''25';
+        DocumentAttachment."Source Environment Hash" := 'previous-environment';
+        DocumentAttachment.Modify();
+
+        Assert.IsTrue(DAExternalStorageImpl.MigrateFileToCurrentEnvironment(DocumentAttachment), 'Company migration should succeed');
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.AreNotEqual(OriginalPath, DocumentAttachment."External File Path", 'Migration should create a new path');
+        Assert.IsTrue(DocumentAttachment."External File Path".Contains('/Invoice Nov25-'), 'The migrated path should be sanitized');
+        Assert.AreEqual('Invoice Nov''25', DocumentAttachment."File Name", 'Migration must preserve the original name');
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Internal cleanup should succeed');
+        Assert.IsTrue(DAExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment), 'The migrated file should be retrievable');
+        Assert.AreEqual(OriginalContent, GetAttachmentContent(DocumentAttachment), 'Migration must preserve the file content');
+    end;
+
+    #endregion
+
+    #region Storage Sync Report Tests
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler,SyncSummaryMessageHandler')]
+    procedure SyncMovesInvalidFileNameRoundTrip()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        OriginalContent: Text;
+    begin
+        // [SCENARIO] Storage Sync can move an attachment with an unsafe name in both directions without renaming it.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+        CreateNamedDocumentAttachment(DocumentAttachment, '/Invoice Nov''25', 'pdf');
+        OriginalContent := GetAttachmentContent(DocumentAttachment);
+        MoveAttachments := true;
+        ExpectedSyncSummary := 'Processed 1 attachments successfully. 0 failed.';
+
+        Commit();
+        Report.Run(Report::"DA External Storage Sync");
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachment."Stored Externally", 'The attachment should be stored externally');
+        Assert.IsFalse(DocumentAttachment."Stored Internally", 'Move should remove the internal copy');
+        Assert.AreEqual('/Invoice Nov''25', DocumentAttachment."File Name", 'Upload must preserve the original name');
+        Assert.AreEqual('pdf', DocumentAttachment."File Extension", 'Upload must preserve the original extension');
+
+        SyncToInternalStorage := true;
+        Commit();
+        Report.Run(Report::"DA External Storage Sync");
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'The attachment should be restored internally');
+        Assert.IsFalse(DocumentAttachment."Stored Externally", 'Move should clear the external reference');
+        Assert.AreEqual('/Invoice Nov''25', DocumentAttachment."File Name", 'Download must preserve the original name');
+        Assert.AreEqual('pdf', DocumentAttachment."File Extension", 'Download must preserve the original extension');
+        Assert.AreEqual(OriginalContent, GetAttachmentContent(DocumentAttachment), 'Storage Sync must preserve the file content');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler,SyncSummaryMessageHandler')]
+    procedure SyncReportsUploadFailureWithFileName()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        ErrorMessages: TestPage "Error Messages";
+    begin
+        // [SCENARIO] A connector upload failure identifies the affected attachment and the actual error.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+        FileConnectorMock.FailOnSend(true);
+        CreateNamedDocumentAttachment(DocumentAttachment, 'Invoice Nov''25', 'pdf');
+        ExpectedSyncSummary := 'Processed 0 attachments successfully. 1 failed.';
+        ErrorMessages.Trap();
+
+        Commit();
+        Report.Run(Report::"DA External Storage Sync");
+
+        Assert.IsTrue(ErrorMessages.First(), 'The failed attachment should be listed');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'Invoice Nov''25.pdf') > 0, 'The error should identify the original filename');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'Failed to create file.') > 0, 'The connector error should be reported');
+        Assert.IsFalse(ErrorMessages.Next(), 'Only the failed attachment should be listed');
+        ErrorMessages.Close();
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsFalse(DocumentAttachment."Stored Externally", 'A failed upload must not mark the attachment as externally stored');
+        Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'A failed upload must retain the internal content');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler,SyncSummaryMessageHandler')]
+    procedure SyncReportsDownloadFailureWithFileName()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        ErrorMessages: TestPage "Error Messages";
+    begin
+        // [SCENARIO] A connector download failure is reported with the attachment name rather than only a failed count.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+        FileConnectorMock.SetFailOnGetFile(true);
+        SyncToInternalStorage := true;
+        ExpectedSyncSummary := 'Processed 0 attachments successfully. 1 failed.';
+        ErrorMessages.Trap();
+
+        Commit();
+        Report.Run(Report::"DA External Storage Sync");
+
+        Assert.IsTrue(ErrorMessages.First(), 'The failed attachment should be listed');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'TestFile.txt') > 0, 'The error should identify the attachment');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'Failed to get file.') > 0, 'The connector error should be reported');
+        ErrorMessages.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler,SyncSummaryMessageHandler')]
+    procedure SyncReportsAllFailedAttachments()
+    var
+        FirstAttachment: Record "Document Attachment";
+        SecondAttachment: Record "Document Attachment";
+        ErrorMessages: TestPage "Error Messages";
+        ReportedErrors: Text;
+        FailureCount: Integer;
+    begin
+        // [SCENARIO] Every failed attachment is diagnosed, even when the storage error includes customer-specific paths.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        CreateExternallyStoredOnlyDocument(FirstAttachment);
+        FirstAttachment."File Name" := 'First customer invoice';
+        FirstAttachment."External File Path" := 'customer-one/Invoice Nov''25.pdf';
+        FirstAttachment.Modify();
+        CreateExternallyStoredOnlyDocument(SecondAttachment);
+        SecondAttachment."File Name" := 'Second customer invoice';
+        SecondAttachment."External File Path" := 'customer-two/Invoice Dec''25.pdf';
+        SecondAttachment.Modify();
+        SyncToInternalStorage := true;
+        ExpectedSyncSummary := 'Processed 0 attachments successfully. 2 failed.';
+        ErrorMessages.Trap();
+
+        Commit();
+        Report.Run(Report::"DA External Storage Sync");
+
+        Assert.IsTrue(ErrorMessages.First(), 'The failed attachments should be listed');
+        repeat
+            FailureCount += 1;
+            ReportedErrors += ErrorMessages.Description.Value;
+        until not ErrorMessages.Next();
+        ErrorMessages.Close();
+        Assert.AreEqual(2, FailureCount, 'Each failed attachment should be diagnosed exactly once');
+        Assert.IsTrue(ReportedErrors.Contains('First customer invoice.txt'), 'The first attachment should be identified to the user');
+        Assert.IsTrue(ReportedErrors.Contains('Second customer invoice.txt'), 'The second attachment should be identified to the user');
+        Assert.IsTrue(ReportedErrors.Contains(FirstAttachment."External File Path"), 'The user should retain the detailed first error');
+        Assert.IsTrue(ReportedErrors.Contains(SecondAttachment."External File Path"), 'The user should retain the detailed second error');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler,SyncSummaryMessageHandler')]
+    procedure SyncContinuesWithoutReusingPreviousError()
+    var
+        FailedAttachment: Record "Document Attachment";
+        SuccessfulAttachment: Record "Document Attachment";
+        ErrorMessages: TestPage "Error Messages";
+    begin
+        // [SCENARIO] A failure without a platform error is explained, does not reuse a stale error, and does not stop other attachments.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        CreateNamedDocumentAttachment(FailedAttachment, 'Missing content', 'pdf');
+        Clear(FailedAttachment."Document Reference ID");
+        FailedAttachment.Modify();
+        CreateDocumentAttachmentWithContent(SuccessfulAttachment);
+        ExpectedSyncSummary := 'Processed 1 attachments successfully. 1 failed.';
+        ErrorMessages.Trap();
+        Commit();
+        asserterror Error('Previous unrelated failure');
+
+        Report.Run(Report::"DA External Storage Sync");
+
+        Assert.IsTrue(ErrorMessages.First(), 'The failed attachment should be listed');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'Missing content.pdf') > 0, 'The error should identify the attachment');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'could not be copied') > 0, 'The failed operation should be explained');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, NoInternalContentErr) > 0, 'The specific reason should be reported');
+        Assert.AreEqual(0, StrPos(ErrorMessages.Description.Value, 'Previous unrelated failure'), 'A stale error must not be reported');
+        Assert.IsFalse(ErrorMessages.Next(), 'Successful attachments must not be listed as failures');
+        ErrorMessages.Close();
+        RefreshAttachment(SuccessfulAttachment);
+        Assert.IsTrue(SuccessfulAttachment."Stored Externally", 'Other attachments should still be processed');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler,SyncSummaryMessageHandler')]
+    procedure SyncReportsMoveCleanupFailure()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageSetup: Record "DA External Storage Setup";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ErrorMessages: TestPage "Error Messages";
+    begin
+        // [SCENARIO] A successful copy with failed source cleanup is reported without discarding either copy.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+        CreateNamedDocumentAttachment(DocumentAttachment, 'Invoice Nov25', 'pdf');
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should succeed');
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Internal cleanup should succeed');
+        DAExternalStorageSetup.Get();
+        DAExternalStorageSetup.Enabled := false;
+        DAExternalStorageSetup.Modify();
+        SyncToInternalStorage := true;
+        MoveAttachments := true;
+        ExpectedSyncSummary := 'Processed 0 attachments successfully. 1 failed.';
+        ErrorMessages.Trap();
+
+        Commit();
+        Report.Run(Report::"DA External Storage Sync");
+
+        Assert.IsTrue(ErrorMessages.First(), 'The failed cleanup should be listed');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'Invoice Nov25.pdf') > 0, 'The error should identify the attachment');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'copied, but could not be removed') > 0, 'The cleanup failure should be explained');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, FeatureDisabledErr) > 0, 'The specific cleanup reason should be reported');
+        ErrorMessages.Close();
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'The restored content should be retained');
+        Assert.IsTrue(DocumentAttachment."Stored Externally", 'The external reference should be retained when cleanup fails');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler,SyncSummaryMessageHandler')]
+    procedure SyncReportsUnassignedFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        ErrorMessageRegister: Record "Error Message Register";
+        ErrorMessages: TestPage "Error Messages";
+    begin
+        // [SCENARIO] An interactive run explains a missing file account and also records the failure in the Error Message Register.
+        Initialize();
+        EnableFeatureOnly();
+        ErrorMessageRegister.DeleteAll(true);
+        CreateNamedDocumentAttachment(DocumentAttachment, 'Invoice Nov25', 'pdf');
+        ExpectedSyncSummary := 'Processed 0 attachments successfully. 1 failed.';
+        ErrorMessages.Trap();
+
+        Commit();
+        Report.Run(Report::"DA External Storage Sync");
+
+        Assert.IsTrue(ErrorMessages.First(), 'The failed attachment should be listed');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'Invoice Nov25.pdf') > 0, 'The error should identify the attachment');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, NoFileAccountErr) > 0, 'The missing file account should be reported');
+        ErrorMessages.Close();
+        Assert.IsTrue(ErrorMessageRegister.FindFirst(), 'Interactive failures should also be registered');
+        VerifyRegisteredFailure(ErrorMessageRegister.ID, DocumentAttachment, 'Invoice Nov25.pdf', NoFileAccountErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler')]
+    procedure SyncInBackgroundRegistersEveryFailure()
+    var
+        MissingContentAttachment: Record "Document Attachment";
+        LinkedAttachment: Record "Document Attachment";
+        SuccessfulAttachment: Record "Document Attachment";
+        ErrorMessageRegister: Record "Error Message Register";
+        DAExternalStorageSync: Report "DA External Storage Sync";
+    begin
+        // [SCENARIO] Without a user interface, the run completes, processes every attachment, and registers every failure with its reason.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        ErrorMessageRegister.DeleteAll(true);
+
+        // [GIVEN] Two attachments that fail for different reasons and one that can be uploaded
+        CreateNamedDocumentAttachment(MissingContentAttachment, 'Missing content', 'pdf');
+        Clear(MissingContentAttachment."Document Reference ID");
+        MissingContentAttachment.Modify();
+        CreateNamedDocumentAttachment(LinkedAttachment, 'Already linked', 'pdf');
+        LinkedAttachment."External File Path" := 'existing/path.pdf';
+        LinkedAttachment.Modify();
+        CreateDocumentAttachmentWithContent(SuccessfulAttachment);
+
+        // [WHEN] The report runs as it does from the job queue (no message, page, or error handler is expected)
+        Commit();
+        DAExternalStorageSync.SetHideDialog(true);
+        DAExternalStorageSync.Run();
+
+        // [THEN] A single register records both failures
+        Assert.AreEqual(1, ErrorMessageRegister.Count(), 'The run should create one Error Message Register entry');
+        ErrorMessageRegister.FindFirst();
+        ErrorMessageRegister.CalcFields(Errors);
+        Assert.AreEqual(2, ErrorMessageRegister.Errors, 'Every failed attachment should be registered');
+        Assert.AreEqual('External Storage Synchronization: 2 of 3 attachments failed.', ErrorMessageRegister."Message", 'The register should summarize the run');
+        VerifyRegisteredFailure(ErrorMessageRegister.ID, MissingContentAttachment, 'Missing content.pdf', NoInternalContentErr);
+        VerifyRegisteredFailure(ErrorMessageRegister.ID, LinkedAttachment, 'Already linked.pdf', AlreadyUploadedErr);
+
+        // [THEN] The failures did not stop the remaining attachment from being processed
+        RefreshAttachment(SuccessfulAttachment);
+        Assert.IsTrue(SuccessfulAttachment."Stored Externally", 'Other attachments should still be processed');
+    end;
+
+    #endregion
+
     #region Failure Condition Tests
 
     [Test]
@@ -200,6 +602,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DAExternalStorageSetup: Record "DA External Storage Setup";
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        FailureReason: Text;
         Result: Boolean;
     begin
         // [SCENARIO] Upload should fail when feature is disabled
@@ -213,10 +616,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateDocumentAttachmentWithContent(DocumentAttachment);
 
         // [WHEN] Upload is attempted
-        Result := DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment, FailureReason);
 
-        // [THEN] Upload should fail
+        // [THEN] Upload should fail and explain why
         Assert.IsFalse(Result, 'Upload should fail when feature is disabled');
+        Assert.AreEqual(FeatureDisabledErr, FailureReason, 'The disabled feature should be reported');
     end;
 
     [Test]
@@ -225,6 +629,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        FailureReason: Text;
         Result: Boolean;
     begin
         // [SCENARIO] Upload should fail for already uploaded document
@@ -238,10 +643,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment.Modify();
 
         // [WHEN] Upload is attempted again
-        Result := DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment, FailureReason);
 
-        // [THEN] Upload should fail
+        // [THEN] Upload should fail and explain why
         Assert.IsFalse(Result, 'Upload should fail for already uploaded document');
+        Assert.AreEqual(AlreadyUploadedErr, FailureReason, 'The existing external reference should be reported');
     end;
 
     [Test]
@@ -250,6 +656,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        FailureReason: Text;
         Result: Boolean;
     begin
         // [SCENARIO] Upload should fail when no file scenario is configured
@@ -262,10 +669,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateDocumentAttachmentWithContent(DocumentAttachment);
 
         // [WHEN] Upload is attempted
-        Result := DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment, FailureReason);
 
-        // [THEN] Upload should fail
+        // [THEN] Upload should fail and explain why
         Assert.IsFalse(Result, 'Upload should fail when no file scenario is configured');
+        Assert.AreEqual(NoFileAccountErr, FailureReason, 'The missing file account should be reported');
     end;
 
     [Test]
@@ -274,6 +682,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DAExternalStorageSetup: Record "DA External Storage Setup";
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        FailureReason: Text;
         Result: Boolean;
     begin
         // [SCENARIO] Delete should fail when feature is disabled
@@ -287,10 +696,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateExternallyStoredDocument(DocumentAttachment);
 
         // [WHEN] Delete is attempted
-        Result := DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment, FailureReason);
 
-        // [THEN] Delete should fail
+        // [THEN] Delete should fail and explain why
         Assert.IsFalse(Result, 'Delete should fail when feature is disabled');
+        Assert.AreEqual(FeatureDisabledErr, FailureReason, 'The disabled feature should be reported');
     end;
 
     [Test]
@@ -299,6 +709,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        FailureReason: Text;
         Result: Boolean;
     begin
         // [SCENARIO] Delete should be skipped when Skip Delete On Copy is set
@@ -312,10 +723,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment.Modify();
 
         // [WHEN] Delete is attempted
-        Result := DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment, FailureReason);
 
-        // [THEN] Delete should fail (skipped)
+        // [THEN] Delete should fail (skipped) and explain why
         Assert.IsFalse(Result, 'Delete should be skipped when Skip Delete On Copy is set');
+        Assert.AreEqual(SharedExternalFileErr, FailureReason, 'The shared external file should be reported');
 
         // [THEN] Document should still be marked as externally stored
         DocumentAttachment.SetRecFilter();
@@ -355,6 +767,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        FailureReason: Text;
         Result: Boolean;
     begin
         // [SCENARIO] Delete from internal should fail for non-external document
@@ -364,10 +777,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateDocumentAttachmentWithContent(DocumentAttachment);
 
         // [WHEN] Delete from internal is attempted
-        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment, FailureReason);
 
-        // [THEN] Delete should fail
+        // [THEN] Delete should fail and explain why
         Assert.IsFalse(Result, 'Delete from internal should fail for non-external document');
+        Assert.AreEqual(NotStoredExternallyErr, FailureReason, 'The missing external copy should be reported');
     end;
 
     #endregion
@@ -998,6 +1412,10 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DAExternalStorageSetup: Record "DA External Storage Setup";
         DocumentAttachment: Record "Document Attachment";
     begin
+        Clear(ExpectedSyncSummary);
+        Clear(SyncToInternalStorage);
+        Clear(MoveAttachments);
+
         // Clean up test data
         DocumentAttachment.DeleteAll();
         if DAExternalStorageSetup.Get() then
@@ -1087,6 +1505,63 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment.Modify(false);
     end;
 
+    local procedure CreateNamedDocumentAttachment(var DocumentAttachment: Record "Document Attachment"; FileName: Text; FileExtension: Text)
+    begin
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DocumentAttachment."File Name" := CopyStr(FileName, 1, MaxStrLen(DocumentAttachment."File Name"));
+        DocumentAttachment."File Extension" := CopyStr(FileExtension, 1, MaxStrLen(DocumentAttachment."File Extension"));
+        DocumentAttachment.Modify();
+    end;
+
+    local procedure GetAttachmentContent(DocumentAttachment: Record "Document Attachment") Content: Text
+    var
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream);
+        DocumentAttachment.ExportToStream(OutStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.ReadText(Content);
+    end;
+
+    local procedure VerifyFileNameRoundTrip(FileName: Text; FileExtension: Text): Text
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        OriginalContent: Text;
+        PathParts: List of [Text];
+        FileNamePart: Text;
+    begin
+        CreateNamedDocumentAttachment(DocumentAttachment, FileName, FileExtension);
+        OriginalContent := GetAttachmentContent(DocumentAttachment);
+
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should succeed for ' + FileName);
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.AreEqual(FileName, DocumentAttachment."File Name", 'Upload must preserve the original filename');
+        Assert.AreEqual(FileExtension, DocumentAttachment."File Extension", 'Upload must preserve the original extension');
+        PathParts := DocumentAttachment."External File Path".Split('/');
+        Assert.AreEqual(3, PathParts.Count(), 'A filename must not add path segments');
+        Assert.AreEqual(DAExternalStorageImpl.GetCurrentEnvironmentHash(), PathParts.Get(1), 'The path must start with the environment folder');
+        Assert.AreEqual('Document_Attachment', PathParts.Get(2), 'The table folder should be unchanged');
+        FileNamePart := PathParts.Get(3);
+        Assert.AreEqual(FileNamePart, DelChr(FileNamePart, '=', '"''<>/\|'), 'The filename must contain no invalid path characters');
+        Assert.IsTrue(FileNamePart.StartsWith(DelChr(FileName, '=', '"''<>/\|') + '-'), 'The safe filename should retain the original valid characters');
+        Assert.IsTrue(FileNamePart.EndsWith('.' + DelChr(FileExtension, '=', '"''<>/\|')), 'The safe extension should retain the original valid characters');
+
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Internal cleanup should succeed');
+        Assert.IsFalse(DocumentAttachment."Document Reference ID".HasValue(), 'The round-trip must retrieve the external content');
+        Assert.IsTrue(DAExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment), 'The attachment should be restored from its stored path');
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.AreEqual(FileName, DocumentAttachment."File Name", 'Download must preserve the original filename');
+        Assert.AreEqual(FileExtension, DocumentAttachment."File Extension", 'Download must preserve the original extension');
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'The attachment should be restored internally');
+        Assert.AreEqual(OriginalContent, GetAttachmentContent(DocumentAttachment), 'The original file content should survive the round-trip');
+        exit(DocumentAttachment."External File Path");
+    end;
+
     local procedure CreateCopyOfDocumentAttachment(var DocumentAttachment: Record "Document Attachment"; var CopiedDocumentAttachment: Record "Document Attachment")
     begin
         // Mirrors Document Attachment Mgmt, which copies attachments onto posted documents with
@@ -1137,10 +1612,44 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
             DocumentAttachment.ID);
     end;
 
+    local procedure VerifyRegisteredFailure(RegisterID: Guid; DocumentAttachment: Record "Document Attachment"; FileName: Text; Reason: Text)
+    var
+        ErrorMessage: Record "Error Message";
+    begin
+        ErrorMessage.SetRange("Register ID", RegisterID);
+        ErrorMessage.SetRange("Record ID", DocumentAttachment.RecordId());
+        Assert.AreEqual(1, ErrorMessage.Count(), 'Each failed attachment should be registered exactly once');
+        ErrorMessage.FindFirst();
+        Assert.AreEqual(ErrorMessage."Message Type"::Error, ErrorMessage."Message Type", 'The failure should be registered as an error');
+        Assert.IsTrue(ErrorMessage."Message".Contains(FileName), 'The registered failure should identify the attachment');
+        Assert.IsTrue(ErrorMessage."Message".Contains(Reason), 'The registered failure should include the specific reason');
+    end;
+
     [ConfirmHandler]
     procedure ConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [RequestPageHandler]
+    procedure StorageSyncRequestPageHandler(var StorageSync: TestRequestPage "DA External Storage Sync")
+    begin
+        if SyncToInternalStorage then
+            StorageSync.SyncDirectionField.SetValue('To Internal Storage')
+        else
+            StorageSync.SyncDirectionField.SetValue('To External Storage');
+        if MoveAttachments then
+            StorageSync.OperationField.SetValue('Move')
+        else
+            StorageSync.OperationField.SetValue('Copy');
+        StorageSync.MaxRecordsToProcessField.SetValue(0);
+        StorageSync.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    procedure SyncSummaryMessageHandler(Message: Text[1024])
+    begin
+        Assert.AreEqual(ExpectedSyncSummary, Message, 'The sync summary should count successful and failed attachments');
     end;
 
     #endregion
