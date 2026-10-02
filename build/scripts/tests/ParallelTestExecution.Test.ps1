@@ -1156,6 +1156,11 @@ Describe "ParallelTestExecution clean tenant scheduling" {
 Describe "RunTestsInBcContainer platform-race transcript classification" {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+        function Run-TestsInBcContainer {
+            param([string]$appName, [string]$tenant)
+            $null = $appName, $tenant
+            throw 'Container test execution must be mocked.'
+        }
         $tokens = $null
         $parseErrors = $null
         $ast = [System.Management.Automation.Language.Parser]::ParseFile(
