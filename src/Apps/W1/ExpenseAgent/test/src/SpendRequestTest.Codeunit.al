@@ -644,13 +644,15 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    procedure ActualEndBeforeActualStartFailsOnCard()
+    procedure ActualDatesCanBeMovedInEitherOrderOnCard()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         TravelRequestCard: TestPage "Travel Request Card";
+        NewStart: DateTime;
+        NewEnd: DateTime;
     begin
-        // [SCENARIO] On the travel request card, the actual end cannot be set before the actual start.
+        // [SCENARIO] On the travel request card, the actual dates can be rescheduled in either field order.
         Initialize();
 
         // [GIVEN] An open travel request with actual dates.
@@ -659,11 +661,23 @@ codeunit 148339 "Spend Request Test"
         TravelRequestCard.OpenEdit();
         TravelRequestCard.GoToRecord(SpendRequest);
 
-        // [WHEN] The actual end is set before the actual start on the card.
-        asserterror TravelRequestCard."Actual End Date and Time".SetValue(SpendRequest."Actual Start Date and Time" - 3600000);
+        // [WHEN] The trip is moved later, start first, beyond the old end.
+        NewStart := SpendRequest."Actual End Date and Time" + 2 * 86400000;
+        NewEnd := NewStart + 86400000;
+        TravelRequestCard."Actual Start Date and Time".SetValue(NewStart);
+        TravelRequestCard."Actual End Date and Time".SetValue(NewEnd);
 
-        // [THEN] It fails because the actual end cannot be before the actual start.
-        Assert.ExpectedError(ActualEndBeforeStartErr);
+        // [WHEN] The trip is moved earlier, end first, before the old start.
+        NewEnd := SpendRequest."Actual Start Date and Time" - 2 * 86400000;
+        NewStart := NewEnd - 86400000;
+        TravelRequestCard."Actual End Date and Time".SetValue(NewEnd);
+        TravelRequestCard."Actual Start Date and Time".SetValue(NewStart);
+        TravelRequestCard.Close();
+
+        // [THEN] The final pair is saved.
+        SpendRequest.Get(SpendRequest."No.");
+        SpendRequest.TestField("Actual Start Date and Time", NewStart);
+        SpendRequest.TestField("Actual End Date and Time", NewEnd);
     end;
 
     [Test]

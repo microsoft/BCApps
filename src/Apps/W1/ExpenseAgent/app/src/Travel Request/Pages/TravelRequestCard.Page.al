@@ -133,27 +133,18 @@ page 7129 "Travel Request Card"
                     ToolTip = 'Specifies the expected end date of the travel.';
                     Editable = Rec.Status = Rec.Status::Open;
                 }
+                // The actual date pair is checked on release, so the dates can be moved in either order.
                 field("Actual Start Date and Time"; Rec."Actual Start Date and Time")
                 {
                     Importance = Additional;
                     Editable = Rec.Status = Rec.Status::Open;
                     ShowMandatory = Rec."Per Diem Included";
-
-                    trigger OnValidate()
-                    begin
-                        Rec.CheckActualDateTimes();
-                    end;
                 }
                 field("Actual End Date and Time"; Rec."Actual End Date and Time")
                 {
                     Importance = Additional;
                     Editable = Rec.Status = Rec.Status::Open;
                     ShowMandatory = Rec."Per Diem Included";
-
-                    trigger OnValidate()
-                    begin
-                        Rec.CheckActualDateTimes();
-                    end;
                 }
             }
             group("Travel Details")
