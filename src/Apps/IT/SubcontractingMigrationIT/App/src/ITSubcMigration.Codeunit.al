@@ -284,7 +284,7 @@ codeunit 149951 "IT Subc. Migration"
         TotalRecords := ProductionBOMLine.Count();
         if UIAllowed then
             StartProgressPhase(ProductionBOMLinesPhaseLbl, ProductionBOMLineProgressEntityLbl, TotalRecords);
-        if not ProductionBOMLine.FindSet() then
+        if not ProductionBOMLine.FindSet(true) then
             exit;
 
         repeat
@@ -312,7 +312,7 @@ codeunit 149951 "IT Subc. Migration"
         TotalRecords := ProdOrderComponent.Count();
         if UIAllowed then
             StartProgressPhase(ProdOrderComponentSupplyMethodsPhaseLbl, ProdOrderComponentSupplyMethodProgressEntityLbl, TotalRecords);
-        if not ProdOrderComponent.FindSet() then
+        if not ProdOrderComponent.FindSet(true) then
             exit;
 
         repeat
