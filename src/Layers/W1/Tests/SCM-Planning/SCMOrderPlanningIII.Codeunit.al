@@ -5146,16 +5146,6 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.AreEqual(50, RequisitionLine.Quantity, RequisitionLineQuantityMismatchErr);
     end;
 
-    local procedure VerifyPlanningErrorCount(ItemNoFilter: Text; ExpectedRecordCount: Integer)
-    var
-        PlanningErrorLog: Record "Planning Error Log";
-    begin
-#pragma warning disable AA0210
-        PlanningErrorLog.SetFilter("Item No.", ItemNoFilter);
-#pragma warning restore AA0210
-        Assert.RecordCount(PlanningErrorLog, ExpectedRecordCount);
-    end;
-
     local procedure CreateMultipleItemWithReOrderPolicy(var Item: array[2] of Record Item; ReorderPoint: Integer; ReorderQuantity: Integer)
     begin
         LibraryInventory.CreateItem(Item[1]);
@@ -5251,7 +5241,9 @@ codeunit 137088 "SCM Order Planning - III"
     var
         PlanningErrorLog: Record "Planning Error Log";
     begin
+#pragma warning disable AA0210
         PlanningErrorLog.SetFilter("Item No.", ItemNoFilter);
+#pragma warning restore AA0210
         Assert.RecordCount(PlanningErrorLog, ExpectedCount);
     end;
 
