@@ -160,10 +160,10 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
 #if not CLEAN27
         CalcInventoryAdjmtOrder.RunOnCalcActualCapacityCostsOnAfterSetFilters(CapLedgEntry, InvtAdjmtEntryOrder, IsHandled, ShareOfTotalCapCost);
 #endif
-        if not IsHandled then
-            if CapLedgEntry.Find('-') then
+        if not IsHandled then begin
+            CapLedgEntry.SetAutoCalcFields("Direct Cost", "Direct Cost (ACY)", "Overhead Cost", "Overhead Cost (ACY)");
+            if CapLedgEntry.FindSet() then
                 repeat
-                    CapLedgEntry.CalcFields("Direct Cost", "Direct Cost (ACY)", "Overhead Cost", "Overhead Cost (ACY)");
                     if CapLedgEntry.Subcontracting then
                         InvtAdjmtEntryOrder.AddSingleLvlSubcontrdCost(CapLedgEntry."Direct Cost" * ShareOfTotalCapCost, CapLedgEntry."Direct Cost (ACY)" *
                           ShareOfTotalCapCost)
@@ -173,6 +173,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
                     InvtAdjmtEntryOrder.AddSingleLvlCapOvhdCost(
                       CapLedgEntry."Overhead Cost" * ShareOfTotalCapCost, CapLedgEntry."Overhead Cost (ACY)" * ShareOfTotalCapCost);
                 until CapLedgEntry.Next() = 0;
+        end;
     end;
 
     local procedure CalcShareOfCapCost(InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)") ShareOfCapCost: Decimal

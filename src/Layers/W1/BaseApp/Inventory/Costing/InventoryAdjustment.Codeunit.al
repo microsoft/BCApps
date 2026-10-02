@@ -57,8 +57,8 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         Window: Dialog;
         ItemLedgerEntryTypesUsed: Dictionary of [Enum "Item Ledger Entry Type", Boolean];
         ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [Integer]];
-        OpenOutboundEntryNos: List of [Integer];
-        FixedAppliedItemEntryNos: List of [Integer];
+        OpenOutboundEntryNos: Dictionary of [Integer, Boolean];
+        FixedAppliedItemEntryNos: Dictionary of [Integer, Boolean];
         ItemsToAdjust: List of [Code[20]];
         JobsToAdjust: List of [Code[20]];
         ItemsBeingAdjusted: List of [Code[20]];
@@ -1595,11 +1595,11 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         // Return "True" if the entry is cost recipient
 
         // outbound open entry - cost recipient
-        if OpenOutboundEntryNos.Contains(ValueEntry."Item Ledger Entry No.") then
+        if OpenOutboundEntryNos.ContainsKey(ValueEntry."Item Ledger Entry No.") then
             exit(false);
 
         // fixed application is taken out
-        if FixedAppliedItemEntryNos.Contains(ValueEntry."Item Ledger Entry No.") then begin
+        if FixedAppliedItemEntryNos.ContainsKey(ValueEntry."Item Ledger Entry No.") then begin
             FixedApplication := true;
             exit(false);
         end;
@@ -1618,6 +1618,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
         // inbound entry cost-applied to outbound - cost recipient
         OutbndEntryItemApplicationTrace.Reset();
+        OutbndEntryItemApplicationTrace.SetCurrentKey("Entry No.");
         OutbndEntryItemApplicationTrace.SetRange("Entry No.", ValueEntry."Item Ledger Entry No.");
         if not OutbndEntryItemApplicationTrace.IsEmpty() then
             exit(true);
@@ -1689,7 +1690,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         ItemApplicationEntry.SetFilter("Outbound Item Entry No.", '<>%1', 0);
         if ItemApplicationEntry.FindSet() then
             repeat
-                if FixedAppliedItemEntryNos.Contains(ItemApplicationEntry."Outbound Item Entry No.") then
+                if FixedAppliedItemEntryNos.ContainsKey(ItemApplicationEntry."Outbound Item Entry No.") then
                     if IncludedInCostCalculation(RevaluationValueEntry, ItemApplicationEntry."Outbound Item Entry No.") then
                         FixedApplQty -= ItemApplicationEntry.Quantity;
             until ItemApplicationEntry.Next() = 0;
@@ -2338,6 +2339,8 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
     local procedure CopyItemToItem(var FromItem: Record Item; var ToItem: Record Item)
     var
+        ItemsToAdjustLookup: Dictionary of [Code[20], Boolean];
+        SelectionChecked: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2352,9 +2355,8 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         FromItem.Ascending(false);
         if FromItem.FindSet() then
             repeat
-                if ItemsToAdjust.Count() > 0 then
-                    if not ItemsToAdjust.Contains(FromItem."No.") then
-                        continue;
+                if not IsItemSelected(FromItem."No.", ItemsToAdjustLookup, SelectionChecked) then
+                    continue;
                 ToItem."No." := FromItem."No.";
                 ToItem."Low-Level Code" := FromItem."Low-Level Code";
                 ToItem.Insert();
@@ -2375,30 +2377,54 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     local procedure CopyOrderAdmtEntryToOrderAdjmt(var FromInventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ToInventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)")
+    var
+        ItemsToAdjustLookup: Dictionary of [Code[20], Boolean];
+        SelectionChecked: Boolean;
     begin
         ToInventoryAdjmtEntryOrder.Reset();
         ToInventoryAdjmtEntryOrder.DeleteAll();
         FromInventoryAdjmtEntryOrder.ReadIsolation(IsolationLevel::ReadUncommitted);
         if FromInventoryAdjmtEntryOrder.FindSet() then
             repeat
-                if CanAdjustInventoryAdjmtEntryOrder(FromInventoryAdjmtEntryOrder) then begin
+                if CanAdjustInventoryAdjmtEntryOrder(FromInventoryAdjmtEntryOrder, ItemsToAdjustLookup, SelectionChecked) then begin
                     ToInventoryAdjmtEntryOrder := FromInventoryAdjmtEntryOrder;
                     ToInventoryAdjmtEntryOrder.Insert();
                 end;
             until FromInventoryAdjmtEntryOrder.Next() = 0;
     end;
 
-    local procedure CanAdjustInventoryAdjmtEntryOrder(InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"): Boolean
+    local procedure IsItemSelected(ItemNo: Code[20]; var ItemsToAdjustLookup: Dictionary of [Code[20], Boolean]; var SelectionChecked: Boolean): Boolean
+    var
+        SelectedItemNo: Code[20];
     begin
+        if ItemsToAdjust.Count() = 0 then
+            exit(true);
+
+        // Avoid building a lookup for a single candidate or a single selected item.
+        if not SelectionChecked or (ItemsToAdjust.Count() = 1) then begin
+            SelectionChecked := true;
+            exit(ItemsToAdjust.Contains(ItemNo));
+        end;
+
+        // The lookup is local to each discovery pass so subscriber changes between passes remain visible.
+        if ItemsToAdjustLookup.Count() = 0 then
+            foreach SelectedItemNo in ItemsToAdjust do
+                if not ItemsToAdjustLookup.ContainsKey(SelectedItemNo) then
+                    ItemsToAdjustLookup.Add(SelectedItemNo, true);
+
+        exit(ItemsToAdjustLookup.ContainsKey(ItemNo));
+    end;
+
+    local procedure CanAdjustInventoryAdjmtEntryOrder(InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ItemsToAdjustLookup: Dictionary of [Code[20], Boolean]; var SelectionChecked: Boolean): Boolean
+    begin
+        if not IsItemSelected(InventoryAdjmtEntryOrder."Item No.", ItemsToAdjustLookup, SelectionChecked) then
+            exit(false);
+
         FilterItem.ReadIsolation(IsolationLevel::ReadUncommitted);
         FilterItem.SetLoadFields("No.");
         FilterItem."No." := InventoryAdjmtEntryOrder."Item No.";
         if not FilterItem.Find() then
             exit(false);
-
-        if ItemsToAdjust.Count() > 0 then
-            if not ItemsToAdjust.Contains(InventoryAdjmtEntryOrder."Item No.") then
-                exit(false);
 
         InventoryAdjmtEntryOrderToAdjust.ReadIsolation(IsolationLevel::ReadUncommitted);
         InventoryAdjmtEntryOrderToAdjust.SetLoadFields("Order Type", "Order No.", "Order Line No.");
@@ -2565,12 +2591,13 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         ItemApplnEntry: Record "Item Application Entry";
         ItemApplicationEntriesOutb: Query "Item Application Entries Outb.";
     begin
-        if not FixedAppliedItemEntryNos.Contains(ItemLedgerEntryNo) then
+        if not FixedAppliedItemEntryNos.ContainsKey(ItemLedgerEntryNo) then
             if ItemApplnEntry.AppliedOutbndEntryExists(ItemApplicationEntriesOutb, ItemLedgerEntryNo, true, false) then begin
-                FixedAppliedItemEntryNos.Add(ItemLedgerEntryNo);
+                FixedAppliedItemEntryNos.Add(ItemLedgerEntryNo, true);
                 repeat
                     // buffer is filled with couple of entries which are applied and contains revaluation
-                    FixedAppliedItemEntryNos.Add(ItemApplicationEntriesOutb.Item_Ledger_Entry_No);
+                    if not FixedAppliedItemEntryNos.ContainsKey(ItemApplicationEntriesOutb.Item_Ledger_Entry_No) then
+                        FixedAppliedItemEntryNos.Add(ItemApplicationEntriesOutb.Item_Ledger_Entry_No, true);
                 until not ItemApplicationEntriesOutb.Read();
             end;
     end;
@@ -2597,7 +2624,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
                 end;
     end;
 
-    local procedure FetchOpenOutboundItemEntriesToExclude(AvgCostAdjmtEntryPoint: Record "Avg. Cost Adjmt. Entry Point"; var ExcludedValueEntry: Record "Value Entry"; var OpenOutbndEntries: List of [Integer]; CalendarPeriod: Record Date)
+    local procedure FetchOpenOutboundItemEntriesToExclude(AvgCostAdjmtEntryPoint: Record "Avg. Cost Adjmt. Entry Point"; var ExcludedValueEntry: Record "Value Entry"; var OpenOutbndEntries: Dictionary of [Integer, Boolean]; CalendarPeriod: Record Date)
     var
         OpenItemLedgEntry: Record "Item Ledger Entry";
         ItemApplicationTraceAllPeriods: Record "Item Application Trace";
@@ -2693,11 +2720,11 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             end;
     end;
 
-    local procedure CopyOpenItemLedgEntryToBuf(var OpenOutbndEntries: List of [Integer]; var ExcludedValueEntry: Record "Value Entry"; OpenItemLedgEntryNo: Integer; PeriodStart: Date)
+    local procedure CopyOpenItemLedgEntryToBuf(var OpenOutbndEntries: Dictionary of [Integer, Boolean]; var ExcludedValueEntry: Record "Value Entry"; OpenItemLedgEntryNo: Integer; PeriodStart: Date)
     begin
         if CollectOpenValueEntries(ExcludedValueEntry, OpenItemLedgEntryNo, PeriodStart) then
-            if not OpenOutbndEntries.Contains(OpenItemLedgEntryNo) then
-                OpenOutbndEntries.Add(OpenItemLedgEntryNo);
+            if not OpenOutbndEntries.ContainsKey(OpenItemLedgEntryNo) then
+                OpenOutbndEntries.Add(OpenItemLedgEntryNo, true);
     end;
 
     local procedure CollectOpenValueEntries(var ExcludedValueEntry: Record "Value Entry"; ItemLedgerEntryNo: Integer; PeriodStart: Date) FoundEntries: Boolean
