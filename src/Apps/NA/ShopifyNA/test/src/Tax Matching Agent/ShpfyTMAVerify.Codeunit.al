@@ -30,6 +30,10 @@ codeunit 134715 "Shpfy TMA Verify"
         if ElementExists then
             VerifyCreatedJurisdictionCountryRegion(OrderHeader, Expected.Element('createdJurisdictionCountryRegion').ValueAsText());
 
+        Expected.ElementExists('taxJurisdictionDescriptions', ElementExists);
+        if ElementExists then
+            VerifyTaxJurisdictionDescriptions(Expected.Element('taxJurisdictionDescriptions'));
+
         Expected.ElementExists('reportToAllSame', ElementExists);
         if ElementExists then
             if Expected.Element('reportToAllSame').ValueAsBoolean() then
@@ -84,10 +88,10 @@ codeunit 134715 "Shpfy TMA Verify"
             if Expected.Element('orderUnchanged').ValueAsBoolean() then
                 VerifyOrderUnchanged(OrderHeader);
 
-        Expected.ElementExists('createdJurisdictionDescriptionEqualsCode', ElementExists);
+        Expected.ElementExists('createdJurisdictionDescriptionMatchesTitle', ElementExists);
         if ElementExists then
-            if Expected.Element('createdJurisdictionDescriptionEqualsCode').ValueAsBoolean() then
-                VerifyCreatedJurisdictionDescriptionEqualsCode(OrderHeader);
+            if Expected.Element('createdJurisdictionDescriptionMatchesTitle').ValueAsBoolean() then
+                VerifyCreatedJurisdictionDescriptionsMatchTitles(OrderHeader);
     end;
 
     local procedure VerifyTaxLineJurisdictions(ExpectedArray: Codeunit "Test Input Json")
@@ -156,6 +160,25 @@ codeunit 134715 "Shpfy TMA Verify"
                                     StrSubstNo(JurisdictionCountryRegionLbl, TaxJurisdiction.Code));
                     until OrderTaxLine.Next() = 0;
             until OrderLine.Next() = 0;
+    end;
+
+    local procedure VerifyTaxJurisdictionDescriptions(ExpectedArray: Codeunit "Test Input Json")
+    var
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        ExpectedItem: Codeunit "Test Input Json";
+        JurisdictionCode: Code[10];
+        i: Integer;
+    begin
+        for i := 0 to ExpectedArray.GetElementCount() - 1 do begin
+            ExpectedItem := ExpectedArray.ElementAt(i);
+            JurisdictionCode := CopyStr(ExpectedItem.Element('code').ValueAsText(), 1, MaxStrLen(JurisdictionCode));
+            LibraryAssert.IsTrue(TaxJurisdiction.Get(JurisdictionCode),
+                StrSubstNo(JurisdictionShouldExistLbl, JurisdictionCode));
+            LibraryAssert.AreEqual(
+                ExpectedItem.Element('description').ValueAsText(),
+                TaxJurisdiction.Description,
+                StrSubstNo(JurisdictionDescriptionLbl, JurisdictionCode));
+        end;
     end;
 
     local procedure VerifyReportToAllSame(OrderHeader: Record "Shpfy Order Header")
@@ -263,7 +286,7 @@ codeunit 134715 "Shpfy TMA Verify"
         FilterBuilder.Append(Format(ParentId));
     end;
 
-    local procedure VerifyCreatedJurisdictionDescriptionEqualsCode(OrderHeader: Record "Shpfy Order Header")
+    local procedure VerifyCreatedJurisdictionDescriptionsMatchTitles(OrderHeader: Record "Shpfy Order Header")
     var
         OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
@@ -277,11 +300,11 @@ codeunit 134715 "Shpfy TMA Verify"
                 OrderTaxLine.SetFilter("Tax Jurisdiction Code", '<>%1', '');
                 if OrderTaxLine.FindSet() then
                     repeat
-                        if TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then begin
+                        if TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") and TaxJurisdiction."Shpfy Created by Agent" then begin
                             LibraryAssert.AreEqual(
-                                Format(TaxJurisdiction.Code),
+                                Format(OrderTaxLine.Title),
                                 TaxJurisdiction.Description,
-                                StrSubstNo(JurisdictionDescriptionEqualsCodeLbl, TaxJurisdiction.Code));
+                                StrSubstNo(JurisdictionDescriptionMatchesTitleLbl, TaxJurisdiction.Code));
                             Checked := true;
                         end;
                     until OrderTaxLine.Next() = 0;
@@ -362,10 +385,12 @@ codeunit 134715 "Shpfy TMA Verify"
         TaxLineShouldHaveCodeLbl: Label 'Tax line %1-%2 should have a jurisdiction code', Locked = true;
         TaxLineShouldBeMatchedLbl: Label 'Tax line %1-%2 should be matched', Locked = true;
         JurisdictionCountryRegionLbl: Label 'Jurisdiction %1 Country/Region', Locked = true;
+        JurisdictionShouldExistLbl: Label 'Tax Jurisdiction %1 should exist', Locked = true;
+        JurisdictionDescriptionLbl: Label 'Tax Jurisdiction %1 Description', Locked = true;
         JurisdictionReportToLbl: Label 'Jurisdiction %1 Report-to should match first', Locked = true;
         TaxDetailShouldExistLbl: Label 'Tax Detail should exist for %1 / %2 / %3', Locked = true;
         TaxDetailEffectiveDateLbl: Label 'Tax Detail Effective Date for %1 / %2', Locked = true;
         TaxDetailCountLbl: Label 'Tax Detail count for %1/%2', Locked = true;
         TaxAreaShouldExistLbl: Label 'Tax Area %1 should exist', Locked = true;
-        JurisdictionDescriptionEqualsCodeLbl: Label 'Auto-created jurisdiction %1 should have Description = Code', Locked = true;
+        JurisdictionDescriptionMatchesTitleLbl: Label 'Auto-created jurisdiction %1 should use the Shopify tax title as its Description', Locked = true;
 }
