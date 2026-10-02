@@ -222,6 +222,10 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
             if XmlNode.AsXmlAttribute().Value() = '0088' then
                 if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
                     Header."Buyer GLN" := CopyStr(Value, 1, MaxStrLen(Header."Buyer GLN"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
+            Header."Buyer Endpoint Id" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Endpoint Id"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID/@schemeID', Value) then
+            Header."Buyer Endpoint Scheme Id" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Endpoint Scheme Id"));
     end;
 
     local procedure PopulateSellerParty(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Sales Header")
@@ -249,6 +253,10 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
             if XmlNode.AsXmlAttribute().Value() = '0088' then
                 if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
                     Header."Seller GLN" := CopyStr(Value, 1, MaxStrLen(Header."Seller GLN"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
+            Header."Seller Endpoint Id" := CopyStr(Value, 1, MaxStrLen(Header."Seller Endpoint Id"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID/@schemeID', Value) then
+            Header."Seller Endpoint Scheme Id" := CopyStr(Value, 1, MaxStrLen(Header."Seller Endpoint Scheme Id"));
     end;
 
     local procedure PopulateOriginatorParty(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Sales Header")
@@ -562,8 +570,10 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
         case UpperCase(ResponseCode) of
             'AB':
                 exit("E-Doc. Response Type"::Acknowledged);
-            'AC', 'AP':
+            'AP':
                 exit("E-Doc. Response Type"::Accepted);
+            'CA':
+                exit("E-Doc. Response Type"::"Conditionally Accepted");
             'RE':
                 exit("E-Doc. Response Type"::Rejected);
             else
