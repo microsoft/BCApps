@@ -2151,7 +2151,11 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     [Scope('OnPrem')]
     procedure UT_CustomReportSelection_CheckSendToEmail()
     var
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         CustomReportSelection: Record "Custom Report Selection";
         Customer: Record Customer;
         DataRecRef: RecordRef;
@@ -2162,10 +2166,16 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
 
         CreateCustomer(Customer);
 
+#if not CLEAN30
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", GetStandardStatementReportID(), true, true,
           CustomReportLayout.InitBuiltInLayout(GetStandardStatementReportID(), CustomReportLayout.Type::Word.AsInteger()),
           '', CustomReportSelection.Usage::"C.Statement");
+#else
+        InsertCustomReportSelectionCustomer(
+          CustomReportSelection, Customer."No.", GetStandardStatementReportID(), true, true, '',
+          '', CustomReportSelection.Usage::"C.Statement");
+#endif
 
         DataRecRef.GETTABLE(Customer);
         asserterror CustomReportSelection.CheckEmailSendTo(DataRecRef);
@@ -2342,15 +2352,19 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     end;
 
     [Test]
-    procedure PrintCustomerStatementWhenCustomerNotInFilterAndHasCustomDocLayout()
+    procedure PrintCustomerStatementWhenCustomerNotInFilter()
     var
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         SendingProfileCode: Code[20];
         CustomReportLayoutCode: Code[20];
     begin
-        // [SCENARIO 546893] Run Customer Statement report when some customers have custom Document Layouts for Customer Statement and they are NOT included in report filter.
+        // [SCENARIO 546893] Run Customer Statement report when a customer with a Report Selection for the report is NOT included in report filter.
 
         // [GIVEN] Document Sending Profile P1.
         SendingProfileCode := CreateDocumentSendingProfile();
@@ -2362,10 +2376,14 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateSalesInvoice(SalesHeader, Customer[1]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
+#if not CLEAN30
         // [GIVEN] Custom Report Layout RL1 with Report ID 1316 and Type RDLC.
         CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(1316, CustomReportLayout.Type::RDLC.AsInteger());
+#else
+        CustomReportLayoutCode := '';
+#endif
 
-        // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316 and Custom Layout Description RL1.
+        // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316.
         LibrarySales.CreateCustomer(Customer[2]);
         LibrarySales.CreateCustomerDocumentLayout(Customer[2]."No.", Enum::"Report Selection Usage"::"C.Statement", 1316, CustomReportLayoutCode, '');
         CreateSalesInvoice(SalesHeader, Customer[2]);
@@ -2382,15 +2400,19 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     end;
 
     [Test]
-    procedure PrintCustomerStatementWhenCustomerInFilterAndHasCustomDocLayout()
+    procedure PrintCustomerStatementWhenCustomerInFilter()
     var
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         SendingProfileCode: Code[20];
         CustomReportLayoutCode: Code[20];
     begin
-        // [SCENARIO 546893] Run Customer Statement report when some customers have custom Document Layouts for Customer Statement and they are included in report filter.
+        // [SCENARIO 546893] Run Customer Statement report when a customer with a Report Selection for the report is included in report filter.
 
         // [GIVEN] Document Sending Profile P1.
         SendingProfileCode := CreateDocumentSendingProfile();
@@ -2402,10 +2424,14 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateSalesInvoice(SalesHeader, Customer[1]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
+#if not CLEAN30
         // [GIVEN] Custom Report Layout RL1 with Report ID 1316 and Type RDLC.
         CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(1316, CustomReportLayout.Type::RDLC.AsInteger());
+#else
+        CustomReportLayoutCode := '';
+#endif
 
-        // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316 and Custom Layout Description RL1.
+        // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316.
         // [GIVEN] Customer C2 has Document Sending Profile P1 and posted Sales Invoice.
         LibrarySales.CreateCustomer(Customer[2]);
         LibrarySales.CreateCustomerDocumentLayout(Customer[2]."No.", Enum::"Report Selection Usage"::"C.Statement", 1316, CustomReportLayoutCode, '');
@@ -2417,8 +2443,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         // [WHEN] Run Standard Statement report with filter by Customer's Document Sending Profile P1 and Report Output Print.
         RunReportWithCustomerFieldsFilter(Customer[1].FieldNo("Document Sending Profile"), SendingProfileCode, StandardStatementReportOutputType::Print, false);
 
-        // [THEN] Customer Statement is printed for Customer C1 with DEFAULT report layout. No errors are thrown.
-        // [THEN] Customer Statement is printed for Customer C2 with CUSTOM report layout.
+        // [THEN] Customer Statement is printed for both Customer C1 and Customer C2. No errors are thrown.
         Customer[1].Find();
         Customer[1].TestField("Last Statement No.", 1);
         Customer[2].Find();
@@ -2715,7 +2740,11 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         SalesHeader: Record "Sales Header";
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         CustomReportLayoutCode: Code[20];
     begin
         CreateCustomer(Customer);
@@ -2725,12 +2754,16 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         InsertReportSelections(
           ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
+#if not CLEAN30
         CustomReportLayout.SetRange("Report ID", ReportId);
         CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
         if CustomReportLayout.FindFirst() then
             CustomReportLayoutCode := CustomReportLayout.Code
         else
             CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(ReportId, CustomReportLayout.Type::Word.AsInteger());
+#else
+        CustomReportLayoutCode := '';
+#endif
 
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", ReportId, true, true,
@@ -2741,7 +2774,11 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         CustomReportLayoutCode: Code[20];
     begin
         CreateCustomer(Customer);
@@ -2749,12 +2786,16 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         InsertReportSelections(
           ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
+#if not CLEAN30
         CustomReportLayout.SetRange("Report ID", ReportId);
         CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
         if CustomReportLayout.FindFirst() then
             CustomReportLayoutCode := CustomReportLayout.Code
         else
             CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(ReportId, CustomReportLayout.Type::Word.AsInteger());
+#else
+        CustomReportLayoutCode := '';
+#endif
 
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", ReportId, true, true,
