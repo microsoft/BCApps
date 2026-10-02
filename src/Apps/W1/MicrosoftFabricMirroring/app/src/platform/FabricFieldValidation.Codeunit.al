@@ -30,6 +30,14 @@ codeunit 48536 "Fabric Field Validation"
         ValidateField(Rec."Table ID", Rec."Field ID");
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Tenant Fabric Table Fields", OnBeforeRenameEvent, '', false, false)]
+    local procedure ValidateOnBeforeRename(var Rec: Record "Tenant Fabric Table Fields")
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        ValidateField(Rec."Table ID", Rec."Field ID");
+    end;
+
     local procedure ValidateField(TableId: Integer; FieldId: Integer)
     var
         Field: Record Field;

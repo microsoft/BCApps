@@ -32,6 +32,14 @@ codeunit 48535 "Fabric Table Validation"
         ValidateTable(Rec."Table ID");
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Tenant Fabric Tables", OnBeforeRenameEvent, '', false, false)]
+    local procedure ValidateOnBeforeRename(var Rec: Record "Tenant Fabric Tables")
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        ValidateTable(Rec."Table ID");
+    end;
+
     /// <summary>Returns an Object ID filter that leaves out every table that cannot be exported to Microsoft Fabric.</summary>
     internal procedure GetExportableTableIdFilter(): Text
     var
