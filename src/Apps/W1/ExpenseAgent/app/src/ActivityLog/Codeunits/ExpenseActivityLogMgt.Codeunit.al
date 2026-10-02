@@ -155,13 +155,17 @@ codeunit 6926 "Expense Activity Log Mgt."
     end;
 
     /// <summary>
-    /// Logs on an approved travel request that the Expense Agent created an expense report for one of its travelers.
+    /// Logs on an approved travel request that an expense report was created for one of its travelers.
     /// The entry is a Created entry of the travel request; its document number and description identify the expense report.
     /// </summary>
     internal procedure LogTravelRequestExpenseReportCreated(SpendRequest: Record "Spend Request"; ExpenseReportHeader: Record "Expense Report Header"): BigInteger
     var
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
     begin
+        // Keep the travel request's own Created entry first, also for requests approved before activity tracking started.
+        if not HasEntriesForSource(Database::"Spend Request", SpendRequest.SystemId) then
+            LogTravelRequestCreatedEvent(SpendRequest);
+
         InitializeTravelRequestEntry(
             ExpenseActivityLogEntry, SpendRequest,
             Enum::"Expense Activity Event Type"::Created,

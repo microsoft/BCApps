@@ -2774,6 +2774,39 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure CreateExpenseReportActionLogsCreationOnTravelRequest()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        TravelRequestsAPI: Page "Travel Requests API";
+        ActionContext: WebServiceActionContext;
+    begin
+        // [SCENARIO] Creating an expense report through the API action logs it on the travel request, like approval does.
+        Initialize();
+
+        // [GIVEN] An approved travel request without an expense report or activity entries, and the agent enabled.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, ExpenseUser.SystemId);
+
+        // [WHEN] The create expense report action is invoked.
+        TravelRequestsAPI.CreateExpenseReport(ActionContext);
+
+        // [THEN] The history starts with the travel request's Created entry, followed by the expense report creation.
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+        ExpenseActivityLogEntry.FindSet();
+        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Created, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
+        ExpenseActivityLogEntry.Next();
+        VerifyExpenseReportCreatedActivity(ExpenseActivityLogEntry, SpendRequest, ExpenseUser);
+        VerifyExpenseReportCreatedByAgent(SpendRequest, ExpenseUser);
+    end;
+
+    [Test]
     procedure RejectDirectlyReleasedTravelRequestLogsCreationFirst()
     var
         SpendRequest: Record "Spend Request";

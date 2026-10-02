@@ -139,24 +139,18 @@ codeunit 7133 "Travel Request Approval"
     var
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        Created: Boolean;
     begin
         if ExpenseReportHeader.HasPostedTravelRequestReport(SpendRequest, TravelerExpenseUserNo) then
             exit;
 
-        Created := ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(SpendRequest, TravelerExpenseUserNo);
+        ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(SpendRequest, TravelerExpenseUserNo);
         ExpenseReportHeader.Reset();
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUserNo);
-        ExpenseReportHeader.SetLoadFields("No.", Description);
-        if not ExpenseReportHeader.FindFirst() then begin
+        if ExpenseReportHeader.IsEmpty() then begin
             FeatureTelemetry.LogError('0000VEX', ExpenseAgentSetup.GetFeatureName(), ExpenseReportCreationFailedLbl, ExpenseReportCreationFailedTelemetryErr);
             Error(GetExpenseReportWasNotCreatedError(SpendRequest, TravelerExpenseUserNo));
         end;
-
-        // One entry per created report, so the travel request history shows which reports the agent created.
-        if Created then
-            ExpenseActivityLogMgt.LogTravelRequestExpenseReportCreated(SpendRequest, ExpenseReportHeader);
     end;
 
     /// <summary>

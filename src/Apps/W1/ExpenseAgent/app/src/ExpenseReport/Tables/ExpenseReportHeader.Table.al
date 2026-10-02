@@ -1459,6 +1459,8 @@ table 6906 "Expense Report Header"
         Rec.Insert(true);
         OnAfterCreateFromApprovedTravelRequest(SpendRequest, Rec);
         ExpenseActivityLogMgt.LogExpenseReportCreatedFromTravelRequest(Rec);
+        // Also log on the travel request, so its history shows each expense report created from it, whichever path created it.
+        ExpenseActivityLogMgt.LogTravelRequestExpenseReportCreated(SpendRequest, Rec);
         exit(true);
     end;
 
