@@ -20,7 +20,6 @@ profile "Payables Agent"
                      "PA Purchase Credit Memo",
                      "PA Vendor Card",
                      "PA Vendors",
-                     "PA Vendor Ledger Entries",
                      "PA Posted Purch. Doc.",
                      "PA Item Reference Entries",
                      "PA Text-to-Account Mapping",

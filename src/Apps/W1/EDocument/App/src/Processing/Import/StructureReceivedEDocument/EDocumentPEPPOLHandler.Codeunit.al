@@ -142,21 +142,14 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
 
     local procedure PopulateCreditNoteDocumentInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
     var
-        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
-        BillingReferenceNodes: XmlNodeList;
-        BillingReferenceNode: XmlNode;
-        InvoiceReferences: List of [Text];
         Value: Text;
     begin
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cbc:ID', Value) then
             Header."Sales Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Sales Invoice No."));
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:OrderReference/cbc:ID', Value) then
             Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
-        if PeppolXML.SelectNodes('/cre:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', XmlNamespaces, BillingReferenceNodes) then
-            foreach BillingReferenceNode in BillingReferenceNodes do
-                if BillingReferenceNode.IsXmlElement() then
-                    InvoiceReferences.Add(BillingReferenceNode.AsXmlElement().InnerText());
-        Header."Vendor Invoice No." := CopyStr(EDocPurchaseDraftUtility.JoinInvoiceReferences(InvoiceReferences), 1, MaxStrLen(Header."Vendor Invoice No."));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', Value) then
+            Header."Vendor Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Vendor Invoice No."));
         if Header."Vendor Invoice No." = '' then
             Session.LogMessage('0000SNJ', BillingReferenceEmptyTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
     end;

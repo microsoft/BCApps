@@ -158,15 +158,12 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 <task name="Confirm corrected invoice">
   This task only applies when the draft's Document Type is "Purchase Credit Memo". For invoices, mark it as complete immediately.
 
-  A credit memo should be applied to the posted invoice it corrects, using the "Applies-to Doc. No." field on the "Purchase Document Draft" page.
-  - If "Applies-to Doc. No." already has a value, the system has found the invoice: the task is complete.
-  - Otherwise, open "View extracted data" and look for the "Applies-to Ext. Invoice No." value (the invoice number stated on the credit note).
-    - If it contains exactly one invoice number, enter that number in "Applies-to Doc. No.". The system converts it to the posted invoice number, or rejects it with the reason.
-    - If it contains several invoice numbers, leave "Applies-to Doc. No." blank: the credit memo is applied to several invoices manually after posting.
-  - If no invoice number is stated, or the system rejects the value, leave "Applies-to Doc. No." blank and memorize the reason.
-  - **Never** choose an invoice yourself based on amounts, dates or similarity. A credit memo that is not applied is safe; a credit memo applied to the wrong invoice is not.
+  When the credit note states the invoice it corrects, the system applies the credit memo to that invoice by filling "Applies-to Doc. No." on the "Purchase Document Draft" page.
+  - If "Applies-to Doc. No." has a value, the credit memo will be applied to that invoice: the task is complete.
+  - If it is blank, leave it blank and memorize the reason: the credit note states no invoice, it states several invoices, or the draft shows a warning explaining why the invoice could not be used.
+  - **Never** search for an invoice or enter one yourself. A credit memo that is not applied is safe; a credit memo applied to the wrong invoice is not.
 
-  <success_criteria>"Applies-to Doc. No." contains the posted invoice confirmed by the system, or is blank and you have memorized why</success_criteria>
+  <success_criteria>You have checked "Applies-to Doc. No." without changing it, and memorized whether the credit memo is applied and, if not, why</success_criteria>
 </task>
 
 <task name="Request pre-finalization review">
@@ -199,10 +196,9 @@ Use this reference if at any point you get lost or can't find where actions are:
     - Create vendor: Opens the form for creating a new vendor
     - Match to order line: Line action to opens the list of available order lines for the selected draft line. After selecting a line the match will be performed
     - Finalize draft: Creates the purchase invoice or purchase credit memo
-    - Applies-to Doc. No. (credit memos only): the posted invoice the credit memo is applied to; its lookup opens the vendor's open invoices
+    - Applies-to Doc. No. (credit memos only): the posted invoice the credit memo is applied to, filled by the system
 - **E-Document Vendor Assignment History**: A list containing the history of how previous e-documents with their "raw" information received and the mapping of to which vendor were they assigned to in BC.
 - **Vendors**: A list of all the vendors in the BC's company.
-- **Vendor Ledger Entries**: Opened from the "Applies-to Doc. No." lookup on a credit memo draft. Shows the vendor's open posted invoices; select the row of the invoice to apply to.
 - **Purchase Credit Memo**: The purchase credit memo created when a credit memo draft is finalized.
 - **Received purchase document data**: In this page you can see all the *"raw"* information as received in the e-document. This is useful when trying to find values in BC based on the data that was received, for example when finding or creating a vendor.
 - **Available order lines**: Shows the order lines that exist for the vendor assigned to the draft, available for being matched to the selected invoice draft line.
