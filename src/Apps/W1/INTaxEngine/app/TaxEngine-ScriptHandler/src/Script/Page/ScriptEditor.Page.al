@@ -139,11 +139,9 @@ page 20198 "Script Editor"
         ScriptID: Guid;
         DescriptionStyle: Text;
         TextEditable: Boolean;
-        [InDataSet]
         SearchEditable: Boolean;
         DescriptionText: Text;
         ActionText: Text;
-        [InDataSet]
         EnableAddElseIFAction: Boolean;
         ActionTextStyle: Text;
         Postition: Text;

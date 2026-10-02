@@ -709,9 +709,7 @@ report 18012 "Purchase - Quote GST"
         ArchiveDoc: Boolean;
         LogInterLbl: Boolean;
         OutputNo: Integer;
-        [InDataSet]
         ArchiveDocumentEnable: Boolean;
-        [InDataSet]
         LogInteractionEnable: Boolean;
         GSTCompAmount: array[20] of Decimal;
         GSTComponentCode: array[20] of Integer;

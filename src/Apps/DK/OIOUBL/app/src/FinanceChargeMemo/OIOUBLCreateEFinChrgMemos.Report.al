@@ -123,7 +123,6 @@ report 13633 "OIOUBL-Create E-Fin Chrg Memos"
         DocumentAlreadyCreatedQst: Label 'One or more electronic finance charges that match your filter criteria have been created before.\\Do you want to continue?';
         SuccessMsg: Label 'Successfully created %1 electronic finance charges.', Comment = '%1 = amount of electronic finance charges created';
         NothingToCreateErr: Label 'There is nothing to create.';
-        [InDataSet]
         LogInteractionEnable: Boolean;
 
     procedure InitLogInteraction();

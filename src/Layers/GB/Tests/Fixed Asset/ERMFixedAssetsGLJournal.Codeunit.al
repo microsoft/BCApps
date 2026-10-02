@@ -694,7 +694,7 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
-    [Scope('Internal')]
+    [Scope('OnPrem')]
     procedure FAJournalWithCalcDepreciationBlankDocNoTwoFA()
     var
         FAJournalLine: Record "FA Journal Line";

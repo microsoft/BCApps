@@ -31,7 +31,7 @@ codeunit 4701 "VAT Group Helper Functions"
 
         VATStatementReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
         VATStatementReportLine.SetRange("VAT Report Config. Code", VATReportHeader."VAT Report Config. Code");
-        if VATStatementReportLine.FindSet(true, false) then
+        if VATStatementReportLine.FindSet(true) then
             repeat
                 VATStatementReportLine."Representative Amount" := VATStatementReportLine.Amount;
                 VATStatementReportLine.Modify();

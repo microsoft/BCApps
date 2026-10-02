@@ -13,6 +13,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.History;
+using System.Reflection;
 using System.Utilities;
 
 table 31252 "Bank Statement Header CZB"
@@ -602,7 +603,7 @@ table 31252 "Bank Statement Header CZB"
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         TempBlob: Codeunit "Temp Blob";
         RecordRef: RecordRef;
-        DummyInStream: InStream;
+        ReportLayoutList: Record "Report Layout List";
         ReportOutStream: OutStream;
         DocumentInStream: InStream;
         FileName: Text[250];
@@ -613,7 +614,9 @@ table 31252 "Bank Statement Header CZB"
         RecordRef.GetTable(BankStatementHeaderCZB);
         if not RecordRef.FindFirst() then
             exit;
-        if not Report.RdlcLayout(Report::"Bank Statement - Test CZB", DummyInStream) then
+        ReportLayoutList.SetRange("Report ID", Report::"Bank Statement - Test CZB");
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::RDLC);
+        if not ReportLayoutList.FindFirst() then
             exit;
 
         Clear(TempBlob);

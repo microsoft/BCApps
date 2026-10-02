@@ -170,7 +170,6 @@ page 20200 "Script Record Fields Subform"
         ScriptVariable: Record "Script Variable";
         ScriptDataTypeMgmt: Codeunit "Script Data Type Mgmt.";
         FieldSelected2: Boolean;
-        [InDataSet]
         IsSelectionEditable: Boolean;
         FieldStyle: Text;
 }

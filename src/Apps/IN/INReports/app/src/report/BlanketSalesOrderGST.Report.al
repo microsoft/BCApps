@@ -1099,7 +1099,6 @@ report 18006 "Blanket Sales Order GST"
         ChargesAmount: Decimal;
         OtherTaxesAmount: Decimal;
         TotalAmounttoCustomer: Decimal;
-        [InDataSet]
         LogInteractionEnable: Boolean;
         IsGSTApplicable: Boolean;
         j: Integer;

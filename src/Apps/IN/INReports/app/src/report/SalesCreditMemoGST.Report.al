@@ -1033,7 +1033,6 @@ report 18015 "Sales - Credit Memo GST"
         NNC_TSTaxeCessAmount: Decimal;
         NNC_TSTSHECessAmount: Decimal;
         NNC_TTDSTCSISHECESS: Decimal;
-        [InDataSet]
         LogInteractionEnable: Boolean;
         NNC_TotalServiceTaxSBCAmount: Decimal;
         NNC_TotalKKCessAmount: Decimal;

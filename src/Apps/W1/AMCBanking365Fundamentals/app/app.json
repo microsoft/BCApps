@@ -4,6 +4,9 @@
   "application": "30.0.0.0",
   "version": "30.0.0.0",
   "help": "https://go.microsoft.com/fwlink/?linkid=2101583",
+  "resourceFolders": [
+    "AppResources"
+  ],
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,

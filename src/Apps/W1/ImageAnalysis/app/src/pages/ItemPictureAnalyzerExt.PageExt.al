@@ -48,6 +48,5 @@ pageextension 2026 "Item Picture Analyzer Ext" extends "Item Card"
     end;
 
     var
-        [InDataSet]
         HasPicture: Boolean;
 }

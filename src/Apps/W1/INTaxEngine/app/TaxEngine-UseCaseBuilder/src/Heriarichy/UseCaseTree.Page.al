@@ -217,9 +217,7 @@ page 20298 "Use Case Tree"
     end;
 
     var
-        [InDataSet]
         Emphasize: Boolean;
-        [InDataSet]
         NameIndent: Integer;
         ConditionText: Text;
         TaxEntityName: Text[30];

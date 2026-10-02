@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -257,7 +258,7 @@ table 31258 "Iss. Payment Order Header CZB"
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         TempBlob: Codeunit "Temp Blob";
         RecordRef: RecordRef;
-        DummyInStream: InStream;
+        ReportLayoutList: Record "Report Layout List";
         ReportOutStream: OutStream;
         DocumentInStream: InStream;
         FileName: Text[250];
@@ -278,7 +279,9 @@ table 31258 "Iss. Payment Order Header CZB"
             BankAccount.TestField("Domestic Payment Order ID CZB");
             ReportId := BankAccount."Domestic Payment Order ID CZB";
         end;
-        if not Report.RdlcLayout(ReportId, DummyInStream) then
+        ReportLayoutList.SetRange("Report ID", ReportId);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::RDLC);
+        if not ReportLayoutList.FindFirst() then
             exit;
 
         Clear(TempBlob);

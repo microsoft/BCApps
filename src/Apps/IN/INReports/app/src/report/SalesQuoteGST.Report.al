@@ -1099,9 +1099,7 @@ report 18017 "Sales - Quote GST"
         ChargesAmount: Decimal;
         OtherTaxesAmount: Decimal;
         TotGSTAmt: Decimal;
-        [InDataSet]
         ArchiveDocumentEnable: Boolean;
-        [InDataSet]
         LogInteractionEnable: Boolean;
         ShowRequestPage: Boolean;
         IsGSTApplicable: Boolean;

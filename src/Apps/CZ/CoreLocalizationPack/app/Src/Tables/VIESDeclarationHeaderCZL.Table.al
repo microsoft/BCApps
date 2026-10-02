@@ -11,6 +11,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
 using System.IO;
+using System.Reflection;
 using System.Utilities;
 
 #pragma warning disable AA0232
@@ -790,7 +791,7 @@ table 31075 "VIES Declaration Header CZL"
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         TempBlob: Codeunit "Temp Blob";
         RecordRef: RecordRef;
-        DummyInStream: InStream;
+        ReportLayoutList: Record "Report Layout List";
         ReportOutStream: OutStream;
         DocumentInStream: InStream;
         FileName: Text[250];
@@ -804,7 +805,9 @@ table 31075 "VIES Declaration Header CZL"
 
         StatutoryReportingSetupCZL.Get();
         StatutoryReportingSetupCZL.Testfield("VIES Declaration Report No.");
-        if not Report.RdlcLayout(StatutoryReportingSetupCZL."VIES Declaration Report No.", DummyInStream) then
+        ReportLayoutList.SetRange("Report ID", StatutoryReportingSetupCZL."VIES Declaration Report No.");
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::RDLC);
+        if not ReportLayoutList.FindFirst() then
             exit;
 
         TempBlob.CreateOutStream(ReportOutStream);

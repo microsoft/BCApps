@@ -528,7 +528,7 @@ report 11315 "VAT-VIES Declaration Disk BE"
         INTERVATHelper.AddElementPeriod(XMLCurrNode, Choice, Vquarter, Vyear, '');
         XMLCurrNode := XMLCurrNode.ParentNode;
 
-        if Buffer.FindSet(true, false) then
+        if Buffer.FindSet(true) then
             repeat
                 CustSequenceNum := CustSequenceNum + 1;
                 AddCustomersList(XMLCurrNode, CustSequenceNum);

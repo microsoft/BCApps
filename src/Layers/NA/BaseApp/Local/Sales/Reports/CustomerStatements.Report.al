@@ -568,7 +568,6 @@ report 10072 "Customer Statements"
                     "Last Statement No." := 1
                 else
                     "Last Statement No." := "Last Statement No." + 1;
-                CurrReport.PageNo := 1;
 
                 FormatAddress.Customer(CustomerAddress, Customer);
                 StatementComplete := false;

@@ -125,7 +125,6 @@ report 13630 "OIOUBL-Create Elec. Invoices"
         SegManagement: Codeunit "SegManagement";
         Counter: Integer;
         LogInteraction: Boolean;
-        [InDataSet]
         LogInteractionEnable: Boolean;
         NothingToCreateErr: Label 'There is nothing to create.';
         InvoicesWillBeSkippedQst: Label 'One or more invoices that match your filter criteria are not electronic invoices and will be skipped.\\Do you want to continue?';

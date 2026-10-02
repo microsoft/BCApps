@@ -937,7 +937,6 @@ report 18013 "Return Order GST"
         VALExchRate: Text[50];
         OutputNo: Integer;
         TypeInt: Integer;
-        [InDataSet]
         LogInteractionEnable: Boolean;
         TotalSubTotal: Decimal;
         TotalAmount: Decimal;

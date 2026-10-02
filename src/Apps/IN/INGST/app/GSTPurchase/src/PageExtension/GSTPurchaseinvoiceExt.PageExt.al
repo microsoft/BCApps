@@ -266,6 +266,5 @@ pageextension 18083 "GST Purchase invoice Ext" extends "Purchase invoice"
 
     var
         GstPurchaseSubscriber: Codeunit "GST Purchase Subscribers";
-        [InDataSet]
         IsLocationVisible: boolean;
 }

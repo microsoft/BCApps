@@ -1141,7 +1141,6 @@ report 18008 "Purchase Order GST"
         OtherTaxesAmount: Decimal;
         GSTTot: Decimal;
         ChargesAmount: Decimal;
-        [InDataSet]
         TotalSubTotal: Decimal;
         TotalAmount: Decimal;
         TotalInvoiceDiscountAmount: Decimal;

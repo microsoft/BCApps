@@ -233,7 +233,6 @@ page 2026 "Image Analysis Tags"
         PageItemDescription: Text[100];
         AppendTagTxt: Label 'Add to the item description';
         ConfidencePercent: Decimal;
-        [InDataSet]
         Emphasize: Boolean;
         FilterOn: Boolean;
         TagAppendedDescriptionTxt: Label '%1 %2', Locked = true;

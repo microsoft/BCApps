@@ -130,7 +130,6 @@ report 13631 "OIOUBL-Create Elec. Cr. Memos"
         SuccessMsg: Label 'Successfully created %1 electronic credit memos.', Comment = '%1 = amount of electronic credit memos created';
         NothingToCreateErr: Label 'There is nothing to create.';
         LogInteraction: Boolean;
-        [InDataSet]
         LogInteractionEnable: Boolean;
 
     procedure InitLogInteraction();

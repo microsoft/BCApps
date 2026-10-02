@@ -327,9 +327,7 @@ pageextension 18084 "GST Purchase Order Ext" extends "Purchase Order"
     var
         GstPurchaseSubscriber: Codeunit "GST Purchase Subscribers";
         GSTLocRegNo: Boolean;
-        [InDataSet]
         IsRateChangeEnabled: Boolean;
-        [InDataSet]
         IsLocationVisible: Boolean;
 
     local procedure SetLocGSTRegNoEditable()

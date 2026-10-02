@@ -368,7 +368,6 @@ report 18467 "Delivery Challan"
 
                 trigger OnPreDataItem()
                 begin
-                    CurrReport.CreateTotals(SumAmount);
                 end;
             }
 
