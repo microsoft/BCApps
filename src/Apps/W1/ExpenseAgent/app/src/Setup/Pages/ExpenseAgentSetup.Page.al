@@ -45,15 +45,6 @@ page 6996 "Expense Agent Setup"
                     ObsoleteTag = '30.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up receipt submission.';
 
-                    trigger OnAssistEdit()
-                    var
-                        OldEmailAddress: Text[250];
-                    begin
-                        OldEmailAddress := Rec."Email Address";
-                        Rec.AssistEditMailbox();
-                        if OldEmailAddress <> Rec."Email Address" then
-                            ScheduleAllTasks();
-                    end;
                 }
                 field("Enable Email with Receipts"; Rec."Enable Email with Receipts")
                 {
@@ -137,17 +128,13 @@ page 6996 "Expense Agent Setup"
                     field("Noreply Email Address"; Rec."Noreply Email Address")
                     {
                         Caption = 'Account';
-                        ToolTip = 'Specifies the email account used for all outgoing Expense Agent messages: pending-approval requests sent to approvers, approved/rejected notifications sent to submitters, reimbursement notifications, and the optional open report reminders. If empty, the main mailbox account is used instead. When no email account is registered, the messages fail silently after the configured number of retries.';
+                        ToolTip = 'Specifies the account used for outgoing Expense Agent messages. Outgoing communication pauses when this account is missing; the incoming mailbox is not used as a fallback.';
                         Editable = false;
                         Visible = false;
                         ObsoleteState = Pending;
                         ObsoleteTag = '30.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up outgoing communication.';
 
-                        trigger OnAssistEdit()
-                        begin
-                            Rec.AssistEditNoreplyMailbox();
-                        end;
                     }
                 }
                 group(OpenReportReminders)
@@ -585,13 +572,4 @@ page 6996 "Expense Agent Setup"
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
 #endif
 
-#if not CLEAN30
-    local procedure ScheduleAllTasks()
-    var
-        EAAgentScheduler: Codeunit "EA Agent Scheduler";
-    begin
-        if Rec."Enable Agent" then
-            EAAgentScheduler.ScheduleAgent(Rec);
-    end;
-#endif
 }
