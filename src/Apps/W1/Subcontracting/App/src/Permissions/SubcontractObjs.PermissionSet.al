@@ -79,6 +79,7 @@ permissionset 20501 "Subcontract. - Objs"
 #pragma warning restore AL0432
 #endif
         codeunit "Subc. Upgrade Tag Def. Ext." = X,
+        codeunit "Subc. Comp. Transfer Upgrade" = X,
         codeunit "Subc. Worksheet Handler" = X,
         codeunit "Subc. Attachment Details Ext." = X,
         codeunit "Subc. Routing Line Ext." = X,

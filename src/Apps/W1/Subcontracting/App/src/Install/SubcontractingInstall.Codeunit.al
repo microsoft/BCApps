@@ -12,6 +12,7 @@ codeunit 20501 "Subcontracting Install"
 
     trigger OnInstallAppPerCompany()
     var
+        SubcCompTransferUpgrade: Codeunit "Subc. Comp. Transfer Upgrade";
         CurrentAppInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentAppInfo);
@@ -20,6 +21,8 @@ codeunit 20501 "Subcontracting Install"
             HandleFreshInstallPerCompany()
         else
             HandleReinstallPerCompany();
+
+        SubcCompTransferUpgrade.UpgradeComponentTransfers();
     end;
 
     trigger OnInstallAppPerDatabase()
