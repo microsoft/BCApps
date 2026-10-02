@@ -16,6 +16,21 @@ codeunit 130618 "Library - Graph Mgt"
         FailedRequestErr: Label '%1 request failed. Response code is %2 (%3). %4', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - error message';
         FailedRequestWithUnexpectedResponseCodeErr: Label '%1 request failed. Response code is %2 (%3), expected code is %4. %5', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - expected response code, %5 - error message';
 
+    /// <summary>Adds a field to the ignored-field buffer when the field exists in the source table.</summary>
+    /// <param name="TempIgnoredFields">Temporary ignored-field buffer.</param>
+    /// <param name="SourceTableNo">Source table number.</param>
+    /// <param name="SourceFieldName">Source field name.</param>
+    procedure AddFieldToIgnoreIfExists(var TempIgnoredFields: Record 2000000041 temporary; SourceTableNo: Integer; SourceFieldName: Text)
+    var
+        RecordField: Record Field;
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        RecordField.SetRange(TableNo, SourceTableNo);
+        RecordField.SetRange(FieldName, SourceFieldName);
+        if RecordField.FindFirst() then
+            LibraryUtility.AddTempField(TempIgnoredFields, RecordField."No.", SourceTableNo);
+    end;
+
     /// <summary>
     /// Sets the authentication provider used by this library instance.
     /// Selecting the same provider preserves its cached state.
@@ -29,6 +44,12 @@ codeunit 130618 "Library - Graph Mgt"
         Authentication := NewAuthentication;
         AuthenticationProvider := Authentication;
         AuthenticationProviderResolved := true;
+    end;
+
+    /// <summary>Sets the work date to November 15 in the current year to stay within test-license date limits.</summary>
+    procedure SetLicenseSafeWorkDate()
+    begin
+        WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
     end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
