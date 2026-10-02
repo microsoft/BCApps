@@ -1302,6 +1302,161 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure CreditNoteIsAppliedToOpenOriginalInvoice()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        // [SCENARIO 650500] A credit note that states the original invoice is applied to it
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        // [GIVEN] The vendor's invoice 103033 is posted as PI-CN-1 and still open
+        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-1', '103033', 'XYZ', true);
+
+        // [WHEN] The PEPPOL credit note referencing invoice 103033 is processed to the draft
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', TempEDocImportParams), 'The credit note draft should be prepared');
+
+        // [THEN] The draft already shows the invoice it will be applied to
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        Assert.AreEqual('PI-CN-1', EDocumentPurchaseHeader."Applies-to Doc. No.", 'The draft must show the posted invoice to apply to.');
+
+        // [WHEN] The draft is finalized
+        FinishDraft(EDocument);
+
+        // [THEN] The credit memo is applied to the posted invoice
+        EDocument.Get(EDocument."Entry No");
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual(PurchaseHeader."Applies-to Doc. Type"::Invoice, PurchaseHeader."Applies-to Doc. Type", 'Applies-to Doc. Type must be Invoice.');
+        Assert.AreEqual('PI-CN-1', PurchaseHeader."Applies-to Doc. No.", 'Applies-to Doc. No. must be the posted invoice.');
+    end;
+
+    [Test]
+    procedure CreditNoteIsNotAppliedWhenOriginalInvoiceIsClosed()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        // [SCENARIO 650500] A credit note for an invoice that is already paid is created without being applied
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        // [GIVEN] The vendor's invoice 103033 is posted and already closed
+        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-2', '103033', 'XYZ', false);
+
+        // [WHEN] The PEPPOL credit note is fully processed
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', TempEDocImportParams), 'The credit note should be processed');
+
+        // [THEN] The credit memo is created and not applied
+        EDocument.Get(EDocument."Entry No");
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual("Purchase Document Type"::"Credit Memo", PurchaseHeader."Document Type", 'A credit memo must be created.');
+        Assert.AreEqual('', PurchaseHeader."Applies-to Doc. No.", 'A closed invoice must not be applied to.');
+    end;
+
+    [Test]
+    procedure CreditNoteWithClosedInvoiceOnDraftCannotBeFinalized()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        // [SCENARIO 650500] An invoice set on the draft that is no longer open blocks finalization with a clear reason
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        // [GIVEN] The credit memo draft is applied to open invoice PI-CN-3
+        CreateVendorInvoiceEntry(Vendor."No.", 'PI-CN-3', '103033', 'XYZ', true);
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', TempEDocImportParams), 'The credit note draft should be prepared');
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        Assert.AreEqual('PI-CN-3', EDocumentPurchaseHeader."Applies-to Doc. No.", 'The draft must show the posted invoice to apply to.');
+
+        // [GIVEN] The invoice is paid before the draft is finalized
+        VendorLedgerEntry.SetRange("Document No.", 'PI-CN-3');
+        VendorLedgerEntry.ModifyAll(Open, false);
+
+        // [WHEN] The draft is finalized
+        FinishDraft(EDocument);
+
+        // [THEN] The e-document is not processed
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreNotEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'A credit memo must not be applied to an invoice that is no longer open.');
+    end;
+
+    [Test]
+    procedure InvoiceWithNegativeTotalStaysInvoiceWithWarning()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        // [SCENARIO 650500] A document read as an invoice keeps the invoice type even with a negative total, and the user is warned
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        // [GIVEN] A PEPPOL invoice read into a draft whose total is negative
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The invoice should be read');
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        EDocumentPurchaseHeader.Total := -100;
+        EDocumentPurchaseHeader.Modify();
+
+        // [WHEN] The draft is prepared
+        EDocument.Get(EDocument."Entry No");
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
+
+        // [THEN] The document stays a purchase invoice and a warning is shown
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Document Type"::"Purchase Invoice", EDocument."Document Type", 'A negative total must not change the document type.');
+        Assert.IsTrue(EDocumentErrorHelper.WarningMessageCount(EDocument) > 0, 'A warning about the negative total must be shown.');
+    end;
+
+    local procedure FinishDraft(var EDocument: Record "E-Document")
+    var
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        EDocument.Get(EDocument."Entry No");
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
+        EDocument.Get(EDocument."Entry No");
+    end;
+
+    local procedure CreateVendorInvoiceEntry(VendorNo: Code[20]; DocumentNo: Code[20]; ExternalDocumentNo: Code[35]; CurrencyCode: Code[10]; IsOpen: Boolean)
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        EntryNo: Integer;
+    begin
+        if VendorLedgerEntry.FindLast() then
+            EntryNo := VendorLedgerEntry."Entry No.";
+        VendorLedgerEntry.Init();
+        VendorLedgerEntry."Entry No." := EntryNo + 1;
+        VendorLedgerEntry."Vendor No." := VendorNo;
+        VendorLedgerEntry."Document Type" := VendorLedgerEntry."Document Type"::Invoice;
+        VendorLedgerEntry."Document No." := DocumentNo;
+        VendorLedgerEntry."External Document No." := ExternalDocumentNo;
+        VendorLedgerEntry."Currency Code" := CurrencyCode;
+        VendorLedgerEntry.Open := IsOpen;
+        VendorLedgerEntry.Insert();
+    end;
+
+    [Test]
     procedure ProcessingInboundInvoiceStillCreatesCorrectDocumentType()
     var
         EDocument: Record "E-Document";

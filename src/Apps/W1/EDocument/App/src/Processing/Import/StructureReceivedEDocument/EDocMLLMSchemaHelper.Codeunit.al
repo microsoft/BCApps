@@ -129,6 +129,11 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     end;
 
     procedure MapLinesFromJson(LinesArray: JsonArray; EDocEntryNo: Integer; var TempLine: Record "E-Document Purchase Line" temporary; CurrencyCode: Code[10])
+    begin
+        MapLinesFromJson(LinesArray, EDocEntryNo, TempLine, CurrencyCode, false);
+    end;
+
+    procedure MapLinesFromJson(LinesArray: JsonArray; EDocEntryNo: Integer; var TempLine: Record "E-Document Purchase Line" temporary; CurrencyCode: Code[10]; KeepNegativeQuantities: Boolean)
     var
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineToken: JsonToken;
@@ -174,7 +179,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                 if not QuantityProvided then
                     TempLine.Quantity := 1
                 else
-                    if TempLine.Quantity < 0 then
+                    if (TempLine.Quantity < 0) and not KeepNegativeQuantities then
                         TempLine.Quantity := 0;
 
                 if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then begin
@@ -192,6 +197,78 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
             end;
     end;
 #pragma warning restore AA0139
+
+    procedure IsCreditNote(SourceJsonObject: JsonObject): Boolean
+    var
+        TypeCode: Text;
+    begin
+        GetString(SourceJsonObject, 'invoice_type_code', 10, TypeCode);
+        exit(DelChr(TypeCode, '<>', ' ') = CreditNoteTypeCodeTok);
+    end;
+
+    procedure GetInvoiceReferences(SourceJsonObject: JsonObject; OwnDocumentNo: Text) InvoiceReferences: List of [Text]
+    var
+        ReferencesToken: JsonToken;
+        ReferenceToken: JsonToken;
+        ReferencesArray: JsonArray;
+        DocumentReferenceObj: JsonObject;
+        Reference: Text;
+    begin
+        if not SourceJsonObject.Get('billing_reference', ReferencesToken) then
+            exit;
+        if ReferencesToken.IsArray() then
+            ReferencesArray := ReferencesToken.AsArray()
+        else
+            if ReferencesToken.IsObject() then
+                ReferencesArray.Add(ReferencesToken)
+            else
+                exit;
+
+        foreach ReferenceToken in ReferencesArray do
+            if ReferenceToken.IsObject() then
+                if GetNestedObject(ReferenceToken.AsObject(), 'invoice_document_reference', DocumentReferenceObj) then begin
+                    Clear(Reference);
+                    GetString(DocumentReferenceObj, 'id', 250, Reference);
+                    Reference := DelChr(Reference, '<>', ' ');
+                    if (Reference <> '') and (Reference <> OwnDocumentNo) then
+                        InvoiceReferences.Add(Reference);
+                end;
+    end;
+
+    procedure NormalizeCreditNoteSigns(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary)
+    var
+        DocumentIsNegative: Boolean;
+        LineIsNegative: Boolean;
+        LineAmount: Decimal;
+    begin
+        DocumentIsNegative := (TempHeader.Total < 0) or ((TempHeader.Total = 0) and (TempHeader."Sub Total" < 0));
+        if DocumentIsNegative then begin
+            TempHeader."Sub Total" := Abs(TempHeader."Sub Total");
+            TempHeader."Total Discount" := Abs(TempHeader."Total Discount");
+            TempHeader."Total VAT" := Abs(TempHeader."Total VAT");
+            TempHeader.Total := Abs(TempHeader.Total);
+            TempHeader."Amount Due" := Abs(TempHeader."Amount Due");
+        end;
+
+        if not TempLine.FindSet() then
+            exit;
+        repeat
+            LineAmount := TempLine."Sub Total";
+            if LineAmount = 0 then
+                LineAmount := TempLine.Quantity * TempLine."Unit Price";
+            LineIsNegative := LineAmount < 0;
+
+            TempLine.Quantity := Abs(TempLine.Quantity);
+            TempLine."Unit Price" := Abs(TempLine."Unit Price");
+            TempLine."Total Discount" := Abs(TempLine."Total Discount");
+            TempLine."Sub Total" := Abs(TempLine."Sub Total");
+            if (LineAmount <> 0) and (LineIsNegative <> DocumentIsNegative) then begin
+                TempLine.Quantity := -TempLine.Quantity;
+                TempLine."Sub Total" := -TempLine."Sub Total";
+            end;
+            TempLine.Modify();
+        until TempLine.Next() = 0;
+    end;
 
     local procedure GetString(JsonObj: JsonObject; PropertyName: Text; MaxLen: Integer; var FieldValue: Text)
     var
@@ -305,4 +382,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
 
         CurrencyCode := CopyStr(UpperCase(CurrencyText), 1, MaxStrLen(CurrencyCode));
     end;
+
+    var
+        CreditNoteTypeCodeTok: Label '381', Locked = true;
 }

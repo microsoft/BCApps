@@ -10,7 +10,6 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Document;
-using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using System.Telemetry;
 
@@ -25,6 +24,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         Telemetry: Codeunit "Telemetry";
         CrMemoAlreadyExistsErr: Label 'A purchase credit memo with external document number %1 already exists for vendor %2.', Comment = '%1 = Vendor Cr. Memo No., %2 = Vendor No.';
         DraftLineDoesNotContainTypeAndNumberErr: Label 'One of the draft lines do not contain the type and number. Please, specify these fields manually.';
+        CannotApplyToInvoiceErr: Label 'The credit memo cannot be applied to the invoice in Applies-to Doc. No. on the draft. %1 Clear or change the field on the draft and try again.', Comment = '%1 = reason the invoice cannot be applied to';
 
     procedure ApplyDraftToBC(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): RecordId
     var
@@ -59,17 +59,29 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         EDocPurchaseDocumentHelper.RevertCreatedDocument(EDocument);
     end;
 
-    local procedure ResolveAppliesToFromExtInvoiceNo(ExtInvoiceNo: Text[100]; var PurchaseHeader: Record "Purchase Header")
+    local procedure ApplyToOriginalInvoice(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var PurchaseHeader: Record "Purchase Header")
     var
-        PurchInvHeader: Record "Purch. Inv. Header";
+        EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        PostedInvoiceNo: Code[20];
+        FailureReason: Text;
     begin
-        if PurchaseHeader."Pay-to Vendor No." <> '' then
-            PurchInvHeader.SetRange("Buy-from Vendor No.", PurchaseHeader."Pay-to Vendor No.");
-        PurchInvHeader.SetRange("Vendor Invoice No.", ExtInvoiceNo);
-        if PurchInvHeader.FindFirst() then begin
-            PurchaseHeader."Applies-to Doc. Type" := PurchaseHeader."Applies-to Doc. Type"::Invoice;
-            PurchaseHeader."Applies-to Doc. No." := PurchInvHeader."No.";
+        if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then begin
+            if not EDocPurchaseDocumentHelper.TryResolveOpenInvoice(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."Currency Code", EDocumentPurchaseHeader."Applies-to Doc. No.", PostedInvoiceNo, FailureReason) then
+                Error(CannotApplyToInvoiceErr, FailureReason);
+            EDocImpSessionTelemetry.SetText('Applies-to Source', 'Draft');
+        end else
+            if (EDocumentPurchaseHeader."Vendor Invoice No." <> '') and not EDocPurchaseDraftUtility.ReferencesSeveralInvoices(EDocumentPurchaseHeader."Vendor Invoice No.") then
+                if EDocPurchaseDocumentHelper.TryResolveOpenInvoice(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."Currency Code", EDocumentPurchaseHeader."Vendor Invoice No.", PostedInvoiceNo, FailureReason) then
+                    EDocImpSessionTelemetry.SetText('Applies-to Source', 'Vendor Invoice No.');
+
+        if PostedInvoiceNo = '' then begin
+            EDocImpSessionTelemetry.SetText('Applies-to Source', 'None');
+            exit;
         end;
+        PurchaseHeader."Applies-to Doc. Type" := PurchaseHeader."Applies-to Doc. Type"::Invoice;
+        PurchaseHeader."Applies-to Doc. No." := PostedInvoiceNo;
     end;
 
     procedure CreatePurchaseCreditMemo(EDocument: Record "E-Document"): Record "Purchase Header"
@@ -121,11 +133,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         if EDocumentPurchaseHeader."Currency Code" <> GLSetup.GetCurrencyCode('') then
             EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Currency Code"), EDocumentPurchaseHeader."Currency Code");
 
-        if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
-            PurchaseHeader."Applies-to Doc. No." := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(PurchaseHeader."Applies-to Doc. No."))
-        else
-            if EDocumentPurchaseHeader."Vendor Invoice No." <> '' then
-                ResolveAppliesToFromExtInvoiceNo(EDocumentPurchaseHeader."Vendor Invoice No.", PurchaseHeader);
+        ApplyToOriginalInvoice(EDocumentPurchaseHeader, PurchaseHeader);
 
         PurchaseHeader.Modify();
 

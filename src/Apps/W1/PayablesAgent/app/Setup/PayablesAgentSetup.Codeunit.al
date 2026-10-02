@@ -195,6 +195,9 @@ codeunit 3307 "Payables Agent Setup"
             EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
             EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
             EDocServiceSupportedType.Insert(false);
+
+            EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Credit Memo";
+            EDocServiceSupportedType.Insert(false);
         end;
     end;
 

@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using System.Environment.Configuration;
@@ -105,7 +106,6 @@ page 6181 "E-Document Purchase Draft"
                     ShowCaption = false;
                     field("Document Type"; Rec."Document Type")
                     {
-                        Importance = Additional;
                         Caption = 'Document Type';
                         ToolTip = 'Specifies the electronic document type.';
                         Editable = false;
@@ -165,12 +165,18 @@ page 6181 "E-Document Purchase Draft"
                     field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
                     {
                         Caption = 'Applies-to Doc. No.';
-                        ToolTip = 'Specifies the posted purchase invoice number in Business Central that this credit memo applies to.';
+                        ToolTip = 'Specifies the posted purchase invoice number in Business Central that this credit memo applies to. You can enter the posted invoice number or the vendor''s invoice number.';
                         Visible = IsCreditMemo;
                         Editable = PageEditable;
 
+                        trigger OnLookup(var Text: Text): Boolean
+                        begin
+                            exit(LookupInvoiceToApplyTo(Text));
+                        end;
+
                         trigger OnValidate()
                         begin
+                            ValidateInvoiceToApplyTo();
                             EDocumentPurchaseHeader.Modify();
                             CurrPage.Update();
                         end;
@@ -809,4 +815,41 @@ page 6181 "E-Document Purchase Draft"
         ApplyVATDiffEnabled: Boolean;
         FeedbackActionVisible: Boolean;
         AppliedVATAmountDiff: Decimal;
+        VendorRequiredForAppliesToErr: Label 'Assign a vendor to the draft before you select the invoice to apply to.';
+
+    local procedure LookupInvoiceToApplyTo(var Text: Text): Boolean
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        VendorLedgerEntries: Page "Vendor Ledger Entries";
+    begin
+        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
+            Error(VendorRequiredForAppliesToErr);
+        VendorLedgerEntry.SetRange("Vendor No.", EDocPurchDocHelper.GetPayToVendorNo(EDocumentPurchaseHeader."[BC] Vendor No."));
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+        VendorLedgerEntry.SetRange(Open, true);
+        VendorLedgerEntries.SetTableView(VendorLedgerEntry);
+        VendorLedgerEntries.LookupMode(true);
+        if VendorLedgerEntries.RunModal() <> Action::LookupOK then
+            exit(false);
+        VendorLedgerEntries.GetRecord(VendorLedgerEntry);
+        Text := VendorLedgerEntry."Document No.";
+        exit(true);
+    end;
+
+    local procedure ValidateInvoiceToApplyTo()
+    var
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        PostedInvoiceNo: Code[20];
+        FailureReason: Text;
+    begin
+        if EDocumentPurchaseHeader."Applies-to Doc. No." = '' then
+            exit;
+        if not EDocPurchDocHelper.TryResolveOpenInvoice(
+            EDocPurchDocHelper.GetPayToVendorNo(EDocumentPurchaseHeader."[BC] Vendor No."), EDocumentPurchaseHeader."Currency Code",
+            EDocumentPurchaseHeader."Applies-to Doc. No.", PostedInvoiceNo, FailureReason)
+        then
+            Error(FailureReason);
+        EDocumentPurchaseHeader."Applies-to Doc. No." := PostedInvoiceNo;
+    end;
 }

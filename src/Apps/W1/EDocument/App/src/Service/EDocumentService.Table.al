@@ -365,6 +365,9 @@ table 6103 "E-Document Service"
         EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
         EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
         EDocServiceSupportedType.Insert(false);
+
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Credit Memo";
+        EDocServiceSupportedType.Insert(false);
     end;
 
     internal procedure IsAutomaticProcessingEnabled(): Boolean

@@ -8,6 +8,13 @@ EXTRACTION RULES:
 5. Quantity: use "1" only if no quantity column exists on the document
 6. Due date: put the payment due date in "due_date" wherever it appears on the document
 
+DOCUMENT TYPE:
+- "invoice_type_code": use "381" ONLY when the document explicitly presents itself as a credit note or credit memo in its title or heading (for example "Credit Note", "Credit Memo", "Kreditnota", "Avoir", "Nota di credito", "Nota de crédito", "Creditnota", "Hyvityslasku", "Dobropis", "Gutschrift" when it credits a previous invoice). Otherwise use "380".
+- Never use "381" only because the document contains discounts, negative lines, a prepayment deduction, or the word "credit" in payment terms (for example "credit card", "credit terms").
+- A self-billing invoice titled "Gutschrift" that asks the buyer to pay is "380".
+- "billing_reference": for a credit note, list every invoice number the document explicitly states it corrects or refers to (for example "Credit for invoice INV-100"). Leave the list empty when no invoice is referenced. Never put the document's own number here.
+- Extract amounts and quantities exactly as printed, including minus signs.
+
 CUSTOMER vs VENDOR IDENTIFICATION:
 The JSON structure includes pre-filled accounting_customer_party data. This is OUR company — the buyer receiving the invoice. Use this to distinguish between customer and vendor on the document:
 - The accounting_customer_party (buyer) is already filled in. Keep these values as provided unless the document clearly shows different buyer details.

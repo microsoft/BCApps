@@ -6,28 +6,18 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.Payables;
 
-pagecustomization "PA E-Doc. Purchase Draft" customizes "E-Document Purchase Draft"
+pagecustomization "PA Vendor Ledger Entries" customizes "Vendor Ledger Entries"
 {
     ClearActions = true;
     ClearLayout = true;
+    ClearViews = true;
+    DeleteAllowed = false;
 
     layout
     {
-        modify("Vendor No.")
-        {
-            Visible = true;
-        }
-        modify("Vendor Name")
-        {
-            Visible = true;
-        }
-        modify("Vendor Address")
-        {
-            Visible = true;
-        }
-        modify("Due Date")
+        modify("Posting Date")
         {
             Visible = true;
         }
@@ -35,46 +25,31 @@ pagecustomization "PA E-Doc. Purchase Draft" customizes "E-Document Purchase Dra
         {
             Visible = true;
         }
-        modify("Applies-to Doc. No.")
+        modify("Document No.")
         {
             Visible = true;
         }
-        modify(Record)
+        modify("External Document No.")
         {
             Visible = true;
         }
-        modify(DraftType)
+        modify(Description)
         {
             Visible = true;
         }
-        modify(Lines)
+        modify("Currency Code")
         {
             Visible = true;
         }
-    }
-    actions
-    {
-        modify(ViewExtractedDocumentData)
+        modify(Amount)
         {
             Visible = true;
         }
-        modify(CreateDocument)
+        modify("Remaining Amount")
         {
             Visible = true;
         }
-        modify(Vendors)
-        {
-            Visible = true;
-        }
-        modify(OpenVendorList)
-        {
-            Visible = true;
-        }
-        modify(HistoricalVendorMatches)
-        {
-            Visible = true;
-        }
-        modify(CreateVendorAction)
+        modify("Due Date")
         {
             Visible = true;
         }

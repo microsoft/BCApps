@@ -9,11 +9,16 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 
 /// <summary>
 /// Shared logic for creating BC purchase documents (invoices and credit memos) from e-document draft data.
@@ -232,6 +237,81 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
             VATPostingSetup."VAT Calculation Type"::"Normal VAT",
             VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+    end;
+
+    procedure TryResolveOpenInvoice(PayToVendorNo: Code[20]; CurrencyCode: Code[10]; Reference: Text; var PostedInvoiceNo: Code[20]; var FailureReason: Text): Boolean
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJnlApply: Codeunit "Gen. Jnl.-Apply";
+        MatchedOnDocumentNo: Boolean;
+        VendorNotSetErr: Label 'A vendor must be assigned before the invoice to apply to can be found.';
+        InvoiceNotFoundErr: Label 'No open purchase invoice %1 was found for vendor %2.', Comment = '%1 = invoice number, %2 = vendor number';
+        InvoiceAmbiguousErr: Label 'More than one open purchase invoice of vendor %2 matches %1. Select the invoice to apply to.', Comment = '%1 = invoice number, %2 = vendor number';
+        CurrencyNotApplicableErr: Label 'Purchase invoice %1 is in a currency that this credit memo cannot be applied to.', Comment = '%1 = posted invoice number';
+    begin
+        Clear(PostedInvoiceNo);
+        Clear(FailureReason);
+        Reference := DelChr(Reference, '<>', ' ');
+        if Reference = '' then
+            exit(false);
+        if PayToVendorNo = '' then begin
+            FailureReason := VendorNotSetErr;
+            exit(false);
+        end;
+
+        VendorLedgerEntry.SetLoadFields("Document No.", "Currency Code");
+        VendorLedgerEntry.SetRange("Vendor No.", PayToVendorNo);
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+        VendorLedgerEntry.SetRange(Open, true);
+
+        if StrLen(Reference) <= MaxStrLen(VendorLedgerEntry."Document No.") then begin
+            VendorLedgerEntry.SetRange("Document No.", Reference);
+            MatchedOnDocumentNo := not VendorLedgerEntry.IsEmpty();
+        end;
+        if not MatchedOnDocumentNo then begin
+            VendorLedgerEntry.SetRange("Document No.");
+            if StrLen(Reference) > MaxStrLen(VendorLedgerEntry."External Document No.") then begin
+                FailureReason := StrSubstNo(InvoiceNotFoundErr, Reference, PayToVendorNo);
+                exit(false);
+            end;
+            VendorLedgerEntry.SetRange("External Document No.", Reference);
+        end;
+
+        case VendorLedgerEntry.Count() of
+            0:
+                begin
+                    FailureReason := StrSubstNo(InvoiceNotFoundErr, Reference, PayToVendorNo);
+                    exit(false);
+                end;
+            1:
+                VendorLedgerEntry.FindFirst();
+            else begin
+                FailureReason := StrSubstNo(InvoiceAmbiguousErr, Reference, PayToVendorNo);
+                exit(false);
+            end;
+        end;
+
+        if GeneralLedgerSetup.Get() and (CurrencyCode = GeneralLedgerSetup."LCY Code") then
+            CurrencyCode := '';
+        if not GenJnlApply.CheckAgainstApplnCurrency(CurrencyCode, VendorLedgerEntry."Currency Code", Enum::"Gen. Journal Account Type"::Vendor, false) then begin
+            FailureReason := StrSubstNo(CurrencyNotApplicableErr, VendorLedgerEntry."Document No.");
+            exit(false);
+        end;
+
+        PostedInvoiceNo := VendorLedgerEntry."Document No.";
+        exit(true);
+    end;
+
+    procedure GetPayToVendorNo(VendorNo: Code[20]): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        Vendor.SetLoadFields("Pay-to Vendor No.");
+        if Vendor.Get(VendorNo) then
+            if Vendor."Pay-to Vendor No." <> '' then
+                exit(Vendor."Pay-to Vendor No.");
+        exit(VendorNo);
     end;
 
     local procedure ComputeTotalLineAmount(EDocEntryNo: Integer; AmountRoundingPrecision: Decimal): Decimal

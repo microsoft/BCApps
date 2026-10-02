@@ -41,6 +41,30 @@ codeunit 6234 "E-Doc. Purchase Draft Utility"
         end;
     end;
 
+    procedure JoinInvoiceReferences(InvoiceReferences: List of [Text]): Text
+    var
+        DistinctReferences: List of [Text];
+        Reference: Text;
+        Result: TextBuilder;
+    begin
+        foreach Reference in InvoiceReferences do begin
+            Reference := DelChr(Reference, '<>', ' ');
+            if (Reference <> '') and not DistinctReferences.Contains(Reference) then
+                DistinctReferences.Add(Reference);
+        end;
+        foreach Reference in DistinctReferences do begin
+            if Result.Length() > 0 then
+                Result.Append(InvoiceReferenceSeparatorTok);
+            Result.Append(Reference);
+        end;
+        exit(Result.ToText());
+    end;
+
+    procedure ReferencesSeveralInvoices(InvoiceReferences: Text): Boolean
+    begin
+        exit(InvoiceReferences.Contains(DelChr(InvoiceReferenceSeparatorTok, '>', ' ')));
+    end;
+
     [InternalEvent(false, false)]
     local procedure OnInsertedEDocumentPurchaseHeader(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     begin
@@ -50,4 +74,7 @@ codeunit 6234 "E-Doc. Purchase Draft Utility"
     local procedure OnInsertedEDocumentPurchaseLines(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line")
     begin
     end;
+
+    var
+        InvoiceReferenceSeparatorTok: Label ', ', Locked = true;
 }

@@ -27,7 +27,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         FeatureNameLbl: Label 'E-Document MLLM Extraction', Locked = true;
         FileDataLbl: Label 'data:application/pdf;base64,%1', Locked = true;
         SystemPromptResourceTok: Label 'Prompts/EDocMLLMExtraction-SystemPrompt.md', Locked = true;
-        UserPromptLbl: Label 'Extract invoice data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only. %2', Locked = true;
+        UserPromptLbl: Label 'Extract invoice or credit note data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only. %2', Locked = true;
         SecurityPromptAKVKeyTok: Label 'EDocMLLMExtraction-SecurityPromptV281', Locked = true;
         MLLMExtractionStartedMsg: Label 'MLLM extraction started.', Locked = true;
         MLLMExtractionSucceededMsg: Label 'MLLM extraction succeeded.', Locked = true;
@@ -264,9 +264,14 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
         EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        IsCreditNote: Boolean;
     begin
-        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine, IsCreditNote);
         EDocPurchaseDraftUtility.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        EDocImpSessionTelemetry.SetBool('MLLM Credit Note', IsCreditNote);
+        if IsCreditNote then
+            exit(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo");
         exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
     end;
 
@@ -274,9 +279,11 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
         var TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
-        var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+        var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
+        var IsCreditNote: Boolean)
     var
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
         InStream: InStream;
         SourceJsonObject: JsonObject;
         LinesToken: JsonToken;
@@ -287,14 +294,22 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         InStream.Read(BlobAsText);
         SourceJsonObject.ReadFrom(BlobAsText);
 
+        IsCreditNote := EDocMLLMSchemaHelper.IsCreditNote(SourceJsonObject);
         EDocMLLMSchemaHelper.MapHeaderFromJson(SourceJsonObject, TempEDocPurchaseHeader);
         TempEDocPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
 
         if SourceJsonObject.Get('invoice_line', LinesToken) then
             if LinesToken.IsArray() then begin
                 LinesArray := LinesToken.AsArray();
-                EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, EDocument."Entry No", TempEDocPurchaseLine, TempEDocPurchaseHeader."Currency Code");
+                EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, EDocument."Entry No", TempEDocPurchaseLine, TempEDocPurchaseHeader."Currency Code", IsCreditNote);
             end;
+
+        if not IsCreditNote then
+            exit;
+        EDocMLLMSchemaHelper.NormalizeCreditNoteSigns(TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        TempEDocPurchaseHeader."Vendor Invoice No." := CopyStr(
+            EDocPurchaseDraftUtility.JoinInvoiceReferences(EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJsonObject, TempEDocPurchaseHeader."Sales Invoice No.")),
+            1, MaxStrLen(TempEDocPurchaseHeader."Vendor Invoice No."));
     end;
 
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
@@ -302,8 +317,9 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
         EDocReadablePurchaseDoc: Page "E-Doc. Readable Purchase Doc.";
+        IsCreditNote: Boolean;
     begin
-        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine, IsCreditNote);
         EDocReadablePurchaseDoc.SetBuffer(TempEDocPurchaseHeader, TempEDocPurchaseLine);
         EDocReadablePurchaseDoc.Run();
     end;

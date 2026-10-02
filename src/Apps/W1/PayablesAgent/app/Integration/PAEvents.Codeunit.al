@@ -77,21 +77,31 @@ codeunit 3316 "PA Events"
         IsAgentDraftPageFeedbackContext(Context, Handled);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Purchase Draft Utility", OnInsertedEDocumentPurchaseHeader, '', false, false)]
-    local procedure UpdateAgentTaskTitleOnPurchaseDocumentDraftCreated(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
+    local procedure UpdateAgentTaskTitleOnDocumentRead(EDocument: Record "E-Document")
     var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PayablesAgent: Codeunit "Payables Agent";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        ImportEDocumentProcess: Codeunit "Import E-Document Process";
         AgentTaskID: BigInteger;
     begin
-        if EDocumentPurchaseHeader.IsTemporary() then
+        if not EDocument.Get(EDocument."Entry No") then
             exit;
         if not PayablesAgentSetup.WasEDocumentCreatedByAgent(EDocument) then
+            exit;
+        if not ImportEDocumentProcess.IsEDocumentInStateGE(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft") then
+            exit;
+        if not EDocumentPurchaseHeader.Get(EDocument."Entry No") then
             exit;
         if not TryFindAgentTaskID(EDocument, AgentTaskID) then
             exit;
 
-        PayablesAgent.SetAgentTaskTitle(AgentTaskID, CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, 50), CopyStr(EDocumentPurchaseHeader."Vendor Company Name", 1, 100));
+        PayablesAgent.SetAgentTaskTitle(
+            AgentTaskID,
+            EDocument."Process Draft Impl." = EDocument."Process Draft Impl."::"Purchase Credit Memo",
+            CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, 50),
+            CopyStr(EDocumentPurchaseHeader."Vendor Company Name", 1, 100));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. M365 Conn. Events", OnGetOutlookCategoryDescription, '', false, false)]
