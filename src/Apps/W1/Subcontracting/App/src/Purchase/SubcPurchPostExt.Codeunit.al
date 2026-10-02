@@ -48,7 +48,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
     local procedure ExcludeSubcontractingLinesOnGetPurchaseOrderLines(var PurchaseLineOrder: Record "Purchase Line"; PurchaseHeaderInvoice: Record "Purchase Header")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -62,7 +62,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     var
         ValueEntry: Record "Value Entry";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -95,7 +95,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     var
         ValueEntry: Record "Value Entry";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -611,7 +611,6 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ItemTrackingCode.SetLoadFields(
             "SN Specific Tracking", "Lot Specific Tracking", "Package Specific Tracking");
         ItemTrackingCode.Get(Item."Item Tracking Code");
-
         if ItemTrackingCode."Package Specific Tracking" then
             exit(false);
 
@@ -630,7 +629,6 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit(false);
         if not ItemLedgerEntry.FindSet() then
             exit(false);
-
         repeat
             OutputQuantityBase += Abs(ItemLedgerEntry.Quantity);
             if (ItemLedgerEntry."Serial No." <> '') and (Abs(ItemLedgerEntry.Quantity) <> 1) then
