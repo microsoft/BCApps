@@ -897,13 +897,27 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
     local procedure UpdateFAJournalSetup(var FAJournalSetup: Record "FA Journal Setup")
     var
-        FAJournalSetup2: Record "FA Journal Setup";
-        FASetup: Record "FA Setup";
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalTemplate: Record "FA Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
     begin
-        FASetup.Get();
-        FAJournalSetup2.SetRange("Depreciation Book Code", FASetup."Default Depr. Book");
-        FAJournalSetup2.FindFirst();
-        FAJournalSetup.TransferFields(FAJournalSetup2, false);
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::Assets);
+        GenJournalTemplate.Modify(true);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        GenJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        GenJournalBatch.Modify(true);
+
+        LibraryFixedAsset.CreateJournalTemplate(FAJournalTemplate);
+        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        FAJournalBatch.Modify(true);
+
+        FAJournalSetup.Validate("Gen. Jnl. Template Name", GenJournalTemplate.Name);
+        FAJournalSetup.Validate("Gen. Jnl. Batch Name", GenJournalBatch.Name);
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalTemplate.Name);
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatch.Name);
         FAJournalSetup.Modify(true);
     end;
 
