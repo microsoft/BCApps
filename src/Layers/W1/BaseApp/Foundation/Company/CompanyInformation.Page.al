@@ -765,7 +765,6 @@ page 1 "Company Information"
     begin
         if ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(Experience) then
             RestartSession();
-
         if SystemIndicatorChanged then begin
             Message(CompanyBadgeRefreshPageTxt);
             AuditLog.LogAuditMessage(StrSubstNo(CompanyBadgeChangedLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
