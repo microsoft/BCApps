@@ -14,6 +14,7 @@ using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
@@ -25,6 +26,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Test;
@@ -1530,6 +1532,31 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [THEN] GlobalID element does not exist
         Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
         Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatWithoutShipToAddress()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A sales credit memo without a deliver-to address is released, posted and exported in ZUGFeRD format
+        Initialize();
+
+        // [GIVEN] Sales Credit Memo without ship-to address
+        SalesHeader.Get("Sales Document Type"::"Credit Memo", CreateSalesDocumentWithLine("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        ClearShipToAddress(SalesHeader);
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the Sales Credit Memo for release, post it and export ZUGFeRD Electronic Document
+        CheckSalesHeader(SalesHeader);
+        ResetSalesPostingNoSeriesDateUsage();
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document is created
+        VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
     end;
 
     #endregion
@@ -5413,6 +5440,30 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         CompanyInformation."Registration No." := RegistrationNo;
         CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation.Modify();
+    end;
+
+    local procedure ClearShipToAddress(var SalesHeader: Record "Sales Header")
+    begin
+        SalesHeader."Ship-to Code" := '';
+        SalesHeader."Ship-to Address" := '';
+        SalesHeader."Ship-to Address 2" := '';
+        SalesHeader."Ship-to City" := '';
+        SalesHeader."Ship-to Post Code" := '';
+        SalesHeader."Ship-to County" := '';
+        SalesHeader."Ship-to Country/Region Code" := '';
+    end;
+
+    local procedure ResetSalesPostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        NoSeriesLine.SetFilter(
+            "Series Code", '%1|%2|%3|%4',
+            SalesReceivablesSetup."Posted Shipment Nos.", SalesReceivablesSetup."Posted Invoice Nos.",
+            SalesReceivablesSetup."Posted Credit Memo Nos.", SalesReceivablesSetup."Posted Return Receipt Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
     end;
 
     local procedure Initialize();

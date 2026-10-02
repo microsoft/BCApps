@@ -304,12 +304,35 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
     end;
 
     internal procedure CheckShipToAddress(SalesHeader: Record "Sales Header")
+    var
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        PEPPOL30SalesValidation.RunOnBeforeCheckShipToAddress(SalesHeader, IsHandled);
+        if IsHandled then
+            exit;
+
+        // The deliver-to address (BG-15) is optional; it is exported, and must then be complete, only when one of its fields is filled.
+        if not HasShipToAddress(SalesHeader) then
+            exit;
+
         SalesHeader.TestField("Ship-to Address");
         SalesHeader.TestField("Ship-to City");
         SalesHeader.TestField("Ship-to Post Code");
         SalesHeader.TestField("Ship-to Country/Region Code");
         CheckCountryRegionCode(SalesHeader."Ship-to Country/Region Code");
+    end;
+
+    local procedure HasShipToAddress(SalesHeader: Record "Sales Header"): Boolean
+    begin
+        exit(
+          (SalesHeader."Ship-to Address" <> '') or
+          (SalesHeader."Ship-to Address 2" <> '') or
+          (SalesHeader."Ship-to City" <> '') or
+          (SalesHeader."Ship-to Post Code" <> '') or
+          (SalesHeader."Ship-to County" <> '') or
+          (SalesHeader."Ship-to Country/Region Code" <> ''));
     end;
 
     internal procedure CheckTaxCategory(SalesLine: Record "Sales Line")
