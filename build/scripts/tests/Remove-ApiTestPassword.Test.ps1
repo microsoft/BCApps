@@ -124,14 +124,133 @@ Describe 'API test credential workflow lifetime' {
         $script:setup | Should -Not -Match 'Copy-FileToBcContainer|WriteAllText|GetNetworkCredential|GetTempPath'
     }
 
-    It 'runs cleanup on success, failure and cancellation after all build consumers' {
-        $cleanupStep = [regex]::Match($script:workflow, '(?ms)^      - name: Remove API test credential\r?\n.*?(?=^      - name: Cleanup)').Value
-        $cleanupStep | Should -Match "if: always\(\) && steps\.DetermineBuildProject\.outputs\.BuildIt == 'True' && env\.BCAppsApiTestPasswordPath != ''"
-        $cleanupStep | Should -Match 'timeout-minutes: 2'
-        $cleanupStep | Should -Match 'Remove-ApiTestPassword.ps1'
-        $cleanupStep | Should -Not -Match 'continue-on-error'
-        $script:workflow.IndexOf('- name: Build') |
-            Should -BeLessThan $script:workflow.IndexOf('- name: Remove API test credential')
+    It 'leaves generated workflow cleanup unmodified and uses supported project finalizers' {
+        $script:workflow | Should -Not -Match '- name: Remove API test credential|Remove-ApiTestPassword.ps1'
         $script:workflow | Should -Match '(?s)- name: Cleanup\r?\n\s+if: always\(\).*?uses: microsoft/AL-Go/Actions/PipelineCleanup@'
+        & (Join-Path $PSScriptRoot '..\Update-TestProjectPipelineFinalize.ps1') -Check
+    }
+}
+
+Describe 'API test credential pipeline finalizer' {
+    BeforeAll {
+        $script:finalizer = Join-Path $PSScriptRoot '..\PipelineFinalize.ps1'
+        $script:previousPasswordPath = $env:BCAppsApiTestPasswordPath
+        $script:previousPasswordContainer = $env:BCAppsApiTestPasswordContainer
+        $script:previousExitCode = Get-Variable LASTEXITCODE -Scope Global -ValueOnly -ErrorAction SilentlyContinue
+        function docker {
+            param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
+            $null = $Arguments
+            throw 'Docker must be mocked.'
+        }
+    }
+
+    BeforeEach {
+        $env:BCAppsApiTestPasswordPath = Join-Path $TestDrive 'ApiTestPassword'
+        $env:BCAppsApiTestPasswordContainer = 'recorded-container'
+        Mock Test-Path { $true }
+        Mock docker {
+            $global:LASTEXITCODE = 0
+            if ($Arguments[0] -eq 'container') { 'recorded-container-id' }
+        }
+        Mock Remove-Item {
+            Should -Invoke docker -Times 1 -ParameterFilter { $Arguments[0] -eq 'stop' }
+        }
+        Mock Write-Host {}
+    }
+
+    AfterAll {
+        $env:BCAppsApiTestPasswordPath = $script:previousPasswordPath
+        $env:BCAppsApiTestPasswordContainer = $script:previousPasswordContainer
+        $global:LASTEXITCODE = $script:previousExitCode
+    }
+
+    It 'accepts no arguments and stops the recorded consumers before deleting the backing file' {
+        $path = $env:BCAppsApiTestPasswordPath
+        . $script:finalizer
+        Should -Invoke docker -Times 1 -Exactly -ParameterFilter {
+            $Arguments -contains 'name=^/recorded-container$'
+        }
+        Should -Invoke Remove-Item -Times 1 -Exactly -ParameterFilter { $LiteralPath -eq $path }
+        $env:BCAppsApiTestPasswordPath | Should -BeNullOrEmpty
+        $env:BCAppsApiTestPasswordContainer | Should -BeNullOrEmpty
+    }
+
+    It 'does nothing when no credential was provisioned' {
+        $env:BCAppsApiTestPasswordPath = $null
+        . $script:finalizer
+        Should -Invoke docker -Times 0
+        Should -Invoke Remove-Item -Times 0
+    }
+
+    It 'is idempotent when standard teardown already removed the credential' {
+        Mock Test-Path { $false }
+        . $script:finalizer
+        . $script:finalizer
+        Should -Invoke docker -Times 0
+        Should -Invoke Remove-Item -Times 0
+        $env:BCAppsApiTestPasswordPath | Should -BeNullOrEmpty
+    }
+
+    It 'preserves cleanup identity and propagates a failure without deleting while consumers remain' {
+        Mock docker { $global:LASTEXITCODE = 1 } -ParameterFilter { $Arguments[0] -eq 'stop' }
+        { . $script:finalizer } | Should -Throw '*Could not stop API test consumers*'
+        Should -Invoke Remove-Item -Times 0
+        $env:BCAppsApiTestPasswordContainer | Should -Be 'recorded-container'
+        $env:BCAppsApiTestPasswordPath | Should -Be (Join-Path $TestDrive 'ApiTestPassword')
+    }
+
+    It 'propagates deletion failure without forgetting the recorded path' {
+        Mock Remove-Item { throw 'Synthetic deletion failure' }
+        { . $script:finalizer } | Should -Throw '*Synthetic deletion failure*'
+        $env:BCAppsApiTestPasswordPath | Should -Be (Join-Path $TestDrive 'ApiTestPassword')
+    }
+
+    It 'runs every registered project wrapper through the AL-Go scriptblock invocation contract' {
+        $projects = Join-Path $PSScriptRoot '..\..\projects'
+        $wrappers = @(Get-ChildItem -LiteralPath $projects -Directory | ForEach-Object {
+            $setup = Join-Path $_.FullName '.AL-Go\NewBcContainer.ps1'
+            if ([IO.File]::Exists($setup)) {
+                Get-Item -LiteralPath (Join-Path $_.FullName '.AL-Go\PipelineFinalize.ps1')
+            }
+        })
+        $wrappers.Count | Should -BeGreaterThan 0
+        foreach ($wrapper in $wrappers) {
+            $env:BCAppsApiTestPasswordPath = Join-Path $TestDrive 'ApiTestPassword'
+            $env:BCAppsApiTestPasswordContainer = 'recorded-container'
+            Invoke-Command -ScriptBlock (Get-Command $wrapper.FullName).ScriptBlock
+        }
+        Should -Invoke Remove-Item -Times $wrappers.Count -Exactly
+    }
+}
+
+Describe 'API test pipeline finalizer generation' {
+    BeforeAll {
+        $script:generator = Join-Path $PSScriptRoot '..\Update-TestProjectPipelineFinalize.ps1'
+    }
+
+    It 'generates only container-project wrappers and is stable when regenerated' {
+        $projects = Join-Path $TestDrive 'projects'
+        foreach ($name in @('Test Apps W1', 'Test Apps AT', 'Apps W1')) {
+            New-Item -Path (Join-Path $projects "$name\.AL-Go") -ItemType Directory -Force | Out-Null
+        }
+        foreach ($name in @('Test Apps W1', 'Test Apps AT')) {
+            Set-Content -LiteralPath (Join-Path $projects "$name\.AL-Go\NewBcContainer.ps1") -Value 'fixture'
+        }
+        & $script:generator -ProjectsPath $projects
+        $path = Join-Path $projects 'Test Apps W1\.AL-Go\PipelineFinalize.ps1'
+        $first = [IO.File]::ReadAllBytes($path)
+        & $script:generator -ProjectsPath $projects
+        [Convert]::ToBase64String([IO.File]::ReadAllBytes($path)) | Should -Be ([Convert]::ToBase64String($first))
+        & $script:generator -ProjectsPath $projects -Check
+        Test-Path (Join-Path $projects 'Apps W1\.AL-Go\PipelineFinalize.ps1') | Should -BeFalse
+    }
+
+    It 'fails check-only validation for a missing wrapper without writing it' {
+        $projects = Join-Path $TestDrive 'missing'
+        $folder = Join-Path $projects 'Test Apps W1\.AL-Go'
+        New-Item -Path $folder -ItemType Directory -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $folder 'NewBcContainer.ps1') -Value 'fixture'
+        { & $script:generator -ProjectsPath $projects -Check } | Should -Throw '*missing or outdated*'
+        Test-Path (Join-Path $folder 'PipelineFinalize.ps1') | Should -BeFalse
     }
 }
