@@ -44,6 +44,11 @@ codeunit 3354 "Export Interfactura MX"
         StartEventNameTok: Label 'Export initiated. IsBatch is: %1', Locked = true;
         EndEventNameTok: Label 'Export completed', Locked = true;
         NumeroPedimentoFormatTxt: Label '%1 %2 %3 %4', Locked = true;
+        // SAT catalog values for advance payment CFDI (catalogo c_ClaveProdServ and c_ClaveUnidad)
+        AdvanceProdServCodeTok: Label '84111506', Locked = true;
+        AdvanceUnitCodeTok: Label 'ACT', Locked = true;
+        AdvanceDescriptionTok: Label 'Anticipo bien o servicio', Locked = true;
+        AdvanceReverseDescriptionTok: Label 'Aplicacion de anticipo', Locked = true;
 
     procedure Export(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
     var
@@ -63,10 +68,8 @@ codeunit 3354 "Export Interfactura MX"
         SalesShipmentLine: Record "Sales Shipment Line";
         TransferLine: Record "Transfer Line";
         TransferShipmentLine: Record "Transfer Shipment Line";
-    //CustLedgerEntry: Record "Cust. Ledger Entry"; 
     begin
         OnBeforeExport(SourceDocumentHeader, SourceDocumentLines, TempBlob, IsBatch);
-        //TODO: averiguar los códigos de telemetría
         FeatureTelemetry.LogUsage('0000OCR', FeatureNameTok, StrSubstNo(StartEventNameTok, Format(IsBatch)));
         CompanyInformation.Get();
         if not MXConnectionSetup.Get() then
@@ -137,17 +140,6 @@ codeunit 3354 "Export Interfactura MX"
                     SourceDocumentLines.SetTable(TransferShipmentLine);
                     ExportTransferShipment(EDocument, TransferShipmentHeader, TransferShipmentLine, TempBlob, IsBatch);
                 end;
-        /*
-        Database::"Cust. Ledger Entry":
-        begin
-            //quizas la cabecera debería venir del documento de origen
-            SourceDocumentHeader.SetTable(CustLedgerEntry);
-            if not IsBatch then
-                CustLedgerEntry.SetRecFilter();
-            SourceDocumentLines.SetTable(CustLedgerEntry);
-            ExportCustLedgerEntry(EDocument, CustLedgerEntry, TempBlob, IsBatch);
-        end;
-        */
         end;
         FeatureTelemetry.LogUsage('0000OCT', FeatureNameTok, EndEventNameTok);
         OnAfterExport(SourceDocumentHeader, SourceDocumentLines, TempBlob, IsBatch);
@@ -569,7 +561,7 @@ codeunit 3354 "Export Interfactura MX"
         ComercioExteriorNode.AsXmlElement().SetAttribute('ClaveDePedimento', 'A1');
         ComercioExteriorNode.AsXmlElement().SetAttribute('CertificadoOrigen', '0');
         ComercioExteriorNode.AsXmlElement().SetAttribute('Incoterm', DocumentHeader."SAT International Trade Term");
-        CurrencyFactor := (1 / DocumentHeader."Currency Factor") / DocumentHeader."Exchange Rate USD";
+        CurrencyFactor := (1 / DocumentHeader."Currency Factor") * DocumentHeader."Exchange Rate USD";
         ComercioExteriorNode.AsXmlElement().SetAttribute('TipoCambioUSD', FormatDecimal(DocumentHeader."Exchange Rate USD", 6));
         ComercioExteriorNode.AsXmlElement().SetAttribute('TotalUSD', FormatDecimal(DocumentHeader.Amount * CurrencyFactor, 2));
 
@@ -1510,7 +1502,7 @@ codeunit 3354 "Export Interfactura MX"
             exit(SalesShipmentHeader."Location Code");
 
         SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
-        SalesShipmentLine.SetFilter(Type, '<>%1', SalesShipmentLine.Type::" ");
+        SalesShipmentLine.SetFilter("Location Code", '<>%1', '');
         if SalesShipmentLine.FindFirst() then
             exit(SalesShipmentLine."Location Code");
 
@@ -2413,10 +2405,10 @@ codeunit 3354 "Export Interfactura MX"
 
         CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Conceptos', '', ConceptosNode);
         CFDIXMLHelperMX.AddElementCFDI(ConceptosNode, 'Concepto', '', ConceptoNode);
-        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', '84111506');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', AdvanceProdServCodeTok);
         CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Cantidad', '1');
-        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', 'ACT');
-        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', 'Anticipo bien o servicio');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', AdvanceUnitCodeTok);
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', AdvanceDescriptionTok);
         CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', FormatAmount(SubTotal, CurrencyCode));
         CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', FormatAmount(SubTotal, CurrencyCode));
 
@@ -2575,10 +2567,10 @@ codeunit 3354 "Export Interfactura MX"
 
         CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Conceptos', '', ConceptosNode);
         CFDIXMLHelperMX.AddElementCFDI(ConceptosNode, 'Concepto', '', ConceptoNode);
-        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', '84111506');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', AdvanceProdServCodeTok);
         CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Cantidad', '1');
-        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', 'ACT');
-        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', 'Aplicacion de anticipo');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', AdvanceUnitCodeTok);
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', AdvanceReverseDescriptionTok);
         CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', FormatDecimal(ReverseAmount, 0));
         CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', FormatDecimal(ReverseAmount, 0));
     end;
@@ -2772,7 +2764,7 @@ codeunit 3354 "Export Interfactura MX"
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'ClaveDePedimento', 'A1');
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'CertificadoOrigen', '0');
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'Incoterm', DocumentHeader."SAT International Trade Term");
-        CurrencyFactor := (1 / DocumentHeader."Currency Factor") / DocumentHeader."Exchange Rate USD";
+        CurrencyFactor := (1 / DocumentHeader."Currency Factor") * DocumentHeader."Exchange Rate USD";
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TipoCambioUSD', FormatDecimal(DocumentHeader."Exchange Rate USD", 6));
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TotalUSD', FormatDecimal(DocumentHeader.Amount * CurrencyFactor, 2));
 

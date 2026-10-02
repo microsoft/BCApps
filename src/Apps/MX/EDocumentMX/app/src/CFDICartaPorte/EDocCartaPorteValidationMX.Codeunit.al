@@ -151,7 +151,7 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
 
         SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
         SalesShipmentLine.SetFilter("Location Code", '<>%1', '');
-        if SalesShipmentLine.FindLast() then
+        if SalesShipmentLine.FindFirst() then
             exit(SalesShipmentLine."Location Code");
 
         exit('');
@@ -224,7 +224,8 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
         if VehicleCode = '' then
             exit;
 
-        FixedAsset.Get(VehicleCode);
+        if not FixedAsset.Get(VehicleCode) then
+            exit;
         TempErrorMessage.LogIfEmpty(FixedAsset, FixedAsset.FieldNo("Vehicle Licence Plate"), TempErrorMessage."Message Type"::Error);
 
         if IsTrailer then begin

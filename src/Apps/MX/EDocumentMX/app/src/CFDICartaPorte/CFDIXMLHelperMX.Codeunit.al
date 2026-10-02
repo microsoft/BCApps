@@ -28,11 +28,15 @@ codeunit 3361 "CFDI XML Helper MX"
         exit(XMLDOMManagement.AddElementWithPrefix(XMLNode, NodeName, NodeText, 'cfdi', CFDINamespaceTxt, CreatedXmlNode));
     end;
 
+    /// Use for user-supplied text values (names, descriptions, addresses) that may contain
+    /// characters invalid in XML. Strips invalid chars before writing.
     procedure AddAttribute(XMLNode: XmlNode; AttribName: Text; AttribValue: Text)
     begin
         AddAttributeSimple(XMLNode, AttribName, RemoveInvalidChars(AttribValue));
     end;
 
+    /// Use for controlled values (SAT catalog codes, formatted numbers, fixed literals)
+    /// that are guaranteed to be valid XML. Skips the RemoveInvalidChars pass for performance.
     procedure AddAttributeSimple(XMLNode: XmlNode; AttribName: Text; AttribValue: Text)
     begin
         if AttribValue = '' then
