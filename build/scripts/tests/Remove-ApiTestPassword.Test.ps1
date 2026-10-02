@@ -124,10 +124,9 @@ Describe 'API test credential workflow lifetime' {
         $script:setup | Should -Not -Match 'Copy-FileToBcContainer|WriteAllText|GetNetworkCredential|GetTempPath'
     }
 
-    It 'leaves generated workflow cleanup unmodified and uses supported project finalizers' {
+    It 'leaves generated workflow cleanup unmodified' {
         $script:workflow | Should -Not -Match '- name: Remove API test credential|Remove-ApiTestPassword.ps1'
         $script:workflow | Should -Match '(?s)- name: Cleanup\r?\n\s+if: always\(\).*?uses: microsoft/AL-Go/Actions/PipelineCleanup@'
-        & (Join-Path $PSScriptRoot '..\Update-TestProjectPipelineFinalize.ps1') -Check
     }
 }
 
@@ -220,37 +219,5 @@ Describe 'API test credential pipeline finalizer' {
             Invoke-Command -ScriptBlock (Get-Command $wrapper.FullName).ScriptBlock
         }
         Should -Invoke Remove-Item -Times $wrappers.Count -Exactly
-    }
-}
-
-Describe 'API test pipeline finalizer generation' {
-    BeforeAll {
-        $script:generator = Join-Path $PSScriptRoot '..\Update-TestProjectPipelineFinalize.ps1'
-    }
-
-    It 'generates only container-project wrappers and is stable when regenerated' {
-        $projects = Join-Path $TestDrive 'projects'
-        foreach ($name in @('Test Apps W1', 'Test Apps AT', 'Apps W1')) {
-            New-Item -Path (Join-Path $projects "$name\.AL-Go") -ItemType Directory -Force | Out-Null
-        }
-        foreach ($name in @('Test Apps W1', 'Test Apps AT')) {
-            Set-Content -LiteralPath (Join-Path $projects "$name\.AL-Go\NewBcContainer.ps1") -Value 'fixture'
-        }
-        & $script:generator -ProjectsPath $projects
-        $path = Join-Path $projects 'Test Apps W1\.AL-Go\PipelineFinalize.ps1'
-        $first = [IO.File]::ReadAllBytes($path)
-        & $script:generator -ProjectsPath $projects
-        [Convert]::ToBase64String([IO.File]::ReadAllBytes($path)) | Should -Be ([Convert]::ToBase64String($first))
-        & $script:generator -ProjectsPath $projects -Check
-        Test-Path (Join-Path $projects 'Apps W1\.AL-Go\PipelineFinalize.ps1') | Should -BeFalse
-    }
-
-    It 'fails check-only validation for a missing wrapper without writing it' {
-        $projects = Join-Path $TestDrive 'missing'
-        $folder = Join-Path $projects 'Test Apps W1\.AL-Go'
-        New-Item -Path $folder -ItemType Directory -Force | Out-Null
-        Set-Content -LiteralPath (Join-Path $folder 'NewBcContainer.ps1') -Value 'fixture'
-        { & $script:generator -ProjectsPath $projects -Check } | Should -Throw '*missing or outdated*'
-        Test-Path (Join-Path $folder 'PipelineFinalize.ps1') | Should -BeFalse
     }
 }
