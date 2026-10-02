@@ -396,7 +396,7 @@ table 5851 "Invt. Document Line"
             ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;
@@ -754,7 +754,7 @@ table 5851 "Invt. Document Line"
             Caption = 'FA No.';
             TableRelation = "Fixed Asset";
         }
-        field(12451; "FA Entry No."; Integer)
+        field(12451; "FA Entry No."; BigInteger)
         {
             Caption = 'FA Entry No.';
             TableRelation = "FA Ledger Entry" where("Entry No." = field("FA Entry No."));
@@ -1093,7 +1093,7 @@ table 5851 "Invt. Document Line"
             UnitCost := Round(UnitCost, GLSetup."Unit-Amount Rounding Precision");
     end;
 
-    local procedure CalcUnitCost(ItemLedgEntryNo: Integer): Decimal
+    local procedure CalcUnitCost(ItemLedgEntryNo: BigInteger): Decimal
     var
         ValueEntry: Record "Value Entry";
     begin

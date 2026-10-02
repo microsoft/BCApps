@@ -22,8 +22,8 @@ codeunit 122 "Calc. Running GL. Acc. Balance"
         ClientTypeManagement: Codeunit System.Environment."Client Type Management";
         DayTotals: Dictionary of [Date, Decimal];
         DayTotalsACY: Dictionary of [Date, Decimal];
-        EntryValues: Dictionary of [Integer, Decimal];
-        EntryValuesACY: Dictionary of [Integer, Decimal];
+        EntryValues: Dictionary of [BigInteger, Decimal];
+        EntryValuesACY: Dictionary of [BigInteger, Decimal];
         PrevAccNo: Code[20];
 
     /// <summary>

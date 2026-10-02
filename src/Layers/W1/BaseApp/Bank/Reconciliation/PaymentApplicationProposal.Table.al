@@ -664,12 +664,13 @@ table 1293 "Payment Application Proposal"
         OnAfterCreateFromBankStmtMacthingBuffer(Rec, TempBankStmtMatchingBuffer, BankAccReconciliationLine, BankAccount);
     end;
 
-    procedure UpdateDefaultCalculatedFields(var BankAccount: Record "Bank Account"; AppliesToEntryNo: Integer)
+#pragma warning disable AS0024
+    procedure UpdateDefaultCalculatedFields(var BankAccount: Record "Bank Account"; AppliesToEntryNo: BigInteger)
     begin
         UpdateDefaultCalculatedFields(BankAccount, AppliesToEntryNo, false);
     end;
 
-    procedure UpdateDefaultCalculatedFields(var BankAccount: Record "Bank Account"; AppliesToEntryNo: Integer; SkipRemainingAmountUpdate: Boolean)
+    procedure UpdateDefaultCalculatedFields(var BankAccount: Record "Bank Account"; AppliesToEntryNo: BigInteger; SkipRemainingAmountUpdate: Boolean)
     begin
         UpdatePaymentDiscInfo();
         if not SkipRemainingAmountUpdate then
@@ -679,6 +680,7 @@ table 1293 "Payment Application Proposal"
         if AppliesToEntryNo > 0 then
             UpdateTypeOption(AppliesToEntryNo);
     end;
+#pragma warning restore AS0024
 
     local procedure UpdateSortingOrder()
     var
@@ -1069,7 +1071,7 @@ table 1293 "Payment Application Proposal"
         AppliedPaymentEntry.SetRange("Statement Line No.", "Statement Line No.");
     end;
 
-    local procedure UpdateTypeOption(EntryNo: Integer)
+    local procedure UpdateTypeOption(EntryNo: BigInteger)
     var
         CheckLedgerEntry: Record "Check Ledger Entry";
     begin

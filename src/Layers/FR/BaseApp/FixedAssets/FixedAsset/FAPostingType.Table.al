@@ -183,7 +183,7 @@ table 5644 "FA Posting Type"
         OnAfterCreateTypes(Rec);
     end;
 
-    procedure InsertRec(EntryNo: Integer; FAPostingTypeNo: Integer; FAPostingTypeName: Text)
+    procedure InsertRec(EntryNo: BigInteger; FAPostingTypeNo: Integer; FAPostingTypeName: Text)
     begin
         "Entry No." := EntryNo;
         "FA Posting Type No." := FAPostingTypeNo;

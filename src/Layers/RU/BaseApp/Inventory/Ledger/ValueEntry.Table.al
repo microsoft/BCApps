@@ -42,7 +42,7 @@ table 5802 "Value Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -104,7 +104,7 @@ table 5802 "Value Entry"
             else
             if ("Source Type" = const(Item)) "Inventory Posting Group";
         }
-        field(11; "Item Ledger Entry No."; Integer)
+        field(11; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry that this value entry is linked to.';
@@ -144,7 +144,7 @@ table 5802 "Value Entry"
             AutoFormatExpression = '';
             Caption = 'Sales Amount (Actual)';
         }
-        field(20; "Item Register No."; Integer)
+        field(20; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             Editable = false;
@@ -488,7 +488,7 @@ table 5802 "Value Entry"
             ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
-        field(1002; "Job Ledger Entry No."; Integer)
+        field(1002; "Job Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Project Ledger Entry No.';
@@ -510,7 +510,7 @@ table 5802 "Value Entry"
         {
             Caption = 'Average Cost Exception';
         }
-        field(5831; "Capacity Ledger Entry No."; Integer)
+        field(5831; "Capacity Ledger Entry No."; BigInteger)
         {
             Caption = 'Capacity Ledger Entry No.';
             ToolTip = 'Specifies the entry number of the item ledger entry that this value entry is linked to.';
@@ -671,7 +671,7 @@ table 5802 "Value Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Value Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -679,7 +679,7 @@ table 5802 "Value Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Value Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -789,7 +789,7 @@ table 5802 "Value Entry"
                 QtyFactor := ValueEntry.CalcQtyFactor(FromDate, ToDate);
     end;
 
-    procedure CalcItemLedgEntryCost(ItemLedgEntryNo: Integer; Expected: Boolean)
+    procedure CalcItemLedgEntryCost(ItemLedgEntryNo: BigInteger; Expected: Boolean)
     var
         ItemLedgEntryQty: Decimal;
         CostAmtActual: Decimal;
@@ -824,7 +824,7 @@ table 5802 "Value Entry"
         "Cost Amount (Expected) (ACY)" := CostAmtExpectedACY;
     end;
 
-    procedure NotInvdRevaluationExists(ItemLedgEntryNo: Integer): Boolean
+    procedure NotInvdRevaluationExists(ItemLedgEntryNo: BigInteger): Boolean
     begin
         Reset();
         SetCurrentKey("Item Ledger Entry No.", "Entry Type");
@@ -964,7 +964,7 @@ table 5802 "Value Entry"
         AccountingPeriod := PrevAccountingPeriod;
     end;
 
-    procedure FindFirstValueEntryByItemLedgerEntryNo(ItemLedgerEntryNo: Integer)
+    procedure FindFirstValueEntryByItemLedgerEntryNo(ItemLedgerEntryNo: BigInteger)
     begin
         Reset();
         SetCurrentKey("Item Ledger Entry No.", "Entry No.");
@@ -1009,7 +1009,7 @@ table 5802 "Value Entry"
     /// </summary>
     /// <param name="EntryNo">The entry no. of the entry we are comparing to</param>
     /// <returns>Boolean</returns>
-    internal procedure EntryNoHasSameSign(EntryNo: integer): Boolean
+    internal procedure EntryNoHasSameSign(EntryNo: BigInteger): Boolean
     begin
         if (Rec."Entry No." >= 0) and (EntryNo >= 0) then
             exit(true);
@@ -1049,7 +1049,7 @@ table 5802 "Value Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcItemLedgEntryCost(var ValueEntry: Record "Value Entry"; ItemLedgEntryNo: Integer; Expected: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeCalcItemLedgEntryCost(var ValueEntry: Record "Value Entry"; ItemLedgEntryNo: BigInteger; Expected: Boolean; var IsHandled: Boolean)
     begin
     end;
 

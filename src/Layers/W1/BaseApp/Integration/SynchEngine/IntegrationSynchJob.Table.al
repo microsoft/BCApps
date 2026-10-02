@@ -172,7 +172,7 @@ table 5338 "Integration Synch. Job"
         exit(Failed <> 0);
     end;
 
-    procedure HaveJobsBeenIdle(JobQueueLogEntryNo: Integer): Boolean
+    procedure HaveJobsBeenIdle(JobQueueLogEntryNo: BigInteger): Boolean
     begin
         Reset();
         SetRange("Job Queue Log Entry No.", JobQueueLogEntryNo);

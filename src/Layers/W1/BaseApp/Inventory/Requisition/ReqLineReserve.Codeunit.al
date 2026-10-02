@@ -549,7 +549,7 @@ codeunit 99000833 "Req. Line-Reserve"
         CaptionText := RequisitionLine.GetSourceCaption();
     end;
 
-    local procedure MatchThisEntry(EntryNo: Integer): Boolean
+    local procedure MatchThisEntry(EntryNo: BigInteger): Boolean
     begin
         exit(EntryNo = Enum::"Reservation Summary Type"::"Requisition Line".AsInteger());
     end;

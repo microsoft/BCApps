@@ -235,13 +235,13 @@ page 625 "Unapply Employee Entries"
         Employee: Record Employee;
         DocNo: Code[20];
         PostingDate: Date;
-        EmplLedgEntryNo: Integer;
+        EmplLedgEntryNo: BigInteger;
         CaptionTxt: Label '%1 %2 %3 %4', Locked = true;
         EntriesUnappliedMsg: Label 'The entries were successfully unapplied.';
         NothingToApplyErr: Label 'There is nothing to unapply.';
         UnapplyEntriesQst: Label 'To unapply these entries, correcting entries will be posted.\Do you want to unapply the entries?';
 
-    procedure SetDtldEmplLedgEntry(EntryNo: Integer)
+    procedure SetDtldEmplLedgEntry(EntryNo: BigInteger)
     begin
         DtldEmplLedgEntry2.Get(EntryNo);
         EmplLedgEntryNo := DtldEmplLedgEntry2."Employee Ledger Entry No.";

@@ -1773,7 +1773,7 @@ table 5900 "Service Header"
                     InitVATDate();
             end;
         }
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";
@@ -4599,7 +4599,7 @@ table 5900 "Service Header"
         PAGE.RunModal(0, TempValueEntry);
     end;
 
-    local procedure CreateTempAdjmtValueEntries(var TempValueEntry: Record "Value Entry" temporary; ItemLedgEntryNo: Integer)
+    local procedure CreateTempAdjmtValueEntries(var TempValueEntry: Record "Value Entry" temporary; ItemLedgEntryNo: BigInteger)
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -5611,7 +5611,7 @@ table 5900 "Service Header"
         ServContractMgt: Codeunit ServContractManagement;
         OriginalServiceLedgerEntryNos: List of [Integer];
         ReversedServiceLedgerEntryNos: Dictionary of [Integer, Boolean];
-        OriginalServiceLedgerEntryNo: Integer;
+        OriginalServiceLedgerEntryNo: BigInteger;
         InvoicedServiceLedgerEntryExists: Boolean;
     begin
         ServiceLedgerEntry.SetLoadFields("Entry No.", "Applies-to Entry No.");

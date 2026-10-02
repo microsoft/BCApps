@@ -47,7 +47,7 @@ codeunit 1200 "Import Bank Statement"
 #pragma warning restore AA0470
         ProgressWindow: Dialog;
 
-    local procedure Parse(DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer; XMLNode: DotNet XmlNode; ParentPath: Text; NodeId: Text[250]; var LastGivenLineNo: Integer; CurrentLineNo: Integer)
+    local procedure Parse(DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: BigInteger; XMLNode: DotNet XmlNode; ParentPath: Text; NodeId: Text[250]; var LastGivenLineNo: Integer; CurrentLineNo: Integer)
     var
         CurrentDataExchLineDef: Record "Data Exch. Line Def";
         XMLAttributeCollection: DotNet XmlAttributeCollection;
@@ -85,7 +85,7 @@ codeunit 1200 "Import Bank Statement"
         end;
     end;
 
-    local procedure InsertColumn(Path: Text; LineNo: Integer; NodeId: Text[250]; Value: Text; Name: Text; var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer)
+    local procedure InsertColumn(Path: Text; LineNo: Integer; NodeId: Text[250]; Value: Text; Name: Text; var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: BigInteger)
     var
         DataExchColumnDef: Record "Data Exch. Column Def";
         DataExchField: Record "Data Exch. Field";
@@ -135,7 +135,7 @@ codeunit 1200 "Import Bank Statement"
     /// <param name="Path">The XML path to the data.</param>
     /// <param name="Value">The column value to be inserted.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertColumn(var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer; LineNo: Integer; NodeId: Text[250]; Name: Text; var ProgressWindow: Dialog; var IsHandled: Boolean; Path: Text; Value: Text)
+    local procedure OnBeforeInsertColumn(var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: BigInteger; LineNo: Integer; NodeId: Text[250]; Name: Text; var ProgressWindow: Dialog; var IsHandled: Boolean; Path: Text; Value: Text)
     begin
     end;
 }

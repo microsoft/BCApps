@@ -2234,7 +2234,7 @@ table 38 "Purchase Header"
             Caption = 'Job Queue Entry ID';
             Editable = false;
         }
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             ToolTip = 'Specifies the number of the incoming document that this purchase document is created for.';

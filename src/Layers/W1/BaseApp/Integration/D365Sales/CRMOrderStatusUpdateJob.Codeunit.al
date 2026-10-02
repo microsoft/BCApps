@@ -30,7 +30,7 @@ codeunit 5352 "CRM Order Status Update Job"
         FailedToCreatePostErr: Label 'Failed to create a post on the entity wall of %1 with id %2.', Locked = true;
         CategoryTok: Label 'AL Dataverse Integration', Locked = true;
 
-    local procedure UpdateOrders(JobLogEntryNo: Integer)
+    local procedure UpdateOrders(JobLogEntryNo: BigInteger)
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
         ConnectionName: Text;
@@ -49,7 +49,7 @@ codeunit 5352 "CRM Order Status Update Job"
         CRMConnectionSetup.UnregisterConnectionWithName(ConnectionName);
     end;
 
-    local procedure UpdateSalesOrders(JobLogEntryNo: Integer)
+    local procedure UpdateSalesOrders(JobLogEntryNo: BigInteger)
     var
         IntegrationTableMapping: Record "Integration Table Mapping";
         IntegrationTableSynch: Codeunit "Integration Table Synch.";

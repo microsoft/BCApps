@@ -786,8 +786,8 @@ report 5911 "Service - Invoice"
         NoOfLoops: Integer;
         CopyText: Text[30];
         ShowShippingAddr: Boolean;
-        NextEntryNo: Integer;
-        FirstValueEntryNo: Integer;
+        NextEntryNo: BigInteger;
+        FirstValueEntryNo: BigInteger;
         OutputNo: Integer;
         TypeInt: Integer;
         DimText: Text[120];

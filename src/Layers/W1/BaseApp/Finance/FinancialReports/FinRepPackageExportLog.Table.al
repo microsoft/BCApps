@@ -13,7 +13,7 @@ table 8375 "Fin. Rep. Package Export Log"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';

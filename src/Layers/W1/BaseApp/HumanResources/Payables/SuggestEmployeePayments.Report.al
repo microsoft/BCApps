@@ -345,7 +345,7 @@ report 394 "Suggest Employee Payments"
         SummarizePerDim: Boolean;
         SummarizePerDimTextReq: Text[250];
         LastLineNo: Integer;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         StopPayments: Boolean;
         DocNoPerLine: Boolean;
         BankPmtType: Enum "Bank Payment Type";
@@ -758,7 +758,7 @@ report 394 "Suggest Employee Payments"
         PayableEmplLedgEntry.SetRange(Amount);
     end;
 
-    local procedure InsertDimBuf(var DimBuf: Record "Dimension Buffer"; TableID: Integer; EntryNo: Integer; DimCode: Code[20]; DimValue: Code[20])
+    local procedure InsertDimBuf(var DimBuf: Record "Dimension Buffer"; TableID: Integer; EntryNo: BigInteger; DimCode: Code[20]; DimValue: Code[20])
     begin
         DimBuf.Init();
         DimBuf."Table ID" := TableID;
@@ -786,7 +786,7 @@ report 394 "Suggest Employee Payments"
     local procedure SetTempEmplPaymentBufferDims(var DimBuf: Record "Dimension Buffer")
     var
         GLSetup: Record "General Ledger Setup";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if SummarizePerDim then begin
             DimBuf.Reset();

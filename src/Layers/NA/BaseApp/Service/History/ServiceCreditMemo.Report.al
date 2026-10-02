@@ -728,9 +728,9 @@ report 5912 "Service - Credit Memo"
         ShowShippingAddr: Boolean;
         DimText: Text[120];
         ShowInternalInfo: Boolean;
-        FirstValueEntryNo: Integer;
+        FirstValueEntryNo: BigInteger;
         PostedReceiptDate: Date;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         TotalAmount: Decimal;
         TotalAmountInclVAT: Decimal;
         TotalInvDiscAmount: Decimal;

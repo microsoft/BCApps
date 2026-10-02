@@ -14,7 +14,7 @@ table 5810 "Rounding Residual Buffer"
 
     fields
     {
-        field(1; "Item Ledger Entry No."; Integer)
+        field(1; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             DataClassification = SystemMetadata;
@@ -76,7 +76,7 @@ table 5810 "Rounding Residual Buffer"
         exit(GeneralLedgerSetup."Additional Reporting Currency")
     end;
 
-    procedure AddAdjustedCost(NewInboundEntryNo: Integer; NewAdjustedCost: Decimal; NewAdjustedCostACY: Decimal; NewCompletelyInvoiced: Boolean)
+    procedure AddAdjustedCost(NewInboundEntryNo: BigInteger; NewAdjustedCost: Decimal; NewAdjustedCostACY: Decimal; NewCompletelyInvoiced: Boolean)
     begin
         if not HasNewCost(NewAdjustedCost, NewAdjustedCostACY) and NewCompletelyInvoiced then begin
             Retrieve(NewInboundEntryNo);
@@ -97,7 +97,7 @@ table 5810 "Rounding Residual Buffer"
         end;
     end;
 
-    procedure UpdRoundingCheck(NewInboundEntryNo: Integer; NewAdjustedCost: Decimal; NewAdjustedCostACY: Decimal; RdngPrecision: Decimal; RndngPrecisionACY: Decimal)
+    procedure UpdRoundingCheck(NewInboundEntryNo: BigInteger; NewAdjustedCost: Decimal; NewAdjustedCostACY: Decimal; RdngPrecision: Decimal; RndngPrecisionACY: Decimal)
     begin
         if not HasNewCost(NewAdjustedCost, NewAdjustedCostACY) then begin
             Retrieve(NewInboundEntryNo);
@@ -122,7 +122,7 @@ table 5810 "Rounding Residual Buffer"
         end;
     end;
 
-    local procedure Retrieve(NewInboundEntryNo: Integer): Boolean
+    local procedure Retrieve(NewInboundEntryNo: BigInteger): Boolean
     begin
         if Get(NewInboundEntryNo) then
             exit(true);

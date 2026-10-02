@@ -172,7 +172,7 @@ codeunit 373 "Bank. Acc. Recon. Post Preview"
         OnAfterShowAllEntries();
     end;
 
-    procedure ShowDimensions(TableID: Integer; EntryNo: Integer; DimensionSetID: Integer)
+    procedure ShowDimensions(TableID: Integer; EntryNo: BigInteger; DimensionSetID: Integer)
     var
         DimMgt: Codeunit DimensionManagement;
         RecRef: RecordRef;

@@ -47,7 +47,7 @@ codeunit 1704 "Exp. Pre-Mapping Det Pos. Pay"
         ProgressMsg: Label 'Preprocessing line no. #1######.';
 #pragma warning restore AA0470
 
-    local procedure PreparePosPayDetails(var CheckLedgerEntry: Record "Check Ledger Entry"; DataExchangeEntryNo: Integer; var LineNo: Integer)
+    local procedure PreparePosPayDetails(var CheckLedgerEntry: Record "Check Ledger Entry"; DataExchangeEntryNo: BigInteger; var LineNo: Integer)
     var
         Window: Dialog;
     begin
@@ -62,7 +62,7 @@ codeunit 1704 "Exp. Pre-Mapping Det Pos. Pay"
         end;
     end;
 
-    local procedure PreparePosPayDetail(CheckLedgerEntry: Record "Check Ledger Entry"; DataExchangeEntryNo: Integer; LineNo: Integer)
+    local procedure PreparePosPayDetail(CheckLedgerEntry: Record "Check Ledger Entry"; DataExchangeEntryNo: BigInteger; LineNo: Integer)
     var
         BankAccount: Record "Bank Account";
         PosPayDetail: Record "Positive Pay Detail";

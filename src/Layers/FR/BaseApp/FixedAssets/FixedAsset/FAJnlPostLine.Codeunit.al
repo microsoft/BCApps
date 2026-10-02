@@ -49,7 +49,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         SalvageValue: Decimal;
         DeprUntilDate: Boolean;
         DeprAcqCost: Boolean;
-        ErrorEntryNo: Integer;
+        ErrorEntryNo: BigInteger;
         ResultOnDisposal: Integer;
 
 #pragma warning disable AA0074
@@ -98,7 +98,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         OnAfterFAJnlPostLine(FAJnlLine);
     end;
 
-    procedure GenJnlPostLine(GenJnlLine: Record "Gen. Journal Line"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: Integer; NextGLEntryNo: Integer; GLRegisterNo: Integer)
+    procedure GenJnlPostLine(GenJnlLine: Record "Gen. Journal Line"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: BigInteger; NextGLEntryNo: BigInteger; GLRegisterNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -243,7 +243,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     local procedure PostDisposalEntry(var FALedgEntry: Record "FA Ledger Entry")
     var
         MaxDisposalNo: Integer;
-        SalesEntryNo: Integer;
+        SalesEntryNo: BigInteger;
         DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal;
         OldDisposalMethod: Option " ",Net,Gross;
         EntryAmounts: array[15] of Decimal;
@@ -565,7 +565,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         exit(FAInsertLedgEntry.FindFirstGLAcc(FAGLPostBuf));
     end;
 
-    procedure GetNextGLAcc(var FAGLPostBuf: Record "FA G/L Posting Buffer"): Integer
+    procedure GetNextGLAcc(var FAGLPostBuf: Record "FA G/L Posting Buffer"): BigInteger
     begin
         exit(FAInsertLedgEntry.GetNextGLAcc(FAGLPostBuf));
     end;
@@ -627,7 +627,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    procedure UpdateRegNo(GLRegNo: Integer)
+    procedure UpdateRegNo(GLRegNo: BigInteger)
     var
         FAReg: Record "FA Register";
         IsHandled: Boolean;
@@ -684,7 +684,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeGenJnlPostLine(var GenJournalLine: Record "Gen. Journal Line"; var FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: Integer; NextGLEntryNo: Integer; GLRegisterNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeGenJnlPostLine(var GenJournalLine: Record "Gen. Journal Line"; var FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: BigInteger; NextGLEntryNo: BigInteger; GLRegisterNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -709,7 +709,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforePostDisposalEntry(var FALedgEntry: Record "FA Ledger Entry"; DeprBook: Record "Depreciation Book"; FANo: Code[20]; ErrorEntryNo: Integer; var IsHandled: Boolean; var FAInsertLedgEntry: Codeunit "FA Insert Ledger Entry")
+    local procedure OnBeforePostDisposalEntry(var FALedgEntry: Record "FA Ledger Entry"; DeprBook: Record "Depreciation Book"; FANo: Code[20]; ErrorEntryNo: BigInteger; var IsHandled: Boolean; var FAInsertLedgEntry: Codeunit "FA Insert Ledger Entry")
     begin
     end;
 
@@ -724,7 +724,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostFixedAssetFromGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var FALedgerEntry: Record "FA Ledger Entry"; FAAmount: Decimal; VATAmount: Decimal; GLRegisterNo: Integer)
+    local procedure OnBeforePostFixedAssetFromGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var FALedgerEntry: Record "FA Ledger Entry"; FAAmount: Decimal; VATAmount: Decimal; GLRegisterNo: BigInteger)
     begin
     end;
 
@@ -779,7 +779,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateRegNo(GLRegNo: Integer; var IsHandled: Boolean);
+    local procedure OnBeforeUpdateRegNo(GLRegNo: BigInteger; var IsHandled: Boolean);
     begin
     end;
 

@@ -38,7 +38,7 @@ codeunit 213 "Res. Jnl.-Post Batch"
         ResJnlPostLine: Codeunit "Res. Jnl.-Post Line";
         NoSeriesBatch: Codeunit "No. Series - Batch";
         Window: Dialog;
-        ResRegNo: Integer;
+        ResRegNo: BigInteger;
         StartLineNo: Integer;
         LineCount: Integer;
         NoOfRecords: Integer;

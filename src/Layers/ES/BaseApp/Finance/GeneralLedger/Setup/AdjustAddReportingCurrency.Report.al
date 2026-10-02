@@ -464,9 +464,9 @@ report 86 "Adjust Add. Reporting Currency"
         CurrencyFactor: Decimal;
         TotalAddCurrAmount: Decimal;
         TotalAmount: Decimal;
-        NextEntryNo: Integer;
-        LastEntryNo: Integer;
-        NextTransactionNo: Integer;
+        NextEntryNo: BigInteger;
+        LastEntryNo: BigInteger;
+        NextTransactionNo: BigInteger;
         FiscalYearStartDate: Date;
         ReportIsExecuted: Boolean;
         VATEntryCount: Integer;

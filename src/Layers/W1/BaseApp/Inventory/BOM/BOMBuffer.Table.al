@@ -20,7 +20,7 @@ table 5870 "BOM Buffer"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
@@ -432,7 +432,7 @@ table 5870 "BOM Buffer"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    procedure TransferFromItem(var EntryNo: Integer; Item: Record Item; DemandDate: Date)
+    procedure TransferFromItem(var EntryNo: BigInteger; Item: Record Item; DemandDate: Date)
     begin
         Init();
         EntryNo += 1;
@@ -450,7 +450,7 @@ table 5870 "BOM Buffer"
         Insert(true);
     end;
 
-    procedure TransferFromBOMComp(var EntryNo: Integer; BOMComp: Record "BOM Component"; NewIndentation: Integer; ParentQtyPer: Decimal; ParentScrapQtyPer: Decimal; NeedByDate: Date; ParentLocationCode: Code[10])
+    procedure TransferFromBOMComp(var EntryNo: BigInteger; BOMComp: Record "BOM Component"; NewIndentation: Integer; ParentQtyPer: Decimal; ParentScrapQtyPer: Decimal; NeedByDate: Date; ParentLocationCode: Code[10])
     var
         BOMItem: Record Item;
         BOMRes: Record Resource;

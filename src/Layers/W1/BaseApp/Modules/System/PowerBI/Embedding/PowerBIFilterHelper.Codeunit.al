@@ -124,6 +124,7 @@ codeunit 6320 "Power BI Filter Helper"
         DecimalVariable: Decimal;
         BooleanVariable: Boolean;
         IntegerVariable: Integer;
+        BigIntegerVariable: Integer;
     begin
         case true of
             InputSelectionVariant.IsText,
@@ -152,6 +153,11 @@ codeunit 6320 "Power BI Filter Helper"
                 begin
                     IntegerVariable := InputSelectionVariant;
                     JsonArray.Add(IntegerVariable);
+                end;
+            InputSelectionVariant.IsBigInteger:
+                begin
+                    BigIntegerVariable := InputSelectionVariant;
+                    JsonArray.Add(BigIntegerVariable);
                 end;
             InputSelectionVariant.IsBoolean:
                 begin

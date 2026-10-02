@@ -328,7 +328,7 @@ page 182 "Posted General Journal"
         Bold: Boolean;
         CurrentJnlBatchName: Code[10];
         CurrentJnlTemplateName: Code[10];
-        GLRegisterNo: Integer;
+        GLRegisterNo: BigInteger;
 
     trigger OnAfterGetRecord()
     begin

@@ -21,7 +21,7 @@ table 5848 "Cost Share Buffer"
             Caption = 'Item Ledger Entry No.';
             DataClassification = SystemMetadata;
         }
-        field(2; "Capacity Ledger Entry No."; Integer)
+        field(2; "Capacity Ledger Entry No."; BigInteger)
         {
             Caption = 'Capacity Ledger Entry No.';
             DataClassification = SystemMetadata;

@@ -330,7 +330,7 @@ table 5477 "Purch. Inv. Entity Aggregate"
             Caption = 'Ship-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
-        field(1304; "Vendor Ledger Entry No."; Integer)
+        field(1304; "Vendor Ledger Entry No."; BigInteger)
         {
             Caption = 'Vendor Ledger Entry No.';
             DataClassification = CustomerContent;

@@ -15,7 +15,7 @@ table 2250 "Vendor Ledger Entry Buffer"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

@@ -86,7 +86,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         UnableToFindTotalAmountErr: Label 'The incoming document has no total amount excluding VAT.';
         UnableToFindAppropriateAccountErr: Label 'Cannot find an appropriate G/L account for the line with description ''%1''. Choose the Map Text to Account button, and then map the core part of ''%1'' to the relevant G/L account.', Comment = '%1 - arbitrary text';
 
-    local procedure ValidateCompanyInfo(EntryNo: Integer; RecordNo: Integer)
+    local procedure ValidateCompanyInfo(EntryNo: BigInteger; RecordNo: Integer)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         CompanyInformation: Record "Company Information";
@@ -141,7 +141,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         end;
     end;
 
-    local procedure ValidateCompanyInfoByNameAndAddress(EntryNo: Integer; RecordNo: Integer)
+    local procedure ValidateCompanyInfoByNameAndAddress(EntryNo: BigInteger; RecordNo: Integer)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         CompanyInfo: Record "Company Information";
@@ -174,7 +174,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
             LogErrorMessage(EntryNo, CompanyInfo, CompanyInfo.FieldNo(Address), StrSubstNo(InvalidCompanyInfoAddressErr, ImportedAddress));
     end;
 
-    local procedure ValidateCurrency(EntryNo: Integer; RecordNo: Integer)
+    local procedure ValidateCurrency(EntryNo: BigInteger; RecordNo: Integer)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseHeader: Record "Purchase Header";
@@ -222,7 +222,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         IntermediateDataImport.DeleteAll();
     end;
 
-    local procedure ProcessLines(EntryNo: Integer; HeaderRecordNo: Integer; VendorNo: Code[20])
+    local procedure ProcessLines(EntryNo: BigInteger; HeaderRecordNo: Integer; VendorNo: Code[20])
     var
         DataExch: Record "Data Exch.";
         IncomingDocument: Record "Incoming Document";
@@ -243,7 +243,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         until TempIntegerLineRecords.Next() = 0;
     end;
 
-    local procedure CorrectHeaderData(EntryNo: Integer; RecordNo: Integer)
+    local procedure CorrectHeaderData(EntryNo: BigInteger; RecordNo: Integer)
     var
         Vendor: Record Vendor;
         VendorBankAccount: Record "Vendor Bank Account";
@@ -287,7 +287,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         OnAfterCorrectHeaderData(EntryNo, RecordNo, DataExch, IncomingDocument);
     end;
 
-    procedure CorrectHeaderField(EntryNo: Integer; TableID: Integer; FieldID: Integer; RecordNo: Integer; IncomingDocumentValue: Variant)
+    procedure CorrectHeaderField(EntryNo: BigInteger; TableID: Integer; FieldID: Integer; RecordNo: Integer; IncomingDocumentValue: Variant)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         ExistingValue: Text;
@@ -302,7 +302,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
             IntermediateDataImport.InsertOrUpdateEntry(EntryNo, TableID, FieldID, 0, RecordNo, CorrectedValue);
     end;
 
-    local procedure CheckDataExchMappingNotExist(EntryNo: Integer; TableID: Integer; FieldID: Integer): Boolean
+    local procedure CheckDataExchMappingNotExist(EntryNo: BigInteger; TableID: Integer; FieldID: Integer): Boolean
     var
         DataExch: Record "Data Exch.";
         DataExchMapping: Record "Data Exch. Mapping";
@@ -322,7 +322,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
             until DataExchMapping.Next() = 0;
     end;
 
-    local procedure CorrectCurrencyCode(EntryNo: Integer; TableID: Integer; FieldID: Integer; RecordNo: Integer; IncomingDocumentValue: Variant)
+    local procedure CorrectCurrencyCode(EntryNo: BigInteger; TableID: Integer; FieldID: Integer; RecordNo: Integer; IncomingDocumentValue: Variant)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -336,7 +336,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
             IntermediateDataImport.InsertOrUpdateEntry(EntryNo, TableID, FieldID, 0, RecordNo, CorrectedValue);
     end;
 
-    local procedure PersistHeaderData(EntryNo: Integer; RecordNo: Integer; BuyFromVendorNo: Code[20]; PayToVendorNo: Code[20])
+    local procedure PersistHeaderData(EntryNo: BigInteger; RecordNo: Integer; BuyFromVendorNo: Code[20]; PayToVendorNo: Code[20])
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         DataExch: Record "Data Exch.";
@@ -426,7 +426,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         IncomingDocument.Modify();
     end;
 
-    local procedure FindBuyFromVendor(EntryNo: Integer; RecordNo: Integer): Code[20]
+    local procedure FindBuyFromVendor(EntryNo: BigInteger; RecordNo: Integer): Code[20]
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseHeader: Record "Purchase Header";
@@ -530,7 +530,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit('');
     end;
 
-    local procedure FindPayToVendor(EntryNo: Integer; RecordNo: Integer): Code[20]
+    local procedure FindPayToVendor(EntryNo: BigInteger; RecordNo: Integer): Code[20]
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseHeader: Record "Purchase Header";
@@ -600,7 +600,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit('');
     end;
 
-    local procedure FindVendorByNameAndAddress(EntryNo: Integer; RecordNo: Integer; VendorName: Text; VendorAddress: Text; FieldID: Integer): Code[20]
+    local procedure FindVendorByNameAndAddress(EntryNo: BigInteger; RecordNo: Integer; VendorName: Text; VendorAddress: Text; FieldID: Integer): Code[20]
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         Vendor: Record Vendor;
@@ -634,7 +634,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit('');
     end;
 
-    local procedure FindVendorByBankAccount(EntryNo: Integer; RecordNo: Integer; FieldID: Integer): Code[20]
+    local procedure FindVendorByBankAccount(EntryNo: BigInteger; RecordNo: Integer; FieldID: Integer): Code[20]
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         VendorBankAccount: Record "Vendor Bank Account";
@@ -674,7 +674,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit('');
     end;
 
-    local procedure FindVendorByPhoneNo(EntryNo: Integer; RecordNo: Integer; FieldID: Integer; PhoneNo: Text): Code[20]
+    local procedure FindVendorByPhoneNo(EntryNo: BigInteger; RecordNo: Integer; FieldID: Integer; PhoneNo: Text): Code[20]
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         Vendor: Record Vendor;
@@ -699,7 +699,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit('');
     end;
 
-    local procedure FindVendorById(EntryNo: Integer; RecordNo: Integer; FieldID: Integer; VendorIdText: Text): Code[20]
+    local procedure FindVendorById(EntryNo: BigInteger; RecordNo: Integer; FieldID: Integer; VendorIdText: Text): Code[20]
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         Vendor: Record Vendor;
@@ -718,7 +718,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(Vendor."No.");
     end;
 
-    local procedure FindVendorByNo(EntryNo: Integer; RecordNo: Integer; FieldID: Integer; VendorNoText: Text): Code[20]
+    local procedure FindVendorByNo(EntryNo: BigInteger; RecordNo: Integer; FieldID: Integer; VendorNoText: Text): Code[20]
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         Vendor: Record Vendor;
@@ -733,7 +733,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(Vendor."No.");
     end;
 
-    local procedure FindInvoiceToApplyTo(EntryNo: Integer; RecordNo: Integer)
+    local procedure FindInvoiceToApplyTo(EntryNo: BigInteger; RecordNo: Integer)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseHeader: Record "Purchase Header";
@@ -769,7 +769,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
           EntryNo, PurchInvHeader, PurchInvHeader.FieldNo("No."), StrSubstNo(UnableToFindRelatedInvoiceErr, VendorInvoiceNo));
     end;
 
-    local procedure ProcessLine(EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20])
+    local procedure ProcessLine(EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20])
     var
         ImportedUnitCode: Code[10];
         IsHandled: Boolean;
@@ -795,7 +795,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         ValidateLineDiscount(EntryNo, HeaderRecordNo, RecordNo);
     end;
 
-    local procedure InsertLineForTotalDocumentAmount(EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20])
+    local procedure InsertLineForTotalDocumentAmount(EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20])
     var
         PurchaseLine: Record "Purchase Line";
         PurchaseHeader: Record "Purchase Header";
@@ -825,7 +825,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         FindGLAccountForLine(EntryNo, HeaderRecordNo, RecordNo, VendorNo);
     end;
 
-    local procedure GetTotalAmountExclVAT(EntryNo: Integer; HeaderRecordNo: Integer): Text[250]
+    local procedure GetTotalAmountExclVAT(EntryNo: BigInteger; HeaderRecordNo: Integer): Text[250]
     var
         PurchaseHeader: Record "Purchase Header";
         IntermediateDataImport: Record "Intermediate Data Import";
@@ -837,7 +837,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(IntermediateDataImport.Value);
     end;
 
-    local procedure FindItemForLine(ImportedUnitCode: Code[10]; EntryNo: Integer; HeaderNo: Integer; RecordNo: Integer): Boolean
+    local procedure FindItemForLine(ImportedUnitCode: Code[10]; EntryNo: BigInteger; HeaderNo: Integer; RecordNo: Integer): Boolean
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseLine: Record "Purchase Line";
@@ -866,7 +866,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(true);
     end;
 
-    local procedure FindItemReferenceForLine(ImportedUnitCode: Code[10]; EntryNo: Integer; HeaderNo: Integer; RecordNo: Integer; VendorNo: Code[20]): Boolean
+    local procedure FindItemReferenceForLine(ImportedUnitCode: Code[10]; EntryNo: BigInteger; HeaderNo: Integer; RecordNo: Integer; VendorNo: Code[20]): Boolean
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseLine: Record "Purchase Line";
@@ -922,7 +922,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(ItemReference.FindFirst());
     end;
 
-    local procedure IsDescriptionOnlyLine(EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer): Boolean
+    local procedure IsDescriptionOnlyLine(EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer): Boolean
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseLine: Record "Purchase Line";
@@ -938,7 +938,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(false);
     end;
 
-    local procedure CleanDescriptionOnlyLine(EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer)
+    local procedure CleanDescriptionOnlyLine(EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseLine: Record "Purchase Line";
@@ -955,7 +955,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         IntermediateDataImport.DeleteAll();
     end;
 
-    local procedure LogErrorIfItemNotFound(EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20]): Boolean
+    local procedure LogErrorIfItemNotFound(EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20]): Boolean
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseLine: Record "Purchase Line";
@@ -994,7 +994,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(true);
     end;
 
-    local procedure FindGLAccountForLine(EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20]): Boolean
+    local procedure FindGLAccountForLine(EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20]): Boolean
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseLine: Record "Purchase Line";
@@ -1024,7 +1024,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(GLAccountNo <> '');
     end;
 
-    local procedure InsertOrUpdateUnitOfMeasureCode(EntryNo: Integer; HeaderNo: Integer; RecordNo: Integer; UnitCode: Code[10])
+    local procedure InsertOrUpdateUnitOfMeasureCode(EntryNo: BigInteger; HeaderNo: Integer; RecordNo: Integer; UnitCode: Code[10])
     var
         PurchaseLine: Record "Purchase Line";
         IntermediateDataImport: Record "Intermediate Data Import";
@@ -1033,7 +1033,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
           EntryNo, DATABASE::"Purchase Line", PurchaseLine.FieldNo("Unit of Measure Code"), HeaderNo, RecordNo, UnitCode);
     end;
 
-    local procedure ResolveUnitOfMeasureFromItemReference(var ItemReference: Record "Item Reference"; ImportedUnitCode: Code[10]; EntryNo: Integer; HeaderNo: Integer; RecordNo: Integer): Boolean
+    local procedure ResolveUnitOfMeasureFromItemReference(var ItemReference: Record "Item Reference"; ImportedUnitCode: Code[10]; EntryNo: BigInteger; HeaderNo: Integer; RecordNo: Integer): Boolean
     var
         Item: Record Item;
         ResolvedUnitCode: Code[10];
@@ -1060,7 +1060,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(true);
     end;
 
-    local procedure ResolveUnitOfMeasureFromItem(var Item: Record Item; ImportedUnitCode: Code[10]; EntryNo: Integer; HeaderNo: Integer; RecordNo: Integer): Boolean
+    local procedure ResolveUnitOfMeasureFromItem(var Item: Record Item; ImportedUnitCode: Code[10]; EntryNo: BigInteger; HeaderNo: Integer; RecordNo: Integer): Boolean
     var
         ResolvedUnitCode: Code[10];
     begin
@@ -1078,7 +1078,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(true);
     end;
 
-    local procedure ResolveUnitOfMeasureFromDataImport(var ImportedUnitCode: Code[10]; EntryNo: Integer; HeaderNo: Integer; RecordNo: Integer): Boolean
+    local procedure ResolveUnitOfMeasureFromDataImport(var ImportedUnitCode: Code[10]; EntryNo: BigInteger; HeaderNo: Integer; RecordNo: Integer): Boolean
     var
         PurchaseLine: Record "Purchase Line";
         UnitOfMeasure: Record "Unit of Measure";
@@ -1134,7 +1134,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(NotSpecifiedUnitOfMeasureTxt);
     end;
 
-    local procedure ValidateLineDiscount(EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer)
+    local procedure ValidateLineDiscount(EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer)
     var
         PurchaseLine: Record "Purchase Line";
         IntermediateDataImport: Record "Intermediate Data Import";
@@ -1184,7 +1184,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         exit(VatRegNo);
     end;
 
-    local procedure FindDistinctRecordNos(var TempInteger: Record "Integer" temporary; DataExchEntryNo: Integer; TableID: Integer; ParentRecNo: Integer)
+    local procedure FindDistinctRecordNos(var TempInteger: Record "Integer" temporary; DataExchEntryNo: BigInteger; TableID: Integer; ParentRecNo: Integer)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         CurrRecNo: Integer;
@@ -1210,7 +1210,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         until IntermediateDataImport.Next() = 0;
     end;
 
-    local procedure LogErrorMessage(EntryNo: Integer; RelatedRec: Variant; FieldNo: Integer; Message: Text)
+    local procedure LogErrorMessage(EntryNo: BigInteger; RelatedRec: Variant; FieldNo: Integer; Message: Text)
     var
         ErrorMessage: Record "Error Message";
         DataExch: Record "Data Exch.";
@@ -1223,7 +1223,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         ErrorMessage.LogMessage(RelatedRec, FieldNo, ErrorMessage."Message Type"::Error, Message);
     end;
 
-    local procedure LogSimpleErrorMessage(EntryNo: Integer; Message: Text)
+    local procedure LogSimpleErrorMessage(EntryNo: BigInteger; Message: Text)
     var
         ErrorMessage: Record "Error Message";
         DataExch: Record "Data Exch.";
@@ -1236,7 +1236,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
         ErrorMessage.LogSimpleMessage(ErrorMessage."Message Type"::Error, Message);
     end;
 
-    local procedure SetDocumentType(EntryNo: Integer; ParentRecNo: Integer; CurrRecNo: Integer)
+    local procedure SetDocumentType(EntryNo: BigInteger; ParentRecNo: Integer; CurrRecNo: Integer)
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         PurchaseHeader: Record "Purchase Header";
@@ -1307,7 +1307,7 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
             PurchaseHeader.TableCaption()));
     end;
 
-    procedure FindAppropriateGLAccount(EntryNo: Integer; HeaderRecordNo: Integer; LineDescription: Text[250]; LineDirectUnitCost: Decimal; VendorNo: Code[20]): Code[20]
+    procedure FindAppropriateGLAccount(EntryNo: BigInteger; HeaderRecordNo: Integer; LineDescription: Text[250]; LineDirectUnitCost: Decimal; VendorNo: Code[20]): Code[20]
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         TextToAccountMapping: Record "Text-to-Account Mapping";
@@ -1432,22 +1432,22 @@ codeunit 1217 "Pre-map Incoming Purch. Doc"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCorrectHeaderData(EntryNo: Integer; RecordNo: Integer; DataExch: Record "Data Exch."; var IncomingDocument: Record "Incoming Document")
+    local procedure OnAfterCorrectHeaderData(EntryNo: BigInteger; RecordNo: Integer; DataExch: Record "Data Exch."; var IncomingDocument: Record "Incoming Document")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertLineForTotalDocumentAmount(EntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInsertLineForTotalDocumentAmount(EntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessLine(EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20]; var IsHandled: Boolean)
+    local procedure OnBeforeProcessLine(EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnFindGLAccountForLineOnBeforeFindAppropriateGLAccount(IntermediateDataImport: Record "Intermediate Data Import"; var GLAccountNo: Code[20]; EntryNo: Integer; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20]; var IsHandled: Boolean)
+    local procedure OnFindGLAccountForLineOnBeforeFindAppropriateGLAccount(IntermediateDataImport: Record "Intermediate Data Import"; var GLAccountNo: Code[20]; EntryNo: BigInteger; HeaderRecordNo: Integer; RecordNo: Integer; VendorNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 }

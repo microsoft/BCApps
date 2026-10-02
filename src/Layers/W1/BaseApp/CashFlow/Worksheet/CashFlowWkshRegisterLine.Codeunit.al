@@ -26,7 +26,7 @@ codeunit 846 "Cash Flow Wksh. -Register Line"
         GLSetup: Record "General Ledger Setup";
         CFAccount: Record "Cash Flow Account";
         CFWkshCheckLine: Codeunit "Cash Flow Wksh.- Check Line";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
 
     procedure RunWithCheck(var CFWkshLine2: Record "Cash Flow Worksheet Line")
     begin

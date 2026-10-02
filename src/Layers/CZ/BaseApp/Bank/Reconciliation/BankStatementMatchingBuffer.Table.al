@@ -224,7 +224,7 @@ table 1250 "Bank Statement Matching Buffer"
     /// <param name="NewQuality">Quality score for this match candidate based on matching algorithms.</param>
     /// <param name="AccountType">Type of account for the match candidate (Customer, Vendor, Bank Account, etc.).</param>
     /// <param name="AccountNo">Account number of the match candidate.</param>
-    procedure AddMatchCandidate(LineNo: Integer; EntryNo: Integer; NewQuality: Integer; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
+    procedure AddMatchCandidate(LineNo: Integer; EntryNo: BigInteger; NewQuality: Integer; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
     var
         BankStatementMatchingBuffer: Record "Bank Statement Matching Buffer";
     begin

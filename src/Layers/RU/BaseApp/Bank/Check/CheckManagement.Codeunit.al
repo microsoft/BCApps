@@ -56,7 +56,7 @@ codeunit 367 CheckManagement
         GLSetup: Record "General Ledger Setup";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         UpdateAnalysisView: Codeunit "Update Analysis View";
-        NextCheckEntryNo: Integer;
+        NextCheckEntryNo: BigInteger;
         AppliesIDCounter: Integer;
 
         CheckAlreadyExistsErr: Label 'Check %1 already exists for this %2.', Comment = '%1=The check number., %2=The Bank Account table name.';

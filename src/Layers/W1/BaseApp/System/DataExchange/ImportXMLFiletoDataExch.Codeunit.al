@@ -67,7 +67,7 @@ codeunit 1203 "Import XML File to Data Exch."
         until DataExchLineDef.Next() = 0;
     end;
 
-    local procedure ParseParentChildLine(CurrentXmlNode: DotNet XmlNode; NodeID: Text[250]; ParentNodeID: Text[250]; CurrentLineNo: Integer; CurrentDataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer; XmlNamespaceManager: DotNet XmlNamespaceManager)
+    local procedure ParseParentChildLine(CurrentXmlNode: DotNet XmlNode; NodeID: Text[250]; ParentNodeID: Text[250]; CurrentLineNo: Integer; CurrentDataExchLineDef: Record "Data Exch. Line Def"; EntryNo: BigInteger; XmlNamespaceManager: DotNet XmlNamespaceManager)
     var
         DataExchColumnDef: Record "Data Exch. Column Def";
         DataExchLineDef: Record "Data Exch. Line Def";
@@ -150,7 +150,7 @@ codeunit 1203 "Import XML File to Data Exch."
             until DataExchLineDef.Next() = 0;
     end;
 
-    local procedure InsertColumn(ColumnNo: Integer; LineNo: Integer; NodeId: Text[250]; ParentNodeId: Text[250]; Name: Text; Value: Text; var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer)
+    local procedure InsertColumn(ColumnNo: Integer; LineNo: Integer; NodeId: Text[250]; ParentNodeId: Text[250]; Name: Text; Value: Text; var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: BigInteger)
     var
         DataExchColumnDef: Record "Data Exch. Column Def";
         DataExchField: Record "Data Exch. Field";

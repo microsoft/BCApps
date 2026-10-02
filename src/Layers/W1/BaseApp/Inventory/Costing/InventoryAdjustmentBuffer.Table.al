@@ -19,7 +19,7 @@ table 5895 "Inventory Adjustment Buffer"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
@@ -46,7 +46,7 @@ table 5895 "Inventory Adjustment Buffer"
             DataClassification = SystemMetadata;
             TableRelation = Location;
         }
-        field(11; "Item Ledger Entry No."; Integer)
+        field(11; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             DataClassification = SystemMetadata;
@@ -154,7 +154,7 @@ table 5895 "Inventory Adjustment Buffer"
         exit(GLSetup."Additional Reporting Currency");
     end;
 
-    procedure CalcItemLedgEntryCost(ItemLedgEntryNo: Integer; Expected: Boolean)
+    procedure CalcItemLedgEntryCost(ItemLedgEntryNo: BigInteger; Expected: Boolean)
     var
         ItemLedgEntryQty: Decimal;
         CostAmtActual: Decimal;
@@ -300,12 +300,12 @@ table 5895 "Inventory Adjustment Buffer"
         Modify();
     end;
 
-    procedure AddOrderCost(ItemLedgEntryNo: Integer; EntryType: Option; VarianceType: Option; CostAmt: Decimal; CostAmtLCY: Decimal)
+    procedure AddOrderCost(ItemLedgEntryNo: BigInteger; EntryType: Option; VarianceType: Option; CostAmt: Decimal; CostAmtLCY: Decimal)
     begin
         AddCost(ItemLedgEntryNo, "Cost Entry Type".FromInteger(EntryType), "Cost Variance Type".FromInteger(VarianceType), CostAmt, CostAmtLCY);
     end;
 
-    procedure AddCost(ItemLedgEntryNo: Integer; EntryType: Enum "Cost Entry Type"; VarianceType: Enum "Cost Variance Type"; CostAmt: Decimal; CostAmtLCY: Decimal)
+    procedure AddCost(ItemLedgEntryNo: BigInteger; EntryType: Enum "Cost Entry Type"; VarianceType: Enum "Cost Variance Type"; CostAmt: Decimal; CostAmtLCY: Decimal)
     var
         CopyOfInvtAdjmtBuf: Record "Inventory Adjustment Buffer";
     begin

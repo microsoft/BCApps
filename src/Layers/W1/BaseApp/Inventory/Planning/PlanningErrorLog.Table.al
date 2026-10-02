@@ -126,7 +126,7 @@ table 5430 "Planning Error Log"
     /// <returns>True if there are errors, otherwise false.</returns>
     procedure GetErrors(var PlanningErrorLog: Record "Planning Error Log"): Boolean
     var
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
     begin
         if not Rec.FindSet() then
             exit(false);

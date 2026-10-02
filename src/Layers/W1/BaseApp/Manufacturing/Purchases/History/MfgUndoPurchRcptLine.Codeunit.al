@@ -110,7 +110,7 @@ codeunit 99000784 "Mfg. Undo Purch. Rcpt. Line"
         CapacityLedgEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
     end;
 
-    local procedure FilterItemLedgerEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemRegisterNo: Integer)
+    local procedure FilterItemLedgerEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemRegisterNo: BigInteger)
     begin
         ItemLedgEntry.ReadIsolation := IsolationLevel::ReadCommitted;
         ItemLedgEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.", "Entry Type", "Prod. Order Comp. Line No.");

@@ -534,7 +534,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         PurchHeader: Record "Purchase Header";
         GenJnlLine: Record "Gen. Journal Line";
         JobPurchLine: Record "Purchase Line";
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         LineCount: Integer;
     begin
         PurchHeader := DocumentHeaderVar;
@@ -902,7 +902,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         VendorLedgerEntry.FindLast();
     end;
 
-    local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): Integer
+    local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): BigInteger
     begin
         PurchPostInvoiceEvents.RunOnBeforeRunGenJnlPostLine(GenJnlLine, GenJnlPostLine);
         exit(GenJnlPostLine.RunWithCheck(GenJnlLine));
