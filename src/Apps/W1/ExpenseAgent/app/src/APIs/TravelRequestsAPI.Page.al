@@ -418,7 +418,8 @@ page 7134 "Travel Requests API"
         // The table's OnInsert defaults both dates to WorkDate, so supplied dates are applied after the insert.
         StartDate := Rec."Expected Start Date";
         EndDate := Rec."Expected End Date";
-        Rec.Insert(true);
+        // Keep a client-supplied id so batch operations can address the new request by it.
+        Rec.Insert(true, true);
         if (StartDate <> 0D) or (EndDate <> 0D) then begin
             if StartDate <> 0D then
                 Rec."Expected Start Date" := StartDate;

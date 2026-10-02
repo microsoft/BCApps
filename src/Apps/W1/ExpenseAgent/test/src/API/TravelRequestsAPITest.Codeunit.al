@@ -335,6 +335,43 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    procedure TravelRequestsAPIKeepsClientSuppliedId()
+    var
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        ClientId: Guid;
+        TargetURL: Text;
+        RecordURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] A POST with a client-generated id creates the travel request under that id, so dependent batch operations can address it.
+        Initialize();
+
+        // [GIVEN] A linked user and a payload carrying a client-generated id.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ClientId := CreateGuid();
+        Request.Add('id', LibraryGraphMgt.StripBrackets(Format(ClientId)));
+        Request.Add('requestedBy', ExpenseUser."Employee No.");
+        Request.WriteTo(RequestBody);
+        Commit();
+
+        // [WHEN] The request is created through user-scoped navigation.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelRequestsServiceNameTok);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
+
+        // [THEN] The response, storage, and a follow-up GET use the supplied id.
+        Assert.AreEqual(ClientId, GetResponseSystemId(ResponseText), 'The response id should be the client-supplied id.');
+        Assert.IsTrue(TravelRequest.GetBySystemId(ClientId), 'The travel request should be stored under the client-supplied id.');
+        RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(ClientId)) + ')');
+        Clear(ResponseText);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
+    end;
+
+    [Test]
     procedure TravelRequestsAPIPreservesAndUpdatesDates()
     var
         ExpenseUser: Record "Expense User";
