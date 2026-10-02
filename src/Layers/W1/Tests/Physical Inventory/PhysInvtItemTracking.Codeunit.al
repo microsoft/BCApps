@@ -981,8 +981,8 @@ codeunit 137460 "Phys. Invt. Item Tracking"
         PhysInvtRecordHeader: Record "Phys. Invt. Record Header";
         PstdPhysInvtOrderHdr: Record "Pstd. Phys. Invt. Order Hdr";
         PstdPhysInvtRecordHdr: Record "Pstd. Phys. Invt. Record Hdr";
-        OrderLink: Text[250];
-        RecordingLink: Text[250];
+        OrderLink: Text[2048];
+        RecordingLink: Text[2048];
     begin
         // [FEATURE] [Record Link]
         // [SCENARIO] Record Links on Phys. Invt. Order Header and Phys. Invt. Recording Header are copied to their posted counterparts when the order is posted.
@@ -1003,8 +1003,11 @@ codeunit 137460 "Phys. Invt. Item Tracking"
         FinishAndPostPhysInventoryOrder(PhysInvtOrderHeader);
 
         // [THEN] Record Link is copied to Posted Phys. Invt. Order Header
-        PstdPhysInvtOrderHdr.SetRange("Pre-Assigned No.", PhysInvtOrderHeader."No.");
-        PstdPhysInvtOrderHdr.FindFirst();
+        if PhysInvtOrderHeader."Posting No." <> '' then
+            PstdPhysInvtOrderHdr.Get(PhysInvtOrderHeader."Posting No.")
+        else
+            PstdPhysInvtOrderHdr.Get(PhysInvtOrderHeader."No.");
+        PstdPhysInvtOrderHdr.TestField("Pre-Assigned No.", PhysInvtOrderHeader."No.");
         VerifyRecordLinkUrl(PstdPhysInvtOrderHdr.RecordId, OrderLink);
 
         // [THEN] Record Link is copied to Posted Phys. Invt. Recording Header
@@ -1534,7 +1537,7 @@ codeunit 137460 "Phys. Invt. Item Tracking"
         LibraryReportValidation.DeleteObjectOptions(CurrentSaveValuesId);
     end;
 
-    local procedure CreateRecordLink(SourceRecord: Variant): Text[250]
+    local procedure CreateRecordLink(SourceRecord: Variant): Text[2048]
     var
         RecordLink: Record "Record Link";
         RecRef: RecordRef;
