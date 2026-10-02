@@ -2,6 +2,8 @@ Describe 'API test credential materialization' {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '..\ApiTestCredential.psm1') -Force
         $script:previousGitHubEnv = $env:GITHUB_ENV
+        $script:previousPasswordPath = $env:BCAppsApiTestPasswordPath
+        $script:previousPasswordContainer = $env:BCAppsApiTestPasswordContainer
         $script:previousExitCode = Get-Variable LASTEXITCODE -Scope Global -ValueOnly -ErrorAction SilentlyContinue
         $script:createdMountStub = -not (Get-Command Get-BcContainerSharedFolders -ListImported -ErrorAction SilentlyContinue)
         if ($script:createdMountStub) {
@@ -31,6 +33,8 @@ Describe 'API test credential materialization' {
     AfterAll {
         $script:fixturePassword.Dispose()
         $env:GITHUB_ENV = $script:previousGitHubEnv
+        $env:BCAppsApiTestPasswordPath = $script:previousPasswordPath
+        $env:BCAppsApiTestPasswordContainer = $script:previousPasswordContainer
         $global:LASTEXITCODE = $script:previousExitCode
         if ($script:createdMountStub) { Remove-Item function:global:Get-BcContainerSharedFolders }
         if ($script:createdDockerStub) { Remove-Item function:global:docker }
@@ -38,6 +42,8 @@ Describe 'API test credential materialization' {
 
     BeforeEach {
         $env:GITHUB_ENV = Join-Path $PSScriptRoot 'unused-github-env'
+        $env:BCAppsApiTestPasswordPath = $null
+        $env:BCAppsApiTestPasswordContainer = $null
         $script:events = [System.Collections.Generic.List[string]]::new()
         $script:stream = [PSCustomObject]@{
             Events = $script:events
@@ -60,6 +66,8 @@ Describe 'API test credential materialization' {
         Mock -ModuleName ApiTestCredential Get-BcContainerSharedFolders { @{ $script:mount = 'c:\run\my\' } }
         Mock -ModuleName ApiTestCredential Add-Content { $script:events.Add('register') }
         Mock -ModuleName ApiTestCredential New-ApiTestPasswordFileStream {
+            $env:BCAppsApiTestPasswordPath | Should -Be (Join-Path $script:mount 'ApiTestPassword')
+            $env:BCAppsApiTestPasswordContainer | Should -Be 'unit-test'
             $script:events.Add('create')
             $script:stream
         }
@@ -83,7 +91,9 @@ Describe 'API test credential materialization' {
         }
         Should -Invoke -ModuleName ApiTestCredential Add-Content -Times 1 -Exactly -ParameterFilter {
             $LiteralPath -eq $env:GITHUB_ENV -and $ErrorAction -eq 'Stop' -and
-            $Value -eq "BCAppsApiTestPasswordPath=$(Join-Path $script:mount 'ApiTestPassword')"
+            $Value.Count -eq 2 -and
+            $Value -contains "BCAppsApiTestPasswordPath=$(Join-Path $script:mount 'ApiTestPassword')" -and
+            $Value -contains 'BCAppsApiTestPasswordContainer=unit-test'
         }
         Should -Invoke -ModuleName ApiTestCredential docker -Times 0
     }
