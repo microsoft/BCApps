@@ -18,7 +18,7 @@ codeunit 1597 "Email Upgrade"
     var
         EmailInstaller: Codeunit "Email Installer";
     begin
-        EmailInstaller.AddRetentionPolicyAllowedTables(); // also sets the tag
+        EmailInstaller.AddRetentionPolicyAllowedTables(); // also sets the tags
         SetDefaultEmailViewPolicy(Enum::"Email View Policy"::OwnEmails); // Default record is OwnEmails for existing tenants (to avoid breaking user experience)
         SetDefaultEmailMaxConcurrencyLimit(); // Default record is 3 for existing tenants (to avoid breaking user experience)
     end;
@@ -67,6 +67,11 @@ codeunit 1597 "Email Upgrade"
         exit('MS-373161-EmailLogEntryAdded-20201005');
     end;
 
+    procedure GetEmailInboxAddedToAllowedListUpgradeTag(): Code[250]
+    begin
+        exit('MS-651131-EmailInboxAddedToAllowedList-20260930');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     var
@@ -78,5 +83,7 @@ codeunit 1597 "Email Upgrade"
             PerCompanyUpgradeTags.Add(GetDefaultEmailMaxConcurrencyLimitUpgradeTag());
         if not UpgradeTag.HasUpgradeTag(GetEmailTablesAddedToAllowedListUpgradeTag()) then
             PerCompanyUpgradeTags.Add(GetEmailTablesAddedToAllowedListUpgradeTag());
+        if not UpgradeTag.HasUpgradeTag(GetEmailInboxAddedToAllowedListUpgradeTag()) then
+            PerCompanyUpgradeTags.Add(GetEmailInboxAddedToAllowedListUpgradeTag());
     end;
 }
