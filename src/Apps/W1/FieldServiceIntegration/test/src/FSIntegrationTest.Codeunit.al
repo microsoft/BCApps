@@ -1676,6 +1676,636 @@ codeunit 139204 "FS Integration Test"
         Assert.AreEqual('false', IntegrationFieldMapping."Constant Value", 'The mapping should disable Convert to Customer Asset.');
     end;
 
+    [Test]
+    procedure ModifiedServiceItemLineRespectsHeaderFilter()
+    var
+        ServiceHeader: Record "Service Header";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] A modified item line cannot export an excluded service order.
+        Initialize();
+
+        // [GIVEN] Order "S" has a modified item line but is excluded by the header mapping.
+        PrepareModifiedChildExport(ServiceHeader, IntegrationTableMapping, true, false);
+
+        // [WHEN] The scheduled synchronization scans modified child lines.
+        RunScheduledServiceOrderSync(IntegrationTableMapping);
+
+        // [THEN] "S" is not submitted to auxiliary synchronization.
+        VerifySynchronizationSelection(ServiceHeader.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure ModifiedServiceLineRespectsHeaderFilter()
+    var
+        ServiceHeader: Record "Service Header";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] A modified service line cannot export an excluded service order.
+        Initialize();
+
+        // [GIVEN] Order "S" has a modified service line but is excluded by the header mapping.
+        PrepareModifiedChildExport(ServiceHeader, IntegrationTableMapping, false, false);
+
+        // [WHEN] The scheduled synchronization scans modified child lines.
+        RunScheduledServiceOrderSync(IntegrationTableMapping);
+
+        // [THEN] "S" is not submitted to auxiliary synchronization.
+        VerifySynchronizationSelection(ServiceHeader.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure ModifiedServiceItemLineExportsMatchingHeader()
+    var
+        ServiceHeader: Record "Service Header";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] A modified item line exports a matching, otherwise unchanged order.
+        Initialize();
+
+        // [GIVEN] Order "S" matches the mapping and only its item line is newer than the watermark.
+        PrepareModifiedChildExport(ServiceHeader, IntegrationTableMapping, true, true);
+
+        // [WHEN] The scheduled synchronization scans modified child lines.
+        RunScheduledServiceOrderSync(IntegrationTableMapping);
+
+        // [THEN] "S" is submitted exactly once.
+        VerifySynchronizationSelection(ServiceHeader.RecordId(), true, 1);
+    end;
+
+    [Test]
+    procedure ModifiedServiceLineExportsMatchingHeader()
+    var
+        ServiceHeader: Record "Service Header";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] A modified service line exports a matching, otherwise unchanged order.
+        Initialize();
+
+        // [GIVEN] Order "S" matches the mapping and only its service line is newer than the watermark.
+        PrepareModifiedChildExport(ServiceHeader, IntegrationTableMapping, false, true);
+
+        // [WHEN] The scheduled synchronization scans modified child lines.
+        RunScheduledServiceOrderSync(IntegrationTableMapping);
+
+        // [THEN] "S" is submitted exactly once.
+        VerifySynchronizationSelection(ServiceHeader.RecordId(), true, 1);
+    end;
+
+    [Test]
+    procedure AuxiliaryProductImportRespectsLineStatus()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedProduct: Record "FS Work Order Product";
+        IncludedProduct: Record "FS Work Order Product";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Only used products in the current work order are imported.
+        Initialize();
+
+        // [GIVEN] Products "P1" and "P2" differ in Line Status, with a used product on another order.
+        PrepareProductImport(ServiceHeader, FSWorkOrder, ExcludedProduct, IncludedProduct, false);
+
+        // [WHEN] The unchanged parent work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Only "P2" is selected.
+        VerifyFilteredPair(ExcludedProduct.RecordId(), IncludedProduct.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryProductUpdateKeepsExcludedCoupling()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedProduct: Record "FS Work Order Product";
+        IncludedProduct: Record "FS Work Order Product";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Product mapping filters also gate coupled updates without deleting their lines.
+        Initialize();
+
+        // [GIVEN] Both products are coupled, but "P1" is excluded by Line Status.
+        PrepareProductImport(ServiceHeader, FSWorkOrder, ExcludedProduct, IncludedProduct, true);
+
+        // [WHEN] The unchanged parent work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] "P1" remains coupled and unchanged, and only "P2" is selected.
+        VerifyCoupledServiceLinePreserved(ExcludedProduct.WorkOrderProductId);
+        VerifyFilteredPair(ExcludedProduct.RecordId(), IncludedProduct.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryServiceImportRespectsDuration()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedService: Record "FS Work Order Service";
+        IncludedService: Record "FS Work Order Service";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Service duration filters apply to auxiliary imports.
+        Initialize();
+
+        // [GIVEN] Services "S1" and "S2" differ in Duration, with a matching service on another order.
+        PrepareServiceImport(ServiceHeader, FSWorkOrder, ExcludedService, IncludedService, false);
+
+        // [WHEN] The unchanged parent work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Only "S2" is selected.
+        VerifyFilteredPair(ExcludedService.RecordId(), IncludedService.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryServiceUpdateKeepsExcludedCoupling()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedService: Record "FS Work Order Service";
+        IncludedService: Record "FS Work Order Service";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Service duration filters gate coupled updates without deleting their lines.
+        Initialize();
+
+        // [GIVEN] Both services are coupled, but "S1" is excluded by Duration.
+        PrepareServiceImport(ServiceHeader, FSWorkOrder, ExcludedService, IncludedService, true);
+
+        // [WHEN] The unchanged parent work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] "S1" remains coupled and unchanged, and only "S2" is selected.
+        VerifyCoupledServiceLinePreserved(ExcludedService.WorkOrderServiceId);
+        VerifyFilteredPair(ExcludedService.RecordId(), IncludedService.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryBookingImportRespectsDuration()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedBooking: Record "FS Bookable Resource Booking";
+        IncludedBooking: Record "FS Bookable Resource Booking";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Additional booking filters intersect the completed-booking restriction.
+        Initialize();
+
+        // [GIVEN] Completed bookings "B1" and "B2" differ in Duration.
+        PrepareBookingImport(ServiceHeader, FSWorkOrder, ExcludedBooking, IncludedBooking, false);
+
+        // [WHEN] The unchanged parent work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Only "B2" is selected, not bookings on other orders or with other statuses.
+        VerifyFilteredPair(ExcludedBooking.RecordId(), IncludedBooking.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryBookingUpdateKeepsExcludedCoupling()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedBooking: Record "FS Bookable Resource Booking";
+        IncludedBooking: Record "FS Bookable Resource Booking";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Booking filters gate coupled updates without deleting their resource lines.
+        Initialize();
+
+        // [GIVEN] Both bookings are coupled, but "B1" is excluded by Duration.
+        PrepareBookingImport(ServiceHeader, FSWorkOrder, ExcludedBooking, IncludedBooking, true);
+
+        // [WHEN] The unchanged parent work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] "B1" remains coupled and unchanged, and only "B2" is selected.
+        VerifyCoupledServiceLinePreserved(ExcludedBooking.BookableResourceBookingId);
+        VerifyFilteredPair(ExcludedBooking.RecordId(), IncludedBooking.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryIncidentImportRespectsMapping()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedIncident: Record "FS Work Order Incident";
+        IncludedIncident: Record "FS Work Order Incident";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Incident imports apply the selected integration-table filter.
+        Initialize();
+
+        // [GIVEN] Incidents "I1" and "I2" differ in Name.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateAuxiliaryIncident(ExcludedIncident, FSWorkOrder, 'EXCLUDED');
+        CreateAuxiliaryIncident(IncludedIncident, FSWorkOrder, 'INCLUDED');
+        SetMappingFieldRange('SRVORDERITEMLINE', IncludedIncident.FieldNo(Name), 'INCLUDED', true);
+
+        // [WHEN] The unchanged parent work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Only "I2" is selected.
+        VerifyFilteredPair(ExcludedIncident.RecordId(), IncludedIncident.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryProductIdFilterCannotWidenScope()
+    var
+        ServiceHeader: Record "Service Header";
+        OtherServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        OtherWorkOrder: Record "FS Work Order";
+        CurrentProduct: Record "FS Work Order Product";
+        OtherProduct: Record "FS Work Order Product";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Conflicting product GUID filters intersect rather than replace the selected IDs.
+        Initialize();
+
+        // [GIVEN] The mapping selects "P2" on another order, not the current order's "P1".
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateCoupledServiceOrder(OtherServiceHeader, OtherWorkOrder);
+        CreateAuxiliaryProduct(CurrentProduct, FSWorkOrder, false);
+        CreateAuxiliaryProduct(OtherProduct, OtherWorkOrder, true);
+        SetMappingFieldRange('SRVORDERLINE-ITEM', OtherProduct.FieldNo(WorkOrderProductId), OtherProduct.WorkOrderProductId, true);
+
+        // [WHEN] The current work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Neither product is selected and no empty set is delegated.
+        VerifySynchronizationSelection(CurrentProduct.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure AuxiliaryServiceParentFilterCannotWidenScope()
+    var
+        ServiceHeader: Record "Service Header";
+        OtherServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        OtherWorkOrder: Record "FS Work Order";
+        CurrentService: Record "FS Work Order Service";
+        OtherService: Record "FS Work Order Service";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] A mapping's parent filter cannot select services belonging to another order.
+        Initialize();
+
+        // [GIVEN] The mapping selects another work order.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateCoupledServiceOrder(OtherServiceHeader, OtherWorkOrder);
+        CreateAuxiliaryService(CurrentService, FSWorkOrder, 30);
+        CreateAuxiliaryService(OtherService, OtherWorkOrder, 60);
+        SetMappingFieldRange('SRVORDERLINE-SERVICE', OtherService.FieldNo(WorkOrder), OtherWorkOrder.WorkOrderId, true);
+
+        // [WHEN] The current work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] No service is selected and no empty set is delegated.
+        VerifySynchronizationSelection(CurrentService.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure AuxiliaryBookingStatusConflictSelectsNothing()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        CompletedBooking: Record "FS Bookable Resource Booking";
+        ScheduledBooking: Record "FS Bookable Resource Booking";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] A scheduled-status mapping cannot overwrite the completed-booking restriction.
+        Initialize();
+
+        // [GIVEN] The mapping selects scheduled bookings, while auxiliary sync requires completed bookings.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateAuxiliaryBooking(CompletedBooking, FSWorkOrder, 60, true);
+        CreateAuxiliaryBooking(ScheduledBooking, FSWorkOrder, 60, false);
+        SetMappingFieldRange('SRVORDERLINE-RESOURC', ScheduledBooking.FieldNo(BookingStatus), ScheduledBooking.BookingStatus, true);
+
+        // [WHEN] The current work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] No booking is selected and no empty set is delegated.
+        VerifySynchronizationSelection(CompletedBooking.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure SkippedBookingsDoNotProduceUnboundedImport()
+    var
+        ServiceHeader: Record "Service Header";
+        OtherServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        OtherWorkOrder: Record "FS Work Order";
+        SkippedBooking: Record "FS Bookable Resource Booking";
+        OtherBooking: Record "FS Bookable Resource Booking";
+        CRMIntegrationRecord: Record "CRM Integration Record";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] An empty GUID list after skip-reimport processing is not an unbounded booking view.
+        Initialize();
+
+        // [GIVEN] The only current booking is marked to skip reimport; another order has a booking.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateCoupledServiceOrder(OtherServiceHeader, OtherWorkOrder);
+        CreateAuxiliaryBooking(SkippedBooking, FSWorkOrder, 60, true);
+        CreateAuxiliaryBooking(OtherBooking, OtherWorkOrder, 60, true);
+        CRMIntegrationRecord."CRM ID" := SkippedBooking.BookableResourceBookingId;
+        CRMIntegrationRecord."Table ID" := Database::"Service Line";
+        CRMIntegrationRecord."Skip Reimport" := true;
+        CRMIntegrationRecord."Last Synch. Modified On" := SkippedBooking.ModifiedOn + 60000;
+        CRMIntegrationRecord.Insert();
+
+        // [WHEN] The current work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Neither booking is selected and no empty set is delegated.
+        VerifySynchronizationSelection(SkippedBooking.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure EmptyBookingMappingKeepsParentAndStatus()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedBooking: Record "FS Bookable Resource Booking";
+        IncludedBooking: Record "FS Bookable Resource Booking";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] An empty mapping filter retains the production parent and completed-status restrictions.
+        Initialize();
+
+        // [GIVEN] Two completed bookings on this order and decoys with other parents or statuses.
+        PrepareBookingImport(ServiceHeader, FSWorkOrder, ExcludedBooking, IncludedBooking, false);
+        IntegrationTableMapping.Get('SRVORDERLINE-RESOURC');
+        IntegrationTableMapping.SetIntegrationTableFilter('');
+        IntegrationTableMapping.Modify();
+
+        // [WHEN] The work order synchronizes without an additional mapping filter.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Both current completed bookings remain selected.
+        VerifySynchronizationSelection(ExcludedBooking.RecordId(), true, 2);
+        VerifySynchronizationSelection(IncludedBooking.RecordId(), true, 2);
+    end;
+
+    [Test]
+    procedure AuxiliaryProductExportRespectsLineFilter()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedLine: Record "Service Line";
+        IncludedLine: Record "Service Line";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Auxiliary product exports apply the service-line table filter.
+        Initialize();
+
+        // [GIVEN] Lines "L1" and "L2" differ in Description, with a matching line on another order.
+        PrepareLineExport(ServiceHeader, FSWorkOrder, ExcludedLine, IncludedLine, false);
+
+        // [WHEN] The unchanged service order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, false);
+
+        // [THEN] Only "L2" is selected.
+        VerifyFilteredPair(ExcludedLine.RecordId(), IncludedLine.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryServiceExportRespectsLineFilter()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedLine: Record "Service Line";
+        IncludedLine: Record "Service Line";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Auxiliary service exports apply the service-line table filter.
+        Initialize();
+
+        // [GIVEN] Lines "L1" and "L2" differ in Description, with a matching line on another order.
+        PrepareLineExport(ServiceHeader, FSWorkOrder, ExcludedLine, IncludedLine, true);
+
+        // [WHEN] The unchanged service order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, false);
+
+        // [THEN] Only "L2" is selected.
+        VerifyFilteredPair(ExcludedLine.RecordId(), IncludedLine.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryIncidentExportRespectsItemLineFilter()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedLine: Record "Service Item Line";
+        IncludedLine: Record "Service Item Line";
+        BookingLine: Record "Service Item Line";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Item-line filters intersect the non-booking restriction for incident exports.
+        Initialize();
+
+        // [GIVEN] Item lines "L1" and "L2" differ in Description, and "L3" is a booking line.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateAuxiliaryItemLine(ExcludedLine, ServiceHeader, 'EXCLUDED', false);
+        CreateAuxiliaryItemLine(IncludedLine, ServiceHeader, 'INCLUDED', false);
+        CreateAuxiliaryItemLine(BookingLine, ServiceHeader, 'INCLUDED', true);
+        SetMappingFieldRange('SRVORDERITEMLINE', IncludedLine.FieldNo(Description), 'INCLUDED', false);
+
+        // [WHEN] The unchanged service order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, false);
+
+        // [THEN] Only "L2" is selected.
+        VerifyFilteredPair(ExcludedLine.RecordId(), IncludedLine.RecordId());
+    end;
+
+    [Test]
+    procedure AuxiliaryExportParentFilterCannotWidenScope()
+    var
+        ServiceHeader: Record "Service Header";
+        OtherServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        OtherWorkOrder: Record "FS Work Order";
+        CurrentLine: Record "Service Line";
+        OtherLine: Record "Service Line";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] A mapping's document filter cannot replace the auxiliary export parent.
+        Initialize();
+
+        // [GIVEN] The mapping selects a line on another service order.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateCoupledServiceOrder(OtherServiceHeader, OtherWorkOrder);
+        CreateAuxiliaryServiceLine(CurrentLine, ServiceHeader, false, false, 'EXCLUDED');
+        CreateAuxiliaryServiceLine(OtherLine, OtherServiceHeader, false, false, 'INCLUDED');
+        SetMappingFieldRange('SRVORDERLINE-ITEM', OtherLine.FieldNo("Document No."), OtherServiceHeader."No.", false);
+
+        // [WHEN] The current service order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, false);
+
+        // [THEN] No service line is selected and no empty set is delegated.
+        VerifySynchronizationSelection(CurrentLine.RecordId(), false, 0);
+    end;
+
+    [Test]
+    procedure TargetSpecificExportRespectsMappingFilter()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        ExcludedLine: Record "Service Line";
+        IncludedLine: Record "Service Line";
+        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
+        ServiceLineRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] The public target-specific export API filters its supplied record set.
+        Initialize();
+
+        // [GIVEN] A product mapping excludes "L1" from the current order's line view.
+        PrepareLineExport(ServiceHeader, FSWorkOrder, ExcludedLine, IncludedLine, false);
+        ExcludedLine.FilterGroup(2);
+        ExcludedLine.SetRange("Document Type", ServiceHeader."Document Type");
+        ExcludedLine.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLineRecordRef.GetTable(ExcludedLine);
+        FSIntegrationTestLibrary.ClearSynchronizationCandidates();
+        BindSubscription(FSIntegrationTestLibrary);
+
+        // [WHEN] The public target-specific export runs.
+        FSIntTableSubscriber.SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
+        UnbindSubscription(FSIntegrationTestLibrary);
+
+        // [THEN] Only "L2" reaches per-record synchronization.
+        Assert.AreEqual(2, ServiceLineRecordRef.FilterGroup(), 'The caller filter group must be preserved.');
+        VerifyFilteredPair(ExcludedLine.RecordId(), IncludedLine.RecordId());
+    end;
+
+    [Test]
+    procedure DefaultProductImportKeepsParentScope()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        FirstProduct: Record "FS Work Order Product";
+        SecondProduct: Record "FS Work Order Product";
+        ProductFilter: Record "FS Work Order Product";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Default product filters accept both statuses without leaking another parent's products.
+        Initialize();
+
+        // [GIVEN] Two products on this order and a third on another order, with default filters restored.
+        PrepareProductImport(ServiceHeader, FSWorkOrder, FirstProduct, SecondProduct, false);
+        IntegrationTableMapping.Get('SRVORDERLINE-ITEM');
+        ProductFilter.SetView(IntegrationTableMapping.GetIntegrationTableFilter());
+        ProductFilter.SetRange(LineStatus);
+        IntegrationTableMapping.SetIntegrationTableFilter(ProductFilter.GetView(false));
+        IntegrationTableMapping.Modify();
+
+        // [WHEN] The unchanged work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Both current products remain selected.
+        VerifySynchronizationSelection(FirstProduct.RecordId(), true, 2);
+        VerifySynchronizationSelection(SecondProduct.RecordId(), true, 2);
+    end;
+
+    [Test]
+    procedure DefaultBookingImportKeepsParentAndStatus()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        FirstBooking: Record "FS Bookable Resource Booking";
+        SecondBooking: Record "FS Bookable Resource Booking";
+        BookingFilter: Record "FS Bookable Resource Booking";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Default booking filters preserve completed status and parent restrictions.
+        Initialize();
+
+        // [GIVEN] Two completed bookings on this order and other-parent/status decoys.
+        PrepareBookingImport(ServiceHeader, FSWorkOrder, FirstBooking, SecondBooking, false);
+        IntegrationTableMapping.Get('SRVORDERLINE-RESOURC');
+        BookingFilter.SetView(IntegrationTableMapping.GetIntegrationTableFilter());
+        BookingFilter.SetRange(Duration);
+        IntegrationTableMapping.SetIntegrationTableFilter(BookingFilter.GetView(false));
+        IntegrationTableMapping.Modify();
+
+        // [WHEN] The unchanged work order synchronizes its children using the default mapping.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Only the two current completed bookings are selected.
+        VerifySynchronizationSelection(FirstBooking.RecordId(), true, 2);
+        VerifySynchronizationSelection(SecondBooking.RecordId(), true, 2);
+    end;
+
+    [Test]
+    procedure DefaultProductExportKeepsParentScope()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+        FirstLine: Record "Service Line";
+        SecondLine: Record "Service Line";
+        LineFilter: Record "Service Line";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] Default product export filters preserve the service-order parent scope.
+        Initialize();
+
+        // [GIVEN] Two item lines on this order and a third on another order, with default filters restored.
+        PrepareLineExport(ServiceHeader, FSWorkOrder, FirstLine, SecondLine, false);
+        IntegrationTableMapping.Get('SRVORDERLINE-ITEM');
+        LineFilter.SetView(IntegrationTableMapping.GetTableFilter());
+        LineFilter.SetRange(Description);
+        IntegrationTableMapping.SetTableFilter(LineFilter.GetView(false));
+        IntegrationTableMapping.Modify();
+
+        // [WHEN] The unchanged service order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, false);
+
+        // [THEN] Both current lines remain selected.
+        VerifySynchronizationSelection(FirstLine.RecordId(), true, 2);
+        VerifySynchronizationSelection(SecondLine.RecordId(), true, 2);
+    end;
+
+    [Test]
+    procedure EmptyAuxiliaryOrderDoesNotDelegate()
+    var
+        ServiceHeader: Record "Service Header";
+        FSWorkOrder: Record "FS Work Order";
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] An order without auxiliary records does not submit an empty synchronization request.
+        Initialize();
+
+        // [GIVEN] A coupled order without child records.
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+
+        // [WHEN] The unchanged work order synchronizes its children.
+        RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
+
+        // [THEN] Nothing is submitted to the record-set synchronization API.
+        VerifySynchronizationSelection(FSWorkOrder.RecordId(), false, 0);
+    end;
+
     local procedure Initialize()
     var
         AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
@@ -1774,6 +2404,355 @@ codeunit 139204 "FS Integration Test"
         ClearClientSecret := 'ClientSecret';
         ClientSecret := ClearClientSecret;
         CDSConnectionSetup.SetClientSecret(ClientSecret);
+    end;
+
+    local procedure InitializeAuxiliarySynchronization()
+    var
+        FSConnectionSetup: Record "FS Connection Setup";
+        FSBookingStatus: Record "FS Booking Status";
+        FSBooking: Record "FS Bookable Resource Booking";
+    begin
+        InitSetup(true, '');
+        LibraryCRMIntegration.RegisterTestTableConnection();
+        FSConnectionSetup.Get();
+        FSConnectionSetup."Integration Type" := FSConnectionSetup."Integration Type"::"Service and projects";
+        FSConnectionSetup.Modify();
+        FSIntegrationTestLibrary.ResetConfiguration(FSConnectionSetup);
+
+        FSBookingStatus.DeleteAll();
+        FSBookingStatus.BookingStatusId := CreateGuid();
+        FSBookingStatus.FieldServiceStatus := FSBookingStatus.FieldServiceStatus::Completed;
+        FSBookingStatus.Insert();
+        SetMappingFieldRange('SRVORDERLINE-RESOURC', FSBooking.FieldNo(BookingStatus), FSBookingStatus.BookingStatusId, true);
+        Clear(FSBookingStatus);
+        FSBookingStatus.BookingStatusId := CreateGuid();
+        FSBookingStatus.FieldServiceStatus := FSBookingStatus.FieldServiceStatus::Scheduled;
+        FSBookingStatus.Insert();
+        FSBookingStatus.SetRange(FieldServiceStatus, FSBookingStatus.FieldServiceStatus::Completed);
+        Assert.AreEqual(1, FSBookingStatus.Count(), 'A completed booking status must exist in the active mock connection.');
+    end;
+
+    local procedure CreateCoupledServiceOrder(var ServiceHeader: Record "Service Header"; var FSWorkOrder: Record "FS Work Order")
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+    begin
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        FSWorkOrder.Init();
+        FSWorkOrder.WorkOrderId := CreateGuid();
+        FSWorkOrder.Name := ServiceHeader."No.";
+        FSWorkOrder.IntegrateToService := true;
+        FSWorkOrder.ModifiedOn := CurrentDateTime();
+        FSWorkOrder.Insert();
+        CRMIntegrationRecord.CoupleCRMIDToRecordID(FSWorkOrder.WorkOrderId, ServiceHeader.RecordId());
+        CRMIntegrationRecord.Get(FSWorkOrder.WorkOrderId, ServiceHeader.SystemId);
+        CRMIntegrationRecord."Last Synch. Modified On" := CurrentDateTime() + 60000;
+        CRMIntegrationRecord."Last Synch. CRM Modified On" := CurrentDateTime() + 60000;
+        CRMIntegrationRecord.Modify();
+    end;
+
+    local procedure CreateAuxiliaryIncident(var FSWorkOrderIncident: Record "FS Work Order Incident"; FSWorkOrder: Record "FS Work Order"; IncidentName: Text[100])
+    begin
+        FSWorkOrderIncident.Init();
+        FSWorkOrderIncident.WorkOrderIncidentId := CreateGuid();
+        FSWorkOrderIncident.WorkOrder := FSWorkOrder.WorkOrderId;
+        FSWorkOrderIncident.Name := IncidentName;
+        FSWorkOrderIncident.ModifiedOn := CurrentDateTime();
+        FSWorkOrderIncident.Insert();
+    end;
+
+    local procedure CreateAuxiliaryProduct(var FSWorkOrderProduct: Record "FS Work Order Product"; FSWorkOrder: Record "FS Work Order"; Used: Boolean)
+    var
+        FSWorkOrderIncident: Record "FS Work Order Incident";
+    begin
+        CreateAuxiliaryIncident(FSWorkOrderIncident, FSWorkOrder, 'PRODUCT');
+        FSWorkOrderProduct.Init();
+        FSWorkOrderProduct.WorkOrderProductId := CreateGuid();
+        FSWorkOrderProduct.WorkOrder := FSWorkOrder.WorkOrderId;
+        FSWorkOrderProduct.WorkOrderIncident := FSWorkOrderIncident.WorkOrderIncidentId;
+        if Used then
+            FSWorkOrderProduct.LineStatus := FSWorkOrderProduct.LineStatus::Used
+        else
+            FSWorkOrderProduct.LineStatus := FSWorkOrderProduct.LineStatus::Estimated;
+        FSWorkOrderProduct.ModifiedOn := CurrentDateTime();
+        FSWorkOrderProduct.Insert();
+    end;
+
+    local procedure CreateAuxiliaryService(var FSWorkOrderService: Record "FS Work Order Service"; FSWorkOrder: Record "FS Work Order"; Duration: Integer)
+    var
+        FSWorkOrderIncident: Record "FS Work Order Incident";
+    begin
+        CreateAuxiliaryIncident(FSWorkOrderIncident, FSWorkOrder, 'SERVICE');
+        FSWorkOrderService.Init();
+        FSWorkOrderService.WorkOrderServiceId := CreateGuid();
+        FSWorkOrderService.WorkOrder := FSWorkOrder.WorkOrderId;
+        FSWorkOrderService.WorkOrderIncident := FSWorkOrderIncident.WorkOrderIncidentId;
+        FSWorkOrderService.Duration := Duration;
+        FSWorkOrderService.ModifiedOn := CurrentDateTime();
+        FSWorkOrderService.Insert();
+    end;
+
+    local procedure CreateAuxiliaryBooking(var FSBooking: Record "FS Bookable Resource Booking"; FSWorkOrder: Record "FS Work Order"; Duration: Integer; Completed: Boolean)
+    var
+        FSBookingStatus: Record "FS Booking Status";
+    begin
+        if Completed then
+            FSBookingStatus.SetRange(FieldServiceStatus, FSBookingStatus.FieldServiceStatus::Completed)
+        else
+            FSBookingStatus.SetRange(FieldServiceStatus, FSBookingStatus.FieldServiceStatus::Scheduled);
+        FSBookingStatus.FindFirst();
+        FSBooking.Init();
+        FSBooking.BookableResourceBookingId := CreateGuid();
+        FSBooking.WorkOrder := FSWorkOrder.WorkOrderId;
+        FSBooking.BookingStatus := FSBookingStatus.BookingStatusId;
+        FSBooking.Duration := Duration;
+        FSBooking.ModifiedOn := CurrentDateTime();
+        FSBooking.Insert();
+    end;
+
+    local procedure CreateAuxiliaryItemLine(var ServiceItemLine: Record "Service Item Line"; ServiceHeader: Record "Service Header"; Description: Text[100]; BookingLine: Boolean)
+    begin
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, '');
+        ServiceItemLine.Description := Description;
+        ServiceItemLine."FS Bookings" := BookingLine;
+        ServiceItemLine.Modify();
+    end;
+
+    local procedure CreateAuxiliaryServiceLine(var ServiceLine: Record "Service Line"; ServiceHeader: Record "Service Header"; ServiceItem: Boolean; ResourceLine: Boolean; Description: Text[100])
+    var
+        Item: Record Item;
+        ServiceItemLine: Record "Service Item Line";
+    begin
+        CreateAuxiliaryItemLine(ServiceItemLine, ServiceHeader, Description, ResourceLine);
+        if ResourceLine then
+            LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Resource, LibraryResource.CreateResourceNo())
+        else begin
+            LibraryInventory.CreateItem(Item);
+            if ServiceItem then begin
+                Item.Validate(Type, Item.Type::Service);
+                Item.Modify(true);
+            end;
+            LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, Item."No.");
+        end;
+        ServiceLine.Validate("Service Item Line No.", ServiceItemLine."Line No.");
+        ServiceLine.Description := Description;
+        ServiceLine.Modify(true);
+    end;
+
+    local procedure CoupleAuxiliaryServiceLine(ServiceHeader: Record "Service Header"; IntegrationId: Guid; ServiceItem: Boolean; ResourceLine: Boolean)
+    var
+        ServiceLine: Record "Service Line";
+        CRMIntegrationRecord: Record "CRM Integration Record";
+    begin
+        CreateAuxiliaryServiceLine(ServiceLine, ServiceHeader, ServiceItem, ResourceLine, 'PRESERVED');
+        CRMIntegrationRecord.CoupleCRMIDToRecordID(IntegrationId, ServiceLine.RecordId());
+    end;
+
+    local procedure SetMappingFieldRange(MappingName: Code[20]; FieldNo: Integer; FieldValue: Variant; IntegrationFilter: Boolean)
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        FilterRecordRef: RecordRef;
+        FilterFieldRef: FieldRef;
+    begin
+        IntegrationTableMapping.Get(MappingName);
+        if IntegrationFilter then begin
+            FilterRecordRef.Open(IntegrationTableMapping."Integration Table ID");
+            FilterRecordRef.SetView(IntegrationTableMapping.GetIntegrationTableFilter());
+        end else begin
+            FilterRecordRef.Open(IntegrationTableMapping."Table ID");
+            FilterRecordRef.SetView(IntegrationTableMapping.GetTableFilter());
+        end;
+        FilterFieldRef := FilterRecordRef.Field(FieldNo);
+        FilterFieldRef.SetRange(FieldValue);
+        if IntegrationFilter then
+            IntegrationTableMapping.SetIntegrationTableFilter(FilterRecordRef.GetView(false))
+        else
+            IntegrationTableMapping.SetTableFilter(FilterRecordRef.GetView(false));
+        IntegrationTableMapping.Modify();
+        FilterRecordRef.Close();
+    end;
+
+    local procedure PrepareProductImport(var ServiceHeader: Record "Service Header"; var FSWorkOrder: Record "FS Work Order"; var ExcludedProduct: Record "FS Work Order Product"; var IncludedProduct: Record "FS Work Order Product"; Coupled: Boolean)
+    var
+        OtherServiceHeader: Record "Service Header";
+        OtherWorkOrder: Record "FS Work Order";
+        OtherProduct: Record "FS Work Order Product";
+    begin
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateCoupledServiceOrder(OtherServiceHeader, OtherWorkOrder);
+        CreateAuxiliaryProduct(ExcludedProduct, FSWorkOrder, false);
+        CreateAuxiliaryProduct(IncludedProduct, FSWorkOrder, true);
+        CreateAuxiliaryProduct(OtherProduct, OtherWorkOrder, true);
+        SetMappingFieldRange('SRVORDERLINE-ITEM', IncludedProduct.FieldNo(LineStatus), IncludedProduct.LineStatus, true);
+        if Coupled then begin
+            CoupleAuxiliaryServiceLine(ServiceHeader, ExcludedProduct.WorkOrderProductId, false, false);
+            CoupleAuxiliaryServiceLine(ServiceHeader, IncludedProduct.WorkOrderProductId, false, false);
+        end;
+    end;
+
+    local procedure PrepareServiceImport(var ServiceHeader: Record "Service Header"; var FSWorkOrder: Record "FS Work Order"; var ExcludedService: Record "FS Work Order Service"; var IncludedService: Record "FS Work Order Service"; Coupled: Boolean)
+    var
+        OtherServiceHeader: Record "Service Header";
+        OtherWorkOrder: Record "FS Work Order";
+        OtherService: Record "FS Work Order Service";
+    begin
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateCoupledServiceOrder(OtherServiceHeader, OtherWorkOrder);
+        CreateAuxiliaryService(ExcludedService, FSWorkOrder, 30);
+        CreateAuxiliaryService(IncludedService, FSWorkOrder, 60);
+        CreateAuxiliaryService(OtherService, OtherWorkOrder, 60);
+        SetMappingFieldRange('SRVORDERLINE-SERVICE', IncludedService.FieldNo(Duration), 60, true);
+        if Coupled then begin
+            CoupleAuxiliaryServiceLine(ServiceHeader, ExcludedService.WorkOrderServiceId, true, false);
+            CoupleAuxiliaryServiceLine(ServiceHeader, IncludedService.WorkOrderServiceId, true, false);
+        end;
+    end;
+
+    local procedure PrepareBookingImport(var ServiceHeader: Record "Service Header"; var FSWorkOrder: Record "FS Work Order"; var ExcludedBooking: Record "FS Bookable Resource Booking"; var IncludedBooking: Record "FS Bookable Resource Booking"; Coupled: Boolean)
+    var
+        OtherServiceHeader: Record "Service Header";
+        OtherWorkOrder: Record "FS Work Order";
+        OtherBooking: Record "FS Bookable Resource Booking";
+        ScheduledBooking: Record "FS Bookable Resource Booking";
+    begin
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateCoupledServiceOrder(OtherServiceHeader, OtherWorkOrder);
+        CreateAuxiliaryBooking(ExcludedBooking, FSWorkOrder, 30, true);
+        CreateAuxiliaryBooking(IncludedBooking, FSWorkOrder, 60, true);
+        CreateAuxiliaryBooking(OtherBooking, OtherWorkOrder, 60, true);
+        CreateAuxiliaryBooking(ScheduledBooking, FSWorkOrder, 60, false);
+        SetMappingFieldRange('SRVORDERLINE-RESOURC', IncludedBooking.FieldNo(Duration), 60, true);
+        if Coupled then begin
+            CoupleAuxiliaryServiceLine(ServiceHeader, ExcludedBooking.BookableResourceBookingId, false, true);
+            CoupleAuxiliaryServiceLine(ServiceHeader, IncludedBooking.BookableResourceBookingId, false, true);
+        end;
+    end;
+
+    local procedure PrepareLineExport(var ServiceHeader: Record "Service Header"; var FSWorkOrder: Record "FS Work Order"; var ExcludedLine: Record "Service Line"; var IncludedLine: Record "Service Line"; ServiceItem: Boolean)
+    var
+        OtherServiceHeader: Record "Service Header";
+        OtherWorkOrder: Record "FS Work Order";
+        OtherLine: Record "Service Line";
+        MappingName: Code[20];
+    begin
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        CreateCoupledServiceOrder(OtherServiceHeader, OtherWorkOrder);
+        CreateAuxiliaryServiceLine(ExcludedLine, ServiceHeader, ServiceItem, false, 'EXCLUDED');
+        CreateAuxiliaryServiceLine(IncludedLine, ServiceHeader, ServiceItem, false, 'INCLUDED');
+        CreateAuxiliaryServiceLine(OtherLine, OtherServiceHeader, ServiceItem, false, 'INCLUDED');
+        if ServiceItem then
+            MappingName := 'SRVORDERLINE-SERVICE'
+        else
+            MappingName := 'SRVORDERLINE-ITEM';
+        SetMappingFieldRange(MappingName, IncludedLine.FieldNo(Description), 'INCLUDED', false);
+    end;
+
+    local procedure PrepareModifiedChildExport(var ServiceHeader: Record "Service Header"; var IntegrationTableMapping: Record "Integration Table Mapping"; ItemLine: Boolean; Matching: Boolean)
+    var
+        FSWorkOrder: Record "FS Work Order";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        ModifiedAt: DateTime;
+    begin
+        InitializeAuxiliarySynchronization();
+        CreateCoupledServiceOrder(ServiceHeader, FSWorkOrder);
+        if ItemLine then
+            CreateAuxiliaryItemLine(ServiceItemLine, ServiceHeader, 'ORIGINAL', false)
+        else
+            LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        ServiceHeader.Get(ServiceHeader."Document Type", ServiceHeader."No.");
+        ModifiedAt := ServiceHeader.SystemModifiedAt;
+        // Cross the SQL timestamp boundary so the parent is not included by the initial pass.
+        Sleep(20);
+        if ItemLine then begin
+            ServiceItemLine.Description := 'MODIFIED';
+            ServiceItemLine.Modify(false);
+            Assert.IsTrue(ServiceItemLine.SystemModifiedAt > ModifiedAt, 'The child must be newer than the header watermark.');
+        end else begin
+            ServiceLine.Description := 'MODIFIED';
+            ServiceLine.Modify(false);
+            Assert.IsTrue(ServiceLine.SystemModifiedAt > ModifiedAt, 'The child must be newer than the header watermark.');
+        end;
+        ServiceHeader.Get(ServiceHeader."Document Type", ServiceHeader."No.");
+        Assert.AreEqual(ModifiedAt, ServiceHeader.SystemModifiedAt, 'Only the child may change after the header watermark.');
+        if Matching then
+            SetMappingFieldRange('SRVORDER', ServiceHeader.FieldNo("No."), ServiceHeader."No.", false)
+        else
+            SetMappingFieldRange('SRVORDER', ServiceHeader.FieldNo("No."), 'EXCLUDED', false);
+        IntegrationTableMapping.Get('SRVORDER');
+        IntegrationTableMapping.Direction := IntegrationTableMapping.Direction::ToIntegrationTable;
+        IntegrationTableMapping."Synch. Int. Tbl. Mod. On Fltr." := ModifiedAt;
+        IntegrationTableMapping.Modify();
+    end;
+
+    local procedure RunScheduledServiceOrderSync(IntegrationTableMapping: Record "Integration Table Mapping")
+    var
+        CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
+    begin
+        FSIntegrationTestLibrary.ClearSynchronizationCandidates();
+        BindSubscription(FSIntegrationTestLibrary);
+        CRMIntegrationTableSynch.Run(IntegrationTableMapping);
+        UnbindSubscription(FSIntegrationTestLibrary);
+    end;
+
+    local procedure RunAuxiliaryServiceOrderSync(ServiceHeader: Record "Service Header"; FSWorkOrder: Record "FS Work Order"; FromFieldService: Boolean)
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        IntegrationRecSynchInvoke: Codeunit "Integration Rec. Synch. Invoke";
+        IntegrationRecordSynch: Codeunit "Integration Record Synch.";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SynchAction: Option "None",Insert,Modify,ForceModify,IgnoreUnchanged,Fail,Skip,Delete,Uncouple,Couple;
+        JobId: Guid;
+    begin
+        IntegrationTableMapping.Get('SRVORDER');
+        if FromFieldService then begin
+            SourceRecordRef.GetTable(FSWorkOrder);
+            DestinationRecordRef.GetTable(ServiceHeader);
+            IntegrationTableMapping.Direction := IntegrationTableMapping.Direction::FromIntegrationTable;
+        end else begin
+            SourceRecordRef.GetTable(ServiceHeader);
+            DestinationRecordRef.GetTable(FSWorkOrder);
+            IntegrationTableMapping.Direction := IntegrationTableMapping.Direction::ToIntegrationTable;
+        end;
+        IntegrationRecSynchInvoke.SetContext(
+            IntegrationTableMapping, SourceRecordRef, DestinationRecordRef, IntegrationRecordSynch,
+            SynchAction::Modify, false, JobId, TableConnectionType::CRM);
+        FSIntegrationTestLibrary.ClearSynchronizationCandidates();
+        BindSubscription(FSIntegrationTestLibrary);
+        IntegrationRecSynchInvoke.Run();
+        UnbindSubscription(FSIntegrationTestLibrary);
+        Assert.AreEqual(1, FSIntegrationTestLibrary.GetUnchangedServiceOrderCount(), 'The real unchanged-parent synchronization path must run.');
+    end;
+
+    local procedure VerifySynchronizationSelection(CandidateRecordId: RecordId; ExpectedSelected: Boolean; ExpectedCount: Integer)
+    begin
+        Assert.AreEqual(ExpectedSelected, FSIntegrationTestLibrary.WasSelectedForSynchronization(CandidateRecordId),
+            StrSubstNo('Mapping filters must control auxiliary selection of %1.', CandidateRecordId));
+        Assert.AreEqual(ExpectedCount, FSIntegrationTestLibrary.GetSynchronizationCandidateCount(CandidateRecordId.TableNo()),
+            'Auxiliary synchronization must not select records outside the mapping and parent scope.');
+        Assert.AreEqual(0, FSIntegrationTestLibrary.GetEmptySynchronizationRequestCount(), 'Do not delegate empty record sets to the synchronization API.');
+    end;
+
+    local procedure VerifyFilteredPair(ExcludedRecordId: RecordId; IncludedRecordId: RecordId)
+    begin
+        VerifySynchronizationSelection(IncludedRecordId, true, 1);
+        VerifySynchronizationSelection(ExcludedRecordId, false, 1);
+    end;
+
+    local procedure VerifyCoupledServiceLinePreserved(IntegrationId: Guid)
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        ServiceLine: Record "Service Line";
+    begin
+        CRMIntegrationRecord.SetRange("CRM ID", IntegrationId);
+        CRMIntegrationRecord.SetRange("Table ID", Database::"Service Line");
+        Assert.IsTrue(CRMIntegrationRecord.FindFirst(), 'Exclusion must not delete the existing coupling.');
+        Assert.IsTrue(ServiceLine.GetBySystemId(CRMIntegrationRecord."Integration ID"), 'Exclusion must not delete the coupled line.');
+        Assert.AreEqual('PRESERVED', ServiceLine.Description, 'An excluded coupled line must remain unchanged.');
     end;
 
     local procedure AssertConnectionNotRegistered(ConnectionName: Code[10])
