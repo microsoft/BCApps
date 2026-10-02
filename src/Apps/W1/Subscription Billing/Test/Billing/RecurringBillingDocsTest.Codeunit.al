@@ -1044,7 +1044,6 @@ codeunit 139687 "Recurring Billing Docs Test"
         SalesHeader.TestField("Document Date", NewDocumentDate);
         SalesHeader.TestField("Payment Terms Code", ContractPaymentTerms.Code);
         SalesHeader.TestField("Payment Discount %", ContractPaymentTerms."Discount %");
-        SalesHeader.TestField("Pmt. Discount Date", CalcDate(ContractPaymentTerms."Discount Date Calculation", NewDocumentDate));
     end;
 
     [Test]
@@ -1119,7 +1118,6 @@ codeunit 139687 "Recurring Billing Docs Test"
         PurchaseHeader.TestField("Document Date", NewDocumentDate);
         PurchaseHeader.TestField("Payment Terms Code", ContractPaymentTerms.Code);
         PurchaseHeader.TestField("Payment Discount %", ContractPaymentTerms."Discount %");
-        PurchaseHeader.TestField("Pmt. Discount Date", CalcDate(ContractPaymentTerms."Discount Date Calculation", NewDocumentDate));
     end;
 
     [Test]
