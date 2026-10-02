@@ -1340,26 +1340,29 @@ codeunit 140012 "Test FAB Platform"
     local procedure VerifyTableRejected(TableId: Integer; ExpectedError: Text)
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
+        TableNotSelectedErr: Label 'Expected table %1 not to be selected for export.', Comment = '%1 = Table ID';
     begin
         Assert.ExpectedError(ExpectedError);
-        Assert.IsFalse(TenantFabricTables.Get(TableId), StrSubstNo('Expected table %1 not to be selected for export.', TableId));
+        Assert.IsFalse(TenantFabricTables.Get(TableId), StrSubstNo(TableNotSelectedErr, TableId));
     end;
 
     local procedure VerifyFieldsExist(TableId: Integer; FieldIds: List of [Integer])
     var
         TenantFabricTableFields: Record "Tenant Fabric Table Fields";
         FieldId: Integer;
+        FieldSelectedErr: Label 'Expected field %1 of table %2 to be selected for export.', Comment = '%1 = Field ID, %2 = Table ID';
     begin
         foreach FieldId in FieldIds do
-            Assert.IsTrue(TenantFabricTableFields.Get(TableId, FieldId), StrSubstNo('Expected field %1 of table %2 to be selected for export.', FieldId, TableId));
+            Assert.IsTrue(TenantFabricTableFields.Get(TableId, FieldId), StrSubstNo(FieldSelectedErr, FieldId, TableId));
     end;
 
     local procedure VerifyFieldInsertRejected(TableId: Integer; FieldId: Integer; ExpectedError: Text)
     var
         TenantFabricTableFields: Record "Tenant Fabric Table Fields";
+        FieldNotSelectedErr: Label 'Expected field %1 of table %2 not to be selected for export.', Comment = '%1 = Field ID, %2 = Table ID';
     begin
         Assert.ExpectedError(ExpectedError);
-        Assert.IsFalse(TenantFabricTableFields.Get(TableId, FieldId), StrSubstNo('Expected field %1 of table %2 not to be selected for export.', FieldId, TableId));
+        Assert.IsFalse(TenantFabricTableFields.Get(TableId, FieldId), StrSubstNo(FieldNotSelectedErr, FieldId, TableId));
     end;
 
     local procedure VerifyFieldModifyRejected(TableId: Integer; FieldId: Integer; ExpectedFieldName: Text; ExpectedError: Text)
