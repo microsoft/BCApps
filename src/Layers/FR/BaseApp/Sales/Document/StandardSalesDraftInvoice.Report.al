@@ -1288,7 +1288,7 @@ report 1303 "Standard Sales - Draft Invoice"
     begin
         SalesLine.SetRange("Document No.", Header."No.");
         SalesLine.SetRange("Document Type", Header."Document Type");
-        SalesLine.SetFilter(Type, '<> %1', SalesLine.Type::Item);
+        SalesLine.SetFilter(Type, '<>%1&<>%2', SalesLine.Type::Item, SalesLine.Type::" ");
         if not SalesLine.IsEmpty() then
             GotServices := true;
         SalesLine.SetRange(Type, SalesLine.Type::Item);
