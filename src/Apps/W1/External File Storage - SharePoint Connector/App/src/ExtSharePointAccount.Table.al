@@ -112,7 +112,7 @@ table 4580 "Ext. SharePoint Account"
         ClearCertificateAuthentication();
     end;
 
-    local procedure ClearCertificateAuthentication()
+    internal procedure ClearCertificateAuthentication()
     begin
         if not IsNullGuid(Rec."Certificate Key") then begin
             TryDeleteIsolatedStorageValue(Rec."Certificate Key");
@@ -142,7 +142,7 @@ table 4580 "Ext. SharePoint Account"
     end;
 #pragma warning restore AS0022
 
-    local procedure ClearClientSecretAuthentication()
+    internal procedure ClearClientSecretAuthentication()
     begin
         if not IsNullGuid(Rec."Client Secret Key") then begin
             TryDeleteIsolatedStorageValue(Rec."Client Secret Key");
