@@ -322,6 +322,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var FileOutstream: Outstream)
@@ -364,6 +365,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(ServiceInvoiceHeader: Record "Service Invoice Header"; var FileOutstream: Outstream)
@@ -416,6 +418,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var FileOutstream: Outstream)
@@ -468,6 +471,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     local procedure DocumentLinesExist(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"): Boolean
