@@ -226,6 +226,26 @@ page 6996 "Expense Agent Setup"
                 }
             }
 #endif
+            group("Corporate Card")
+            {
+                Caption = 'Corporate Card';
+
+                field("Corp Card Default Provider"; Rec."Corp Card Default Provider")
+                {
+                }
+                field("Corp Card Create Mode"; Rec."Corp Card Create Mode")
+                {
+                }
+                field("Corp Card Auto Create Draft"; Rec."Corp Card Auto Create Draft")
+                {
+                }
+                field("Corp Card Date Match Window"; Rec."Corp Card Date Match Window")
+                {
+                }
+                field("Corp Card Amount Tolerance"; Rec."Corp Card Amount Tolerance")
+                {
+                }
+            }
             group("Rule & Controls")
             {
                 field("Receipt No. Mandatory"; Rec."Receipt No. Mandatory")
@@ -519,6 +539,20 @@ page 6996 "Expense Agent Setup"
                     trigger OnAction()
                     begin
                         Rec.CreateDefaultSettings();
+                    end;
+                }
+                action("Apply Corp Card Default Settings")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Apply corp card default settings';
+                    Image = SetupPayment;
+                    ToolTip = 'Applies corporate card defaults, including provider setup, data exchange mapping, user card links, the corporate card settlement bank account, and corporate card setup values.';
+
+                    trigger OnAction()
+                    var
+                        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+                    begin
+                        CreateCorpCardSetup.CreateDefaults();
                     end;
                 }
             }
