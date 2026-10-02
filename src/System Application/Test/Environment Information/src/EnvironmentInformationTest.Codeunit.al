@@ -100,7 +100,6 @@ codeunit 135091 "Environment Information Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestEnvironmentDescriptionIsClearedAfterEnvironmentCopy()
     var
         EnvironmentTriggers: Codeunit "Environment Triggers";
