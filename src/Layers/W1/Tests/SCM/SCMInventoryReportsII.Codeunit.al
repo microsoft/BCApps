@@ -516,9 +516,9 @@ codeunit 137302 "SCM Inventory Reports - II"
 #endif
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledUpCostSharesReport()
+    procedure ProductionCostSharesReport()
     var
         Item: Record Item;
         ProductionBOMLine: Record "Production BOM Line";
@@ -526,11 +526,12 @@ codeunit 137302 "SCM Inventory Reports - II"
         // Setup: Create Production Item Setup.
         Initialize();
         CreateProdItemSetup(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::Standard);
 
-        // Exercise: Generate the Rolled up Cost Shares report.
+        // Exercise: Generate the Production Cost Shares report.
         Commit();
         Item.SetRange("No.", Item."No.");
-        REPORT.Run(REPORT::"Rolled-up Cost Shares", true, false, Item);
+        Report.Run(Report::"Production Cost Shares", true, false, Item);
 
         // Verify: Check Item details.
         LibraryReportDataset.LoadDataSetFile();
@@ -538,63 +539,11 @@ codeunit 137302 "SCM Inventory Reports - II"
         // Verify Child Items exist in the report.
         SelectProductionBOMLines(ProductionBOMLine, Item."Production BOM No.");
         repeat
-            LibraryReportDataset.SetRange('ProdBOMLineIndexNo', ProductionBOMLine."No.");
-            Item.Get(ProductionBOMLine."No.");
-            LibraryReportDataset.GetNextRow();
-            LibraryReportDataset.AssertCurrentRowValueEquals('ProdBOMLineIndexDesc', Item.Description);
-        until ProductionBOMLine.Next() = 0;
-    end;
-
-    [Test]
-    [HandlerFunctions('SglLevelCostSharesRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure SingleLevelCostSharesReport()
-    var
-        Item: Record Item;
-    begin
-        // Setup: Create Item.
-        Initialize();
-        CreateItem(Item, '', '', Item."Manufacturing Policy"::"Make-to-Order");
-
-        // Exercise: Generate the Single Level Cost Shares report.
-        Commit();
-        Item.SetRange("No.", Item."No.");
-        REPORT.Run(REPORT::"Single-level Cost Shares", true, false, Item);
-
-        // Verify: Check Item details.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('No_Item', Item."No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('UnitCost_Item', Item."Unit Cost");
-    end;
-
-    [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure DetailedCalculationReport()
-    var
-        Item: Record Item;
-        ProductionBOMLine: Record "Production BOM Line";
-    begin
-        // Setup: Create Production Item Setup.
-        Initialize();
-        CreateProdItemSetup(Item);
-
-        // Exercise: Generate the Detailed Calculation report.
-        Commit();
-        Item.SetRange("No.", Item."No.");
-        REPORT.Run(REPORT::"Detailed Calculation", true, false, Item);
-
-        // Verify: Check Item details.
-        LibraryReportDataset.LoadDataSetFile();
-
-        // Verify Child Items exist in the report.
-        SelectProductionBOMLines(ProductionBOMLine, Item."Production BOM No.");
-        repeat
-            LibraryReportDataset.SetRange('ProdBOMLineLevelNo', ProductionBOMLine."No.");
+            LibraryReportDataset.SetRange('No', ProductionBOMLine."No.");
             LibraryReportDataset.GetNextRow();
             Item.Get(ProductionBOMLine."No.");
-            LibraryReportDataset.AssertCurrentRowValueEquals('ProdBOMLineLevelDesc', Item.Description);
+            LibraryReportDataset.AssertCurrentRowValueEquals('Description', Item.Description);
+            LibraryReportDataset.AssertCurrentRowValueEquals('UnitCost', Item."Unit Cost");
         until ProductionBOMLine.Next() = 0;
     end;
 
@@ -1029,47 +978,47 @@ codeunit 137302 "SCM Inventory Reports - II"
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledUpCostShareRepWithUnderDevelopmentStatus()
+    procedure ProductionCostSharesRepWithUnderDevelopmentStatus()
     var
         ProductionBOMVersion: Record "Production BOM Version";
     begin
-        // Run the Rolled Up Cost Shares report and check the item on report when one component is delete from Production BOM Version with Under Development status.
-        RolledUpCostShareReportWithStatus(ProductionBOMVersion.Status::"Under Development");
+        // Run the Production Cost Shares report and check the item on report when one component is delete from Production BOM Version with Under Development status.
+        ProductionCostSharesReportWithStatus(ProductionBOMVersion.Status::"Under Development");
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledUpCostShareRepWithCertifiedStatus()
+    procedure ProductionCostSharesRepWithCertifiedStatus()
     var
         ProductionBOMVersion: Record "Production BOM Version";
     begin
-        // Run the Rolled Up Cost Shares report and check the item on report when one component is delete from Production BOM Version with certified status.
-        RolledUpCostShareReportWithStatus(ProductionBOMVersion.Status::Certified);
+        // Run the Production Cost Shares report and check the item on report when one component is delete from Production BOM Version with certified status.
+        ProductionCostSharesReportWithStatus(ProductionBOMVersion.Status::Certified);
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledUpCostShareRepWithUnderDevStatusWithProdBOM()
+    procedure ProductionCostSharesRepWithUnderDevStatusWithProdBOM()
     var
         ProductionBOMHeader: Record "Production BOM Header";
     begin
-        // Run the Rolled Up Cost Shares report with type Production BOM and check the item on report when one component is delete from Production BOM Version with Under Development status.
-        RolledUpCostShareReportWithTypeProdBOM(ProductionBOMHeader.Status::"Under Development");
+        // Run the Production Cost Shares report with type Production BOM and check the item on report when one component is delete from Production BOM Version with Under Development status.
+        ProductionCostSharesReportWithTypeProdBOM(ProductionBOMHeader.Status::"Under Development");
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledUpCostShareRepWithCertifiedStatusWithTypeProdBOM()
+    procedure ProductionCostSharesRepWithCertifiedStatusWithTypeProdBOM()
     var
         ProductionBOMHeader: Record "Production BOM Header";
     begin
-        // Run the Rolled Up Cost Shares report with type Production BOM and check the item on report when one component is delete from Production BOM Version with Certified status.
-        RolledUpCostShareReportWithTypeProdBOM(ProductionBOMHeader.Status::Certified);
+        // Run the Production Cost Shares report with type Production BOM and check the item on report when one component is delete from Production BOM Version with Certified status.
+        ProductionCostSharesReportWithTypeProdBOM(ProductionBOMHeader.Status::Certified);
     end;
 
     [Test]
@@ -1162,9 +1111,9 @@ codeunit 137302 "SCM Inventory Reports - II"
     end;
 
     [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure DetailedCalculationReportIncludesPhantomBOMComponents()
+    procedure ProductionCostSharesReportIncludesPhantomBOMComponents()
     var
         ParentItem: Record Item;
         ProdBOMHeaderParent: Record "Production BOM Header";
@@ -1174,11 +1123,12 @@ codeunit 137302 "SCM Inventory Reports - II"
         ChildItem: Record Item;
     begin
         // [FEATURE] [Manufacturing] [Production BOM] [Phantom BOM]
-        // [SCENARIO 371942] Phantom BOM components should be included in the report "Detailed Calculation" when the phantom BOM is a part of the active BOM version
+        // [SCENARIO 371942] Phantom BOM components should be included in the report "Production Cost Shares" when the phantom BOM is a part of the active BOM version
 
         // [GIVEN] Item "I1" with bill of materials "ParentBOM"
         LibraryInventory.CreateItem(ParentItem);
         LibraryManufacturing.CreateCertifiedProductionBOM(ProdBOMHeaderParent, LibraryInventory.CreateItemNo(), 1);
+        ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::"Prod. Order");
         ParentItem.Validate("Production BOM No.", ProdBOMHeaderParent."No.");
         ParentItem.Modify(true);
 
@@ -1196,14 +1146,14 @@ codeunit 137302 "SCM Inventory Reports - II"
         ProductionBomVersion.Validate(Status, ProductionBomVersion.Status::Certified);
         ProductionBomVersion.Modify(true);
 
-        // [WHEN] Run report "Detailed Calculation" for item "I1"
+        // [WHEN] Run report "Production Cost Shares" for item "I1"
         Commit();
         ParentItem.SetRecFilter();
-        REPORT.Run(REPORT::"Detailed Calculation", true, false, ParentItem);
+        Report.Run(Report::"Production Cost Shares", true, false, ParentItem);
 
         // [THEN] Item "I2" is reported in the list of components
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('ProdBOMLineLevelNo', ChildItem."No.");
+        LibraryReportDataset.AssertElementWithValueExists('No', ChildItem."No.");
     end;
 
     [Test]
@@ -2213,7 +2163,7 @@ codeunit 137302 "SCM Inventory Reports - II"
         REPORT.Run(REPORT::"Purchase Reservation Avail.", true, false, PurchLine);
     end;
 
-    local procedure RolledUpCostShareReportWithStatus(Status: Enum "BOM Status")
+    local procedure ProductionCostSharesReportWithStatus(Status: Enum "BOM Status")
     var
         Item: Record Item;
         ProductionBOMVersion: Record "Production BOM Version";
@@ -2223,14 +2173,14 @@ codeunit 137302 "SCM Inventory Reports - II"
         CreateProdItemSetup(Item);
         CreateProdBOMVersion(ProductionBOMVersion, Item, Status);
 
-        // Exercise: Run report Rolled-up Cost Shares.
-        RunRolledUpCostShareReport(Item."No.");
+        // Exercise: Run report Production Cost Shares.
+        RunProductionCostSharesReport(Item."No.");
 
         // Verify: Verifying component Item exist on Report.
         VerifyComponentItem(Item."Production BOM No.", ProductionBOMVersion."Version Code");
     end;
 
-    local procedure RolledUpCostShareReportWithTypeProdBOM(Status: Enum "BOM Status")
+    local procedure ProductionCostSharesReportWithTypeProdBOM(Status: Enum "BOM Status")
     var
         Item: Record Item;
         Item2: Record Item;
@@ -2238,7 +2188,7 @@ codeunit 137302 "SCM Inventory Reports - II"
         ProductionBOMLine: Record "Production BOM Line";
         ProductionBOMVersion: Record "Production BOM Version";
     begin
-        // Run the Rolled Up Cost Shares report with Type Production BOM and check the component item on report when one component is delete from Production BOM Version with Under Development status.
+        // Run the Production Cost Shares report with Type Production BOM and check the component item on report when one component is delete from Production BOM Version with Under Development status.
 
         // Setup: Create Production BOM with component Item and with One Production BOM and Create Production BOM Version.
         Initialize();
@@ -2252,8 +2202,8 @@ codeunit 137302 "SCM Inventory Reports - II"
         UpdateProdBOMStatus(ProductionBOMHeader, ProductionBOMHeader.Status::Certified);
         CreateProdBOMVersion(ProductionBOMVersion, Item, Status);
 
-        // Exercise: Run report Rolled-up Cost Shares.
-        RunRolledUpCostShareReport(Item."No.");
+        // Exercise: Run report Production Cost Shares.
+        RunProductionCostSharesReport(Item."No.");
 
         // Verify: Verifying component Item exist on Report.
         VerifyComponentItem(Item."Production BOM No.", ProductionBOMVersion."Version Code");
@@ -2554,13 +2504,13 @@ codeunit 137302 "SCM Inventory Reports - II"
         LibraryManufacturing.POSTOutput(ProdOrderLine, OutputQty, PostingDate, ProdItemUnitCost);
     end;
 
-    local procedure RunRolledUpCostShareReport(ItemNo: Code[20])
+    local procedure RunProductionCostSharesReport(ItemNo: Code[20])
     var
         Item: Record Item;
     begin
         Item.SetRange("No.", ItemNo);
         Commit();
-        REPORT.Run(REPORT::"Rolled-up Cost Shares", true, false, Item);
+        Report.Run(Report::"Production Cost Shares", true, false, Item);
     end;
 
     local procedure UpdateProdBOMCodeOnItem(var Item: Record Item; ProdBOMNo: Code[20])
@@ -2640,13 +2590,25 @@ codeunit 137302 "SCM Inventory Reports - II"
     local procedure VerifyComponentItem(ProductionBOMNo: Code[20]; VersionCode: Code[20])
     var
         ProductionBOMLine: Record "Production BOM Line";
+        ProductionBOMLine2: Record "Production BOM Line";
     begin
         LibraryReportDataset.LoadDataSetFile();
         ProductionBOMLine.SetRange("Version Code", VersionCode);
         ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMNo);
         ProductionBOMLine.FindSet();
         repeat
-            LibraryReportDataset.AssertElementWithValueExists('ProdBOMLineIndexNo', ProductionBOMLine."No.");
+            case ProductionBOMLine.Type of
+                ProductionBOMLine.Type::Item:
+                    LibraryReportDataset.AssertElementWithValueExists('No', ProductionBOMLine."No.");
+                ProductionBOMLine.Type::"Production BOM":
+                    begin
+                        ProductionBOMLine2.SetRange("Production BOM No.", ProductionBOMLine."No.");
+                        if ProductionBOMLine2.FindSet() then
+                            repeat
+                                LibraryReportDataset.AssertElementWithValueExists('No', ProductionBOMLine2."No.");
+                            until ProductionBOMLine2.Next() = 0;
+                    end;
+            end;
         until ProductionBOMLine.Next() = 0;
     end;
 
@@ -2828,23 +2790,9 @@ codeunit 137302 "SCM Inventory Reports - II"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure RolledUpCostSharesRequestPageHandler(var RolledUpCostShares: TestRequestPage "Rolled-up Cost Shares")
+    procedure ProductionCostSharesRequestPageHandler(var ProductionCostShares: TestRequestPage "Production Cost Shares")
     begin
-        RolledUpCostShares.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure SglLevelCostSharesRequestPageHandler(var SingleLevelCostShares: TestRequestPage "Single-level Cost Shares")
-    begin
-        SingleLevelCostShares.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure DetailedCalculationRequestPageHandler(var DetailedCalculation: TestRequestPage "Detailed Calculation")
-    begin
-        DetailedCalculation.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ProductionCostShares.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]

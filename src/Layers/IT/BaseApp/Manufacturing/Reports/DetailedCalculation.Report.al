@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -22,10 +23,13 @@ using System.Utilities;
 report 99000756 "Detailed Calculation"
 {
     ApplicationArea = Manufacturing;
-    Caption = 'Detailed Calculation';
+    Caption = 'Detailed Calculation (Obsolete)';
+    DefaultRenderingLayout = RDLCLayout;
     ToolTip = 'View the list of all costs for the item taking into account any scrap during production.';
     UsageCategory = ReportsAndAnalysis;
-    DefaultRenderingLayout = RDLCLayout;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -439,8 +443,8 @@ report 99000756 "Detailed Calculation"
 
     requestpage
     {
-        AboutTitle = 'About Detailed Calculation';
-        AboutText = 'This report provides a detailed breakdown of manufacturing costs, including Production BOM details, Routing operations, and associated expenses. It also accounts for scrap costs, ensuring an accurate total cost for producing the item.';
+        AboutTitle = 'About Detailed Calculation (Obsolete)';
+        AboutText = 'This report provides a detailed breakdown of manufacturing costs, including Production BOM details, Routing operations, and associated expenses. It also accounts for scrap costs, ensuring an accurate total cost for producing the item. ** This report is obsolete and will be removed in a later release.** Please consult the report documentation for alternative ways to get to this data.';
 
         layout
         {
@@ -473,9 +477,13 @@ report 99000756 "Detailed Calculation"
     {
         layout(RDLCLayout)
         {
+            Caption = 'Detailed Calculation (Obsolete)';
             Type = RDLC;
             LayoutFile = './Manufacturing/Reports/DetailedCalculation.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+            ObsoleteTag = '29.0';
         }
     }
 
@@ -561,3 +569,4 @@ report 99000756 "Detailed Calculation"
     begin
     end;
 }
+#endif
