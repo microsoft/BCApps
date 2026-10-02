@@ -276,6 +276,8 @@ codeunit 149951 "IT Subc. Migration"
     begin
         Clear(WorkCenterSupplyMethods);
         Clear(InventoryItems);
+        Clear(ItemRoutingNos);
+        Clear(FamilyRoutingNos);
         SetProductionBOMLineSupplyMethodFilters(ProductionBOMLine);
         PreMigrationCounts.Set(ProductionBOMLineProgressEntityLbl, ProductionBOMLine.Count());
         ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::Empty);
@@ -389,12 +391,13 @@ codeunit 149951 "IT Subc. Migration"
         if VisitedBOMs.Contains(BOMNo) then
             exit(false);
         VisitedBOMs.Add(BOMNo);
-        Item.SetCurrentKey("Production BOM No.");
         Item.SetRange("Production BOM No.", BOMNo);
         if Item.FindSet() then
             repeat
-                if not CollectRoutingSupplyMethods(Item."Routing No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
-                    exit(false);
+                ItemRoutingNos.Set(Item."No.", Item."Routing No.");
+                if Item."Routing No." <> '' then
+                    if not CollectRoutingSupplyMethods(Item."Routing No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                        exit(false);
                 if not CollectFamilySupplyMethods(Item."No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
                     exit(false);
                 StockkeepingUnit.Reset();
@@ -409,7 +412,6 @@ codeunit 149951 "IT Subc. Migration"
         if not CollectSKUSupplyMethods(StockkeepingUnit, ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
             exit(false);
 
-        ParentBOMLine.SetCurrentKey(Type, "No.");
         ParentBOMLine.SetRange(Type, ParentBOMLine.Type::"Production BOM");
         ParentBOMLine.SetRange("No.", BOMNo);
         if ParentBOMLine.FindSet() then
@@ -432,19 +434,20 @@ codeunit 149951 "IT Subc. Migration"
 
     local procedure CollectSKUSupplyMethods(var StockkeepingUnit: Record "Stockkeeping Unit"; ComponentLine: Record "Production BOM Line"; FromDate: Date; ToDate: Date; var ComponentSupplyMethod: Enum "Component Supply Method"; var HasResolvedUsage: Boolean): Boolean
     var
-        Item: Record Item;
+        ItemRoutingNo: Code[20];
         RoutingNo: Code[20];
     begin
         if StockkeepingUnit.FindSet() then
             repeat
-                if not Item.Get(StockkeepingUnit."Item No.") then
+                if not TryGetItemRoutingNo(StockkeepingUnit."Item No.", ItemRoutingNo) then
                     exit(false);
                 RoutingNo := StockkeepingUnit."Routing No.";
                 if RoutingNo = '' then
-                    RoutingNo := Item."Routing No.";
-                if not CollectRoutingSupplyMethods(RoutingNo, ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
-                    exit(false);
-                if not CollectFamilySupplyMethods(Item."No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                    RoutingNo := ItemRoutingNo;
+                if RoutingNo <> '' then
+                    if not CollectRoutingSupplyMethods(RoutingNo, ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                        exit(false);
+                if not CollectFamilySupplyMethods(StockkeepingUnit."Item No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
                     exit(false);
             until StockkeepingUnit.Next() = 0;
         exit(true);
@@ -452,17 +455,43 @@ codeunit 149951 "IT Subc. Migration"
 
     local procedure CollectFamilySupplyMethods(ItemNo: Code[20]; ComponentLine: Record "Production BOM Line"; FromDate: Date; ToDate: Date; var ComponentSupplyMethod: Enum "Component Supply Method"; var HasResolvedUsage: Boolean): Boolean
     var
-        Family: Record Family;
         FamilyLine: Record "Family Line";
+        RoutingNo: Code[20];
     begin
         FamilyLine.SetRange("Item No.", ItemNo);
         if FamilyLine.FindSet() then
             repeat
-                if not Family.Get(FamilyLine."Family No.") then
+                if not TryGetFamilyRoutingNo(FamilyLine."Family No.", RoutingNo) then
                     exit(false);
-                if not CollectRoutingSupplyMethods(Family."Routing No.", ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
+                if not CollectRoutingSupplyMethods(RoutingNo, ComponentLine, FromDate, ToDate, ComponentSupplyMethod, HasResolvedUsage) then
                     exit(false);
             until FamilyLine.Next() = 0;
+        exit(true);
+    end;
+
+    local procedure TryGetItemRoutingNo(ItemNo: Code[20]; var RoutingNo: Code[20]): Boolean
+    var
+        Item: Record Item;
+    begin
+        if ItemRoutingNos.Get(ItemNo, RoutingNo) then
+            exit(true);
+        if not Item.Get(ItemNo) then
+            exit(false);
+        RoutingNo := Item."Routing No.";
+        ItemRoutingNos.Add(ItemNo, RoutingNo);
+        exit(true);
+    end;
+
+    local procedure TryGetFamilyRoutingNo(FamilyNo: Code[20]; var RoutingNo: Code[20]): Boolean
+    var
+        Family: Record Family;
+    begin
+        if FamilyRoutingNos.Get(FamilyNo, RoutingNo) then
+            exit(true);
+        if not Family.Get(FamilyNo) then
+            exit(false);
+        RoutingNo := Family."Routing No.";
+        FamilyRoutingNos.Add(FamilyNo, RoutingNo);
         exit(true);
     end;
 
@@ -769,13 +798,23 @@ codeunit 149951 "IT Subc. Migration"
 
     local procedure LockTables()
     var
+        Item: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMVersion: Record "Production BOM Version";
         ProductionBOMLine: Record "Production BOM Line";
         TransferLine: Record "Transfer Line";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
         ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingVersion: Record "Routing Version";
         RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
         Location: Record Location;
@@ -785,6 +824,17 @@ codeunit 149951 "IT Subc. Migration"
         SubcontractorPrice: Record "Subcontractor Price";
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
+        // Keep source reads stable through conversion and verification, including reads made by VersionManagement.
+        Item.LockTable();
+        StockkeepingUnit.LockTable();
+        Family.LockTable();
+        FamilyLine.LockTable();
+        ProductionBOMHeader.LockTable();
+        ProductionBOMVersion.LockTable();
+        RoutingHeader.LockTable();
+        RoutingVersion.LockTable();
+        WorkCenter.LockTable();
+        ProdOrderLine.LockTable();
         TransferLine.LockTable();
         ProductionBOMLine.LockTable();
         PurchaseLine.LockTable();
@@ -1100,6 +1150,8 @@ codeunit 149951 "IT Subc. Migration"
         PreMigrationCounts: Dictionary of [Text, Integer];
         WorkCenterSupplyMethods: Dictionary of [Code[20], Enum "Component Supply Method"];
         InventoryItems: Dictionary of [Code[20], Boolean];
+        ItemRoutingNos: Dictionary of [Code[20], Code[20]];
+        FamilyRoutingNos: Dictionary of [Code[20], Code[20]];
         UIAllowed: Boolean;
         CurrentProgressEntity: Text;
         TotalProgressRecords: Integer;
