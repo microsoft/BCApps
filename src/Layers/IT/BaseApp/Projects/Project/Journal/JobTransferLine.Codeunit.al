@@ -519,7 +519,7 @@ codeunit 1004 "Job Transfer Line"
 
         JobJnlLine."Source Currency Code" := GenJnlLine."Source Currency Code";
         if GenJnlLine."Source Currency Amount" <> 0 then
-            JobJnlLine."Source Currency Total Cost" := -GenJnlLine."Source Currency Amount";
+            JobJnlLine."Source Currency Total Cost" := GenJnlLine."Source Currency Amount";
 
         OnAfterFromGenJnlLineToJnlLine(JobJnlLine, GenJnlLine);
     end;

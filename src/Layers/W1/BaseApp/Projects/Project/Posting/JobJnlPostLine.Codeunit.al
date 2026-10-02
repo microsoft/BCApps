@@ -89,6 +89,7 @@ codeunit 1012 "Job Jnl.-Post Line"
 
     local procedure "Code"(CheckLine: Boolean): Integer
     var
+        SourceCurrencyTotalCost: Decimal;
         JobLedgEntryNo: Integer;
         ShouldPostUsage: Boolean;
         xNextEntryNo: Integer;
@@ -121,14 +122,17 @@ codeunit 1012 "Job Jnl.-Post Line"
         OnAfterCopyJobJnlLine(JobJnlLine, JobJnlLine2);
 
         GetGLSetup();
-        if (GLSetup."Additional Reporting Currency" = '') or
-            (JobJnlLine2."Source Currency Code" <> GLSetup."Additional Reporting Currency")
-        then begin
+        if GLSetup."Additional Reporting Currency" = '' then begin
             JobJnlLine2."Source Currency Total Cost" := 0;
             JobJnlLine2."Source Currency Total Price" := 0;
             JobJnlLine2."Source Currency Line Amount" := 0;
-            if GLSetup."Additional Reporting Currency" <> '' then
-                UpdateJobJnlLineSourceCurrencyAmounts(JobJnlLine2);
+        end else begin
+            SourceCurrencyTotalCost := JobJnlLine2."Source Currency Total Cost";
+            UpdateJobJnlLineSourceCurrencyAmounts(JobJnlLine2);
+            if (JobJnlLine2."Source Currency Code" = GLSetup."Additional Reporting Currency") and
+                (SourceCurrencyTotalCost <> 0)
+            then
+                JobJnlLine2."Source Currency Total Cost" := SourceCurrencyTotalCost;
         end;
 
         PostATO(JobJnlLine2);
@@ -984,4 +988,3 @@ codeunit 1012 "Job Jnl.-Post Line"
     begin
     end;
 }
-
