@@ -222,10 +222,14 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
     local procedure ExcludeRetainedInvtReservFromComponentDemand(var InventoryProfile: Record "Inventory Profile"; var ProdOrderComponent: Record "Prod. Order Component")
     var
         DemandReservationEntry: Record "Reservation Entry";
+        ComponentWithReservedQty: Record "Prod. Order Component";
     begin
         if InventoryProfile."Untracked Quantity" <= 0 then
             exit;
-        if not ItemOnMultipleProdOrderComponentLines(ProdOrderComponent) then
+
+        ComponentWithReservedQty := ProdOrderComponent;
+        ComponentWithReservedQty.CalcFields("Reserved Qty. (Base)");
+        if not ItemOnMultipleProdOrderComponentLines(ComponentWithReservedQty) then
             exit;
 
         ProdOrderComponent.SetReservationFilters(DemandReservationEntry);
@@ -298,6 +302,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
             exit(false);
 
         ProdOrderComponent.SetLoadFields(Status, "Prod. Order No.", "Prod. Order Line No.", "Item No.", "Line No.", "Remaining Qty. (Base)");
+        ProdOrderComponent.SetAutoCalcFields("Reserved Qty. (Base)");
         if not ProdOrderComponent.Get(
              DemandReservationEntry."Source Subtype", DemandReservationEntry."Source ID",
              DemandReservationEntry."Source Prod. Order Line", DemandReservationEntry."Source Ref. No.")
@@ -311,7 +316,6 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
     var
         SameItemProdOrderComponent: Record "Prod. Order Component";
     begin
-        ProdOrderComponent.CalcFields("Reserved Qty. (Base)");
         if ProdOrderComponent."Reserved Qty. (Base)" = ProdOrderComponent."Remaining Qty. (Base)" then
             exit(false);
 
