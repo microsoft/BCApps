@@ -8,6 +8,8 @@ using System.Threading;
 
 page 8371 "Financial Report Packages"
 {
+    AboutText = 'Financial Report Packages lets you export and schedule multiple financial reports in a single file. This allows you to easily share a complete financial report package with your stakeholders.';
+    AboutTitle = 'About Financial Report Packages';
     AnalysisModeEnabled = false;
     ApplicationArea = Basic, Suite;
     Caption = 'Financial Report Packages';
@@ -58,6 +60,7 @@ page 8371 "Financial Report Packages"
                     FinReportPackageReport: Record "Fin. Report Package Report";
                     AccountSchedule: Report "Account Schedule";
                     FinancialReportExportJob: Codeunit "Financial Report Export Job";
+                    FinReportExportNameHandler: Codeunit FinReportExportNameHandler;
                     AccScheduleParam: Text;
                     IsHandled: Boolean;
                 begin
@@ -70,8 +73,10 @@ page 8371 "Financial Report Packages"
                             AccountSchedule.AddPackageReportToAppend(FinReportPackageReport);
                         until FinReportPackageReport.Next() = 0;
                     OnBeforePrintAccountSchedule(Rec, AccountSchedule, AccScheduleParam, IsHandled);
-                    if not IsHandled then
+                    if not IsHandled then begin
+                        FinReportExportNameHandler.Init(Rec.Code);
                         AccountSchedule.Print(AccScheduleParam);
+                    end
                 end;
             }
         }
