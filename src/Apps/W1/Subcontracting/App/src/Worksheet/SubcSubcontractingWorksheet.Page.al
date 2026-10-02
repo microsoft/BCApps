@@ -396,18 +396,21 @@ page 20504 "Subc. Subcontracting Worksheet"
     trigger OnOpenPage()
     var
         JnlSelected: Boolean;
+        SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
     begin
         OpenedFromBatch := (Rec."Journal Batch Name" <> '') and (Rec."Worksheet Template Name" = '');
         if OpenedFromBatch then begin
             CurrentJnlBatchName := Rec."Journal Batch Name";
             ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
-            exit;
+        end else begin
+            ReqJnlManagement.WkshTemplateSelection(
+                PAGE::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, Rec, JnlSelected);
+            if not JnlSelected then
+                Error('');
+            ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
         end;
-        ReqJnlManagement.WkshTemplateSelection(
-            PAGE::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, Rec, JnlSelected);
-        if not JnlSelected then
-            Error('');
-        ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
+
+        SubcFeatureTelemetry.LogFeatureUptakeDiscovered();
     end;
 
     var
