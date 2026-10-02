@@ -48,6 +48,7 @@ codeunit 48535 "Fabric Table Validation"
         NextAllowedId: Integer;
     begin
         // The filter lists the allowed ranges between the excluded IDs to keep it short.
+        NextAllowedId := 0;
         TableMetadata.SetLoadFields(ID, DataIsExternal, LinkedObject, TableType);
         if TableMetadata.FindSet() then
             repeat
