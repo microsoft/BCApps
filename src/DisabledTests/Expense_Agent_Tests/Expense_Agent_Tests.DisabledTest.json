@@ -150,18 +150,6 @@
     "method": "DeleteTravelRequestWithReportIsBlocked"
   },
   {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "DeleteTravelRequestWithPostedReportIsBlocked"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "DeleteTravelRequestWithPostedLineIsBlocked"
-  },
-  {
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
     "method": "DeleteTravelRequestWithUnpostedLineIsBlocked"
@@ -175,56 +163,5 @@
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
     "method": "DefaultApproverFilterQuotesWildcardUserNo"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "CreateExpenseReportRejectsPostedHeader"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "CreateExpenseReportRejectsPostedLine"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "CreateExpenseReportAllowsOtherPostedTraveler"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "ReapproveTravelRequestWithPostedHeader"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "ReapproveTravelRequestWithPostedLine"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "AutoReapproveTravelRequestWithPostedHistory"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "ApproveTravelRequestPageAction"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "SubmitTravelRequestPageAction"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "RejectTravelRequestPageAction"
   }
 ]
