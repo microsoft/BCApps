@@ -1061,6 +1061,236 @@ codeunit 139913 "Vendor Deferrals Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralFullMonthHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+    begin
+        // [SCENARIO 10097] When billing covers a full calendar month (1st to last day), the single deferral period has Number of Days equal to the calendar days in that month
+        Initialize();
+
+        // [GIVEN] A vendor contract with deferrals starting on the 1st of the month
+        CreateVendorContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing covers start of the month to end of the month and the document is posted
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+CM>');
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Exactly 1 deferral period is created with Number of Days equal to the days in the month and Amount equal to Deferral Base Amount
+        FirstDayOfBillingPeriod := CalcDate('<-CY>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+CM>', WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, VendorContractDeferral.Count(), SingleDeferralFullMonthExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, VendorContractDeferral."Number of Days", NumberOfDaysFullMonthMismatchErr);
+        Assert.AreEqual(VendorContractDeferral."Deferral Base Amount", VendorContractDeferral.Amount, AmountMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralMidToEndOfMonthHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+    begin
+        // [SCENARIO 10097] When billing starts mid-month and ends at the last day of the month, the single deferral period has Number of Days equal to the remaining days.
+        Initialize();
+
+        // [GIVEN] A vendor contract with deferrals starting mid-month.
+        CreateVendorContractWithDeferrals('<-CY+14D>', true);
+
+        // [WHEN] Billing covers mid-month to last day of the month and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+CM>');
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Verify exactly 1 deferral period is created with Number of Days equal to the remaining days in the month and Amount equal to Deferral Base Amount.
+        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+CM>', WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, VendorContractDeferral.Count(), SingleDeferralMidToEndExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, VendorContractDeferral."Number of Days", NumberOfDaysRemainingMismatchErr);
+        Assert.AreEqual(VendorContractDeferral."Deferral Base Amount", VendorContractDeferral.Amount, AmountMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralStartToMidMonthHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+    begin
+        // [SCENARIO 10097] When billing starts on the 1st and ends mid-month, the single deferral period has Number of Days equal to the actual schedule days, not full calendar month days.
+        Initialize();
+
+        // [GIVEN] A vendor contract with deferrals starting on the 1st of the month.
+        CreateVendorContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing starts on the 1st and ends mid-month and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+14D>');
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Verify exactly 1 deferral period is created with Number of Days = 15 and Amount equal to Deferral Base Amount.
+        FirstDayOfBillingPeriod := CalcDate('<-CY>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, VendorContractDeferral.Count(), SingleDeferralStartToMidExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, VendorContractDeferral."Number of Days", NumberOfDaysScheduleMismatchErr);
+        Assert.AreEqual(VendorContractDeferral."Deferral Base Amount", VendorContractDeferral.Amount, AmountMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralMidToMidMonthHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+    begin
+        // [SCENARIO 10097] When billing starts mid-month and ends mid-month, the single deferral period has Number of Days equal to the date range, not partial month days.
+        Initialize();
+
+        // [GIVEN] A vendor contract with deferrals starting mid-month.
+        CreateVendorContractWithDeferrals('<-CY+14D>', true);
+
+        // [WHEN] Billing starts mid-month and ends mid-month and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+24D>');
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Verify exactly 1 deferral period is created with Number of Days = 11 and Amount equal to Deferral Base Amount
+        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+24D>', WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, VendorContractDeferral.Count(), SingleDeferralMidToMidExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, VendorContractDeferral."Number of Days", NumberOfDaysDateRangeMismatchErr);
+        Assert.AreEqual(VendorContractDeferral."Deferral Base Amount", VendorContractDeferral.Amount, AmountMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure MultiPeriodFirstPartialMonthDeferralHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        ExpectedFirstMonthDays: Integer;
+    begin
+        // [SCENARIO 10097] When billing starts mid-month and spans multiple months, the first deferral period has Number of Days equal to the remaining days in the start month
+        Initialize();
+
+        // [GIVEN] A vendor contract with deferrals starting mid-month.
+        CreateVendorContractWithDeferrals('<-CY+14D>', true);
+
+        // [WHEN] Billing starts mid-month and spans multiple months and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<CY>');
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Verify multiple deferral periods are created and the first one has Number of Days equal to the remaining days in January
+        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        ExpectedFirstMonthDays := CalcDate('<CM>', FirstDayOfBillingPeriod) - FirstDayOfBillingPeriod + 1;
+        Assert.IsTrue(VendorContractDeferral.Count() > 1, MultipleDeferralPeriodsExpectedErr);
+        Assert.AreEqual(ExpectedFirstMonthDays, VendorContractDeferral."Number of Days", FirstPartialMonthRemainingDaysMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure MultiPeriodLastPartialMonthDeferralHasCorrectDays()
+    var
+        LastDayOfBillingPeriod: Date;
+        ExpectedLastMonthDays: Integer;
+    begin
+        // [SCENARIO 10097] When billing starts on 1st and ends mid-month in a later month, the last deferral period has Number of Days equal to the day-of-month of the end date.
+        Initialize();
+
+        // [GIVEN] A vendor contract with deferrals starting on 1st.
+        CreateVendorContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing covers 1st to mid-month in a later month and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+6M+19D>');
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Verify the last deferral period has Number of Days equal to the day-of-month of the billing end date.
+        LastDayOfBillingPeriod := CalcDate('<-CY+6M+19D>', WorkDate());
+        ExpectedLastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
+        VendorContractDeferral.FindLast();
+        Assert.AreEqual(ExpectedLastMonthDays, VendorContractDeferral."Number of Days", LastPartialMonthDaysOfEndDateMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure MultiPeriodFullMonthsDeferralHasCorrectDays()
+    var
+        DeferralCount: Integer;
+        i: Integer;
+    begin
+        // [SCENARIO 10097] When billing spans multiple full months (1st to last day), every deferral period has Number of Days equal to the calendar days in its respective month.
+        Initialize();
+
+        // [GIVEN] A vendor contract with deferrals starting on 1st.
+        CreateVendorContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing covers 1st to last day of a later month (full months only) and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+5M+CM>');
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Verify each deferral period has Number of Days equal to the calendar days in that month.
+        DeferralCount := VendorContractDeferral.Count();
+        Assert.IsTrue(DeferralCount > 1, MultipleDeferralPeriodsExpectedErr);
+        for i := 1 to DeferralCount do begin
+            Assert.AreEqual(
+                Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1),
+                VendorContractDeferral."Number of Days",
+                FullMonthDaysMismatchErr);
+            if i < DeferralCount then
+                VendorContractDeferral.Next();
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure MultiPeriodBothPartialMonthsDeferralHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedFirstMonthDays: Integer;
+        ExpectedLastMonthDays: Integer;
+        DeferralCount: Integer;
+        i: Integer;
+    begin
+        // [SCENARIO 10097] When billing starts mid-month and ends mid-month in a later month, the first period uses remaining days, middle periods use full calendar days, and the last period uses day-of-month of end date.
+        Initialize();
+
+        // [GIVEN] A vendor contract with deferrals starting mid-month.
+        CreateVendorContractWithDeferrals('<-CY+14D>', true);
+
+        // [WHEN] Billing covers partial first and last months and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+6M+19D>');
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Verify first partial month has Number of Days equal to remaining days in the month.
+        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+6M+19D>', WorkDate());
+        ExpectedFirstMonthDays := CalcDate('<CM>', FirstDayOfBillingPeriod) - FirstDayOfBillingPeriod + 1;
+        ExpectedLastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
+        DeferralCount := VendorContractDeferral.Count();
+        Assert.IsTrue(DeferralCount > 2, MultiplePartialDeferralPeriodsExpectedErr);
+        Assert.AreEqual(ExpectedFirstMonthDays, VendorContractDeferral."Number of Days", FirstPartialMonthDaysMismatchErr);
+        VendorContractDeferral.Next();
+
+        // [THEN] Verify middle full months have Number of Days equal to calendar days in each month.
+        for i := 2 to DeferralCount - 1 do begin
+            Assert.AreEqual(
+                Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1),
+                VendorContractDeferral."Number of Days",
+                FullMonthDaysMismatchErr);
+            VendorContractDeferral.Next();
+        end;
+
+        // [THEN] Verify last partial month has Number of Days equal to day-of-month of the end date.
+        Assert.AreEqual(ExpectedLastMonthDays, VendorContractDeferral."Number of Days", LastPartialMonthDaysMismatchErr);
+    end;
+
+    [Test]
     [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
     procedure DeferralsReleaseSucceedsWhenGLAccountHasDefaultDeferralTemplateAndJournalTemplMandatory()
     var
@@ -1178,244 +1408,6 @@ codeunit 139913 "Vendor Deferrals Test"
         GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");
         GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
         Assert.AreEqual(GLAmountBeforeRelease - VendorContractDeferral.Amount, GLAmountAfterRelease, AmountNotMovedFromDeferralsAccountErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure SinglePeriodDeferralFullMonthHasCorrectDays()
-    var
-        FirstDayOfBillingPeriod: Date;
-        LastDayOfBillingPeriod: Date;
-        ExpectedNumberOfDays: Integer;
-    begin
-        // [SCENARIO 10097] When billing covers a full calendar month (1st to last day), the single deferral period has Number of Days equal to the calendar days in that month
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting on the 1st of the month
-        CreateVendorContractWithDeferrals('<-CY>', true);
-
-        // [WHEN] Billing covers start of the month to end of the month and the document is posted
-        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+CM>');
-        ClearPaymentTermsOnPurchaseHeader();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Exactly 1 deferral period is created with Number of Days equal to the days in the month and Amount equal to Deferral Base Amount
-        FirstDayOfBillingPeriod := CalcDate('<-CY>', WorkDate());
-        LastDayOfBillingPeriod := CalcDate('<-CY+CM>', WorkDate());
-        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
-        Assert.AreEqual(1, VendorContractDeferral.Count(), SingleDeferralFullMonthExpectedErr);
-        Assert.AreEqual(ExpectedNumberOfDays, VendorContractDeferral."Number of Days", NumberOfDaysFullMonthMismatchErr);
-        Assert.AreEqual(VendorContractDeferral."Deferral Base Amount", VendorContractDeferral.Amount, AmountMismatchErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure SinglePeriodDeferralMidToEndOfMonthHasCorrectDays()
-    var
-        FirstDayOfBillingPeriod: Date;
-        LastDayOfBillingPeriod: Date;
-        ExpectedNumberOfDays: Integer;
-    begin
-        // [SCENARIO 10097] When billing starts mid-month and ends at the last day of the month, the single deferral period has Number of Days equal to the remaining days.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting mid-month.
-        CreateVendorContractWithDeferrals('<-CY+14D>', true);
-
-        // [WHEN] Billing covers mid-month to last day of the month and the document is posted.
-        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+CM>');
-        ClearPaymentTermsOnPurchaseHeader();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Verify exactly 1 deferral period is created with Number of Days equal to the remaining days in the month and Amount equal to Deferral Base Amount.
-        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
-        LastDayOfBillingPeriod := CalcDate('<-CY+CM>', WorkDate());
-        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
-        Assert.AreEqual(1, VendorContractDeferral.Count(), SingleDeferralMidToEndExpectedErr);
-        Assert.AreEqual(ExpectedNumberOfDays, VendorContractDeferral."Number of Days", NumberOfDaysRemainingMismatchErr);
-        Assert.AreEqual(VendorContractDeferral."Deferral Base Amount", VendorContractDeferral.Amount, AmountMismatchErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure SinglePeriodDeferralStartToMidMonthHasCorrectDays()
-    var
-        FirstDayOfBillingPeriod: Date;
-        LastDayOfBillingPeriod: Date;
-        ExpectedNumberOfDays: Integer;
-    begin
-        // [SCENARIO 10097] When billing starts on the 1st and ends mid-month, the single deferral period has Number of Days equal to the actual schedule days, not full calendar month days.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting on the 1st of the month.
-        CreateVendorContractWithDeferrals('<-CY>', true);
-
-        // [WHEN] Billing starts on the 1st and ends mid-month and the document is posted.
-        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+14D>');
-        ClearPaymentTermsOnPurchaseHeader();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Verify exactly 1 deferral period is created with Number of Days = 15 and Amount equal to Deferral Base Amount.
-        FirstDayOfBillingPeriod := CalcDate('<-CY>', WorkDate());
-        LastDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
-        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
-        Assert.AreEqual(1, VendorContractDeferral.Count(), SingleDeferralStartToMidExpectedErr);
-        Assert.AreEqual(ExpectedNumberOfDays, VendorContractDeferral."Number of Days", NumberOfDaysScheduleMismatchErr);
-        Assert.AreEqual(VendorContractDeferral."Deferral Base Amount", VendorContractDeferral.Amount, AmountMismatchErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure SinglePeriodDeferralMidToMidMonthHasCorrectDays()
-    var
-        FirstDayOfBillingPeriod: Date;
-        LastDayOfBillingPeriod: Date;
-        ExpectedNumberOfDays: Integer;
-    begin
-        // [SCENARIO 10097] When billing starts mid-month and ends mid-month, the single deferral period has Number of Days equal to the date range, not partial month days.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting mid-month.
-        CreateVendorContractWithDeferrals('<-CY+14D>', true);
-
-        // [WHEN] Billing starts mid-month and ends mid-month and the document is posted.
-        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+24D>');
-        ClearPaymentTermsOnPurchaseHeader();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Verify exactly 1 deferral period is created with Number of Days = 11 and Amount equal to Deferral Base Amount
-        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
-        LastDayOfBillingPeriod := CalcDate('<-CY+24D>', WorkDate());
-        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
-        Assert.AreEqual(1, VendorContractDeferral.Count(), SingleDeferralMidToMidExpectedErr);
-        Assert.AreEqual(ExpectedNumberOfDays, VendorContractDeferral."Number of Days", NumberOfDaysDateRangeMismatchErr);
-        Assert.AreEqual(VendorContractDeferral."Deferral Base Amount", VendorContractDeferral.Amount, AmountMismatchErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure MultiPeriodFirstPartialMonthDeferralHasCorrectDays()
-    var
-        FirstDayOfBillingPeriod: Date;
-        ExpectedFirstMonthDays: Integer;
-    begin
-        // [SCENARIO 10097] When billing starts mid-month and spans multiple months, the first deferral period has Number of Days equal to the remaining days in the start month
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting mid-month.
-        CreateVendorContractWithDeferrals('<-CY+14D>', true);
-
-        // [WHEN] Billing starts mid-month and spans multiple months and the document is posted.
-        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<CY>');
-        ClearPaymentTermsOnPurchaseHeader();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Verify multiple deferral periods are created and the first one has Number of Days equal to the remaining days in January
-        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
-        ExpectedFirstMonthDays := CalcDate('<CM>', FirstDayOfBillingPeriod) - FirstDayOfBillingPeriod + 1;
-        Assert.IsTrue(VendorContractDeferral.Count() > 1, MultipleDeferralPeriodsExpectedErr);
-        Assert.AreEqual(ExpectedFirstMonthDays, VendorContractDeferral."Number of Days", FirstPartialMonthRemainingDaysMismatchErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure MultiPeriodLastPartialMonthDeferralHasCorrectDays()
-    var
-        LastDayOfBillingPeriod: Date;
-        ExpectedLastMonthDays: Integer;
-    begin
-        // [SCENARIO 10097] When billing starts on 1st and ends mid-month in a later month, the last deferral period has Number of Days equal to the day-of-month of the end date.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting on 1st.
-        CreateVendorContractWithDeferrals('<-CY>', true);
-
-        // [WHEN] Billing covers 1st to mid-month in a later month and the document is posted.
-        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+6M+19D>');
-        ClearPaymentTermsOnPurchaseHeader();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Verify the last deferral period has Number of Days equal to the day-of-month of the billing end date.
-        LastDayOfBillingPeriod := CalcDate('<-CY+6M+19D>', WorkDate());
-        ExpectedLastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
-        VendorContractDeferral.FindLast();
-        Assert.AreEqual(ExpectedLastMonthDays, VendorContractDeferral."Number of Days", LastPartialMonthDaysOfEndDateMismatchErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure MultiPeriodFullMonthsDeferralHasCorrectDays()
-    var
-        DeferralCount: Integer;
-        i: Integer;
-    begin
-        // [SCENARIO 10097] When billing spans multiple full months (1st to last day), every deferral period has Number of Days equal to the calendar days in its respective month.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting on 1st.
-        CreateVendorContractWithDeferrals('<-CY>', true);
-
-        // [WHEN] Billing covers 1st to last day of a later month (full months only) and the document is posted.
-        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+5M+CM>');
-        ClearPaymentTermsOnPurchaseHeader();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Verify each deferral period has Number of Days equal to the calendar days in that month.
-        DeferralCount := VendorContractDeferral.Count();
-        Assert.IsTrue(DeferralCount > 1, MultipleDeferralPeriodsExpectedErr);
-        for i := 1 to DeferralCount do begin
-            Assert.AreEqual(
-                Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1),
-                VendorContractDeferral."Number of Days",
-                FullMonthDaysMismatchErr);
-            if i < DeferralCount then
-                VendorContractDeferral.Next();
-        end;
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure MultiPeriodBothPartialMonthsDeferralHasCorrectDays()
-    var
-        FirstDayOfBillingPeriod: Date;
-        LastDayOfBillingPeriod: Date;
-        ExpectedFirstMonthDays: Integer;
-        ExpectedLastMonthDays: Integer;
-        DeferralCount: Integer;
-        i: Integer;
-    begin
-        // [SCENARIO 10097] When billing starts mid-month and ends mid-month in a later month, the first period uses remaining days, middle periods use full calendar days, and the last period uses day-of-month of end date.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting mid-month.
-        CreateVendorContractWithDeferrals('<-CY+14D>', true);
-
-        // [WHEN] Billing covers partial first and last months and the document is posted.
-        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+6M+19D>');
-        ClearPaymentTermsOnPurchaseHeader();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Verify first partial month has Number of Days equal to remaining days in the month.
-        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
-        LastDayOfBillingPeriod := CalcDate('<-CY+6M+19D>', WorkDate());
-        ExpectedFirstMonthDays := CalcDate('<CM>', FirstDayOfBillingPeriod) - FirstDayOfBillingPeriod + 1;
-        ExpectedLastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
-        DeferralCount := VendorContractDeferral.Count();
-        Assert.IsTrue(DeferralCount > 2, MultiplePartialDeferralPeriodsExpectedErr);
-        Assert.AreEqual(ExpectedFirstMonthDays, VendorContractDeferral."Number of Days", FirstPartialMonthDaysMismatchErr);
-        VendorContractDeferral.Next();
-
-        // [THEN] Verify middle full months have Number of Days equal to calendar days in each month.
-        for i := 2 to DeferralCount - 1 do begin
-            Assert.AreEqual(
-                Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1),
-                VendorContractDeferral."Number of Days",
-                FullMonthDaysMismatchErr);
-            VendorContractDeferral.Next();
-        end;
-
-        // [THEN] Verify last partial month has Number of Days equal to day-of-month of the end date.
-        Assert.AreEqual(ExpectedLastMonthDays, VendorContractDeferral."Number of Days", LastPartialMonthDaysMismatchErr);
     end;
 
     #endregion Tests
@@ -1688,16 +1680,6 @@ codeunit 139913 "Vendor Deferrals Test"
         PostPurchCreditMemo();
         PurchaseCrMemoDeferral.SetRange("Document No.", CorrectedDocumentNo);
         PurchaseCrMemoDeferral.FindFirst();
-    end;
-
-    local procedure ClearPaymentTermsOnPurchaseHeader()
-    begin
-        // Some localizations (IT) build installment payment lines from the payment terms and, when the invoice is
-        // posted, also insert a general journal staging record whose primary key does not depend on the document.
-        // A test that commits after posting leaves one behind, so every later posting fails with "The record in
-        // table Payment Lines already exists". These tests assert deferral day counts only and need no payment terms.
-        PurchaseHeader.Validate("Payment Terms Code", '');
-        PurchaseHeader.Modify(false);
     end;
 
     local procedure PostPurchDocumentAndFetchDeferrals()
