@@ -1,0 +1,2 @@
+This inert file exists only to demonstrate a clickable agent-story status in a draft pull request.
+
