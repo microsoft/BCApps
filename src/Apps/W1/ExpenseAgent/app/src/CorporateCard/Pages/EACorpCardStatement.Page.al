@@ -258,18 +258,18 @@ page 7444 "EA Corp Card Statement"
 
     local procedure UpdateReconciliationSummary()
     var
-        SettlementStatus: Enum "EA Corp Card Settle Status";
         CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+        SettlementStatus2: Enum "EA Corp Card Settle Status";
     begin
         CorpCardStatementMgt.GetReconciliationSummary(
             Rec, ReconciledTransactions, ReconciledAmount,
-            UnreconciledTransactions, UnreconciledAmount, SettlementStatus);
+            UnreconciledTransactions, UnreconciledAmount, SettlementStatus2);
         CanCloseReconciliation := Rec.Status in [Rec.Status::Validated, Rec.Status::ReconciliationRequired];
         Rec.CalcFields("Settlement Entry No.");
         if Rec."Settlement Entry No." = 0 then
             SettlementStatusText := ''
         else
-            SettlementStatusText := Format(SettlementStatus);
+            SettlementStatusText := Format(SettlementStatus2);
     end;
 
     var

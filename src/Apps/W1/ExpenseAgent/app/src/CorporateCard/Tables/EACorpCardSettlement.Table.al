@@ -46,7 +46,6 @@ table 7430 "EA Corp Card Settlement"
                 CorpCardSettlementLine.SetRange("Settlement Entry No.", "Settlement Entry No.");
                 if not CorpCardSettlementLine.IsEmpty() then
                     Error(ProviderCannotChangeErr);
-
                 if "Provider Code" = '' then begin
                     "Corp Card Bank Account No." := '';
                     "Payment Bank Account No." := '';
@@ -136,6 +135,7 @@ table 7430 "EA Corp Card Settlement"
             Editable = false;
             ToolTip = 'Specifies the lifecycle status of the corporate card settlement.';
         }
+#pragma warning disable AA0232
         field(10; "Statement Total"; Decimal)
         {
             Caption = 'Statement Total';
@@ -146,6 +146,7 @@ table 7430 "EA Corp Card Settlement"
             FieldClass = FlowField;
             ToolTip = 'Specifies the total amount of the statements included in this settlement.';
         }
+#pragma warning restore AA0232
         field(11; "Statement Count"; Integer)
         {
             Caption = 'Statement Count';

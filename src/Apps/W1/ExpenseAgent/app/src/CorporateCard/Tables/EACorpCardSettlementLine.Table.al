@@ -118,6 +118,10 @@ table 7431 "EA Corp Card Settlement Line"
         {
             Clustered = true;
         }
+        key(Settlement; "Settlement Entry No.")
+        {
+            SumIndexFields = "Statement Amount";
+        }
         key(Statement; "Statement Entry No.")
         {
         }
