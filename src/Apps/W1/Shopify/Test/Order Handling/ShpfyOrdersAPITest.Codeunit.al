@@ -23,6 +23,7 @@ codeunit 139608 "Shpfy Orders API Test"
     TestType = Uncategorized;
     TestPermissions = Disabled;
     TestHttpRequestPolicy = BlockOutboundRequests;
+    EventSubscriberInstance = Manual;
 
     var
         Shop: Record "Shpfy Shop";
@@ -30,6 +31,7 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryRandom: Codeunit "Library - Random";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         HttpResponses: Codeunit "Library - Variable Storage";
+        ShpfyOrdersAPITest: Codeunit "Shpfy Orders API Test";
         Any: Codeunit Any;
         CompanyLocationId: BigInteger;
         IsInitialized: Boolean;
@@ -953,6 +955,12 @@ codeunit 139608 "Shpfy Orders API Test"
         // [WHEN] Order is processed
         ProcessOrders.ProcessShopifyOrder(OrderHeader);
 
+        // [THEN] Currency handling is stored on the processed order
+        OrderHeader.Get(OrderHeader."Shopify Order Id");
+        LibraryAssert.AreEqual(
+            Enum::"Shpfy Currency Handling"::"Presentment Currency",
+            OrderHeader."Processed Currency Handling",
+            'Processed currency handling should match the shop setting');
         // [THEN] Sales document is created from Shopify order and order line is reserved
         SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
         LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
@@ -1703,10 +1711,12 @@ codeunit 139608 "Shpfy Orders API Test"
 
     [Test]
     [HandlerFunctions('OrdersAPIHttpHandler')]
-    procedure TestAutoCreateOrderStoresPresentmentCurrencyHandling()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure TestAutoCreateOrderStoresCurrencyHandlingUsedForSalesDocument()
     var
         OrderHeader: Record "Shpfy Order Header";
         OrdersToImport: Record "Shpfy Orders to Import";
+        SalesHeader: Record "Sales Header";
         ShopFilter: Record "Shpfy Shop";
         SyncOrdersFromShopify: Report "Shpfy Sync Orders from Shopify";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
@@ -1735,14 +1745,20 @@ codeunit 139608 "Shpfy Orders API Test"
         ShopFilter.SetRange(Code, Shop.Code);
         SyncOrdersFromShopify.SetTableView(ShopFilter);
         SyncOrdersFromShopify.UseRequestPage(false);
+        BindSubscription(ShpfyOrdersAPITest);
         SyncOrdersFromShopify.Run();
+        UnbindSubscription(ShpfyOrdersAPITest);
+        HttpResponses.AssertEmpty();
 
         OrderHeader.Get(OrderId);
         LibraryAssert.IsTrue(OrderHeader.Processed, 'Shopify order should be processed automatically');
         LibraryAssert.AreEqual(
-            Enum::"Shpfy Currency Handling"::"Presentment Currency",
+            Enum::"Shpfy Currency Handling"::"Shop Currency",
             OrderHeader."Processed Currency Handling",
-            'Automatically processed order should store presentment currency handling');
+            'Automatically processed order should store the currency handling used for the sales document');
+        SalesHeader.SetRange("Shpfy Order Id", OrderId);
+        LibraryAssert.IsTrue(SalesHeader.FindFirst(), 'Sales document should be created automatically');
+        LibraryAssert.AreEqual(Shop."Currency Code", SalesHeader."Currency Code", 'Sales document should use the shop currency');
 
         Shop.Get(Shop.Code);
         Shop."Auto Create Orders" := false;
@@ -1923,6 +1939,16 @@ codeunit 139608 "Shpfy Orders API Test"
         LineData.Add('order', LineOrder);
         LineResponse.Add('data', LineData);
         HttpResponses.Enqueue(Format(LineResponse));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeProcessSalesDocument, '', false, false)]
+    local procedure ChangeCurrencyHandlingOnBeforeProcessSalesDocument(var ShopifyOrderHeader: Record "Shpfy Order Header")
+    var
+        ShopToUpdate: Record "Shpfy Shop";
+    begin
+        ShopToUpdate.Get(ShopifyOrderHeader."Shop Code");
+        ShopToUpdate."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        ShopToUpdate.Modify(false);
     end;
 
     local procedure PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; var JOrdersToImport: JsonObject; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)
