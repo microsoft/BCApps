@@ -87,7 +87,7 @@ tests:
         autoCreateTaxJurisdictions: true
       taxJurisdictions:
         - Code: NYSTAX
-          Description: New York State Tax
+          Description: Admin-maintained New York State Tax
       orderAddress:
         countryRegionCode: US
         county: NY
@@ -104,10 +104,13 @@ tests:
         - parentId: 10001
           lineNo: 1
           jurisdictionCode: NYSTAX
+      taxJurisdictionDescriptions:
+        - code: NYSTAX
+          description: Admin-maintained New York State Tax
       matchResult: true
 
-  - name: JC5-DescriptionEqualsCode
-    description: Auto-created jurisdiction's Description must equal its Code
+  - name: JC5-DescriptionMatchesTaxTitle
+    description: Auto-created jurisdiction's Description uses the full Shopify tax title
     setup:
       shopSettings:
         autoCreateTaxJurisdictions: true
@@ -122,10 +125,147 @@ tests:
           taxGroupCode: TAXABLE
           taxLines:
             - lineNo: 1
-              title: NEW YORK STATE TAX
+              title: METROPOLITAN COMMUTER TRANSPORTATION MOBILITY TAX
               ratePct: 4.0
               channelLiable: false
     expected:
       allTaxLinesMatched: true
-      createdJurisdictionDescriptionEqualsCode: true
+      createdJurisdictionDescriptionMatchesTitle: true
+      matchResult: true
+
+  - name: JC6-CanadianHSTUsesProvinceCode
+    description: Generic Canadian HST auto-creation uses a province-specific jurisdiction
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ONHST
+      taxJurisdictionDescriptions:
+        - code: ONHST
+          description: HST - ON
+      createdJurisdictionCountryRegion: CA
+      rateConflict: false
+      matchResult: true
+
+  - name: JC7-CanadianHSTDoesNotReuseAgentGeneric
+    description: A generic agent-created HST jurisdiction is not reused for a different province and rate
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+      taxJurisdictions:
+        - Code: HST
+          Description: HST
+          Country/Region Code: CA
+          Created by Agent: true
+      existingTaxDetails:
+        - Tax Jurisdiction Code: HST
+          Tax Group Code: TAXABLE
+          Tax Below Maximum: 13.0
+          Effective Date: "2026-09-24"
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      documentDate: "2026-09-24"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 14.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NSHST
+      taxJurisdictionDescriptions:
+        - code: NSHST
+          description: HST - NS
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 14.0
+      rateConflict: false
+      matchResult: true
+
+  - name: JC8-ZeroRateLineIsCreated
+    description: A 0% Shopify tax line (New York County for a New York City address) is auto-created like any other line
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: NEW YORK STATE TAX
+          Country/Region Code: US
+        - Code: NYCTAX
+          Description: NEW YORK CITY CITY TAX
+          Country/Region Code: US
+        - Code: MTATAX
+          Description: METROPOLITAN COMMUTER TRANSPORTATION DISTRICT
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: METROPOLITAN COMMUTER TRANSPORTATION DISTRICT
+              ratePct: 0.375
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 4
+              title: NEW YORK COUNTY TAX
+              ratePct: 0.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: MTATAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: NYCTAX
+        - parentId: 10001
+          lineNo: 3
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 4
+          hasJurisdictionCode: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 0.0
+      rateConflict: false
       matchResult: true
