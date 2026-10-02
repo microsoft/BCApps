@@ -23,6 +23,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Structure;
+using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
 codeunit 139991 "Subc. Purch. Subcont. Test"
@@ -39,6 +40,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryApplicationArea: Codeunit "Library - Application Area";
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -734,6 +736,225 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
     [Test]
     [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure DirectReturnKeepsTransferredQuantityUntilPosted()
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting]
+        // [SCENARIO] Creating a direct return leaves the posted component quantity unchanged until the return is posted.
+        Initialize();
+
+        // [GIVEN] An unposted transfer of two units of component "C" to subcontractor "V"
+        CreateComponentTransferScenario(PurchaseHeader, PurchaseLine, ProdOrderComponent, TransferHeader, false);
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 0, 'An unposted outbound transfer must not count as transferred.');
+        PostDirectTransferOrder(TransferHeader);
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'The posted outbound transfer must count at the subcontractor.');
+
+        // [WHEN] A return is created through purchase order "P"
+        CreateComponentReturnFromPurchaseOrder(PurchaseHeader, PurchaseLine, ReturnTransferHeader);
+
+        // [THEN] Component "C" is back at its home location but its posted transferred quantity is still two
+        VerifyUnpostedComponentReturn(ProdOrderComponent, ReturnTransferHeader, 2);
+        VerifyComponentTransferBackfill(ProdOrderComponent, 2);
+        VerifyComponentTransferFilters(ProdOrderComponent);
+
+        // [WHEN] The full direct return is posted
+        PostDirectTransferOrder(ReturnTransferHeader);
+
+        // [THEN] No net transferred quantity remains at subcontractor "V"
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 0, 'A full posted return must clear the net transferred quantity.');
+        VerifyComponentTransferBackfill(ProdOrderComponent, 0);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure DirectTransferDocumentReturnPreservesTransferredQuantity()
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting]
+        // [SCENARIO] Single-document direct transfers and their historical backfill use the posted direction.
+        Initialize();
+
+        // [GIVEN] Two units posted using a Direct Transfer document rather than Shipment and Receipt
+        CreateComponentTransferScenario(PurchaseHeader, PurchaseLine, ProdOrderComponent, TransferHeader, false);
+        TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.Modify(true);
+        PostDirectTransferOrder(TransferHeader);
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'A direct transfer document must count the subcontractor receipt.');
+
+        // [WHEN] The return is created but not posted
+        CreateComponentReturnFromPurchaseOrder(PurchaseHeader, PurchaseLine, ReturnTransferHeader);
+        ReturnTransferHeader.Validate("Direct Transfer Posting", ReturnTransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        ReturnTransferHeader.Modify(true);
+
+        // [THEN] Both posting and historical migration retain the outbound quantity after the location change
+        VerifyUnpostedComponentReturn(ProdOrderComponent, ReturnTransferHeader, 2);
+        VerifyComponentTransferBackfill(ProdOrderComponent, 2);
+
+        // [WHEN] The direct return document is posted
+        PostDirectTransferOrder(ReturnTransferHeader);
+
+        // [THEN] Only the subcontractor side is deducted, including after migration
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 0, 'The direct return document must clear the transferred quantity.');
+        VerifyComponentTransferBackfill(ProdOrderComponent, 0);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure ComponentTransferBackfillRejectsMissingPostedDocument()
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferReceiptHeader: Record "Transfer Receipt Header";
+        SubcCompTransferUpgrade: Codeunit "Subc. Comp. Transfer Upgrade";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting]
+        // [SCENARIO] Missing historical evidence blocks migration instead of silently replacing the transferred total with zero.
+        Initialize();
+
+        // [GIVEN] A posted component receipt whose historical document is no longer available
+        CreateComponentTransferScenario(PurchaseHeader, PurchaseLine, ProdOrderComponent, TransferHeader, false);
+        PostDirectTransferOrder(TransferHeader);
+        ItemLedgerEntry.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        ItemLedgerEntry.SetRange("Subc. Component at Subcontr.", true);
+        ItemLedgerEntry.FindFirst();
+        TransferReceiptHeader.Get(ItemLedgerEntry."Document No.");
+        TransferReceiptHeader.Delete();
+
+        // [WHEN] Historical component transfers are migrated
+        asserterror SubcCompTransferUpgrade.MigrateComponentTransfers();
+
+        // [THEN] The missing document and ledger entry are reported, not guessed from current setup
+        Assert.ExpectedError('Cannot identify the subcontractor movement for item ledger entry');
+        Assert.ExpectedError(ItemLedgerEntry."Document No.");
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'Failed migration must not erase the previously classified quantity.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure PartialReturnExcludesConsumptionFromTransferredQuantity()
+    var
+        ComponentItem: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting]
+        // [SCENARIO] Consumption does not reduce transferred quantity, while a posted partial return does.
+        Initialize();
+
+        // [GIVEN] Two units of component "C" have been transferred to subcontractor "V"
+        CreateComponentTransferScenario(PurchaseHeader, PurchaseLine, ProdOrderComponent, TransferHeader, false);
+        PostDirectTransferOrder(TransferHeader);
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'The posted outbound transfer must total two.');
+
+        // [WHEN] One unit of component "C" is consumed at subcontractor "V"
+        ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+        ComponentItem.Get(ProdOrderComponent."Item No.");
+        LibraryMfgManagement.PostConsumptionForComponent(ProdOrderLine, ProdOrderComponent, ComponentItem, 1);
+
+        // [THEN] Transferred quantity still includes both posted transfer units, not only remaining inventory
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'Consumption must not change the signed total of transfer entries.');
+
+        // [WHEN] A return of the remaining unit is created through purchase order "P"
+        CreateComponentReturnFromPurchaseOrder(PurchaseHeader, PurchaseLine, ReturnTransferHeader);
+
+        // [THEN] The unposted partial return leaves the posted transferred quantity unchanged
+        VerifyUnpostedComponentReturn(ProdOrderComponent, ReturnTransferHeader, 2);
+        ReturnTransferLine.SetRange("Document No.", ReturnTransferHeader."No.");
+        ReturnTransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        ReturnTransferLine.SetRange("Derived From Line No.", 0);
+        ReturnTransferLine.FindFirst();
+        Assert.AreEqual(1, ReturnTransferLine.Quantity, 'Only the unconsumed unit should be returned.');
+
+        // [WHEN] The partial direct return is posted
+        PostDirectTransferOrder(ReturnTransferHeader);
+
+        // [THEN] Only the returned unit is deducted from the posted transfer total
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 1, 'A partial return must reduce transferred quantity by its posted quantity only.');
+        VerifyComponentTransferBackfill(ProdOrderComponent, 1);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
+    procedure InTransitReturnCountsOnlySubcontractorMovements()
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting]
+        // [SCENARIO] In-transit inventory is excluded from the signed posted quantity at the subcontractor in both directions.
+        Initialize();
+
+        // [GIVEN] An ordinary transfer of two units of component "C" with in-transit routes in both directions
+        CreateComponentTransferScenario(PurchaseHeader, PurchaseLine, ProdOrderComponent, TransferHeader, true);
+        Assert.IsFalse(TransferHeader."Direct Transfer", 'The outbound transfer must use the in-transit route.');
+
+        // [WHEN] Component "C" is shipped but not received at subcontractor "V"
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [THEN] In-transit inventory is not counted as received at subcontractor "V"
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 0, 'Outbound in-transit inventory must not count as received by the subcontractor.');
+        VerifyComponentTransferBackfill(ProdOrderComponent, 0);
+
+        // [WHEN] The outbound transfer is received
+        TransferHeader.Get(TransferHeader."No.");
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+
+        // [THEN] The two units at subcontractor "V" are counted
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'Only the subcontractor receipt must increase transferred quantity.');
+
+        // [WHEN] A return is created through purchase order "P"
+        CreateComponentReturnFromPurchaseOrder(PurchaseHeader, PurchaseLine, ReturnTransferHeader);
+
+        // [THEN] The unposted return leaves the posted quantity unchanged
+        Assert.IsFalse(ReturnTransferHeader."Direct Transfer", 'The return must use the reverse in-transit route.');
+        VerifyUnpostedComponentReturn(ProdOrderComponent, ReturnTransferHeader, 2);
+        VerifyComponentTransferBackfill(ProdOrderComponent, 2);
+
+        // [WHEN] The return is shipped but not received at the home location
+        LibraryWarehouse.PostTransferOrder(ReturnTransferHeader, true, false);
+
+        // [THEN] The subcontractor shipment has already cleared the net transferred quantity
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 0, 'A return shipment must reduce transferred quantity before home receipt.');
+        VerifyComponentTransferBackfill(ProdOrderComponent, 0);
+
+        // [WHEN] The return is received at the home location
+        ReturnTransferHeader.Get(ReturnTransferHeader."No.");
+        LibraryWarehouse.PostTransferOrder(ReturnTransferHeader, false, true);
+
+        // [THEN] Neither home nor in-transit entries change the subcontractor total
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 0, 'Home receipt must not change the subcontractor transfer total.');
+        VerifyComponentTransferBackfill(ProdOrderComponent, 0);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
     procedure SecondReturnTransferSucceedsAfterPartialReceiptAndReturn()
     var
         Item: Record Item;
@@ -1205,6 +1426,129 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Purch. Subcont. Test");
+    end;
+
+    local procedure CreateComponentTransferScenario(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ProdOrderComponent: Record "Prod. Order Component"; var TransferHeader: Record "Transfer Header"; UseInTransit: Boolean)
+    var
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        TransferRoute: Record "Transfer Route";
+        WorkCenter: array[2] of Record "Work Center";
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+    begin
+        LibraryApplicationArea.EnablePremiumSetup();
+        ApplicationAreaMgmtFacade.RefreshExperienceTierCurrentCompany();
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", 2);
+        if UseInTransit then
+            SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
+        ProdOrderComponent.FindFirst();
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
+        if not UseInTransit then begin
+            TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+            TransferHeader.Modify(true);
+        end;
+        if UseInTransit then
+            LibraryWarehouse.CreateAndUpdateTransferRoute(
+                TransferRoute, TransferHeader."Transfer-to Code", TransferHeader."Transfer-from Code", TransferHeader."In-Transit Code", '', '');
+    end;
+
+    local procedure CreateComponentReturnFromPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var ReturnTransferHeader: Record "Transfer Header")
+    var
+        PurchaseOrderPage: TestPage "Purchase Order";
+    begin
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+        PurchaseOrderPage.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrderPage.Close();
+        FindTransferOrderForPurchaseLine(ReturnTransferHeader, PurchaseLine, true);
+        if ReturnTransferHeader."Direct Transfer" then begin
+            ReturnTransferHeader.Validate("Direct Transfer Posting", ReturnTransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+            ReturnTransferHeader.Modify(true);
+        end;
+    end;
+
+    local procedure VerifyComponentTransferBackfill(var ProdOrderComponent: Record "Prod. Order Component"; ExpectedQuantity: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        SubcCompTransferUpgrade: Codeunit "Subc. Comp. Transfer Upgrade";
+    begin
+        ItemLedgerEntry.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ItemLedgerEntry.FindSet();
+        repeat
+            TempItemLedgerEntry := ItemLedgerEntry;
+            TempItemLedgerEntry.Insert();
+        until ItemLedgerEntry.Next() = 0;
+        ItemLedgerEntry.ModifyAll("Subc. Component at Subcontr.", false);
+
+        SubcCompTransferUpgrade.MigrateComponentTransfers();
+        SubcCompTransferUpgrade.MigrateComponentTransfers();
+
+        TempItemLedgerEntry.FindSet();
+        repeat
+            ItemLedgerEntry.Get(TempItemLedgerEntry."Entry No.");
+            Assert.AreEqual(TempItemLedgerEntry."Subc. Component at Subcontr.", ItemLedgerEntry."Subc. Component at Subcontr.",
+                'Idempotent backfill must restore each posted movement, excluding home, transit and consumption entries.');
+        until TempItemLedgerEntry.Next() = 0;
+        VerifyTransferredComponentQuantity(ProdOrderComponent, ExpectedQuantity, 'Historical transfers must retain their signed net quantity.');
+    end;
+
+    local procedure VerifyComponentTransferFilters(var ProdOrderComponent: Record "Prod. Order Component")
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        UnrelatedItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        ItemLedgerEntry.SetRange("Subc. Component at Subcontr.", true);
+        ItemLedgerEntry.FindFirst();
+        UnrelatedItemLedgerEntry := ItemLedgerEntry;
+        UnrelatedItemLedgerEntry."Entry No." := UnrelatedItemLedgerEntry.GetLastEntryNo() + 1;
+        UnrelatedItemLedgerEntry."Subc. Purch. Order No." := 'OTHER PURCHASE';
+        UnrelatedItemLedgerEntry.Insert();
+
+        ProdOrderComponent.SetRange("Subc. Purchase Order Filter");
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 4, 'An empty purchase filter must include all purchase orders for this component.');
+        ProdOrderComponent.SetRange("Subc. Purchase Order Filter", ItemLedgerEntry."Subc. Purch. Order No.");
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'The purchase order FlowFilter must still isolate its posted transfers.');
+        ProdOrderComponent.SetRange("Subc. Purchase Order Filter", 'NO PURCHASE');
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 0, 'An unmatched purchase order must not include other transfers.');
+        ProdOrderComponent.SetRange("Subc. Purchase Order Filter");
+
+        UnrelatedItemLedgerEntry."Prod. Order Comp. Line No." += 1;
+        UnrelatedItemLedgerEntry.Modify();
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'Another component must be excluded.');
+        UnrelatedItemLedgerEntry."Prod. Order Comp. Line No." := ItemLedgerEntry."Prod. Order Comp. Line No.";
+        UnrelatedItemLedgerEntry."Subc. Prod. Order Line No." += 1;
+        UnrelatedItemLedgerEntry.Modify();
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'Another production order line must be excluded.');
+        UnrelatedItemLedgerEntry."Subc. Prod. Order Line No." := ItemLedgerEntry."Subc. Prod. Order Line No.";
+        UnrelatedItemLedgerEntry."Subc. Prod. Order No." := 'OTHER PRODUCTION';
+        UnrelatedItemLedgerEntry.Modify();
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'Another production order must be excluded.');
+        UnrelatedItemLedgerEntry.Delete();
+    end;
+
+    local procedure VerifyTransferredComponentQuantity(var ProdOrderComponent: Record "Prod. Order Component"; ExpectedQuantity: Decimal; FailureMessage: Text)
+    begin
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        ProdOrderComponent.CalcFields("Subc. Qty. transf. to Subcontr");
+        Assert.AreEqual(ExpectedQuantity, ProdOrderComponent."Subc. Qty. transf. to Subcontr", FailureMessage);
+    end;
+
+    local procedure VerifyUnpostedComponentReturn(var ProdOrderComponent: Record "Prod. Order Component"; ReturnTransferHeader: Record "Transfer Header"; ExpectedQuantity: Decimal)
+    begin
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Assert.AreEqual(ReturnTransferHeader."Transfer-to Code", ProdOrderComponent."Location Code",
+            'Creating the return must exercise the real component location change to home.');
+        VerifyTransferredComponentQuantity(ProdOrderComponent, ExpectedQuantity,
+            'Creating an unposted return must leave posted transferred quantity unchanged.');
     end;
 
     local procedure SetupSubcontractingEnvironment()

@@ -33,6 +33,12 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         UpdateNewItemLedgerEntry(NewItemLedgEntry, ItemJournalLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertItemLedgEntry, '', false, false)]
+    local procedure OnBeforeInsertItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+        ItemLedgerEntry."Subc. Component at Subcontr." := ItemLedgerEntry.IsSubcontractorComponentTransfer();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertCapLedgEntry, '', false, false)]
     local procedure OnBeforeInsertCapLedgEntry(var CapLedgEntry: Record "Capacity Ledger Entry"; ItemJournalLine: Record "Item Journal Line")
     begin

@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 
 tableextension 20500 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
@@ -40,9 +41,48 @@ tableextension 20500 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
             Caption = 'Subc. Operation No.';
             DataClassification = CustomerContent;
         }
+        field(20515; "Subc. Component at Subcontr."; Boolean)
+        {
+            Caption = 'Component Transfer at Subcontractor';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
     keys
     {
         key(Key99001500; "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Purch. Order No.", "Subc. Purch. Order Line No.") { }
     }
+
+    internal procedure IsSubcontractorComponentTransfer(): Boolean
+    var
+        DirectTransHeader: Record "Direct Trans. Header";
+        TransferReceiptHeader: Record "Transfer Receipt Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        MissingTransferDocumentErr: Label 'Cannot identify the subcontractor movement for item ledger entry %1. Posted %2 %3 is missing or unsupported. Restore the posted transfer document before upgrading subcontracting.', Comment = '%1 = item ledger entry number, %2 = document type, %3 = document number';
+    begin
+        if ("Entry Type" <> "Entry Type"::Transfer) or ("Subc. Prod. Order No." = '') or
+           ("Subc. Prod. Order Line No." = 0) or ("Prod. Order Comp. Line No." = 0)
+        then
+            exit(false);
+
+        // Use the posted direction, never the component's or vendor's current location.
+        case "Document Type" of
+            "Document Type"::"Direct Transfer":
+                if DirectTransHeader.Get("Document No.") then
+                    if DirectTransHeader."Return Order" then
+                        exit("Location Code" = DirectTransHeader."Transfer-from Code")
+                    else
+                        exit("Location Code" = DirectTransHeader."Transfer-to Code");
+            "Document Type"::"Transfer Shipment":
+                if TransferShipmentHeader.Get("Document No.") then
+                    exit(TransferShipmentHeader."Subc. Return Order" and
+                         ("Location Code" = TransferShipmentHeader."Transfer-from Code"));
+            "Document Type"::"Transfer Receipt":
+                if TransferReceiptHeader.Get("Document No.") then
+                    exit(not TransferReceiptHeader."Subc. Return Order" and
+                         ("Location Code" = TransferReceiptHeader."Transfer-to Code"));
+        end;
+
+        Error(MissingTransferDocumentErr, "Entry No.", "Document Type", "Document No.");
+    end;
 }
