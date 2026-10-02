@@ -45,6 +45,8 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookCreateSubscriptionErrorTxt: Label 'Error Expecting Webhook to be created for Account %1', Locked = true;
         WebhookUpdateSubscriptionErrorTxt: Label 'Error Expecting Webhook to be updated to have one for Account %1', Locked = true;
         WebhookDeleteSubscriptionErrorTxt: Label 'Error Expecting Webhook to be deleted for Account %1', Locked = true;
+        WebhookProcessedErr: Label 'The webhook notification should have been processed successfully.';
+        WebhookNotProcessedErr: Label 'The webhook notification for a missing invoice should not have been processed.';
 
     local procedure Initialize();
     var
@@ -805,8 +807,10 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
 
         // Exercise
-        SendPaymentNotification(MSPayPalStandardAccount."Account ID", PaymentStatusPendingTxt, SalesInvoiceHeader."No.",
-          SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
+        Assert.IsTrue(
+          SendPaymentNotification(MSPayPalStandardAccount."Account ID", PaymentStatusPendingTxt, SalesInvoiceHeader."No.",
+            SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT"),
+          WebhookProcessedErr);
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
 
         // Verify
@@ -828,10 +832,13 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
 
         // Exercise
-        // Processing runs inside an error-trapped Codeunit.Run, so a missing invoice doesn't surface an error to the caller.
-        SendPaymentNotification(
-            MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, MissingInvoiceNumberTxt,
-            SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
+        // Processing runs inside an error-trapped Codeunit.Run, so a missing invoice fails the run without surfacing an
+        // error to the caller. Assert the run reports failure instead of letting the outcome be swallowed.
+        Assert.IsFalse(
+            SendPaymentNotification(
+                MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, MissingInvoiceNumberTxt,
+                SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT"),
+            WebhookNotProcessedErr);
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
 
         // Verify
@@ -857,8 +864,10 @@ codeunit 139500 "MS - PayPal Standard Tests"
         // Exercise
         RemainingAmount := 0.01;
         ReceivedAmount := SalesInvoiceHeader."Amount Including VAT" - RemainingAmount;
-        SendPaymentNotification(MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, SalesInvoiceHeader."No.",
-          SalesInvoiceHeader."Currency Code", ReceivedAmount);
+        Assert.IsTrue(
+          SendPaymentNotification(MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, SalesInvoiceHeader."No.",
+            SalesInvoiceHeader."Currency Code", ReceivedAmount),
+          WebhookProcessedErr);
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
 
         // Verify
@@ -880,8 +889,10 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
 
         // Exercise
-        SendPaymentNotification(MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, SalesInvoiceHeader."No.",
-          SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
+        Assert.IsTrue(
+          SendPaymentNotification(MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, SalesInvoiceHeader."No.",
+            SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT"),
+          WebhookProcessedErr);
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
 
         // Verify
@@ -905,8 +916,10 @@ codeunit 139500 "MS - PayPal Standard Tests"
 
         // Exercise
         ReceivedAmount := SalesInvoiceHeader."Amount Including VAT" + 100;
-        SendPaymentNotification(MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, SalesInvoiceHeader."No.",
-          SalesInvoiceHeader."Currency Code", ReceivedAmount);
+        Assert.IsTrue(
+          SendPaymentNotification(MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, SalesInvoiceHeader."No.",
+            SalesInvoiceHeader."Currency Code", ReceivedAmount),
+          WebhookProcessedErr);
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
 
         // Verify
@@ -1022,7 +1035,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         EXIT(Notification);
     end;
 
-    local procedure SendPaymentNotification(Receiver: Text; PaymentStatus: Text; InvoiceNo: Code[20]; Currency: Code[10]; Amount: Decimal);
+    local procedure SendPaymentNotification(Receiver: Text; PaymentStatus: Text; InvoiceNo: Code[20]; Currency: Code[10]; Amount: Decimal): Boolean;
     var
         WebhookNotification: Record "Webhook Notification";
         OutStream: OutStream;
@@ -1036,9 +1049,10 @@ codeunit 139500 "MS - PayPal Standard Tests"
         OutStream.WRITETEXT(NotificationJson);
         WebhookNotification.INSERT();
         // Run the handler directly so processing happens in the current session and is observable by the test.
-        // Capture the Codeunit.Run result so an error (e.g. a notification for a missing invoice) is trapped the same way
-        // it would be in the error-trapped background session used in production, instead of surfacing it to the test.
-        IF CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", WebhookNotification) THEN;
+        // Return the Codeunit.Run result so the caller asserts the expected outcome: an error (e.g. a notification for a
+        // missing invoice) is trapped - as it would be in the error-trapped background session used in production -
+        // instead of surfacing to the test.
+        EXIT(CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", WebhookNotification));
     end;
 
     local procedure VerifyRemainingAmount(var TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary; RemainingAmount: Decimal);
