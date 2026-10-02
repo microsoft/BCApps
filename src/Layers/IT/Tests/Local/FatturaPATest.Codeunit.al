@@ -1431,6 +1431,258 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithoutPACodeUsesDefaultRecipientCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Domestic customer without PA Code uses default recipient routing
+        Initialize();
+
+        // [GIVEN] A domestic customer without PA Code or PEC address
+        Customer.Get(CreateCustomer());
+        Customer."PA Code" := '';
+        Customer."PEC E-Mail Address" := '';
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] CodiceDestinatario defaults to 0000000 and no PEC node is emitted
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
+            '0000000');
+        AssertElementDoesNotExist(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/PECDestinatario');
+
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithoutPACodeUsesPEC()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+        PECEmailAddress: Text[80];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Domestic customer without PA Code can be routed through PEC
+        Initialize();
+
+        // [GIVEN] A domestic customer without PA Code and with a PEC address
+        PECEmailAddress := 'customer@examplepec.it';
+        Customer.Get(CreateCustomer());
+        Customer."PA Code" := '';
+        Customer."PEC E-Mail Address" := PECEmailAddress;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Default routing is used and PEC is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
+            '0000000');
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/PECDestinatario',
+            PECEmailAddress);
+
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithForeignCustomerUsesForeignRecipientCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        CurrCustomer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Foreign customer routing does not depend on PA Code
+        Initialize();
+
+        // [GIVEN] A foreign public-company customer with a six-character PA Code
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion.Modify();
+        Customer.Get(CreateCustomer());
+        CurrCustomer := Customer;
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Validate(City, CurrCustomer.City);
+        Customer.Validate(County, CurrCustomer.County);
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The foreign-recipient routing constant is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/FormatoTrasmissione',
+            'FPR12');
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
+            'XXXXXXX');
+
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithForeignIndividualIncludesVATIdentification()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        CurrCustomer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+        VATRegistrationNo: Text[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Foreign natural person can expose foreign fiscal identification
+        Initialize();
+
+        // [GIVEN] A foreign individual customer with VAT Registration No. but no Fiscal Code
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion.Modify();
+        VATRegistrationNo := 'DE123456789';
+        Customer.Get(CreateCustomer());
+        CurrCustomer := Customer;
+        Customer."VAT Registration No." := '';
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Validate("Post Code", CurrCustomer."Post Code");
+        Customer.Validate(City, CurrCustomer.City);
+        Customer.Validate(County, CurrCustomer.County);
+        Customer."PA Code" := '';
+        Customer."Individual Person" := true;
+        Customer."First Name" := 'Max';
+        Customer."Last Name" := 'Mustermann';
+        Customer."Fiscal Code" := '';
+        Customer."VAT Registration No." := VATRegistrationNo;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Individual-person representation does not suppress IdFiscaleIVA
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/IdFiscaleIVA/IdCodice',
+            VATRegistrationNo);
+
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithForeignIndividualIncludesFiscalCodeIdentification()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        CurrCustomer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+        FiscalCode: Code[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Foreign natural person can use Fiscal Code when VAT Registration No. is unavailable
+        Initialize();
+
+        // [GIVEN] A foreign individual customer with Fiscal Code but no VAT Registration No.
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion.Modify();
+        FiscalCode := 'FOREIGN-TAX-ID';
+        Customer.Get(CreateCustomer());
+        CurrCustomer := Customer;
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Validate("Post Code", CurrCustomer."Post Code");
+        Customer.Validate(City, CurrCustomer.City);
+        Customer.Validate(County, CurrCustomer.County);
+        Customer."PA Code" := '';
+        Customer."Individual Person" := true;
+        Customer."First Name" := 'Max';
+        Customer."Last Name" := 'Mustermann';
+        Customer."VAT Registration No." := '';
+        Customer."Fiscal Code" := FiscalCode;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The Fiscal Code is emitted as the available foreign fiscal identifier
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/IdFiscaleIVA/IdCodice',
+            FiscalCode);
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceWithForeignCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -3137,7 +3389,6 @@ codeunit 144200 "FatturaPA Test"
 
     local procedure AssertCustomerErrorMessages(Customer: Record Customer)
     begin
-        LibraryErrorMessage.AssertLogIfMessageExists(Customer, Customer.FieldNo("PA Code"), ErrorMessage."Message Type"::Error);
         // LibraryErrorMessage.AssertLogIfMessageExists(Customer,Customer.FIELDNO("Country/Region Code"),ErrorMessage."Message Type"::Error);
         LibraryErrorMessage.AssertLogIfMessageExists(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
         LibraryErrorMessage.AssertLogIfMessageExists(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
