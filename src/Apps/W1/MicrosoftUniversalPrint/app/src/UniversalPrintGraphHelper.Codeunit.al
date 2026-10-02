@@ -177,7 +177,7 @@ codeunit 2752 "Universal Print Graph Helper"
         HttpContent.WriteFrom(BlobInStream);
         HttpContent.GetHeaders(HttpContentHeaders);
         HttpContentHeaders.Remove('Content-Type');
-        HttpContentHeaders.Add('Content-Type', 'application/octet-stream');
+        HttpContentHeaders.Add('Content-Type', 'application/xml');
         HttpContentHeaders.Add('Content-Range', ContentRange);
         HttpRequestMessage.Content(HttpContent);
 
