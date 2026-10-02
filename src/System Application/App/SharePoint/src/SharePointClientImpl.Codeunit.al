@@ -580,7 +580,7 @@ codeunit 9101 "SharePoint Client Impl."
         exit(true);
     end;
 
-    procedure DownloadFileContentByServerRelativePath(ServerRelativePath: Text; var FileInStream: InStream): Boolean
+    internal procedure DownloadFileContentByServerRelativePath(ServerRelativePath: Text; var FileInStream: InStream): Boolean
     begin
         // GET https://{site_url}/_api/web/GetFileByServerRelativePath(decodedurl='/Folder/File#1%.pdf')/$value
         SharePointUriBuilder.ResetPath();
@@ -623,7 +623,7 @@ codeunit 9101 "SharePoint Client Impl."
         exit(true);
     end;
 
-    procedure DeleteFileByServerRelativePath(ServerRelativePath: Text): Boolean
+    internal procedure DeleteFileByServerRelativePath(ServerRelativePath: Text): Boolean
     begin
         // DELETE https://{site_url}/_api/web/GetFileByServerRelativePath(decodedurl='/Folder/File#1%.pdf')
         SharePointUriBuilder.ResetPath();
