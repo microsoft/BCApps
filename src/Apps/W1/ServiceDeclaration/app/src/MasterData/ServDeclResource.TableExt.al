@@ -13,11 +13,13 @@ tableextension 5018 "Serv. Decl. Resource" extends Resource
         field(5010; "Service Transaction Type Code"; Code[20])
         {
             Caption = 'Service Transaction Type Code';
+            DataClassification = CustomerContent;
             TableRelation = "Service Transaction Type";
         }
         field(5011; "Exclude From Service Decl."; Boolean)
         {
             Caption = 'Exclude From Service Declaration';
+            DataClassification = CustomerContent;
         }
     }
 }

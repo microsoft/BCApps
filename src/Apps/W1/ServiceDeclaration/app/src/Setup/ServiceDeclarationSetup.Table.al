@@ -10,6 +10,7 @@ using System.IO;
 
 table 5010 "Service Declaration Setup"
 {
+    DataClassification = CustomerContent;
 
     fields
     {
@@ -48,7 +49,7 @@ table 5010 "Service Declaration Setup"
         }
         field(10; "Show Serv. Decl. Overview"; Boolean)
         {
-            Caption = 'Show Serv. Devl. Overview';
+            Caption = 'Show Serv. Decl. Overview';
         }
         field(11; "Cust. VAT Reg. No. Type"; Enum "Serv. Decl. VAT Reg. No. Type")
         {

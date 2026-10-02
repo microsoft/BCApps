@@ -14,11 +14,12 @@ tableextension 5037 "Serv. Decl. Res. Ledg. Entry" extends "Res. Ledger Entry"
         {
             TableRelation = "Service Transaction Type";
             Caption = 'Service Transaction Type Code';
-
+            DataClassification = CustomerContent;
         }
         field(5011; "Applicable For Serv. Decl."; Boolean)
         {
             Caption = 'Applicable For Service Declaration';
+            DataClassification = CustomerContent;
         }
     }
 }
