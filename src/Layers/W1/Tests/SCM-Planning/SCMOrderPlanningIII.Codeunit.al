@@ -5149,7 +5149,6 @@ codeunit 137088 "SCM Order Planning - III"
     begin
         RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
         RequisitionLine.SetRange("No.", LibraryVariableStorage.DequeueText());
-        RequisitionLine.SetRange(Level, 1);
         Assert.RecordCount(RequisitionLine, 1);
         RequisitionLine.FindFirst();
         RequisitionLine.TestField("Variant Code", LibraryVariableStorage.DequeueText());
