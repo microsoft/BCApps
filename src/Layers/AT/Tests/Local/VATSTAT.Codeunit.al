@@ -2211,32 +2211,6 @@ codeunit 144001 VATSTAT
         VATStatementLine.Insert(true);
     end;
 
-    local procedure CreateBaseVATEntTotVATStmtLine(RowNo: Code[10]; BusPostingGroup: Code[20]; ProdPostingGroup: Code[20])
-    var
-        VATStatementTemplate: Record "VAT Statement Template";
-        VATStatementLine: Record "VAT Statement Line";
-        LineNoToCreate: Integer;
-    begin
-        VATStatementTemplate.FindFirst();
-
-        VATStatementLine.SetRange("Statement Template Name", VATStatementTemplate.Name);
-        if VATStatementLine.FindLast() then
-            LineNoToCreate := VATStatementLine."Line No." + 10000
-        else
-            LineNoToCreate := 1;
-
-        VATStatementLine.Init();
-        VATStatementLine.Validate("Line No.", LineNoToCreate);
-        VATStatementLine.Validate("Row No.", RowNo);
-        VATStatementLine.Validate(Type, VATStatementLine.Type::"VAT Entry Totaling");
-        VATStatementLine.Validate("Gen. Posting Type", VATStatementLine."Gen. Posting Type"::Purchase);
-        VATStatementLine.Validate("VAT Bus. Posting Group", BusPostingGroup);
-        VATStatementLine.Validate("VAT Prod. Posting Group", ProdPostingGroup);
-        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
-        VATStatementLine.Validate(Print, true);
-        VATStatementLine.Insert(true);
-    end;
-
     local procedure CreateRowTotVATStmtLine(RowNo: Code[10]; RowTotaling: Code[10])
     var
         VATStatementTemplate: Record "VAT Statement Template";
