@@ -280,6 +280,61 @@ Describe "BuildOptimization" {
                 Remove-Item $tempFile -ErrorAction SilentlyContinue
             }
         }
+
+        It "recovers the merge base by deepening a shallow clone" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $tempFile = [System.IO.Path]::GetTempFileName()
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                @{
+                    pull_request = @{
+                        base = @{ sha = 'base-sha' }
+                        head = @{ sha = 'head-sha' }
+                    }
+                } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
+                $env:GITHUB_EVENT_PATH = $tempFile
+
+                # Simulate a shallow checkout: merge-base yields nothing until the
+                # history has been deepened with a fetch.
+                $script:deepened = $false
+                Mock -ModuleName BuildOptimization git {
+                    $global:LASTEXITCODE = 0
+                    if ($args -contains 'rev-parse') {
+                        return '.git'
+                    }
+                    if ($args -contains 'fetch') {
+                        if ($args -contains '--deepen=50') {
+                            $script:deepened = $true
+                        }
+                        return
+                    }
+                    if ($args -contains 'merge-base') {
+                        if ($script:deepened) {
+                            return 'merge-base-sha'
+                        }
+                        return ''
+                    }
+                    if ($args -contains '--diff-filter=A') {
+                        return 'src/Apps/W1/Example/App/Added.al'
+                    }
+                }
+                Mock -ModuleName BuildOptimization Test-Path { return $true } -ParameterFilter { $Path -like '*shallow' }
+
+                $result = @(Get-ChangedFilesForCI -DiffFilter 'A' -CompareFromMergeBase -RequireChangeDetection)
+
+                $result | Should -Be @('src/Apps/W1/Example/App/Added.al')
+                $script:deepened | Should -BeTrue
+            }
+            finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+                Remove-Item $tempFile -ErrorAction SilentlyContinue
+            }
+        }
     }
 
     Context "Test-FullBuildPatternsMatch" {

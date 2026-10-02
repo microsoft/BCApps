@@ -171,6 +171,66 @@ function Get-AffectedApps {
 
 <#
 .SYNOPSIS
+    Resolves the merge base between two commits, deepening a shallow clone when required.
+.DESCRIPTION
+    Some workflows (notably the release-branch PR handlers) check out the pull
+    request merge commit with the default fetch-depth of 1. In that shallow clone
+    the base and head commits exist only as grafts, without the shared ancestry
+    'git merge-base' needs, so it returns nothing. This helper first tries the
+    merge base directly, then fetches both endpoints and progressively deepens
+    (finally unshallowing) the clone until the merge base can be resolved, so
+    change detection works regardless of the checkout depth.
+.PARAMETER BaseSha
+    The base commit SHA.
+.PARAMETER HeadSha
+    The head commit SHA.
+.OUTPUTS
+    The merge-base commit SHA, or an empty string when it cannot be determined.
+#>
+function Resolve-MergeBaseForCI {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory = $true)] [string] $BaseSha,
+        [Parameter(Mandatory = $true)] [string] $HeadSha
+    )
+
+    $mergeBase = (& git merge-base $BaseSha $HeadSha 2>$null)
+    if (-not [string]::IsNullOrWhiteSpace($mergeBase)) {
+        return $mergeBase
+    }
+
+    # A shallow checkout of the merge commit may be missing one side's object
+    # entirely; make sure both commits are present before deepening.
+    & git fetch --no-tags origin $BaseSha $HeadSha 2>$null
+    $mergeBase = (& git merge-base $BaseSha $HeadSha 2>$null)
+    if (-not [string]::IsNullOrWhiteSpace($mergeBase)) {
+        return $mergeBase
+    }
+
+    # Only shallow clones need deepening; if the clone is already complete there
+    # is nothing more that can be done.
+    $gitDir = (& git rev-parse --git-dir 2>$null)
+    if ([string]::IsNullOrWhiteSpace($gitDir) -or -not (Test-Path (Join-Path $gitDir 'shallow'))) {
+        return $mergeBase
+    }
+
+    Write-Host "BUILD OPTIMIZATION: Merge base not reachable in shallow clone; deepening history"
+    foreach ($depth in 50, 250, 1000) {
+        & git fetch --no-tags --deepen=$depth origin $BaseSha $HeadSha 2>$null
+        $mergeBase = (& git merge-base $BaseSha $HeadSha 2>$null)
+        if (-not [string]::IsNullOrWhiteSpace($mergeBase)) {
+            return $mergeBase
+        }
+    }
+
+    # Last resort: fetch the complete history so the merge base can be computed.
+    & git fetch --no-tags --unshallow origin 2>$null
+    return (& git merge-base $BaseSha $HeadSha 2>$null)
+}
+
+<#
+.SYNOPSIS
     Detects changed files from the GitHub Actions CI environment.
 .DESCRIPTION
     Reads the GitHub event payload ($GITHUB_EVENT_PATH) to extract base/head commit
@@ -265,7 +325,7 @@ function Get-ChangedFilesForCI {
 
         $diffBase = $baseSha
         if ($CompareFromMergeBase) {
-            $diffBase = (& git merge-base $baseSha $headSha 2>$null)
+            $diffBase = Resolve-MergeBaseForCI -BaseSha $baseSha -HeadSha $headSha
             if ([string]::IsNullOrWhiteSpace($diffBase)) {
                 if ($RequireChangeDetection) {
                     throw "Could not determine the merge base between '$baseSha' and '$headSha'."
