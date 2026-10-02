@@ -100,9 +100,11 @@ report 1402 "Bank Account - List"
             column(Bank_Account__Bank_Account_No__; "Bank Account No.")
             {
             }
+#if not CLEAN27
             column(Bank_Account__Bank_Branch_No__; "Bank Branch No.")
             {
             }
+#endif
             column(Bank_Account__Balance__LCY__; "Balance (LCY)")
             {
             }
@@ -142,9 +144,11 @@ report 1402 "Bank Account - List"
             column(Bank_Account__Bank_Account_No__Caption; FieldCaption("Bank Account No."))
             {
             }
+#if not CLEAN27
             column(Bank_Account__Bank_Branch_No__Caption; FieldCaption("Bank Branch No."))
             {
             }
+#endif
             column(Bank_Account_ContactCaption; FieldCaption(Contact))
             {
             }
@@ -229,4 +233,3 @@ report 1402 "Bank Account - List"
         BankAccBalanceCaptionLbl: Label 'Balance';
         Total__LCY_CaptionLbl: Label 'Total (LCY)';
 }
-
