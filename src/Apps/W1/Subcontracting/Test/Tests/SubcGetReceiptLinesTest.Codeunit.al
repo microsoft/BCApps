@@ -38,6 +38,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
@@ -227,6 +228,76 @@ codeunit 149927 "Subc. Get Receipt Lines"
         PurchRcptLine."Qty. Invoiced (Base)" := 1;
         PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity - 1;
         PurchRcptLine.Modify();
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForPackageTrackedSubcontractingReceiptIsBlocked()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] A package-tracked subcontracting receipt remains blocked
+        CreateSubcontractingReceiptForSeparateInvoice(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, true);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, true, false, true);
+        Item.Get(Item."No.");
+        Item."Item Tracking Code" := ItemTrackingCode.Code;
+        Item.Modify();
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForCombinedSerialAndLotTrackedSubcontractingReceiptIsBlocked()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] A combined serial-and-lot-tracked subcontracting receipt remains blocked
+        CreateSubcontractingReceiptForSeparateInvoice(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, true);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, true, true, false);
+        Item.Get(Item."No.");
+        Item."Item Tracking Code" := ItemTrackingCode.Code;
+        Item.Modify();
 
         LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
         PurchRcptLine.SetRecFilter();
