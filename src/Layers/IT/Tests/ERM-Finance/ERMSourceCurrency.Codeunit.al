@@ -2169,6 +2169,7 @@ codeunit 134897 "ERM Source Currency"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure PurchaseInvoiceReverseChargeVATFCYWithRoundingDifference()
     var
         VendorPostingGroup: Record "Vendor Posting Group";
