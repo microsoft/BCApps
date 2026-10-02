@@ -592,10 +592,156 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesForTrackedSeparateSubcontractingInvoiceIsBlocked()
+    procedure GetReceiptLinesForPartiallyInvoicedTrackedSubcontractingReceiptIsBlocked()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        Quantity: Decimal;
     begin
-        asserterror VerifySeparateSubcontractingInvoiceReversal(false, true);
+        // [SCENARIO 649862] A partially invoiced serial-tracked subcontracting receipt remains blocked
+        CreateSubcontractingReceiptForSeparateInvoice(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, true);
+        PurchRcptLine."Quantity Invoiced" := 1;
+        PurchRcptLine."Qty. Invoiced (Base)" := 1;
+        PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity - 1;
+        PurchRcptLine.Modify();
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
         Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForLotTrackedSubcontractingReceiptIsBlocked()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] Lot-tracked subcontracting receipts remain blocked until lot tracking is supported
+        CreateSubcontractingReceiptForSeparateInvoice(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, true);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true, false);
+        Item.Get(Item."No.");
+        Item."Item Tracking Code" := ItemTrackingCode.Code;
+        Item.Modify();
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForFullSerialTrackedSubcontractingReceiptPostsInvoice()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] A full serial-tracked subcontracting receipt can be invoiced through Get Receipt Lines
+        CreateSubcontractingReceiptForSeparateInvoice(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, true);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        VerifyInvoiceSerialApplication(InvoiceLine, ProductionOrder, 'REV-SN1');
+        VerifyInvoiceSerialApplication(InvoiceLine, ProductionOrder, 'REV-SN2');
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The tracked subcontracting receipt must be fully invoiced.');
+
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
+        Assert.RecordIsNotEmpty(ValueEntry);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreEqual(
+            Round(Quantity * InvoiceLine."Direct Unit Cost"), Round(ValueEntry."Cost Amount (Actual)"),
+            'The tracked separate invoice cost must remain assigned to the original capacity ledger entry.');
+
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", PurchRcptLine."Work Center No.");
+        Assert.AreEqual(CapacityLedgerEntryCount, CapacityLedgerEntry.Count(), 'Separate invoicing must not create capacity entries.');
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Separate invoicing must not create output entries.');
+    end;
+
+    local procedure VerifyInvoiceSerialApplication(InvoiceLine: Record "Purchase Line"; ProductionOrder: Record "Production Order"; SerialNo: Code[50])
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ReservationEntry: Record "Reservation Entry";
+        TrackingSpecification: Record "Tracking Specification";
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(), InvoiceLine."Document No.", InvoiceLine."Line No.", false);
+        ReservationEntry.SetRange("Serial No.", SerialNo);
+        ReservationEntry.FindFirst();
+        Assert.AreNotEqual(0, ReservationEntry."Appl.-to Item Entry", 'The invoice serial number must apply to an output Item Ledger Entry.');
+
+        ItemLedgerEntry.Get(ReservationEntry."Appl.-to Item Entry");
+        Assert.AreEqual(ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The invoice serial number must apply to an output entry.');
+        Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The invoice serial number must apply to the production order output.');
+        Assert.AreEqual(SerialNo, ItemLedgerEntry."Serial No.", 'The invoice serial number must match the applied output entry.');
+
+        TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No.");
+        Assert.AreEqual(
+            ItemLedgerEntry."Entry No.", TrackingSpecification."Item Ledger Entry No.",
+            'The invoice tracking specification must preserve the exact output application.');
     end;
 
     [Test]
