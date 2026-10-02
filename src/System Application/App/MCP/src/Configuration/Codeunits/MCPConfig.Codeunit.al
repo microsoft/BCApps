@@ -340,6 +340,9 @@ codeunit 8350 "MCP Config"
     /// <summary>
     /// Imports an MCP configuration and its tools from a JSON stream.
     /// </summary>
+    /// <remarks>
+    /// Data Query Tools is disabled on imported configurations. Enable it separately after the administrator has acknowledged the applicable pricing and terms.
+    /// </remarks>
     /// <param name="InStream">The input stream containing the JSON configuration.</param>
     /// <param name="NewName">The name for the imported configuration.</param>
     /// <param name="NewDescription">The description for the imported configuration.</param>

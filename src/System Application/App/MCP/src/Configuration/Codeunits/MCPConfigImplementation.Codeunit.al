@@ -1519,8 +1519,7 @@ codeunit 8351 "MCP Config Implementation"
         if ConfigJson.Contains('enableApiTools') then
             MCPConfiguration.EnableApiTools := ConfigJson.GetBoolean('enableApiTools');
 
-        if ConfigJson.Contains('enableAlQueryTools') then
-            MCPConfiguration.EnableAlQueryTools := ConfigJson.GetBoolean('enableAlQueryTools');
+        MCPConfiguration.EnableAlQueryTools := false;
 
         MCPConfiguration.Insert();
         LogConfigurationCreated(MCPConfiguration);

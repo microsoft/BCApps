@@ -1147,7 +1147,7 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode mismatch');
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
         Assert.IsTrue(MCPConfiguration.EnableApiTools, 'EnableApiTools mismatch');
-        Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'EnableAlQueryTools mismatch');
+        Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled on import');
 
         // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
