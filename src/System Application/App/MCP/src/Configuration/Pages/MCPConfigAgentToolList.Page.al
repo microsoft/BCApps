@@ -46,11 +46,6 @@ page 8378 "MCP Config Agent Tool List"
                     Editable = false;
                     ToolTip = 'Specifies the display name of the configured agent.';
                 }
-                field("Company Name"; Rec."Company Name")
-                {
-                    Editable = false;
-                    ToolTip = 'Specifies the company in which the configured agent is available.';
-                }
             }
         }
     }
@@ -102,7 +97,7 @@ page 8378 "MCP Config Agent Tool List"
         MCPAgentLookup.GetSelectedAgents(SelectedAgent);
         if SelectedAgent.FindSet() then
             repeat
-                MCPConfigImplementation.AddAgentTool(Rec.ID, CompanyName(), SelectedAgent."User Security ID");
+                MCPConfigImplementation.AddAgentTool(Rec.ID, SelectedAgent."User Security ID");
             until SelectedAgent.Next() = 0;
         if IsNullGuid(Rec."Agent User Security ID") and not IsNullGuid(Rec.SystemId) then
             Rec.Delete();
