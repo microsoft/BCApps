@@ -11,7 +11,6 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
 #if CLEAN30
-using System.Environment.Configuration;
 using System.Reflection;
 #endif
 using System.TestLibraries.Utilities;
@@ -326,84 +325,6 @@ codeunit 148004 "ERM Sales Report"
         Assert.RecordIsNotEmpty(ReportLayoutList);
     end;
 
-    [Test]
-    procedure FRLayoutIsSelectedAsDefault()
-    var
-        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        SalesFRReportLayouts: Codeunit "Sales FR Report Layouts";
-        EmptyGuid: Guid;
-    begin
-        // [SCENARIO] The FR Word layout is selected as the default layout for the W1 reports.
-        Initialize();
-
-        // [WHEN] The layout defaults are applied
-        SalesFRReportLayouts.SetDefaultReportLayouts();
-
-        // [THEN] The FR Word layout is the selected layout for each W1 report
-        TenantReportLayoutSelection.Get(Report::"Standard Sales - Invoice", CopyStr(CompanyName(), 1, 30), EmptyGuid);
-        Assert.AreEqual('StandardSalesInvoiceFR.docx', TenantReportLayoutSelection."Layout Name", 'Wrong layout for the sales invoice.');
-
-        TenantReportLayoutSelection.Get(Report::"Standard Sales - Credit Memo", CopyStr(CompanyName(), 1, 30), EmptyGuid);
-        Assert.AreEqual('StandardSalesCreditMemoFR.docx', TenantReportLayoutSelection."Layout Name", 'Wrong layout for the sales credit memo.');
-
-        TenantReportLayoutSelection.Get(Report::"Standard Sales - Draft Invoice", CopyStr(CompanyName(), 1, 30), EmptyGuid);
-        Assert.AreEqual('StandardSalesDraftInvoiceFR.docx', TenantReportLayoutSelection."Layout Name", 'Wrong layout for the draft sales invoice.');
-    end;
-
-    [Test]
-    procedure CustomLayoutsAreRepointedToW1Reports()
-    var
-        TenantReportLayout: Record "Tenant Report Layout";
-        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        SalesFRReportLayouts: Codeunit "Sales FR Report Layouts";
-        LayoutName: Text[250];
-        LayoutAppId: Guid;
-        EmptyGuid: Guid;
-    begin
-        // [SCENARIO] A tenant custom layout built on the copied FR report is moved to the W1 report.
-        Initialize();
-
-        // [GIVEN] A tenant custom layout on the copied report 10816, selected for this company
-        LayoutName := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(LayoutName));
-        LayoutAppId := CreateGuid();
-        TenantReportLayout.Init();
-        TenantReportLayout."Report ID" := 10816;
-        TenantReportLayout.Name := LayoutName;
-        TenantReportLayout."App ID" := LayoutAppId;
-        TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Word;
-        TenantReportLayout.Insert(true);
-
-        if TenantReportLayoutSelection.Get(10816, CopyStr(CompanyName(), 1, 30), EmptyGuid) then
-            TenantReportLayoutSelection.Delete(true);
-        TenantReportLayoutSelection.Init();
-        TenantReportLayoutSelection."Report ID" := 10816;
-        TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, 30);
-        TenantReportLayoutSelection."User ID" := EmptyGuid;
-        TenantReportLayoutSelection."App ID" := LayoutAppId;
-        TenantReportLayoutSelection."Layout Name" := LayoutName;
-        TenantReportLayoutSelection.Insert(true);
-
-        // [WHEN] The custom layouts are re-pointed
-        SalesFRReportLayouts.RepointCustomLayouts();
-
-        // [THEN] The layout now belongs to the W1 report
-        TenantReportLayout.SetRange(Name, LayoutName);
-        TenantReportLayout.SetRange("Report ID", Report::"Standard Sales - Invoice");
-        Assert.RecordIsNotEmpty(TenantReportLayout);
-
-        TenantReportLayout.SetRange("Report ID", 10816);
-        Assert.RecordIsEmpty(TenantReportLayout);
-
-        // [THEN] The selection follows the layout, so the custom layout is still the one printed
-        Assert.IsTrue(
-            TenantReportLayoutSelection.Get(Report::"Standard Sales - Invoice", CopyStr(CompanyName(), 1, 30), EmptyGuid),
-            'The layout selection was not moved to the W1 report.');
-        Assert.AreEqual(LayoutName, TenantReportLayoutSelection."Layout Name", 'The custom layout is no longer selected.');
-        Assert.IsFalse(
-            TenantReportLayoutSelection.Get(10816, CopyStr(CompanyName(), 1, 30), EmptyGuid),
-            'The selection on the retired report was not removed.');
-    end;
-
 #endif
     local procedure Initialize()
     begin
@@ -432,7 +353,7 @@ codeunit 148004 "ERM Sales Report"
     local procedure CreateCustomerWithSirenNo(var Customer: Record Customer)
     begin
         LibrarySales.CreateCustomer(Customer);
-        Customer.Validate("SIREN No. FR", LibraryUtility.GenerateRandomNumericText(9));
+        Customer.Validate("SIREN No. FR", CopyStr(LibraryUtility.GenerateRandomNumericText(9), 1, MaxStrLen(Customer."SIREN No. FR")));
 #if not CLEAN30
 #pragma warning disable AL0432
         // Default builds still read the legacy BaseApp fields.

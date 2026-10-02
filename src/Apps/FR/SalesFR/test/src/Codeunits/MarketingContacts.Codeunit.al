@@ -45,7 +45,7 @@ codeunit 148005 "Marketing Contacts"
 
         // [GIVEN] Contact created with SIREN No.
         LibraryMarketing.CreateCompanyContact(Contact);
-        Contact.Validate("SIREN No. FR", LibraryUtility.GenerateRandomNumericText(9));
+        Contact.Validate("SIREN No. FR", CopyStr(LibraryUtility.GenerateRandomNumericText(9), 1, MaxStrLen(Contact."SIREN No. FR")));
         Contact.Modify(true);
 
         // [GIVEN] Customer created from Contact
