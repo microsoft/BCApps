@@ -818,6 +818,70 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
+    procedure VendorSuppliedComponentUsesComponentDueDate()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        ComponentDueDate: Date;
+    begin
+        // [SCENARIO 650504] A vendor-supplied component is scheduled from its production component due date.
+        Initialize();
+        LibraryPurchase.SetOrderNoSeriesInSetup();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] A released production order with a vendor-supplied component linked to a subcontracted operation.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+#pragma warning disable AA0210
+        ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ProductionBOMLine.FindFirst();
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ProductionBOMLine."No.");
+#pragma warning disable AA0210
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ProdOrderComponent.FindFirst();
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ComponentDueDate := CalcDate('<10D>', ProdOrderRoutingLine."Ending Date");
+        ProdOrderComponent.Validate("Due Date", ComponentDueDate);
+        ProdOrderComponent.Modify(true);
+
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [WHEN] The subcontracting purchase order is created directly from the routing line.
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] The component is scheduled from its own due date without a Work Date override.
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        PurchaseLine.TestField("Expected Receipt Date", ProdOrderRoutingLine."Ending Date");
+        SubcontractingMgmtLibrary.FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ProductionBOMLine."No.");
+        PurchaseLineComp.FindFirst();
+        PurchaseLineComp.TestField("Expected Receipt Date", ComponentDueDate);
+        Assert.AreNotEqual(WorkDate(), PurchaseLineComp."Order Date", 'The component Order Date must be calculated by standard purchase scheduling.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure TestCreationOfSubcontractingPurchOrderFromRtngLineWithAddInfoLine()
     var
         Item: Record Item;

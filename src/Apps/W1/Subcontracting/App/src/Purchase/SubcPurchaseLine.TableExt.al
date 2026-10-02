@@ -112,6 +112,21 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(20551; "Subc. Prod. Ord. Comp Line No."; Integer)
+        {
+            Caption = 'Prod. Order Component Line No. (Sub)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "Prod. Order Component"."Line No." where(Status = const(Released),
+                                                                      "Prod. Order No." = field("Subc. Prod. Order No."),
+                                                                      "Prod. Order Line No." = field("Subc. Prod. Order Line No."));
+        }
+        field(20552; "Subc. Prod. Ord. Comp Due Date"; Date)
+        {
+            Caption = 'Prod. Order Component Due Date (Sub)';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
         field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
@@ -123,6 +138,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
     keys
     {
         key(SubcPurchLineKey; "Subc. Purchase Line Type") { }
+        key(SubcProdOrderComponentKey; "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Prod. Ord. Comp Line No.") { }
     }
 #if not CLEAN29
     var
