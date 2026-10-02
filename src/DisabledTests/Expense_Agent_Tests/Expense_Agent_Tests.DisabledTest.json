@@ -145,11 +145,6 @@
     "method": "ExpenseAgentCanUpdateTravelRequestDetailsIndirectly"
   },
   {
-    "codeunitId": 148338,
-    "codeunitName": "Expense Permissions Test",
-    "method": "TravelRequestApprovalFailsWithoutExpensePermissions"
-  },
-  {
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
     "method": "DeleteTravelRequestWithReportIsBlocked"

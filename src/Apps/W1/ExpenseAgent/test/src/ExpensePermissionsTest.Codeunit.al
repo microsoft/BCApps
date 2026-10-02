@@ -139,20 +139,29 @@ codeunit 148338 "Expense Permissions Test"
         ExpenseUser: Record "Expense User";
         Approver: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
+        ExpenseUserCanRead: Boolean;
+        PermissionErrorCode: Text;
+        PermissionErrorText: Text;
     begin
         // [SCENARIO] An employee-only caller cannot approve requests without access to Expense User data.
         Initialize();
         CreateTravelRequestApprovalScenario(SpendRequest, ExpenseUser, Approver);
+        // Preserve the fixture for the post-denial checks when asserterror rolls back.
         Commit();
 
         LibraryLowerPermissions.StartLoggingNAVPermissions();
-        SetCallerPermissions(EmployeeOnlyPermissionSetTok, ExpenseUser);
+        LibraryLowerPermissions.SetExactPermissionSet(EmployeeOnlyPermissionSetTok);
+        ExpenseUserCanRead := ExpenseUser.ReadPermission();
         asserterror TravelRequestApproval.Approve(SpendRequest, Approver."No.");
-        Assert.ExpectedErrorCode('DB:ClientReadDenied');
-        Assert.ExpectedError(ExpenseUser.TableCaption());
+        // Capture the denial before permission cleanup can change the last-error state.
+        PermissionErrorCode := GetLastErrorCode();
+        PermissionErrorText := GetLastErrorText();
         RestoreFullPermissions();
         LibraryLowerPermissions.StopLoggingNAVPermissions();
 
+        Assert.AreEqual('DB:ClientReadDenied', PermissionErrorCode, 'Approval must fail because Expense User read access is denied.');
+        Assert.ExpectedMessage(ExpenseUser.TableCaption(), PermissionErrorText);
+        Assert.IsFalse(ExpenseUserCanRead, 'The caller must not have direct access to Expense User.');
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'A denied approval must preserve the request status.');
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
