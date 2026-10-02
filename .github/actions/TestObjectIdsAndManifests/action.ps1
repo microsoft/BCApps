@@ -117,9 +117,7 @@ $AllowedObjectIdRanges = @(
     [PSCustomObject]@{ From = 99000750; To = 99001048 }
 )
 
-# Filter out empty/null entries so that a $null result (no added files) yields an
-# empty array. '@($null)' has a Count of 1, which would otherwise skip the guard
-# below and run the validation against a bogus path.
+# '@($null)' has a Count of 1, so filter empties to make the guard below work.
 $addedFiles = @(Get-ChangedFilesForCI -DiffFilter 'A' -CompareFromMergeBase -RequireChangeDetection | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 if ($addedFiles.Count -eq 0) {
     Write-Host "No newly added files were found; skipping the production object ID range validation."
@@ -128,9 +126,7 @@ else {
     $repositoryRoot = (Resolve-Path -Path (Get-BaseFolder)).Path
     $addedFilePaths = @($addedFiles | ForEach-Object { Join-Path -Path $repositoryRoot -ChildPath $_ })
 
-    # 'build\projects.json' only exists on main, not on release branches. Pass it
-    # to Get-ALGoTestFolders only when present so release-branch validation still
-    # resolves test folders from the per-project settings.json files.
+    # 'build\projects.json' only exists on main; pass it only when present.
     $projectsJsonPath = Join-Path -Path $repositoryRoot -ChildPath 'build\projects.json'
     $getALGoTestFoldersParams = @{
         ProjectsPath   = Join-Path -Path $repositoryRoot -ChildPath 'build\projects'

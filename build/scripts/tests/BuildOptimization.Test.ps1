@@ -297,8 +297,7 @@ Describe "BuildOptimization" {
                 } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
                 $env:GITHUB_EVENT_PATH = $tempFile
 
-                # Simulate a missing endpoint: merge-base yields nothing until both
-                # commits have been fetched.
+                # merge-base yields nothing until both commits have been fetched.
                 $script:fetched = $false
                 Mock -ModuleName BuildOptimization git {
                     $global:LASTEXITCODE = 0

@@ -197,8 +197,7 @@ function Resolve-MergeBaseForCI {
         return $mergeBase
     }
 
-    # The merge base can be unreachable if one side's commit is not present
-    # locally; make sure both endpoints are fetched and try once more.
+    # Fetch both endpoints in case one side's commit is missing, then retry.
     & git fetch --no-tags origin $BaseSha $HeadSha 2>$null
     return (& git merge-base $BaseSha $HeadSha 2>$null)
 }
