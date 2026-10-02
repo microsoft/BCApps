@@ -48,6 +48,11 @@ page 7134 "Travel Requests API"
                 {
                     Caption = 'Requested By';
                     ToolTip = 'Specifies the employee who created the request. This value can be set only when creating the request.';
+
+                    trigger OnValidate()
+                    begin
+                        RequestedByProvided := true;
+                    end;
                 }
                 field(status; Rec.Status)
                 {
@@ -98,6 +103,8 @@ page 7134 "Travel Requests API"
 
                     trigger OnValidate()
                     begin
+                        // Mark the record changed while deferring validation until the complete date pair is available.
+                        Rec."Expected Start Date" := ExpectedStartDate;
                         ExpectedStartDateProvided := true;
                     end;
                 }
@@ -108,6 +115,7 @@ page 7134 "Travel Requests API"
 
                     trigger OnValidate()
                     begin
+                        Rec."Expected End Date" := ExpectedEndDate;
                         ExpectedEndDateProvided := true;
                     end;
                 }
@@ -240,12 +248,10 @@ page 7134 "Travel Requests API"
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
-    var
-        OwnerEmployeeNo: Code[20];
     begin
-        OwnerEmployeeNo := ProcessOwnerFilter();
-        if OwnerEmployeeNo <> '' then
-            Rec."Requested By" := OwnerEmployeeNo;
+        ProcessOwnerFilter();
+        Clear(Rec."Requested By");
+        RequestedByProvided := false;
         Clear(CurrencyCodeDisplay);
         Clear(ExpectedStartDate);
         Clear(ExpectedEndDate);
@@ -340,6 +346,9 @@ page 7134 "Travel Requests API"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         Rec."Document Type" := Rec."Document Type"::"Travel Request";
+        // Default the owner only at insertion so an owner-only POST remains a record change.
+        if not RequestedByProvided then
+            Rec."Requested By" := ProcessOwnerFilter();
         Rec.TestField("Requested By");
         CheckOwnerScope();
         Rec.SetExpectedDatesForAPIInsert(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
@@ -426,6 +435,7 @@ page 7134 "Travel Requests API"
         ExpectedEndDate: Date;
         ExpectedStartDateProvided: Boolean;
         ExpectedEndDateProvided: Boolean;
+        RequestedByProvided: Boolean;
         StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, or rejecting the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
         TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.';
