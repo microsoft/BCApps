@@ -238,31 +238,114 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesForLotTrackedSubcontractingReceiptIsBlocked()
+    procedure GetReceiptLinesForFullLotTrackedSubcontractingReceiptPostsInvoice()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        LotNo1: Code[50];
+        LotNo2: Code[50];
+        PostedInvoiceNo: Code[20];
+        LotQuantity1: Decimal;
+        LotQuantity2: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 649862] A full lot-tracked subcontracting receipt can be invoiced through Get Receipt Lines
+        Quantity := 5;
+        LotNo1 := 'GET-RCPT-LOT-A';
+        LotNo2 := 'GET-RCPT-LOT-B';
+        LotQuantity1 := 3;
+        LotQuantity2 := 2;
+        CreateLotTrackedSubcontractingReceiptForSeparateInvoice(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, LotNo1, LotQuantity1, LotNo2, LotQuantity2);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        VerifyInvoiceLotApplication(InvoiceLine, ProductionOrder, LotNo1, LotQuantity1);
+        VerifyInvoiceLotApplication(InvoiceLine, ProductionOrder, LotNo2, LotQuantity2);
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The tracked subcontracting receipt must be fully invoiced.');
+
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
+        Assert.RecordIsNotEmpty(ValueEntry);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreEqual(
+            Round(Quantity * InvoiceLine."Direct Unit Cost"), Round(ValueEntry."Cost Amount (Actual)"),
+            'The tracked separate invoice cost must remain assigned to the original capacity ledger entry.');
+
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", PurchRcptLine."Work Center No.");
+        Assert.AreEqual(CapacityLedgerEntryCount, CapacityLedgerEntry.Count(), 'Separate invoicing must not create capacity entries.');
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Separate invoicing must not create output entries.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForDuplicateLotOutputEntriesIsBlocked()
     var
         Item: Record Item;
-        ItemTrackingCode: Record "Item Tracking Code";
+        ItemLedgerEntry: Record "Item Ledger Entry";
         ProductionOrder: Record "Production Order";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         InvoiceHeader: Record "Purchase Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Vendor: Record Vendor;
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
         CapacityLedgerEntryCount: Integer;
         CapacityLedgerEntryNo: Integer;
         OutputItemLedgerEntryCount: Integer;
+        LotNo1: Code[50];
+        LotNo2: Code[50];
+        LotQuantity1: Decimal;
+        LotQuantity2: Decimal;
         Quantity: Decimal;
     begin
-        // [SCENARIO 649862] Lot-tracked subcontracting receipts remain blocked until lot tracking is supported
-        CreateSubcontractingReceiptForSeparateInvoice(
+        // [SCENARIO 649862] A lot split across multiple output entries remains blocked
+        Quantity := 5;
+        LotNo1 := 'GET-RCPT-LOT-A';
+        LotNo2 := 'GET-RCPT-LOT-B';
+        LotQuantity1 := 3;
+        LotQuantity2 := 2;
+        CreateLotTrackedSubcontractingReceiptForSeparateInvoice(
             Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
-            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, true);
-        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true, false);
-        Item.Get(Item."No.");
-        Item."Item Tracking Code" := ItemTrackingCode.Code;
-        Item.Modify();
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, LotNo1, LotQuantity1, LotNo2, LotQuantity2);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindSet();
+        ItemLedgerEntry.Next();
+        ItemLedgerEntry."Lot No." := LotNo1;
+        ItemLedgerEntry.Modify();
 
         LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
         PurchRcptLine.SetRecFilter();
@@ -354,6 +437,46 @@ codeunit 149927 "Subc. Get Receipt Lines"
         Assert.AreEqual(
             ItemLedgerEntry."Entry No.", TrackingSpecification."Item Ledger Entry No.",
             'The invoice tracking specification must preserve the exact output application.');
+    end;
+
+    local procedure VerifyInvoiceLotApplication(
+        InvoiceLine: Record "Purchase Line";
+        ProductionOrder: Record "Production Order";
+        LotNo: Code[50];
+        ExpectedQuantityBase: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ReservationEntry: Record "Reservation Entry";
+        TrackingSpecification: Record "Tracking Specification";
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(),
+            InvoiceLine."Document No.", InvoiceLine."Line No.", false);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        ReservationEntry.FindFirst();
+        Assert.AreEqual(
+            ExpectedQuantityBase, Abs(ReservationEntry."Quantity (Base)"),
+            'The invoice lot must retain its source output quantity.');
+        Assert.AreNotEqual(
+            0, ReservationEntry."Appl.-to Item Entry",
+            'The invoice lot must apply to an output Item Ledger Entry.');
+
+        ItemLedgerEntry.Get(ReservationEntry."Appl.-to Item Entry");
+        Assert.AreEqual(
+            ItemLedgerEntry."Entry Type"::Output, ItemLedgerEntry."Entry Type",
+            'The invoice lot must apply to an output entry.');
+        Assert.AreEqual(
+            ProductionOrder."No.", ItemLedgerEntry."Order No.",
+            'The invoice lot must apply to the production order output.');
+        Assert.AreEqual(LotNo, ItemLedgerEntry."Lot No.", 'The invoice lot must match the applied output entry.');
+        Assert.AreEqual(
+            ExpectedQuantityBase, Abs(ItemLedgerEntry.Quantity),
+            'The applied output entry must contain the complete lot quantity.');
+
+        TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No.");
+        Assert.AreEqual(
+            ItemLedgerEntry."Entry No.", TrackingSpecification."Item Ledger Entry No.",
+            'The invoice lot tracking specification must preserve the exact output application.');
     end;
 
     local procedure VerifySeparateSubcontractingInvoiceReversal(CancelInvoice: Boolean; TrackOutput: Boolean)

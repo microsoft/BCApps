@@ -37,6 +37,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     begin
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
+        SetQuantityBaseOnSubcontractingServiceLine(PurchOrderLine, PurchRcptLine);
         if IsFullTrackedSubcontractingReceiptSupported(PurchRcptLine) then
             exit;
 
@@ -185,7 +186,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
 
         SetQuantityBaseOnSubcontractingServiceLine(FromPurchLine, PurchRcptLine);
-        if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
+        if not IsFullTrackedOutputSetSupported(PurchRcptLine, ItemLedgerEntry) then
             Error(GetTrackedSubcontractingRcptNotSupportedErr);
 
         ToPurchLine.Validate(Quantity, PurchRcptLine.Quantity);
@@ -361,7 +362,10 @@ codeunit 20535 "Subc. Purch. Post Ext"
         TempItemLedgerEntry.SetRange("Serial No.", ReservationEntry."Serial No.");
         TempItemLedgerEntry.SetRange("Lot No.", ReservationEntry."Lot No.");
         TempItemLedgerEntry.SetRange("Package No.", ReservationEntry."Package No.");
-        if not TempItemLedgerEntry.FindFirst() then
+        if TempItemLedgerEntry.Count() <> 1 then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
+        TempItemLedgerEntry.FindFirst();
+        if Abs(TempItemLedgerEntry.Quantity) <> Abs(ReservationEntry."Quantity (Base)") then
             Error(GetTrackedSubcontractingRcptNotSupportedErr);
 
         ReservationEntry."Appl.-to Item Entry" := TempItemLedgerEntry."Entry No.";
@@ -555,7 +559,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
-        if not ItemUsesSerialOnlyTracking(PurchRcptLine."No.") then
+        if not ItemUsesSupportedFullTracking(PurchRcptLine."No.") then
             exit(false);
         if PurchRcptLine."Qty. Invoiced (Base)" <> 0 then
             exit(false);
@@ -563,25 +567,64 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit(false);
         if not PurchRcptLineIsLastOperation(PurchRcptLine) then
             exit(false);
-        if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
-            exit(false);
 
-        exit(not ItemLedgerEntry.IsEmpty());
+        exit(IsFullTrackedOutputSetSupported(PurchRcptLine, ItemLedgerEntry));
     end;
 
-    local procedure ItemUsesSerialOnlyTracking(ItemNo: Code[20]): Boolean
+    local procedure ItemUsesSupportedFullTracking(ItemNo: Code[20]): Boolean
     var
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
     begin
         Item.SetLoadFields("Item Tracking Code");
         Item.Get(ItemNo);
-        ItemTrackingCode.SetLoadFields("SN Specific Tracking", "Lot Specific Tracking", "Package Specific Tracking");
+        ItemTrackingCode.SetLoadFields(
+            "SN Specific Tracking", "Lot Specific Tracking", "Package Specific Tracking");
         ItemTrackingCode.Get(Item."Item Tracking Code");
+
+        if ItemTrackingCode."Package Specific Tracking" then
+            exit(false);
+
         exit(
-            ItemTrackingCode."SN Specific Tracking" and
-            not ItemTrackingCode."Lot Specific Tracking" and
-            not ItemTrackingCode."Package Specific Tracking");
+            ItemTrackingCode."SN Specific Tracking" xor
+            ItemTrackingCode."Lot Specific Tracking");
+    end;
+
+    local procedure IsFullTrackedOutputSetSupported(
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        var ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    var
+        OutputQuantityBase: Decimal;
+    begin
+        if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
+            exit(false);
+        if not ItemLedgerEntry.FindSet() then
+            exit(false);
+
+        repeat
+            OutputQuantityBase += Abs(ItemLedgerEntry.Quantity);
+            if (ItemLedgerEntry."Serial No." <> '') and (Abs(ItemLedgerEntry.Quantity) <> 1) then
+                exit(false);
+            if not HasUniqueOutputTrackingKey(ItemLedgerEntry, ItemLedgerEntry) then
+                exit(false);
+        until ItemLedgerEntry.Next() = 0;
+
+        exit(OutputQuantityBase = Abs(PurchRcptLine."Quantity (Base)"));
+    end;
+
+    local procedure HasUniqueOutputTrackingKey(
+        var FilteredItemLedgerEntry: Record "Item Ledger Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    var
+        MatchingItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        MatchingItemLedgerEntry.CopyFilters(FilteredItemLedgerEntry);
+        MatchingItemLedgerEntry.SetRange("Item No.", ItemLedgerEntry."Item No.");
+        MatchingItemLedgerEntry.SetRange("Variant Code", ItemLedgerEntry."Variant Code");
+        MatchingItemLedgerEntry.SetRange("Serial No.", ItemLedgerEntry."Serial No.");
+        MatchingItemLedgerEntry.SetRange("Lot No.", ItemLedgerEntry."Lot No.");
+        MatchingItemLedgerEntry.SetRange("Package No.", ItemLedgerEntry."Package No.");
+        exit(MatchingItemLedgerEntry.Count() = 1);
     end;
 
     local procedure SetSubcontractingOutputEntryFilters(var ItemLedgerEntry: Record "Item Ledger Entry"; PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
