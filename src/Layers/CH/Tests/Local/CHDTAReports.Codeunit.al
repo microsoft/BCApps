@@ -1,4 +1,4 @@
-﻿﻿codeunit 144351 "CH DTA Reports"
+codeunit 144351 "CH DTA Reports"
 {
     Subtype = Test;
     TestPermissions = Disabled;
