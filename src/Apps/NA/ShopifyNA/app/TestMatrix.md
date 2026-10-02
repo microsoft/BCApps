@@ -41,11 +41,14 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 | ID | Scenario | Expected result |
 |----|----------|-----------------|
 | J1 | All tax lines have clear existing jurisdiction matches | Every validated line is assigned to the existing jurisdiction. |
-| J2 | Only some lines can be matched and creation is disabled | Valid matches are retained; unresolved lines remain blank and require review. |
+| J2 | Only some lines can be matched and creation is disabled | Valid matches are retained; unresolved lines remain blank and the order is held for review in every review mode. |
 | J3 | A required jurisdiction is missing and creation is enabled | A provisional jurisdiction can be created and the order is held according to the review rules. |
 | J4 | Similar candidates require geographic disambiguation | Coarse ship-to geography is used to select the defensible candidate. |
 | J5 | No defensible match exists | No jurisdiction is invented from untrusted text; the line remains unresolved. |
 | J6 | An order is reprocessed with existing assignments | Existing assignments are retained and combined with newly validated matches. |
+| J7 | A suggested jurisdiction does not exist and creation is disabled | The line remains unresolved and the order is held for review. |
+| J8 | A tax line has a 0% rate, such as a county placeholder line for a city address | The line is matched, or created when allowed, like any other tax line; its 0% rate is never a reason to leave it unresolved. |
+| J9 | No tax line can be matched | Nothing is applied to the order and it is not held; it continues through the standard path, as when the agent is off. |
 
 ### Tax setup scenarios
 
@@ -53,6 +56,7 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 |----|----------|-----------------|
 | JC1 | Multiple jurisdictions are created for one order | Records are created only when enabled and form a usable jurisdiction hierarchy. |
 | JC2 | A suggested jurisdiction already exists | The existing record is reused rather than duplicated or overwritten. |
+| JC3 | A generic Canadian HST/TVH title is matched or created | The jurisdiction is scoped by the ship-to province code or name; agent-created generic HST is not reused across provinces, while GST remains reusable. |
 | TD1 | No applicable Tax Detail exists | A detail is seeded for the relevant jurisdiction, tax group, rate, and effective date. |
 | TD2 | An equivalent Tax Detail already exists | No duplicate detail is created. |
 | TD3 | Product and shipping tax lines use different tax groups or rates | Each line uses the tax setup associated with what the tax was charged on. |
@@ -64,10 +68,10 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 
 | ID | Scenario | Expected result |
 |----|----------|-----------------|
-| RD1 | A product tax line differs from the maintained Business Central rate | The jurisdiction is retained, the maintained rate is preserved, and the order is held. |
-| RD2 | A shipping tax line differs from the maintained Business Central rate | The shipping conflict is handled with the same safety gate as a product-line conflict. |
+| RD1 | A product tax line differs from the maintained Tax Detail Rate | The jurisdiction is retained, the maintained rate is preserved, and the order is held. |
+| RD2 | A shipping tax line differs from the maintained Tax Detail Rate | The shipping conflict is handled with the same safety gate as a product-line conflict. |
 | RD3 | Review mode is set to Never but a rate conflict exists | The order is still held; conflicts override the review preference. |
-| RD4 | Reviewer accepts the Business Central rate | Approval rebuilds the Tax Area and allows the maintained rate to remain authoritative. |
+| RD4 | Reviewer accepts the Tax Detail Rate | Approval rebuilds the Tax Area and allows the maintained rate to remain authoritative. |
 | RD5 | Reviewer explicitly adopts the Shopify rate | The shared Tax Detail is updated only after confirmation, then the conflict is re-evaluated. |
 | RD6 | Reviewer changes a jurisdiction assignment | Approval rebuilds the complete Tax Area and recalculates applicable rates and conflicts. |
 
@@ -95,7 +99,7 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 | HITL-5 | Reviewer undoes approval before a Sales Document exists | The order returns to the held state. |
 | HITL-6 | A Shopify Order or Sales Order has an applied match | The appropriate review entry point is available. |
 | HITL-7 | Review notification is dismissed or the order is reviewed | Notification behavior follows the current order and user-notification state. |
-| HITL-8 | Shopify and Business Central rates differ | The difference is visually apparent and corrective actions require an explicit decision. |
+| HITL-8 | Shopify rates and Tax Detail Rates differ | The difference is visually apparent and corrective actions require an explicit decision. |
 
 ### Error and reprocessing scenarios
 
@@ -103,7 +107,7 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 |----|----------|-----------------|
 | E1 | The AI service call fails | No unvalidated match is applied and Shopify synchronization continues. |
 | E2 | The response is missing or malformed | The response is rejected without creating tax setup from invalid data. |
-| E3 | The response references an invalid tax line or jurisdiction | The invalid assignment is not persisted. |
+| E3 | The response omits a tax line, references a tax line that was not sent for matching, or references an invalid jurisdiction | The invalid assignment is not persisted; when a match is applied to the order, any line left without a jurisdiction holds it for review. |
 | E4 | The same order or setup is processed again | Existing assignments and setup are reused without duplication. |
 | E5 | A refund is created for a matched order | Tax context is inherited from the original order without another AI request. |
 
