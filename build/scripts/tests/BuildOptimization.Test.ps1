@@ -281,7 +281,7 @@ Describe "BuildOptimization" {
             }
         }
 
-        It "recovers the merge base by deepening a shallow clone" {
+        It "fetches both endpoints to resolve the merge base when it is not immediately available" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedEventPath = $env:GITHUB_EVENT_PATH
@@ -297,22 +297,17 @@ Describe "BuildOptimization" {
                 } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
                 $env:GITHUB_EVENT_PATH = $tempFile
 
-                # Simulate a shallow checkout: merge-base yields nothing until the
-                # history has been deepened with a fetch.
-                $script:deepened = $false
+                # Simulate a missing endpoint: merge-base yields nothing until both
+                # commits have been fetched.
+                $script:fetched = $false
                 Mock -ModuleName BuildOptimization git {
                     $global:LASTEXITCODE = 0
-                    if ($args -contains 'rev-parse') {
-                        return '.git'
-                    }
                     if ($args -contains 'fetch') {
-                        if ($args -contains '--deepen=50') {
-                            $script:deepened = $true
-                        }
+                        $script:fetched = $true
                         return
                     }
                     if ($args -contains 'merge-base') {
-                        if ($script:deepened) {
+                        if ($script:fetched) {
                             return 'merge-base-sha'
                         }
                         return ''
@@ -321,12 +316,11 @@ Describe "BuildOptimization" {
                         return 'src/Apps/W1/Example/App/Added.al'
                     }
                 }
-                Mock -ModuleName BuildOptimization Test-Path { return $true } -ParameterFilter { $Path -like '*shallow' }
 
                 $result = @(Get-ChangedFilesForCI -DiffFilter 'A' -CompareFromMergeBase -RequireChangeDetection)
 
                 $result | Should -Be @('src/Apps/W1/Example/App/Added.al')
-                $script:deepened | Should -BeTrue
+                $script:fetched | Should -BeTrue
             }
             finally {
                 $env:GITHUB_ACTIONS = $savedActions

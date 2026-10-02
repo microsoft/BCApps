@@ -171,15 +171,12 @@ function Get-AffectedApps {
 
 <#
 .SYNOPSIS
-    Resolves the merge base between two commits, deepening a shallow clone when required.
+    Resolves the merge base between two commits.
 .DESCRIPTION
-    Some workflows (notably the release-branch PR handlers) check out the pull
-    request merge commit with the default fetch-depth of 1. In that shallow clone
-    the base and head commits exist only as grafts, without the shared ancestry
-    'git merge-base' needs, so it returns nothing. This helper first tries the
-    merge base directly, then fetches both endpoints and progressively deepens
-    (finally unshallowing) the clone until the merge base can be resolved, so
-    change detection works regardless of the checkout depth.
+    Tries 'git merge-base' directly, and - should the merge base not be reachable
+    because one side's commit has not been fetched yet - fetches both endpoints
+    and tries once more. The workflows that rely on change detection check out the
+    full history (fetch-depth: 0), so no history deepening is required here.
 .PARAMETER BaseSha
     The base commit SHA.
 .PARAMETER HeadSha
@@ -200,32 +197,9 @@ function Resolve-MergeBaseForCI {
         return $mergeBase
     }
 
-    # A shallow checkout of the merge commit may be missing one side's object
-    # entirely; make sure both commits are present before deepening.
+    # The merge base can be unreachable if one side's commit is not present
+    # locally; make sure both endpoints are fetched and try once more.
     & git fetch --no-tags origin $BaseSha $HeadSha 2>$null
-    $mergeBase = (& git merge-base $BaseSha $HeadSha 2>$null)
-    if (-not [string]::IsNullOrWhiteSpace($mergeBase)) {
-        return $mergeBase
-    }
-
-    # Only shallow clones need deepening; if the clone is already complete there
-    # is nothing more that can be done.
-    $gitDir = (& git rev-parse --git-dir 2>$null)
-    if ([string]::IsNullOrWhiteSpace($gitDir) -or -not (Test-Path (Join-Path $gitDir 'shallow'))) {
-        return $mergeBase
-    }
-
-    Write-Host "BUILD OPTIMIZATION: Merge base not reachable in shallow clone; deepening history"
-    foreach ($depth in 50, 250, 1000) {
-        & git fetch --no-tags --deepen=$depth origin $BaseSha $HeadSha 2>$null
-        $mergeBase = (& git merge-base $BaseSha $HeadSha 2>$null)
-        if (-not [string]::IsNullOrWhiteSpace($mergeBase)) {
-            return $mergeBase
-        }
-    }
-
-    # Last resort: fetch the complete history so the merge base can be computed.
-    & git fetch --no-tags --unshallow origin 2>$null
     return (& git merge-base $BaseSha $HeadSha 2>$null)
 }
 
