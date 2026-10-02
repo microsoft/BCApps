@@ -30,6 +30,7 @@ codeunit 139864 "E-Doc. Message Response Tests"
         Assert: Codeunit Assert;
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         LibrarySales: Codeunit "Library - Sales";
         IsInitialized: Boolean;
@@ -227,7 +228,7 @@ codeunit 139864 "E-Doc. Message Response Tests"
         // [GIVEN] The seller promises another delivery date and price on line 1, changes line 2 quantity, sets line 3 to zero and deletes line 4
         FindSalesLine(SalesHeader, 1, SalesLine);
         SalesLine."Promised Delivery Date" := RequestedDeliveryDate() + 10;
-        SalesLine."Unit Price" := 12;
+        SalesLine.Validate("Unit Price", 12);
         SalesLine.Modify();
         FindSalesLine(SalesHeader, 2, SalesLine);
         SalesLine.Validate(Quantity, 6);
@@ -276,7 +277,7 @@ codeunit 139864 "E-Doc. Message Response Tests"
         BuiltResponseType: Enum "E-Doc. Response Type";
     begin
         // [SCENARIO] A sales line the seller adds for an ordered item is reported with status 1 as a split of that order line;
-        // an added item that was not ordered has no order line to belong to and is left out.
+        // an added item that was not ordered has no order line to belong to, so it is stated in the header note instead.
         Initialize();
 
         // [GIVEN] A sales order created from an inbound order with two lines of the same item (10000: 5, 20000: 10)
@@ -315,10 +316,11 @@ codeunit 139864 "E-Doc. Message Response Tests"
         // [THEN] The item that was not ordered is not attached to an unrelated order line
         Assert.AreEqual(0, CountNodes(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:OrderLine/cac:LineItem[cbc:ID=''15000'']'), 'An added item that was not ordered must be left out.');
         Assert.AreEqual(0, CountNodes(XmlDoc, XmlNamespaces, StrSubstNo(ItemNameXPathTxt, OtherItem.Description)), 'No response line may carry the item that was not ordered.');
+        Assert.IsTrue(GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:Note').Contains(OtherItem."No."), 'The item that was not ordered must be stated in the note.');
     end;
 
     [Test]
-    procedure AddedItemThatWasNotOrderedIsLeftOut()
+    procedure AddedItemThatWasNotOrderedIsStatedInNote()
     var
         EDocument: Record "E-Document";
         OtherItem: Record Item;
@@ -327,8 +329,10 @@ codeunit 139864 "E-Doc. Message Response Tests"
         XmlDoc: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         BuiltResponseType: Enum "E-Doc. Response Type";
+        Note: Text;
     begin
-        // [SCENARIO] An extra item the buyer did not order does not turn an otherwise unchanged order into CA.
+        // [SCENARIO] An extra item the buyer did not order is an amendment of the order: the response is CA, answers the
+        // order lines as accepted and states the extra item in cbc:Note, as T76 has no response line for it.
         Initialize();
 
         // [GIVEN] A sales order created from an inbound order, with an extra item the seller added below the order lines
@@ -340,10 +344,161 @@ codeunit 139864 "E-Doc. Message Response Tests"
         BuiltResponseType := BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
         LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
 
-        // [THEN] The order is accepted as ordered
-        Assert.AreEqual('AP', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode'), 'An unordered extra item must not change the response code.');
-        Assert.AreEqual("E-Doc. Response Type"::Accepted, BuiltResponseType, 'The message must be stored as Accepted.');
-        Assert.AreEqual(0, CountNodes(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:OrderLine'), 'An AP response must not contain lines.');
+        // [THEN] The order is conditionally accepted with both order lines accepted as ordered
+        Assert.AreEqual('CA', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode'), 'An unordered extra item must not be reported as accepted as ordered.');
+        Assert.AreEqual("E-Doc. Response Type"::"Conditionally Accepted", BuiltResponseType, 'The message must be stored as Conditionally Accepted.');
+        Assert.AreEqual(2, CountNodes(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:OrderLine'), 'Only the order lines can be answered.');
+        Assert.AreEqual('5', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:LineStatusCode'), 'An unchanged order line must be accepted.');
+        Assert.AreEqual('5', GetLineValue(XmlDoc, XmlNamespaces, '2', 'cbc:LineStatusCode'), 'An unchanged order line must be accepted.');
+
+        // [THEN] The note states the extra item with its quantity
+        Note := GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:Note');
+        Assert.IsTrue(Note.Contains(OtherItem."No."), 'The note must name the added item.');
+        Assert.IsTrue(Note.Contains(OtherItem.Description), 'The note must describe the added item.');
+        Assert.IsTrue(Note.Contains('(2 '), 'The note must state the added quantity.');
+    end;
+
+    [Test]
+    procedure LineDiscountIsReportedAsPriceChange()
+    var
+        EDocument: Record "E-Document";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+    begin
+        // [SCENARIO] A line discount keeps the unit price but changes the commercial terms, so it is reported as a net price change.
+        Initialize();
+
+        // [GIVEN] A sales order created from an inbound order at a unit price of 10
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+
+        // [GIVEN] The seller gives 10 % line discount on line 1
+        FindSalesLine(SalesHeader, 1, SalesLine);
+        SalesLine.Validate("Line Discount %", 10);
+        SalesLine.Modify(true);
+
+        // [WHEN] The acceptance response is built
+        BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+        LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] Line 1 is changed with the net price; line 2 is accepted
+        Assert.AreEqual('CA', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode'), 'A discount must be conditionally accepted.');
+        Assert.AreEqual('3', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:LineStatusCode'), 'A discounted line must be reported as changed.');
+        Assert.AreEqual('9', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cac:Price/cbc:PriceAmount'), 'The net price after the discount must be reported.');
+        Assert.AreEqual('5', GetLineValue(XmlDoc, XmlNamespaces, '2', 'cbc:LineStatusCode'), 'An unchanged line must be accepted.');
+    end;
+
+    [Test]
+    procedure UnitOfMeasureChangeIsReportedInOrderedUnit()
+    var
+        EDocument: Record "E-Document";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+    begin
+        // [SCENARIO] A seller switching a line to another unit of measure is compared and reported in the buyer's ordered unit.
+        Initialize();
+
+        // [GIVEN] A sales order created from an inbound order (10000: 5 EA, 20000: 10 EA) and a box of 5 for the item
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        FindSalesLine(SalesHeader, 1, SalesLine);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, SalesLine."No.", 5);
+
+        // [GIVEN] Line 1 becomes 2 boxes (10 EA instead of 5), line 2 becomes 2 boxes (the same 10 EA), at the same price per EA
+        ChangeUnitOfMeasure(SalesLine, ItemUnitOfMeasure.Code, 2, 50);
+        FindSalesLine(SalesHeader, 2, SalesLine);
+        ChangeUnitOfMeasure(SalesLine, ItemUnitOfMeasure.Code, 2, 50);
+
+        // [WHEN] The acceptance response is built
+        BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+        LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] Line 1 is changed to 10 in the ordered unit; line 2 is the ordered quantity in another unit, so it is accepted
+        Assert.AreEqual('CA', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode'), 'A changed quantity must be conditionally accepted.');
+        Assert.AreEqual('3', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:LineStatusCode'), 'A changed base quantity must be reported as changed.');
+        Assert.AreEqual('10', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:Quantity'), 'The quantity must be stated in the ordered unit.');
+        Assert.AreEqual('EA', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:Quantity/@unitCode'), 'The quantity must keep the ordered unit code.');
+        Assert.AreEqual('5', GetLineValue(XmlDoc, XmlNamespaces, '2', 'cbc:LineStatusCode'), 'The same quantity in another unit is not a change.');
+        Assert.AreEqual('10', GetLineValue(XmlDoc, XmlNamespaces, '2', 'cbc:Quantity'), 'The quantity must be stated in the ordered unit.');
+    end;
+
+    [Test]
+    procedure HeaderDateChangeWithoutDraftLinksAnswersOrderLines()
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+        EDocSalesHeader: Record "E-Document Sales Header";
+        EDocument: Record "E-Document";
+        SalesHeader: Record "Sales Header";
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+    begin
+        // [SCENARIO] Without draft-to-sales-line links (e.g. a custom sales order creation) a changed header delivery date is
+        // still CA, and answers every order line as ordered, as CA must carry response lines (PEPPOL-T76-R007).
+        Initialize();
+
+        // [GIVEN] A sales order whose lines are not linked to the order lines, promised later than the buyer requested
+        CreateSalesOrderFromInboundOrder(EDocument, SalesHeader);
+        EDocRecordLink.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocRecordLink.DeleteAll();
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."Requested Delivery Date" := RequestedDeliveryDate();
+        EDocSalesHeader.Modify();
+        SalesHeader.Find();
+        SalesHeader."Promised Delivery Date" := RequestedDeliveryDate() + 5;
+        SalesHeader.Modify();
+
+        // [WHEN] The acceptance response is built
+        BuildResponse(EDocument, "E-Doc. Response Type"::Accepted, TempBlob);
+        LoadResponse(TempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] CA carries the promised date and both order lines as ordered
+        Assert.AreEqual('CA', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode'), 'A changed header date must be conditionally accepted.');
+        Assert.AreEqual(FormatXmlDate(RequestedDeliveryDate() + 5), GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:Delivery/cac:PromisedDeliveryPeriod/cbc:StartDate'), 'The promised header date must be reported.');
+        Assert.AreEqual(2, CountNodes(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:OrderLine'), 'CA must answer the order lines.');
+        Assert.AreEqual('5', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:LineStatusCode'), 'Without links an order line is answered as ordered.');
+        Assert.AreEqual('5', GetLineValue(XmlDoc, XmlNamespaces, '1', 'cbc:Quantity'), 'Without links the ordered quantity is reported.');
+    end;
+
+    [Test]
+    procedure OrderResponseBuilderStartsCleanAfterBuild()
+    var
+        PEPPOLRespBuilder: Codeunit "PEPPOL Order Resp. Builder";
+        TempBlob: Codeunit "Temp Blob";
+        SecondTempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
+    begin
+        // [SCENARIO] Build completes a response, so lines, note and delivery date do not carry over into the next one.
+        Initialize();
+
+        // [GIVEN] A CA response with a note, a promised delivery date and a line was built
+        PEPPOLRespBuilder.SetHeader('SO-1', 'SO-1', BuyerOrderNoTxt, 'CA', 'EUR', 20260301D);
+        PEPPOLRespBuilder.SetNote('First response');
+        PEPPOLRespBuilder.SetPromisedDeliveryDate(20260320D);
+        PEPPOLRespBuilder.AddLine('1', '3', 'Widget A');
+        PEPPOLRespBuilder.Build(TempBlob);
+
+        // [WHEN] The same instance builds an AP response
+        PEPPOLRespBuilder.SetHeader('SO-2', 'SO-2', 'PO-200', 'AP', 'EUR', 20260301D);
+        PEPPOLRespBuilder.SetSellerParty(SellerEndpointId(), GLNSchemeIdTxt, 'Seller Corp.');
+        PEPPOLRespBuilder.SetBuyerParty(BuyerEndpointId(), GLNSchemeIdTxt, 'Buyer Inc.');
+        PEPPOLRespBuilder.Build(SecondTempBlob);
+        LoadResponse(SecondTempBlob, XmlDoc, XmlNamespaces);
+
+        // [THEN] Nothing of the first response is in the second
+        Assert.AreEqual('SO-2', GetValue(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:ID'), 'ID');
+        Assert.AreEqual(0, CountNodes(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:OrderLine'), 'Lines must not carry over.');
+        Assert.AreEqual(0, CountNodes(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cbc:Note'), 'The note must not carry over.');
+        Assert.AreEqual(0, CountNodes(XmlDoc, XmlNamespaces, '/resp:OrderResponse/cac:Delivery'), 'The delivery date must not carry over.');
+
+        // [THEN] Setting line values without a line is a programming error
+        asserterror PEPPOLRespBuilder.SetLinePrice(1);
     end;
 
     [Test]
@@ -675,6 +830,14 @@ codeunit 139864 "E-Doc. Message Response Tests"
         Customer."Country/Region Code" := OriginalCustomer."Country/Region Code";
         Customer."VAT Registration No." := OriginalCustomer."VAT Registration No.";
         Customer.Modify();
+    end;
+
+    local procedure ChangeUnitOfMeasure(var SalesLine: Record "Sales Line"; UnitOfMeasureCode: Code[10]; Quantity: Decimal; UnitPrice: Decimal)
+    begin
+        SalesLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        SalesLine.Validate(Quantity, Quantity);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
     end;
 
     local procedure InsertSalesLine(SalesHeader: Record "Sales Header"; LineNo: Integer; ItemNo: Code[20]; Quantity: Decimal)

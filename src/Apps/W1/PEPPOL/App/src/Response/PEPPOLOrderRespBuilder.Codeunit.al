@@ -8,8 +8,9 @@ using System.Utilities;
 
 /// <summary>
 /// Builds a PEPPOL BIS 28 Ordering (transaction T76) Order Response for an inbound Sales Order.
-/// Populate the response with SetHeader, SetSellerParty, SetBuyerParty and SetPromisedDeliveryDate, add response lines
-/// with AddLine followed by the SetLine* procedures that apply to the line just added, then call Build to serialize it.
+/// Populate the response with SetHeader, SetNote, SetSellerParty, SetBuyerParty and SetPromisedDeliveryDate, add response
+/// lines with AddLine followed by the SetLine* procedures that apply to the line just added, then call Build to serialize it.
+/// Build completes the response and resets the builder, so the same instance can build the next response from scratch.
 /// Only primitives are accepted, so the builder has no dependency on E-Document tables.
 /// </summary>
 codeunit 37209 "PEPPOL Order Resp. Builder"
@@ -28,12 +29,13 @@ codeunit 37209 "PEPPOL Order Resp. Builder"
         CbcNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
         CustomizationIdTxt: Label 'urn:fdc:peppol.eu:poacc:trns:order_response:3', Locked = true;
         DateFormatTxt: Label '<Year4>-<Month,2>-<Day,2>', Locked = true;
-        NoLineAddedErr: Label 'Add a response line with AddLine before setting line values.';
+        NoLineAddedErr: Label 'Add a response line with AddLine before setting line values.', Locked = true;
         ProfileIdTxt: Label 'urn:fdc:peppol.eu:poacc:bis:ordering:3', Locked = true;
         RootNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2', Locked = true;
         BuyerEndpointId: Text;
         BuyerEndpointSchemeId: Text;
         BuyerPartyName: Text;
+        ResponseNote: Text;
         OrderReferenceId: Text;
         ResponseId: Text;
         SalesOrderId: Text;
@@ -92,6 +94,15 @@ codeunit 37209 "PEPPOL Order Resp. Builder"
     procedure SetPromisedDeliveryDate(PromisedDeliveryDate: Date)
     begin
         HeaderPromisedDeliveryDate := PromisedDeliveryDate;
+    end;
+
+    /// <summary>
+    /// Sets the clarification of the seller's decision (cbc:Note), for example changes that cannot be expressed as response lines.
+    /// Omitted when empty.
+    /// </summary>
+    procedure SetNote(Note: Text)
+    begin
+        ResponseNote := Note;
     end;
 
     /// <summary>
@@ -172,7 +183,8 @@ codeunit 37209 "PEPPOL Order Resp. Builder"
     end;
 
     /// <summary>
-    /// Serializes the Order Response populated through the setter procedures into TempBlob.
+    /// Serializes the Order Response populated through the setter procedures into TempBlob, then resets the builder
+    /// so that no lines or header data carry over into the next response built with the same instance.
     /// </summary>
     procedure Build(var TempBlob: Codeunit "Temp Blob")
     var
@@ -185,6 +197,8 @@ codeunit 37209 "PEPPOL Order Resp. Builder"
 
         TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
         XmlDoc.WriteTo(OutStr);
+
+        ClearAll();
     end;
 
     /// <summary>
@@ -207,11 +221,15 @@ codeunit 37209 "PEPPOL Order Resp. Builder"
 
     local procedure SetCurrentLineValue(Name: Text; Value: JsonValue)
     var
+        NoLineAddedErrorInfo: ErrorInfo;
         OrderLine: JsonObject;
         OrderLineToken: JsonToken;
     begin
-        if not OrderLines.Get(OrderLines.Count() - 1, OrderLineToken) then
-            Error(NoLineAddedErr);
+        if not OrderLines.Get(OrderLines.Count() - 1, OrderLineToken) then begin
+            NoLineAddedErrorInfo.ErrorType := ErrorType::Internal;
+            NoLineAddedErrorInfo.Message := NoLineAddedErr;
+            Error(NoLineAddedErrorInfo);
+        end;
         OrderLine := OrderLineToken.AsObject();
         if OrderLine.Contains(Name) then
             OrderLine.Replace(Name, Value)
@@ -263,6 +281,8 @@ codeunit 37209 "PEPPOL Order Resp. Builder"
             IssueDate := Today();
         RootNode.Add(CbcElement('IssueDate', FormatDate(IssueDate)));
         RootNode.Add(CbcElement('OrderResponseCode', OrderResponseCode));
+        if ResponseNote <> '' then
+            RootNode.Add(CbcElement('Note', ResponseNote));
         // PEPPOL-COMMON-R001: no empty elements, so a missing currency is left out rather than written empty
         if DocumentCurrencyCode <> '' then
             RootNode.Add(CbcElement('DocumentCurrencyCode', DocumentCurrencyCode));
