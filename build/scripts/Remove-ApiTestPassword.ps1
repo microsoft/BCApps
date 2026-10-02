@@ -15,8 +15,7 @@ if (-not (Test-Path -LiteralPath $FilePath -PathType Leaf)) {
     return
 }
 
-# Workflow cancellation can leave server-side test workers alive. End all consumers
-# before deleting their shared credential, including when the build step was killed.
+# End any remaining test workers before deleting their shared credential.
 $containerIds = @(docker container ls --all --filter "name=^/$([regex]::Escape($ContainerName))$" --format '{{.ID}}')
 if ($LASTEXITCODE -ne 0) {
     throw 'Could not determine whether the API test container still exists.'
