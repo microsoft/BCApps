@@ -37,6 +37,7 @@ codeunit 37218 "PEPPOL30 Common"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        IsHandled: Boolean;
     begin
         case PostedRecRef.Number() of
             Database::"Sales Invoice Header":
@@ -63,8 +64,12 @@ codeunit 37218 "PEPPOL30 Common"
                     Peppol30.TransferHeaderToSalesHeader(ServiceCrMemoHeader, SalesHeader);
                     SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnConvertPostedHeaderToSalesHeader(PostedRecRef, SalesHeader, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -80,6 +85,7 @@ codeunit 37218 "PEPPOL30 Common"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         ServiceInvoiceLine: Record "Service Invoice Line";
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        IsHandled: Boolean;
     begin
         case PostedLineRecRef.Number() of
             Database::"Sales Invoice Line":
@@ -108,8 +114,12 @@ codeunit 37218 "PEPPOL30 Common"
                     SalesLine.Type := Peppol30.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
                     SalesLine."Document Type" := SalesLine."Document Type"::"Credit Memo";
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnConvertPostedLineToSalesLine(PostedLineRecRef, SalesLine, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -135,6 +145,7 @@ codeunit 37218 "PEPPOL30 Common"
         LineRecRef: RecordRef;
         PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
         PostedDocNo: Code[20];
+        IsHandled: Boolean;
     begin
         PEPPOLTaxInfoProvider := PEPPOLFormat;
         case PostedDocHeaderRecRef.Number() of
@@ -194,8 +205,12 @@ codeunit 37218 "PEPPOL30 Common"
                             PEPPOLTaxInfoProvider.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
                         until ServiceCrMemoLine.Next() = 0;
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnGetTotals(PostedDocHeaderRecRef, PostedDocLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, PEPPOLFormat, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
 
         PEPPOLTaxInfoProvider.FinalizeTaxTotals(TempVATAmtLine);
@@ -214,6 +229,7 @@ codeunit 37218 "PEPPOL30 Common"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PEPPOLPurchaseTaxInfoProvider: Interface "PEPPOL Purchase Tax Info Provider";
+        IsHandled: Boolean;
     begin
         PEPPOLPurchaseTaxInfoProvider := PEPPOLPurchaseFormat;
         case PurchaseHeaderRecRef.Number() of
@@ -229,8 +245,12 @@ codeunit 37218 "PEPPOL30 Common"
                             PEPPOLPurchaseTaxInfoProvider.GetTaxCategories(PurchaseLine, TempVATProductPostingGroup);
                         until PurchaseLine.Next() = 0;
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnGetPurchaseTotals(PurchaseHeaderRecRef, PurchaseLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, PEPPOLPurchaseFormat, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -245,6 +265,7 @@ codeunit 37218 "PEPPOL30 Common"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        IsHandled: Boolean;
     begin
         case PostedDocHeaderRecRef.Number() of
             Database::"Sales Invoice Header":
@@ -271,8 +292,12 @@ codeunit 37218 "PEPPOL30 Common"
                     DocumentAttachments.SetRange("Table ID", Database::"Service Cr.Memo Header");
                     DocumentAttachments.SetRange("No.", ServiceCrMemoHeader."No.");
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnSetDocumentAttachmentFilters(PostedDocHeaderRecRef, DocumentAttachments, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -295,6 +320,7 @@ codeunit 37218 "PEPPOL30 Common"
         SalesLine: Record "Sales Line";
         LineRecRef: RecordRef;
         PEPPOLMonetaryInfoProvider: Interface "PEPPOL Monetary Info Provider";
+        IsHandled: Boolean;
     begin
         PEPPOLMonetaryInfoProvider := PEPPOLFormat;
         case PostedDocHeaderRecRef.Number() of
@@ -346,8 +372,12 @@ codeunit 37218 "PEPPOL30 Common"
                             PEPPOLMonetaryInfoProvider.GetInvoiceRoundingLine(TempSalesLineRounding, SalesLine);
                         until ServiceCrMemoLine.Next() = 0;
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnGetInvoiceRoundingLine(PostedDocHeaderRecRef, TempSalesLineRounding, PEPPOLFormat, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -362,6 +392,7 @@ codeunit 37218 "PEPPOL30 Common"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PEPPOLPurchaseMonetaryInfoProvider: Interface "PEPPOL Purchase Monetary Info Provider";
+        IsHandled: Boolean;
     begin
         PEPPOLPurchaseMonetaryInfoProvider := PEPPOLPurchaseFormat;
         case PurchaseHeaderRecRef.Number() of
@@ -376,8 +407,12 @@ codeunit 37218 "PEPPOL30 Common"
                             PEPPOLPurchaseMonetaryInfoProvider.GetInvoiceRoundingLine(TempPurchaseLineRounding, PurchaseLine);
                         until PurchaseLine.Next() = 0;
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnGetPurchaseInvoiceRoundingLine(PurchaseHeaderRecRef, TempPurchaseLineRounding, PEPPOLPurchaseFormat, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -397,6 +432,7 @@ codeunit 37218 "PEPPOL30 Common"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         ServiceInvoiceLine: Record "Service Invoice Line";
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        IsHandled: Boolean;
     begin
         PostedDocHeaderRecRef.SetRecFilter();
         case PostedDocHeaderRecRef.Number() of
@@ -436,8 +472,12 @@ codeunit 37218 "PEPPOL30 Common"
                         ServiceCrMemoLine.SetFilter("Line No.", '<>%1', TempSalesLineRounding."Line No.");
                     PostedDocLineRecRef.GetTable(ServiceCrMemoLine);
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnSetFilters(PostedDocHeaderRecRef, PostedDocLineRecRef, TempSalesLineRounding, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
     end;
 
@@ -451,6 +491,7 @@ codeunit 37218 "PEPPOL30 Common"
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        IsHandled: Boolean;
     begin
         PurchaseHeaderRecRef.SetRecFilter();
         case PurchaseHeaderRecRef.Number() of
@@ -464,8 +505,57 @@ codeunit 37218 "PEPPOL30 Common"
                         PurchaseLine.SetFilter("Line No.", '<>%1', TempPurchaseLineRounding."Line No.");
                     PurchaseLineRecRef.GetTable(PurchaseLine);
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                IsHandled := false;
+                OnSetPurchaseFilters(PurchaseHeaderRecRef, PurchaseLineRecRef, TempPurchaseLineRounding, IsHandled);
+                if not IsHandled then
+                    Error(UnsupportedDocumentErr);
+            end;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnConvertPostedHeaderToSalesHeader(var PostedRecRef: RecordRef; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnConvertPostedLineToSalesLine(var PostedDocLineRecRef: RecordRef; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetTotals(var PostedDocHeaderRecRef: RecordRef; var PostedDocLineRecRef: RecordRef; var VATAmountLine: Record "VAT Amount Line"; var VATProductPostingGroup: Record "VAT Product Posting Group"; PEPPOLFormat: Enum "PEPPOL 3.0 Format"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetPurchaseTotals(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; var VATAmountLine: Record "VAT Amount Line"; var VATProductPostingGroup: Record "VAT Product Posting Group"; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetDocumentAttachmentFilters(var PostedDocHeaderRecRef: RecordRef; var DocumentAttachments: Record "Document Attachment"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetInvoiceRoundingLine(PostedDocHeaderRecRef: RecordRef; var SalesLineRounding: Record "Sales Line"; PEPPOLFormat: Enum "PEPPOL 3.0 Format"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetPurchaseInvoiceRoundingLine(PurchaseHeaderRecRef: RecordRef; var PurchaseLineRounding: Record "Purchase Line"; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetFilters(var PostedDocHeaderRecRef: RecordRef; var PostedDocLineRecRef: RecordRef; SalesLineRounding: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetPurchaseFilters(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; PurchaseLineRounding: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
     end;
 }
