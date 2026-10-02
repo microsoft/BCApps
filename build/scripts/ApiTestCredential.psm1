@@ -43,11 +43,11 @@ function New-ApiTestPasswordFileStream {
 .SYNOPSIS
     Creates the API test credential directly in the container's shared my mount.
 .DESCRIPTION
-    Registers workflow cleanup before atomically creating a new file with a protected
+    Records cleanup identity before atomically creating a new file with a protected
     DACL. No plaintext staging copies are made. SYSTEM and Administrators retain full
     access, NetworkService can read, and the host writer can write and delete.
-    An existing file or unresolved mount is an error, including outside CI. Workflow
-    cleanup (or local container teardown) must end consumers before removing the file.
+    An existing file or unresolved mount is an error, including outside CI. Successful
+    pipelines finalize cleanup; failed/cancelled pipelines rely on container teardown.
 #>
 function Write-ApiTestPassword {
     param(
@@ -65,9 +65,14 @@ function Write-ApiTestPassword {
         throw "Cannot resolve the API test credential's container mount."
     }
     $filePath = Join-Path $myFolders[0].Key 'ApiTestPassword'
+    # PipelineFinalize runs in this process; GITHUB_ENV only affects later steps.
+    $env:BCAppsApiTestPasswordPath = $filePath
+    $env:BCAppsApiTestPasswordContainer = $ContainerName
     if ($env:GITHUB_ENV) {
-        # Persist cleanup before creation, including for setup failure or cancellation.
-        Add-Content -LiteralPath $env:GITHUB_ENV -Encoding UTF8 -Value "BCAppsApiTestPasswordPath=$filePath" -ErrorAction Stop
+        Add-Content -LiteralPath $env:GITHUB_ENV -Encoding UTF8 -Value @(
+            "BCAppsApiTestPasswordPath=$filePath"
+            "BCAppsApiTestPasswordContainer=$ContainerName"
+        ) -ErrorAction Stop
     }
 
     $created = $false
