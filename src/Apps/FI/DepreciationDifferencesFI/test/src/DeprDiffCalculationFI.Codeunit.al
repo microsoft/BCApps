@@ -713,6 +713,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     begin
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAssetNo, DeprBookCode);
         LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
+        UpdateFAPostingGroup(FAPostingGroup, false, false);
         FADepreciationBook.Validate("FA Posting Group", FAPostingGroup.Code);
         FADepreciationBook.Modify(true);
     end;
@@ -857,8 +858,8 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         DocumentNo: Code[20];
     begin
         FAJournalSetup.Get(DepreciationBookCode, '');
-        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."Gen. Jnl. Template Name");
-        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."Gen. Jnl. Batch Name");
+        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."FA Jnl. Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."FA Jnl. Batch Name");
 #pragma warning disable AA0210 // FA Journal Line has no key containing FA No.
         FAJournalLine.SetRange("FA No.", FixedAssetNo);
 #pragma warning restore AA0210
@@ -867,7 +868,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         DocumentNo := NoSeries.PeekNextNo(FAJournalBatch."No. Series");
         repeat
             FAJournalLine.Validate("Document No.", DocumentNo);
-            FAJournalLine.Validate(Description, FAJournalSetup."Gen. Jnl. Batch Name");
+            FAJournalLine.Validate(Description, FAJournalSetup."FA Jnl. Batch Name");
             FAJournalLine.Modify(true);
         until FAJournalLine.Next() = 0;
         LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
