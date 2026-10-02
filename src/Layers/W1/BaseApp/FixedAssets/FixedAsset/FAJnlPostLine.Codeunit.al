@@ -379,7 +379,7 @@ codeunit 5632 "FA Jnl.-Post Line"
             FAInsertLedgEntry.SetNetdisposal(true);
 
         if DisposalType = DisposalType::FirstDisposal then begin
-            CalculateDisposal.CalcGainLoss(FANo, DeprBookCode, EntryAmounts);
+            CalculateDisposal.CalcGainLoss(FANo, DeprBookCode, EntryAmounts, true);
             for i := 1 to ArrayLen(EntryAmounts) do
                 if EntryAmounts[i] <> 0 then begin
                     FALedgEntry."FA Posting Category" := CalculateDisposal.SetFALedgerPostingCategory(i);
@@ -650,7 +650,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         i: Integer;
     begin
         OnBeforePostReverseType(FALedgEntry);
-        CalculateDisposal.CalcReverseAmounts(FANo, DeprBookCode, EntryAmounts);
+        CalculateDisposal.CalcReverseAmounts(FANo, DeprBookCode, EntryAmounts, true);
         FALedgEntry."FA Posting Category" := FALedgEntry."FA Posting Category"::" ";
         FALedgEntry."Automatic Entry" := true;
         for i := 1 to ArrayLen(EntryAmounts) do

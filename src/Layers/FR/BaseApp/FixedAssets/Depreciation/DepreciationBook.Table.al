@@ -385,9 +385,9 @@ table 5611 "Depreciation Book"
                     if xRec."Derogatory Calc." <> '' then begin
                         FADeprBook.SetLoadFields("FA No.", "Depreciation Book Code");
                         FADeprBook.SetRange("Depreciation Book Code", xRec."Derogatory Calc.");
+                        FADeprBook.SetAutoCalcFields("Derogatory Amount");
                         if FADeprBook.FindSet() then
                             repeat
-                                FADeprBook.CalcFields("Derogatory Amount");
                                 FADeprBook.TestField("Derogatory Amount", 0);
                             until FADeprBook.Next() = 0;
                     end;
@@ -638,6 +638,11 @@ table 5611 "Depreciation Book"
 
     procedure IndexGLIntegration(var GLIntegration: array[13] of Boolean)
     begin
+        IndexGLIntegration(GLIntegration, true);
+    end;
+
+    procedure IndexGLIntegration(var GLIntegration: array[13] of Boolean; IncludeAdditionalPostingTypes: Boolean)
+    begin
         GLIntegration[1] := "G/L Integration - Acq. Cost";
         GLIntegration[2] := "G/L Integration - Depreciation";
         GLIntegration[3] := "G/L Integration - Write-Down";
@@ -649,11 +654,11 @@ table 5611 "Depreciation Book"
         GLIntegration[9] := false; // Salvage Value
 #if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
-            GLIntegration[13] := "Integration G/L - Derogatory"
+            GLIntegration[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory"
         else
-            GLIntegration[13] := "G/L Integration - Derogatory";
+            GLIntegration[13] := IncludeAdditionalPostingTypes and "G/L Integration - Derogatory";
 #else
-        GLIntegration[13] := "Integration G/L - Derogatory";
+        GLIntegration[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory";
 #endif
     end;
 

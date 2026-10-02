@@ -1212,7 +1212,7 @@ report 10817 "FA-Proj. Value (Derogatory) FR"
         PrevAmount[1] := AssetAmounts[3];
         PrevAmount[2] := AssetAmounts[4];
 
-        CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, EntAmounts);
+        CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, EntAmounts, true);
         AssetAmounts[3] := FADeprBook."Projected Proceeds on Disposal";
         if EntAmounts[1] <> 0 then
             AssetAmounts[4] := EntAmounts[1]

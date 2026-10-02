@@ -9,10 +9,43 @@ using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
+using System.Telemetry;
 
 codeunit 5869 "Derogatory Posting Mgt."
 {
     Access = Internal;
+
+    procedure CheckDateCompressionAllowed(FALedgerEntry: Record "FA Ledger Entry")
+    var
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+    begin
+        FALedgerEntry.SetLoadFields("Derogatory Source Entry No.");
+        CounterpartFALedgerEntry.SetCurrentKey("Derogatory Source Entry No.", "Depreciation Book Code");
+        if FALedgerEntry.FindSet() then
+            repeat
+                if FALedgerEntry."Derogatory Source Entry No." <> 0 then
+                    Error(LinkedEntryDateCompressionErr, FALedgerEntry.TableCaption(), FALedgerEntry."Entry No.");
+                CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.", FALedgerEntry."Entry No.");
+                if not CounterpartFALedgerEntry.IsEmpty() then
+                    Error(LinkedEntryDateCompressionErr, FALedgerEntry.TableCaption(), FALedgerEntry."Entry No.");
+            until FALedgerEntry.Next() = 0;
+    end;
+
+    procedure CheckDateCompressionAllowed(MaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    var
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+    begin
+        MaintenanceLedgerEntry.SetLoadFields("Derogatory Source Entry No.");
+        CounterpartMaintenanceLedgerEntry.SetCurrentKey("Derogatory Source Entry No.", "Depreciation Book Code");
+        if MaintenanceLedgerEntry.FindSet() then
+            repeat
+                if MaintenanceLedgerEntry."Derogatory Source Entry No." <> 0 then
+                    Error(LinkedEntryDateCompressionErr, MaintenanceLedgerEntry.TableCaption(), MaintenanceLedgerEntry."Entry No.");
+                CounterpartMaintenanceLedgerEntry.SetRange("Derogatory Source Entry No.", MaintenanceLedgerEntry."Entry No.");
+                if not CounterpartMaintenanceLedgerEntry.IsEmpty() then
+                    Error(LinkedEntryDateCompressionErr, MaintenanceLedgerEntry.TableCaption(), MaintenanceLedgerEntry."Entry No.");
+            until MaintenanceLedgerEntry.Next() = 0;
+    end;
 
     procedure GetDerogatoryBookCode(SourceDepreciationBookCode: Code[10]; var DerogatoryDepreciationBookCode: Code[10]): Boolean
     var
@@ -197,21 +230,27 @@ codeunit 5869 "Derogatory Posting Mgt."
         if DerogatoryFALedgerEntry."Derogatory Source Entry No." = 0 then
             exit;
 
-        if not SourceFALedgerEntry.Get(DerogatoryFALedgerEntry."Derogatory Source Entry No.") then
+        if not SourceFALedgerEntry.Get(DerogatoryFALedgerEntry."Derogatory Source Entry No.") then begin
+            LogIntegrityError(Database::"FA Ledger Entry", MissingSourceTelemetryLbl);
             Error(SourceEntryDoesNotExistErr, SourceFALedgerEntry.TableCaption(), DerogatoryFALedgerEntry."Derogatory Source Entry No.");
+        end;
         SourceFANo := SourceFALedgerEntry."FA No.";
         if SourceFANo = '' then
             SourceFANo := SourceFALedgerEntry."Canceled from FA No.";
         if (SourceFANo <> DerogatoryFALedgerEntry."FA No.") or
            not GetDerogatoryBookCode(SourceFALedgerEntry."Depreciation Book Code", ExpectedDerogatoryDepreciationBookCode) or
            (ExpectedDerogatoryDepreciationBookCode <> DerogatoryFALedgerEntry."Depreciation Book Code")
-        then
+        then begin
+            LogIntegrityError(Database::"FA Ledger Entry", InvalidLinkTelemetryLbl);
             Error(InvalidDerogatoryLinkErr, SourceFALedgerEntry."Entry No.", DerogatoryFALedgerEntry."Depreciation Book Code");
+        end;
 
         ExistingDerogatoryFALedgerEntry.SetRange("Derogatory Source Entry No.", SourceFALedgerEntry."Entry No.");
         ExistingDerogatoryFALedgerEntry.SetRange("Depreciation Book Code", DerogatoryFALedgerEntry."Depreciation Book Code");
-        if not ExistingDerogatoryFALedgerEntry.IsEmpty() then
+        if not ExistingDerogatoryFALedgerEntry.IsEmpty() then begin
+            LogIntegrityError(Database::"FA Ledger Entry", DuplicateLinkTelemetryLbl);
             Error(DuplicateDerogatoryLinkErr, SourceFALedgerEntry."Entry No.", DerogatoryFALedgerEntry."Depreciation Book Code");
+        end;
     end;
 
     procedure ValidateDerogatoryLink(DerogatoryMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
@@ -223,22 +262,43 @@ codeunit 5869 "Derogatory Posting Mgt."
         if DerogatoryMaintenanceLedgerEntry."Derogatory Source Entry No." = 0 then
             exit;
 
-        if not SourceMaintenanceLedgerEntry.Get(DerogatoryMaintenanceLedgerEntry."Derogatory Source Entry No.") then
+        if not SourceMaintenanceLedgerEntry.Get(DerogatoryMaintenanceLedgerEntry."Derogatory Source Entry No.") then begin
+            LogIntegrityError(Database::"Maintenance Ledger Entry", MissingSourceTelemetryLbl);
             Error(SourceEntryDoesNotExistErr, SourceMaintenanceLedgerEntry.TableCaption(), DerogatoryMaintenanceLedgerEntry."Derogatory Source Entry No.");
+        end;
         if (SourceMaintenanceLedgerEntry."FA No." <> DerogatoryMaintenanceLedgerEntry."FA No.") or
            not GetDerogatoryBookCode(SourceMaintenanceLedgerEntry."Depreciation Book Code", ExpectedDerogatoryDepreciationBookCode) or
            (ExpectedDerogatoryDepreciationBookCode <> DerogatoryMaintenanceLedgerEntry."Depreciation Book Code")
-        then
+        then begin
+            LogIntegrityError(Database::"Maintenance Ledger Entry", InvalidLinkTelemetryLbl);
             Error(InvalidDerogatoryLinkErr, SourceMaintenanceLedgerEntry."Entry No.", DerogatoryMaintenanceLedgerEntry."Depreciation Book Code");
+        end;
 
         ExistingDerogatoryMaintenanceLedgerEntry.SetRange("Derogatory Source Entry No.", SourceMaintenanceLedgerEntry."Entry No.");
         ExistingDerogatoryMaintenanceLedgerEntry.SetRange("Depreciation Book Code", DerogatoryMaintenanceLedgerEntry."Depreciation Book Code");
-        if not ExistingDerogatoryMaintenanceLedgerEntry.IsEmpty() then
+        if not ExistingDerogatoryMaintenanceLedgerEntry.IsEmpty() then begin
+            LogIntegrityError(Database::"Maintenance Ledger Entry", DuplicateLinkTelemetryLbl);
             Error(DuplicateDerogatoryLinkErr, SourceMaintenanceLedgerEntry."Entry No.", DerogatoryMaintenanceLedgerEntry."Depreciation Book Code");
+        end;
+    end;
+
+    internal procedure LogIntegrityError(LedgerTableId: Integer; ErrorMessage: Text)
+    var
+        Telemetry: Codeunit Telemetry;
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('Category', DerogatoryTelemetryCategoryTok);
+        TelemetryDimensions.Add('LedgerTableId', Format(LedgerTableId, 0, 9));
+        Telemetry.LogMessage('0000VU8', ErrorMessage, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
     end;
 
     var
+        DerogatoryTelemetryCategoryTok: Label 'Derogatory Depreciation', Locked = true;
+        MissingSourceTelemetryLbl: Label 'Derogatory link validation failed: the source ledger entry is missing.', Locked = true;
+        InvalidLinkTelemetryLbl: Label 'Derogatory link validation failed: the asset or depreciation book does not match.', Locked = true;
+        DuplicateLinkTelemetryLbl: Label 'Derogatory link validation failed: a counterpart already exists.', Locked = true;
         AmbiguousDerogatoryBookErr: Label 'More than one derogatory depreciation book is configured for depreciation book %1. Correct the depreciation-book setup before posting.', Comment = '%1 - source depreciation book code';
+        LinkedEntryDateCompressionErr: Label 'You cannot date compress %1 %2 because it belongs to a derogatory depreciation pair. Exclude linked entries from date compression.', Comment = '%1 - table caption, %2 - entry number';
         SourceEntryDoesNotExistErr: Label '%1 %2 does not exist and cannot be used as a derogatory source entry.', Comment = '%1 - table caption, %2 - entry number';
         InvalidDerogatoryLinkErr: Label 'Entry %1 cannot be linked to depreciation book %2 as a derogatory counterpart.', Comment = '%1 - source entry number, %2 - target depreciation book code';
         DuplicateDerogatoryLinkErr: Label 'A derogatory counterpart already exists for source entry %1 in depreciation book %2.', Comment = '%1 - source entry number, %2 - target depreciation book code';

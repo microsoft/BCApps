@@ -87,7 +87,7 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         CreateMultipleFAPostingTypeSetup(FADepreciationBook);
 
         // Exercise.
-        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts);  // EntryAmounts, calclulated on the basis of CalcReverseAmounts function of Calculate Disposal.
+        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts, true);
 
         // Verify.
         FADepreciationBook.CalcFields(Derogatory);
@@ -106,7 +106,7 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         CreateMultipleFAPostingTypeSetup(FADepreciationBook);
 
         // Exercise.
-        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts);
+        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts, true);
 
         // Verify.
         FADepreciationBook.CalcFields(Derogatory);

@@ -79,6 +79,9 @@ codeunit 5600 "FA Insert Ledger Entry"
         MissingDerogatoryCounterpartErr: Label 'The derogatory counterpart for source entry %1 in depreciation book %2 is missing.', Comment = '%1 - source entry number, %2 - depreciation book code';
         MultipleDerogatoryCounterpartsErr: Label 'More than one derogatory counterpart references source entry %1.', Comment = '%1 - source entry number';
         AmbiguousLegacyDerogatoryErr: Label 'The historical derogatory counterpart for source entry %1 cannot be identified uniquely. Correct the depreciation book setup and historical links before reversing the entry.', Comment = '%1 - source entry number';
+        MissingDerogatoryCounterpartTelemetryLbl: Label 'Derogatory reversal failed: the linked counterpart is missing.', Locked = true;
+        MultipleDerogatoryCounterpartsTelemetryLbl: Label 'Derogatory reversal failed: multiple linked counterparts were found.', Locked = true;
+        AmbiguousLegacyDerogatoryTelemetryLbl: Label 'Derogatory reversal failed: the historical counterpart cannot be identified uniquely.', Locked = true;
 
     procedure InsertFA(var FALedgEntry3: Record "FA Ledger Entry")
     var
@@ -933,14 +936,17 @@ codeunit 5600 "FA Insert Ledger Entry"
                          ReversingFALedgerEntry."FA No.", DerogatoryDepreciationBookCode)
                     then
                         exit;
+                    DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", MissingDerogatoryCounterpartTelemetryLbl);
                     Error(
                         MissingDerogatoryCounterpartErr,
                         ReversingFALedgerEntry."Reversed Entry No.", DerogatoryDepreciationBookCode);
                 end;
             1:
                 FALedgEntryForDerog.FindFirst();
-            else
+            else begin
+                DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", MultipleDerogatoryCounterpartsTelemetryLbl);
                 Error(MultipleDerogatoryCounterpartsErr, ReversingFALedgerEntry."Reversed Entry No.");
+            end;
         end;
 
         DerogatoryDepreciationBookCode := FALedgEntryForDerog."Depreciation Book Code";
@@ -1008,14 +1014,17 @@ codeunit 5600 "FA Insert Ledger Entry"
                     if not FADepreciationBook.Get(ReversingMaintenanceLedgerEntry."FA No.", DerogatoryDepreciationBookCode)
                     then
                         exit;
+                    DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", MissingDerogatoryCounterpartTelemetryLbl);
                     Error(
                         MissingDerogatoryCounterpartErr,
                         ReversingMaintenanceLedgerEntry."Reversed Entry No.", DerogatoryDepreciationBookCode);
                 end;
             1:
                 MaintLedgEntryForDerog.FindFirst();
-            else
+            else begin
+                DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", MultipleDerogatoryCounterpartsTelemetryLbl);
                 Error(MultipleDerogatoryCounterpartsErr, ReversingMaintenanceLedgerEntry."Reversed Entry No.");
+            end;
         end;
 
         DerogatoryDepreciationBookCode := MaintLedgEntryForDerog."Depreciation Book Code";
@@ -1039,15 +1048,19 @@ codeunit 5600 "FA Insert Ledger Entry"
         if (OriginalFALedgerEntry."Reversed Entry No." <> 0) or
            not DerogatoryPostingMgt.GetDerogatoryBookCode(
                OriginalFALedgerEntry."Depreciation Book Code", DerogatoryDepreciationBookCode)
-        then
+        then begin
+            DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
             Error(AmbiguousLegacyDerogatoryErr, OriginalFALedgerEntry."Entry No.");
+        end;
 
         SetLegacyFAIdentityFilters(DerogatoryFALedgerEntry, OriginalFALedgerEntry, DerogatoryDepreciationBookCode);
         DerogatoryFALedgerEntry.SetFilter("Transaction No.", '%1|%2', OriginalFALedgerEntry."Transaction No.", 0);
         DerogatoryFALedgerEntry.SetRange(Reversed, false);
         DerogatoryFALedgerEntry.SetRange("Reversed by Entry No.", 0);
-        if DerogatoryFALedgerEntry.Count() <> 1 then
+        if DerogatoryFALedgerEntry.Count() <> 1 then begin
+            DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
             Error(AmbiguousLegacyDerogatoryErr, OriginalFALedgerEntry."Entry No.");
+        end;
         DerogatoryFALedgerEntry.FindFirst();
 
         SetLegacyFAIdentityFilters(CompetingFALedgerEntry, OriginalFALedgerEntry, OriginalFALedgerEntry."Depreciation Book Code");
@@ -1059,8 +1072,10 @@ codeunit 5600 "FA Insert Ledger Entry"
         if CompetingFALedgerEntry.FindSet() then
             repeat
                 LinkedFALedgerEntry.SetRange("Derogatory Source Entry No.", CompetingFALedgerEntry."Entry No.");
-                if LinkedFALedgerEntry.IsEmpty() then
+                if LinkedFALedgerEntry.IsEmpty() then begin
+                    DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
                     Error(AmbiguousLegacyDerogatoryErr, OriginalFALedgerEntry."Entry No.");
+                end;
             until CompetingFALedgerEntry.Next() = 0;
     end;
 
@@ -1094,16 +1109,20 @@ codeunit 5600 "FA Insert Ledger Entry"
         if (OriginalMaintenanceLedgerEntry."Reversed Entry No." <> 0) or
            not DerogatoryPostingMgt.GetDerogatoryBookCode(
                OriginalMaintenanceLedgerEntry."Depreciation Book Code", DerogatoryDepreciationBookCode)
-        then
+        then begin
+            DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
             Error(AmbiguousLegacyDerogatoryErr, OriginalMaintenanceLedgerEntry."Entry No.");
+        end;
 
         SetLegacyMaintenanceIdentityFilters(
             DerogatoryMaintenanceLedgerEntry, OriginalMaintenanceLedgerEntry, DerogatoryDepreciationBookCode);
         DerogatoryMaintenanceLedgerEntry.SetFilter("Transaction No.", '%1|%2', OriginalMaintenanceLedgerEntry."Transaction No.", 0);
         DerogatoryMaintenanceLedgerEntry.SetRange(Reversed, false);
         DerogatoryMaintenanceLedgerEntry.SetRange("Reversed by Entry No.", 0);
-        if DerogatoryMaintenanceLedgerEntry.Count() <> 1 then
+        if DerogatoryMaintenanceLedgerEntry.Count() <> 1 then begin
+            DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
             Error(AmbiguousLegacyDerogatoryErr, OriginalMaintenanceLedgerEntry."Entry No.");
+        end;
         DerogatoryMaintenanceLedgerEntry.FindFirst();
 
         SetLegacyMaintenanceIdentityFilters(
@@ -1115,8 +1134,10 @@ codeunit 5600 "FA Insert Ledger Entry"
         if CompetingMaintenanceLedgerEntry.FindSet() then
             repeat
                 LinkedMaintenanceLedgerEntry.SetRange("Derogatory Source Entry No.", CompetingMaintenanceLedgerEntry."Entry No.");
-                if LinkedMaintenanceLedgerEntry.IsEmpty() then
+                if LinkedMaintenanceLedgerEntry.IsEmpty() then begin
+                    DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
                     Error(AmbiguousLegacyDerogatoryErr, OriginalMaintenanceLedgerEntry."Entry No.");
+                end;
             until CompetingMaintenanceLedgerEntry.Next() = 0;
     end;
 

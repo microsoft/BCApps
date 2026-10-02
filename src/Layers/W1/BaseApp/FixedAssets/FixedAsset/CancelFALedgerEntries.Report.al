@@ -221,7 +221,7 @@ report 5688 "Cancel FA Ledger Entries"
         DeprBook.Get(DeprBookCode);
         if UseNewPostingDate then
             DeprBook.TestField("Use Same FA+G/L Posting Dates", false);
-        DeprBook.IndexGLIntegration(GLIntegration);
+        DeprBook.IndexGLIntegration(GLIntegration, true);
         FirstGenJnl := true;
         FirstFAJnl := true;
         Window.Open(Text001);

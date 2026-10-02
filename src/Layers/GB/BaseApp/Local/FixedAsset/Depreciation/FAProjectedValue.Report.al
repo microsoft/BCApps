@@ -1065,7 +1065,7 @@ report 10560 "FA - Projected Value"
         CalculateDisposal: Codeunit "Calculate Disposal";
         EntryAmounts: array[15] of Decimal;
     begin
-        CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, EntryAmounts);
+        CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, EntryAmounts, true);
         AssetAmounts[3] := FADeprBook."Projected Proceeds on Disposal";
         if EntryAmounts[1] <> 0 then
             AssetAmounts[4] := EntryAmounts[1]

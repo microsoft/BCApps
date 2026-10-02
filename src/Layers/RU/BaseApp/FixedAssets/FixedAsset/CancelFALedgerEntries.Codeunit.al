@@ -67,7 +67,7 @@ codeunit 5624 "Cancel FA Ledger Entries"
                 IsHandled := false;
                 OnTransferLineOnBeforeIndexGLIntegration(DeprBook, IsHandled);
                 if not IsHandled then begin
-                    DeprBook.IndexGLIntegration(GLIntegration);
+                    DeprBook.IndexGLIntegration(GLIntegration, true);
                     CheckType(FALedgEntry);
                     if NewPostingDate > 0D then begin
                         FALedgEntry."Posting Date" := NewPostingDate;

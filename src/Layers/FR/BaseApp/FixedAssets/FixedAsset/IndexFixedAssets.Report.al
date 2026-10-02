@@ -256,7 +256,7 @@ report 5690 "Index Fixed Assets"
               DeprBook.FieldCaption(Code),
               DeprBook.Code);
 
-        DeprBook.IndexGLIntegration(GLIntegration);
+        DeprBook.IndexGLIntegration(GLIntegration, true);
         FirstGenJnl := true;
         FirstFAJnl := true;
 

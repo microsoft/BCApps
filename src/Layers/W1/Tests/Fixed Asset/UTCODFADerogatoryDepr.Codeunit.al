@@ -19,6 +19,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         IsInitialized: Boolean;
         ValueMustEqualMsg: Label 'Value must be equal';
 
@@ -117,7 +118,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         CreateMultipleFAPostingTypeSetup(FADepreciationBook);
 
         // [WHEN] Disposal reversal amounts are calculated
-        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts);
+        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts, true);
 
         // [THEN] The derogatory reversal amount is negated
         FADepreciationBook.CalcFields("Derogatory Amount");
@@ -140,11 +141,81 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         CreateMultipleFAPostingTypeSetup(FADepreciationBook);
 
         // [WHEN] Disposal gain or loss is calculated
-        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts);
+        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts, true);
 
         // [THEN] The derogatory gain or loss amount is negated
         FADepreciationBook.CalcFields("Derogatory Amount");
         Assert.AreEqual(-FADepreciationBook."Derogatory Amount", EntryAmounts[15], ValueMustEqualMsg);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure LegacyDisposalAPIsPreserveAmountsAndEntryNumbers()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Published disposal APIs retain their original array contracts and results
+        Initialize();
+
+        // [GIVEN] FA "F" has normal and derogatory amounts
+        CreateCompatibilityFixture(FADepreciationBook);
+
+        // [WHEN] The legacy and extended disposal APIs are called
+        // [THEN] Legacy amounts and entry numbers agree, and extended results include derogatory amounts
+        VerifyDisposalAPICompatibility(FADepreciationBook);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure GainLossOverloadCanExcludeAdditionalPostingTypes()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        CalculateDisposal: Codeunit "Calculate Disposal";
+        IncludedAmounts: array[15] of Decimal;
+        ExcludedAmounts: array[15] of Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The generic gain/loss overload can exclude additional posting types without changing legacy results
+        Initialize();
+
+        // [GIVEN] FA "F" has a derogatory amount and a reused result buffer
+        CreateCompatibilityFixture(FADepreciationBook);
+        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", IncludedAmounts, true);
+        CopyArray(ExcludedAmounts, IncludedAmounts, 1, 15);
+
+        // [WHEN] Additional posting types are excluded
+        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", ExcludedAmounts, false);
+
+        // [THEN] Only the additional result is cleared
+        VerifyLegacyAmounts(IncludedAmounts, ExcludedAmounts);
+        Assert.AreEqual(-200, IncludedAmounts[15], 'Including additional types must return the derogatory amount.');
+        Assert.AreEqual(0, ExcludedAmounts[15], 'Excluding additional types must clear a previous derogatory result.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ReverseAmountsOverloadCanExcludeAdditionalPostingTypes()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        CalculateDisposal: Codeunit "Calculate Disposal";
+        IncludedAmounts: array[5] of Decimal;
+        ExcludedAmounts: array[5] of Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The generic reversal overload can exclude additional posting types without changing legacy results
+        Initialize();
+
+        // [GIVEN] FA "F" has a derogatory amount and a reused result buffer
+        CreateCompatibilityFixture(FADepreciationBook);
+        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", IncludedAmounts, true);
+        CopyArray(ExcludedAmounts, IncludedAmounts, 1, 5);
+
+        // [WHEN] Additional posting types are excluded
+        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", ExcludedAmounts, false);
+
+        // [THEN] Only the additional result is cleared
+        VerifyReverseAmountsWithoutAdditionalTypes(IncludedAmounts, ExcludedAmounts);
     end;
 
     local procedure Initialize()
@@ -263,6 +334,23 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         exit(SourceCode.Code);
     end;
 
+    local procedure CreateCompatibilityFixture(var FADepreciationBook: Record "FA Depreciation Book")
+    var
+        FixedAsset: Record "Fixed Asset";
+        DepreciationBook: Record "Depreciation Book";
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        LibraryFixedAsset.CreateFixedAsset(FixedAsset);
+        LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
+        FALedgerEntry."Entry No." := FALedgerEntry.GetLastEntryNo() + 1;
+        FALedgerEntry."FA No." := FixedAsset."No.";
+        FALedgerEntry."Depreciation Book Code" := DepreciationBook.Code;
+        FALedgerEntry."FA Posting Type" := FALedgerEntry."FA Posting Type"::Derogatory;
+        FALedgerEntry.Amount := 200;
+        FALedgerEntry.Insert();
+    end;
+
     local procedure OnRunGenJnlPostBatch(DocumentNo: Code[20]; ErrorCode: Text[1024])
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -274,5 +362,90 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         asserterror CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJournalLine);
 
         Assert.ExpectedErrorCode(ErrorCode);
+    end;
+
+    local procedure VerifyDisposalAPICompatibility(FADepreciationBook: Record "FA Depreciation Book")
+    var
+        CalculateDisposal: Codeunit "Calculate Disposal";
+        DepreciationBookRecordRef: RecordRef;
+        LegacyAmounts: array[14] of Decimal;
+        LegacyNumbers: array[14] of Integer;
+        LegacyReverseAmounts: array[4] of Decimal;
+        ExtendedAmounts: array[15] of Decimal;
+        ExtendedNumbers: array[15] of Integer;
+        ExtendedReverseAmounts: array[5] of Decimal;
+        FrenchAmounts: array[15] of Decimal;
+        FrenchNumbers: array[15] of Integer;
+        FrenchReverseAmounts: array[5] of Decimal;
+        IsFrenchAPI: Boolean;
+        Index: Integer;
+    begin
+        // The French APIs already exposed the extended arrays before the W1 feature.
+        DepreciationBookRecordRef.Open(Database::"Depreciation Book");
+        IsFrenchAPI := DepreciationBookRecordRef.FieldExist(10802);
+        DepreciationBookRecordRef.Close();
+        if IsFrenchAPI then begin
+            CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", FrenchAmounts);
+            CopyArray(LegacyAmounts, FrenchAmounts, 1, 14);
+        end else
+            CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", LegacyAmounts);
+        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", ExtendedAmounts, true);
+        VerifyLegacyAmounts(LegacyAmounts, ExtendedAmounts);
+        Assert.AreEqual(-200, ExtendedAmounts[15], 'The extended disposal result must include derogatory depreciation.');
+
+        if IsFrenchAPI then begin
+            CalculateDisposal.CalcSecondGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", 100, FrenchAmounts);
+            CopyArray(LegacyAmounts, FrenchAmounts, 1, 14);
+        end else
+            CalculateDisposal.CalcSecondGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", 100, LegacyAmounts);
+        CalculateDisposal.CalcSecondGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", 100, ExtendedAmounts);
+        VerifyLegacyAmounts(LegacyAmounts, ExtendedAmounts);
+
+        if IsFrenchAPI then begin
+            CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", FrenchReverseAmounts);
+            CopyArray(LegacyReverseAmounts, FrenchReverseAmounts, 1, 4);
+        end else
+            CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", LegacyReverseAmounts);
+        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", ExtendedReverseAmounts, true);
+        for Index := 1 to 4 do
+            Assert.AreEqual(LegacyReverseAmounts[Index], ExtendedReverseAmounts[Index], 'Legacy reverse amounts must not change.');
+        Assert.AreEqual(-200, ExtendedReverseAmounts[5], 'The extended reversal must include derogatory depreciation.');
+
+        LegacyAmounts[3] := 300;
+        ExtendedAmounts[3] := 300;
+        FrenchAmounts[3] := 300;
+        LegacyNumbers[3] := 123;
+        ExtendedNumbers[3] := 123;
+        FrenchNumbers[3] := 123;
+        if IsFrenchAPI then begin
+            CalculateDisposal.GetErrorDisposal(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", true, 1, FrenchAmounts, FrenchNumbers);
+            CopyArray(LegacyAmounts, FrenchAmounts, 1, 14);
+            CopyArray(LegacyNumbers, FrenchNumbers, 1, 14);
+        end else
+            CalculateDisposal.GetErrorDisposal(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", true, 1, LegacyAmounts, LegacyNumbers);
+        CalculateDisposal.GetErrorDisposal(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", true, 1, ExtendedAmounts, ExtendedNumbers);
+        VerifyLegacyAmounts(LegacyAmounts, ExtendedAmounts);
+        for Index := 1 to 14 do
+            Assert.AreEqual(LegacyNumbers[Index], ExtendedNumbers[Index], 'Legacy disposal entry numbers must not change.');
+        Assert.AreEqual(300, LegacyAmounts[3], 'Unchanged input amounts must survive the compatibility delegate.');
+        Assert.AreEqual(0, LegacyNumbers[3], 'The compatibility delegate must return the cleared entry numbers.');
+    end;
+
+    local procedure VerifyLegacyAmounts(LegacyAmounts: array[14] of Decimal; ExtendedAmounts: array[15] of Decimal)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to 14 do
+            Assert.AreEqual(LegacyAmounts[Index], ExtendedAmounts[Index], 'Legacy disposal amounts must not change.');
+    end;
+
+    local procedure VerifyReverseAmountsWithoutAdditionalTypes(IncludedAmounts: array[5] of Decimal; ExcludedAmounts: array[5] of Decimal)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to 4 do
+            Assert.AreEqual(IncludedAmounts[Index], ExcludedAmounts[Index], 'Legacy reversal amounts must not change.');
+        Assert.AreEqual(-200, IncludedAmounts[5], 'Including additional types must return the derogatory amount.');
+        Assert.AreEqual(0, ExcludedAmounts[5], 'Excluding additional types must clear a previous derogatory result.');
     end;
 }

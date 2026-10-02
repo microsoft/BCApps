@@ -385,9 +385,9 @@ table 5611 "Depreciation Book"
                     if xRec."Derogatory Calc." <> '' then begin
                         FADeprBook.SetLoadFields("FA No.", "Depreciation Book Code");
                         FADeprBook.SetRange("Depreciation Book Code", xRec."Derogatory Calc.");
+                        FADeprBook.SetAutoCalcFields("Derogatory Amount");
                         if FADeprBook.FindSet() then
                             repeat
-                                FADeprBook.CalcFields("Derogatory Amount");
                                 FADeprBook.TestField("Derogatory Amount", 0);
                             until FADeprBook.Next() = 0;
                     end;
@@ -563,7 +563,7 @@ table 5611 "Depreciation Book"
         FAPostingTypeSetup: Record "FA Posting Type Setup";
 
 #pragma warning disable AA0244
-    procedure IndexGLIntegration(var GLIntegration: array[13] of Boolean)
+    procedure IndexGLIntegration(var GLIntegration: array[9] of Boolean)
 #pragma warning restore AA0244
     begin
         GLIntegration[1] := "G/L Integration - Acq. Cost";
@@ -575,7 +575,15 @@ table 5611 "Depreciation Book"
         GLIntegration[7] := "G/L Integration - Disposal";
         GLIntegration[8] := "G/L Integration - Maintenance";
         GLIntegration[9] := false; // Salvage Value
-        GLIntegration[13] := "Integration G/L - Derogatory";
+    end;
+
+    procedure IndexGLIntegration(var GLIntegration: array[13] of Boolean; IncludeAdditionalPostingTypes: Boolean)
+    var
+        LegacyGLIntegration: array[9] of Boolean;
+    begin
+        IndexGLIntegration(LegacyGLIntegration);
+        CopyArray(GLIntegration, LegacyGLIntegration, 1, 9);
+        GLIntegration[13] := IncludeAdditionalPostingTypes and "Integration G/L - Derogatory";
     end;
 
     procedure CheckIntegrationFields()
@@ -583,7 +591,7 @@ table 5611 "Depreciation Book"
         i: Integer;
     begin
         if "Derogatory Calc." <> '' then begin
-            IndexGLIntegration(GLIntegration);
+            IndexGLIntegration(GLIntegration, true);
             for i := 1 to ArrayLen(GLIntegration) do
                 if GLIntegration[i] then
                     Error(DerogatoryDeprBookCannotBeIntegratedWithGLErr);

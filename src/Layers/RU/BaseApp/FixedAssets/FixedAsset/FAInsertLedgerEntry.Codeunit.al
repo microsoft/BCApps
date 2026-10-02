@@ -115,6 +115,8 @@ codeunit 5600 "FA Insert Ledger Entry"
         DepreciationAlreadyAppliedErr: Label 'Depreciation ledger entries have already been posted for fixed asset %1 in depreciation book %2. You must first reverse them in order to post bonus depreciation.', Comment = '%1 - fixed asset code; %2 - depreciation book code';
         FASetupBonusDepreciationErr: Label 'Fixed Asset Setup is not correctly configured for bonus depreciation. You must make sure that bonus depreciation percentage and effective date are set up correctly.';
         BonusDepreciationExceedsAllowedValueErr: Label 'The amount of bonus depreciation must not exceed the allowed value calculated based on acquisition cost and bonus depreciation percentage set up in Fixed Asset Setup.';
+        MissingDerogatoryCounterpartTelemetryLbl: Label 'Derogatory reversal skipped: the linked counterpart is missing.', Locked = true;
+        MultipleDerogatoryCounterpartsTelemetryLbl: Label 'Derogatory reversal skipped: multiple linked counterparts were found.', Locked = true;
 
     procedure InsertFA(var FALedgEntry3: Record "FA Ledger Entry")
     var
@@ -971,10 +973,13 @@ codeunit 5600 "FA Insert Ledger Entry"
                  Enum::"Derogatory Posting Role"::Source, DerogatoryDepreciationBookCode)
             then
                 exit;
+            DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", MissingDerogatoryCounterpartTelemetryLbl);
             exit;
         end else begin
-            if FALedgEntryForDerog.Next() <> 0 then
+            if FALedgEntryForDerog.Next() <> 0 then begin
+                DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", MultipleDerogatoryCounterpartsTelemetryLbl);
                 exit;
+            end;
             DerogatoryDepreciationBookCode := FALedgEntryForDerog."Depreciation Book Code";
         end;
 
@@ -1008,10 +1013,13 @@ codeunit 5600 "FA Insert Ledger Entry"
                  Enum::"Derogatory Posting Role"::Source, DerogatoryDepreciationBookCode)
             then
                 exit;
+            DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", MissingDerogatoryCounterpartTelemetryLbl);
             exit;
         end else begin
-            if MaintLedgEntryForDerog.Next() <> 0 then
+            if MaintLedgEntryForDerog.Next() <> 0 then begin
+                DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", MultipleDerogatoryCounterpartsTelemetryLbl);
                 exit;
+            end;
             DerogatoryDepreciationBookCode := MaintLedgEntryForDerog."Depreciation Book Code";
         end;
 

@@ -229,7 +229,7 @@ report 5687 "Copy Depreciation Book"
         DeprBook.Get(DeprBookCode);
         DeprBook2.Get(DeprBookCode2);
         ExchangeRate := GetExchangeRate();
-        DeprBook2.IndexGLIntegration(GLIntegration);
+        DeprBook2.IndexGLIntegration(GLIntegration, true);
         FirstGenJnl := true;
         FirstFAJnl := true;
         Window.Open(Text001);

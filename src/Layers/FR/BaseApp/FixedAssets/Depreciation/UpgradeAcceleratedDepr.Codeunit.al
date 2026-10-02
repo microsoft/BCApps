@@ -58,20 +58,11 @@ codeunit 5868 "Upgrade Accelerated Depr."
 
     local procedure TransferFields(TableId: Integer; SourceFieldNo: Integer; TargetFieldNo: Integer)
     var
-        RecRef: RecordRef;
-        TargetFieldRef: FieldRef;
-        SourceFieldRef: FieldRef;
+        DataTransfer: DataTransfer;
     begin
-        RecRef.Open(TableId, false);
-        SourceFieldRef := RecRef.Field(SourceFieldNo);
-        TargetFieldRef := RecRef.Field(TargetFieldNo);
-
-        if RecRef.FindSet() then
-            repeat
-                TargetFieldRef.Value := SourceFieldRef.Value;
-                RecRef.Modify(false);
-            until RecRef.Next() = 0;
-        RecRef.Close();
+        DataTransfer.SetTables(TableId, TableId);
+        DataTransfer.AddFieldValue(SourceFieldNo, TargetFieldNo);
+        DataTransfer.CopyFields();
     end;
 }
 #endif

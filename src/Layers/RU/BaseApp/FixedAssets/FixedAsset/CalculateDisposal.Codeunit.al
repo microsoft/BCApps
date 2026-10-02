@@ -25,7 +25,16 @@ codeunit 5605 "Calculate Disposal"
         FADeprBook: Record "FA Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
 
-    procedure CalcGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[15] of Decimal)
+    procedure CalcGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[14] of Decimal)
+    var
+        ExtendedEntryAmounts: array[15] of Decimal;
+    begin
+        CopyArray(ExtendedEntryAmounts, EntryAmounts, 1, 14);
+        CalcGainLoss(FANo, DeprBookCode, ExtendedEntryAmounts, false);
+        CopyArray(EntryAmounts, ExtendedEntryAmounts, 1, 14);
+    end;
+
+    procedure CalcGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[15] of Decimal; IncludeAdditionalPostingTypes: Boolean)
     var
         EntryAmounts2: array[4] of Decimal;
         GainLoss: Decimal;
@@ -46,7 +55,8 @@ codeunit 5605 "Calculate Disposal"
         EntryAmounts[3] := -FADeprBook."Acquisition Cost";
         EntryAmounts[4] := -FADeprBook.Depreciation;
         EntryAmounts[9] := -FADeprBook."Salvage Value";
-        EntryAmounts[15] := -FADeprBook."Derogatory Amount";
+        if IncludeAdditionalPostingTypes then
+            EntryAmounts[15] := -FADeprBook."Derogatory Amount";
         OnCalcGainLossOnAfterSetEntryAmounts(FANo, DeprBookCode, EntryAmounts);
         if DeprBook."Disposal Calculation Method" = DeprBook."Disposal Calculation Method"::Gross then
             EntryAmounts[10] := FADeprBook."Book Value";
@@ -68,7 +78,7 @@ codeunit 5605 "Calculate Disposal"
             EntryAmounts[2] := GainLoss;
     end;
 
-    procedure CalcSecondGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; LastDisposalPrice: Decimal; var EntryAmounts: array[15] of Decimal)
+    procedure CalcSecondGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; LastDisposalPrice: Decimal; var EntryAmounts: array[14] of Decimal)
     var
         NewGainLoss: Decimal;
     begin
@@ -93,7 +103,16 @@ codeunit 5605 "Calculate Disposal"
             end;
     end;
 
-    procedure CalcReverseAmounts(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[5] of Decimal)
+    procedure CalcReverseAmounts(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[4] of Decimal)
+    var
+        ExtendedEntryAmounts: array[5] of Decimal;
+    begin
+        CopyArray(ExtendedEntryAmounts, EntryAmounts, 1, 4);
+        CalcReverseAmounts(FANo, DeprBookCode, ExtendedEntryAmounts, false);
+        CopyArray(EntryAmounts, ExtendedEntryAmounts, 1, 4);
+    end;
+
+    procedure CalcReverseAmounts(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[5] of Decimal; IncludeAdditionalPostingTypes: Boolean)
     var
         FAPostingTypeSetup: Record "FA Posting Type Setup";
         BookValueAmounts: array[4] of Decimal;
@@ -134,7 +153,8 @@ codeunit 5605 "Calculate Disposal"
             end;
         end;
 
-        EntryAmounts[5] := -CalcDerogatoryReverseAmount(FADeprBook);
+        if IncludeAdditionalPostingTypes then
+            EntryAmounts[5] := -CalcDerogatoryReverseAmount(FADeprBook);
     end;
 
     procedure GetDisposalType(FANo: Code[20]; DeprBookCode: Code[10]; ErrorNo: Integer; var DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal; var DisposalMethod: Option " ",Net,Gross; var MaxDisposalNo: Integer; var SalesEntryNo: Integer)
@@ -192,7 +212,7 @@ codeunit 5605 "Calculate Disposal"
         OnAfterGetDisposalMethod(DisposalMethod);
     end;
 
-    procedure GetErrorDisposal(FANo: Code[20]; DeprBookCode: Code[10]; OnlyGainLoss: Boolean; MaxDisposalNo: Integer; var EntryAmounts: array[15] of Decimal; var EntryNumbers: array[15] of Integer)
+    procedure GetErrorDisposal(FANo: Code[20]; DeprBookCode: Code[10]; OnlyGainLoss: Boolean; MaxDisposalNo: Integer; var EntryAmounts: array[14] of Decimal; var EntryNumbers: array[14] of Integer)
     var
         FALedgEntry: Record "FA Ledger Entry";
         i: Integer;
@@ -310,7 +330,7 @@ codeunit 5605 "Calculate Disposal"
     end;
 
     [Scope('OnPrem')]
-    procedure CalcGainLossDisposalLowValueFA(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[15] of Decimal)
+    procedure CalcGainLossDisposalLowValueFA(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[14] of Decimal)
     var
         GainLoss: Decimal;
     begin
@@ -328,7 +348,7 @@ codeunit 5605 "Calculate Disposal"
     end;
 
     [Scope('OnPrem')]
-    procedure GetErrorDisposalLowValueFA(ErrFALedgEntry: Record "FA Ledger Entry"; ErrorEntryNo: Integer; var EntryAmounts: array[15] of Decimal; var EntryNumbers: array[14] of Integer)
+    procedure GetErrorDisposalLowValueFA(ErrFALedgEntry: Record "FA Ledger Entry"; ErrorEntryNo: Integer; var EntryAmounts: array[14] of Decimal; var EntryNumbers: array[14] of Integer)
     var
         FALedgEntry: Record "FA Ledger Entry";
         TransactionNo: Integer;
@@ -408,4 +428,3 @@ codeunit 5605 "Calculate Disposal"
     begin
     end;
 }
-

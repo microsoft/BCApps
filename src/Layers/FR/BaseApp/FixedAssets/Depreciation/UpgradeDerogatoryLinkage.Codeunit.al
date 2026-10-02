@@ -26,6 +26,10 @@ codeunit 5871 "Upgrade Derogatory Linkage"
     var
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
+        DerogatoryTelemetryCategoryTok: Label 'Derogatory Depreciation', Locked = true;
+        LinkageCompletedTelemetryLbl: Label 'Historical derogatory linkage processing completed.', Locked = true;
+        InitialRunModeTok: Label 'Initial', Locked = true;
+        CorrectiveRunModeTok: Label 'Corrective', Locked = true;
 
     trigger OnUpgradePerCompany()
     begin
@@ -51,6 +55,11 @@ codeunit 5871 "Upgrade Derogatory Linkage"
     /// <param name="ForceCorrective">Specifies whether to ignore the original upgrade tag while rebuilding links.
     /// The original tag is not set when this parameter is true.</param>
     procedure RunAfterRelationshipTransfer(ForceCorrective: Boolean)
+    begin
+        RunAfterRelationshipTransfer(ForceCorrective, CurrentDateTime());
+    end;
+
+    local procedure RunAfterRelationshipTransfer(ForceCorrective: Boolean; StartedAt: DateTime)
     var
         FALinkedCount: Integer;
         FAAmbiguousCount: Integer;
@@ -75,9 +84,7 @@ codeunit 5871 "Upgrade Derogatory Linkage"
         LinkFALedgerEntries(FALinkedCount, FAAmbiguousCount, FAMissingCount);
         LinkMaintenanceLedgerEntries(MaintenanceLinkedCount, MaintenanceAmbiguousCount, MaintenanceMissingCount);
 
-        EmitLinkageTelemetry(
-            FALinkedCount, FAAmbiguousCount, FAMissingCount,
-            MaintenanceLinkedCount, MaintenanceAmbiguousCount, MaintenanceMissingCount);
+        EmitLinkageTelemetry(StartedAt, ForceCorrective);
 
         if not ForceCorrective then begin
             UpgradeTag.SetUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag());
@@ -108,10 +115,13 @@ codeunit 5871 "Upgrade Derogatory Linkage"
     /// rebuilds the links, and sets the corrective upgrade tag in the caller's transaction.
     /// </summary>
     internal procedure ClearAndRelinkConfiguredRelationshipPairs()
+    var
+        StartedAt: DateTime;
     begin
+        StartedAt := CurrentDateTime();
         ValidateConfiguredRelationships();
         ClearConfiguredRelationshipLinks();
-        RunAfterRelationshipTransfer(true);
+        RunAfterRelationshipTransfer(true, StartedAt);
         UpgradeTag.SetUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag());
     end;
 
@@ -211,18 +221,18 @@ codeunit 5871 "Upgrade Derogatory Linkage"
             until DepreciationBook.Next() = 0;
     end;
 
-    local procedure EmitLinkageTelemetry(FALinkedCount: Integer; FAAmbiguousCount: Integer; FAMissingCount: Integer; MaintenanceLinkedCount: Integer; MaintenanceAmbiguousCount: Integer; MaintenanceMissingCount: Integer)
+    local procedure EmitLinkageTelemetry(StartedAt: DateTime; ForceCorrective: Boolean)
     var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Telemetry: Codeunit Telemetry;
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        TelemetryDimensions.Add('FALinked', Format(FALinkedCount));
-        TelemetryDimensions.Add('FAAmbiguous', Format(FAAmbiguousCount));
-        TelemetryDimensions.Add('FAMissing', Format(FAMissingCount));
-        TelemetryDimensions.Add('MaintenanceLinked', Format(MaintenanceLinkedCount));
-        TelemetryDimensions.Add('MaintenanceAmbiguous', Format(MaintenanceAmbiguousCount));
-        TelemetryDimensions.Add('MaintenanceMissing', Format(MaintenanceMissingCount));
-        FeatureTelemetry.LogUsage('0000FRD', 'Fixed Asset', 'FR historical derogatory linkage upgrade', TelemetryDimensions);
+        TelemetryDimensions.Add('Category', DerogatoryTelemetryCategoryTok);
+        TelemetryDimensions.Add('DurationSeconds', Format((CurrentDateTime() - StartedAt) div 1000));
+        if ForceCorrective then
+            TelemetryDimensions.Add('RunMode', CorrectiveRunModeTok)
+        else
+            TelemetryDimensions.Add('RunMode', InitialRunModeTok);
+        Telemetry.LogMessage('0000VU0', LinkageCompletedTelemetryLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
     end;
 
     // ---------------------------------------------------------------------------------------------------------

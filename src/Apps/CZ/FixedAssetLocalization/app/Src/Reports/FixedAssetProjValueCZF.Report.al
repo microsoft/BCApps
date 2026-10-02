@@ -983,7 +983,7 @@ report 31248 "Fixed Asset - Proj. Value CZF"
         PrevAmount[1] := AssetAmounts[3];
         PrevAmount[2] := AssetAmounts[4];
 
-        CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, GainLossEntryAmounts);
+        CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, GainLossEntryAmounts, true);
         AssetAmounts[3] := FADepreciationBook."Projected Proceeds on Disposal";
         if GainLossEntryAmounts[1] <> 0 then
             AssetAmounts[4] := GainLossEntryAmounts[1]

@@ -19,6 +19,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         IsInitialized: Boolean;
         DialogErr: Label 'Dialog';
 
@@ -658,6 +659,77 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         FAMatrixPostingType.TestField("FA Posting Type Name", FADepreciationBook.FieldCaption("Derogatory Amount"));
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure GLIntegrationKeepsLegacyArrayAndAddsDerogatory()
+    var
+        DepreciationBook: Record "Depreciation Book";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] G/L integration preserves the published array and supports including or excluding additional posting types
+        Initialize();
+
+        // [GIVEN] Book "B" integrates acquisition, depreciation, and derogatory postings
+        LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        DepreciationBook."G/L Integration - Acq. Cost" := true;
+        DepreciationBook."G/L Integration - Depreciation" := true;
+        DepreciationBook."Integration G/L - Derogatory" := true;
+
+        // [WHEN] The original signature and both overload modes are called
+        // [THEN] The original nine values are unchanged and additional integration follows the flag
+        VerifyGLIntegrationCompatibility(DepreciationBook);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RelationshipChangeAllowsAllZeroAssetBalances()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        LastFADepreciationBook: Record "FA Depreciation Book";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A relationship can be removed when every asset has zero derogatory balance
+        Initialize();
+
+        // [GIVEN] Book "B" has two assets without derogatory amounts
+        CreateRelationshipValidationFixture(DepreciationBook, LastFADepreciationBook);
+
+        // [WHEN] The relationship is removed
+        DepreciationBook.Validate("Derogatory Calc.", '');
+
+        // [THEN] The change succeeds
+        Assert.AreEqual('', DepreciationBook."Derogatory Calc.", 'Zero balances must permit removal.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RelationshipChangeChecksLaterAssetBalance()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        LastFADepreciationBook: Record "FA Depreciation Book";
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A nonzero balance on a later asset still prevents changing the relationship
+        Initialize();
+
+        // [GIVEN] Only the last asset of book "B" has a derogatory balance
+        CreateRelationshipValidationFixture(DepreciationBook, LastFADepreciationBook);
+        FALedgerEntry."Entry No." := FALedgerEntry.GetLastEntryNo() + 1;
+        FALedgerEntry."FA No." := LastFADepreciationBook."FA No.";
+        FALedgerEntry."Depreciation Book Code" := LastFADepreciationBook."Depreciation Book Code";
+        FALedgerEntry."FA Posting Type" := FALedgerEntry."FA Posting Type"::Derogatory;
+        FALedgerEntry.Amount := 100;
+        FALedgerEntry.Insert();
+
+        // [WHEN] The relationship is removed
+        asserterror DepreciationBook.Validate("Derogatory Calc.", '');
+
+        // [THEN] Validation checks the later asset, not just the first zero balance
+        Assert.ExpectedError(LastFADepreciationBook.FieldCaption("Derogatory Amount"));
+        Assert.ExpectedErrorCode('TestField');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"UT TAB FA Derogatory Depr.");
@@ -739,6 +811,25 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         MaintenanceLedgerEntry.Insert();
     end;
 
+    local procedure CreateRelationshipValidationFixture(var TaxDepreciationBook: Record "Depreciation Book"; var LastFADepreciationBook: Record "FA Depreciation Book")
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FADepreciationBook: Record "FA Depreciation Book";
+        Index: Integer;
+    begin
+        LibraryFixedAsset.CreateDepreciationBook(NormalDepreciationBook);
+        LibraryFixedAsset.CreateDepreciationBook(TaxDepreciationBook);
+        TaxDepreciationBook.Validate("Derogatory Calc.", NormalDepreciationBook.Code);
+        TaxDepreciationBook.Modify(true);
+        for Index := 1 to 2 do begin
+            LibraryFixedAsset.CreateFixedAsset(FixedAsset);
+            LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", NormalDepreciationBook.Code);
+        end;
+        LastFADepreciationBook.SetRange("Depreciation Book Code", NormalDepreciationBook.Code);
+        LastFADepreciationBook.FindLast();
+    end;
+
     local procedure GetNextFALedgerEntryNo(): Integer
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -783,5 +874,38 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         DepreciationBook."G/L Integration - Maintenance" := true;
         DepreciationBook."Integration G/L - Derogatory" := true;
         DepreciationBook.Modify();
+    end;
+
+    local procedure VerifyGLIntegrationCompatibility(DepreciationBook: Record "Depreciation Book")
+    var
+        DepreciationBookRecordRef: RecordRef;
+        LegacyGLIntegration: array[9] of Boolean;
+        ExtendedGLIntegration: array[13] of Boolean;
+        FrenchGLIntegration: array[13] of Boolean;
+        Index: Integer;
+    begin
+        DepreciationBookRecordRef.GetTable(DepreciationBook);
+        if DepreciationBookRecordRef.FieldExist(10802) then begin
+            DepreciationBookRecordRef.Field(10802).Value := true;
+            DepreciationBookRecordRef.SetTable(DepreciationBook);
+            DepreciationBook.IndexGLIntegration(FrenchGLIntegration);
+            CopyArray(LegacyGLIntegration, FrenchGLIntegration, 1, 9);
+        end else
+            DepreciationBook.IndexGLIntegration(LegacyGLIntegration);
+        DepreciationBookRecordRef.Close();
+        DepreciationBook.IndexGLIntegration(ExtendedGLIntegration, true);
+        for Index := 1 to 9 do
+            Assert.AreEqual(LegacyGLIntegration[Index], ExtendedGLIntegration[Index], 'The original integration values must not change.');
+        Assert.IsTrue(LegacyGLIntegration[1], 'Acquisition integration must remain enabled.');
+        Assert.IsTrue(LegacyGLIntegration[2], 'Depreciation integration must remain enabled.');
+        Assert.IsTrue(ExtendedGLIntegration[13], 'The extended API must expose derogatory integration.');
+
+        DepreciationBook.IndexGLIntegration(ExtendedGLIntegration, false);
+        for Index := 1 to 9 do
+            Assert.AreEqual(LegacyGLIntegration[Index], ExtendedGLIntegration[Index], 'Excluding additional types must preserve the original integration values.');
+        Assert.IsFalse(ExtendedGLIntegration[13], 'Excluding additional types must clear a previous derogatory integration value.');
+
+        DepreciationBook.IndexGLIntegration(ExtendedGLIntegration, true);
+        Assert.IsTrue(ExtendedGLIntegration[13], 'The same buffer must support including additional types again.');
     end;
 }

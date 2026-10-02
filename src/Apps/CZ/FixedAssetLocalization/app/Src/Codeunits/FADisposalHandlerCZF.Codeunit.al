@@ -307,7 +307,7 @@ codeunit 31235 "FA Disposal Handler CZF"
             FAInsertLedgEntry.SetNetdisposal(true);
 
         if DisposalType = DisposalType::FirstDisposal then begin
-            CalculateDisposal.CalcGainLoss(FANo, DeprBookCode, EntryAmounts);
+            CalculateDisposal.CalcGainLoss(FANo, DeprBookCode, EntryAmounts, true);
             for i := 1 to ArrayLen(EntryAmounts) do
                 if EntryAmounts[i] <> 0 then begin
                     FALedgEntry."FA Posting Category" := CalculateDisposal.SetFALedgerPostingCategory(i);
@@ -459,7 +459,7 @@ codeunit 31235 "FA Disposal Handler CZF"
         EntryAmounts: array[5] of Decimal;
         i: Integer;
     begin
-        CalculateDisposal.CalcReverseAmounts(FALedgerEntry."FA No.", DeprBookCode, EntryAmounts);
+        CalculateDisposal.CalcReverseAmounts(FALedgerEntry."FA No.", DeprBookCode, EntryAmounts, true);
         FALedgerEntry."FA Posting Category" := FALedgerEntry."FA Posting Category"::" ";
         FALedgerEntry."Automatic Entry" := true;
         for i := 1 to ArrayLen(EntryAmounts) do

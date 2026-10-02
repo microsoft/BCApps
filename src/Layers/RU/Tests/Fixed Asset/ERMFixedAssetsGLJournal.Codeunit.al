@@ -1384,6 +1384,64 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         Assert.ExpectedErrorCode('Dialog');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LowValueDisposalPreservesLegacyArrayContracts()
+    var
+        FixedAsset: Record "Fixed Asset";
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FALedgerEntry: Record "FA Ledger Entry";
+        CalculateDisposal: Codeunit "Calculate Disposal";
+        LegacyAmounts: array[14] of Decimal;
+        ExtendedAmounts: array[15] of Decimal;
+        LegacyNumbers: array[14] of Integer;
+        ExtendedNumbers: array[14] of Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Russian low-value disposal keeps its original arrays and input amount
+        Initialize();
+
+        // [GIVEN] FA "F" has a non-integrated book and a disposal amount
+        LibraryFixedAsset.CreateFixedAsset(FixedAsset);
+        LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        DepreciationBook."G/L Integration - Disposal" := false;
+        DepreciationBook."G/L Integration - Acq. Cost" := false;
+        DepreciationBook.Modify();
+        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
+        LegacyAmounts[1] := 100;
+        ExtendedAmounts[1] := 100;
+
+        // [WHEN] The original low-value gain/loss method receives both supported buffer sizes
+        CalculateDisposal.CalcGainLossDisposalLowValueFA(FixedAsset."No.", DepreciationBook.Code, LegacyAmounts);
+        CalculateDisposal.CalcGainLossDisposalLowValueFA(FixedAsset."No.", DepreciationBook.Code, ExtendedAmounts);
+
+        // [THEN] The input gain/loss is preserved for both buffer sizes
+        VerifyLowValueDisposalAmounts(LegacyAmounts, ExtendedAmounts);
+        Assert.AreEqual(100, LegacyAmounts[2], 'The original input gain/loss must be preserved.');
+        Assert.AreEqual(-100, LegacyAmounts[3], 'The balancing amount must be preserved.');
+
+        // [GIVEN] A disposal acquisition entry for "F"
+        FALedgerEntry."Entry No." := FALedgerEntry.GetLastEntryNo() + 1;
+        FALedgerEntry."FA No." := FixedAsset."No.";
+        FALedgerEntry."Depreciation Book Code" := DepreciationBook.Code;
+        FALedgerEntry."FA Posting Category" := FALedgerEntry."FA Posting Category"::Disposal;
+        FALedgerEntry."FA Posting Type" := FALedgerEntry."FA Posting Type"::"Acquisition Cost";
+        FALedgerEntry."Transaction No." := 123;
+        FALedgerEntry.Amount := 100;
+        FALedgerEntry.Insert();
+
+        // [WHEN] The original low-value error-disposal method receives both supported buffer sizes
+        CalculateDisposal.GetErrorDisposalLowValueFA(FALedgerEntry, FALedgerEntry."Entry No.", LegacyAmounts, LegacyNumbers);
+        CalculateDisposal.GetErrorDisposalLowValueFA(FALedgerEntry, FALedgerEntry."Entry No.", ExtendedAmounts, ExtendedNumbers);
+
+        // [THEN] Both return the same original entry identity and reverse amount
+        VerifyLowValueDisposalAmounts(LegacyAmounts, ExtendedAmounts);
+        Assert.AreEqual(FALedgerEntry."Entry No.", LegacyNumbers[3], 'The legacy entry-number array must be returned.');
+        Assert.AreEqual(LegacyNumbers[3], ExtendedNumbers[3], 'Both buffer sizes must return the same entry.');
+        Assert.AreEqual(-100, LegacyAmounts[3], 'Both buffer sizes must reverse the acquisition amount.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Fixed Assets GL Journal");
@@ -1399,6 +1457,14 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Fixed Assets GL Journal");
+    end;
+
+    local procedure VerifyLowValueDisposalAmounts(LegacyAmounts: array[14] of Decimal; ExtendedAmounts: array[15] of Decimal)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to 14 do
+            Assert.AreEqual(LegacyAmounts[Index], ExtendedAmounts[Index], 'Legacy low-value disposal amounts must not change.');
     end;
 
     local procedure AdjustForJanEnd(Date: Date): Integer
