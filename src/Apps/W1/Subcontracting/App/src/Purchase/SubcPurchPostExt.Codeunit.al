@@ -32,6 +32,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ShowPostedPurchaseInvoiceLbl: Label 'Show Posted Purchase Invoice';
         ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
         GetTrackedSubcontractingRcptNotSupportedErr: Label 'You cannot copy tracked subcontracting receipt lines into this document. Invoice tracked subcontracting receipts from the subcontracting order instead.';
+        ItemLedgerEntryBufferMustBeTemporaryErr: Label 'The item ledger entry buffer must be temporary.';
 
     [EventSubscriber(ObjectType::Table, Database::"Purch. Rcpt. Line", OnBeforeInsertInvLineFromRcptLine, '', false, false)]
     local procedure BlockTrackedSubcontractingReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var PurchLine: Record "Purchase Line"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
@@ -140,12 +141,11 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
         if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
             exit;
-        if ItemLedgerEntry.IsEmpty() then
-            exit;
 
-        RestoreSubcontractingIdentity(ToPurchLine, PurchRcptLine);
         if not ItemIsTracked(PurchRcptLine."No.") then begin
-            ItemLedgerEntry.FindFirst();
+            if not ItemLedgerEntry.FindFirst() then
+                exit;
+            RestoreSubcontractingIdentity(ToPurchLine, PurchRcptLine);
             ToPurchLine.Validate("Appl.-to Item Entry", ItemLedgerEntry."Entry No.");
             ToPurchLine.Modify(true);
             exit;
@@ -156,6 +156,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
             TempItemLedgerEntry, ItemLedgerEntry, FromPurchInvLine)
         then
             exit;
+        RestoreSubcontractingIdentity(ToPurchLine, PurchRcptLine);
         ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
             TempItemLedgerEntry, ToPurchLine, true, MissingExactCostReversingLink,
             ToPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
@@ -290,6 +291,9 @@ codeunit 20535 "Subc. Purch. Post Ext"
         QuantityToSkipBase: Decimal;
         RemainingQuantityBase: Decimal;
     begin
+        if not TempItemLedgerEntry.IsTemporary() then
+            Error(ItemLedgerEntryBufferMustBeTemporaryErr);
+
         TempItemLedgerEntry.Reset();
         TempItemLedgerEntry.DeleteAll();
         RemainingQuantityBase := Abs(QuantityBase);
