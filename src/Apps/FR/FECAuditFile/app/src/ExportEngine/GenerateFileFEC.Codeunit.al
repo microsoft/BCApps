@@ -22,7 +22,7 @@ using System.Utilities;
 
 codeunit 10826 "Generate File FEC"
 {
-    Access = Internal;
+    Access = Public;
 
     var
         GLRegisterGlobal: Record "G/L Register";
