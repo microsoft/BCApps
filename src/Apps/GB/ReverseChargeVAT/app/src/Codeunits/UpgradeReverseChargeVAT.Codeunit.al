@@ -6,7 +6,6 @@
 namespace Microsoft.Finance.VAT.Setup;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -41,27 +40,26 @@ codeunit 10554 "Upgrade Reverse Charge VAT"
         if UpgradeTag.HasUpgradeTag(UpgTagReverseChargeVAT.GetReverseChargeVATUpgradeTag()) then
             exit;
 
-        TransferFields(Database::"General Ledger Setup", 10507, 10500); // 10507 - the new field "Threshold applies GB", 10500;  the existing field "Threshold applies"; 
-        TransferFields(Database::"General Ledger Setup", 10508, 10501); // 10508 - the new field "Threshold Amount GB", 10501;  the existing field "Threshold Amount"; 
-        TransferFields(Database::Item, 10507, 10500); // 10507 - the new field "Reverse Charge Applies GB", 10500;  the existing field "Reverse Charge Applies"; 
-        TransferFields(Database::"Item Templ.", 10507, 10500); // 10507 - the new field "Reverse Charge Applies GB", 10500;  the existing field "Reverse Charge Applies"; 
-        TransferFields(Database::"Purchase Line", 10507, 10500); // 10507 - the new field "Reverse Charge Item GB", 10500;  the existing field "Reverse Charge Item"; 
-        TransferFields(Database::"Purchases & Payables Setup", 10507, 10501); // 10507 - the new field "Reverse Charge VAT Post. Gr.", 10501;  the existing field "Reverse Charge VAT Posting Gr."; 
-        TransferFields(Database::"Purchases & Payables Setup", 10508, 10502); // 10508 - the new field "Domestic Vendors GB", 10502;  the existing field "Domestic Vendors"; 
-        TransferFields(Database::"Purch. Cr. Memo Line", 10507, 10500); // 10507 - the new field "Reverse Charge Item GB", 10500;  the existing field "Reverse Charge Item"; 
-        TransferFields(Database::"Purch. Cr. Memo Line", 10508, 10501); // 10508 - the new field "Reverse Charge GB", 10501;  the existing field "Reverse Charge"; 
-        TransferFields(Database::"Purch. Inv. Line", 10507, 10500); // 10507 - the new field "Reverse Charge Item GB", 10500;  the existing field "Reverse Charge Item"; 
-        TransferFields(Database::"Purch. Inv. Line", 10508, 10501); // 10508 - the new field "Reverse Charge GB", 10501;  the existing field "Reverse Charge"; 
-        TransferFields(Database::"Sales Cr.Memo Line", 10507, 10500); // 10507 - the new field "Reverse Charge Item GB", 10500;  the existing field "Reverse Charge Item"; 
-        TransferFields(Database::"Sales Cr.Memo Line", 10508, 10501); // 10508 - the new field "Reverse Charge GB", 10501;  the existing field "Reverse Charge"; 
-        TransferFields(Database::"Sales Invoice Line", 10507, 10500); // 10507 - the new field "Reverse Charge Item GB", 10500;  the existing field "Reverse Charge Item"; 
-        TransferFields(Database::"Sales Invoice Line", 10508, 10501); // 10508 - the new field "Reverse Charge GB", 10501;  the existing field "Reverse Charge"; 
-        TransferFields(Database::"Sales Line", 10507, 10500); // 10507 - the new field "Reverse Charge Item GB", 10500;  the existing field "Reverse Charge Item"; 
-        TransferFields(Database::"Sales Line", 10508, 10501); // 10508 - the new field "Reverse Charge GB", 10501;  the existing field "Reverse Charge"; 
-        TransferFields(Database::"Sales & Receivables Setup", 10507, 10501); // 10507 - the new field "Reverse Charge VAT Post. Gr.", 10501;  the existing field "Reverse Charge VAT Posting Gr."; 
-        TransferFields(Database::"Sales & Receivables Setup", 10508, 10502); // 10508 - the new field "Domestic Customers GB", 10502;  the existing field "Domestic Customers"; 
-        TransferFields(Database::"Sales & Receivables Setup", 10509, 10503); // 10509 - the new field "Invoice Wording GB", 10503;  the existing field "Invoice Wording"; 
-        TransferFields(Database::"VAT Amount Line", 10507, 10500); // 10507 - the new field "Reverse Charge GB", 10500;  the existing field "Reverse Charge"; 
+        TransferFields(Database::"General Ledger Setup", 10500, 10507); // Threshold applies
+        TransferFields(Database::"General Ledger Setup", 10501, 10508); // Threshold Amount
+        TransferFields(Database::Item, 10500, 10507); // Reverse Charge Applies
+        TransferFields(Database::"Item Templ.", 10500, 10507); // Reverse Charge Applies
+        TransferFields(Database::"Purchase Line", 10500, 10507); // Reverse Charge Item
+        TransferFields(Database::"Purchases & Payables Setup", 10501, 10507); // Reverse Charge VAT Posting Gr.
+        TransferFields(Database::"Purchases & Payables Setup", 10502, 10508); // Domestic Vendors
+        TransferFields(Database::"Purch. Cr. Memo Line", 10500, 10507); // Reverse Charge Item
+        TransferFields(Database::"Purch. Cr. Memo Line", 10501, 10508); // Reverse Charge
+        TransferFields(Database::"Purch. Inv. Line", 10500, 10507); // Reverse Charge Item
+        TransferFields(Database::"Purch. Inv. Line", 10501, 10508); // Reverse Charge
+        TransferFields(Database::"Sales Cr.Memo Line", 10500, 10507); // Reverse Charge Item
+        TransferFields(Database::"Sales Cr.Memo Line", 10501, 10508); // Reverse Charge
+        TransferFields(Database::"Sales Invoice Line", 10500, 10507); // Reverse Charge Item
+        TransferFields(Database::"Sales Invoice Line", 10501, 10508); // Reverse Charge
+        TransferFields(Database::"Sales Line", 10500, 10507); // Reverse Charge Item
+        TransferFields(Database::"Sales Line", 10501, 10508); // Reverse Charge
+        TransferFields(Database::"Sales & Receivables Setup", 10501, 10507); // Reverse Charge VAT Posting Gr.
+        TransferFields(Database::"Sales & Receivables Setup", 10502, 10508); // Domestic Customers
+        TransferFields(Database::"Sales & Receivables Setup", 10503, 10509); // Invoice Wording
 
         UpgradeTag.SetUpgradeTag(UpgTagReverseChargeVAT.GetReverseChargeVATUpgradeTag());
     end;
@@ -73,15 +71,21 @@ codeunit 10554 "Upgrade Reverse Charge VAT"
         SourceFieldRef: FieldRef;
     begin
         RecRef.Open(TableId, false);
+        RecRef.Init();
         SourceFieldRef := RecRef.Field(SourceFieldNo);
-        SourceFieldRef.SetFilter('<>%1', '');
+        // Use the field's typed default rather than blank text for Boolean and Decimal filters.
+        SourceFieldRef.SetFilter('<>%1', SourceFieldRef.Value);
 
         if RecRef.FindSet() then
             repeat
                 TargetFieldRef := RecRef.Field(TargetFieldNo);
-                TargetFieldRef.VALUE := SourceFieldRef.VALUE;
-                RecRef.Modify(false);
+                if Format(TargetFieldRef.Value, 0, 9) <> Format(SourceFieldRef.Value, 0, 9) then begin
+                    TargetFieldRef.Value := SourceFieldRef.Value;
+                    RecRef.Modify(false);
+                end;
             until RecRef.Next() = 0;
+
+        RecRef.Close();
     end;
 }
 #endif
