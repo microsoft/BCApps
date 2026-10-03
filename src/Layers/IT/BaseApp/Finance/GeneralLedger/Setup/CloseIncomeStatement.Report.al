@@ -49,7 +49,6 @@ report 94 "Close Income Statement"
                     TempDimBuf: Record "Dimension Buffer" temporary;
                     TempDimBuf2: Record "Dimension Buffer" temporary;
                     DimensionBufferID: Integer;
-                    RowOffset: Integer;
                 begin
                     EntryCount := EntryCount + 1;
                     if CurrentDateTime - LastWindowUpdateDateTime > 1000 then begin
@@ -58,7 +57,10 @@ report 94 "Close Income Statement"
                     end;
 
                     if GroupSum() then begin
-                        CalcSumsInFilter("G/L Entry", RowOffset);
+                        if not CalcSumsInFilter("G/L Entry") then begin
+                            CurrReport.Skip();
+                            exit;
+                        end;
                         GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                     end;
 
@@ -108,9 +110,6 @@ report 94 "Close Income Statement"
                         end;
                         OnGLEntryOnAfterGetRecordOnAfterEntryNoAmountBuf(TempEntryNoAmountBuffer, "G/L Entry");
                     end;
-
-                    if GroupSum() then
-                        Next(RowOffset);
                 end;
 
                 trigger OnPostDataItem()
@@ -547,6 +546,7 @@ report 94 "Close Income Statement"
         EntryNo: Integer;
         GroupEntryNos: Dictionary of [Text, Integer];
         EntryNoDimensionIds: Dictionary of [Text, Integer];
+        ProcessedGLEntryGroups: Dictionary of [Text, Boolean];
 #pragma warning disable AA0074
         Text000: Label 'Enter the ending date for the fiscal year.';
         Text001: Label 'Enter a Document No.';
@@ -676,13 +676,14 @@ report 94 "Close Income Statement"
     end;
 
     /// <summary>
-    /// Calculates the sum of amounts in the G/L Entry record based on the current filter.
+    /// Calculates each filtered G/L Entry group's amounts once, regardless of dataitem ordering.
     /// </summary>
     /// <param name="GLEntrySource">Source G/L Entry record</param>
-    /// <param name="Offset">Row offset for the calculation</param>
-    local procedure CalcSumsInFilter(var GLEntrySource: Record "G/L Entry"; var Offset: Integer)
+    /// <returns>True if this group was summed; false if it was already processed.</returns>
+    local procedure CalcSumsInFilter(var GLEntrySource: Record "G/L Entry"): Boolean
     var
         GLEntry: Record "G/L Entry";
+        GroupFilter: Text;
     begin
         GLEntry.CopyFilters(GLEntrySource);
         GLEntry.SetRange("Source Currency Code", GLEntrySource."Source Currency Code");
@@ -696,6 +697,12 @@ report 94 "Close Income Statement"
                 GLEntry.SetRange("Global Dimension 2 Code", GLEntrySource."Global Dimension 2 Code");
         end;
 
+        // Source currency groups can be interleaved, so a filtered count cannot be used to skip dataitem rows.
+        GroupFilter := GLEntry.GetView(false);
+        if ProcessedGLEntryGroups.ContainsKey(GroupFilter) then
+            exit(false);
+        ProcessedGLEntryGroups.Add(GroupFilter, true);
+
         GLEntry.CalcSums(Amount);
         GLEntrySource.Amount := GLEntry.Amount;
         TotalAmount += GLEntrySource.Amount;
@@ -704,7 +711,7 @@ report 94 "Close Income Statement"
             GLEntrySource."Additional-Currency Amount" := GLEntry."Additional-Currency Amount";
             TotalAmountAddCurr += GLEntrySource."Additional-Currency Amount";
         end;
-        Offset := GLEntry.Count - 1;
+        exit(true);
     end;
 
     /// <summary>
@@ -870,6 +877,7 @@ report 94 "Close Income Statement"
     begin
         Clear(GroupEntryNos);
         Clear(EntryNoDimensionIds);
+        Clear(ProcessedGLEntryGroups);
         EntryNo := 0;
     end;
 
@@ -968,4 +976,3 @@ report 94 "Close Income Statement"
     begin
     end;
 }
-
