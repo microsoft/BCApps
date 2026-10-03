@@ -93,6 +93,15 @@ codeunit 134297 "Http Web Req. Mgt. Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestParseFaultJsonResponseWithoutErrorReturnsBlank()
+    var
+        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+    begin
+        Assert.AreEqual('', HttpWebRequestMgt.ParseFaultJsonResponse('{}'), 'A response without an Error object must return blank.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestSetUseDefaultCredentials()
     var
         HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
@@ -128,4 +137,3 @@ codeunit 134297 "Http Web Req. Mgt. Tests"
         Url := RewritenUrlTok;
     end;
 }
-

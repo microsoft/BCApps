@@ -4,7 +4,6 @@ using System;
 using System.Environment;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Utilities;
 
 codeunit 2023 "Image Analysis Wrapper V3.2" implements "Image Analysis Provider"
@@ -28,9 +27,9 @@ codeunit 2023 "Image Analysis Wrapper V3.2" implements "Image Analysis Provider"
         UseOAuth2: Boolean;
         LastError: Text;
 
-    procedure InvokeAnalysis(var JSONManagement: Codeunit "JSON Management"; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
+    procedure InvokeAnalysis(var ResultJson: JsonObject; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
     begin
-        exit(TryInvokeAnalysisInternal(JSONManagement, BaseUrl, ImageAnalysisKey, ImagePath, ImageAnalysisTypes, LanguageId));
+        exit(TryInvokeAnalysisInternal(ResultJson, BaseUrl, ImageAnalysisKey, ImagePath, ImageAnalysisTypes, LanguageId));
     end;
 
     /// <summary>
@@ -43,7 +42,7 @@ codeunit 2023 "Image Analysis Wrapper V3.2" implements "Image Analysis Provider"
     end;
 
     [TryFunction]
-    local procedure TryInvokeAnalysisInternal(var JSONManagement: Codeunit "JSON Management"; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer)
+    local procedure TryInvokeAnalysisInternal(var ResultJson: JsonObject; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer)
     var
         PostUrl: Text;
         Language: Text[10];
@@ -55,21 +54,23 @@ codeunit 2023 "Image Analysis Wrapper V3.2" implements "Image Analysis Provider"
         PostUrl := BuildUri(BaseUrl, Language, ImageAnalysisTypes);
         PrepareRequest(HttpRequestMessage, PostUrl, ImageAnalysisKey);
         AddContent(HttpRequestMessage, ImagePath);
-        SendRequest(HttpRequestMessage, JSONManagement);
+        SendRequest(HttpRequestMessage, ResultJson);
 
-        LogCorrelationToTelemetry(JSONManagement);
+        LogCorrelationToTelemetry(ResultJson);
     end;
 
-    local procedure LogCorrelationToTelemetry(var JSONManagement: Codeunit "JSON Management")
+    local procedure LogCorrelationToTelemetry(ResultJson: JsonObject)
     var
         ImageAnalysisManagement: Codeunit "Image Analysis Management";
-        JsonResult: DotNet JObject;
+        JsonToken: JsonToken;
         RequestIdAsGuid: Guid;
         RequestIdPresent: Boolean;
     begin
-        JSONManagement.GetJSONObject(JsonResult);
-
-        RequestIdPresent := JSONManagement.GetGuidPropertyValueFromJObjectByName(JsonResult, 'requestId', RequestIdAsGuid);
+        if ResultJson.Get('requestId', JsonToken) then
+            if JsonToken.IsValue() then
+                if not JsonToken.AsValue().IsNull() then
+                    if not JsonToken.AsValue().IsUndefined() then
+                        RequestIdPresent := Evaluate(RequestIdAsGuid, JsonToken.AsValue().AsText());
 
         Session.LogMessage('0000K10', StrSubstNo(RequestIdTelemetryMsg, RequestIdPresent, RequestIdAsGuid),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ImageAnalysisManagement.GetTelemetryCategory());
@@ -165,10 +166,10 @@ codeunit 2023 "Image Analysis Wrapper V3.2" implements "Image Analysis Provider"
     end;
 
     [NonDebuggable]
-    local procedure SendRequest(HttpRequestMsg: HttpRequestMessage; var JSONManagement: Codeunit "JSON Management")
+    local procedure SendRequest(HttpRequestMsg: HttpRequestMessage; var ResultJson: JsonObject)
     var
         ImageAnalysisManagement: Codeunit "Image Analysis Management";
-        JsonResult: DotNet JObject;
+        JsonToken: JsonToken;
         HttpResponseMessage: HttpResponseMessage;
         ResponseHttpContent: HttpContent;
         HttpClient: HttpClient;
@@ -189,11 +190,14 @@ codeunit 2023 "Image Analysis Wrapper V3.2" implements "Image Analysis Provider"
             ResponseHttpContent.ReadAs(HttpContentText);
         end;
 
-        JSONManagement.InitializeObject(HttpContentText);
+        Clear(ResultJson);
+        if HttpContentText <> '' then
+            ResultJson.ReadFrom(HttpContentText);
 
         if not IsSuccessStatusCode then begin
-            JSONManagement.GetJSONObject(JsonResult);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JsonResult, 'message', MessageText);
+            if ResultJson.Get('message', JsonToken) and JsonToken.IsValue() then
+                if not JsonToken.AsValue().IsNull() and not JsonToken.AsValue().IsUndefined() then
+                    MessageText := JsonToken.AsValue().AsText();
             LastError := StrSubstNo(CognitiveServicesErr, ComputerVisionApiTxt, MessageText, HttpStatusCode);
             Error('');
         end;

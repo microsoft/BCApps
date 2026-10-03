@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Utilities;
 
 codeunit 2024 "Image Analysis Wrapper V1.0" implements "Image Analysis Provider"
@@ -19,12 +18,12 @@ codeunit 2024 "Image Analysis Wrapper V1.0" implements "Image Analysis Provider"
         LastError: Text;
         HttpMessageHandler: DotNet HttpMessageHandler;
 
-    procedure InvokeAnalysis(var JSONManagement: Codeunit "JSON Management"; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
+    procedure InvokeAnalysis(var ResultJson: JsonObject; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
     begin
         if ImageAnalysisTypes.Count() > 1 then
             Error(OnlyOneAnalysisSupportedErr);
 
-        exit(TryInvokeAnalysisInternal(JSONManagement, BaseUrl, ImageAnalysisKey, ImagePath, ImageAnalysisTypes.Get(1)));
+        exit(TryInvokeAnalysisInternal(ResultJson, BaseUrl, ImageAnalysisKey, ImagePath, ImageAnalysisTypes.Get(1)));
     end;
 
     /// <summary>
@@ -37,7 +36,7 @@ codeunit 2024 "Image Analysis Wrapper V1.0" implements "Image Analysis Provider"
     end;
 
     [TryFunction]
-    local procedure TryInvokeAnalysisInternal(var JSONManagement: Codeunit "JSON Management"; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisType: Enum "Image Analysis Type")
+    local procedure TryInvokeAnalysisInternal(var ResultJson: JsonObject; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisType: Enum "Image Analysis Type")
     var
         FileManagement: Codeunit "File Management";
         HttpClient: DotNet HttpClient;
@@ -52,8 +51,9 @@ codeunit 2024 "Image Analysis Wrapper V1.0" implements "Image Analysis Provider"
         Task: DotNet Task1;
         File: DotNet File;
         FileStream: DotNet FileStream;
-        JsonResult: DotNet JObject;
+        JsonToken: JsonToken;
         MessageText: Text;
+        ResponseText: Text;
         PostParameters: Text;
     begin
         if IsNull(HttpMessageHandler) then
@@ -91,15 +91,19 @@ codeunit 2024 "Image Analysis Wrapper V1.0" implements "Image Analysis Provider"
         HttpResponseMessage := Task.Result;
         HttpContent := HttpResponseMessage.Content;
         Task := HttpContent.ReadAsStringAsync();
-        JSONManagement.InitializeObject(Task.Result);
+        ResponseText := Task.Result;
+        Clear(ResultJson);
+        if ResponseText <> '' then
+            ResultJson.ReadFrom(ResponseText);
 
         FileStream.Dispose();
         StreamContent.Dispose();
         HttpClient.Dispose();
 
         if not HttpResponseMessage.IsSuccessStatusCode then begin
-            JSONManagement.GetJSONObject(JsonResult);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JsonResult, 'message', MessageText);
+            if ResultJson.Get('message', JsonToken) and JsonToken.IsValue() then
+                if not JsonToken.AsValue().IsNull() and not JsonToken.AsValue().IsUndefined() then
+                    MessageText := JsonToken.AsValue().AsText();
             if HasCustomVisionUri(BaseUrl) then
                 LastError := StrSubstNo(CognitiveServicesErr, CustomVisionServiceTxt, MessageText, HttpResponseMessage.StatusCode)
             else

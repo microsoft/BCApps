@@ -23,7 +23,6 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.PowerBIReports.Test;
 using System.TestLibraries.Security.AccessControl;
-using System.Text;
 using System.Utilities;
 
 /// <summary>
@@ -102,7 +101,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyInventoryAdjmtEntries(Response: Text; InventoryAdjmtEntry: Record "Inventory Adjmt. Entry (Order)"; Index: Integer)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[' + Format(Index) + ']'), 'Inventory Adjustment Entry not found.');
@@ -156,7 +155,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyCalendarEntry(Response: Text; CalendarEntry: Record "Calendar Entry"; Index: Integer)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[' + Format(Index) + ']'), 'Calendar entry not found.');
@@ -202,7 +201,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyMachineCenter(Response: Text; MachineCenter: Record "Machine Center")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(MachineCenter."No.") + ''')]'), 'Machine center not found.');
@@ -245,7 +244,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     local procedure VerifyWorkCenter(Response: Text; WorkCenter: Record "Work Center")
     var
         WorkCenterGroup: Record "Work Center Group";
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(WorkCenter."No.") + ''')]'), 'Work center not found.');
@@ -308,7 +307,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     local procedure VerifyProdOrderLine(Response: Text; ProdOrderLine: Record "Prod. Order Line")
     var
         Location: Record Location;
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.prodOrderNo == ''' + Format(ProdOrderLine."Prod. Order No.") + ''')]'), 'Production order line not found.');
@@ -386,7 +385,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     local procedure VerifyProdOrderCompLine(Response: Text; ProdOrderComp: Record "Prod. Order Component")
     var
         Location: Record Location;
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.prodOrderNo == ''' + Format(ProdOrderComp."Prod. Order No.") + ''')]'), 'Production order component not found.');
@@ -455,7 +454,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyProdOrderRoutingLine(Response: Text; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@prodOrderNo == ''' + Format(ProdOrderRoutingLine."Prod. Order No.") + ''')]'), 'Production order routing line not found.');
@@ -542,7 +541,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyProdItemLedgerEntry(Response: Text; ItemLedgerEntry: Record "Item Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(ItemLedgerEntry."Item No.") + ''')]'), 'Item ledger entry not found.');
@@ -655,7 +654,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyCapacityLedgerEntry(Response: Text; CapacityLedgerEntry: Record "Capacity Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.orderNo == ''' + Format(CapacityLedgerEntry."Order No.") + ''')]'), 'Capacity ledger entry not found.');
@@ -696,7 +695,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         Item: Record Item;
         ProdOrder: Record "Production Order";
         ProdOrder2: Record "Production Order";
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
         Uri: Codeunit Uri;
         TargetURL: Text;
         Response: Text;
@@ -744,7 +743,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         end;
     end;
 
-    local procedure VerifyProdOrderCapNeeded(var JsonMgt: Codeunit "JSON Management")
+    local procedure VerifyProdOrderCapNeeded(var JsonMgt: Codeunit "Library - Graph Mgt")
     var
         ProdOrderCapNeeded: Record "Prod. Order Capacity Need";
     begin
@@ -859,7 +858,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyManufacturingSetup(Response: Text; CapacityUnitOfMeasure: Record "Capacity Unit of Measure")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.showCapacityIn == ''' + Format(CapacityUnitOfMeasure.Code) + ''')]'), 'Show Capacity In not found.');
@@ -913,7 +912,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyProductionOrder(Response: Text; ProdOrder: Record "Production Order")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(ProdOrder."No.") + ''')]'), 'Production order not found.');
@@ -958,7 +957,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyRoutingLinks(Response: Text; RoutingLink: Record "Routing Link")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.code == ''' + Format(RoutingLink.Code) + ''')]'), 'Routing link not found.');
@@ -996,7 +995,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyRoutingHeaders(Response: Text; RoutingHeader: Record "Routing Header")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(RoutingHeader."No.") + ''')]'), 'Routing header not found.');
@@ -1036,7 +1035,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyWorkCenterGroups(Response: Text; WorkCenterGroup: Record "Work Center Group")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.code == ''' + Format(WorkCenterGroup.Code) + ''')]'), 'Work center group not found.');
@@ -1105,7 +1104,7 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
 
     local procedure VerifyManufacturingValueEntry(Response: Text; ValueEntry: Record "Value Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(ValueEntry."Entry No.") + ')]'), 'Value entry not found.');
