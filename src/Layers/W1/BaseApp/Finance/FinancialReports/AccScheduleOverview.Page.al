@@ -1632,6 +1632,7 @@ page 490 "Acc. Schedule Overview"
                 Clear(AnalysisView);
                 AnalysisView."Dimension 1 Code" := GLSetup."Global Dimension 1 Code";
                 AnalysisView."Dimension 2 Code" := GLSetup."Global Dimension 2 Code";
+                OnLoadPageStateOnAfterAssignDefaultAnalysisViewDimensions(AnalysisView, GLSetup);
             end;
             RowDefinitionBlocked := AccSchedName."Status Blocked";
         end;
@@ -2605,6 +2606,17 @@ page 490 "Acc. Schedule Overview"
     /// <param name="IsHandled">Set to true to skip standard column copying processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnLoadPageStateOnBeforeCopyColumnsToTemp(CurrentColumnName: Code[10]; var TempColumnLayout: Record "Column Layout" temporary; var CurrentSchedName: Code[10]; var AccScheduleLine: Record "Acc. Schedule Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after assigning the default dimensions to the analysis view during page state loading.
+    /// Enables assigning additional dimensions when no analysis view is selected.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record containing the default dimensions</param>
+    /// <param name="GeneralLedgerSetup">General ledger setup record providing dimension context</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnLoadPageStateOnAfterAssignDefaultAnalysisViewDimensions(var AnalysisView: Record "Analysis View"; GeneralLedgerSetup: Record "General Ledger Setup")
     begin
     end;
 }
