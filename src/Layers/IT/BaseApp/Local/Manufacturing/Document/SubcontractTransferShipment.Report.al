@@ -1,5 +1,4 @@
-﻿#if not CLEAN28
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -11,22 +10,15 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
 report 12154 "Subcontract. Transfer Shipment"
 {
     DefaultLayout = RDLC;
     RDLCLayout = './Local/Manufacturing/Document/SubcontractTransferShipment.rdlc';
-    ApplicationArea = LegacySubcontracting;
+    ApplicationArea = Basic, Suite;
     Caption = 'Subcontracting Transfer Shipment';
     UsageCategory = ReportsAndAnalysis;
-    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-    ObsoleteState = Pending;
-#pragma warning disable AS0072
-    ObsoleteTag = '27.0';
-#pragma warning restore AS0072
 
     dataset
     {
@@ -421,7 +413,7 @@ report 12154 "Subcontract. Transfer Shipment"
                                 Continue := false;
 
                                 DimSetEntry.SetRange("Dimension Set ID", "Transfer Shipment Line"."Dimension Set ID");
-                                DimSetEntry.FindFirst();
+                                DimSetEntry.FindSet();
                                 repeat
                                     OldDimText := DimText;
                                     if DimText = '' then
@@ -446,22 +438,6 @@ report 12154 "Subcontract. Transfer Shipment"
                                     CurrReport.Break();
                             end;
                         }
-#if not CLEAN28
-                        trigger OnAfterGetRecord()
-                        begin
-                            if ("Subcontr. Purch. Order No." <> PrevSubcOrd) and ("Subcontr. Purch. Order No." <> '') then begin
-                                PrevSubcOrd := "Subcontr. Purch. Order No.";
-                                RefSubcOrd := FieldCaption("Subcontr. Purch. Order No.") + ' ' + "Subcontr. Purch. Order No.";
-                            end else
-                                RefSubcOrd := '';
-
-                            if ("Prod. Order No." <> PrevProdOrd) and ("Prod. Order No." <> '') then begin
-                                PrevProdOrd := "Prod. Order No.";
-                                RefProdOrd := FieldCaption("Prod. Order No.") + ' ' + "Prod. Order No.";
-                            end else
-                                RefProdOrd := '';
-                        end;
-#endif
                         trigger OnPreDataItem()
                         begin
                             MoreLines := Find('+');
@@ -471,6 +447,7 @@ report 12154 "Subcontract. Transfer Shipment"
                                 CurrReport.Break();
                             SetRange("Line No.", 0, "Line No.");
                         end;
+
                     }
                 }
 
@@ -501,14 +478,6 @@ report 12154 "Subcontract. Transfer Shipment"
             trigger OnAfterGetRecord()
             begin
                 FormatAddr.TransferShptTransferTo(TransferToAddr, "Transfer Shipment Header");
-                if "Source Type" = "Source Type"::Vendor then begin
-                    LablVendor := Text1130003;
-                    Vendor.Get("Source No.");
-                    FormatAddr.Vendor(VendorAddr, Vendor);
-                end else begin
-                    LablVendor := '';
-                    Clear(VendorAddr);
-                end;
 
                 if not ShipmentMethod.Get("Shipment Method Code") then
                     ShipmentMethod.Init();
@@ -522,6 +491,8 @@ report 12154 "Subcontract. Transfer Shipment"
 
             trigger OnPreDataItem()
             begin
+                AddLoadFields("Dimension Set ID", "Shipment Method Code", "Shipping Agent Code", "Transport Reason Code");
+
                 CompanyInfo.Get();
                 CompanyInfo.CalcFields(Picture);
                 FormatAddr.Company(CompanyAddr, CompanyInfo);
@@ -604,19 +575,10 @@ report 12154 "Subcontract. Transfer Shipment"
     {
     }
 
-    trigger OnPreReport()
-    var
-        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
-    begin
-        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
-            CurrReport.Quit();
-    end;
-
     var
         Text1130000: Label 'COPY';
         Text1130002: Label 'Page %1';
         CompanyInfo: Record "Company Information";
-        Vendor: Record Vendor;
         ShipmentMethod: Record "Shipment Method";
         ShippingAgent: Record "Shipping Agent";
         TransportReasonCode: Record "Transport Reason Code";
@@ -632,10 +594,6 @@ report 12154 "Subcontract. Transfer Shipment"
         OldDimText: Text[75];
         RefSubcOrd: Text[50];
         RefProdOrd: Text[50];
-#if not CLEAN28
-        PrevSubcOrd: Code[20];
-        PrevProdOrd: Code[20];
-#endif
         MoreLines: Boolean;
         NoOfCopies: Integer;
         NoOfLoops: Integer;
@@ -644,7 +602,6 @@ report 12154 "Subcontract. Transfer Shipment"
         ShowInternalInfo: Boolean;
         ShowDescr2: Boolean;
         Continue: Boolean;
-        Text1130003: Label 'Messrs.';
         Text1130004: Label 'ORIGINAL';
         Text1130005: Label 'AGENT COPY';
         Text1130006: Label 'CARRIAGE CONSIGNER COPY';
@@ -680,4 +637,3 @@ report 12154 "Subcontract. Transfer Shipment"
             end;
     end;
 }
-#endif

@@ -3,8 +3,8 @@
 codeunit 144082 "UT Subcontracting"
 {
     // 1. Purpose of the test is to validate Prod. Order Component - OnPreDataItem Trigger of Report - 12155 Subcontr. Dispatching List.
-    // 2. Purpose of the test is to validate Transfer Shipment Header - OnPreDataItem Trigger of Report - 12154 Subcontract. Transfer Shipment.
-    // 3. Purpose of the test is to validate Transfer Shipment Header - OnAfterGetRecord Trigger of Report - 12154 Subcontract. Transfer Shipment.
+    // 2. Purpose of the test is to validate generic header data in Report - 12154 Subcontract. Transfer Shipment.
+    // 3. Purpose of the test is to validate Report - 12154 Subcontract. Transfer Shipment without a source type.
     // 4. Purpose of the test is to validate Item - OnAfterGetRecord Trigger of Report - 99000756 Detailed Calculation.
     // 5. Purpose of the test is to validate Routing Line - OnAfterGetRecord Trigger of Report - 99000756 Detailed Calculation.
     // 
@@ -13,8 +13,8 @@ codeunit 144082 "UT Subcontracting"
     // Test Function Name                                                      TFS ID
     // ------------------------------------------------------------------------------
     // OnPreDataItemProdOrderCompSubcontrDispatchingList                       155592
-    // OnPreDataItemTransShptHdrSubcontractTransShpt                           155673
-    // OnAfterGetRecordTransShptHdrSubcontractTransShpt                        238899
+    // TransferShipmentReportWithVendorSource                                  155673
+    // TransferShipmentReportWithoutVendorSource                               238899
     // OnAfterGetRecordItemDetailedCalculation                                 238922
     // OnAfterGetRecordRoutingLineDetailedCalculation                          154754
 
@@ -35,13 +35,9 @@ codeunit 144082 "UT Subcontracting"
         LibraryRandom: Codeunit "Library - Random";
         CompanyTextCap: Label 'CompanyText_2_';
         CompanyInfoCap: Label '%1 %2  ';
-        LablVendorCap: Label 'LablVendor';
-        MessrsTxt: Label 'Messrs.';
         NoItemCap: Label 'No_Item';
         ProductionBOMNoItemCap: Label 'ProductionBOMNo_Item';
-        ProdOrderCap: Label '%1 %2';
         ProdOrderNoCap: Label 'Purchase_Line_Prod__Order_No_';
-        RefProdOrdCap: Label 'RefProdOrd';
         RoutingNoItemCap: Label 'RoutingNo_Item';
         RoutingNoCap: Label 'Purchase_Line_Routing_No_';
         TransferShipmentHdrNoCap: Label 'Transfer_Shipment_Header_No_';
@@ -76,31 +72,26 @@ codeunit 144082 "UT Subcontracting"
     [HandlerFunctions('SubcontractTransferShipmentRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
-    procedure OnPreDataItemTransShptHdrSubcontractTransShpt()
+    procedure TransferShipmentReportWithVendorSource()
     var
         CompanyInformation: Record "Company Information";
         TransferShipmentHeader: Record "Transfer Shipment Header";
-        TransferShipmentLine: Record "Transfer Shipment Line";
         No: Code[20];
-        ProdOrderNo: Code[20];
     begin
-        // Purpose of the test is to validate Transfer Shipment Header - OnPreDataItem Trigger of Report - 12154 Subcontract. Transfer Shipment.
+        // Purpose of the test is to validate generic header data in Report - 12154 Subcontract. Transfer Shipment.
 
         // Setup: Create Transfer Shipment Line and Update Company Information.
         Initialize();
         UpdateCompanyInformation();
-        ProdOrderNo := LibraryUTUtility.GetNewCode();
-        No := CreateTransferShipmentLine(TransferShipmentHeader."Source Type"::Vendor, ProdOrderNo, LibraryUTUtility.GetNewCode());
+        No := CreateTransferShipmentLine(TransferShipmentHeader."Source Type"::Vendor);
         LibraryVariableStorage.Enqueue(No);  // Enqueue for SubcontractTransferShipmentRequestPageHandler.
         CompanyInformation.Get();
 
         // Exercise.
         REPORT.Run(REPORT::"Subcontract. Transfer Shipment");  // Opens SubcontractTransferShipmentRequestPageHandler.
 
-        // Verify: Verify values of Transfer Shipment Header No, LablVendor, RefProdOrd of Report - 12154 Subcontract. Transfer Shipment.
-        VerifyXMLValuesOnMiscellaneousReports(
-          TransferShipmentHdrNoCap, LablVendorCap, RefProdOrdCap, No, StrSubstNo(MessrsTxt), StrSubstNo(
-            ProdOrderCap, TransferShipmentLine.FieldCaption("Prod. Order No."), ProdOrderNo));
+        // Verify: Verify generic values of report 12154 Subcontract. Transfer Shipment.
+        LibraryReportDataset.AssertElementWithValueExists(TransferShipmentHdrNoCap, No);
         LibraryReportDataset.AssertElementWithValueExists(
           CompanyTextCap, StrSubstNo(
             CompanyInfoCap, CompanyInformation.FieldCaption("Register Company No."), CompanyInformation."Register Company No."));
@@ -110,26 +101,26 @@ codeunit 144082 "UT Subcontracting"
     [HandlerFunctions('SubcontractTransferShipmentRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
-    procedure OnAfterGetRecordTransShptHdrSubcontractTransShpt()
+    procedure TransferShipmentReportWithoutVendorSource()
     var
         CompanyInformation: Record "Company Information";
         TransferShipmentHeader: Record "Transfer Shipment Header";
         No: Code[20];
     begin
-        // Purpose of the test is to validate Transfer Shipment Header - OnAfterGetRecord Trigger of Report - 12154 Subcontract. Transfer Shipment.
+        // Purpose of the test is to validate Report - 12154 Subcontract. Transfer Shipment without a source type.
 
         // Setup: Create Transfer Shipment Line and Update Company Information.
         Initialize();
         UpdateCompanyInformation();
-        No := CreateTransferShipmentLine(TransferShipmentHeader."Source Type", '', '');  // SubcontrPurchOrderNo and ProdOrderNo as blank.
+        No := CreateTransferShipmentLine(TransferShipmentHeader."Source Type");
         LibraryVariableStorage.Enqueue(No);  // Enqueue for SubcontractTransferShipmentRequestPageHandler.
         CompanyInformation.Get();
 
         // Exercise.
         REPORT.Run(REPORT::"Subcontract. Transfer Shipment");  // Opens SubcontractTransferShipmentRequestPageHandler.
 
-        // Verify: Verify values of Transfer Shipment Header No, LablVendor, RefProdOrd of Report - 12154 Subcontract. Transfer Shipment.
-        VerifyXMLValuesOnMiscellaneousReports(TransferShipmentHdrNoCap, LablVendorCap, RefProdOrdCap, No, '', '');
+        // Verify: Verify generic values of report 12154 Subcontract. Transfer Shipment.
+        LibraryReportDataset.AssertElementWithValueExists(TransferShipmentHdrNoCap, No);
         LibraryReportDataset.AssertElementWithValueExists(
           CompanyTextCap, StrSubstNo(
             CompanyInfoCap, CompanyInformation.FieldCaption("Register Company No."), CompanyInformation."Register Company No."));
@@ -274,15 +265,11 @@ codeunit 144082 "UT Subcontracting"
         exit(RoutingLine."Routing No.");
     end;
 
-    local procedure CreateTransferShipmentLine(SourceType: Enum "Analysis Source Type"; ProdOrderNo: Code[20]; SubcontrPurchOrderNo: Code[20]): Code[20]
+    local procedure CreateTransferShipmentLine(SourceType: Enum "Analysis Source Type"): Code[20]
     var
         TransferShipmentLine: Record "Transfer Shipment Line";
     begin
         TransferShipmentLine."Document No." := CreateTransferShipmentHeader(SourceType);
-#if not CLEAN28
-        TransferShipmentLine."Subcontr. Purch. Order No." := SubcontrPurchOrderNo;
-        TransferShipmentLine."Prod. Order No." := ProdOrderNo;
-#endif
         TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
         TransferShipmentLine.Insert();
         exit(TransferShipmentLine."Document No.");
