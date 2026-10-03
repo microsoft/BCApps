@@ -9,7 +9,7 @@ using System.Utilities;
 
 table 31126 "EET Business Premises CZL"
 {
-    Caption = 'EET Business Premises';
+    Caption = 'EET Registrating Unit';
     LookupPageId = "EET Business Premises CZL";
 
     fields
@@ -19,23 +19,57 @@ table 31126 "EET Business Premises CZL"
             Caption = 'Code';
             NotBlank = true;
             DataClassification = OrganizationIdentifiableInformation;
+            ToolTip = 'Specifies the code of the registrating unit.';
         }
         field(2; Description; Text[50])
         {
             Caption = 'Description';
             DataClassification = OrganizationIdentifiableInformation;
+            ToolTip = 'Specifies the description of the registrating unit.';
         }
         field(15; Identification; Code[6])
         {
             Caption = 'Identification';
             Numeric = true;
             DataClassification = OrganizationIdentifiableInformation;
+            ToolTip = 'Specifies the identification number of the registrating unit.';
         }
         field(17; "Certificate Code"; Code[10])
         {
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
             DataClassification = OrganizationIdentifiableInformation;
+            ToolTip = 'Specifies the certificate needed to register sales.';
+        }
+        field(30; Representation; Enum "EET Representation CZL")
+        {
+            Caption = 'Representation';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the registrating unit reports sales directly or indirectly.';
+        }
+        field(35; Authorization; Boolean)
+        {
+            Caption = 'Authorization';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the taxpayer is authorized to report sales on behalf of another taxpayer.';
+        }
+        field(36; "Multiple Taxpayer Auth."; Boolean)
+        {
+            Caption = 'Multiple Taxpayer Authorization';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers.';
+        }
+        field(40; "Authorized Taxpayer ID"; Code[20])
+        {
+            Caption = 'Authorized Taxpayer';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorized to report sales.';
+        }
+        field(41; "Authorizing Taxpayer ID"; Code[20])
+        {
+            Caption = 'Authorizing Taxpayer ID';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorizing another taxpayer to report sales.';
         }
     }
 
