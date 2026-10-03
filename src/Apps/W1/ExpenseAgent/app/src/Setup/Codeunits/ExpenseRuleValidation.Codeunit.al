@@ -52,6 +52,8 @@ codeunit 6902 "Expense Rule Validation"
         ExpenseReportAlreadyExistErr: Label 'An expense report already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
         EmployeePostingGroupMandatoryErr: Label '%1 is mandatory on %2 %3.', Comment = '%1 = Field Caption, %2 = Table Caption, %3 = Employee No.';
         EmployeePostingGroupMandatoryOnExpenseReportErr: Label '%1 is mandatory on Expense Report No. %2.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
+        ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
+        ExpenseSubCategoryMustBeRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
 
     procedure ValidateExpenseAgainstRule(var Expense: Record Expense)
     var
@@ -477,6 +479,17 @@ codeunit 6902 "Expense Rule Validation"
         ExpenseItemization.SetRange("Expense No.", Expense."No.");
         if ExpenseItemization.IsEmpty() then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", ItemizationRequiredErr);
+
+        ExpenseItemization.SetRange("Expense No.", Expense."No.");
+        ExpenseItemization.SetRange("Expense Subcategory Code", '');
+        if ExpenseItemization.FindFirst() then
+            ExpenseRuleViolation.AddRuleViolation(
+                Expense."No.",
+                StrSubstNo(
+                    ExpenseSubCategoryMustBeRequiredInExpenseErr,
+                    ExpenseItemization.FieldCaption("Expense Subcategory Code"),
+                    ExpenseItemization."Expense No.",
+                    ExpenseItemization."Line No."));
     end;
 
     local procedure ValidateParticipantsRequired(Expense: Record Expense)
@@ -811,6 +824,20 @@ codeunit 6902 "Expense Rule Validation"
         ExpReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         if ExpReportLineItemization.IsEmpty() then
             ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", ItemizationRequiredErr);
+
+        ExpReportLineItemization.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        ExpReportLineItemization.SetRange("Expense Subcategory Code", '');
+        if ExpReportLineItemization.FindFirst() then
+            ExpenseReportRuleViolation.AddRuleViolation(
+                ExpenseReportLine."Document No.",
+                ExpenseReportLine."Line No.",
+                StrSubstNo(
+                    ExpenseSubCategoryMustBeRequiredInExpenseReportErr,
+                    ExpReportLineItemization.FieldCaption("Expense Subcategory Code"),
+                    ExpReportLineItemization."Expense Report No.",
+                    ExpReportLineItemization."Expense Report Line No.",
+                    ExpReportLineItemization."Line No."));
     end;
 
     local procedure ValidateParticipantsRequiredForReportLine(ExpenseReportLine: Record "Expense Report Line")
