@@ -109,20 +109,22 @@ codeunit 10838 "PaymentMgt Subscribers FR"
         PaymentLine.SetRange("No.", PaymentHeader."No.");
         if PaymentLine.FindSet() then
             repeat
-                ToDirectDebitCollectionEntry.Init();
-                ToDirectDebitCollectionEntry."Entry No." := PaymentLine."Line No.";
-                ToDirectDebitCollectionEntry."Direct Debit Collection No." := DirectDebitCollection."No.";
-                ToDirectDebitCollectionEntry.DeletePaymentFileErrors();
-                if CheckPaymentLine(ToDirectDebitCollectionEntry, PaymentLine, AppliesToEntryNo) then begin
-                    ToDirectDebitCollectionEntry.Validate("Customer No.", PaymentLine."Account No.");
-                    ToDirectDebitCollectionEntry.Validate("Applies-to Entry No.", AppliesToEntryNo);
-                    ToDirectDebitCollectionEntry."Transfer Date" := PaymentHeader."Posting Date";
-                    ToDirectDebitCollectionEntry."Currency Code" := PaymentLine."Currency Code";
-                    ToDirectDebitCollectionEntry.Validate("Transfer Amount", PaymentLine."Credit Amount");
-                    ToDirectDebitCollectionEntry.Validate("Mandate ID", PaymentLine."Direct Debit Mandate ID");
-                    OnCreateTempCollectionEntriesOnBeforeInsert(ToDirectDebitCollectionEntry, PaymentHeader, PaymentLine);
-                    ToDirectDebitCollectionEntry.Insert();
-                    SEPADDCheckLine.CheckCollectionEntry(ToDirectDebitCollectionEntry);
+                if PaymentLine."Credit Amount" > 0 then begin
+                    ToDirectDebitCollectionEntry.Init();
+                    ToDirectDebitCollectionEntry."Entry No." := PaymentLine."Line No.";
+                    ToDirectDebitCollectionEntry."Direct Debit Collection No." := DirectDebitCollection."No.";
+                    ToDirectDebitCollectionEntry.DeletePaymentFileErrors();
+                    if CheckPaymentLine(ToDirectDebitCollectionEntry, PaymentLine, AppliesToEntryNo) then begin
+                        ToDirectDebitCollectionEntry.Validate("Customer No.", PaymentLine."Account No.");
+                        ToDirectDebitCollectionEntry.Validate("Applies-to Entry No.", AppliesToEntryNo);
+                        ToDirectDebitCollectionEntry."Transfer Date" := PaymentHeader."Posting Date";
+                        ToDirectDebitCollectionEntry."Currency Code" := PaymentLine."Currency Code";
+                        ToDirectDebitCollectionEntry.Validate("Transfer Amount", PaymentLine."Credit Amount");
+                        ToDirectDebitCollectionEntry.Validate("Mandate ID", PaymentLine."Direct Debit Mandate ID");
+                        OnCreateTempCollectionEntriesOnBeforeInsert(ToDirectDebitCollectionEntry, PaymentHeader, PaymentLine);
+                        ToDirectDebitCollectionEntry.Insert();
+                        SEPADDCheckLine.CheckCollectionEntry(ToDirectDebitCollectionEntry);
+                    end;
                 end;
             until PaymentLine.Next() = 0;
 
@@ -319,6 +321,7 @@ codeunit 10838 "PaymentMgt Subscribers FR"
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        AppliedEntryCount: Integer;
         SummarizeNotAllowedErr: Label 'You cannot export a SEPA customer payment that is applied to multiple documents. Make sure that the Summarize per field in the Suggest Customer Payments window is blank.';
         UnappliedLinesNotAllowedErr: Label 'Payment slip line %1 must be applied to a customer invoice.', Comment = '%1 = No.';
         AccTypeErr: Label 'Only customer transactions are allowed.';
@@ -341,12 +344,23 @@ codeunit 10838 "PaymentMgt Subscribers FR"
             DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."))
         else begin
             PaymentLine.GetAppliesToDocCustLedgEntry(CustLedgerEntry);
-            if CustLedgerEntry.Count > 1 then
-                DirectDebitCollectionEntry.InsertPaymentFileError(SummarizeNotAllowedErr);
-            CustLedgerEntry.FindFirst();
-            if CustLedgerEntry."Document Type" <> CustLedgerEntry."Document Type"::Invoice then
+            if CustLedgerEntry.Count > 1 then begin
+                AppliedEntryCount := CustLedgerEntry.Count;
+                CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+                if CustLedgerEntry.Count <> 1 then
+                    DirectDebitCollectionEntry.InsertPaymentFileError(SummarizeNotAllowedErr);
+                CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+                if CustLedgerEntry.Count <> AppliedEntryCount - 1 then
+                    DirectDebitCollectionEntry.InsertPaymentFileError(SummarizeNotAllowedErr);
+                CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+            end;
+            if CustLedgerEntry.FindFirst() then begin
+                if CustLedgerEntry."Document Type" = CustLedgerEntry."Document Type"::Invoice then
+                    AppliesToEntryNo := CustLedgerEntry."Entry No."
+                else
+                    DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."));
+            end else
                 DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."));
-            AppliesToEntryNo := CustLedgerEntry."Entry No.";
         end;
 
         exit(not DirectDebitCollectionEntry.HasPaymentFileErrors());
