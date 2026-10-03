@@ -1783,6 +1783,44 @@ codeunit 147500 "Cartera Payment Basic Scenario"
         Assert.AreEqual(NumberOfBills, CarteraDoc.Count(), 'All selected bills should be added to the Payment Order');
     end;
 
+    [Test]
+    [HandlerFunctions('CurrenciesPageHandler,BankAccountListPageHandler,CarteraDocumentsActionModalPageHandler,ConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure PaymentOrderPostedInForeignCurrencyPopulatesSourceCurrencyOnGLEntries()
+    var
+        Currency: Record Currency;
+        GLEntry: Record "G/L Entry";
+        PaymentOrder: Record "Payment Order";
+        VendorPostingGroup: Record "Vendor Posting Group";
+        Vendor: Record Vendor;
+        InvoiceNo: Code[20];
+        SettleAmount: Decimal;
+    begin
+        // [SCENARIO 650508] Payment orders posted in foreign currency should populate Source Currency Code and Amount on G/L entries.
+
+        Initialize();
+
+        // [GIVEN] Create Currency Setup
+        Currency.Get(LibraryCarteraCommon.CreateCarteraCurrency(false, false, true));
+
+        // [GIVEN] A vendor bill and payment order both use USD as the source currency.
+        PrepareVendorRelatedRecords(Vendor, Currency.Code);
+        CreateAndPostInvoiceWOutVAT(Vendor, SettleAmount, InvoiceNo, WorkDate(), Currency.Code);
+        CreateAndPostPaymentOrder(PaymentOrder, Currency.Code, WorkDate() + 1, InvoiceNo);
+
+        // [WHEN] The G/L entries created by the posted payment order are reviewed.
+        // [THEN] The G/L entries should have the expected source currency amounts and signs.
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+
+        FindGLEntryByDocNoGLAccNo(GLEntry, PaymentOrder."No.", VendorPostingGroup."Invoices in  Pmt. Ord. Acc.");
+        Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
+        Assert.AreEqual(-SettleAmount, GLEntry."Source Currency Amount", 'Source Currency Amount must equal the invoice amount.');
+
+        FindGLEntryByDocNoGLAccNo(GLEntry, PaymentOrder."No.", VendorPostingGroup."Payables Account");
+        Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
+        Assert.AreEqual(SettleAmount, GLEntry."Source Currency Amount", 'Source Currency Amount must have the opposite sign on the balancing entry.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryReportDataset.Reset();
