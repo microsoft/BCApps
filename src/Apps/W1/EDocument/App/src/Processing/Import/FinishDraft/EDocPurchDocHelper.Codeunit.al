@@ -147,8 +147,15 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
 
         PurchaseHeader.SetRecFilter();
         PurchaseHeader.FindFirst();
-        PurchaseHeader."Doc. Amount Incl. VAT" := EDocumentPurchaseHeader.Total;
-        PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT";
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        if EDocumentPurchaseHeader."Total VAT" <> 0 then
+            PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT"
+        else
+            PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        if EDocumentPurchaseHeader.Total <> 0 then
+            PurchaseHeader."Doc. Amount Incl. VAT" := EDocumentPurchaseHeader.Total
+        else
+            PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
         PurchaseHeader.TestField("No.");
         PurchaseHeader."E-Document Link" := EDocument.SystemId;
         PurchaseHeader.Modify();
