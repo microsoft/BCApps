@@ -391,8 +391,7 @@ codeunit 110000 "Interface Basis Data"
         MakeBudget();
         AccountingPeriod.Reset();
         AccountingPeriod.SetFilter("Starting Date", '<%1', CA.AdjustDate(19020101D));
-        AccountingPeriod.ModifyAll(Closed, true);
-        AccountingPeriod.ModifyAll("Date Locked", true);
+        AccountingPeriod.ModifyAll(Closed, true, "Date Locked", true);
 
         GenJournalLine.Reset();
         GenJournalLine.SetRange("Journal Template Name", XSTART);

@@ -309,8 +309,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
     begin
         UsageDataGenericImport.SetFilter("Processing Status", '<>%1', "Processing Status"::Ok);
         UsageDataGenericImport.SetRange("Supp. Subscription ID", SupplierReference);
-        UsageDataGenericImport.ModifyAll("Subscription Header No.", SubscriptionHeaderNo);
-        UsageDataGenericImport.ModifyAll("Service Object Availability", UsageDataGenericImport."Service Object Availability"::Connected);
+        UsageDataGenericImport.ModifyAll("Subscription Header No.", SubscriptionHeaderNo, "Service Object Availability", UsageDataGenericImport."Service Object Availability"::Connected);
     end;
 
     procedure OpenSupplierSettings(var UsageDataSupplier: Record "Usage Data Supplier")

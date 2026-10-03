@@ -1444,15 +1444,11 @@ codeunit 144009 "IT - VAT Reporting - Service"
         VATPostingSetup: Record "VAT Posting Setup";
     begin
         VATPostingSetup.SetRange("Include in VAT Transac. Rep.", true);
-        VATPostingSetup.ModifyAll("Sales Prepayments Account", '', true);
-        VATPostingSetup.ModifyAll("Purch. Prepayments Account", '', true);
-        VATPostingSetup.ModifyAll("Include in VAT Transac. Rep.", false, true);
+        VATPostingSetup.ModifyAll("Sales Prepayments Account", '', "Purch. Prepayments Account", '', "Include in VAT Transac. Rep.", false, true);
 
         VATPostingSetup.Reset();
         VATPostingSetup.SetFilter("Unrealized VAT Type", '<>%1', VATPostingSetup."Unrealized VAT Type"::" ");
-        VATPostingSetup.ModifyAll("Sales VAT Unreal. Account", '', true);
-        VATPostingSetup.ModifyAll("Purch. VAT Unreal. Account", '', true);
-        VATPostingSetup.ModifyAll("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::" ", true);
+        VATPostingSetup.ModifyAll("Sales VAT Unreal. Account", '', "Purch. VAT Unreal. Account", '', "Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::" ", true);
 
         VATTransRepAmount.DeleteAll(true);
         EnableUnrealizedVAT(false);

@@ -366,8 +366,7 @@ codeunit 11601 "BAS Management"
             BASCalcEntry.SetRange("BAS Document No.", BASCalcSheetSubsid.A1);
             BASCalcEntry.SetRange("BAS Version", BASCalcSheetSubsid."BAS Version");
             if not BASCalcEntry.IsEmpty() then begin
-                BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1);
-                BASCalcEntry.ModifyAll("Consol. Version No.", TempBASCalcSheet."BAS Version");
+                BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1, "Consol. Version No.", TempBASCalcSheet."BAS Version");
             end;
         until BASBusUnits.Next() = 0;
 
@@ -376,8 +375,7 @@ codeunit 11601 "BAS Management"
         BASCalcEntry.SetRange("BAS Document No.", TempBASCalcSheet.A1);
         BASCalcEntry.SetRange("BAS Version", TempBASCalcSheet."BAS Version");
         if not BASCalcEntry.IsEmpty() then begin
-            BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1);
-            BASCalcEntry.ModifyAll("Consol. Version No.", TempBASCalcSheet."BAS Version");
+            BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1, "Consol. Version No.", TempBASCalcSheet."BAS Version");
         end;
 
         UpdateConsolBASCalculationSheet(TempBASCalcSheet, BASCalcSheetConsol);

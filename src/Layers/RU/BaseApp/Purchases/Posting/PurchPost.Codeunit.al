@@ -7932,8 +7932,7 @@ codeunit 90 "Purch.-Post"
         // clear Direct Unit Cost to not having recalculation
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine.ModifyAll("Currency Code", '');
-        PurchaseLine.ModifyAll("Direct Unit Cost", 0);
+        PurchaseLine.ModifyAll("Currency Code", '', "Direct Unit Cost", 0);
         PurchaseHeader.Validate("Prices Including VAT", true);
 
         GLSetup.Get();

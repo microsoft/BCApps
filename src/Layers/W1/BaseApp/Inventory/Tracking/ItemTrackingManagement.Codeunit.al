@@ -1932,13 +1932,9 @@ codeunit 6500 "Item Tracking Management"
             TransLine.Get(TempReservEntry."Source ID", TempReservEntry."Source Ref. No.");
             TempReservEntry.ModifyAll("Reservation Status", TempReservEntry."Reservation Status"::Surplus);
             if TempReservEntry."Source Subtype" = 0 then begin
-                TempReservEntry.ModifyAll("Location Code", TransLine."Transfer-from Code");
-                TempReservEntry.ModifyAll("Expected Receipt Date", 0D);
-                TempReservEntry.ModifyAll("Shipment Date", TransLine."Shipment Date");
+                TempReservEntry.ModifyAll("Location Code", TransLine."Transfer-from Code", "Expected Receipt Date", 0D, "Shipment Date", TransLine."Shipment Date");
             end else begin
-                TempReservEntry.ModifyAll("Location Code", TransLine."Transfer-to Code");
-                TempReservEntry.ModifyAll("Expected Receipt Date", TransLine."Receipt Date");
-                TempReservEntry.ModifyAll("Shipment Date", 0D);
+                TempReservEntry.ModifyAll("Location Code", TransLine."Transfer-to Code", "Expected Receipt Date", TransLine."Receipt Date", "Shipment Date", 0D);
             end;
         end;
     end;
@@ -3045,8 +3041,7 @@ codeunit 6500 "Item Tracking Management"
             repeat
                 ToReservEntry.SetTrackingFilterFromSpec(TempTrackingSpecification);
                 OnSynchronizeItemTrkgTransferOnBeforeToReservEntryModifyAll(ToReservEntry, TempTrackingSpecification);
-                ToReservEntry.ModifyAll("Qty. to Handle (Base)", 0);
-                ToReservEntry.ModifyAll("Qty. to Invoice (Base)", 0);
+                ToReservEntry.ModifyAll("Qty. to Handle (Base)", 0, "Qty. to Invoice (Base)", 0);
                 TempTrackingSpecification."Qty. to Handle (Base)" *= -1;
                 TempToReservEntry.SetCurrentKey(
                   "Item No.", "Variant Code", "Location Code", "Item Tracking", "Reservation Status", "Lot No.", "Serial No.");

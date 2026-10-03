@@ -1166,12 +1166,10 @@ table 5050 Contact
 
         VATRegistrationLogMgt.DeleteContactLog(Rec);
         Customer.SetRange("Primary Contact No.", "No.");
-        Customer.ModifyAll(Contact, '');
-        Customer.ModifyAll("Primary Contact No.", '');
+        Customer.ModifyAll(Contact, '', "Primary Contact No.", '');
 
         Vendor.SetRange("Primary Contact No.", "No.");
-        Vendor.ModifyAll(Contact, '');
-        Vendor.ModifyAll("Primary Contact No.", '');
+        Vendor.ModifyAll(Contact, '', "Primary Contact No.", '');
     end;
 
     trigger OnInsert()

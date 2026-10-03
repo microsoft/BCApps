@@ -313,8 +313,7 @@ report 2000004 "Payment Journal Post"
             end;
             // Order of MODIFYALL is important
             PaymJnlLine.SetCurrentKey("Journal Template Name", "Journal Batch Name", "Account Type", "Account No.");
-            PaymJnlLine.ModifyAll(PaymJnlLine.Status, PaymJnlLine.Status::Processed, true);
-            PaymJnlLine.ModifyAll(PaymJnlLine.Processing, true, true);
+            PaymJnlLine.ModifyAll(PaymJnlLine.Status, PaymJnlLine.Status::Processed, PaymJnlLine.Processing, true, true);
         end;
 
         // reset for next iteration

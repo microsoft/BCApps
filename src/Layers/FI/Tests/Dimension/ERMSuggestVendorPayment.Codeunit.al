@@ -3332,8 +3332,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
     local procedure UpdateGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20])
     begin
         FindGeneralJournalLines(GenJournalLine);
-        GenJournalLine.ModifyAll("Bal. Account Type", GenJournalLine."Bal. Account Type"::Vendor, true);
-        GenJournalLine.ModifyAll("Bal. Account No.", VendorNo, true);
+        GenJournalLine.ModifyAll("Bal. Account Type", GenJournalLine."Bal. Account Type"::Vendor, "Bal. Account No.", VendorNo, true);
         UpdateDimensionOnGeneralJournalLine(GenJournalLine);
     end;
 

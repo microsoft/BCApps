@@ -374,8 +374,7 @@ codeunit 18469 "Subcontracting Subscribers"
             exit;
 
         ProdOrderLine.SetRange("Subcontracting Order No.", PurchHeader."No.");
-        ProdOrderLine.ModifyAll("Subcontractor Code", '');
-        ProdOrderLine.ModifyAll("Subcontracting Order No.", '');
+        ProdOrderLine.ModifyAll("Subcontractor Code", '', "Subcontracting Order No.", '');
     end;
 
     local procedure UpdateSubcontractingPostingDate(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")

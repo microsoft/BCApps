@@ -472,8 +472,7 @@ codeunit 138100 "Streamline. Autofill No Series"
         UpdateNoSeriesOnSalesSetup(SalesSetupDocType::Invoice, NoSeriesCode);
 
         NoSeries.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, WorkDate(), true);
-        NoSeriesLine.ModifyAll("Last No. Used", '');
-        NoSeriesLine.ModifyAll("Starting No.", '');
+        NoSeriesLine.ModifyAll("Last No. Used", '', "Starting No.", '');
 
         Result := WrapperSalesDocumentNoIsVisible();
 
@@ -497,8 +496,7 @@ codeunit 138100 "Streamline. Autofill No Series"
         UpdateNoSeriesOnSalesSetup(SalesSetupDocType::Invoice, NoSeriesCode);
 
         NoSeries.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, WorkDate(), true);
-        NoSeriesLine.ModifyAll("Last No. Used", '2');
-        NoSeriesLine.ModifyAll("Ending No.", '1');
+        NoSeriesLine.ModifyAll("Last No. Used", '2', "Ending No.", '1');
 
         Result := WrapperSalesDocumentNoIsVisible();
 

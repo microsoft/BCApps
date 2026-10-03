@@ -1112,8 +1112,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         IncomingDocument.Modify(true);
 
         IncomingDocumentAttachment.SetRange("Incoming Document Entry No.", IncomingDocument."Entry No.");
-        IncomingDocumentAttachment.ModifyAll("Document No.", '');
-        IncomingDocumentAttachment.ModifyAll("Posting Date", 0D);
+        IncomingDocumentAttachment.ModifyAll("Document No.", '', "Posting Date", 0D);
     end;
 
     local procedure UpdateSalesOrderLinesFromCancelledInvoice(SalesInvoiceHeaderNo: Code[20])

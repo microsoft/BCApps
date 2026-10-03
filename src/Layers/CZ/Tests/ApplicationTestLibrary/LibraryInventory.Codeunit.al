@@ -1585,8 +1585,7 @@ codeunit 132201 "Library - Inventory"
         AccountingPeriod: Record "Accounting Period";
     begin
         AccountingPeriod.SetRange("New Fiscal Year", true);
-        AccountingPeriod.ModifyAll("Average Cost Calc. Type", AverageCostCalcType);
-        AccountingPeriod.ModifyAll("Average Cost Period", AverageCostPeriod);
+        AccountingPeriod.ModifyAll("Average Cost Calc. Type", AverageCostCalcType, "Average Cost Period", AverageCostPeriod);
     end;
 
     procedure SetExpectedCostPosting(ExpectedCostPosting: Boolean)

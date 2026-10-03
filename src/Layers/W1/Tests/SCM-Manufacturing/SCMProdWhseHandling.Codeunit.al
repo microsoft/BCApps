@@ -1945,8 +1945,7 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         ProductionJournalMgt.CreateJnlLines(ProductionOrder, ProdOrderLine."Line No.");
         ItemJournalLine.SetRange("Order Type", ItemJournalLine."Order Type"::Production);
         ItemJournalLine.SetRange("Document No.", ProductionOrder."No.");
-        ItemJournalLine.ModifyAll("Location Code", LocationCode);
-        ItemJournalLine.ModifyAll("Bin Code", BinCode);
+        ItemJournalLine.ModifyAll("Location Code", LocationCode, "Bin Code", BinCode);
 
         ItemJournalLine.SetRange("Entry Type", ItemJournalLine."Entry Type"::Consumption);
         ItemJournalLine.FindFirst();

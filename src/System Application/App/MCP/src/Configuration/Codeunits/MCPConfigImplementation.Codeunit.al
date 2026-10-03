@@ -140,10 +140,7 @@ codeunit 8351 "MCP Config Implementation"
         if MCPConfigurationTool.IsEmpty() then
             exit;
 
-        MCPConfigurationTool.ModifyAll("Allow Create", false);
-        MCPConfigurationTool.ModifyAll("Allow Modify", false);
-        MCPConfigurationTool.ModifyAll("Allow Delete", false);
-        MCPConfigurationTool.ModifyAll("Allow Bound Actions", false);
+        MCPConfigurationTool.ModifyAll("Allow Create", false, "Allow Modify", false, "Allow Delete", false, "Allow Bound Actions", false);
     end;
 
     internal procedure DeleteConfiguration(ConfigId: Guid)

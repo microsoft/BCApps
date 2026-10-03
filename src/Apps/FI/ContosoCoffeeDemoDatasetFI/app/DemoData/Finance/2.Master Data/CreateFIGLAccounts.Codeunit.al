@@ -1686,8 +1686,7 @@ codeunit 13405 "Create FI GL Accounts"
     begin
         GLAccount.SetRange("No.", FromGLAccountNo, ToGLAccountNo);
         if GLAccount.FindSet() then begin
-            GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", false);
-            GLAccount.ModifyAll("Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
+            GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", "Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
         end;
     end;
 
