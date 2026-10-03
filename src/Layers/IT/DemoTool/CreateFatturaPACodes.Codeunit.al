@@ -4,6 +4,7 @@ codeunit 161391 "Create FatturaPA Codes"
     trigger OnRun()
     var
         FatturaCode: Record "Fattura Code";
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
         // Fattura Codes
         InsertCodeData(TP01Txt, TP01DescTxt, FatturaCode.Type::"Payment Terms");
@@ -32,26 +33,8 @@ codeunit 161391 "Create FatturaPA Codes"
         InsertCodeData(MP21Txt, MP21DescTxt, FatturaCode.Type::"Payment Method");
         InsertCodeData(MP22Txt, MP22DescTxt, FatturaCode.Type::"Payment Method");
 
-        // Company Types
-        InsertCompanyType(CT01Txt, CT01DescTxt);
-        InsertCompanyType(CT02Txt, CT02DescTxt);
-        InsertCompanyType(CT03Txt, CT03DescTxt);
-        InsertCompanyType(CT04Txt, CT04DescTxt);
-        InsertCompanyType(CT05Txt, CT05DescTxt);
-        InsertCompanyType(CT06Txt, CT06DescTxt);
-        InsertCompanyType(CT07Txt, CT07DescTxt);
-        InsertCompanyType(CT08Txt, CT08DescTxt);
-        InsertCompanyType(CT09Txt, CT09DescTxt);
-        InsertCompanyType(CT10Txt, CT10DescTxt);
-        InsertCompanyType(CT11Txt, CT11DescTxt);
-        InsertCompanyType(CT12Txt, CT12DescTxt);
-        InsertCompanyType(CT13Txt, CT13DescTxt);
-        InsertCompanyType(CT14Txt, CT14DescTxt);
-        InsertCompanyType(CT15Txt, CT15DescTxt);
-        InsertCompanyType(CT16Txt, CT16DescTxt);
-        InsertCompanyType(CT17Txt, CT17DescTxt);
-        InsertCompanyType(CT18Txt, CT18DescTxt);
-        InsertCompanyType(CT19Txt, CT19DescTxt);
+        // FatturaPA Fiscal Regimes
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
     end;
 
     var
@@ -105,44 +88,6 @@ codeunit 161391 "Create FatturaPA Codes"
         MP21DescTxt: Label 'SEPA Direct Debit B2B';
         MP22Txt: Label 'MP22', Locked = true;
         MP22DescTxt: Label 'Withholding of sums already collected';
-        CT01Txt: Label '01';
-        CT01DescTxt: Label 'Ordinary';
-        CT02Txt: Label '02';
-        CT02DescTxt: Label 'Minimum taxpayers';
-        CT03Txt: Label '03';
-        CT03DescTxt: Label 'New production initiatives';
-        CT04Txt: Label '04';
-        CT04DescTxt: Label 'Agriculture and fishing';
-        CT05Txt: Label '05';
-        CT05DescTxt: Label 'Sale of salts and tobaccos';
-        CT06Txt: Label '06';
-        CT06DescTxt: Label 'Match sales';
-        CT07Txt: Label '07';
-        CT07DescTxt: Label 'Publishing';
-        CT08Txt: Label '08';
-        CT08DescTxt: Label 'Management of phone services';
-        CT09Txt: Label '09';
-        CT09DescTxt: Label 'Resale of public transport';
-        CT10Txt: Label '10';
-        CT10DescTxt: Label 'Entertainment and gaming';
-        CT11Txt: Label '11';
-        CT11DescTxt: Label 'Travel and tourism agencies';
-        CT12Txt: Label '12';
-        CT12DescTxt: Label 'Farmhouse accommodation';
-        CT13Txt: Label '13';
-        CT13DescTxt: Label 'Door to door sales';
-        CT14Txt: Label '14';
-        CT14DescTxt: Label 'Resale of used goods,artworks';
-        CT15Txt: Label '15';
-        CT15DescTxt: Label 'Artwork and antiques ';
-        CT16Txt: Label '16';
-        CT16DescTxt: Label 'VAT paid in cash by P.A.';
-        CT17Txt: Label '17';
-        CT17DescTxt: Label 'VAT paid below Euro 200,000';
-        CT18Txt: Label '18';
-        CT18DescTxt: Label 'Other';
-        CT19Txt: Label '19';
-        CT19DescTxt: Label 'Flat rate';
 
     procedure InsertCodeData(CodeValue: Code[4]; DescValue: Text[250]; TypeValue: Enum "Fattura Code Type")
     var
@@ -155,14 +100,5 @@ codeunit 161391 "Create FatturaPA Codes"
         if FatturaCode.Insert() then;
     end;
 
-    procedure InsertCompanyType(CodeValue: Code[2]; DescValue: Text[250])
-    var
-        CompanyTypes: Record "Company Types";
-    begin
-        CompanyTypes.Init();
-        CompanyTypes.Code := CodeValue;
-        CompanyTypes.Description := CopyStr(DescValue, 1, 30);
-        CompanyTypes.Insert();
-    end;
 }
 

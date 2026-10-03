@@ -96,6 +96,7 @@ codeunit 12184 "Fattura Doc. Helper"
         FixedAssetTransferTxt: Label 'Fixed assed transfer or internal  transfer  (ex art.36 DPR 633/72)';
         SelfConsumingInvoiceTxt: Label 'Invoice for self-consuming or free gift without VAT Compensation';
         FatturaDocTypeDiffQst: Label 'There are one or more different values of Fattura document type coming from the VAT posting setup of lines. As it''''s not possible to identify the value, %1 from the header will be used.\\Do you want to continue?', Comment = '%1 = the value of Fattura Document type from the header';
+        InvalidFiscalRegimeCodeErr: Label '%1 is not a valid FatturaPA fiscal regime code.', Comment = '%1 = invalid fiscal regime code';
 
     [Scope('OnPrem')]
     procedure CollectDocumentInformation(var TempFatturaHeader: Record "Fattura Header" temporary; var TempFatturaLine: Record "Fattura Line" temporary; HeaderRecRef: RecordRef)
@@ -466,6 +467,8 @@ codeunit 12184 "Fattura Doc. Helper"
     end;
 
     local procedure CheckCompanyInformationFields(var ErrorMessage: Record "Error Message")
+    var
+        CompanyTypes: Record "Company Types";
     begin
         ErrorMessage.LogIfLengthExceeded(
           CompanyInformation, CompanyInformation.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error, 16);
@@ -475,6 +478,10 @@ codeunit 12184 "Fattura Doc. Helper"
           CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(
           CompanyInformation, CompanyInformation.FieldNo("Company Type"), ErrorMessage."Message Type"::Error);
+        if (CompanyInformation."Company Type" <> '') and not CompanyTypes.IsValidFatturaPAFiscalRegimeCode(CompanyInformation."Company Type") then
+            ErrorMessage.LogMessage(
+              CompanyInformation, CompanyInformation.FieldNo("Company Type"), ErrorMessage."Message Type"::Error,
+              StrSubstNo(InvalidFiscalRegimeCodeErr, CompanyInformation."Company Type"));
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo(City), ErrorMessage."Message Type"::Error);
