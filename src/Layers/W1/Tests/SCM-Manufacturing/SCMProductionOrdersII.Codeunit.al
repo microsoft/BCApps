@@ -8214,12 +8214,14 @@ codeunit 137072 "SCM Production Orders II"
         CreateProdOrderLineWithTwoSameItemComponents(
           ProductionOrder, ProdItem."No.", CompItem."No.", StdQtyPer, FixedQty, StdComponentLineNo, FixedComponentLineNo);
 
-        // [GIVEN] On-hand inventory of "C" is posted that exactly covers the initial demand of both component lines,
-        // [GIVEN]  so planning reserves it against them and creates no replenishment at all.
+        // [GIVEN] On-hand inventory of "C" is posted that exactly covers the initial demand of both component lines.
         CreateAndPostItemJournalLine(CompItem."No.", StdQtyPer * ProdOrderQty + FixedQty, '', '', false);
 
-        // [GIVEN] Regenerative planning reserves the posted inventory: StdQtyPer * ProdOrderQty on the standard
-        // [GIVEN]  component line and FixedQty on the fixed quantity component line.
+        // [GIVEN] Bind the posted inventory to the two component lines with Order-to-Order reservations.
+        ReserveProdOrderComponentFromInventory(ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ");
+        ReserveProdOrderComponentFromInventory(ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity");
+
+        // [GIVEN] Regenerative planning keeps the initial inventory reservations without creating replenishment.
         CalcRegenPlanForSingleItem(CompItem."No.");
         VerifyProdOrderComponentReservedQtyFromInventory(
           ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", StdQtyPer * ProdOrderQty);
@@ -8619,6 +8621,29 @@ codeunit 137072 "SCM Production Orders II"
         Assert.AreEqual(
           ExpectedReservedQty, ProdOrderComponent."Reserved Qty. (Base)",
           StrSubstNo(ReservedQtyErr, ProdOrderComponent."Line No."));
+    end;
+
+    local procedure ReserveProdOrderComponentFromInventory(ProductionOrderNo: Code[20]; ItemNo: Code[20]; CalcFormula: Enum "Quantity Calculation Formula")
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        TrackingSpecification: Record "Tracking Specification";
+        ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
+    begin
+        ProdOrderComponent.SetRange("Calculation Formula", CalcFormula);
+        FindProdOrderComponentByOrderNoAndItem(ProdOrderComponent, ProductionOrderNo, ItemNo);
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Location Code", ProdOrderComponent."Location Code");
+        ItemLedgerEntry.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindFirst();
+
+        TrackingSpecification.InitTrackingSpecification(
+          Database::"Item Ledger Entry", 0, '', '', 0, ItemLedgerEntry."Entry No.",
+          ItemLedgerEntry."Variant Code", ItemLedgerEntry."Location Code", 1);
+        ProdOrderCompReserve.BindToTracking(
+          ProdOrderComponent, TrackingSpecification, ItemLedgerEntry.Description, ItemLedgerEntry."Posting Date",
+          ProdOrderComponent."Remaining Quantity", ProdOrderComponent."Remaining Qty. (Base)");
     end;
 
     local procedure VerifyProdOrderComponentReservedQtyFromInventory(ProductionOrderNo: Code[20]; ItemNo: Code[20]; CalcFormula: Enum "Quantity Calculation Formula"; ExpectedReservedQty: Decimal)
