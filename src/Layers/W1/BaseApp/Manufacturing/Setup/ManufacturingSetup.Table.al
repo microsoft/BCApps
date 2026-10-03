@@ -127,6 +127,7 @@ table 99000765 "Manufacturing Setup"
             ToolTip = 'Specifies the number series code to use when assigning numbers to routings.';
             TableRelation = "No. Series";
         }
+#if not CLEANSCHEMA30
         field(35; "Current Production Forecast"; Code[10])
         {
             Caption = 'Current Demand Forecast';
@@ -136,6 +137,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(36; "Use Forecast on Variants"; Boolean)
         {
             Caption = 'Use forecast on variants';
@@ -144,6 +147,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(37; "Use Forecast on Locations"; Boolean)
         {
             Caption = 'Use forecast on locations';
@@ -152,6 +157,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(38; "Combined MPS/MRP Calculation"; Boolean)
         {
             AccessByPermission = TableData "Planning Component" = R;
@@ -162,12 +169,14 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
         field(39; "Components at Location"; Code[10])
         {
             Caption = 'Components at Location';
             ToolTip = 'Specifies the inventory location from where the production order components are to be taken.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
+#if not CLEANSCHEMA30
         field(40; "Default Dampener Period"; DateFormula)
         {
             Caption = 'Default Dampener Period';
@@ -176,6 +185,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(41; "Default Dampener %"; Decimal)
         {
             AutoFormatType = 0;
@@ -187,6 +198,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(42; "Default Safety Lead Time"; DateFormula)
         {
             Caption = 'Default Safety Lead Time';
@@ -195,6 +208,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(43; "Blank Overflow Level"; Option)
         {
             Caption = 'Blank Overflow Level';
@@ -205,6 +220,7 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
         field(50; "Show Capacity In"; Code[10])
         {
             Caption = 'Show Capacity In';
