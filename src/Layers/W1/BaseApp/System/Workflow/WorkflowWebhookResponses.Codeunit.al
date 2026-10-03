@@ -35,6 +35,8 @@ codeunit 1542 "Workflow Webhook Responses"
                     WorkflowResponseHandling.AddResponsePredecessor(SendNotificationToWebhookCode(),
                       WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode());
                     WorkflowResponseHandling.AddResponsePredecessor(SendNotificationToWebhookCode(),
+                      WorkflowEventHandling.RunWorkflowOnSendFAJournalBatchForApprovalCode());
+                    WorkflowResponseHandling.AddResponsePredecessor(SendNotificationToWebhookCode(),
                       WorkflowEventHandling.RunWorkflowOnSendItemForApprovalCode());
                     WorkflowResponseHandling.AddResponsePredecessor(SendNotificationToWebhookCode(),
                       WorkflowEventHandling.RunWorkflowOnSendPurchaseDocForApprovalCode());
