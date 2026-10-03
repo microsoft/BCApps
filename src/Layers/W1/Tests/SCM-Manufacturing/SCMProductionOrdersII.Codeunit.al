@@ -8233,6 +8233,12 @@ codeunit 137072 "SCM Production Orders II"
         CalcRegenPlanForSingleItem(CompItem."No.");
 
         // [THEN] The fully reserved fixed line keeps its inventory reservation while the standard line is topped up.
+        VerifyRequisitionLine(
+          CompItem."No.", "Action Message Type"::New, (UpdatedStdQtyPer - StdQtyPer) * ProdOrderQty, '');
+        VerifyProdOrderComponentReservedQty(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", UpdatedStdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQty(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
         VerifyProdOrderComponentReservedQtyFromInventory(
           ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", StdQtyPer * ProdOrderQty);
         VerifyProdOrderComponentReservedQtyFromInventory(
