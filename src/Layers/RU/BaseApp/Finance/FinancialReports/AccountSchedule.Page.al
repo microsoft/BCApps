@@ -109,6 +109,22 @@ page 104 "Account Schedule"
                         AccScheduleName.Modify();
                     end;
                 }
+                field(PreviewColumnDef; PreviewColumnDef)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Column Definition (for Preview)';
+                    TableRelation = "Column Layout Name";
+                    ToolTip = 'Specifies the column layout used when previewing this row definition.';
+
+                    trigger OnValidate()
+                    var
+                        AccScheduleName: Record "Acc. Schedule Name";
+                    begin
+                        AccScheduleName.Get(CurrentSchedName);
+                        AccScheduleName."Preview Column Def." := PreviewColumnDef;
+                        AccScheduleName.Modify();
+                    end;
+                }
                 field(InternalDescription; InternalDescription)
                 {
                     ApplicationArea = Basic, Suite;
@@ -385,6 +401,26 @@ page 104 "Account Schedule"
     {
         area(processing)
         {
+            action(Preview)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Preview';
+                Image = View;
+                ToolTip = 'Preview the financial report using the current row definition and the column definition specified for preview.';
+
+                trigger OnAction()
+                var
+                    AccScheduleOverview: Page "Acc. Schedule Overview";
+                begin
+                    if PreviewColumnDef = '' then
+                        Error(MissingPreviewColumnDefErr);
+                    AccScheduleOverview.SetViewOnlyMode(true);
+                    AccScheduleOverview.SetPreview(AccSchedManagement.GetAccountScheduleCaption(CurrentSchedName));
+                    AccScheduleOverview.SetAccSchedName(CurrentSchedName);
+                    AccScheduleOverview.SetColumnDefinition(PreviewColumnDef);
+                    AccScheduleOverview.Run();
+                end;
+            }
             action(Indent)
             {
                 ApplicationArea = Basic, Suite;
@@ -586,6 +622,7 @@ page 104 "Account Schedule"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
+                actionref(Preview_Promoted; Preview) { }
                 actionref(Outdent_Promoted; Outdent) { }
                 actionref(Indent_Promoted; Indent) { }
                 actionref(WhereUsed_Promoted; WhereUsed) { }
@@ -654,9 +691,11 @@ page 104 "Account Schedule"
         IsSaaSExcelAddinEnabled: Boolean;
         CurrentDescription: Text[80];
         InternalDescription: Text[500];
+        PreviewColumnDef: Code[10];
         TotalingDisplayed: Text[250];
         HeaderHidden: Boolean;
         ExcelFileNameTxt: Label 'Row Definition - ScheduleName %1', Comment = '%1 = Schedule Name';
+        MissingPreviewColumnDefErr: Label 'Specify a column definition in the Column Definition (for Preview) field before you preview this row definition.';
 
     /// <summary>
     /// Sets the current account schedule name for page context and line filtering.
@@ -681,10 +720,12 @@ page 104 "Account Schedule"
     begin
         CurrentDescription := '';
         InternalDescription := '';
+        PreviewColumnDef := '';
         if AccScheduleName.Get(CurrentSchedName) then begin
             DefinitionStatus := AccScheduleName.Status;
             CurrentDescription := AccScheduleName.Description;
             InternalDescription := AccScheduleName."Internal Description";
+            PreviewColumnDef := AccScheduleName."Preview Column Def.";
             FinancialReportMgt.CheckStatus(AccScheduleName.TableCaption(), AccScheduleName.Status);
         end;
     end;
