@@ -914,11 +914,13 @@ codeunit 8060 "Create Billing Documents"
         PartnerBillingLine: Record "Billing Line";
     begin
         PartnerBillingLine.CopyFilters(BillingLine);
+        PartnerBillingLine.FilterGroup(2);
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Customer);
         CustomerBillingLinesFound := not PartnerBillingLine.IsEmpty();
 
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Vendor);
         VendorBillingLinesFound := not PartnerBillingLine.IsEmpty();
+        PartnerBillingLine.FilterGroup(0);
 
         if (CustomerBillingLinesFound and VendorBillingLinesFound) then begin
             DisplayOrLogUnspecificError(OnlyOneServicePartnerErr);
