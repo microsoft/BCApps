@@ -82,6 +82,11 @@ codeunit 5596 "Create QM Insp. Template Hdr"
         exit(BeansTok);
     end;
 
+    procedure BeansDesc(): Text[100]
+    begin
+        exit(BeansDescLbl);
+    end;
+
     var
         BicycleChecklistTok: Label 'BICYCLECHECKLIST', Locked = true, MaxLength = 20;
         CarTok: Label 'CAR', Locked = true, MaxLength = 20;
