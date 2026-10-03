@@ -30,9 +30,17 @@ codeunit 13915 "Import XRechnung Document"
     procedure ParseBasicInfo(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     var
         TempXMLBuffer: Record "XML Buffer" temporary;
+        EDocumentDEInboundValidator: Codeunit "E-Doc. DE Inbound Validator";
+        XRechnungXml: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
         DocumentType: Text;
         DocumentNamespace: Text;
         DocStream: InStream;
+        ValidationStream: InStream;
+        CommonAggregateComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
+        CommonBasicComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
+        DefaultInvoiceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
+        DefaultCreditNoteTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
         DocumentTypeLbl: Label '%1:%2', Comment = '%1 = Namespace, %2 = Document type';
     begin
         FeatureTelemetry.LogUsage('0000EXH', FeatureNameTok, StartEventNameTok);
@@ -43,17 +51,30 @@ codeunit 13915 "Import XRechnung Document"
         EDocument.Direction := EDocument.Direction::Incoming;
         DocumentType := GetDocumentType(TempXMLBuffer, DocumentNamespace);
 
+        TempBlob.CreateInStream(ValidationStream);
+        XmlDocument.ReadFrom(ValidationStream, XRechnungXml);
+        XmlNamespaces.AddNamespace('cac', CommonAggregateComponentsTok);
+        XmlNamespaces.AddNamespace('cbc', CommonBasicComponentsTok);
+        XmlNamespaces.AddNamespace('inv', DefaultInvoiceTok);
+        XmlNamespaces.AddNamespace('cn', DefaultCreditNoteTok);
+
         case UpperCase(DocumentType) of
             'INVOICE':
-                if DocumentNamespace <> '' then
-                    ParseInvoiceBasicInfo(EDocument, TempXMLBuffer, StrSubstNo(DocumentTypeLbl, DocumentNamespace, DocumentType))
-                else
-                    ParseInvoiceBasicInfo(EDocument, TempXMLBuffer, DocumentType);
+                begin
+                    EDocumentDEInboundValidator.ValidateUBL(EDocument, XRechnungXml, XmlNamespaces, 'inv:Invoice');
+                    if DocumentNamespace <> '' then
+                        ParseInvoiceBasicInfo(EDocument, TempXMLBuffer, StrSubstNo(DocumentTypeLbl, DocumentNamespace, DocumentType))
+                    else
+                        ParseInvoiceBasicInfo(EDocument, TempXMLBuffer, DocumentType);
+                end;
             'CREDITNOTE':
-                if DocumentNamespace <> '' then
-                    ParseCreditMemoBasicInfo(EDocument, TempXMLBuffer, StrSubstNo(DocumentTypeLbl, DocumentNamespace, DocumentType))
-                else
-                    ParseCreditMemoBasicInfo(EDocument, TempXMLBuffer, DocumentType);
+                begin
+                    EDocumentDEInboundValidator.ValidateUBL(EDocument, XRechnungXml, XmlNamespaces, 'cn:CreditNote');
+                    if DocumentNamespace <> '' then
+                        ParseCreditMemoBasicInfo(EDocument, TempXMLBuffer, StrSubstNo(DocumentTypeLbl, DocumentNamespace, DocumentType))
+                    else
+                        ParseCreditMemoBasicInfo(EDocument, TempXMLBuffer, DocumentType);
+                end;
         end;
     end;
 
