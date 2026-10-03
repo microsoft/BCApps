@@ -110,11 +110,17 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
 
         IsInitialSetup := not UpgradeTag.HasUpgradeTag(GetRetenPolInventoryTablesUpgradeTag());
         if IsInitialSetup or ForceUpdate then begin
-            AddPostedInvtPickHeaderToAllowedTables(IsInitialSetup);
-            AddPostedInvtPutawayHeaderToAllowedTables(IsInitialSetup);
             AddRegisteredInvtMovementHdrToAllowedTables(IsInitialSetup);
             if IsInitialSetup then
                 UpgradeTag.SetUpgradeTag(GetRetenPolInventoryTablesUpgradeTag());
+        end;
+
+        IsInitialSetup := not UpgradeTag.HasUpgradeTag(GetRetenPolPostedInvtHeadersUpgradeTag());
+        if IsInitialSetup or ForceUpdate then begin
+            AddPostedInvtPickHeaderToAllowedTables(IsInitialSetup);
+            AddPostedInvtPutawayHeaderToAllowedTables(IsInitialSetup);
+            if IsInitialSetup then
+                UpgradeTag.SetUpgradeTag(GetRetenPolPostedInvtHeadersUpgradeTag());
         end;
 
         IsInitialSetup := not UpgradeTag.HasUpgradeTag(GetRetenPolDataExchUpgradeTag());
@@ -271,8 +277,16 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
     var
         PostedInvtPickHeader: Record "Posted Invt. Pick Header";
         RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+        RecRef: RecordRef;
+        TableFilters: JsonArray;
     begin
-        RetenPolAllowedTables.AddAllowedTable(Database::"Posted Invt. Pick Header", PostedInvtPickHeader.FieldNo("Registering Date"));
+        PostedInvtPickHeader.SetRange("Bin Mandatory", true);
+        RecRef.GetTable(PostedInvtPickHeader);
+        RetenPolAllowedTables.AddTableFilterToJsonArray(TableFilters, "Retention Period Enum"::"Never Delete", PostedInvtPickHeader.FieldNo("Registering Date"), true, true, RecRef);
+        PostedInvtPickHeader.SetRange("Bin Mandatory", false);
+        RecRef.GetTable(PostedInvtPickHeader);
+        RetenPolAllowedTables.AddTableFilterToJsonArray(TableFilters, "Retention Period Enum"::"1 Year", PostedInvtPickHeader.FieldNo("Registering Date"), true, false, RecRef);
+        RetenPolAllowedTables.AddAllowedTable(Database::"Posted Invt. Pick Header", PostedInvtPickHeader.FieldNo("Registering Date"), TableFilters);
 
         if not IsInitialSetup then
             exit;
@@ -284,8 +298,16 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
     var
         PostedInvtPutawayHeader: Record "Posted Invt. Put-away Header";
         RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+        RecRef: RecordRef;
+        TableFilters: JsonArray;
     begin
-        RetenPolAllowedTables.AddAllowedTable(Database::"Posted Invt. Put-away Header", PostedInvtPutawayHeader.FieldNo("Registering Date"));
+        PostedInvtPutawayHeader.SetRange("Bin Mandatory", true);
+        RecRef.GetTable(PostedInvtPutawayHeader);
+        RetenPolAllowedTables.AddTableFilterToJsonArray(TableFilters, "Retention Period Enum"::"Never Delete", PostedInvtPutawayHeader.FieldNo("Registering Date"), true, true, RecRef);
+        PostedInvtPutawayHeader.SetRange("Bin Mandatory", false);
+        RecRef.GetTable(PostedInvtPutawayHeader);
+        RetenPolAllowedTables.AddTableFilterToJsonArray(TableFilters, "Retention Period Enum"::"1 Year", PostedInvtPutawayHeader.FieldNo("Registering Date"), true, false, RecRef);
+        RetenPolAllowedTables.AddAllowedTable(Database::"Posted Invt. Put-away Header", PostedInvtPutawayHeader.FieldNo("Registering Date"), TableFilters);
 
         if not IsInitialSetup then
             exit;
@@ -454,6 +476,11 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
         exit('MS-GIT-1268-RetenPolInventoryTables-20250608');
     end;
 
+    local procedure GetRetenPolPostedInvtHeadersUpgradeTag(): Code[250]
+    begin
+        exit('MS-592028-RetenPolPostedInvtHeaders-20260929');
+    end;
+
     local procedure GetRetenPolDataExchUpgradeTag(): Code[250]
     begin
         exit('MS-GIT-704-RetenPolDataExch-20250713');
@@ -474,6 +501,7 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
     begin
         PerCompanyUpgradeTags.Add(GetRetenPolFinancialReportExportLogUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRetenPolTruncateAllowedUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetRetenPolPostedInvtHeadersUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reten. Pol. Allowed Tables", 'OnRefreshAllowedTables', '', false, false)]
