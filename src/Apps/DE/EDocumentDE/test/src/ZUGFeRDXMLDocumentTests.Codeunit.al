@@ -305,6 +305,28 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the service resolved by FindLast');
     end;
 
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyIssueDateUsesDocumentDate();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentDate: Date;
+        IssueDatePathTok: Label '/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString', Locked = true;
+    begin
+        // [SCENARIO 8904] Export posted sales invoice uses Document Date, not Posting Date, as IssueDateTime
+        Initialize();
+
+        // [GIVEN] Create and post Sales Invoice with a Document Date different from the Posting Date
+        DocumentDate := CalcDate('<-10D>', WorkDate());
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithDocumentDate("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, DocumentDate));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] IssueDateTime equals the Document Date and not the Posting Date
+        Assert.AreEqual(FormatDate(SalesInvoiceHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), StrSubstNo(IncorrectValueErr, IssueDatePathTok));
+        Assert.AreNotEqual(FormatDate(SalesInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), 'IssueDateTime should not equal Posting Date');
+    end;
+
     [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyBuyerReferenceAsCustomerReference();
     var
@@ -3784,7 +3806,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         if BlankChargeDescription then
             ChargeSalesLine.Description := '';
         ChargeSalesLine.Modify(true);
-
         for Index := 1 to NoOfAssignedLines do begin
             LibraryInventory.CreateItemChargeAssignment(
                 ItemChargeAssignmentSales, ChargeSalesLine, SalesHeader."Document Type", SalesHeader."No.", ItemLineNo[Index], Item."No.");
@@ -4033,6 +4054,18 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesDocumentWithDocumentDate(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; DocumentDate: Date): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Validate("Document Date", DocumentDate);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, LineType, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostSalesDocumentWithBankAccount(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; BankAccountCode: Code[20]): Code[20];
     var
         SalesHeader: Record "Sales Header";
@@ -4231,7 +4264,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
             SalesHeader.Modify(true);
         end;
         CreateSalesLine(SalesHeader, LineType, false);
-
         if InvoiceDiscount then
             ApplyInvoiceDiscount(SalesHeader);
         exit(SalesHeader."No.");
@@ -4244,7 +4276,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         CreateSalesHeader(SalesHeader, DocumentType);
         CreateSalesLine(SalesHeader, LineType, false);
         CreateSalesLine(SalesHeader, LineType, false);
-
         if InvoiceDiscount then
             ApplyInvoiceDiscount(SalesHeader);
         exit(SalesHeader."No.");
@@ -4257,7 +4288,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         CreateSalesHeader(SalesHeader, DocumentType);
         CreateSalesLine(SalesHeader, LineType, false);
         CreateSalesLine(SalesHeader, LineType, true);
-
         if InvoiceDiscount then
             ApplyInvoiceDiscount(SalesHeader);
         exit(SalesHeader."No.");
@@ -4754,7 +4784,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Path := DocumentTok + '/rsm:ExchangedDocument/ram:ID';
         Assert.AreEqual(SalesInvoiceHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
-        Assert.AreEqual(FormatDate(SalesInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(FormatDate(SalesInvoiceHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         // Verify Seller Order Reference is not present when invoice is posted directly (without order)
         if SalesInvoiceHeader."Order No." = '' then
             Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerOrderReferencedDocument'), 'Seller Order Reference should not exist');
@@ -4770,7 +4800,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Path := DocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:ID';
         Assert.AreEqual(SalesCrMemoHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
-        Assert.AreEqual(FormatDate(SalesCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(FormatDate(SalesCrMemoHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         // Verify Seller Order Reference is not present when cr. memo is posted directly (without return order)
         if SalesCrMemoHeader."Return Order No." = '' then
             Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerOrderReferencedDocument'), 'Seller Order Reference should not exist');
@@ -4786,7 +4816,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Path := ServiceDocumentTok + '/rsm:ExchangedDocument/ram:ID';
         Assert.AreEqual(ServiceInvoiceHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := ServiceDocumentTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
-        Assert.AreEqual(FormatDate(ServiceInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(FormatDate(ServiceInvoiceHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyHeaderData(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
@@ -4799,7 +4829,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Path := ServiceDocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:ID';
         Assert.AreEqual(ServiceCrMemoHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := ServiceDocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
-        Assert.AreEqual(FormatDate(ServiceCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(FormatDate(ServiceCrMemoHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyBuyerReference(BuyerReference: Text[50]; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
@@ -5476,7 +5506,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
             until SalesInvLine.Next() = 0;
 
         SalesInvLine.CalcSums(Amount, "Amount Including VAT", "Inv. Discount Amount");
-
         if not LineAmounts.ContainsKey(SalesInvLine.FieldName(Amount)) then
             LineAmounts.Add(SalesInvLine.FieldName(Amount), SalesInvLine.Amount);
         if not LineAmounts.ContainsKey(SalesInvLine.FieldName("Amount Including VAT")) then
@@ -5502,7 +5531,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
             until SalesCrMemoLine.Next() = 0;
 
         SalesCrMemoLine.CalcSums(Amount, "Amount Including VAT", "Inv. Discount Amount");
-
         if not LineAmounts.ContainsKey(SalesCrMemoLine.FieldName(Amount)) then
             LineAmounts.Add(SalesCrMemoLine.FieldName(Amount), SalesCrMemoLine.Amount);
         if not LineAmounts.ContainsKey(SalesCrMemoLine.FieldName("Amount Including VAT")) then
@@ -5517,7 +5545,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     begin
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         ServiceInvoiceLine.CalcSums(Amount, "Amount Including VAT");
-
         if not LineAmounts.ContainsKey(ServiceInvoiceLine.FieldName(Amount)) then
             LineAmounts.Add(ServiceInvoiceLine.FieldName(Amount), ServiceInvoiceLine.Amount);
         if not LineAmounts.ContainsKey(ServiceInvoiceLine.FieldName("Amount Including VAT")) then
@@ -5530,7 +5557,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     begin
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         ServiceCrMemoLine.CalcSums(Amount, "Amount Including VAT");
-
         if not LineAmounts.ContainsKey(ServiceCrMemoLine.FieldName(Amount)) then
             LineAmounts.Add(ServiceCrMemoLine.FieldName(Amount), ServiceCrMemoLine.Amount);
         if not LineAmounts.ContainsKey(ServiceCrMemoLine.FieldName("Amount Including VAT")) then
