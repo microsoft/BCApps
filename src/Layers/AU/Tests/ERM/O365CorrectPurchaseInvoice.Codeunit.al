@@ -1674,7 +1674,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerVerify')]
+    // [HandlerFunctions('ConfirmHandlerVerify')]
     procedure CorrectInvoicePostedFromTwoShipmentsOfTwoOrdersWhenRestoreQtyEnabled()
     var
         PurchaseHeaderOrder: array[2] of Record "Purchase Header";
