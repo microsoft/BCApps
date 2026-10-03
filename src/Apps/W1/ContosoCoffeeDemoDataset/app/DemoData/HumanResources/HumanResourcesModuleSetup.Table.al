@@ -25,6 +25,7 @@ table 4770 "Human Resources Module Setup"
         }
         field(4; "Employee Posting Group"; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Employee Posting Group';
             TableRelation = "Employee Posting Group";
         }
