@@ -2,6 +2,7 @@ codeunit 135206 "Image Analysis Management Test"
 {
     Permissions = TableData "Azure AI Usage" = rimd;
     Subtype = Test;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -25,7 +26,9 @@ codeunit 135206 "Image Analysis Management Test"
         MissingImageAnalysisSecretErr: Label 'There is a missing configuration value on our end. Try again later.';
         GenericErrorErr: Label 'There was an error in contacting the Computer Vision API. Please try again or contact an administrator.';
         ChangingLimitAfterInitErr: Label 'You cannot change the limit setting after initialization.';
+        MediaWrongFormatErr: Label 'The media file is not supported. Only images of the following types are supported: JPEG, PNG, GIF, BMP.';
         LimitType: Option Year,Month,Day,Hour;
+        ImageAnalysisRequestCount: Integer;
 
     [Test]
     [Scope('OnPrem')]
@@ -319,6 +322,292 @@ codeunit 135206 "Image Analysis Management Test"
         Result := ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
         Assert.IsFalse(IsUsageLimitError, 'Did not expect a usage limit error.');
         Assert.AreEqual(UnauthorizedErr, ErrorValue, 'Expected the last error to be Unauthorized error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeRejectsContentThatIsNotAnImage()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        ContentOutStream: OutStream;
+        Result: Boolean;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] Content that cannot be decoded as an image is never sent to the Computer Vision API
+
+        // [GIVEN] A blob that contains text instead of an image
+        TempBlob.CreateOutStream(ContentOutStream);
+        ContentOutStream.WriteText('This is not an image. It only claims to be one.');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        InitializeMockKeyvault('fakekey', 'https://fakeuri', '1000', 'Hour');
+
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath());
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The analysis fails with the unsupported format error
+        Assert.IsFalse(Result, 'Analysis should have failed for content that is not an image.');
+        Assert.IsTrue(IsNull(HttpMessageHandler.RequestMessage), 'Invalid content must not be sent.');
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.AreEqual(MediaWrongFormatErr, ErrorValue, 'Expected the unsupported media format error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeRejectsUnsupportedImageFormat()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        Result: Boolean;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] A valid image in a format that Computer Vision does not accept is never sent
+
+        // [GIVEN] A TIFF image
+        CreateImageBlob(TempBlob, 500, 600, Enum::"Image Format"::Tiff);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        InitializeMockKeyvault('fakekey', 'https://fakeuri', '1000', 'Hour');
+
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath());
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The analysis fails with the unsupported format error
+        Assert.IsFalse(Result, 'Analysis should have failed for an unsupported image format.');
+        Assert.IsTrue(IsNull(HttpMessageHandler.RequestMessage), 'Unsupported image formats must not be sent.');
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.AreEqual(MediaWrongFormatErr, ErrorValue, 'Expected the unsupported media format error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeSmallImageForCustomVision()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        HttpRequestMessage: DotNet HttpRequestMessage;
+        HttpRequestHeaders: DotNet HttpRequestHeaders;
+        Result: Boolean;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] BC does not impose Computer Vision's minimum dimensions on Custom Vision
+
+        // [GIVEN] A 10x10 pixel image
+        CreateImageBlob(TempBlob, 10, 10, Enum::"Image Format"::Jpeg);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        ImageAnalysisManagement.SetUriAndKey('https://fakeuri/customvision/', GetKey());
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetCustomImageAnalysisTagsResponsePath());
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The image reaches the customer's Custom Vision endpoint with its existing authentication
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.IsTrue(Result, 'A small image should reach Custom Vision. Error: ' + ErrorValue);
+        HttpRequestMessage := HttpMessageHandler.RequestMessage;
+        Assert.AreEqual('https://fakeuri/customvision/', HttpRequestMessage.RequestUri.AbsoluteUri, 'Unexpected endpoint.');
+        HttpRequestHeaders := HttpRequestMessage.Headers;
+        HttpRequestHeaders.GetValues('Prediction-Key');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeLargeImageForCustomerResource()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        HttpRequestMessage: DotNet HttpRequestMessage;
+        HttpRequestHeaders: DotNet HttpRequestHeaders;
+        Result: Boolean;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] The configured service, not a universal BC restriction, decides the allowed file size
+
+        // [GIVEN] An uncompressed image of more than 4 MB
+        CreateImageBlob(TempBlob, 1500, 1500, Enum::"Image Format"::Bmp);
+        Assert.IsTrue(TempBlob.Length() > 4 * 1024 * 1024, 'The image must exceed 4 MB.');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        ImageAnalysisManagement.SetUriAndKey('https://fakeuri', GetKey());
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath());
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] BC forwards the image and uses the mocked service response
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.IsTrue(Result, 'The configured service should decide the size limit. Error: ' + ErrorValue);
+        HttpRequestMessage := HttpMessageHandler.RequestMessage;
+        HttpRequestHeaders := HttpRequestMessage.Headers;
+        HttpRequestHeaders.GetValues('Ocp-Apim-Subscription-Key');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeRejectsNonImagePathForCustomVision()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        ContentOutStream: OutStream;
+        ImagePath: Text;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+        Result: Boolean;
+    begin
+        // [SCENARIO] SetImagePath cannot bypass content validation for a customer-configured Custom Vision endpoint
+        TempBlob.CreateOutStream(ContentOutStream);
+        ContentOutStream.WriteText('This is not an image.');
+        ImagePath := FileManagement.ServerTempFileName('jpg');
+        FileManagement.BLOBExportToServerFile(TempBlob, ImagePath);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        ImageAnalysisManagement.SetUriAndKey('https://fakeuri/customvision/', GetKey());
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetImagePath(ImagePath);
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetCustomImageAnalysisTagsResponsePath());
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        FileManagement.DeleteServerFile(ImagePath);
+
+        Assert.IsFalse(Result, 'Custom Vision must not receive non-image content.');
+        Assert.IsTrue(IsNull(HttpMessageHandler.RequestMessage), 'Invalid content must not be sent.');
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.AreEqual(MediaWrongFormatErr, ErrorValue, 'Expected the unsupported media format error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeV32AcceptsImageWithIncorrectMetadata()
+    var
+        Item: Record Item;
+        TenantMedia: Record "Tenant Media";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        ImageAnalysisManagementTest: Codeunit "Image Analysis Management Test";
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+        Result: Boolean;
+    begin
+        // [SCENARIO] V3.2 accepts supported image bytes even when the stored MIME type and dimensions are incorrect
+        LibraryInventory.CreateItem(Item);
+        Item.Picture.ImportFile(GetImagePath(), 'Description');
+        TenantMedia.Get(Item.Picture.Item(1));
+        TenantMedia."Mime Type" := 'application/octet-stream';
+        TenantMedia.Width := 0;
+        TenantMedia.Height := 0;
+        TenantMedia.Modify();
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        ImageAnalysisManagement.SetUriAndKey('https://fakeuri', GetKey());
+        ImageAnalysisManagement.Initialize(Enum::"Image Analysis Provider"::"v3.2");
+        ImageAnalysisManagement.SetMedia(TenantMedia.ID);
+        BindSubscription(ImageAnalysisManagementTest);
+
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        UnbindSubscription(ImageAnalysisManagementTest);
+
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.IsTrue(Result, 'Valid image content must not be rejected based on metadata. Error: ' + ErrorValue);
+        Assert.AreEqual(1, ImageAnalysisManagementTest.GetImageAnalysisRequestCount(), 'The image should reach V3.2.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeV32RejectsNonImageWithImageMetadata()
+    var
+        Item: Record Item;
+        TenantMedia: Record "Tenant Media";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        ImageAnalysisManagementTest: Codeunit "Image Analysis Management Test";
+        ContentOutStream: OutStream;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+        Result: Boolean;
+    begin
+        // [SCENARIO] V3.2 rejects non-image bytes even when the stored metadata describes a supported image
+        LibraryInventory.CreateItem(Item);
+        Item.Picture.ImportFile(GetImagePath(), 'Description');
+        TenantMedia.Get(Item.Picture.Item(1));
+        TenantMedia.CalcFields(Content);
+        Clear(TenantMedia.Content);
+        TenantMedia.Content.CreateOutStream(ContentOutStream);
+        ContentOutStream.WriteText('This is not an image.');
+        TenantMedia.Modify();
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        ImageAnalysisManagement.SetUriAndKey('https://fakeuri', GetKey());
+        ImageAnalysisManagement.Initialize(Enum::"Image Analysis Provider"::"v3.2");
+        ImageAnalysisManagement.SetMedia(TenantMedia.ID);
+        BindSubscription(ImageAnalysisManagementTest);
+
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        UnbindSubscription(ImageAnalysisManagementTest);
+
+        Assert.IsFalse(Result, 'Image metadata must not make non-image content valid.');
+        Assert.AreEqual(0, ImageAnalysisManagementTest.GetImageAnalysisRequestCount(), 'Invalid content must not be sent.');
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.AreEqual(MediaWrongFormatErr, ErrorValue, 'Expected the unsupported media format error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzePngForCustomVision()
+    begin
+        AnalyzeSupportedFormatForCustomVision(Enum::"Image Format"::Png);
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeGifForCustomVision()
+    begin
+        AnalyzeSupportedFormatForCustomVision(Enum::"Image Format"::Gif);
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeBmpForCustomVision()
+    begin
+        AnalyzeSupportedFormatForCustomVision(Enum::"Image Format"::Bmp);
     end;
 
     [Test]
@@ -662,6 +951,70 @@ codeunit 135206 "Image Analysis Management Test"
     local procedure GetImagePath(): Text
     begin
         exit(LibraryUtilityOnPrem.GetInetRoot() + '\App\Test\Files\ImageAnalysis\AllowedImage.jpg');
+    end;
+
+    [Normal]
+    local procedure CreateImageBlob(var TempBlob: Codeunit "Temp Blob"; Width: Integer; Height: Integer; ImageFormat: Enum "Image Format")
+    var
+        SourceTempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
+        Image: Codeunit Image;
+        ImageInStream: InStream;
+        ImageOutStream: OutStream;
+    begin
+        // This import needs to happen before setting to saas
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        FileManagement.BLOBImportFromServerFile(SourceTempBlob, GetImagePath());
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        SourceTempBlob.CreateInStream(ImageInStream);
+        Image.FromStream(ImageInStream);
+        Image.Resize(Width, Height);
+        Image.SetFormat(ImageFormat);
+
+        Clear(TempBlob);
+        TempBlob.CreateOutStream(ImageOutStream);
+        Image.Save(ImageOutStream);
+    end;
+
+    local procedure AnalyzeSupportedFormatForCustomVision(ImageFormat: Enum "Image Format")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+        Result: Boolean;
+    begin
+        // [SCENARIO] Custom Vision's supported formats remain accepted with customer-provided credentials
+        CreateImageBlob(TempBlob, 500, 600, ImageFormat);
+        ImageAnalysisManagement.SetUriAndKey('https://fakeuri/customvision/', GetKey());
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetCustomImageAnalysisTagsResponsePath());
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.IsTrue(Result, 'The image format should be accepted by BC. Error: ' + ErrorValue);
+        Assert.IsFalse(IsNull(HttpMessageHandler.RequestMessage), 'The image must reach the configured endpoint.');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Image Analysis Management", OnBeforeSendImageAnalysisRequest, '', false, false)]
+    local procedure OnBeforeSendImageAnalysisRequestProvideResponse(HttpContent: HttpContent; RequestUrl: Text; var HttpStatusCode: Integer; var HttpResponseContentText: Text; var Handled: Boolean)
+    begin
+        Assert.IsFalse(Handled, 'The request should not already be handled.');
+        Assert.IsTrue(RequestUrl.StartsWith('https://fakeuri/vision/v3.2/analyze?'), 'Unexpected V3.2 endpoint.');
+        ImageAnalysisRequestCount += 1;
+        HttpStatusCode := 200;
+        HttpResponseContentText := '{"requestId":"93c49f4b-085c-4c83-b29c-e4eb9013a1b9","tags":[]}';
+        Handled := true;
+    end;
+
+    procedure GetImageAnalysisRequestCount(): Integer
+    begin
+        exit(ImageAnalysisRequestCount);
     end;
 
     [Normal]
