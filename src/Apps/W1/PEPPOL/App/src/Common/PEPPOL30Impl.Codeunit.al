@@ -679,13 +679,27 @@ codeunit 37201 "PEPPOL30 Impl."
     end;
 
     procedure GetDeliveryAddress(SalesHeader: Record "Sales Header"; var DeliveryStreetName: Text; var DeliveryAdditionalStreetName: Text; var DeliveryCityName: Text; var DeliveryPostalZone: Text; var DeliveryCountrySubentity: Text; var DeliveryCountryIdCode: Text; var DeliveryCountryListID: Text)
+    var
+        CompanyInfo: Record "Company Information";
     begin
         DeliveryStreetName := SalesHeader."Ship-to Address";
         DeliveryAdditionalStreetName := SalesHeader."Ship-to Address 2";
         DeliveryCityName := SalesHeader."Ship-to City";
         DeliveryPostalZone := SalesHeader."Ship-to Post Code";
         DeliveryCountrySubentity := SalesHeader."Ship-to County";
-        DeliveryCountryIdCode := GetCountryISOCode(SalesHeader."Ship-to Country/Region Code");
+        DeliveryCountryIdCode := '';
+        if SalesHeader."Ship-to Country/Region Code" <> '' then
+            DeliveryCountryIdCode := GetCountryISOCode(SalesHeader."Ship-to Country/Region Code")
+        else
+            // An exported delivery address must carry a country (BR-57); a blank ship-to country means the company's country, as in the validation.
+            // Without any other ship-to field there is no address to export, so the country stays blank.
+            if (DeliveryStreetName <> '') or (DeliveryAdditionalStreetName <> '') or (DeliveryCityName <> '') or
+               (DeliveryPostalZone <> '') or (DeliveryCountrySubentity <> '')
+            then begin
+                CompanyInfo.Get();
+                CompanyInfo.TestField("Country/Region Code");
+                DeliveryCountryIdCode := GetCountryISOCode(CompanyInfo."Country/Region Code");
+            end;
         DeliveryCountryListID := GetISO3166_1Alpha2();
     end;
 
