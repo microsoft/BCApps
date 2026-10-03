@@ -169,6 +169,7 @@ codeunit 20508 "Subc. Price Management"
         end;
 
         RecRef.SetTable(Item);
+        Item.Get(Item."No.");
         CalculationDate := SubcSessionState.GetDate('OnAfterSetProperties');
         if CalculationDate = 0D then
             CalculationDate := WorkDate();
@@ -197,8 +198,12 @@ codeunit 20508 "Subc. Price Management"
     var
         SubContractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
+        LotSize: Decimal;
     begin
         WorkCenter.Get(No);
+        LotSize := Item."Lot Size";
+        if LotSize = 0 then
+            LotSize := 1;
 
         SetSubcontractorPriceForPriceCalculation(
             SubContractorPrice,
@@ -218,9 +223,9 @@ codeunit 20508 "Subc. Price Management"
             OvhdRate,
             UnitCost,
             UnitCostCalculationType,
+            LotSize,
             1,
-            1,
-            1);
+            LotSize);
     end;
 
     procedure GetSubcPriceList(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
