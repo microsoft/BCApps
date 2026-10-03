@@ -3161,6 +3161,8 @@ table 83 "Item Journal Line"
         ReservEntry.InitSortingAndFilters(false);
         SetReservationFilters(ReservEntry);
         ReservEntry.ClearTrackingFilter();
+        if ReservEntry.ReadIsolation() = IsolationLevel::Default then
+            ReservEntry.ReadIsolation(IsolationLevel::ReadCommitted);
         exit(not ReservEntry.IsEmpty);
     end;
 

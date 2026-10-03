@@ -106,11 +106,20 @@ codeunit 99000835 "Item Jnl. Line-Reserve"
     end;
 
     procedure ReservEntryExist(ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"): Boolean
+    var
+        OriginalReadIsolation: IsolationLevel;
+        EntriesExist: Boolean;
     begin
+        OriginalReadIsolation := ReservationEntry.ReadIsolation();
         ReservationEntry.InitSortingAndFilters(false);
+        ReservationEntry.ReadIsolation(OriginalReadIsolation);
         ItemJournalLine.SetReservationFilters(ReservationEntry);
+        if ReservationEntry.ReadIsolation() = IsolationLevel::Default then
+            ReservationEntry.ReadIsolation(IsolationLevel::ReadCommitted);
         OnReservEntryExistOnBeforeReservationEntryIsEmpty(ReservationEntry, ItemJournalLine);
-        exit(not ReservationEntry.IsEmpty());
+        EntriesExist := not ReservationEntry.IsEmpty();
+        ReservationEntry.ReadIsolation(OriginalReadIsolation);
+        exit(EntriesExist);
     end;
 
     procedure VerifyChange(var NewItemJournalLine: Record "Item Journal Line"; var OldItemJournalLine: Record "Item Journal Line")

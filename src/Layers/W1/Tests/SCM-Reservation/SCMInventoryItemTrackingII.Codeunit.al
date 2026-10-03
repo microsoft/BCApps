@@ -2624,6 +2624,218 @@ codeunit 137261 "SCM Inventory Item Tracking II"
         AssertSNInfoExists(ItemJournalLine);
     end;
 
+    [Test]
+    procedure SumTrackingPreservesDefault()
+    begin
+        // [FEATURE] [AI test 0.3] [Item Tracking] [Read Isolation]
+        // [SCENARIO] Summarization preserves tracking totals and default caller isolation in a reservation write transaction.
+        Initialize();
+
+        // [GIVEN] Two tracked entries in a reservation write transaction.
+        // [WHEN] Summarizing with default record isolation.
+        // [THEN] Tracking totals, caller isolation and filters are preserved.
+        VerifyTrackingCallerContext(IsolationLevel::Default);
+    end;
+
+    [Test]
+    procedure SumTrackingPreservesUpdLock()
+    begin
+        // [FEATURE] [AI test 0.3] [Item Tracking] [Read Isolation]
+        // [SCENARIO] An explicitly requested update lock survives summarization.
+        Initialize();
+
+        // [GIVEN] Tracked reservation entries with explicit UpdLock.
+        // [WHEN] Summarizing the entries.
+        // [THEN] Tracking totals and the caller's UpdLock are preserved.
+        VerifyTrackingCallerContext(IsolationLevel::UpdLock);
+    end;
+
+    [Test]
+    procedure SumTrackingPreservesRepeatableRead()
+    begin
+        // [FEATURE] [AI test 0.3] [Item Tracking] [Read Isolation]
+        // [SCENARIO] An explicitly requested repeatable read survives summarization.
+        Initialize();
+
+        // [GIVEN] Tracked reservation entries with explicit RepeatableRead.
+        // [WHEN] Summarizing the entries.
+        // [THEN] Tracking totals and the caller's RepeatableRead are preserved.
+        VerifyTrackingCallerContext(IsolationLevel::RepeatableRead);
+    end;
+
+    [Test]
+    procedure SumTrackingEmptyPreservesCaller()
+    var
+        ReservationEntry: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        ItemTrackingManagement: Codeunit "Item Tracking Management";
+        OriginalFilters: Text;
+        EntriesExist: Boolean;
+    begin
+        // [FEATURE] [AI test 0.3] [Item Tracking] [Read Isolation]
+        // [SCENARIO] An empty summarization restores default isolation and keeps source filters.
+        Initialize();
+
+        // [GIVEN] An empty reservation filter in a locked transaction.
+        ReservationEntry.LockTable();
+        ReservationEntry.SetRange("Entry No.", 0);
+        OriginalFilters := ReservationEntry.GetFilters();
+
+        // [WHEN] Summarizing no entries.
+        EntriesExist := ItemTrackingManagement.SumUpItemTracking(ReservationEntry, TempTrackingSpecification, false, true);
+
+        // [THEN] No tracking is returned and the caller context is unchanged.
+        Assert.IsFalse(EntriesExist, 'An empty reservation filter must not produce tracking.');
+        VerifyReservationReadContext(ReservationEntry, IsolationLevel::Default, OriginalFilters);
+        Assert.IsTrue(TempTrackingSpecification.IsEmpty(), 'The tracking buffer must remain empty.');
+    end;
+
+    [Test]
+    procedure JournalExistsUsesReadCommitted()
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal] [Read Isolation]
+        // [SCENARIO] A default-isolation existence check avoids inherited reservation update locks.
+        Initialize();
+
+        // [GIVEN] A journal line with tracking in a reservation write transaction.
+        // [WHEN] Checking for its reservation entries.
+        // [THEN] The read uses ReadCommitted and the returned record retains default isolation.
+        VerifyJournalReadIsolation(IsolationLevel::Default, IsolationLevel::Default, IsolationLevel::ReadCommitted);
+    end;
+
+    [Test]
+    procedure JournalExistsPreservesUpdLock()
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal] [Read Isolation]
+        // [SCENARIO] Filter initialization must not discard an explicit update lock.
+        Initialize();
+
+        // [GIVEN] A reservation record with explicit UpdLock.
+        // [WHEN] Checking journal reservation existence.
+        // [THEN] Both the read and returned record preserve UpdLock.
+        VerifyJournalReadIsolation(IsolationLevel::UpdLock, IsolationLevel::Default, IsolationLevel::UpdLock);
+    end;
+
+    [Test]
+    procedure JournalExistsPreservesRepeatableRead()
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal] [Read Isolation]
+        // [SCENARIO] Filter initialization must not discard explicit repeatable read isolation.
+        Initialize();
+
+        // [GIVEN] A reservation record with explicit RepeatableRead.
+        // [WHEN] Checking journal reservation existence.
+        // [THEN] Both the read and returned record preserve RepeatableRead.
+        VerifyJournalReadIsolation(IsolationLevel::RepeatableRead, IsolationLevel::Default, IsolationLevel::RepeatableRead);
+    end;
+
+    [Test]
+    procedure JournalExistsHonorsSubscriberIsolation()
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal] [Read Isolation]
+        // [SCENARIO] A subscriber can request an update lock without weakening the caller context.
+        Initialize();
+
+        // [GIVEN] A subscriber that requests UpdLock on a default-isolation record.
+        // [WHEN] Checking journal reservation existence.
+        // [THEN] The subscriber's isolation is honored only for the read.
+        VerifyJournalReadIsolation(IsolationLevel::Default, IsolationLevel::UpdLock, IsolationLevel::UpdLock);
+    end;
+
+    [Test]
+    procedure JournalExistsKeepsTrackingFilterSemantics()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        ItemJnlLineReserve: Codeunit "Item Jnl. Line-Reserve";
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal] [Read Isolation]
+        // [SCENARIO] The two-argument lookup keeps tracking filters while the delegated lookup clears them.
+        Initialize();
+
+        // [GIVEN] A tracked journal line whose current lot does not match its reservation entries.
+        CreateJournalForReadIsolation(ItemJournalLine, ReservationEntry);
+        ItemJournalLine."Lot No." := 'OTHER';
+
+        // [WHEN] Checking each public existence overload.
+        // [THEN] Only the two-argument overload respects the nonmatching lot filter.
+        Assert.IsFalse(ItemJnlLineReserve.ReservEntryExist(ItemJournalLine, ReservationEntry), 'The explicit record lookup must retain the lot filter.');
+        Assert.IsTrue(ReservationEntry.ReadIsolation() = IsolationLevel::Default, 'An empty lookup must restore caller isolation.');
+        Assert.IsTrue(ItemJnlLineReserve.ReservEntryExist(ItemJournalLine), 'The delegated lookup must ignore tracking filters.');
+        Assert.IsTrue(ItemJournalLine.ReservEntryExist(), 'The table lookup must ignore tracking filters.');
+
+        // [WHEN] Looking up another source line.
+        ItemJournalLine."Line No." += 1;
+
+        // [THEN] Neither overload may return another line's entries.
+        Assert.IsFalse(ItemJnlLineReserve.ReservEntryExist(ItemJournalLine, ReservationEntry), 'The explicit lookup must retain source filters.');
+        Assert.IsFalse(ItemJnlLineReserve.ReservEntryExist(ItemJournalLine), 'The delegated lookup must retain source filters.');
+        Assert.IsFalse(ItemJournalLine.ReservEntryExist(), 'The table lookup must retain source filters.');
+    end;
+
+    [Test]
+    procedure PurchaseVerifyChangePreservesDefault()
+    begin
+        // [FEATURE] [AI test 0.3] [Purchase] [Read Isolation]
+        // [SCENARIO] Purchase validation returns the calculated reserved quantity without changing caller context.
+        Initialize();
+
+        // [GIVEN] A purchase line with four units reserved.
+        // [WHEN] Verifying an unchanged line with default isolation.
+        // [THEN] The FlowField value, filters and caller isolation are preserved.
+        VerifyPurchaseReadContext(IsolationLevel::Default);
+    end;
+
+    [Test]
+    procedure PurchaseVerifyChangePreservesUpdLock()
+    begin
+        // [FEATURE] [AI test 0.3] [Purchase] [Read Isolation]
+        // [SCENARIO] Purchase validation preserves an explicitly requested update lock.
+        Initialize();
+
+        // [GIVEN] A reserved purchase line with explicit UpdLock.
+        // [WHEN] Verifying the unchanged line.
+        // [THEN] The FlowField value and caller context remain observable.
+        VerifyPurchaseReadContext(IsolationLevel::UpdLock);
+    end;
+
+    [Test]
+    procedure PurchaseVerifyChangePreservesRepeatableRead()
+    begin
+        // [FEATURE] [AI test 0.3] [Purchase] [Read Isolation]
+        // [SCENARIO] Purchase validation preserves explicitly requested repeatable read isolation.
+        Initialize();
+
+        // [GIVEN] A reserved purchase line with explicit RepeatableRead.
+        // [WHEN] Verifying the unchanged line.
+        // [THEN] The FlowField value and caller context remain observable.
+        VerifyPurchaseReadContext(IsolationLevel::RepeatableRead);
+    end;
+
+    [Test]
+    procedure PurchaseVerifyChangeRetainsReservedError()
+    var
+        PurchaseLine: Record "Purchase Line";
+        OldPurchaseLine: Record "Purchase Line";
+        PurchLineReserve: Codeunit "Purch. Line-Reserve";
+    begin
+        // [FEATURE] [AI test 0.3] [Purchase] [Read Isolation]
+        // [SCENARIO] A reserved line still rejects clearing its expected receipt date.
+        Initialize();
+
+        // [GIVEN] A reserved purchase line whose expected receipt date is cleared.
+        CreateReservedPurchaseForReadIsolation(PurchaseLine);
+        OldPurchaseLine := PurchaseLine;
+        PurchaseLine."Expected Receipt Date" := 0D;
+
+        // [WHEN] Verifying the change.
+        asserterror PurchLineReserve.VerifyChange(PurchaseLine, OldPurchaseLine);
+
+        // [THEN] The reserved-quantity validation error is retained.
+        Assert.ExpectedError('must be filled in when a quantity is reserved');
+        Assert.ExpectedErrorCode('NCLCSRTS:TableErrorStr');
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";
@@ -2647,6 +2859,119 @@ codeunit 137261 "SCM Inventory Item Tracking II"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Inventory Item Tracking II");
+    end;
+
+    local procedure CreateJournalForReadIsolation(var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
+    var
+        Item: Record Item;
+    begin
+        CreateTrackedItem(Item, '', '', CreateItemTrackingCode(true, false, false));
+        CreateItemJournalLine(ItemJournalLine, Item."No.", '', '', 10);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', 'LOT1', 2);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', 'LOT1', 3);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', 'LOT2', 5);
+        ReservationEntry.Reset();
+        ItemJournalLine."Lot No." := 'LOT1';
+        ItemJournalLine.SetReservationFilters(ReservationEntry);
+        ReservationEntry.LockTable();
+    end;
+
+    local procedure VerifyTrackingCallerContext(CallerIsolation: IsolationLevel)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        ItemTrackingManagement: Codeunit "Item Tracking Management";
+        OriginalFilters: Text;
+        EntriesExist: Boolean;
+    begin
+        CreateJournalForReadIsolation(ItemJournalLine, ReservationEntry);
+        ReservationEntry.ReadIsolation(CallerIsolation);
+        OriginalFilters := ReservationEntry.GetFilters();
+
+        EntriesExist := ItemTrackingManagement.SumUpItemTracking(ReservationEntry, TempTrackingSpecification, false, true);
+
+        Assert.IsTrue(EntriesExist, 'The fixture must produce tracking.');
+        Assert.AreEqual(1, TempTrackingSpecification.Count(), 'Only the filtered lot must be summarized.');
+        Assert.AreEqual(5, TempTrackingSpecification."Quantity (Base)", 'Both reservation quantities must be summed.');
+        Assert.AreEqual(5, TempTrackingSpecification."Qty. to Handle (Base)", 'Handling quantities must be summed.');
+        Assert.AreEqual(5, TempTrackingSpecification."Qty. to Invoice (Base)", 'Invoice quantities must be summed.');
+        VerifyReservationReadContext(ReservationEntry, CallerIsolation, OriginalFilters);
+    end;
+
+    local procedure VerifyJournalReadIsolation(CallerIsolation: IsolationLevel; SubscriberIsolation: IsolationLevel; ExpectedReadIsolation: IsolationLevel)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        ExpectedReservationEntry: Record "Reservation Entry";
+        ItemJnlLineReserve: Codeunit "Item Jnl. Line-Reserve";
+        SCMReservationSubscriber: Codeunit "SCM Reservation Subscriber";
+        ReadCount: Integer;
+        ObservedIsolation: IsolationLevel;
+        EntriesExist: Boolean;
+    begin
+        CreateJournalForReadIsolation(ItemJournalLine, ReservationEntry);
+        ExpectedReservationEntry.InitSortingAndFilters(false);
+        ItemJournalLine.SetReservationFilters(ExpectedReservationEntry);
+        ReservationEntry.ReadIsolation(CallerIsolation);
+        SCMReservationSubscriber.CaptureReservationReadIsolation(SubscriberIsolation);
+        BindSubscription(SCMReservationSubscriber);
+
+        EntriesExist := ItemJnlLineReserve.ReservEntryExist(ItemJournalLine, ReservationEntry);
+        UnbindSubscription(SCMReservationSubscriber);
+
+        Assert.IsTrue(EntriesExist, 'The fixture must have journal reservation entries.');
+        ObservedIsolation := SCMReservationSubscriber.GetJournalReadIsolation(ReadCount);
+        Assert.AreEqual(1, ReadCount, 'The event must observe the actual existence lookup.');
+        Assert.IsTrue(ExpectedReadIsolation = ObservedIsolation, 'ReservEntryExist must preserve explicit isolation or use ReadCommitted.');
+        VerifyReservationReadContext(ReservationEntry, CallerIsolation, ExpectedReservationEntry.GetFilters());
+    end;
+
+    local procedure VerifyReservationReadContext(var ReservationEntry: Record "Reservation Entry"; ExpectedIsolation: IsolationLevel; ExpectedFilters: Text)
+    begin
+        Assert.IsTrue(ExpectedIsolation = ReservationEntry.ReadIsolation(), 'The returned reservation record must retain caller isolation.');
+        Assert.AreEqual(ExpectedFilters, ReservationEntry.GetFilters(), 'Reservation filters must remain unchanged.');
+    end;
+
+    local procedure CreateReservedPurchaseForReadIsolation(var PurchaseLine: Record "Purchase Line")
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        LibraryInventory.CreateItem(Item);
+        CreatePurchaseOrder(PurchaseLine, Item."No.", 10);
+        PurchaseLine.Validate("Expected Receipt Date", WorkDate());
+        PurchaseLine.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 4);
+        SalesLine.Validate("Shipment Date", WorkDate());
+        SalesLine.Modify(true);
+        LibrarySales.AutoReserveSalesLine(SalesLine);
+        PurchaseLine.CalcFields("Reserved Qty. (Base)");
+        Assert.AreEqual(4, PurchaseLine."Reserved Qty. (Base)", 'The fixture must reserve four purchase units.');
+        PurchaseLine."Reserved Qty. (Base)" := 0;
+    end;
+
+    local procedure VerifyPurchaseReadContext(CallerIsolation: IsolationLevel)
+    var
+        PurchaseLine: Record "Purchase Line";
+        OldPurchaseLine: Record "Purchase Line";
+        PurchLineReserve: Codeunit "Purch. Line-Reserve";
+        OriginalFilters: Text;
+    begin
+        CreateReservedPurchaseForReadIsolation(PurchaseLine);
+        OldPurchaseLine := PurchaseLine;
+        PurchaseLine.SetRecFilter();
+        PurchaseLine.SetRange("No.", PurchaseLine."No.");
+        OriginalFilters := PurchaseLine.GetFilters();
+        PurchaseLine.ReadIsolation(CallerIsolation);
+
+        PurchLineReserve.VerifyChange(PurchaseLine, OldPurchaseLine);
+
+        Assert.AreEqual(4, PurchaseLine."Reserved Qty. (Base)", 'VerifyChange must expose the calculated reserved quantity to its caller.');
+        Assert.IsTrue(CallerIsolation = PurchaseLine.ReadIsolation(), 'Purchase validation must not change caller isolation.');
+        Assert.AreEqual(OriginalFilters, PurchaseLine.GetFilters(), 'Purchase validation must preserve caller filters.');
     end;
 
     local procedure AssignSerialNoOnPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
@@ -4544,4 +4869,3 @@ codeunit 137261 "SCM Inventory Item Tracking II"
         ItemTrackingLines.OK().Invoke();
     end;
 }
-

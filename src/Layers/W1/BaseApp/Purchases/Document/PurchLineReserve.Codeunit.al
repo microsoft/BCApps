@@ -189,7 +189,13 @@ codeunit 99000834 "Purch. Line-Reserve"
             then
                 exit;
 
-        NewPurchaseLine.CalcFields("Reserved Qty. (Base)");
+        PurchaseLine.Copy(NewPurchaseLine);
+        if NewPurchaseLine.ReadIsolation() = IsolationLevel::Default then
+            PurchaseLine.ReadIsolation(IsolationLevel::ReadCommitted)
+        else
+            PurchaseLine.ReadIsolation(NewPurchaseLine.ReadIsolation());
+        PurchaseLine.CalcFields("Reserved Qty. (Base)");
+        NewPurchaseLine."Reserved Qty. (Base)" := PurchaseLine."Reserved Qty. (Base)";
         ShowError := NewPurchaseLine."Reserved Qty. (Base)" <> 0;
 
         if (NewPurchaseLine."Expected Receipt Date" = 0D) and (OldPurchaseLine."Expected Receipt Date" <> 0D) then
