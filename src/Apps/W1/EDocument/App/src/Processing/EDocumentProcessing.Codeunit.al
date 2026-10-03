@@ -293,12 +293,12 @@ codeunit 6108 "E-Document Processing"
                     SourceDocumentLines.Open(Database::"Service Cr.Memo Line");
                     SourceDocumentLines.Field(3).SetRange(EDocument."Document No.");
                 end;
-            EDocument."Document Type"::"Purchase Invoice":
+            EDocument."Document Type"::"Purchase Invoice", EDocument."Document Type"::"Self-Billed Purchase Invoice":
                 begin
                     SourceDocumentLines.Open(Database::"Purch. Inv. Line");
                     SourceDocumentLines.Field(3).SetRange(EDocument."Document No.");
                 end;
-            EDocument."Document Type"::"Purchase Credit Memo":
+            EDocument."Document Type"::"Purchase Credit Memo", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo":
                 begin
                     SourceDocumentLines.Open(Database::"Purch. Cr. Memo Line");
                     SourceDocumentLines.Field(3).SetRange(EDocument."Document No.");
@@ -659,12 +659,12 @@ codeunit 6108 "E-Document Processing"
                     RelatedRecord := SalesCrMemoHeader;
                     exit(true);
                 end;
-            EDocument."Document Type"::"Purchase Invoice":
+            EDocument."Document Type"::"Purchase Invoice", EDocument."Document Type"::"Self-Billed Purchase Invoice":
                 if PurchInvHeader.Get(EDocument."Document No.") then begin
                     RelatedRecord := PurchInvHeader;
                     exit(true);
                 end;
-            EDocument."Document Type"::"Purchase Credit Memo":
+            EDocument."Document Type"::"Purchase Credit Memo", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo":
                 if PurchCrMemoHdr.Get(EDocument."Document No.") then begin
                     RelatedRecord := PurchCrMemoHdr;
                     exit(true);
