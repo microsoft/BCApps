@@ -1970,15 +1970,16 @@ codeunit 144001 VATSTAT
 
     local procedure CreateNonDeductibleVATStatementLine(var VATStatementName: Record "VAT Statement Name"; VATPostingSetup: Record "VAT Posting Setup")
     var
-        VATStatementTemplate: Record "VAT Statement Template";
         VATStatementLine: Record "VAT Statement Line";
         LineNoToCreate: Integer;
     begin
-        VATStatementTemplate.FindFirst();
         VATStatementName.FindFirst();
-        VATStatementLine.SetRange("Statement Template Name", VATStatementTemplate.Name);
-        VATStatementLine.FindLast();
-        LineNoToCreate := VATStatementLine."Line No." + 10000;
+        VATStatementLine.SetRange("Statement Template Name", VATStatementName."Statement Template Name");
+        VATStatementLine.SetRange("Statement Name", VATStatementName.Name);
+        if VATStatementLine.FindLast() then
+            LineNoToCreate := VATStatementLine."Line No." + 10000
+        else
+            LineNoToCreate := 10000;
 
         VATStatementLine.Init();
         VATStatementLine.Validate("Statement Template Name", VATStatementName."Statement Template Name");
