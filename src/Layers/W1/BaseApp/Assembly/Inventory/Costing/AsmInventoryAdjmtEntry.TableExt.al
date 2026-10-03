@@ -30,7 +30,7 @@ tableextension 990 "Asm. Inventory Adjmt. Entry" extends "Inventory Adjmt. Entry
         "Cost is Adjusted" := false;
         "Is Finished" := true;
         "Indirect Cost %" := AssemblyHeader."Indirect Cost %";
-        GetCostsFromItem(1);
+        GetUnitCostsFromItem();
         if not Insert() then;
     end;
 
@@ -44,7 +44,7 @@ tableextension 990 "Asm. Inventory Adjmt. Entry" extends "Inventory Adjmt. Entry
         "Cost is Adjusted" := false;
         "Is Finished" := true;
         "Indirect Cost %" := PostedAssemblyHeader."Indirect Cost %";
-        GetCostsFromItem(1);
+        GetUnitCostsFromItem();
         if not Insert() then;
     end;
 }
