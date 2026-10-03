@@ -71,6 +71,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification.DELETEALL();
         CreateDefaultTemplate();
         SetPaymentRegistrationSetup();
+        DisablePaymentTolerance();
 
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(FALSE);
 
@@ -1514,6 +1515,19 @@ codeunit 139500 "MS - PayPal Standard Tests"
         // Rebind every test so the mock (disables background processing, captures payment events) stays active after per-test unbinding.
         UnbindSubscription(MSPayPalStdMockEvents);
         BindSubscription(MSPayPalStdMockEvents);
+    end;
+
+    local procedure DisablePaymentTolerance();
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        // Some localizations (e.g. US, GB, CA) configure a payment tolerance in demo data, which would absorb the small
+        // remaining amount asserted by the partial-payment test. Clear it so the amount assertions stay deterministic
+        // across countries. Assign directly (no Validate) to avoid re-stamping existing ledger entries.
+        GeneralLedgerSetup.GET();
+        GeneralLedgerSetup."Payment Tolerance %" := 0;
+        GeneralLedgerSetup."Max. Payment Tolerance Amount" := 0;
+        GeneralLedgerSetup.MODIFY();
     end;
 
     LOCAL PROCEDURE SetPaymentRegistrationSetup();
