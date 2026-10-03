@@ -771,7 +771,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress &FA Ledger Entries';
                     Image = FixedAssets;
                     RunObject = Report "Date Compress FA Ledger";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress &Maintenance Ledger Entries")
                 {
@@ -779,7 +778,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress &Maintenance Ledger Entries';
                     Image = Tools;
                     RunObject = Report "Date Compress Maint. Ledger";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress &Insurance Ledger Entries")
                 {
@@ -787,7 +785,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress &Insurance Ledger Entries';
                     Image = Insurance;
                     RunObject = Report "Date Compress Insurance Ledger";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress &Warehouse Entries")
                 {

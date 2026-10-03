@@ -186,7 +186,6 @@ page 5644 "Insurance Card"
                 Caption = 'List';
                 Image = OpportunitiesList;
                 RunObject = Report "Insurance - List";
-                ToolTip = 'View or edit the list of insurance policies in the system.';
             }
             action("Uninsured FAs")
             {
@@ -194,7 +193,6 @@ page 5644 "Insurance Card"
                 Caption = 'Uninsured FAs';
                 Image = "Report";
                 RunObject = Report "Insurance - Uninsured FAs";
-                ToolTip = 'View the individual fixed assets for which amounts have not been posted to an insurance policy. For each fixed asset, the report shows the asset''s acquisition cost, accumulated depreciation, and book value.';
             }
             action("Tot. Value Insured")
             {
@@ -204,7 +202,6 @@ page 5644 "Insurance Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Insurance - Tot. Value Insured";
-                ToolTip = 'View each fixed asset with the amounts that you posted to each insurance policy. The entries in this report correspond to all of the entries in the Ins. Coverage Ledger Entry table. The amounts shown for each asset can be more or less than the actual insurance policy''s coverage. The amounts shown can differ from the actual book value of the asset.';
             }
             action("Coverage Details")
             {
@@ -214,7 +211,6 @@ page 5644 "Insurance Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Insurance - Coverage Details";
-                ToolTip = 'View the individual fixed assets that are linked to each insurance policy. For each insurance policy, the report shows one or more amounts for each asset. These are the amounts that need insurance coverage. These amounts can differ from the actual insurance policy''s coverage.';
             }
             action(Register)
             {
@@ -222,7 +218,6 @@ page 5644 "Insurance Card"
                 Caption = 'Register';
                 Image = Confirm;
                 RunObject = Report "Insurance Register";
-                ToolTip = 'View registers containing all the fixed asset entries that are created. Every register shows the first and last entry number of its entries.';
             }
             action(Analysis)
             {
@@ -230,7 +225,6 @@ page 5644 "Insurance Card"
                 Caption = 'Analysis';
                 Image = "Report";
                 RunObject = Report "Insurance - Analysis";
-                ToolTip = 'View an analysis of your fixed assets with various types of data for both individual assets and groups of assets.';
             }
         }
         area(Promoted)
