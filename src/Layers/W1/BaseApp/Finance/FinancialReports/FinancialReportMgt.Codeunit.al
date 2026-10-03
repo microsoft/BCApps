@@ -255,21 +255,18 @@ codeunit 18 "Financial Report Mgt."
     begin
         ConfigPackageData.SetLoadFields(Value);
         ConfigPackageData.SetRange("Package Code", PackageCode);
-
         if OldFinancialReportName <> NewFinancialReportName then begin
             ConfigPackageData.SetRange("Table ID", Database::"Financial Report");
             ConfigPackageData.SetRange("Field ID", FinancialReport.FieldNo(Name));
             ConfigPackageData.SetRange(Value, OldFinancialReportName);
             ConfigPackageData.ModifyAll(Value, NewFinancialReportName);
         end;
-
         if OldAccScheduleName <> NewAccScheduleName then begin
             ConfigPackageData.SetRange("Table ID", Database::"Financial Report");
             ConfigPackageData.SetRange("Field ID", FinancialReport.FieldNo("Financial Report Row Group"));
             ConfigPackageData.SetRange(Value, OldAccScheduleName);
             ConfigPackageData.ModifyAll(Value, NewAccScheduleName);
         end;
-
         if OldColumnLayoutName <> NewColumnLayoutName then begin
             ConfigPackageData.SetRange("Table ID", Database::"Financial Report");
             ConfigPackageData.SetRange("Field ID", FinancialReport.FieldNo("Financial Report Column Group"));
@@ -395,7 +392,6 @@ codeunit 18 "Financial Report Mgt."
         FinancialReport: Record "Financial Report";
     begin
         if not FinancialReport.Get(FinancialReportName) then;
-
         if PAGE.RunModal(0, FinancialReport) <> ACTION::LookupOK then
             exit(false);
 
@@ -713,7 +709,6 @@ codeunit 18 "Financial Report Mgt."
             AccScheduleLine.SetRange("Date Filter", StartDate, EndDate);
             exit;
         end;
-
         if FinancialReport.DateFilterPeriodFormula <> '' then
             if PeriodFormulaParser.TryCalculatePeriodStartEnd(
                 FinancialReport.DateFilterPeriodFormula, FinancialReport.DateFilterPeriodFormulaLID,
@@ -723,7 +718,6 @@ codeunit 18 "Financial Report Mgt."
                     AccScheduleLine.SetRange("Date Filter", StartDate, EndDate);
                     exit;
                 end;
-
         if FinancialReport.DateFilter <> '' then
             if TrySetAccScheduleLineDateFilter(FinancialReport.DateFilter, AccScheduleLine) then
                 exit;
