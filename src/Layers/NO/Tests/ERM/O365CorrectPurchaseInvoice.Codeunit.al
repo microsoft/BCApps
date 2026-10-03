@@ -1471,7 +1471,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectPartialInvoicePostedFromOrder()
+    procedure CorrectPartialInvoicePostedFromOrderWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1483,6 +1483,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         // [FEATURE] [Correct] [Credit Memo] [Receipt] [UI]
         // [SCENARIO 365667] System opens purchase order when Stan corrects invoice posted from that purchase order
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
         CreatePurchaseLineWithPartialQtyToReceive(PurchaseLine, PurchaseHeader);
@@ -1511,7 +1512,49 @@ codeunit 138025 "O365 Correct Purchase Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectInvoicePostedFromTwoShipmentsOfSingleOrder()
+    procedure CorrectPartialInvoicePostedFromOrderDoesNotRestoreQuantitiesWhenRestoreQtyDisabled()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PostedPurchaseInvoicePage: TestPage "Posted Purchase Invoice";
+        PurchaseOrderPage: TestPage "Purchase Order";
+        InvoiceNo: Code[20];
+        PostedQuantity: Decimal;
+    begin
+        // [FEATURE] [Correct] [Credit Memo] [Receipt] [UI]
+        // [SCENARIO 649626] Correcting an order-based purchase invoice does not restore order quantities when "Restore Order qty. on return" is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially received and invoiced purchase order.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        CreatePurchaseLineWithPartialQtyToReceive(PurchaseLine, PurchaseHeader);
+        PostedQuantity := PurchaseLine."Qty. to Receive";
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        GetPurchaseInvoiceHeaderAndCheckCancelled(PurchInvHeader, InvoiceNo, false);
+
+        LibraryVariableStorage.Enqueue(CorrectPostedInvoiceFromSingleOrderQst);
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] The posted invoice is corrected from the Posted Purchase Invoice page.
+        PostedPurchaseInvoicePage.Trap();
+        Page.Run(Page::"Posted Purchase Invoice", PurchInvHeader);
+        PurchaseOrderPage.Trap();
+        PostedPurchaseInvoicePage.CorrectInvoice.Invoke();
+
+        // [THEN] The order opens, but its received and invoiced quantities remain unchanged.
+        PurchaseOrderPage.PurchLines."Quantity Received".AssertEquals(PostedQuantity);
+        PurchaseOrderPage.PurchLines."Quantity Invoiced".AssertEquals(PostedQuantity);
+        PurchaseOrderPage.PurchLines."Qty. to Receive".AssertEquals(PurchaseLine.Quantity - PostedQuantity);
+        PurchaseOrderPage.PurchLines."Qty. to Invoice".AssertEquals(PurchaseLine.Quantity - PostedQuantity);
+        GetPurchaseInvoiceHeaderAndCheckCancelled(PurchInvHeader, InvoiceNo, true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerVerify')]
+    procedure CorrectInvoicePostedFromTwoShipmentsOfSingleOrderWhenRestoreQtyEnabled()
     var
         PurchaseHeaderOrder: Record "Purchase Header";
         PurchaseLineOrder: array[2] of Record "Purchase Line";
@@ -1525,6 +1568,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         // [FEATURE] [Correct] [Credit Memo] [Shipment] [UI]
         // [SCENARIO 365667] System opens purchase order when Stan corrects invoice posted via "get shipment lines" and all shipments relate to that single order
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, LibraryPurchase.CreateVendorNo());
         CreatePurchaseLineWithPartialQtyToReceive(PurchaseLineOrder[1], PurchaseHeaderOrder);
@@ -1576,7 +1620,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerVerify')]
-    procedure CorrectInvoicePostedFromTwoShipmentsOfTwoOrders()
+    procedure CorrectInvoicePostedFromTwoShipmentsOfTwoOrdersWhenRestoreQtyEnabled()
     var
         PurchaseHeaderOrder: array[2] of Record "Purchase Header";
         PurchaseLineOrder: array[2] of Record "Purchase Line";
@@ -1590,6 +1634,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         // [FEATURE] [Correct] [Credit Memo] [Shipment] [UI]
         // [SCENARIO 365667] System warns that it can't open a particular purchase order when Stan corrects invoice posted via "get shipment lines" and shipments relate to different single orders
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder[1], PurchaseHeaderOrder[1]."Document Type"::Order, LibraryPurchase.CreateVendorNo());
         CreatePurchaseLineWithPartialQtyToReceive(PurchaseLineOrder[1], PurchaseHeaderOrder[1]);
@@ -1773,7 +1818,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     [Scope('OnPrem')]
-    procedure CorrectiveCreditMemoQtyIncreaseBlockedForOrderBasedServiceItem()
+    procedure CorrectiveCreditMemoQtyIncreaseBlockedForOrderBasedServiceItemWhenRestoreQtyEnabled()
     var
         Vendor: Record Vendor;
         Item: Record Item;
@@ -1790,6 +1835,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         // [FEATURE] [Corrective Credit Memo] [Purchase Order]
         // [SCENARIO 645182] A corrective credit memo created from an order-based invoice cannot be increased, so the purchase order Received/Invoiced quantities cannot be driven negative.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] A purchase order for a Service item, partially received and invoiced
         PartialQty := LibraryRandom.RandIntInRange(2, 5);
@@ -1863,6 +1909,15 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"O365 Correct Purchase Invoice");
+    end;
+
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Modify(true);
     end;
 
     local procedure SetGlobalNoSeriesInSetups()

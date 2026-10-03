@@ -372,6 +372,15 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Copy Invoice No. To Payment Reference';
             ToolTip = 'Specifies if the value of the Vendor Invoice No. field must be copied to the Payment Reference field during posting unless the Payment Reference field is not blank.';
         }
+        /// <summary>
+        /// Indicates whether posting a purchase credit memo or return order restores the reversed quantities on the related purchase order.
+        /// </summary>
+        field(70; "Restore Order qty. on return"; Boolean)
+        {
+            Caption = 'Restore Order quantities on Credit Memo posting';
+            ToolTip = 'Specifies whether posting a purchase credit memo restores quantities on the related purchase order. When enabled, Qty. to Receive, Qty. to Invoice, and the received and invoiced quantities on the original purchase order are updated based on the reversed quantity.';
+            InitValue = true;
+        }
         field(160; "Disable Search by Name"; Boolean)
         {
             Caption = 'Disable Search by Name';

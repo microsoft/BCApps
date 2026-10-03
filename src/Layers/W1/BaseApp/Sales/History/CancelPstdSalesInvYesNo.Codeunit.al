@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
 /// <summary>
@@ -61,9 +62,15 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
     end;
 
     local procedure GetCancelPostedInvoiceQst(SalesInvoiceHeader: Record "Sales Invoice Header"): Text
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
-        if SalesInvoiceHeader."Order No." <> '' then
-            exit(CancelPostedInvoiceFromOrderQst);
+        if SalesInvoiceHeader."Order No." <> '' then begin
+            SalesReceivablesSetup.GetRecordOnce();
+            if SalesReceivablesSetup."Restore Order qty. on return" then
+                exit(CancelPostedInvoiceFromOrderQst);
+        end;
+
         exit(CancelPostedInvoiceQst);
     end;
 

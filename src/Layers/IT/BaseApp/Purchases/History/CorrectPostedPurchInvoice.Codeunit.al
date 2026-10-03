@@ -196,17 +196,21 @@ codeunit 1313 "Correct Posted Purch. Invoice"
 
     procedure CreateCreditMemoCopyDocument(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseHeader: Record "Purchase Header"): Boolean
     var
-        PurchHeader: Record "Purchase Header";
+        PurchaseHeaderOrder: Record "Purchase Header";
     begin
         if not PurchInvHeader.IsFullyOpen() then begin
             ShowInvoiceAppliedNotification(PurchInvHeader);
             exit(false);
         end;
-        PurchHeader.SetRange("Document Type", PurchHeader."Document Type"::Order);
-        PurchHeader.SetRange("No.", PurchInvHeader."Order No.");
-        if not PurchHeader.IsEmpty then
-            if not Confirm(CreateCreditMemoQst) then
-                exit(false);
+
+        PurchasesPayablesSetup.GetRecordOnce();
+        if PurchasesPayablesSetup."Restore Order qty. on return" then begin
+            PurchaseHeaderOrder.SetRange("Document Type", PurchaseHeaderOrder."Document Type"::Order);
+            PurchaseHeaderOrder.SetRange("No.", PurchInvHeader."Order No.");
+            if not PurchaseHeaderOrder.IsEmpty() then
+                if not Confirm(CreateCreditMemoQst) then
+                    exit(false);
+        end;
 
         CreateCopyDocument(PurchInvHeader, PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", false);
         exit(true);
@@ -840,6 +844,10 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchInvLine: Record "Purch. Inv. Line";
         UndoPostingManagement: Codeunit "Undo Posting Management";
     begin
+        PurchasesPayablesSetup.GetRecordOnce();
+        if not PurchasesPayablesSetup."Restore Order qty. on return" then
+            exit;
+
         PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
         PurchInvLine.SetRange("Prepayment Line", false);
         if PurchInvLine.FindSet() then
@@ -941,6 +949,10 @@ codeunit 1313 "Correct Posted Purch. Invoice"
     var
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
     begin
+        PurchasesPayablesSetup.GetRecordOnce();
+        if not PurchasesPayablesSetup."Restore Order qty. on return" then
+            exit;
+
         PurchCrMemoLine.SetLoadFields("Document No.", "No.", Quantity);
         PurchCrMemoLine.SetRange("Document No.", PurchaseCreditMemoNo);
         PurchCrMemoLine.SetFilter("No.", '<>%1', '');
@@ -1132,6 +1144,10 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
     begin
+        PurchasesPayablesSetup.GetRecordOnce();
+        if not PurchasesPayablesSetup."Restore Order qty. on return" then
+            exit;
+
         PurchaseLine.SetLoadFields("Quantity Invoiced", "Qty. Invoiced (Base)", "Quantity Received", "Qty. Received (Base)");
         PurchInvLine.SetLoadFields("Order No.", "Order Line No.", Quantity, "Quantity (Base)");
         PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);

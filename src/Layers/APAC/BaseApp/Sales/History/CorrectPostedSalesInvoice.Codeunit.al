@@ -209,7 +209,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
     /// <returns>True if the credit memo was successfully created, otherwise false.</returns>
     procedure CreateCreditMemoCopyDocument(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"): Boolean
     var
-        SalesHdr: Record "Sales Header";
+        SalesHeaderOrder: Record "Sales Header";
         ConfirmQuestion: Text;
     begin
         OnBeforeCreateCreditMemoCopyDocument(SalesInvoiceHeader);
@@ -220,13 +220,17 @@ codeunit 1303 "Correct Posted Sales Invoice"
             ShowInvoiceAppliedNotification(SalesInvoiceHeader);
             exit(false);
         end;
-        SalesHdr.SetRange("Document Type", SalesHdr."Document Type"::Order);
-        SalesHdr.SetRange("No.", SalesInvoiceHeader."Order No.");
-        if not SalesHdr.IsEmpty then begin
-            ConfirmQuestion := CreateCreditMemoQst;
-            OnCreateCreditMemoCopyDocumentOnBeforeConfirm(SalesInvoiceHeader, SalesHdr, ConfirmQuestion);
-            if not Confirm(ConfirmQuestion) then
-                exit(false);
+
+        SalesReceivablesSetup.GetRecordOnce();
+        if SalesReceivablesSetup."Restore Order qty. on return" then begin
+            SalesHeaderOrder.SetRange("Document Type", SalesHeaderOrder."Document Type"::Order);
+            SalesHeaderOrder.SetRange("No.", SalesInvoiceHeader."Order No.");
+            if not SalesHeaderOrder.IsEmpty() then begin
+                ConfirmQuestion := CreateCreditMemoQst;
+                OnCreateCreditMemoCopyDocumentOnBeforeConfirm(SalesInvoiceHeader, SalesHeaderOrder, ConfirmQuestion);
+                if not Confirm(ConfirmQuestion) then
+                    exit(false);
+            end;
         end;
 
         CreateCopyDocument(SalesInvoiceHeader, SalesHeader, SalesHeader."Document Type"::"Credit Memo", false);
@@ -1030,6 +1034,10 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesInvoiceLine: Record "Sales Invoice Line";
         TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
     begin
+        SalesReceivablesSetup.GetRecordOnce();
+        if not SalesReceivablesSetup."Restore Order qty. on return" then
+            exit;
+
         SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
         SalesCrMemoLine.SetFilter("No.", '<>%1', '');
@@ -1125,6 +1133,10 @@ codeunit 1303 "Correct Posted Sales Invoice"
         UndoPostingManagement: Codeunit "Undo Posting Management";
         IsHandled: Boolean;
     begin
+        SalesReceivablesSetup.GetRecordOnce();
+        if not SalesReceivablesSetup."Restore Order qty. on return" then
+            exit;
+
         IsHandled := false;
         OnBeforeUpdateSalesOrderLinesFromCancelledInvoice(SalesInvoiceHeaderNo, IsHandled);
         if IsHandled then

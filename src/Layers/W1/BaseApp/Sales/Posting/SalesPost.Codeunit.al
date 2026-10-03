@@ -8951,6 +8951,10 @@ codeunit 80 "Sales-Post"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         IsHandled: Boolean;
     begin
+        SalesSetup.GetRecordOnce();
+        if not SalesSetup."Restore Order qty. on return" then
+            exit;
+
         IsHandled := false;
         OnBeforeUpdateSalesOrderLineIfExist(DocumentNo, IsHandled);
         if IsHandled then

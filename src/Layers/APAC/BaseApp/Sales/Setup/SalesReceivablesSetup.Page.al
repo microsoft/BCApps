@@ -58,6 +58,11 @@ page 459 "Sales & Receivables Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Restore Order qty. on return"; Rec."Restore Order qty. on return")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
                 field("Invoice Rounding"; Rec."Invoice Rounding")
                 {
                     ApplicationArea = Basic, Suite;
