@@ -189,7 +189,15 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         Rec."Sell-to Customer No." := SourceSalesHeader."Sell-to Customer No.";
     end;
 
-    internal procedure DeleteSalesServiceCommitment()
+    /// <summary>
+    /// Deletes the Sales Subscription Lines that belong to this Sales Line.
+    /// Call this whenever a Sales Line is removed without running its triggers (Delete(false), DeleteAll(false)),
+    /// because the OnDelete() trigger of this table extension does not fire in that case and the
+    /// Sales Subscription Lines would be left behind as orphaned records.
+    /// Temporary records and document types that cannot carry Sales Subscription Lines are skipped,
+    /// so the call is safe for any Sales Line.
+    /// </summary>
+    procedure DeleteSalesServiceCommitment()
     var
         SalesServiceCommitment: Record "Sales Subscription Line";
     begin
