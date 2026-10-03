@@ -664,6 +664,9 @@ table 296 "Reminder Line"
         ReminderTerms: Record "Reminder Terms";
         ReminderLevel: Record "Reminder Level";
         ReminderHeader: Record "Reminder Header";
+        // Used only by GetCurrencyCodeFromHeader(). The shared ReminderHeader global cannot be reused there:
+        // GetReminderHeader() takes a matching "No." as proof that ProcessReminderHeader() already ran.
+        CurrencyCodeReminderHeader: Record "Reminder Header";
         ReminderLine: Record "Reminder Line";
         ReminderLine2: Record "Reminder Line";
         ReminderEntry: Record "Reminder/Fin. Charge Entry";
@@ -890,14 +893,12 @@ table 296 "Reminder Line"
     /// </summary>
     /// <returns>The currency code from the header, or blank if not found.</returns>
     procedure GetCurrencyCodeFromHeader(): Code[10]
-    var
-        ReminderHeader: Record "Reminder Header";
     begin
-        if "Reminder No." = ReminderHeader."No." then
-            exit(ReminderHeader."Currency Code");
+        if "Reminder No." = CurrencyCodeReminderHeader."No." then
+            exit(CurrencyCodeReminderHeader."Currency Code");
 
-        if ReminderHeader.Get("Reminder No.") then
-            exit(ReminderHeader."Currency Code");
+        if CurrencyCodeReminderHeader.Get("Reminder No.") then
+            exit(CurrencyCodeReminderHeader."Currency Code");
 
         exit('');
     end;
