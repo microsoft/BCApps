@@ -1343,6 +1343,53 @@ codeunit 137087 "SCM Order Planning - II"
         Assert.RecordIsEmpty(RequisitionLine);
     end;
 
+    [Test]
+    procedure PlanningNotStoppedWhenItemIsBlocked()
+    var
+        Item: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
+        Quantity: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 650951] The valid item should produce a planning result even though another demand item is blocked.
+        Initialize();
+        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
+
+        Quantity := LibraryRandom.RandIntInRange(50, 100);
+
+        // [GIVEN] Create two items with Reordering Policy = "Lot-for-Lot".
+        for i := 1 to 2 do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Item[i].Validate("Reordering Policy", Item[i]."Reordering Policy"::"Lot-for-Lot");
+            Item[i].Modify(true);
+        end;
+
+        // [GIVEN] Create Sales Orders for the two items.
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', Item[1]."No.", Quantity, '', WorkDate());
+        CreateSalesLine(SalesHeader, Item[2]."No.", '', Quantity, Quantity);
+
+        // [GIVEN] Block the first item.
+        Item[1].Get(Item[1]."No.");
+        Item[1].Validate(Blocked, true);
+        Item[1].Modify(true);
+
+        // [WHEN] Calculate Order Plan for Sales.
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+
+        // [THEN] Verify that the requisition line exists for the second item.
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[2]."No.", '');
+
+        // [THEN] Verify that no requisition line exists for the blocked first item.
+        asserterror FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[1]."No.", '');
+
+        // Tear Down.
+        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2234,4 +2281,3 @@ codeunit 137087 "SCM Order Planning - II"
         Reply := true;
     end;
 }
-
