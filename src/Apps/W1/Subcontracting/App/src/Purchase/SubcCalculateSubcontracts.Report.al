@@ -9,6 +9,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
@@ -54,6 +55,7 @@ report 20505 "Subc. Calculate Subcontracts"
                 TempProdOrderRoutingLine.DeleteAll();
                 ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
                 ReqLine.SetRange("Journal Batch Name", ReqLine."Journal Batch Name");
+                DeleteWorksheetWarnings();
                 ReqLine.DeleteAll();
             end;
 
@@ -130,6 +132,8 @@ report 20505 "Subc. Calculate Subcontracts"
 
         ProcessingWorkCentersLbl: Label 'Processing Work Centers   #1##########\', Comment = '#1 = current work center number being processed';
         ProcessingOrdersLbl: Label 'Processing Orders         #2########## ', Comment = '#2 = current order number being processed';
+        PurchaseOrderStatusWarningLbl: Label 'Attention: Purchase order %1 has status %2 and must be reopened before you can carry out this action message.', Comment = '%1 = purchase order number, %2 = purchase order status';
+        PastOrderDateWarningLbl: Label 'Attention: The Order Date %1 is before the work date %2.', Comment = '%1 = order date, %2 = work date';
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
@@ -195,6 +199,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Qty. Rounding Precision (Base)" := ProdOrderLine."Qty. Rounding Precision (Base)";
         ReqLine."Prod. Order No." := ProdOrderLine."Prod. Order No.";
         ReqLine."Prod. Order Line No." := ProdOrderLine."Line No.";
+        ReqLine."Order Date" := ProdOrderRoutingLine."Starting Date";
         ReqLine."Due Date" := ProdOrderRoutingLine."Ending Date";
         ReqLine."Requester ID" := CopyStr(UserId(), 1, 50);
         ReqLine."Location Code" := ProdOrderLine."Location Code";
@@ -226,6 +231,7 @@ report 20505 "Subc. Calculate Subcontracts"
             ReqLine."Ref. Order No." := PurchLine."Document No.";
             ReqLine."Ref. Order Type" := ReqLine."Ref. Order Type"::Purchase;
             ReqLine."Ref. Line No." := PurchLine."Line No.";
+            ReqLine."Order Date" := PurchLine."Order Date";
             if PurchLine."Expected Receipt Date" = ReqLine."Due Date" then
                 ReqLine."Action Message" := ReqLine."Action Message"::"Change Qty."
             else
@@ -245,7 +251,43 @@ report 20505 "Subc. Calculate Subcontracts"
             ReqLine.GetDimFromRefOrderLine(true);
 
         OnBeforeReqWkshLineInsert(ReqLine, ProdOrderLine);
+        AddWarnings();
         ReqLine.Insert();
+    end;
+
+    local procedure AddWarnings()
+    var
+        PurchHeader: Record "Purchase Header";
+        PlanningTransparency: Codeunit "Planning Transparency";
+        WarningLevel: Option " ",Emergency,Exception,Attention;
+        WarningExists: Boolean;
+    begin
+        if (ReqLine."Ref. Order Type" = ReqLine."Ref. Order Type"::Purchase) and
+           PurchHeader.Get(PurchHeader."Document Type"::Order, ReqLine."Ref. Order No.") and
+           (PurchHeader.Status <> PurchHeader.Status::Open)
+        then
+            WarningExists :=
+                PlanningTransparency.LogWarning(
+                    0, ReqLine, WarningLevel::Attention,
+                    StrSubstNo(PurchaseOrderStatusWarningLbl, PurchHeader."No.", PurchHeader.Status));
+
+        if (ReqLine."Order Date" <> 0D) and (ReqLine."Order Date" < WorkDate()) then
+            WarningExists :=
+                PlanningTransparency.LogWarning(
+                    0, ReqLine, WarningLevel::Attention,
+                    StrSubstNo(PastOrderDateWarningLbl, ReqLine."Order Date", WorkDate())) or WarningExists;
+
+        if WarningExists then
+            ReqLine."Accept Action Message" := false;
+    end;
+
+    local procedure DeleteWorksheetWarnings()
+    var
+        UntrackedPlanningElement: Record "Untracked Planning Element";
+    begin
+        UntrackedPlanningElement.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
+        UntrackedPlanningElement.SetRange("Worksheet Batch Name", ReqLine."Journal Batch Name");
+        UntrackedPlanningElement.DeleteAll();
     end;
 
     local procedure GetGLSetup()

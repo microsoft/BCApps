@@ -4310,6 +4310,75 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchRcptLine.Insert();
     end;
 
+    [Test]
+    procedure CalculateSubcontractsWarnsForReleasedPurchaseOrderAndPastOrderDate()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+        ExpectedOrderDate: Date;
+    begin
+        // [SCENARIO 650408] A subcontracting proposal warns about a released purchase order and a past order date.
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 5);
+        SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
+
+        ExpectedOrderDate := WorkDate() - 1;
+        PurchaseHeader.Validate("Order Date", ExpectedOrderDate);
+        PurchaseHeader.Modify(true);
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        PurchaseLine."Order Date" := ExpectedOrderDate;
+        PurchaseLine.Modify();
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, 9);
+        ProdOrderLine.Modify(true);
+
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.Validate("Starting Date", ExpectedOrderDate);
+        ProdOrderRoutingLine.Modify(true);
+
+        ManufacturingSetup.Get();
+        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
+        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
+
+        // [WHEN] Calculate Subcontracts creates an action message for the additional quantity.
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
+
+        // [THEN] The existing purchase order remains the referenced supply and the proposal is not accepted.
+        RequisitionLine.SetRange("Worksheet Template Name", ManufacturingSetup."Subcontracting Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", ManufacturingSetup."Subcontracting Batch Name");
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        Assert.AreEqual(PurchaseHeader."No.", RequisitionLine."Ref. Order No.", 'The existing purchase order must remain the referenced supply.');
+        Assert.AreEqual(ExpectedOrderDate, RequisitionLine."Order Date", 'The subcontracting proposal must retain the existing purchase order date.');
+        Assert.IsFalse(RequisitionLine."Accept Action Message", 'A subcontracting proposal with warnings must not be accepted automatically.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Test");

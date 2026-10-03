@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using System.Security.User;
 
@@ -48,6 +49,23 @@ page 20504 "Subc. Subcontracting Worksheet"
             repeater(Control1)
             {
                 ShowCaption = false;
+                field(Warning; Warning)
+                {
+                    Caption = 'Warning';
+                    Editable = false;
+                    OptionCaption = ' ,Emergency,Exception,Attention';
+                    ToolTip = 'Specifies warnings for the subcontracting proposal, such as when the order date is before the work date or the referenced purchase order isn''t open.';
+
+                    trigger OnDrillDown()
+                    var
+                        UntrackedPlanningElement: Record "Untracked Planning Element";
+                    begin
+                        UntrackedPlanningElement.SetRange("Worksheet Template Name", Rec."Worksheet Template Name");
+                        UntrackedPlanningElement.SetRange("Worksheet Batch Name", Rec."Journal Batch Name");
+                        UntrackedPlanningElement.SetRange("Worksheet Line No.", Rec."Line No.");
+                        Page.RunModal(Page::"Untracked Planning Elements", UntrackedPlanningElement);
+                    end;
+                }
                 field(Type; Rec.Type)
                 {
                     ToolTip = 'Specifies the type of requisition worksheet line you are creating.';
@@ -383,7 +401,9 @@ page 20504 "Subc. Subcontracting Worksheet"
     trigger OnAfterGetRecord()
     var
         Item: Record Item;
+        PlanningTransparency: Codeunit "Planning Transparency";
     begin
+        Warning := PlanningTransparency.ReqLineWarningLevel(Rec);
         if Rec."Variant Code" = '' then
             VariantCodeMandatory := Item.IsVariantMandatory(Rec.Type = Rec.Type::Item, Rec."No.");
     end;
@@ -415,6 +435,7 @@ page 20504 "Subc. Subcontracting Worksheet"
         CurrentJnlBatchName: Code[10];
         OpenedFromBatch: Boolean;
         VariantCodeMandatory: Boolean;
+        Warning: Option " ",Emergency,Exception,Attention;
 
     protected var
         Description2: Text[100];
