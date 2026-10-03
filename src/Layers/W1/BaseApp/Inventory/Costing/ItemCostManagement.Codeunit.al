@@ -764,7 +764,7 @@ codeunit 5804 ItemCostManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalculatePreciseCostAmountsOnAfterFilterOpenInboundItemLedgerEntry(OpenInbndItemLedgerEntry: Record "Item Ledger Entry"; var Item: Record Item)
+    local procedure OnCalculatePreciseCostAmountsOnAfterFilterOpenInboundItemLedgerEntry(var OpenInbndItemLedgerEntry: Record "Item Ledger Entry"; var Item: Record Item)
     begin
     end;
 
