@@ -35,6 +35,9 @@
       "to": 5299
     }
   ],
+  "features": [
+    "TranslationFile"
+  ],
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": true,
