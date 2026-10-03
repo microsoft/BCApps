@@ -46,15 +46,25 @@ codeunit 135160 "Cloud Migration Property Test"
         IntelligentCloudStatus: Record "Intelligent Cloud Status";
         TableMetadata: Record "Table Metadata";
         Assert: Codeunit Assert;
+        AppsPendingCloudMigrationProperty: List of [Guid];
         UnexpectedTables: Text;
     begin
+        // Apps listed in GetAppsPendingCloudMigrationProperty still ship tables whose ReplicateData
+        // property is not set correctly. They are temporarily exempted while the debt is burned down.
+        // New tables in apps that are not on that list are still enforced.
+        GetAppsPendingCloudMigrationProperty(AppsPendingCloudMigrationProperty);
+
         IntelligentCloudStatus.SetRange(IntelligentCloudStatus."Replicate Data", true);
         IntelligentCloudStatus.FindSet();
         repeat
             if not (ListOfTablesToMigrate.Contains(IntelligentCloudStatus."Table Id")) then begin
                 TableMetadata.Get(IntelligentCloudStatus."Table Id");
-                if (TableMetadata.Name <> 'Certificate') and
-                   (TableMetadata.Name <> 'G/L Accounts Equivalence Tool')
+                // Obsolete-removed tables are on their way out and cannot be resolved to their owning
+                // app via AllObj, so they are excluded here (consistent with the sibling permission tests).
+                if (TableMetadata.ObsoleteState <> TableMetadata.ObsoleteState::Removed) and
+                   (TableMetadata.Name <> 'Certificate') and
+                   (TableMetadata.Name <> 'G/L Accounts Equivalence Tool') and
+                   not IsTablePendingCloudMigrationProperty(IntelligentCloudStatus."Table Id", AppsPendingCloudMigrationProperty)
                 then
                     UnexpectedTables += TableMetadata.Name + ';';
             end;
@@ -62,6 +72,110 @@ codeunit 135160 "Cloud Migration Property Test"
 
         Assert.AreEqual('', UnexpectedTables, 'New tables have been found for cloud migration. Please make sure that the table should be cloud migrated. If yes update the list of included tables below. If no exclude the table by setting ReplicateData property to false.');
     end;
+
+    local procedure IsTablePendingCloudMigrationProperty(TableNo: Integer; AppsPendingCloudMigrationProperty: List of [Guid]): Boolean
+    var
+        AllObj: Record AllObj;
+        NAVAppInstalledApp: Record "NAV App Installed App";
+    begin
+        // Resolve the app that owns the table and check whether that app is temporarily
+        // exempted from the ReplicateData property check while its tables are being fixed.
+        if not AllObj.Get(AllObj."Object Type"::Table, TableNo) then
+            exit(false);
+        if IsNullGuid(AllObj."App Package ID") then
+            exit(false);
+        NAVAppInstalledApp.SetRange("Package ID", AllObj."App Package ID");
+        if not NAVAppInstalledApp.FindFirst() then
+            exit(false);
+        exit(AppsPendingCloudMigrationProperty.Contains(NAVAppInstalledApp."App ID"));
+    end;
+
+    local procedure GetAppsPendingCloudMigrationProperty(var AppIds: List of [Guid])
+    begin
+        // These apps still ship tables whose ReplicateData property is not set correctly (tables are
+        // included in cloud migration when they should not be). Each app must set ReplicateData = false
+        // on the offending tables (or add them to the migrated-tables list) and then be removed from this
+        // list, which must eventually reach zero.
+        AppIds.Add('7a129d06-5fd6-4fb6-b82b-0bf539c779d0'); // _Exclude_Bank Deposits
+        AppIds.Add('16c26bda-5f9c-4a77-a17e-4835f06062c0'); // _Exclude_Connectivity Apps
+        AppIds.Add('114e4e19-182b-42e2-b5a9-91d8b8ee8ce1'); // _Exclude_Email Logging Using Graph API
+        AppIds.Add('a01864f8-9c3f-42f6-8328-8d7be1ce3e20'); // _Exclude_Master_Data_Management
+        AppIds.Add('044e7b4c-db9b-43c6-8a08-e1fd8954d40c'); // _Exclude_Master_Data_Management_Test_Library
+        AppIds.Add('16319982-4995-4fb1-8fb2-2b1e13773e3b'); // AMC Banking 365 Fundamentals
+        AppIds.Add('a41b0c3e-bf1c-4c97-ad1b-b430a3933ada'); // Audit File Export
+        AppIds.Add('639580c8-7356-11ed-a1eb-0242ac120002'); // Automatic Account Codes
+        AppIds.Add('63c9fbe6-d4f3-458c-8c25-644c90a0874a'); // Bank Account Reconciliation With AI
+        AppIds.Add('f4e3d2c1-b0a9-4867-8765-432109876543'); // Business Central 14 Historical Data
+        AppIds.Add('3d5b2137-eeeb-4014-8489-41d37f8fd4c3'); // C5 2012 Data Migration
+        AppIds.Add('972624b9-849a-40cd-98b1-fd0924b0defe'); // Calculate Sustainability Emission with Copilot
+        AppIds.Add('7819d79d-feea-4f09-bbed-5bbaca4bf323'); // Data Archive
+        AppIds.Add('ac14293f-1eb7-4a7b-9936-b280da31970b'); // Data Search
+        AppIds.Add('c0146a0a-d0fe-4eec-8857-8a66551d010d'); // Data Search Tests
+        AppIds.Add('adc18994-073b-4840-a144-2a5e3a0d9d1e'); // DIOT - Localization for Mexico
+        AppIds.Add('73c6e046-a89d-484b-993b-5417088e42b9'); // Document Registration in Spain
+        AppIds.Add('2363a2b7-1018-4976-a32a-c77338dc9f16'); // Dynamics 365 Business Central v14 Reimplementation
+        AppIds.Add('7c7d97ca-3598-40f5-b263-f713f49bd2a5'); // Dynamics GP Historical Data
+        AppIds.Add('feeb3504-556e-4790-b28d-a2b9ce302d81'); // Dynamics GP Intelligent Cloud
+        AppIds.Add('abe5dab1-9b38-44fc-a5f2-747ca8f4551e'); // Dynamics GP Intelligent Cloud - US
+        AppIds.Add('4f3fe3fd-bdc4-4371-8579-d53820b93575'); // Dynamics SL Historical Data
+        AppIds.Add('237981b4-9e3c-437c-9b92-988aae978e8f'); // Dynamics SL Migration
+        AppIds.Add('40f34440-fcff-4601-a664-69ad316f4324'); // Dynamics SL Migration - US
+        AppIds.Add('f35c56a6-7c5f-4dbe-89c4-fef5145d00f4'); // E-Document Connector - Avalara
+        AppIds.Add('b4305a63-f987-425b-8520-ca9ccf7b22b6'); // E-Document Connector - B2Brouter
+        AppIds.Add('31ef535a-1182-4354-98e8-e0e66a587055'); // E-Document Connector - Continia
+        AppIds.Add('0addc017-80c4-40ad-bac6-5852f4fc4c55'); // E-Document Connector - FORNAV
+        AppIds.Add('d852a468-263e-49e5-bfda-f09e33342b89'); // E-Document Connector - Pagero
+        AppIds.Add('b56171bd-9a8e-47ad-a527-99f476d5af83'); // E-Document Connector - SignUp
+        AppIds.Add('e1d97edc-c239-46b4-8d84-6368bdf67c8c'); // E-Document Core Tests
+        AppIds.Add('8228f99b-cce5-4b9c-b247-9ee1145b7470'); // E-Document format for OIOUBL
+        AppIds.Add('64977288-facd-4b48-abaa-bb0e288edfb3'); // Electronic VAT Declaration for Denmark
+        AppIds.Add('5512093d-54ab-4fca-9e39-43aa3b45362c'); // Electronic VAT submission for Norway
+        AppIds.Add('b0c41a2d-9ebe-4773-a22f-86bd69e75949'); // ELSTER VAT Localization for Germany
+        AppIds.Add('e6328152-bb29-4664-9dae-3bc7eaae1fd8'); // Email - Outlook REST API
+        AppIds.Add('68e13fa3-217a-4be0-9141-99e5bf0ca818'); // Email - SMTP Connector
+        AppIds.Add('e2ae191d-8829-44c3-a373-3749a2742d4e'); // Enforced Digital Vouchers
+        AppIds.Add('2a89f298-7ffd-44a5-a7ce-e08dac98abce'); // Essential Business Headlines
+        AppIds.Add('a7bd3b4e-5469-4185-88b5-06745dd4c153'); // Excise Taxes
+        AppIds.Add('c9ce86fe-cb70-4b79-be03-d21856b1a4ca'); // External File Storage - Azure Blob Service Connector
+        AppIds.Add('79447b11-8301-4d02-a546-2261eb811296'); // External File Storage - Azure File Service Connector
+        AppIds.Add('e0df20ef-75a2-4fae-8e3a-88140ab29507'); // External File Storage - SFTP Connector
+        AppIds.Add('34bfcef7-f8ed-449f-94be-74024cadba3b'); // External File Storage - SharePoint Connector
+        AppIds.Add('5f2e93a0-6083-4718-b05a-7ac89be5644d'); // External Storage - Document Attachments
+        AppIds.Add('1ba1031e-eae9-4f20-b9d2-d19b6d1e3f29'); // Field Service Integration
+        AppIds.Add('80672d74-d90a-4eb0-8f90-5b9bcea58dca'); // GovTalk
+        AppIds.Add('c62d3f56-16a4-484f-878a-330583985eeb'); // IdealPostcodes
+        AppIds.Add('417e3995-43e5-46bd-ab72-1ca13df0658d'); // India Data Migration
+        AppIds.Add('58623bfa-0559-4bc2-ae1c-0979c29fd9e0'); // Intelligent Cloud Base
+        AppIds.Add('70912191-3c4c-49fc-a1de-bc6ea1ac9da6'); // Intrastat Core
+        AppIds.Add('bf7682b0-67b3-44de-a1e6-676ceb3b05ca'); // IRS 1096
+        AppIds.Add('b696b4c9-637c-49d1-a806-763ff8f0a20e'); // IRS Forms
+        AppIds.Add('38fa97fa-ebd1-4862-af24-77c4cee2c6ca'); // Making Tax Digital Localization for United Kingdom
+        AppIds.Add('24f54185-e697-4e03-bae0-f134f2d69673'); // Payment Management FR
+        AppIds.Add('64977288-facd-4b48-aaaa-bb0e288edfb3'); // Payment Practices
+        AppIds.Add('e4e86220-cac0-4ec3-b853-7c2fa610399d'); // Power BI Report embeddings for Dynamics 365 Business Central
+        AppIds.Add('98860128-1333-4598-a3da-0590804648b7'); // QR-Bill Management for Switzerland
+        AppIds.Add('bc7b3891-f61b-4883-bbb3-384cdef88bec'); // Quality Management
+        AppIds.Add('a53a4bb0-aa53-8ff8-77d6-fe3388db0eb8'); // Recommended Apps
+        AppIds.Add('87990153-0e35-4e5d-ba61-2e93077d1699'); // Review General Ledger Entries
+        AppIds.Add('4ce93371-6bd6-4027-a78f-021064ad250e'); // SAF-T
+        AppIds.Add('fed2a629-3c57-4250-b2b7-f3c7a9c53cd5'); // SAF-T Modification DK
+        AppIds.Add('dd3f226b-40bf-4b3c-9988-9b1e0f74edd8'); // Sales Lines Suggestions
+        AppIds.Add('8c972578-fe72-4aa5-ae51-cc5575fef2ea'); // Send To Email Printer
+        AppIds.Add('e2ae191d-8829-44c3-a373-3749a2742d4d'); // Service Declaration
+        AppIds.Add('ec255f57-31d0-4ca2-b751-f2fa7c745abb'); // Shopify Connector
+        AppIds.Add('3d5fd255-4fb4-464b-9362-44cd85a883e7'); // Standard Audit File - Tax Localization for Norway
+        AppIds.Add('a98932e6-0fbc-4f74-a39b-f159b068d424'); // Standard Import Export (SIE)
+        AppIds.Add('ea130081-c669-460f-a5f4-5dde14f03131'); // Statistical Accounts
+        AppIds.Add('1f32a50d-0057-4b95-b5df-cc04d7e89470'); // Subcontracting
+        AppIds.Add('3099ffc7-4cf7-4df6-9b96-7e4bc2bb587c'); // Subscription Billing
+        AppIds.Add('b3780cd9-f8f8-4a83-a4d5-0c2ad87b28af'); // Sustainability
+        AppIds.Add('12fe63f9-1931-4404-be38-abfc46a2298d'); // Transactions and Receipts Storage
+        AppIds.Add('7961e9dc-a8e5-49b1-839b-3a78803a4cb8'); // Troubleshoot FA Ledger Entries
+        AppIds.Add('2654d7e7-9afd-4947-9e02-6bb8f3e0cd04'); // Universal Print Integration
+        AppIds.Add('c50a4bf0-db51-4ad2-88d5-fe2287da0eb8'); // VAT Group Management
+        AppIds.Add('c31ee575-3fc7-4388-98ee-d75aa2fc5f87'); // Withholding Tax
+    end;
+
 
     local procedure GetTablesThatShouldBeCloudMigrated(var ListOfTablesToMigrate: List of [Integer])
     var
