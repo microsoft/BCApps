@@ -130,7 +130,7 @@ codeunit 30166 "Shpfy Process Order"
             SalesHeader."Shpfy Order Id" := ShopifyOrderHeader."Shopify Order Id";
             SalesHeader."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
             SalesHeader.Validate("Document Date", ShopifyOrderHeader."Document Date");
-            SalesHeader.Validate("External Document No.", ShopifyOrderHeader."PO Number");
+            SalesHeader.Validate("External Document No.", CopyStr(ShopifyOrderHeader."PO Number", 1, MaxStrLen(SalesHeader."External Document No.")));
             if ShopifyOrderHeader."Due Date" <> 0D then
                 SalesHeader.Validate("Due Date", ShopifyOrderHeader."Due Date");
             if ShopifyOrderHeader."Tax Area Code" <> '' then begin
