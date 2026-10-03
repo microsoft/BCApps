@@ -1063,9 +1063,9 @@ report 10605 "FA - Projected Value GB"
     local procedure CalculateGainLoss()
     var
         CalculateDisposal: Codeunit "Calculate Disposal";
-        EntryAmountsValues: array[14] of Decimal;
+        EntryAmountsValues: array[15] of Decimal;
     begin
-        CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, EntryAmountsValues);
+        CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, EntryAmountsValues, true);
         AssetAmounts[3] := FADeprBook."Projected Proceeds on Disposal";
         if EntryAmountsValues[1] <> 0 then
             AssetAmounts[4] := EntryAmountsValues[1]

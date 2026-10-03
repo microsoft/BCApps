@@ -26,6 +26,15 @@ codeunit 5605 "Calculate Disposal"
 
     procedure CalcGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[14] of Decimal)
     var
+        ExtendedEntryAmounts: array[15] of Decimal;
+    begin
+        CopyArray(ExtendedEntryAmounts, EntryAmounts, 1, 14);
+        CalcGainLoss(FANo, DeprBookCode, ExtendedEntryAmounts, false);
+        CopyArray(EntryAmounts, ExtendedEntryAmounts, 1, 14);
+    end;
+
+    procedure CalcGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[15] of Decimal; IncludeAdditionalPostingTypes: Boolean)
+    var
         EntryAmounts2: array[4] of Decimal;
         GainLoss: Decimal;
         I: Integer;
@@ -41,10 +50,12 @@ codeunit 5605 "Calculate Disposal"
             EntryAmounts[I + 4] := -EntryAmounts2[I];
         FADeprBook.Get(FANo, DeprBookCode);
         FADeprBook.CalcFields(
-          "Book Value", "Proceeds on Disposal", "Acquisition Cost", "Salvage Value", Depreciation);
+            "Book Value", "Proceeds on Disposal", "Acquisition Cost", "Salvage Value", Depreciation, "Derogatory Amount");
         EntryAmounts[3] := -FADeprBook."Acquisition Cost";
         EntryAmounts[4] := -FADeprBook.Depreciation;
         EntryAmounts[9] := -FADeprBook."Salvage Value";
+        if IncludeAdditionalPostingTypes then
+            EntryAmounts[15] := -FADeprBook."Derogatory Amount";
         OnCalcGainLossOnAfterSetEntryAmounts(FANo, DeprBookCode, EntryAmounts);
         if DeprBook."Disposal Calculation Method" = DeprBook."Disposal Calculation Method"::Gross then
             EntryAmounts[10] := FADeprBook."Book Value";
@@ -93,8 +104,16 @@ codeunit 5605 "Calculate Disposal"
 
     procedure CalcReverseAmounts(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[4] of Decimal)
     var
+        ExtendedEntryAmounts: array[5] of Decimal;
+    begin
+        CopyArray(ExtendedEntryAmounts, EntryAmounts, 1, 4);
+        CalcReverseAmounts(FANo, DeprBookCode, ExtendedEntryAmounts, false);
+        CopyArray(EntryAmounts, ExtendedEntryAmounts, 1, 4);
+    end;
+
+    procedure CalcReverseAmounts(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[5] of Decimal; IncludeAdditionalPostingTypes: Boolean)
+    var
         FAPostingTypeSetup: Record "FA Posting Type Setup";
-        FADeprBook: Record "FA Depreciation Book";
         BookValueAmounts: array[4] of Decimal;
         i: Integer;
         IsHandled: Boolean;
@@ -132,6 +151,8 @@ codeunit 5605 "Calculate Disposal"
                     FAPostingTypeSetup.TestField("Reverse before Disposal", false);
             end;
         end;
+        if IncludeAdditionalPostingTypes then
+            EntryAmounts[5] := -CalcDerogatoryReverseAmount(FADeprBook);
     end;
 
     procedure GetDisposalType(FANo: Code[20]; DeprBookCode: Code[10]; ErrorNo: Integer; var DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal; var DisposalMethod: Option " ",Net,Gross; var MaxDisposalNo: Integer; var SalesEntryNo: Integer)
@@ -235,6 +256,8 @@ codeunit 5605 "Calculate Disposal"
                 FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Salvage Value";
             10:
                 FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Book Value on Disposal";
+            15:
+                FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::Derogatory;
         end;
         OnAfterSetFAPostingType(i, FALedgEntry);
         exit(FALedgEntry."FA Posting Type".AsInteger());
@@ -269,8 +292,23 @@ codeunit 5605 "Calculate Disposal"
                 FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Custom 1";
             4:
                 FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Custom 2";
+            5:
+                FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::Derogatory;
         end;
         exit(FALedgEntry."FA Posting Type".AsInteger());
+    end;
+
+    local procedure CalcDerogatoryReverseAmount(FADepreciationBook: Record "FA Depreciation Book"): Decimal
+    var
+        FALedgEntry: Record "FA Ledger Entry";
+    begin
+        FALedgEntry.SetRange("FA No.", FADepreciationBook."FA No.");
+        FALedgEntry.SetRange("Depreciation Book Code", FADepreciationBook."Depreciation Book Code");
+        FALedgEntry.SetRange("FA Posting Category", FALedgEntry."FA Posting Category"::" ");
+        FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
+        FALedgEntry.SetFilter("FA Posting Date", FADepreciationBook.GetFilter("FA Posting Date Filter"));
+        FALedgEntry.CalcSums(Amount);
+        exit(FALedgEntry.Amount);
     end;
 
     [IntegrationEvent(false, false)]
@@ -329,4 +367,3 @@ codeunit 5605 "Calculate Disposal"
     begin
     end;
 }
-

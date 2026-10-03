@@ -3,10 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Reports;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
-using Microsoft.FixedAssets.Setup;
+#if not CLEAN30
+using System.Environment.Configuration;
+#endif
 using System.TestLibraries.Utilities;
 
 codeunit 148001 "ERM Fixed Assets - Local"
@@ -26,7 +29,15 @@ codeunit 148001 "ERM Fixed Assets - Local"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+#if not CLEAN30
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+#pragma warning disable AL0432
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#pragma warning restore AL0432
+#endif
         Assert: Codeunit Assert;
+        IsInitialized: Boolean;
         CompletionStatsTok: Label 'The depreciation has been calculated.';
 
     [Test]
@@ -41,6 +52,8 @@ codeunit 148001 "ERM Fixed Assets - Local"
         Amount: Decimal;
     begin
         // Check Depreciation and Derogatory amounts in Projected Value report.
+        Initialize();
+
         FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
 
         UpdateIntegrationInBook(NormalDeprBookCode, false);
@@ -77,6 +90,8 @@ codeunit 148001 "ERM Fixed Assets - Local"
         AcqCostAmount: Decimal;
     begin
         // [SCENARIO 135585] REP10886 "Fixed Asset - Projected Value (Derogatory)": both "Normal" (10 years) and "Tax" (8 years) books are closed at the end of projected "Normal" period (10 years).
+        Initialize();
+
         AcqCostAmount := 100000;
         NoOfYearsNormal := 10; // 10000 per year
         NoOfYearsTax := 8; // 12500 per year
@@ -108,6 +123,8 @@ codeunit 148001 "ERM Fixed Assets - Local"
         AcqCostAmount: Decimal;
     begin
         // [SCENARIO 135585] REP10886 "Fixed Asset - Projected Value (Derogatory)": "Normal" (10 years) book is open and "Tax" (8 years) book is closed at the end of projected Tax period (8 years).
+        Initialize();
+
         AcqCostAmount := 100000;
         NoOfYearsNormal := 10; // 10000 per year
         NoOfYearsTax := 8; // 12500 per year
@@ -139,6 +156,8 @@ codeunit 148001 "ERM Fixed Assets - Local"
         AcqCostAmount: Decimal;
     begin
         // [SCENARIO 135585] REP10886 "Fixed Asset - Projected Value (Derogatory)": both "Normal" (10 years) and "Tax" (8 years) books are open in the middle of projected "Normal" period (5 years).
+        Initialize();
+
         AcqCostAmount := 100000;
         NoOfYearsNormal := 10; // 10000 per year
         NoOfYearsTax := 8; // 12500 per year
@@ -170,6 +189,8 @@ codeunit 148001 "ERM Fixed Assets - Local"
         AcqCostAmount: Decimal;
     begin
         // [SCENARIO 135585] REP10886 "Fixed Asset - Projected Value (Derogatory)": "Tax" (8 years) book is closed at the end of projected "Tax" period (8 years).
+        Initialize();
+
         AcqCostAmount := 100000;
         NoOfYearsNormal := 10; // 10000 per year
         NoOfYearsTax := 8; // 12500 per year
@@ -201,6 +222,8 @@ codeunit 148001 "ERM Fixed Assets - Local"
         AcqCostAmount: Decimal;
     begin
         // [SCENARIO 135585] REP10886 "Fixed Asset - Projected Value (Derogatory)": "Tax" (8 years) book is open in the middle of projected "Tax" period (5 years).
+        Initialize();
+
         AcqCostAmount := 100000;
         NoOfYearsNormal := 10; // 10000 per year
         NoOfYearsTax := 8; // 12500 per year
@@ -218,6 +241,22 @@ codeunit 148001 "ERM Fixed Assets - Local"
 
         // [THEN] "Tax" book is projected to open (Book Value <> 0) at the end of projected period (5 years).
         VerifyFAProjectionTaxBookInTheMidOfPeriod();
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Fixed Assets - Local");
+        if IsInitialized then
+            exit;
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ERM Fixed Assets - Local");
+
+#if not CLEAN30
+        DisableAcceleratedDepreciationFeature();
+#endif
+        IsInitialized := true;
+        Commit();
+
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ERM Fixed Assets - Local");
     end;
 
     local procedure PrepareBothFABooksWithCustomPeriodAndAcqCostAmount(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10]; NoOfYearsNormal: Decimal; NoOfYearsTax: Decimal; AcqCostAmount: Decimal)
@@ -266,7 +305,9 @@ codeunit 148001 "ERM Fixed Assets - Local"
     local procedure CreateFAPostingGroup(var FixedAsset: Record "Fixed Asset")
     var
         FAPostingGroup: Record "FA Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
     begin
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
         CreateFixedAsset(FixedAsset);
         FAPostingGroup.Get(FixedAsset."FA Posting Group");
         UpdateFAPostingGroup(FAPostingGroup);
@@ -298,41 +339,45 @@ codeunit 148001 "ERM Fixed Assets - Local"
     end;
 
     local procedure CreateNormalAndTaxDeprBooks(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10])
+    var
+        FAJournalTemplate: Record "FA Journal Template";
+        FAJournalBatch: Record "FA Journal Batch";
     begin
-        NormalDeprBookCode := CreateDeprBookModifyDerogCalc('');
+        LibraryFixedAsset.CreateJournalTemplate(FAJournalTemplate);
+        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        FAJournalBatch.Modify(true);
+
+        NormalDeprBookCode := CreateDeprBookModifyDerogCalc('', FAJournalTemplate.Name, FAJournalBatch.Name);
         UpdateIntegrationInBook(NormalDeprBookCode, true);
-        TaxDeprBookCode := CreateDeprBookModifyDerogCalc(NormalDeprBookCode);
+        TaxDeprBookCode := CreateDeprBookModifyDerogCalc(NormalDeprBookCode, FAJournalTemplate.Name, FAJournalBatch.Name);
     end;
 
-    local procedure CreateDeprBookModifyDerogCalc(DerogDeprBookCode: Code[10]): Code[10]
+    local procedure CreateDeprBookModifyDerogCalc(DerogDeprBookCode: Code[10]; FAJournalTemplateName: Code[10]; FAJournalBatchName: Code[10]): Code[10]
     var
         DeprBook: Record "Depreciation Book";
     begin
-        CreateAndSetupDeprBook(DeprBook);
+        CreateAndSetupDeprBook(DeprBook, FAJournalTemplateName, FAJournalBatchName);
         DeprBook.Validate("Use Same FA+G/L Posting Dates", false);
+#if not CLEAN30
+#pragma warning disable AL0432
         DeprBook.Validate("Derogatory Calculation", DerogDeprBookCode);
+#pragma warning restore AL0432
+#else
+        DeprBook.Validate("Derogatory Calc.", DerogDeprBookCode);
+#endif
         DeprBook.Modify(true);
         exit(DeprBook.Code);
     end;
 
-    local procedure CreateAndSetupDeprBook(var DepreciationBook: Record "Depreciation Book")
+    local procedure CreateAndSetupDeprBook(var DepreciationBook: Record "Depreciation Book"; FAJournalTemplateName: Code[10]; FAJournalBatchName: Code[10])
     var
         FAJournalSetup: Record "FA Journal Setup";
     begin
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
-        UpdateFAJournalSetup(FAJournalSetup);
-    end;
-
-    local procedure UpdateFAJournalSetup(var FAJournalSetup: Record "FA Journal Setup")
-    var
-        FAJournalSetup2: Record "FA Journal Setup";
-        FASetup: Record "FA Setup";
-    begin
-        FASetup.Get();
-        FAJournalSetup2.SetRange("Depreciation Book Code", FASetup."Default Depr. Book");
-        FAJournalSetup2.FindFirst();
-        FAJournalSetup.TransferFields(FAJournalSetup2, false);
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalTemplateName);
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatchName);
         FAJournalSetup.Modify(true);
     end;
 
@@ -375,9 +420,31 @@ codeunit 148001 "ERM Fixed Assets - Local"
         DeprBook.Get(DeprBookCode);
         DeprBook.Validate("G/L Integration - Acq. Cost", Value);
         DeprBook.Validate("G/L Integration - Depreciation", Value);
+#if not CLEAN30
+#pragma warning disable AL0432
         DeprBook.Validate("G/L Integration - Derogatory", Value);
+#pragma warning restore AL0432
+#else
+        DeprBook.Validate("Integration G/L - Derogatory", Value);
+#endif
         DeprBook.Modify(true);
     end;
+
+#if not CLEAN30
+    local procedure DisableAcceleratedDepreciationFeature()
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+    begin
+        if not FeatureDataUpdateStatus.Get(AcceleratedDeprFeature.GetAcceleratedDepreciationFeatureKey(), CompanyName()) then begin
+            FeatureDataUpdateStatus."Feature Key" := AcceleratedDeprFeature.GetAcceleratedDepreciationFeatureKey();
+            FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus.Insert();
+        end;
+        FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled;
+        FeatureDataUpdateStatus.Modify();
+        Assert.IsFalse(AcceleratedDeprFeature.IsEnabled(), 'The test requires the legacy feature-disabled route.');
+    end;
+#endif
 
     local procedure CountExpectedAmount(FANo: Code[20]; TaxDeprBook: Code[20]; Amt: Decimal): Decimal
     var
@@ -389,6 +456,10 @@ codeunit 148001 "ERM Fixed Assets - Local"
 
     local procedure RunFAProjValueDerogReport(DeprBookCode: Code[10]; StartingDate: Date; EndingDate: Date; PostedFrom: Date; PrintDetails: Boolean)
     begin
+#if not CLEAN30
+        // The feature was released with the GB suffix, so this ID must remain unchanged for backward compatibility.
+        FeatureManagementFacade.IsEnabled('FAReportsGB');
+#endif
         LibraryVariableStorage.Enqueue(DeprBookCode);
         LibraryVariableStorage.Enqueue(StartingDate);
         LibraryVariableStorage.Enqueue(EndingDate);
@@ -459,14 +530,11 @@ codeunit 148001 "ERM Fixed Assets - Local"
 
     local procedure CreateFAJournalLine(var FAJournalLine: Record "FA Journal Line"; FANo: Code[20]; DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Journal Line FA Posting Type"; Amount: Decimal)
     var
-        FAJournalTemplate: Record "FA Journal Template";
-        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalSetup: Record "FA Journal Setup";
     begin
-        FAJournalTemplate.SetRange(Recurring, false);
-        LibraryFixedAsset.FindFAJournalTemplate(FAJournalTemplate);
-        LibraryFixedAsset.FindFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalSetup.Get(DepreciationBookCode, '');
         LibraryERM.CreateFAJournalLine(
-          FAJournalLine, FAJournalBatch."Journal Template Name", FAJournalBatch.Name,
+          FAJournalLine, FAJournalSetup."FA Jnl. Template Name", FAJournalSetup."FA Jnl. Batch Name",
           FAJournalLine."Document Type"::" ", FAPostingType,
           FANo, Amount);
         FAJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
