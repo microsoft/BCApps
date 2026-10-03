@@ -6,8 +6,10 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Agents;
+using System.Agents.Troubleshooting;
 using System.Environment;
 using System.TestTools.TestRunner;
+using System.Utilities;
 
 codeunit 149049 "Agent Test Context Impl."
 {
@@ -72,6 +74,21 @@ codeunit 149049 "Agent Test Context Impl."
     begin
         AgentTestTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
         exit(GetCommaSeparatedAgentTaskIDs(AgentTestTaskLog));
+    end;
+
+    procedure GetAgentTaskLog(AgentTaskID: BigInteger): Text
+    var
+        AgentTaskLogExport: Codeunit "Agent Task Log Export";
+        TempBlob: Codeunit "Temp Blob";
+        ExportInStream: InStream;
+        ExportOutStream: OutStream;
+        ResultText: Text;
+    begin
+        TempBlob.CreateOutStream(ExportOutStream, TextEncoding::UTF8);
+        AgentTaskLogExport.ExportTaskToJson(AgentTaskID, ExportOutStream);
+        TempBlob.CreateInStream(ExportInStream, TextEncoding::UTF8);
+        ExportInStream.ReadText(ResultText);
+        exit(ResultText);
     end;
 
     procedure GetAgentTaskIDs(TestSuiteCode: Code[100]; VersionNumber: Integer; Tag: Text[20]; TestMethodLineNo: Integer): Text
