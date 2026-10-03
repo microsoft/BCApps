@@ -890,6 +890,8 @@ codeunit 6620 "Copy Document Mgt."
             then begin
             ToPurchaseHeader."Applies-to Doc. Type" := ToPurchaseHeader."Applies-to Doc. Type"::Invoice;
             ToPurchaseHeader."Applies-to Doc. No." := FromDocNo;
+            if ToPurchaseHeader."Applies-to Occurrence No." = 0 then
+                ToPurchaseHeader."Applies-to Occurrence No." := 1;
         end;
     end;
 

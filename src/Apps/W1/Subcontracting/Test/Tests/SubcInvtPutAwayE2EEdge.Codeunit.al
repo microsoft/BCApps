@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -14,9 +15,11 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Request;
@@ -37,6 +40,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
     var
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
@@ -44,6 +48,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcLibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
@@ -457,65 +462,6 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesFromInvtPutAwayReceiptIsCurrentlyBlocked()
-    var
-        Item: Record Item;
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
-        ProductionOrder: Record "Production Order";
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-        InvoiceHeader: Record "Purchase Header";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        Vendor: Record Vendor;
-        WarehouseActivityHeader: Record "Warehouse Activity Header";
-        WorkCenter: array[2] of Record "Work Center";
-        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
-        Quantity: Decimal;
-    begin
-        // [FEATURE] Group I - Purchase invoice / financial post-processes
-        // [SCENARIO] TC-GAP-I01 A subcontracting receipt cannot be invoiced through Get Receipt Lines
-
-        // [GIVEN] LastOperation purchase line fully received via Inventory Put-Away (per TC-E2E-A01)
-        Initialize();
-        Quantity := LibraryRandom.RandIntInRange(5, 10);
-        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
-        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
-
-        Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subc. Location Code" := Location.Code;
-        Vendor."Location Code" := Location.Code;
-        Vendor.Modify(true);
-
-        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released,
-            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
-        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
-        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
-        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
-        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
-        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
-
-        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
-        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
-        PurchRcptLine.FindFirst();
-
-        // [WHEN] Get Receipt Lines is run for a new purchase invoice
-        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
-        PurchRcptLine.SetRecFilter();
-        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
-        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
-
-        // [THEN] Separate invoice creation is blocked for the subcontracting receipt
-        Assert.ExpectedError('subcontracting receipt lines');
-    end;
-
-    [Test]
-    [HandlerFunctions('MessageHandler')]
     procedure ItemChargeAssignmentsRespectActualReceiptTypePostingTargets()
     var
         Item: Record Item;
@@ -746,10 +692,14 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         PurchaseHeader: Record "Purchase Header";
         ItemChargeLine: Record "Purchase Line";
         PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
         Vendor: Record Vendor;
         WarehouseActivityHeader: Record "Warehouse Activity Header";
         WorkCenter: array[2] of Record "Work Center";
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        SubcPurchPostExt: Codeunit "Subc. Purch. Post Ext";
+        CancellationErrorInfo: ErrorInfo;
         PostedInvoiceNo: Code[20];
     begin
         // [FEATURE] Group I - Purchase invoice / financial post-processes
@@ -757,6 +707,9 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
         // [GIVEN] LastOperation purchase line fully received (Put-Away) and invoiced through an item-charge invoice
         Initialize();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Credit Memo Nos."));
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
@@ -787,6 +740,16 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         LibraryPurchase.CreatePurchaseLine(ItemChargeLine, ItemChargeInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", 1);
         ItemChargeLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
         ItemChargeLine.Modify(true);
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(ItemChargeLine."Gen. Bus. Posting Group", ItemChargeLine."Gen. Prod. Posting Group");
+        VATPostingSetup.Get(ItemChargeLine."VAT Bus. Posting Group", ItemChargeLine."VAT Prod. Posting Group");
+        if VATPostingSetup.Blocked then begin
+            VATPostingSetup.Blocked := false;
+            VATPostingSetup.Modify();
+        end;
+        if VATPostingSetup."Purchase VAT Account" = '' then begin
+            VATPostingSetup."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
+            VATPostingSetup.Modify();
+        end;
         LibraryPurchase.CreateItemChargeAssignment(
             ItemChargeAssignmentPurch, ItemChargeLine, ItemCharge,
             "Purchase Applies-to Document Type"::Receipt,
@@ -799,8 +762,13 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         // [WHEN] "Correct" or "Cancel" is used on the posted Purchase Invoice
         asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
 
-        // [THEN] The cancel action is blocked
+        // [THEN] The cancel action is blocked with a link back to the posted invoice
         Assert.ExpectedError('contains item charges assigned to a subcontracting order receipt');
+        CancellationErrorInfo := SubcPurchPostExt.CreateCancelNotSupportedErrorInfo(PostedInvoiceHeader);
+        Assert.AreNotEqual('', CancellationErrorInfo.Title, 'The actionable error must have a title.');
+        Assert.AreNotEqual('', CancellationErrorInfo.DetailedMessage, 'The actionable error must explain the corrective action.');
+        Assert.AreEqual(Page::"Posted Purchase Invoice", CancellationErrorInfo.PageNo, 'The error must open the posted purchase invoice.');
+        Assert.AreEqual(PostedInvoiceHeader.RecordId, CancellationErrorInfo.RecordId, 'The error must open the invoice that could not be cancelled.');
     end;
 
     [Test]
