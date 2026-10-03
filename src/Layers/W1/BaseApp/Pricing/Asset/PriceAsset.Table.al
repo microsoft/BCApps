@@ -42,11 +42,20 @@ table 7003 "Price Asset"
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
+            var
+                UnitOfMeasureCode: Code[10];
             begin
                 if "Asset No." = '' then
                     InitAsset()
-                else
+                else begin
+                    if (xRec."Asset No." = '') or
+                       ((xRec."Asset No." = "Asset No.") and IsNullGuid(xRec."Asset ID"))
+                    then
+                        UnitOfMeasureCode := "Unit of Measure Code";
                     ValidateAssetNo();
+                    if ("Asset No." <> '') and (UnitOfMeasureCode <> '') then
+                        Validate("Unit of Measure Code", UnitOfMeasureCode);
+                end;
             end;
         }
         field(4; "Asset ID"; Guid)
@@ -102,20 +111,13 @@ table 7003 "Price Asset"
                 if "Unit of Measure Code" <> '' then
                     case "Asset Type" of
                         "Asset Type"::Item:
-                            begin
-                                TestField("Asset No.");
+                            if "Asset No." <> '' then
                                 ItemUnitofMeasure.Get("Asset No.", "Unit of Measure Code");
-                            end;
                         "Asset Type"::Resource:
-                            begin
-                                TestField("Asset No.");
+                            if "Asset No." <> '' then
                                 ResourceUnitofMeasure.Get("Asset No.", "Unit of Measure Code");
-                            end;
                         "Asset Type"::"Resource Group":
-                            begin
-                                TestField("Asset No.");
-                                UnitofMeasure.Get("Unit of Measure Code");
-                            end;
+                            UnitofMeasure.Get("Unit of Measure Code");
                         else
                             Error(AssetTypeForUOMErr);
                     end;
