@@ -725,6 +725,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
         InvoiceLine.FindFirst();
         ExpectedCost := Round(Quantity * InvoiceLine."Direct Unit Cost");
+        Assert.AreNotEqual(0, ExpectedCost, 'The reversal scenario must use a nonzero subcontracting cost.');
         LibraryERM.CreateReasonCode(ReasonCode);
         InvoiceHeader.Validate("Reason Code", ReasonCode.Code);
         InvoiceHeader.Modify(true);
@@ -934,6 +935,8 @@ codeunit 149927 "Subc. Get Receipt Lines"
             ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 25, 2));
+        PurchaseLine.Modify(true);
         if TrackSerialOutput or TrackLotOutput then begin
             ProdOrderLine.SetRange(Status, ProductionOrder.Status);
             ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
