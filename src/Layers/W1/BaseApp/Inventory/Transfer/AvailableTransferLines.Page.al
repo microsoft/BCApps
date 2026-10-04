@@ -309,17 +309,19 @@ page 99000896 "Available - Transfer Lines"
                 begin
                     Rec.SetFilter("Shipment Date", ReservMgt.GetAvailabilityFilter(ReservEntry."Shipment Date"));
                     Rec.SetRange("Transfer-from Code", ReservEntry."Location Code");
+                    Rec.SetFilter("Outstanding Qty. (Base)", '>0');
                 end;
             TransferDirection::Inbound:
                 begin
                     Rec.SetFilter("Receipt Date", ReservMgt.GetAvailabilityFilter(ReservEntry."Shipment Date"));
                     Rec.SetRange("Transfer-to Code", ReservEntry."Location Code");
+#pragma warning disable AA0210
+                    Rec.SetFilter("Qty. in Transit (Base)", '>0');
+#pragma warning restore AA0210
                 end;
         end;
-
         Rec.SetRange("Item No.", ReservEntry."Item No.");
         Rec.SetRange("Variant Code", ReservEntry."Variant Code");
-        Rec.SetFilter("Outstanding Qty. (Base)", '>0');
 
         OnAfterSetFilters(Rec, ReservEntry);
     end;
@@ -347,4 +349,3 @@ page 99000896 "Available - Transfer Lines"
     begin
     end;
 }
-

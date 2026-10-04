@@ -425,7 +425,6 @@ page 498 Reservation
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         ReservConfirmQst: Label 'Do you want to reserve specific tracking numbers?';
-        InboundQtyErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
 
     procedure SetReservSource(CurrentRecordVar: Variant)
     begin
@@ -690,16 +689,11 @@ page 498 Reservation
 
     local procedure ValidateReservationApplicable()
     var
-        TransferDirection: Enum "Transfer Direction";
+        IsHandled: Boolean;
     begin
-        if ReservEntry."Source Type" = 5741 then begin
-            TransferDirection := ReservEntry.GetTransferDirection();
-            if TransferDirection = TransferDirection::Inbound then
-                Error(InboundQtyErr);
-
-            // Outbound transfer lines should behave like other sources when nothing remains to reserve
-            Error(Text000);
-        end;
+        OnBeforeValidateReservationApplicable(ReservEntry, IsHandled);
+        if IsHandled then
+            exit;
 
         Error(Text000);
     end;
@@ -757,6 +751,11 @@ page 498 Reservation
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAutoReserve(ReservEntry: Record "Reservation Entry"; var FullAutoReservation: Boolean; QtyToReserve: Decimal; QtyReserved: Decimal; QtyToReserveBase: Decimal; QtyReservedBase: Decimal; var IsHandled: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateReservationApplicable(ReservEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 

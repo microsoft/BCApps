@@ -48,10 +48,9 @@ codeunit 137140 "SCM Inventory Documents"
         UnitAmountShouldBeDerivedErr: Label 'Unit Amount should be derived from Unit Cost and Indirect Cost %%.';
         UnitCostShouldBeDerivedErr: Label 'Unit Cost should be derived from Unit Amount and Indirect Cost %%.';
         InboundReservationErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
+        FullyReservedErr: Label 'Fully reserved.';
         OutboundQtyNegativeErr: Label 'Outbound reservation should have negative quantity';
         OnlyOneLineShouldHaveQtyErr: Label 'Only one transfer line should have qty in transit';
-        ShouldBeFirstTransferErr: Label 'Should be the first transfer order';
-        QtyInTransitShouldMatchErr: Label 'Qty in transit should match posted quantity';
 
     [Test]
     [Scope('OnPrem')]
@@ -2541,12 +2540,15 @@ codeunit 137140 "SCM Inventory Documents"
     end;
 
     [Test]
+    [HandlerFunctions('ReservationModalPageHandler,AvailableTransferLinesModalPageHandler')]
     procedure AvailableTransferLinesFiltersQtyInTransit()
     var
         Item: Record Item;
         LocationFrom: Record Location;
         LocationTo: Record Location;
         LocationInTransit: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         TransferHeader1: Record "Transfer Header";
         TransferLine1: Record "Transfer Line";
         TransferHeader2: Record "Transfer Header";
@@ -2574,16 +2576,17 @@ codeunit 137140 "SCM Inventory Documents"
         Qty2 := LibraryRandom.RandIntInRange(20, 40);
         CreateTransferOrder(TransferHeader2, TransferLine2, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, Qty2);
 
-        // [WHEN] Filter Transfer Lines for "WEST" with Qty. in Transit > 0
-        TransferLine1.Reset();
-        TransferLine1.SetRange("Transfer-to Code", LocationTo.Code);
-        TransferLine1.SetFilter("Qty. in Transit (Base)", '>0');
+        // [GIVEN] Sales demand at Location "WEST"
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '',
+            Item."No.", Qty1 + Qty2, LocationTo.Code, WorkDate());
 
-        // [THEN] Only "T1" with qty in transit is shown
-        Assert.AreEqual(1, TransferLine1.Count, OnlyOneLineShouldHaveQtyErr);
-        TransferLine1.FindFirst();
-        Assert.AreEqual(TransferHeader1."No.", TransferLine1."Document No.", ShouldBeFirstTransferErr);
-        Assert.AreEqual(Qty1, TransferLine1."Qty. in Transit (Base)", QtyInTransitShouldMatchErr);
+        // [WHEN] Open Available Transfer Lines from the sales line reservation page
+        LibraryVariableStorage.Enqueue(Qty1);
+        SalesLine.ShowReservation();
+
+        // [THEN] The page handler verifies that only "T1" with quantity in transit is shown
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -2632,6 +2635,46 @@ codeunit 137140 "SCM Inventory Documents"
         ReservationEntry.SetRange("Source ID", TransferHeader."No.");
         ReservationEntry.SetRange("Source Subtype", 1); // Inbound
         Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('FullyReservedReservationPageHandler')]
+    [Scope('OnPrem')]
+    procedure InboundReservationShowsFullyReservedAfterReceipt()
+    var
+        Item: Record Item;
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Reservation: Page Reservation;
+        InitialInventory: Decimal;
+        TransferQty: Decimal;
+    begin
+        // [SCENARIO 572435] A received inbound transfer line shows the standard fully reserved message
+        Initialize();
+
+        // [GIVEN] A shipped and received Transfer Order from "EAST" to "WEST"
+        InitialInventory := LibraryRandom.RandIntInRange(50, 100);
+        CreateItemWithInventoryAtLocation(Item, LocationFrom, InitialInventory);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+
+        TransferQty := LibraryRandom.RandIntInRange(10, InitialInventory);
+        CreateTransferOrder(TransferHeader, TransferLine, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, TransferQty);
+        AutoReserveTransferLine(TransferLine, true);
+        LibraryInventory.PostTransferHeader(TransferHeader, true, false);
+        LibraryInventory.PostTransferHeader(TransferHeader, false, true);
+
+        TransferLine.Find();
+        TransferLine.TestField("Qty. in Transit (Base)", 0);
+
+        // [WHEN] Attempt to reserve the received inbound transfer line
+        Reservation.SetReservSource(TransferLine, "Transfer Direction"::Inbound);
+        Reservation.RunModal();
+
+        // [THEN] The page handler verifies the standard fully reserved error
     end;
 
     local procedure CreateSerialSpecificTrackedItem(var Item: Record Item)
@@ -3268,5 +3311,21 @@ codeunit 137140 "SCM Inventory Documents"
     begin
         AssertError Reservation."Reserve from Current Line".Invoke();
         Assert.ExpectedError(InboundReservationErr);
+    end;
+
+    [ModalPageHandler]
+    procedure AvailableTransferLinesModalPageHandler(var AvailableTransferLines: TestPage "Available - Transfer Lines")
+    begin
+        AvailableTransferLines.First();
+        AvailableTransferLines."Quantity (Base)".AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        Assert.IsFalse(AvailableTransferLines.Next(), OnlyOneLineShouldHaveQtyErr);
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure FullyReservedReservationPageHandler(var Reservation: TestPage Reservation)
+    begin
+        AssertError Reservation."Reserve from Current Line".Invoke();
+        Assert.ExpectedError(FullyReservedErr);
     end;
 }
