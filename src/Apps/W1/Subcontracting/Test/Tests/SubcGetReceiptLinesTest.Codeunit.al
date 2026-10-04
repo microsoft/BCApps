@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
@@ -16,6 +17,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
@@ -37,6 +39,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
     var
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
@@ -194,47 +197,47 @@ codeunit 149927 "Subc. Get Receipt Lines"
     end;
 
     [Test]
-    procedure CancelSeparateSubcontractingInvoiceIsBlocked()
+    [HandlerFunctions('MessageHandler')]
+    procedure CancelSeparateSubcontractingInvoiceReversesCapacityCost()
     var
-        PostedInvoiceHeader: Record "Purch. Inv. Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PostedCreditMemoNo: Code[20];
     begin
-        // [SCENARIO 649862] Cancel is blocked for a separate subcontracting invoice
-        CreatePostedSeparateSubcontractingInvoiceAndDeleteReceipt(PostedInvoiceHeader);
-
-        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
-
-        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
+        VerifySeparateSubcontractingInvoiceReversal(true, false, PostedCreditMemoNo);
     end;
 
     [Test]
-    procedure CorrectSeparateSubcontractingInvoiceIsBlocked()
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure CorrectiveCreditMemoForSeparateSubcontractingInvoiceReversesCapacityCost()
     var
-        PostedInvoiceHeader: Record "Purch. Inv. Header";
-        PurchaseHeader: Record "Purchase Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PostedCreditMemoNo: Code[20];
     begin
-        // [SCENARIO 649862] Correct is blocked for a separate subcontracting invoice
-        CreatePostedSeparateSubcontractingInvoiceAndDeleteReceipt(PostedInvoiceHeader);
-
-        asserterror CorrectPostedPurchInvoice.CancelPostedInvoiceStartNewInvoice(PostedInvoiceHeader, PurchaseHeader);
-
-        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
+        VerifySeparateSubcontractingInvoiceReversal(false, false, PostedCreditMemoNo);
     end;
 
     [Test]
-    procedure CreateCorrectiveCreditMemoForSeparateSubcontractingInvoiceIsBlocked()
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure CopyPostedCorrectiveCreditMemoForSeparateSubcontractingInvoiceCopiesLine()
     var
-        PostedInvoiceHeader: Record "Purch. Inv. Header";
         PurchaseHeader: Record "Purchase Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PurchaseLine: Record "Purchase Line";
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        PostedCreditMemoNo: Code[20];
     begin
-        // [SCENARIO 649862] Create Corrective Credit Memo is blocked for a separate subcontracting invoice
-        CreatePostedSeparateSubcontractingInvoiceAndDeleteReceipt(PostedInvoiceHeader);
+        // [SCENARIO 649862] A posted corrective credit memo for a separate subcontracting invoice can be copied
+        VerifySeparateSubcontractingInvoiceReversal(false, false, PostedCreditMemoNo);
 
-        asserterror CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PostedInvoiceHeader, PurchaseHeader);
+        // [WHEN] The posted credit memo is copied to a purchase invoice
+        PurchaseHeader.Init();
+        PurchaseHeader.Validate("Document Type", PurchaseHeader."Document Type"::Invoice);
+        PurchaseHeader.Insert(true);
+        CopyDocumentMgt.SetProperties(true, false, false, false, false, false, false);
+        CopyDocumentMgt.CopyPurchDoc("Purchase Document Type From"::"Posted Credit Memo", PostedCreditMemoNo, PurchaseHeader);
 
-        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
+        // [THEN] The item line is copied without attempting to load an Item Ledger Entry for the capacity-only value entry
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        Assert.RecordIsNotEmpty(PurchaseLine);
     end;
 
     [Test]
@@ -680,36 +683,120 @@ codeunit 149927 "Subc. Get Receipt Lines"
             'The invoice lot tracking specification must preserve the exact output application.');
     end;
 
-    local procedure CreatePostedSeparateSubcontractingInvoiceAndDeleteReceipt(var PostedInvoiceHeader: Record "Purch. Inv. Header")
+    local procedure VerifySeparateSubcontractingInvoiceReversal(CancelInvoice: Boolean; TrackOutput: Boolean; var PostedCreditMemoNo: Code[20])
     var
+        CancelledDocument: Record "Cancelled Document";
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
         Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        PostedCreditMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        PostedInvoiceHeader: Record "Purch. Inv. Header";
         ProductionOrder: Record "Production Order";
-        PurchRcptHeader: Record "Purch. Rcpt. Header";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        ReasonCode: Record "Reason Code";
+        ReservationEntry: Record "Reservation Entry";
+        TrackingSpecification: Record "Tracking Specification";
         InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
         Vendor: Record Vendor;
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
         CapacityLedgerEntryCount: Integer;
         CapacityLedgerEntryNo: Integer;
         OutputItemLedgerEntryCount: Integer;
         PostedInvoiceNo: Code[20];
+        ExpectedCost: Decimal;
         Quantity: Decimal;
     begin
         CreateSubcontractingReceiptForSeparateInvoice(
             Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
-            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, false);
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, TrackOutput);
 
         LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
         PurchRcptLine.SetRecFilter();
         PurchGetReceipt.SetPurchHeader(InvoiceHeader);
         PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        ExpectedCost := Round(Quantity * InvoiceLine."Direct Unit Cost");
+        Assert.AreNotEqual(0, ExpectedCost, 'The reversal scenario must use a nonzero subcontracting cost.');
+        LibraryERM.CreateReasonCode(ReasonCode);
+        InvoiceHeader.Validate("Reason Code", ReasonCode.Code);
+        InvoiceHeader.Modify(true);
         PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
         PostedInvoiceHeader.Get(PostedInvoiceNo);
-        PurchRcptHeader.Get(PurchRcptLine."Document No.");
-        PurchRcptHeader.Delete(true);
         Commit();
+
+        if CancelInvoice then begin
+            Assert.IsTrue(
+                CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader),
+                'The separate subcontracting invoice cancellation must post its corrective credit memo.');
+            CancelledDocument.Get(Database::"Purch. Inv. Header", PostedInvoiceNo);
+            PostedCreditMemoNo := CancelledDocument."Cancelled By Doc. No.";
+        end
+        else begin
+            CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PostedInvoiceHeader, InvoiceHeader);
+            InvoiceLine.Reset();
+            InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+            InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+            InvoiceLine.SetRange(Type, InvoiceLine.Type::Item);
+            InvoiceLine.SetRange("No.", Item."No.");
+            InvoiceLine.FindFirst();
+            Assert.AreEqual(PurchRcptLine."Prod. Order No.", InvoiceLine."Prod. Order No.", 'The corrective line must retain the production order.');
+            Assert.AreEqual(PurchRcptLine."Prod. Order Line No.", InvoiceLine."Prod. Order Line No.", 'The corrective line must retain the production order line.');
+            Assert.AreEqual(PurchRcptLine."Routing No.", InvoiceLine."Routing No.", 'The corrective line must retain the routing.');
+            Assert.AreEqual(PurchRcptLine."Routing Reference No.", InvoiceLine."Routing Reference No.", 'The corrective line must retain the routing reference.');
+            Assert.AreEqual(PurchRcptLine."Operation No.", InvoiceLine."Operation No.", 'The corrective line must retain the operation.');
+            Assert.AreEqual(PurchRcptLine."Work Center No.", InvoiceLine."Work Center No.", 'The corrective line must retain the work center.');
+            Assert.AreEqual(PurchRcptLine."Location Code", InvoiceLine."Location Code", 'The corrective line must retain the subcontracting output location.');
+            if TrackOutput then begin
+                ReservationEntry.SetSourceFilter(
+                    Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(), InvoiceLine."Document No.", InvoiceLine."Line No.", false);
+                Assert.RecordCount(ReservationEntry, 2);
+                ReservationEntry.FindSet();
+                repeat
+                    Assert.AreNotEqual(0, ReservationEntry."Item Ledger Entry No.", 'The corrective credit memo must create an invoice tracking specification.');
+                    Assert.IsTrue(TrackingSpecification.Get(ReservationEntry."Item Ledger Entry No."), 'The corrective credit memo invoice tracking specification must exist.');
+                    Assert.AreEqual(
+                        ReservationEntry."Appl.-to Item Entry", TrackingSpecification."Appl.-to Item Entry",
+                        'The invoice tracking specification must preserve the exact output application.');
+                    Assert.IsTrue(ItemLedgerEntry.Get(ReservationEntry."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
+                    VerifyCorrectiveApplication(ItemLedgerEntry, ProductionOrder, PurchRcptLine);
+                until ReservationEntry.Next() = 0;
+            end else begin
+                Assert.IsTrue(ItemLedgerEntry.Get(InvoiceLine."Appl.-to Item Entry"), 'The corrective credit memo must apply to an existing Item Ledger Entry.');
+                VerifyCorrectiveApplication(ItemLedgerEntry, ProductionOrder, PurchRcptLine);
+            end;
+            InvoiceHeader.Validate(
+                "Vendor Cr. Memo No.",
+                CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(InvoiceHeader."Vendor Cr. Memo No.")));
+            InvoiceHeader.Modify(true);
+            PostedCreditMemoNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, true, true);
+        end;
+
+        PostedCreditMemoHeader.Get(PostedCreditMemoNo);
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Credit Memo");
+        ValueEntry.SetRange("Document No.", PostedCreditMemoHeader."No.");
+        ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
+        Assert.RecordIsNotEmpty(ValueEntry);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreEqual(-ExpectedCost, Round(ValueEntry."Cost Amount (Actual)"), 'The reversed invoice cost must remain assigned to the original capacity ledger entry.');
+
+        CapacityLedgerEntry.Reset();
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", PurchRcptLine."Work Center No.");
+        Assert.AreEqual(CapacityLedgerEntryCount, CapacityLedgerEntry.Count(), 'Reversing the invoice must not create capacity entries.');
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Reversing the invoice must not create output entries.');
     end;
 
     local procedure CreateSubcontractingReceiptForSeparateInvoice(
@@ -937,6 +1024,35 @@ codeunit 149927 "Subc. Get Receipt Lines"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         OutputItemLedgerEntryCount := ItemLedgerEntry.Count();
+    end;
+
+    local procedure VerifyCorrectiveApplication(ItemLedgerEntry: Record "Item Ledger Entry"; ProductionOrder: Record "Production Order"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+#pragma warning disable AA0210
+        CapacityLedgerEntry.SetRange(Subcontracting, true);
+        CapacityLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
+        CapacityLedgerEntry.SetRange("Item No.", PurchRcptLine."No.");
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
+        CapacityLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", PurchRcptLine."Order No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", PurchRcptLine."Order Line No.");
+        CapacityLedgerEntry.FindFirst();
+#pragma warning restore AA0210
+
+        Assert.AreEqual("Item Ledger Entry Type"::Output, ItemLedgerEntry."Entry Type", 'The corrective credit memo must apply to an original output Item Ledger Entry.');
+        Assert.AreEqual(CapacityLedgerEntry."Item Register No.", ItemLedgerEntry."Item Register No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting receipt posting.');
+        Assert.AreEqual(PurchRcptLine."Order No.", ItemLedgerEntry."Subc. Purch. Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting purchase order.');
+        Assert.AreEqual(PurchRcptLine."Order Line No.", ItemLedgerEntry."Subc. Purch. Order Line No.", 'The applied output Item Ledger Entry must belong to the exact subcontracting purchase order line.');
+        Assert.AreEqual(ProductionOrder."No.", ItemLedgerEntry."Order No.", 'The applied output Item Ledger Entry must belong to the subcontracting production order.');
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     [MessageHandler]

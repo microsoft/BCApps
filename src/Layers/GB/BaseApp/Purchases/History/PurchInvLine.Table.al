@@ -1020,6 +1020,7 @@ table 123 "Purch. Inv. Line"
 
         FilterPstdDocLineValueEntries(ValueEntry);
         ValueEntry.SetFilter("Invoiced Quantity", '<>0');
+        ValueEntry.SetFilter("Item Ledger Entry No.", '<>%1', 0);
         if ValueEntry.FindSet() then
             repeat
                 ItemLedgEntry.Get(ValueEntry."Item Ledger Entry No.");
