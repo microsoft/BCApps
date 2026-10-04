@@ -40,6 +40,8 @@ permissionset 6953 "Expense Agent - Data"
                   tabledata "Expense User" = R,
                   tabledata "Expense Group" = R,
                   tabledata "Expense Location" = R,
+                  tabledata "Expense Vehicle Type" = R,
+                  tabledata "Mileage Rate Setup" = R,
                   tabledata "Expense Rule Condition" = R,
                   tabledata "Expense Rule Header" = R,
                   tabledata "Expense Policy" = R,
@@ -62,5 +64,6 @@ permissionset 6953 "Expense Agent - Data"
                   tabledata "Expense Agent Env. Consumption" = Ri,
                   tabledata "Tenant Feedback Setting" = R,
                   tabledata "EA Outbox Email" = RIM,
+                  tabledata Traveler = RIMD,
                   tabledata "Expense Activity Log Entry" = Rimd;
 }

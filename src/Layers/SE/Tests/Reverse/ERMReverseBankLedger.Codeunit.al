@@ -28,7 +28,12 @@
         ReconciliationErr: Label 'You cannot reverse %1 No. %2 because the entry is included in a bank account reconciliation line. The bank reconciliation has not yet been posted.', Locked = true;
         CompressErr: Label 'The transaction cannot be reversed, because the %1 has been compressed.', Locked = true;
         VerifyErr: Label 'Error must match.', Locked = true;
+        ReversalSuccessfulTxt: Label 'The entries were successfully reversed.', Locked = true;
+        BankAccCheckSubscriberNotInvokedErr: Label 'The bank account check subscriber was not invoked.', Locked = true;
         isInitialized: Boolean;
+        BankAccCheckSubscriberInvoked: Boolean;
+        SkipBankAccLedgEntryOpenCheck: Boolean;
+        SkipBankAccLedgEntryStatementNoCheck: Boolean;
         VoidType: Option "Unapply and void check","Void check only";
 
     [Test]
@@ -179,6 +184,122 @@
         ReverseBankAccountLedgerEntry(BankAccountLedgerEntry, GenJournalLine."Document No.");
         // Verify: Verify Reversing Error for Bank Account Ledger Entry After Modify and Post Bank Reconciliation.
         Assert.AreEqual(StrSubstNo(ReverseErr, BankAccountLedgerEntry."Entry No."), GetLastErrorText, VerifyErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,ReversalMessageHandler')]
+    [Scope('OnPrem')]
+    procedure ReverseClosedBankLedgerEntryWhenOpenCheckSkipped()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        ERMReverseBankLedger: Codeunit "ERM Reverse Bank Ledger";
+    begin
+        // [SCENARIO] A closed bank account ledger entry can be reversed when the open check is skipped.
+        Initialize();
+        CreateAndPostGenJournalLine(
+          GenJournalLine, GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+          GenJournalLine."Bank Payment Type"::" ", '', CreateBankAccount(), LibraryRandom.RandDec(100, 2), '');
+        BankAccountLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        BankAccountLedgerEntry.FindFirst();
+        BankAccountLedgerEntry.Open := false;
+        BankAccountLedgerEntry.Modify();
+
+        ERMReverseBankLedger.SetBankAccCheckSkipFlags(true, false);
+        BindSubscription(ERMReverseBankLedger);
+        LibraryVariableStorage.Enqueue(ReversalSuccessfulTxt);
+        ReverseBankAccountLedgerEntryNoErr(BankAccountLedgerEntry, GenJournalLine."Document No.");
+
+        ERMReverseBankLedger.AssertBankAccCheckSubscriberInvoked();
+        BankAccountLedgerEntry.TestField(Reversed, true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure CannotReverseClosedBankLedgerEntryWhenOnlyStatementNoCheckSkipped()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        ERMReverseBankLedger: Codeunit "ERM Reverse Bank Ledger";
+    begin
+        // [SCENARIO] Skipping the statement number check does not skip the open check.
+        Initialize();
+        CreateAndPostGenJournalLine(
+          GenJournalLine, GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+          GenJournalLine."Bank Payment Type"::" ", '', CreateBankAccount(), LibraryRandom.RandDec(100, 2), '');
+        BankAccountLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        BankAccountLedgerEntry.FindFirst();
+        BankAccountLedgerEntry.Open := false;
+        BankAccountLedgerEntry."Statement No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(BankAccountLedgerEntry."Statement No."));
+        BankAccountLedgerEntry.Modify();
+
+        ERMReverseBankLedger.SetBankAccCheckSkipFlags(false, true);
+        BindSubscription(ERMReverseBankLedger);
+        ReverseBankAccountLedgerEntry(BankAccountLedgerEntry, GenJournalLine."Document No.");
+
+        ERMReverseBankLedger.AssertBankAccCheckSubscriberInvoked();
+        Assert.AreEqual(StrSubstNo(ReverseErr, BankAccountLedgerEntry."Entry No."), GetLastErrorText, VerifyErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,ReversalMessageHandler')]
+    [Scope('OnPrem')]
+    procedure ReverseBankLedgerEntryWithStatementNoWhenStatementCheckSkipped()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        ERMReverseBankLedger: Codeunit "ERM Reverse Bank Ledger";
+    begin
+        // [SCENARIO] A bank account ledger entry with a statement number can be reversed when the statement number check is skipped.
+        Initialize();
+        CreateAndPostGenJournalLine(
+          GenJournalLine, GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+          GenJournalLine."Bank Payment Type"::" ", '', CreateBankAccount(), LibraryRandom.RandDec(100, 2), '');
+        BankAccountLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        BankAccountLedgerEntry.FindFirst();
+        BankAccountLedgerEntry."Statement No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(BankAccountLedgerEntry."Statement No."));
+        BankAccountLedgerEntry.Modify();
+
+        ERMReverseBankLedger.SetBankAccCheckSkipFlags(false, true);
+        BindSubscription(ERMReverseBankLedger);
+        LibraryVariableStorage.Enqueue(ReversalSuccessfulTxt);
+        ReverseBankAccountLedgerEntryNoErr(BankAccountLedgerEntry, GenJournalLine."Document No.");
+
+        ERMReverseBankLedger.AssertBankAccCheckSubscriberInvoked();
+        BankAccountLedgerEntry.TestField(Reversed, true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure CannotReverseBankLedgerEntryWithStatementNoWhenOnlyOpenCheckSkipped()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        ERMReverseBankLedger: Codeunit "ERM Reverse Bank Ledger";
+    begin
+        // [SCENARIO] Skipping the open check does not skip the statement number check.
+        Initialize();
+        CreateAndPostGenJournalLine(
+            GenJournalLine, GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+            GenJournalLine."Bank Payment Type"::" ", '', CreateBankAccount(), LibraryRandom.RandDec(100, 2), '');
+        BankAccountLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        BankAccountLedgerEntry.FindFirst();
+        BankAccountLedgerEntry.Open := false;
+        BankAccountLedgerEntry."Statement No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(BankAccountLedgerEntry."Statement No."));
+        BankAccountLedgerEntry.Modify();
+
+        ERMReverseBankLedger.SetBankAccCheckSkipFlags(true, false);
+        BindSubscription(ERMReverseBankLedger);
+        ReverseBankAccountLedgerEntry(BankAccountLedgerEntry, GenJournalLine."Document No.");
+
+        ERMReverseBankLedger.AssertBankAccCheckSubscriberInvoked();
+        Assert.AreEqual(
+            StrSubstNo(ReconciliationErr, BankAccountLedgerEntry.TableCaption(), BankAccountLedgerEntry."Entry No."),
+            GetLastErrorText, VerifyErr);
     end;
 
     [Test]
@@ -779,6 +900,8 @@
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Reverse Bank Ledger");
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
+        SkipBankAccLedgEntryOpenCheck := false;
+        SkipBankAccLedgEntryStatementNoCheck := false;
         if isInitialized then
             exit;
 
@@ -1216,6 +1339,16 @@
     begin
     end;
 
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure ReversalMessageHandler(Message: Text[1024])
+    var
+        ExpectedMessage: Text;
+    begin
+        ExpectedMessage := LibraryVariableStorage.DequeueText();
+        Assert.ExpectedMessage(ExpectedMessage, Message);
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure SuggestBankAccReconLinesRPH(var SuggestBankAccReconLines: TestRequestPage "Suggest Bank Acc. Recon. Lines")
@@ -1223,6 +1356,26 @@
         LibraryVariableStorage.Enqueue(SuggestBankAccReconLines.ExcludeReversedEntries.Visible());
         LibraryVariableStorage.Enqueue(SuggestBankAccReconLines.ExcludeReversedEntries.Enabled());
         SuggestBankAccReconLines.Cancel().Invoke();
+    end;
+
+    procedure SetBankAccCheckSkipFlags(SkipOpenCheck: Boolean; SkipStatementNoCheck: Boolean)
+    begin
+        BankAccCheckSubscriberInvoked := false;
+        SkipBankAccLedgEntryOpenCheck := SkipOpenCheck;
+        SkipBankAccLedgEntryStatementNoCheck := SkipStatementNoCheck;
+    end;
+
+    procedure AssertBankAccCheckSubscriberInvoked()
+    begin
+        Assert.IsTrue(BankAccCheckSubscriberInvoked, BankAccCheckSubscriberNotInvokedErr);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Reversal Entry", 'OnBeforeCheckBankAcc', '', false, false)]
+    local procedure OnBeforeCheckBankAcc(var BankAccLedgEntry: Record "Bank Account Ledger Entry"; var IsHandled: Boolean; var SkipBankAccountLedgerEntryOpenCheck: Boolean; var SkipBankAccountLedgerEntryStatementNoCheck: Boolean)
+    begin
+        BankAccCheckSubscriberInvoked := true;
+        SkipBankAccountLedgerEntryOpenCheck := SkipBankAccLedgEntryOpenCheck;
+        SkipBankAccountLedgerEntryStatementNoCheck := SkipBankAccLedgEntryStatementNoCheck;
     end;
 
     [RequestPageHandler]

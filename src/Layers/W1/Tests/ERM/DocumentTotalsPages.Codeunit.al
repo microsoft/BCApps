@@ -2192,6 +2192,79 @@ codeunit 134344 "Document Totals Pages"
         Assert.AreEqual(NewDescription, SalesOrder.SalesLines.Description.Value(), LineDescriptionRevertedErr);
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseInvoiceStatisticsUpdateVATAmountPageHandler')]
+    procedure PurchInvTotalInclVATMatchesStatisticsAfterVATAdjMixedVATGroupsSameAccount()
+    var
+        GLAccount: Record "G/L Account";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        MaxVATDifference: Decimal;
+        TotalAmountInclVATBefore: Decimal;
+        TotalVATAmountBefore: Decimal;
+        VATAdjustment: Decimal;
+    begin
+        // [FEATURE] [UI] [VAT] [Purchase] [VAT Difference]
+        // [SCENARIO 637288] "Total VAT Amount" and "Total Amount Incl. VAT" on Purchase Invoice subform must update
+        // after VAT adjustment when invoice has mixed VAT groups on the same G/L Account with negative lines.
+        Initialize();
+
+        // [GIVEN] "VAT Difference" is allowed with random Max VAT Difference
+        MaxVATDifference := LibraryRandom.RandDecInRange(1, 5, 2);
+        LibraryERM.SetMaxVATDifferenceAllowed(MaxVATDifference);
+        LibraryPurchase.SetAllowVATDifference(true);
+
+        // [GIVEN] Create two VAT Posting Setups with random VAT%, same VAT Bus. Posting Group
+        CreateVATPostingSetup(VATPostingSetup);
+
+        // [GIVEN] Purchase Invoice with mixed VAT lines on the same G/L Account, including negative adjustment lines
+        GLAccount.Get(LibraryERM.CreateGLAccountWithPurchSetup());
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+        Vendor.Get(LibraryPurchase.CreateVendorNo());
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup[1]."VAT Bus. Posting Group");
+        Vendor.Modify();
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        CreatePurchLineWithGLAccAndVATSetup(PurchaseLine, PurchaseHeader, VATPostingSetup[1], GLAccount."No.", LibraryRandom.RandDecInRange(1000, 5000, 2));
+        CreatePurchLineWithGLAccAndVATSetup(PurchaseLine, PurchaseHeader, VATPostingSetup[1], GLAccount."No.", -LibraryRandom.RandDecInRange(100, 500, 2));
+        CreatePurchLineWithGLAccAndVATSetup(PurchaseLine, PurchaseHeader, VATPostingSetup[2], GLAccount."No.", LibraryRandom.RandDecInRange(1000, 5000, 2));
+        CreatePurchLineWithGLAccAndVATSetup(PurchaseLine, PurchaseHeader, VATPostingSetup[2], GLAccount."No.", -LibraryRandom.RandDecInRange(100, 900, 2));
+
+        // [GIVEN] Open Purchase Invoice page and capture totals before adjustment
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseInvoicePage.PurchLines.Last();
+        TotalVATAmountBefore := PurchaseInvoicePage.PurchLines."Total VAT Amount".AsDecimal();
+        TotalAmountInclVATBefore := PurchaseInvoicePage.PurchLines."Total Amount Incl. VAT".AsDecimal();
+
+        // [WHEN] VAT Amount adjusted on Statistics page (within allowed VAT difference)
+        VATAdjustment := -LibraryRandom.RandDecInRange(0, MaxVATDifference, 2);
+        LibraryVariableStorage.Enqueue(VATAdjustment);
+        PurchaseInvoicePage.PurchaseStatistics.Invoke();
+        PurchaseInvoicePage.Close();
+
+        // [THEN] "Total VAT Amount" on the subform reflects the VAT adjustment
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseInvoicePage.PurchLines.Last();
+        Assert.AreEqual(
+            TotalVATAmountBefore + VATAdjustment,
+            PurchaseInvoicePage.PurchLines."Total VAT Amount".AsDecimal(),
+            StrSubstNo(VATAmountErr, PurchaseInvoicePage.PurchLines."Total VAT Amount".Caption, 'expected Total VAT Amount'));
+
+        // [THEN] "Total Amount Incl. VAT" on the subform reflects the VAT adjustment
+        Assert.AreEqual(
+            TotalAmountInclVATBefore + VATAdjustment,
+            PurchaseInvoicePage.PurchLines."Total Amount Incl. VAT".AsDecimal(),
+            StrSubstNo(VATAmountErr, PurchaseInvoicePage.PurchLines."Total Amount Incl. VAT".Caption, 'expected Total Amount Incl. VAT'));
+
+        PurchaseInvoicePage.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -2459,6 +2532,30 @@ codeunit 134344 "Document Totals Pages"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 20, 2));
         SalesLine.Modify();
+    end;
+
+    local procedure CreateVATPostingSetup(var VATPostingSetup: array[2] of Record "VAT Posting Setup")
+    var
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup[1], VATPostingSetup[1]."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(5, 15));
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup[2], VATPostingSetup[1]."VAT Bus. Posting Group", VATProductPostingGroup.Code);
+        VATPostingSetup[2].Validate("VAT Calculation Type", VATPostingSetup[2]."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup[2].Validate("VAT %", LibraryRandom.RandIntInRange(16, 25));
+        VATPostingSetup[2].Validate("VAT Identifier", CopyStr(VATProductPostingGroup.Code, 1, MaxStrLen(VATPostingSetup[2]."VAT Identifier")));
+        VATPostingSetup[2]."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup[2].Modify(true);
+    end;
+
+    local procedure CreatePurchLineWithGLAccAndVATSetup(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; VATPostingSetup: Record "VAT Posting Setup"; GLAccountNo: Code[20]; DirectUnitCost: Decimal)
+    begin
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+        PurchaseLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
     end;
 
     [ConfirmHandler]

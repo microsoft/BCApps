@@ -482,7 +482,9 @@ report 11400 "CBG Posting - Test"
                 dataitem(EmplEntryApplyID; "Employee Ledger Entry")
                 {
                     DataItemLink = "Employee No." = field("Account No.");
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                     DataItemTableView = sorting("Employee No.", Open, Positive, "Currency Code") where(Open = const(true));
+#pragma warning restore AL0254
                     column(Desc_EmplEntryApplyID; Description)
                     {
                     }
@@ -544,7 +546,9 @@ report 11400 "CBG Posting - Test"
                 dataitem(EmplEntryApplyNo; "Employee Ledger Entry")
                 {
                     DataItemLink = "Employee No." = field("Account No."), "Document No." = field("Applies-to Doc. No."), "Document Type" = field("Applies-to Doc. Type");
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                     DataItemTableView = sorting("Document No.");
+#pragma warning restore AL0254
                     column(Desc_EmplEntryApplyNo; Description)
                     {
                     }

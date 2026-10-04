@@ -196,11 +196,11 @@ page 6929 "Expense Report Lines API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 field(purchaseInvoice; Rec."Purchase Invoice")
                 {
@@ -254,6 +254,11 @@ page 6929 "Expense Report Lines API"
                 {
                     Caption = 'Round Trip';
                     ToolTip = 'Specifies whether the mileage expense is a round trip.';
+                }
+                field(vehicleType; Rec."Vehicle Type")
+                {
+                    Caption = 'Vehicle Type';
+                    ToolTip = 'Specifies the vehicle type used for this mileage expense.';
                 }
                 field(totalMileage; TotalMileage)
                 {

@@ -196,10 +196,10 @@ codeunit 5522 "Order Planning Mgt."
         OnInsertDemandLinesOnAfterReqLineInsert(ReqLine, TempUnplannedDemand);
         if Item."No." <> TempUnplannedDemand."Item No." then
             Item.Get(TempUnplannedDemand."Item No.");
-        if Item."Item Tracking Code" <> '' then
-            OnInsertDemandLinesOnCopyItemTracking(ReqLine, TempUnplannedDemand);
         if ReqLine.Quantity > 0 then
             PlanningLineMgt.Calculate(ReqLine, 1, true, true, 0);
+        if Item."Item Tracking Code" <> '' then
+            OnInsertDemandLinesOnCopyItemTracking(ReqLine, TempUnplannedDemand);
         ReqLine.Find('+');
     end;
 
@@ -519,19 +519,6 @@ codeunit 5522 "Order Planning Mgt."
     local procedure OnBeforeIncreaseReqLineNo(var UnplannedDemand: Record "Unplanned Demand"; var ReqLine: Record "Requisition Line"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeReqLineModify(var RequisitionLine: Record "Requisition Line"; RequisitionLine2: Record "Requisition Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnBeforeReqLineModify(RequisitionLine, RequisitionLine2, ProdOrderComponent);
-    end;
-
-    [Obsolete('Moved to codeunit MfgOrderPlanningMgt', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeReqLineModify(var RequisitionLine: Record "Requisition Line"; RequisitionLine2: Record "Requisition Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunGetUnplannedDemand(var UnplannedDemand: Record "Unplanned Demand"; var IsHandled: Boolean)

@@ -11,7 +11,9 @@ tableextension 2025 "MS - Image Analyzer Setup" extends "Image Analysis Setup"
 {
     fields
     {
+#pragma warning disable AL0468 // Accepted: renaming the table field would be a breaking change.
         field(8; "Image-Based Attribute Recognition Enabled"; Boolean)
+#pragma warning restore AL0468
         {
             Caption = 'Enable Image Analyzer';
         }
