@@ -16,7 +16,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
-using Microsoft.Utilities;
 using Microsoft.Warehouse.History;
 codeunit 20535 "Subc. Purch. Post Ext"
 {

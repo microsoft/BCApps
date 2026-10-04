@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
@@ -17,7 +16,6 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
@@ -39,7 +37,6 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
     var
         Assert: Codeunit Assert;
-        LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
