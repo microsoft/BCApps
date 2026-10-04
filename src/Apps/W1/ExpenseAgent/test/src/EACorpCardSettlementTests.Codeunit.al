@@ -70,6 +70,44 @@ codeunit 148360 EACorpCardSettlementTests
     end;
 
     [Test]
+    procedure ReadyToPostUsesTransactionLcyAmountForLcySettlement()
+    var
+        CorpCardBankAccount: Record "Bank Account";
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        PaymentBankAccount: Record "Bank Account";
+        CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
+    begin
+        Initialize();
+        CreateBankAccount(CorpCardBankAccount, '');
+        CreateBankAccount(PaymentBankAccount, '');
+        CorpCardBankAccountNo := CorpCardBankAccount."No.";
+        PaymentBankAccountNo := PaymentBankAccount."No.";
+        ConfigureProviderAccounts();
+        CreateStatement(CorpCardStatement, 'STMT-LCY', 2000, CorpCardStatement.Status::Validated);
+        CreatePostedTransaction(CorpCardTrans, CorpCardStatement, 2000);
+        CorpCardTrans."Amount (LCY)" := 1800;
+        CorpCardTrans.Modify(true);
+
+        CorpCardSettlement.Init();
+        CorpCardSettlement.Validate("Provider Code", 'TEST');
+        CorpCardSettlement."Settlement No." := 'SETTLEMENT-LCY';
+        CorpCardSettlement."Settlement Date" := WorkDate();
+        CorpCardSettlement."Currency Code" := '';
+        CorpCardSettlement."Settlement Amount" := 1800;
+        CorpCardSettlement.Insert(true);
+        AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
+
+        CorpCardSettlementMgt.SetReadyToPost(CorpCardSettlement);
+
+        CorpCardSettlementLine.Get(CorpCardSettlement."Settlement Entry No.", 10000);
+        Assert.AreEqual('', CorpCardSettlementLine."Currency Code", 'The settlement statement line must use local currency.');
+        Assert.AreEqual(1800, CorpCardSettlementLine."Statement Amount", 'The settlement statement line must use the transaction LCY amount.');
+    end;
+
+    [Test]
     procedure ProviderRejectsSameSettlementAccounts()
     var
         CorpCardProvider: Record "EA Corp Card Provider";

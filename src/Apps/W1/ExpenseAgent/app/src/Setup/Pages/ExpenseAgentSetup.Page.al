@@ -555,6 +555,24 @@ page 6996 "Expense Agent Setup"
                         CreateCorpCardSetup.CreateDefaults();
                     end;
                 }
+                action("Create Corp Card CSV Sample Scenario")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Create corp card CSV sample scenario';
+                    Image = Import;
+                    ToolTip = 'Imports the 60 sample CSV transactions, creates and posts their expense reports, and creates and posts the settlement between CORPCARD and a bank account that uses the LCY posting group.';
+
+                    trigger OnAction()
+                    var
+                        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+                    begin
+                        if not Confirm(CreateCorpCardCsvSampleScenarioQst, false) then
+                            exit;
+
+                        CreateCorpCardSetup.CreateCsvSampleScenario();
+                        Message(CorpCardCsvSampleScenarioCreatedMsg);
+                    end;
+                }
             }
             action("Agent Consumption")
             {
@@ -615,6 +633,8 @@ page 6996 "Expense Agent Setup"
 
     var
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
+        CreateCorpCardCsvSampleScenarioQst: Label 'This action imports and posts the corporate card CSV sample transactions, expense reports, and bank settlement. Do you want to continue?';
+        CorpCardCsvSampleScenarioCreatedMsg: Label 'The corporate card CSV sample scenario was created and posted.';
 #if not CLEAN30
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
 #endif

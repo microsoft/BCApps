@@ -92,7 +92,7 @@ page 7434 "EA Corp Card Providers"
                 Caption = 'Upload source payload';
                 ApplicationArea = Basic, Suite;
                 Image = Import;
-                ToolTip = 'Uploads a source file payload to the selected provider for test imports.';
+                ToolTip = 'Uploads a source file payload to the selected provider for statement imports.';
 
                 trigger OnAction()
                 begin
@@ -111,17 +111,35 @@ page 7434 "EA Corp Card Providers"
                     ClearSourcePayloadForProvider();
                 end;
             }
-            action(TestImport)
+            action(ImportStatement)
             {
-                Caption = 'Test import';
+                Caption = 'Import statement';
                 ApplicationArea = Basic, Suite;
-                Image = TestFile;
-                ToolTip = 'Runs import immediately for the selected provider.';
+                Image = Import;
+                ToolTip = 'Imports a statement immediately for the selected provider.';
 
                 trigger OnAction()
                 begin
-                    RunTestImportForProvider();
+                    ImportStatementForProvider();
                 end;
+            }
+            action(Statements)
+            {
+                Caption = 'Statements';
+                ApplicationArea = Basic, Suite;
+                Image = Documents;
+                RunObject = Page "EA Corp Card Statements";
+                RunPageLink = "Provider Code" = field(Code);
+                ToolTip = 'View statements for the selected provider.';
+            }
+            action(Settlements)
+            {
+                Caption = 'Settlements';
+                ApplicationArea = Basic, Suite;
+                Image = Payment;
+                RunObject = Page "EA Corp Card Settlements";
+                RunPageLink = "Provider Code" = field(Code);
+                ToolTip = 'View settlements for the selected provider.';
             }
             action(OpenLatestStatement)
             {
@@ -242,7 +260,7 @@ page 7434 "EA Corp Card Providers"
         Message(SourcePayloadClearedMsg, Rec.Code);
     end;
 
-    local procedure RunTestImportForProvider()
+    local procedure ImportStatementForProvider()
     var
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin

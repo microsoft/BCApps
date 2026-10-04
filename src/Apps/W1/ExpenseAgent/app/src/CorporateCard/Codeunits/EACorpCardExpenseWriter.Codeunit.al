@@ -14,12 +14,14 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
     Permissions = tabledata "Expense VAT Specification" = rimd;
 
     var
+        CreditCardPaymentMethodMissingErr: Label 'An expense payment method with reimbursement type Credit Card must exist before corporate card expenses can be created.';
         RecordNotFoundForCardErr: Label '%1 not found for card %2.', Comment = '%1 = table caption, %2 = card id.';
         Level3ReconcileWarnLbl: Label 'Level 3 detail total %1 does not match transaction amount %2.', Comment = '%1 = detail total, %2 = transaction amount';
 
     procedure CreateDraftFromTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20])
     var
         Expense: Record Expense;
+        ExpensePaymentMethod: Record "Expense Payment Method";
         ExpenseUser: Record "Expense User";
         CorpCard: Record "EA Corp Card";
         ExpenseUserNo: Code[20];
@@ -40,6 +42,10 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
         Expense."Status" := Expense."Status"::Open;
         if ExpenseCategory <> '' then
             Expense.Validate("Expense Category", ExpenseCategory);
+        ExpensePaymentMethod.SetRange("Reimbursement Type", ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
+        if not ExpensePaymentMethod.FindFirst() then
+            Error(CreditCardPaymentMethodMissingErr);
+        Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
         Expense.Description := CopyStr(CorpCardTrans."Merchant Norm", 1, MaxStrLen(Expense.Description));
         Expense."Merchant Name" := CopyStr(CorpCardTrans."Merchant Norm", 1, MaxStrLen(Expense."Merchant Name"));
         Expense."Expense Date" := CorpCardTrans."Trans Date";

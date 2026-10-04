@@ -32,7 +32,7 @@ codeunit 148356 EACorpCardImportBasicTests
         ImportedTransCount := CorpCardTestLib.CountTransForStatement(CorpCardStatement."Statement Entry No.", CorpCardCsvProviderCodeTok);
 
         Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'CSV statement import must complete successfully.');
-        Assert.IsTrue(CorpCardStatement.Imported > 0, 'CSV sample import must create at least one transaction.');
+        Assert.AreEqual(60, CorpCardStatement.Imported, 'CSV sample import must create all sample transactions.');
         Assert.AreEqual(CorpCardStatement.Imported, ImportedTransCount, 'Imported counter must match staged transaction rows for the statement.');
         Assert.IsTrue(CorpCardStatement.Rejected >= CorpCardStatement.Exceptions, 'Rejected count must be greater than or equal to exception count.');
     end;

@@ -208,7 +208,7 @@ codeunit 148353 EACorpCardPhase3Tests
             '<CorporateCardTransactions>' +
                 '<Transaction>' +
                     '<ProviderTransId>XMLNEG0001</ProviderTransId>' +
-                    '<CardId>CRDXML-0001</CardId>' +
+                    '<CardId>CORPCARD-0001</CardId>' +
                     '<TransDate>2026-07-01</TransDate>' +
                     '<PostingDate>2026-07-01</PostingDate>' +
                     '<Amount>19.63</Amount>' +

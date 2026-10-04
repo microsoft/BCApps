@@ -53,8 +53,6 @@ table 7431 "EA Corp Card Settlement Line"
                     Error(StatementStatusNotEligibleErr, CorpCardStatement."Statement No.", CorpCardStatement.Status);
                 if CorpCardStatement."Provider Code" <> CorpCardSettlement."Provider Code" then
                     Error(StatementProviderMismatchErr, CorpCardStatement."Statement No.", CorpCardStatement."Provider Code", CorpCardSettlement."Provider Code");
-                if CorpCardStatement."Currency Code" <> CorpCardSettlement."Currency Code" then
-                    Error(StatementCurrencyMismatchErr, CorpCardStatement."Statement No.", CorpCardStatement."Currency Code", CorpCardSettlement."Currency Code");
 
                 OtherSettlementLine.SetRange("Statement Entry No.", "Statement Entry No.");
                 OtherSettlementLine.SetRange(Inactive, false);
@@ -68,8 +66,8 @@ table 7431 "EA Corp Card Settlement Line"
 
                 "Statement No." := CorpCardStatement."Statement No.";
                 "Statement Date" := CorpCardStatement."Statement Date";
-                "Currency Code" := CorpCardStatement."Currency Code";
-                "Statement Amount" := CorpCardStatement."Statement Total";
+                "Currency Code" := CorpCardSettlement."Currency Code";
+                "Statement Amount" := CorpCardStatement.GetTotalInCurrency(CorpCardSettlement."Currency Code");
             end;
         }
         field(4; "Statement No."; Code[50])
@@ -161,7 +159,6 @@ table 7431 "EA Corp Card Settlement Line"
 
     var
         StatementAlreadySettledErr: Label 'Statement %1 is already included in settlement entry %2.', Comment = '%1 = statement number, %2 = settlement entry number';
-        StatementCurrencyMismatchErr: Label 'Statement %1 has currency %2, but the settlement currency is %3.', Comment = '%1 = statement number, %2 = statement currency, %3 = settlement currency';
         StatementProviderMismatchErr: Label 'Statement %1 belongs to provider %2, but the settlement provider is %3.', Comment = '%1 = statement number, %2 = statement provider, %3 = settlement provider';
         StatementStatusNotEligibleErr: Label 'Statement %1 must be validated or require reconciliation before it can be added to a settlement. Current status: %2.', Comment = '%1 = statement number, %2 = statement status';
 }

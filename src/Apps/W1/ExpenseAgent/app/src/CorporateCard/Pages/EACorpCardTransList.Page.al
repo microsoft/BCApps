@@ -60,6 +60,11 @@ page 7433 "EA Corp Card Trans List"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the transaction currency code.';
                 }
+                field("Amount (LCY)"; Rec."Amount (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the transaction amount posted to the corporate card liability in the local currency.';
+                }
                 field(MCC; Rec.MCC)
                 {
                     ApplicationArea = Basic, Suite;

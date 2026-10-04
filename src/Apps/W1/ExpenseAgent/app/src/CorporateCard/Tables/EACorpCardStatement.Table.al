@@ -274,6 +274,24 @@ table 7422 "EA Corp Card Statement"
         }
     }
 
+    internal procedure GetTotalInCurrency(TargetCurrencyCode: Code[10]): Decimal
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        TotalAmount: Decimal;
+    begin
+        if TargetCurrencyCode = "Currency Code" then
+            exit("Statement Total");
+
+        CorpCardTrans.SetRange("Statement Entry No.", "Statement Entry No.");
+        CorpCardTrans.SetRange("Provider Code", "Provider Code");
+        if CorpCardTrans.FindSet() then
+            repeat
+                TotalAmount += CorpCardTrans.GetAmountInCurrency(TargetCurrencyCode);
+            until CorpCardTrans.Next() = 0;
+
+        exit(TotalAmount);
+    end;
+
     trigger OnDelete()
     var
         CorpCardException: Record "EA Corp Card Exception";

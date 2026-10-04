@@ -23,6 +23,8 @@ codeunit 148354 EACorpCardSetupTests
     procedure CreateDefaultsIsIdempotentAndSeedsPayload()
     var
         CorpCardProvider: Record "EA Corp Card Provider";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePostingGroup: Record "Expense Posting Group";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
         ProviderCountBefore: Integer;
         ProviderCountAfter: Integer;
@@ -34,6 +36,10 @@ codeunit 148354 EACorpCardSetupTests
         ProviderCountBefore := CountDefaultProviders();
         CardCountBefore := CountCardsForDefaultProviders();
 
+        ExpenseCategory.Get(AirlineExpenseCategoryCodeTok);
+        ExpenseCategory."Posting Group" := '';
+        ExpenseCategory.Modify(true);
+
         CreateCorpCardSetup.CreateDefaults();
 
         ProviderCountAfter := CountDefaultProviders();
@@ -41,12 +47,17 @@ codeunit 148354 EACorpCardSetupTests
 
         Assert.AreEqual(ProviderCountBefore, ProviderCountAfter, 'CreateDefaults must be idempotent for provider records.');
         Assert.AreEqual(CardCountBefore, CardCountAfter, 'CreateDefaults must not duplicate provider card links.');
+        Assert.AreEqual(8, CardCountAfter, 'CreateDefaults must create one corporate card for each of the first eight expense users.');
+
+        ExpenseCategory.Get(AirlineExpenseCategoryCodeTok);
+        Assert.AreNotEqual('', ExpenseCategory."Posting Group", 'CreateDefaults must assign the posting group on corporate card expense categories.');
+        Assert.IsTrue(ExpensePostingGroup.Get(ExpenseCategory."Posting Group"), 'The assigned expense posting group must exist.');
 
         CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
         CorpCardProvider.CalcFields("Source Payload");
         Assert.IsTrue(CorpCardProvider."Source Payload".HasValue(), 'CSV provider must have sample source payload.');
         Assert.AreEqual(CorpCardCsvSampleFileNameTok, CorpCardProvider."Source File Name", 'CSV provider must point to the default sample file name.');
-        Assert.IsTrue(CorpCardProvider."Source Payload Record Count" > 0, 'CSV provider must persist its sample payload record count.');
+        Assert.AreEqual(60, CorpCardProvider."Source Payload Record Count", 'CSV provider must persist all sample payload records.');
     end;
 
     local procedure Initialize()
@@ -92,4 +103,5 @@ codeunit 148354 EACorpCardSetupTests
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', Locked = true;
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
+        AirlineExpenseCategoryCodeTok: Label 'AIRLINE', Locked = true;
 }

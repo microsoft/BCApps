@@ -159,6 +159,15 @@ table 7428 "EA Corp Card Trans"
             FieldClass = FlowField;
             ToolTip = 'Specifies the corporate card provider statement linked to this transaction.';
         }
+        field(25; "Amount (LCY)"; Decimal)
+        {
+            Caption = 'Amount (LCY)';
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            DataClassification = AccountData;
+            Editable = false;
+            ToolTip = 'Specifies the transaction amount posted to the corporate card liability in the local currency.';
+        }
     }
 
     keys
@@ -211,6 +220,19 @@ table 7428 "EA Corp Card Trans"
             Error(ClosedStatementTransactionCannotChangeErr, "Entry No.", CorpCardStatement."Statement No.");
     end;
 
+    internal procedure GetAmountInCurrency(TargetCurrencyCode: Code[10]): Decimal
+    begin
+        if TargetCurrencyCode = "Currency Code" then
+            exit(Amount);
+        if (TargetCurrencyCode = '') and ("Currency Code" <> '') then begin
+            TestField("Amount (LCY)");
+            exit("Amount (LCY)");
+        end;
+
+        Error(UnsupportedSettlementCurrencyErr, "Entry No.", "Currency Code", TargetCurrencyCode);
+    end;
+
     var
         ClosedStatementTransactionCannotChangeErr: Label 'Corporate card transaction %1 cannot be changed because statement %2 is closed.', Comment = '%1 = transaction entry number, %2 = statement number';
+        UnsupportedSettlementCurrencyErr: Label 'Corporate card transaction %1 cannot be settled from currency %2 in currency %3.', Comment = '%1 = transaction entry number, %2 = transaction currency code, %3 = settlement currency code';
 }

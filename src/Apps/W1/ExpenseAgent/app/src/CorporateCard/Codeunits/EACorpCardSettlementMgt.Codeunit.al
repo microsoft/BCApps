@@ -201,11 +201,9 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
                 Error(StatementStatusNotEligibleErr, CorpCardStatement."Statement No.", CorpCardStatement.Status);
             if CorpCardStatement."Provider Code" <> CorpCardSettlement."Provider Code" then
                 Error(StatementChangedErr, CorpCardStatement."Statement No.");
-            if CorpCardStatement."Currency Code" <> CorpCardSettlement."Currency Code" then
-                Error(StatementChangedErr, CorpCardStatement."Statement No.");
             if (CorpCardStatement."Statement No." <> CorpCardSettlementLine."Statement No.") or
                (CorpCardStatement."Statement Date" <> CorpCardSettlementLine."Statement Date") or
-               (CorpCardStatement."Statement Total" <> CorpCardSettlementLine."Statement Amount")
+               (CorpCardStatement.GetTotalInCurrency(CorpCardSettlement."Currency Code") <> CorpCardSettlementLine."Statement Amount")
             then
                 Error(StatementChangedErr, CorpCardStatement."Statement No.");
             StatementTotal += CorpCardSettlementLine."Statement Amount";

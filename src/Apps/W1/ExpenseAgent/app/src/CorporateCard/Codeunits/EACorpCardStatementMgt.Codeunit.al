@@ -101,8 +101,10 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         CorpCardSettlementLine.SetRange(Inactive, false);
         if not CorpCardSettlementLine.FindFirst() then
             Error(StatementSettlementLineNotFoundErr, CorpCardStatement."Statement No.", CorpCardSettlement."Settlement Entry No.");
-        if CorpCardSettlementLine."Statement Amount" <> CorpCardStatement."Statement Total" then
-            Error(StatementSettlementAmountMismatchErr, CorpCardStatement."Statement No.", CorpCardSettlementLine."Statement Amount", CorpCardStatement."Statement Total");
+        if CorpCardSettlementLine."Statement Amount" <> CorpCardStatement.GetTotalInCurrency(CorpCardSettlement."Currency Code") then
+            Error(
+                StatementSettlementAmountMismatchErr, CorpCardStatement."Statement No.",
+                CorpCardSettlementLine."Statement Amount", CorpCardStatement.GetTotalInCurrency(CorpCardSettlement."Currency Code"));
 
         CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         CorpCardTrans.SetRange("Provider Code", CorpCardStatement."Provider Code");
@@ -110,13 +112,13 @@ codeunit 7441 "EA Corp Card Statement Mgt"
             Error(NoStatementTransactionsErr, CorpCardStatement."Statement No.");
 
         repeat
-            ValidateReconciledTransaction(CorpCardTrans, CorpCardStatement, CorpCardSettlement);
+            ValidateReconciledTransaction(CorpCardTrans, CorpCardSettlement);
             ReconciledTransactions += 1;
-            ReconciledAmount += CorpCardTrans.Amount;
+            ReconciledAmount += CorpCardTrans.GetAmountInCurrency(CorpCardSettlement."Currency Code");
         until CorpCardTrans.Next() = 0;
 
-        if ReconciledAmount <> CorpCardStatement."Statement Total" then
-            Error(ReconciledAmountMismatchErr, ReconciledAmount, CorpCardStatement."Statement Total");
+        if ReconciledAmount <> CorpCardStatement.GetTotalInCurrency(CorpCardSettlement."Currency Code") then
+            Error(ReconciledAmountMismatchErr, ReconciledAmount, CorpCardStatement.GetTotalInCurrency(CorpCardSettlement."Currency Code"));
 
         CorpCardStatement."Reconciled Transactions" := ReconciledTransactions;
         CorpCardStatement."Reconciled Amount" := ReconciledAmount;
@@ -181,12 +183,12 @@ codeunit 7441 "EA Corp Card Statement Mgt"
             exit;
 
         repeat
-            if IsTransactionReconciled(CorpCardTrans, CorpCardStatement, CorpCardSettlement) then begin
+            if IsTransactionReconciled(CorpCardTrans, CorpCardSettlement) then begin
                 ReconciledTransactions += 1;
-                ReconciledAmount += CorpCardTrans.Amount;
+                ReconciledAmount += CorpCardTrans.GetAmountInCurrency(CorpCardSettlement."Currency Code");
             end else begin
                 UnreconciledTransactions += 1;
-                UnreconciledAmount += CorpCardTrans.Amount;
+                UnreconciledAmount += CorpCardTrans.GetAmountInCurrency(CorpCardSettlement."Currency Code");
             end;
         until CorpCardTrans.Next() = 0;
     end;
@@ -207,7 +209,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
             Error(TransactionNotMatchedToExpenseErr, CorpCardTrans."Entry No.");
     end;
 
-    local procedure ValidateReconciledTransaction(CorpCardTrans: Record "EA Corp Card Trans"; CorpCardStatement: Record "EA Corp Card Statement"; CorpCardSettlement: Record "EA Corp Card Settlement")
+    local procedure ValidateReconciledTransaction(CorpCardTrans: Record "EA Corp Card Trans"; CorpCardSettlement: Record "EA Corp Card Settlement")
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
     begin
@@ -224,13 +226,15 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         BankAccountLedgerEntry.FindFirst();
         if BankAccountLedgerEntry."Bank Account No." <> CorpCardSettlement."Corp Card Bank Account No." then
             Error(TransactionBankAccountMismatchErr, CorpCardTrans."Entry No.", BankAccountLedgerEntry."Bank Account No.", CorpCardSettlement."Corp Card Bank Account No.");
-        if BankAccountLedgerEntry."Currency Code" <> CorpCardStatement."Currency Code" then
-            Error(TransactionBankEntryCurrencyMismatchErr, CorpCardTrans."Entry No.", BankAccountLedgerEntry."Currency Code", CorpCardStatement."Currency Code");
-        if BankAccountLedgerEntry.Amount <> -CorpCardTrans.Amount then
-            Error(TransactionBankEntryAmountMismatchErr, CorpCardTrans."Entry No.", BankAccountLedgerEntry.Amount, -CorpCardTrans.Amount);
+        if BankAccountLedgerEntry."Currency Code" <> CorpCardSettlement."Currency Code" then
+            Error(TransactionBankEntryCurrencyMismatchErr, CorpCardTrans."Entry No.", BankAccountLedgerEntry."Currency Code", CorpCardSettlement."Currency Code");
+        if BankAccountLedgerEntry.Amount <> -CorpCardTrans.GetAmountInCurrency(CorpCardSettlement."Currency Code") then
+            Error(
+                TransactionBankEntryAmountMismatchErr, CorpCardTrans."Entry No.",
+                BankAccountLedgerEntry.Amount, -CorpCardTrans.GetAmountInCurrency(CorpCardSettlement."Currency Code"));
     end;
 
-    local procedure IsTransactionReconciled(CorpCardTrans: Record "EA Corp Card Trans"; CorpCardStatement: Record "EA Corp Card Statement"; CorpCardSettlement: Record "EA Corp Card Settlement"): Boolean
+    local procedure IsTransactionReconciled(CorpCardTrans: Record "EA Corp Card Trans"; CorpCardSettlement: Record "EA Corp Card Settlement"): Boolean
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
     begin
@@ -248,8 +252,8 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         BankAccountLedgerEntry.FindFirst();
         exit(
             (BankAccountLedgerEntry."Bank Account No." = CorpCardSettlement."Corp Card Bank Account No.") and
-            (BankAccountLedgerEntry."Currency Code" = CorpCardStatement."Currency Code") and
-            (BankAccountLedgerEntry.Amount = -CorpCardTrans.Amount));
+            (BankAccountLedgerEntry."Currency Code" = CorpCardSettlement."Currency Code") and
+            (BankAccountLedgerEntry.Amount = -CorpCardTrans.GetAmountInCurrency(CorpCardSettlement."Currency Code")));
     end;
 
     local procedure AddAllTransactionsAsUnreconciled(CorpCardStatement: Record "EA Corp Card Statement"; var UnreconciledTransactions: Integer; var UnreconciledAmount: Decimal)

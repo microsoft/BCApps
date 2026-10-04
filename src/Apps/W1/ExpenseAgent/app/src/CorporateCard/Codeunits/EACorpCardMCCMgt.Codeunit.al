@@ -42,11 +42,11 @@ codeunit 7427 "EA Corp Card MCC Mgt"
         EnsureMCCMapping('4112', 'Rail Passenger Transport', 'GROUNDTRAN', 'Ground Transportation');
         EnsureMCCMapping('4121', 'Taxicabs and Limousines', 'GROUNDTRAN', 'Ground Transportation');
         EnsureMCCMapping('4511', 'Airlines', 'AIRLINE', 'Airline');
-        EnsureMCCMapping('4722', 'Travel Agencies', 'TRAVELAGENCY', 'Travel Agency');
-        EnsureMCCMapping('5111', 'Office Supplies', 'OFFICESUPPLIES', 'Office Supplies');
+        EnsureMCCMapping('4722', 'Travel Agencies', 'AIRLINE', 'Airline');
+        EnsureMCCMapping('5111', 'Office Supplies', 'MISC', 'Miscellaneous');
         EnsureMCCMapping('5541', 'Service Stations', 'CAR', 'Car');
         EnsureMCCMapping('5812', 'Restaurants', 'MEALS', 'Meals');
-        EnsureMCCMapping('5943', 'Stationery and Office Stores', 'OFFICESUPPLIES', 'Office Supplies');
+        EnsureMCCMapping('5943', 'Stationery and Office Stores', 'MISC', 'Miscellaneous');
         EnsureMCCMapping('7011', 'Hotels and Lodging', 'HOTELS', 'Hotels');
         EnsureMCCMapping('7523', 'Parking Lots and Garages', 'PARKING', 'Parking');
 
@@ -62,8 +62,13 @@ codeunit 7427 "EA Corp Card MCC Mgt"
     begin
         EnsureCategoryExists(CategoryCode, CategoryDescription);
 
-        if MCCMap.Get(MCC) then
+        if MCCMap.Get(MCC) then begin
+            MCCMap.Description := Description;
+            MCCMap."Expense Category" := CategoryCode;
+            MCCMap.Active := true;
+            MCCMap.Modify();
             exit;
+        end;
 
         MCCMap.Init();
         MCCMap.MCC := MCC;
