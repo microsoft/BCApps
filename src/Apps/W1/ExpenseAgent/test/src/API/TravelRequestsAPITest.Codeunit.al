@@ -29,6 +29,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryERM: Codeunit "Library - ERM";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
@@ -45,12 +46,15 @@ codeunit 148347 "Travel Requests API Test"
         BadRequestResponseErr: Label 'Response code is 400 (BadRequest).', Locked = true;
         RequestedByCannotBeChangedErr: Label 'cannot be changed', Locked = true;
         RequestedByRequestBodyLbl: Label '{"requestedBy":"%1"}', Comment = '%1 = Employee number', Locked = true;
+        RequestedForRequestBodyLbl: Label '{"requestedFor":"%1"}', Comment = '%1 = Expense User No.', Locked = true;
         ApproveTravelRequestBodyLbl: Label '{"approverExpenseUserNo":"%1"}', Comment = '%1 = Approver Expense User No.', Locked = true;
         StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
         StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
         ExpenseUserNotLinkedErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.';
         StatusNotOpenErr: Label 'must have the status', Locked = true;
+        ExpenseLocationRequiresPerDiemErr: Label 'Expense Location can only be specified when Per Diem Included is selected.', Locked = true;
+        ActualEndBeforeStartErr: Label 'Actual End Date and Time cannot be before Actual Start Date and Time.', Locked = true;
 
     [Test]
     procedure TravelersAPIMapsEmployeeNumberToExpenseUser()
@@ -330,6 +334,43 @@ codeunit 148347 "Travel Requests API Test"
     end;
 
     [Test]
+    procedure TravelRequestsAPIKeepsClientSuppliedId()
+    var
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        ClientId: Guid;
+        TargetURL: Text;
+        RecordURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] A POST with a client-generated id creates the travel request under that id, so dependent batch operations can address it.
+        Initialize();
+
+        // [GIVEN] A linked user and a payload carrying a client-generated id.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ClientId := CreateGuid();
+        Request.Add('id', LibraryGraphMgt.StripBrackets(Format(ClientId)));
+        Request.Add('requestedBy', ExpenseUser."Employee No.");
+        Request.WriteTo(RequestBody);
+        Commit();
+
+        // [WHEN] The request is created through user-scoped navigation.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelRequestsServiceNameTok);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
+
+        // [THEN] The response, storage, and a follow-up GET use the supplied id.
+        Assert.AreEqual(ClientId, GetResponseSystemId(ResponseText), 'The response id should be the client-supplied id.');
+        Assert.IsTrue(TravelRequest.GetBySystemId(ClientId), 'The travel request should be stored under the client-supplied id.');
+        RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(ClientId)) + ')');
+        Clear(ResponseText);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
+    end;
+
+    [Test]
     procedure TravelRequestsAPIPreservesAndUpdatesDates()
     var
         ExpenseUser: Record "Expense User";
@@ -345,12 +386,10 @@ codeunit 148347 "Travel Requests API Test"
         // [SCENARIO] User-scoped POST and PATCH preserve and validate the final date pair.
         Initialize();
 
-        // [GIVEN] A linked user and a future pair, with id first and end before start in the payload.
+        // [GIVEN] A linked user and a future pair, with end before start in the payload.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        RequestSystemId := CreateGuid();
         StartDate := WorkDate() + 30;
         EndDate := WorkDate() + 33;
-        Request.Add('id', LibraryGraphMgt.StripBrackets(Format(RequestSystemId)));
         Request.Add('requestedBy', ExpenseUser."Employee No.");
         Request.Add('expectedEndDate', Format(EndDate, 0, 9));
         Request.Add('expectedStartDate', Format(StartDate, 0, 9));
@@ -365,6 +404,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
 
         // [THEN] POST, GET, and storage retain the supplied dates and identity.
+        RequestSystemId := GetResponseSystemId(ResponseText);
         VerifyTravelRequestDates(ResponseText, RequestSystemId, StartDate, EndDate);
         RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(RequestSystemId)) + ')');
         Clear(ResponseText);
@@ -739,6 +779,158 @@ codeunit 148347 "Travel Requests API Test"
             'The Travel Requests API must not change the Travel Request status.');
     end;
 
+    [Test]
+    procedure TravelRequestsAPIRejectsRequestedForChange()
+    var
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Traveler: Record Traveler;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] PATCH cannot change who the travel request is for.
+        Initialize();
+
+        // [GIVEN] An open travel request for an expense user, and another expense user.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        TravelRequest.Validate("Requested For", ExpenseUser."No.");
+        TravelRequest.Modify(true);
+        Commit();
+
+        // [WHEN] PATCH attempts to change Requested For.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        Clear(ResponseText);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(
+            TargetURL, StrSubstNo(RequestedForRequestBodyLbl, OtherExpenseUser."No."), ResponseText, 400);
+
+        // [THEN] The API rejects the change and identifies Requested For.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(RequestedByCannotBeChangedErr);
+        Assert.ExpectedError(TravelRequest.FieldCaption("Requested For"));
+
+        // [THEN] Requested For and the travelers are unchanged.
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField("Requested For", ExpenseUser."No.");
+        Traveler.SetRange("Spend Request No.", TravelRequest."No.");
+        Traveler.SetRange("Expense User No.", OtherExpenseUser."No.");
+        Assert.RecordIsEmpty(Traveler);
+    end;
+
+    [Test]
+    procedure TravelRequestsAPIValidatesExpenseLocationOnSave()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseLocation: Record "Expense Location";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        RequestBody: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] The expense location requires per diem, regardless of the order of the fields in the PATCH payload.
+        Initialize();
+
+        // [GIVEN] An open travel request without per diem and an expense location.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        LibraryExpense.CreateExpenseLocation(ExpenseLocation, '', CopyStr(LibraryRandom.RandText(MaxStrLen(ExpenseLocation.City)), 1, MaxStrLen(ExpenseLocation.City)));
+        Commit();
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+
+        // [WHEN] PATCH sets only the expense location.
+        Request.Add('expenseLocation', ExpenseLocation."No.");
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The API rejects it because per diem is not included, and nothing is saved.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(ExpenseLocationRequiresPerDiemErr);
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField("Expense Location", '');
+
+        // [WHEN] PATCH sets the expense location before per diem in the same payload.
+        Clear(Request);
+        Request.Add('expenseLocation', ExpenseLocation."No.");
+        Request.Add('perDiemIncluded', true);
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
+
+        // [THEN] Both values are saved.
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField("Per Diem Included", true);
+        TravelRequest.TestField("Expense Location", ExpenseLocation."No.");
+    end;
+
+    [Test]
+    procedure TravelRequestsAPIValidatesActualDatesOnSave()
+    var
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        ActualStart: DateTime;
+        ActualEnd: DateTime;
+        RequestBody: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] The actual end cannot be before the actual start, but both can be moved together in one PATCH.
+        Initialize();
+
+        // [GIVEN] An open travel request with actual dates.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        ActualStart := CreateDateTime(WorkDate() + 30, 080000T);
+        ActualEnd := CreateDateTime(WorkDate() + 32, 180000T);
+        TravelRequest.Validate("Actual Start Date and Time", ActualStart);
+        TravelRequest.Validate("Actual End Date and Time", ActualEnd);
+        TravelRequest.Modify(true);
+        Commit();
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+
+        // [WHEN] PATCH moves the actual start past the old actual end, together with the actual end.
+        ActualStart := CreateDateTime(WorkDate() + 40, 080000T);
+        ActualEnd := CreateDateTime(WorkDate() + 42, 180000T);
+        Request.Add('actualStartDateAndTime', ActualStart);
+        Request.Add('actualEndDateAndTime', ActualEnd);
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
+
+        // [THEN] The new actual dates are saved.
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        Assert.AreEqual(ActualStart, TravelRequest."Actual Start Date and Time", 'The actual start date and time must be updated.');
+        Assert.AreEqual(ActualEnd, TravelRequest."Actual End Date and Time", 'The actual end date and time must be updated.');
+
+        // [WHEN] PATCH moves the actual end before the actual start.
+        Clear(Request);
+        Request.Add('actualEndDateAndTime', ActualStart - 3600000);
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The API rejects it and the previous actual dates remain saved.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(ActualEndBeforeStartErr);
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        Assert.AreEqual(ActualEnd, TravelRequest."Actual End Date and Time", 'The actual end date and time must not change.');
+    end;
+
 #if not CLEAN30
     [Test]
     procedure LegacySpendRequestsAPIAllowsUnchangedOwner()
@@ -832,12 +1024,10 @@ codeunit 148347 "Travel Requests API Test"
         InvalidCurrencyCode := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(InvalidCurrencyCode));
         Assert.AreNotEqual(GeneralLedgerSetup."LCY Code", InvalidCurrencyCode, 'The invalid code must not be LCY.');
         Assert.IsFalse(Currency.Get(InvalidCurrencyCode), 'The invalid code must not exist in Currency.');
-        SystemId := CreateGuid();
         if IsDetail then
             AmountField := 'expectedAmount'
         else
             AmountField := 'totalExpectedAmount';
-        Request.Add('id', LibraryGraphMgt.StripBrackets(Format(SystemId)));
         Request.Add('currencyCode', GeneralLedgerSetup."LCY Code");
         Request.Add(AmountField, 100);
         Request.WriteTo(RequestBody);
@@ -848,6 +1038,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
 
         // [THEN] It is stored as blank and returned as the configured LCY code.
+        SystemId := GetResponseSystemId(ResponseText);
         AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
         RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(SystemId)) + ')');
         if StrPos(RecordURL, '?') = 0 then
@@ -1022,6 +1213,19 @@ codeunit 148347 "Travel Requests API Test"
         TravelRequest.GetBySystemId(RequestSystemId);
         Assert.AreEqual(StartDate, TravelRequest."Expected Start Date", 'The API start date must be persisted.');
         Assert.AreEqual(EndDate, TravelRequest."Expected End Date", 'The API end date must be persisted.');
+    end;
+
+    local procedure GetResponseSystemId(ResponseText: Text): Guid
+    var
+        Response: JsonObject;
+        Id: JsonToken;
+        SystemId: Guid;
+    begin
+        // The server assigns SystemId; a client-supplied id is ignored on POST.
+        Response.ReadFrom(ResponseText);
+        Assert.IsTrue(Response.Get('id', Id), 'The API response must contain an id.');
+        Assert.IsTrue(Evaluate(SystemId, Id.AsValue().AsText()), 'The API response id must be a GUID.');
+        exit(SystemId);
     end;
 
     local procedure AssertOwnerPreservingPatch(TargetURL: Text; TravelRequest: Record "Spend Request")
