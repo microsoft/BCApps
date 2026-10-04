@@ -325,11 +325,11 @@ function Get-AppNamesForBucket {
 
 <#
 .SYNOPSIS
-    Gets the list of operational tenants in a BC container.
+    Gets IDs and database names for operational tenants in a BC container.
 .PARAMETER containerName
     Name of the BC container to query.
 .OUTPUTS
-    [string[]] Array of tenant IDs that are in Operational state.
+    [PSCustomObject[]] Operational tenant records with Id and DatabaseName properties.
 #>
 function Get-AvailableBcTenantInfo {
     param(
