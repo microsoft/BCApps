@@ -34,7 +34,7 @@ page 31137 "EET Simple Registration CZL"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the code of the business premises.';
+                    ToolTip = 'Specifies the code of the registrating unit.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -515,7 +515,6 @@ page 31137 "EET Simple Registration CZL"
     begin
         Rec."Cash Register Type" := Rec."Cash Register Type"::Default;
         Rec."Cash Register No." := '';
-
         if Rec."Cash Register Code" <> '' then begin
             EETCashRegisterCZL.Get(Rec."Business Premises Code", Rec."Cash Register Code");
             Rec."Cash Register Type" := EETCashRegisterCZL."Cash Register Type";
@@ -636,7 +635,6 @@ page 31137 "EET Simple Registration CZL"
             Error(MustEnterErr, Rec.FieldCaption("Cash Register Code"));
         if TotalSalesAmount = 0 then
             Error(MustEnterErr, Rec.FieldCaption("Total Sales Amount"));
-
         if not ConfirmManagement.GetResponseOrDefault(SendToServiceQst, true) then
             exit;
 

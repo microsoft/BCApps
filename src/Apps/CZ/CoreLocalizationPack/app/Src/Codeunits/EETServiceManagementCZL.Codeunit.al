@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Utilities;
 using System.Integration;
 using System.Security.Encryption;
@@ -22,7 +21,11 @@ codeunit 31116 "EET Service Management CZL"
         ResponseContentErrorCode: Text;
         VerificationMode: Boolean;
         EETNamespaceTxt: Label 'http://fs.gov.cz/eet/schema/v4', Locked = true;
+        SoapActionTxt: Label 'http://fs.gov.cz/eet/OdeslaniTrzby', Locked = true;
         SoapNamespaceTxt: Label 'http://schemas.xmlsoap.org/soap/envelope/', Locked = true;
+        XmlDsigNamespaceTxt: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
+        SignaturePathTxt: Label '//ds:Signature', Locked = true;
+        ExpectedCertOrganizationTxt: Label 'O=Generální finanční ředitelství', Locked = true;
         SecurityUtilityNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', Locked = true;
         SecurityExtensionNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd', Locked = true;
         SecurityEncodingTypeBase64BinaryTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary', Locked = true;
@@ -69,24 +72,21 @@ codeunit 31116 "EET Service Management CZL"
 
     local procedure CheckEETEntry(EETEntryCZL: Record "EET Entry CZL"; IsolatedCertificate: Record "Isolated Certificate"): Boolean
     var
-        CompanyInformation: Record "Company Information";
         CertificateManagement: Codeunit "Certificate Management";
         CertificateSimpleName: Text;
-        VATRegistrationErrorTxt: Label 'The certificate was issued to %1 but your VAT Registration No. is %2.', Comment = '%1=VAT Registration Number of certificate, %2=VAT Registration Number of company';
-        VATRegistrationWarningTxt: Label 'VAT Registration No. %1 on EET Entry doesn''t match to VAT Registration No. %2 in Company Information.', Comment = '%1=VAT Registration Number of EET Entry, %2=VAT Registration Number of Company Information';
-        EmptyBusinessPremisesIdTxt: Label 'Business Premises Id must not be empty.';
+        CertificateIssueErrorTxt: Label 'The certificate was issued to %1 but the Taxpayer ID of the EET entry is %2.', Comment = '%1=Taxpayer ID the certificate was issued to, %2=Taxpayer ID of EET Entry';
+        EmptyTaxpayerIdTxt: Label 'Taxpayer ID must not be empty.';
+        EmptyBusinessPremisesIdTxt: Label 'Registrating Unit Id must not be empty.';
         EmptyCashRegisterNoTxt: Label 'Cash Register No. must not be empty.';
         EmptyReceiptSerialNoTxt: Label 'Receipt Serial No. must not be empty.';
     begin
-        CompanyInformation.Get();
-        if CompanyInformation."VAT Registration No." <> EETEntryCZL."VAT Registration No." then
-            LogMessage(TempErrorMessage."Message Type"::Warning, '',
-              StrSubstNo(VATRegistrationWarningTxt, EETEntryCZL."VAT Registration No.", CompanyInformation."VAT Registration No."));
         CertificateSimpleName := CertificateManagement.GetCertSimpleName(IsolatedCertificate);
-        if CompanyInformation."VAT Registration No." <> CertificateSimpleName then
+        if EETEntryCZL."Taxpayer ID" <> CertificateSimpleName then
             LogMessage(TempErrorMessage."Message Type"::Error, '',
-              StrSubstNo(VATRegistrationErrorTxt, CertificateSimpleName, CompanyInformation."VAT Registration No."));
-        if EETEntryCZL.GetBusinessPremisesId() = '' then
+              StrSubstNo(CertificateIssueErrorTxt, CertificateSimpleName, EETEntryCZL."Taxpayer ID"));
+        if EETEntryCZL."Taxpayer ID" = '' then
+            LogMessage(TempErrorMessage."Message Type"::Error, '', EmptyTaxpayerIdTxt);
+        if EETEntryCZL.GetBusinessPremisesUnitId() = '' then
             LogMessage(TempErrorMessage."Message Type"::Error, '', EmptyBusinessPremisesIdTxt);
         if EETEntryCZL."Cash Register Code" = '' then
             LogMessage(TempErrorMessage."Message Type"::Error, '', EmptyCashRegisterNoTxt);
@@ -107,7 +107,6 @@ codeunit 31116 "EET Service Management CZL"
 
     local procedure CreateXmlDocument(EETEntryCZL: Record "EET Entry CZL"; var RequestXmlDocument: XmlDocument)
     var
-        CompanyInformation: Record "Company Information";
         XMLDOMManagement: Codeunit "XML DOM Management";
         SalesXmlNode: XmlNode;
         HeaderXmlNode: XmlNode;
@@ -121,19 +120,27 @@ codeunit 31116 "EET Service Management CZL"
         AddAttribute(HeaderXmlNode, 'uuid_zpravy', EETEntryCZL."Message UUID");
         AddAttribute(HeaderXmlNode, 'dat_odesl', FormatDateTime(CurrentDateTime()));
         AddAttribute(HeaderXmlNode, 'prvni_zaslani', FormatBoolean(EETEntryCZL.IsFirstSending()));
-        AddAttribute(HeaderXmlNode, 'overeni', FormatBoolean(VerificationMode));
+        if VerificationMode then
+            AddAttribute(HeaderXmlNode, 'overeni', FormatBoolean(VerificationMode));
 
-        CompanyInformation.Get();
-        AddAttribute(DataXmlNode, 'eic_popl', CompanyInformation."VAT Registration No.");
-        AddAttribute(DataXmlNode, 'eic_poverujiciho', EETEntryCZL."Appointing VAT Reg. No.");
-        AddAttribute(DataXmlNode, 'povereni_vice_popl', FormatBoolean(EETEntryCZL."Multiple Taxpayer Auth."));
-        AddAttribute(DataXmlNode, 'id_jednotky', EETEntryCZL.GetBusinessPremisesId());
+        AddAttribute(DataXmlNode, 'eic_popl', EETEntryCZL."Taxpayer ID");
+        AddAttribute(DataXmlNode, 'eic_poverujiciho', EETEntryCZL."Authorizing Taxpayer ID");
+        if EETEntryCZL."Multiple Taxpayer Auth." then
+            AddAttribute(DataXmlNode, 'povereni_vice_popl', FormatBoolean(EETEntryCZL."Multiple Taxpayer Auth."));
+        AddAttribute(DataXmlNode, 'id_jednotky', EETEntryCZL.GetBusinessPremisesUnitId());
         AddAttribute(DataXmlNode, 'id_pokl', EETEntryCZL."Cash Register Code");
         AddAttribute(DataXmlNode, 'porad_cis', EETEntryCZL."Receipt Serial No.");
         AddAttribute(DataXmlNode, 'dat_trzby', FormatDateTime(EETEntryCZL."Created At"));
-        AddAttribute(DataXmlNode, 'celk_trzba', FormatDecimal(EETEntryCZL."Total Sales Amount"));
+        AddMandatoryAttribute(DataXmlNode, 'celk_trzba', FormatDecimal(EETEntryCZL."Total Sales Amount"));
         AddAttribute(DataXmlNode, 'urceno_cerp_zuct', FormatDecimal(EETEntryCZL."Amt. For Subseq. Draw/Settle"));
         AddAttribute(DataXmlNode, 'cerp_zuct', FormatDecimal(EETEntryCZL."Amt. Subseq. Drawn/Settled"));
+    end;
+
+    local procedure AddMandatoryAttribute(var ParentXmlNode: XmlNode; Name: Text; NodeValue: Text): Boolean
+    var
+        XMLDOMManagement: Codeunit "XML DOM Management";
+    begin
+        exit(XMLDOMManagement.AddAttribute(ParentXmlNode, Name, NodeValue));
     end;
 
     local procedure AddAttribute(var ParentXmlNode: XmlNode; Name: Text; NodeValue: Text): Boolean
@@ -259,6 +266,7 @@ codeunit 31116 "EET Service Management CZL"
         EETServiceSetupCZL.Get();
         if (EETServiceSetupCZL."Service URL" <> GetWebServiceURLTxt()) and (EETServiceSetupCZL."Service URL" <> GetWebServicePlayGroundURLTxt()) then
             Error(IncorrectUrlErr);
+        SOAPWSRequestManagementCZL.SetAction(SoapActionTxt);
         SOAPWSRequestManagementCZL.SetTimeout(EETServiceSetupCZL."Limit Response Time");
         if SOAPWSRequestManagementCZL.SendRequestToWebService(EETServiceSetupCZL."Service URL", RequestContentXmlDocument) then begin
             XmlDocument.ReadFrom(SOAPWSRequestManagementCZL.GetResponseAsText(), ResponseXmlDocument);
@@ -362,15 +370,48 @@ codeunit 31116 "EET Service Management CZL"
         CertificateManagement: Codeunit "Certificate Management";
         CertBase64Value: Text;
         EETCertificateNotValidErr: Label 'Certificate of EET service is not valid.';
+        MissingResponseSignatureErr: Label 'The response from the EET service is not signed.';
+        ResponseSignatureNotValidErr: Label 'The signature of the response from the EET service is not valid.';
     begin
-        if VerificationMode then
-            exit;
-
         CertBase64Value := GetResponseCertificateAsBase64(ResponseXmlDocument);
-        if CertBase64Value = '' then
+        if CertBase64Value = '' then begin
+            LogMessage(TempErrorMessage."Message Type"::Error, '', MissingResponseSignatureErr);
             exit;
+        end;
         if not CertificateManagement.VerifyCertFromBase64(CertBase64Value) then
             LogMessage(TempErrorMessage."Message Type"::Error, '', EETCertificateNotValidErr);
+        if not VerifyResponseSignature(ResponseXmlDocument, CertBase64Value) then
+            LogMessage(TempErrorMessage."Message Type"::Error, '', ResponseSignatureNotValidErr);
+        CheckResponseCertificateOrganization(CertBase64Value);
+    end;
+
+    local procedure VerifyResponseSignature(ResponseXmlDocument: XmlDocument; CertBase64Value: Text): Boolean
+    var
+        SignedXml: Codeunit SignedXml;
+        XMLDOMManagement: Codeunit "XML DOM Management";
+        SignatureXmlNode: XmlNode;
+        EmptyPassword: SecretText;
+    begin
+        if not XMLDOMManagement.FindNodeWithNamespace(
+             ResponseXmlDocument.AsXmlNode(), SignaturePathTxt, 'ds', XmlDsigNamespaceTxt, SignatureXmlNode)
+        then
+            exit(false);
+
+        SignedXml.InitializeSignedXml(ResponseXmlDocument);
+        SignedXml.LoadXml(SignatureXmlNode.AsXmlElement());
+        exit(SignedXml.CheckSignature(CertBase64Value, EmptyPassword, true));
+    end;
+
+    local procedure CheckResponseCertificateOrganization(CertBase64Value: Text)
+    var
+        X509Certificate2: Codeunit X509Certificate2;
+        EmptyPassword: SecretText;
+        CertificateSubject: Text;
+        UnexpectedOrganizationErr: Label 'The response from the EET service was signed by an unexpected organization. The subject of the signing certificate is %1.', Comment = '%1 = subject of the signing certificate';
+    begin
+        X509Certificate2.GetCertificateSubject(CertBase64Value, EmptyPassword, CertificateSubject);
+        if StrPos(CertificateSubject, ExpectedCertOrganizationTxt) = 0 then
+            LogMessage(TempErrorMessage."Message Type"::Error, '', StrSubstNo(UnexpectedOrganizationErr, CertificateSubject));
     end;
 
     local procedure GetResponseCertificateAsBase64(ResponseXmlDocument: XmlDocument): Text
@@ -449,7 +490,7 @@ codeunit 31116 "EET Service Management CZL"
 
     procedure GetWebServiceURLTxt(): Text[250]
     var
-        WebServiceURLTxt: Label 'https://prod.eet.cz/eet/services/EETServiceSOAP/v4', Locked = true;
+        WebServiceURLTxt: Label 'https://trzbyeet.gov.cz/eet/services/EETServiceSOAP/v4', Locked = true;
     begin
         exit(WebServiceURLTxt);
     end;

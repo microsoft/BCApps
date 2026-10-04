@@ -32,44 +32,39 @@ table 31126 "EET Business Premises CZL"
             Caption = 'Identification';
             Numeric = true;
             DataClassification = OrganizationIdentifiableInformation;
-            ToolTip = 'Specifies the identification number of the registrating unit.';
+            ToolTip = 'Specifies the identification number of the registrating unit that was used in the EET system version 1.0. The field is replaced by the Unit ID field and it is no longer sent to the EET service.';
+        }
+        field(16; "Unit ID"; Code[20])
+        {
+            Caption = 'Unit ID';
+            Numeric = true;
+            DataClassification = OrganizationIdentifiableInformation;
+            ToolTip = 'Specifies the identification number of the registrating unit that is assigned by the tax authority and sent in the data message. The number must be in the range from 1 to 999999999.';
         }
         field(17; "Certificate Code"; Code[10])
         {
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
             DataClassification = OrganizationIdentifiableInformation;
-            ToolTip = 'Specifies the certificate needed to register sales.';
+            ToolTip = 'Specifies the certificate used to sign the data messages of this registrating unit. Leave it blank to use the certificate from the EET service setup. The certificate must be issued to the taxpayer specified on this registrating unit.';
         }
-        field(30; Representation; Enum "EET Representation CZL")
+        field(30; "Taxpayer ID"; Code[20])
         {
-            Caption = 'Representation';
+            Caption = 'Taxpayer ID';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies whether the registrating unit reports sales directly or indirectly.';
+            ToolTip = 'Specifies the registered identification number of the taxpayer who owns this registrating unit. Leave it blank if the registrating unit is your own.';
         }
-        field(35; Authorization; Boolean)
+        field(35; "Authorizing Taxpayer ID"; Code[20])
         {
-            Caption = 'Authorization';
+            Caption = 'Authorizing Taxpayer ID';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies whether the taxpayer is authorized to report sales on behalf of another taxpayer.';
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorizing you to report sales. Leave it blank to report your own sales. The value is only copied to new cash registers of this registrating unit, it is not applied to existing ones.';
         }
         field(36; "Multiple Taxpayer Auth."; Boolean)
         {
             Caption = 'Multiple Taxpayer Authorization';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers.';
-        }
-        field(40; "Authorized Taxpayer ID"; Code[20])
-        {
-            Caption = 'Authorized Taxpayer';
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the registered identification number of the taxpayer authorized to report sales.';
-        }
-        field(41; "Authorizing Taxpayer ID"; Code[20])
-        {
-            Caption = 'Authorizing Taxpayer ID';
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the registered identification number of the taxpayer authorizing another taxpayer to report sales.';
+            ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers. The value is only copied to new cash registers of this registrating unit, it is not applied to existing ones.';
         }
     }
 
@@ -80,6 +75,16 @@ table 31126 "EET Business Premises CZL"
             Clustered = true;
         }
     }
+
+    trigger OnInsert()
+    var
+        EETServiceSetupCZL: Record "EET Service Setup CZL";
+    begin
+        if EETServiceSetupCZL.Get() then begin
+            "Authorizing Taxpayer ID" := EETServiceSetupCZL."Authorizing Taxpayer ID";
+            "Multiple Taxpayer Auth." := EETServiceSetupCZL."Multiple Taxpayer Auth.";
+        end;
+    end;
 
     trigger OnDelete()
     var

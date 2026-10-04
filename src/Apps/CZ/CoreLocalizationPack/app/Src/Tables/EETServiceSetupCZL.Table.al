@@ -26,7 +26,7 @@ table 31125 "EET Service Setup CZL"
             Caption = 'Service URL';
             ExtendedDatatype = URL;
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the source address of the service.';
+            ToolTip = 'Specifies the address of the EET service that the data messages with the recorded sales are sent to.';
 
             trigger OnValidate()
             var
@@ -53,7 +53,6 @@ table 31125 "EET Service Setup CZL"
             Caption = 'Sales Regime';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the settings for the simplified scheme sales.';
-            // TODO: implement upgrade
         }
         field(11; "Limit Response Time"; Integer)
         {
@@ -61,13 +60,13 @@ table 31125 "EET Service Setup CZL"
             DataClassification = CustomerContent;
             InitValue = 2000;
             MinValue = 2000;
-            ToolTip = 'Specifies the response time limit, after which goes into offline mode.';
+            ToolTip = 'Specifies the time limit in milliseconds for a response from the EET service. If the limit is exceeded, the sale is not registered immediately and the data message is sent again later.';
         }
         field(12; "Appointing VAT Reg. No."; Text[20])
         {
             Caption = 'Appointing VAT Reg. No.';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the responsible person who collects revenues.';
+            ToolTip = 'Specifies the VAT registration number of the taxpayer who appointed you to report sales. The field was used in the EET system version 1.0. The field is replaced by the Authorizing Taxpayer ID field and it is no longer sent to the EET service.';
         }
         field(15; Enabled; Boolean)
         {
@@ -97,38 +96,25 @@ table 31125 "EET Service Setup CZL"
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the certificate needed to register sales.';
+            ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
         }
-        field(30; Representation; Enum "EET Representation CZL")
+        field(30; "Taxpayer ID"; Code[20])
         {
-            Caption = 'Representation';
+            Caption = 'Taxpayer ID';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies whether the registrating unit reports sales directly or indirectly.';
+            ToolTip = 'Specifies the registered identification number of your own company. It is used by every registrating unit that does not specify its own taxpayer.';
         }
-        field(35; Authorization; Boolean)
+        field(35; "Authorizing Taxpayer ID"; Code[20])
         {
-            Caption = 'Authorization';
+            Caption = 'Authorizing Taxpayer ID';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies whether the taxpayer is authorized to report sales on behalf of another taxpayer.';
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorizing you to report sales. Leave it blank to report your own sales. The value is only copied to new registrating units, it is not applied to existing ones.';
         }
         field(36; "Multiple Taxpayer Auth."; Boolean)
         {
             Caption = 'Multiple Taxpayer Authorization';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers.';
-        }
-        field(40; "Authorized Taxpayer ID"; Code[20])
-        {
-            Caption = 'Authorized Taxpayer ID';
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the registered identification number of the taxpayer authorized to report sales.';
-        }
-        field(41; "Authorizing Taxpayer ID"; Code[20])
-        {
-            Caption = 'Authorizing Taxpayer ID';
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the registered identification number of the taxpayer authorizing another taxpayer to report sales.';
-            // TODO: implement upgrade and fill value from Appointing VAT Reg. No. field
+            ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers. The value is only copied to new registrating units, it is not applied to existing ones.';
         }
     }
 

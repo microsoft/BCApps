@@ -25,8 +25,22 @@ page 31143 "EET Business Premises CZL"
                 }
                 field(Identification; Rec.Identification)
                 {
+                    Visible = false;
+                    Enabled = false;
+                }
+                field("Unit ID"; Rec."Unit ID")
+                {
+                }
+                field("Taxpayer ID"; Rec."Taxpayer ID")
+                {
                 }
                 field("Certificate Code"; Rec."Certificate Code")
+                {
+                }
+                field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")
+                {
+                }
+                field("Multiple Taxpayer Auth."; Rec."Multiple Taxpayer Auth.")
                 {
                 }
             }

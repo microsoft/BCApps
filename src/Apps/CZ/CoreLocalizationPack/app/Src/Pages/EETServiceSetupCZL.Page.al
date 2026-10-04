@@ -31,27 +31,39 @@ page 31142 "EET Service Setup CZL"
                 {
                     Editable = EditableByNotEnabled;
                 }
-                field("Sales Regime"; Rec."Sales Regime")
-                {
-                    Visible = false;
-                    Enabled = false;
-                }
                 field("Limit Response Time"; Rec."Limit Response Time")
                 {
                     Editable = EditableByNotEnabled;
                     Importance = Additional;
+                }
+                field("Sales Regime"; Rec."Sales Regime")
+                {
+                    Visible = false;
+                    Enabled = false;
                 }
                 field("Appointing VAT Reg. No."; Rec."Appointing VAT Reg. No.")
                 {
                     Visible = false;
                     Enabled = false;
                 }
-                field(Representation; Rec.Representation)
+            }
+            group(Taxpayer)
+            {
+                Caption = 'Taxpayer';
+                field("Taxpayer ID"; Rec."Taxpayer ID")
                 {
                     Editable = EditableByNotEnabled;
                     Importance = Additional;
                 }
-                field(Authorization; Rec.Authorization)
+                field("Certificate Code"; Rec."Certificate Code")
+                {
+                    Editable = EditableByNotEnabled;
+                }
+            }
+            group(Authorization)
+            {
+                Caption = 'Authorization';
+                field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")
                 {
                     Editable = EditableByNotEnabled;
                     Importance = Additional;
@@ -60,20 +72,6 @@ page 31142 "EET Service Setup CZL"
                 {
                     Editable = EditableByNotEnabled;
                     Importance = Additional;
-                }
-                field("Authorized Taxpayer ID"; Rec."Authorized Taxpayer ID")
-                {
-                    Editable = EditableByNotEnabled;
-                    Importance = Additional;
-                }
-                field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")
-                {
-                    Editable = EditableByNotEnabled;
-                    Importance = Additional;
-                }
-                field("Certificate Code"; Rec."Certificate Code")
-                {
-                    Editable = EditableByNotEnabled;
                 }
             }
             group(Status)
@@ -113,7 +111,7 @@ page 31142 "EET Service Setup CZL"
                 Caption = 'EET Registrating Units';
                 Image = ElectronicPayment;
                 RunObject = page "EET Business Premises CZL";
-                ToolTip = 'Displays a list of your premises.';
+                ToolTip = 'Displays a list of your registrating units.';
             }
             action("Certificate Codes")
             {

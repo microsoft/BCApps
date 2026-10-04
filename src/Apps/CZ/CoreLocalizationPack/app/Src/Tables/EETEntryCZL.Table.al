@@ -38,7 +38,7 @@ table 31128 "EET Entry CZL"
         }
         field(20; "Business Premises Code"; Code[10])
         {
-            Caption = 'Business Premises Code';
+            Caption = 'Registrating Unit Code';
             NotBlank = true;
             TableRelation = "EET Business Premises CZL";
             DataClassification = OrganizationIdentifiableInformation;
@@ -134,6 +134,18 @@ table 31128 "EET Entry CZL"
             Caption = 'Appointing VAT Reg. No.';
             DataClassification = CustomerContent;
         }
+        field(92; "Taxpayer ID"; Code[20])
+        {
+            Caption = 'Taxpayer ID';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the registered identification number of the taxpayer whose sales are reported.';
+        }
+        field(93; "Authorizing Taxpayer ID"; Code[20])
+        {
+            Caption = 'Authorizing Taxpayer ID';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the registered identification number of the taxpayer who authorized you to report this sale. It is blank when you report your own sale.';
+        }
         field(95; "Sales Regime"; Enum "EET Sales Regime CZL")
         {
             Caption = 'Sales Regime';
@@ -143,6 +155,7 @@ table 31128 "EET Entry CZL"
         {
             Caption = 'Multiple Taxpayer Authorization';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the sale is reported on behalf of multiple taxpayers.';
         }
         field(150; "Total Sales Amount"; Decimal)
         {
@@ -289,8 +302,8 @@ table 31128 "EET Entry CZL"
 
     procedure InitRecord()
     var
-        CompanyInformation: Record "Company Information";
-        EETServiceSetupCZL: Record "EET Service Setup CZL";
+        // CompanyInformation: Record "Company Information";
+        // EETServiceSetupCZL: Record "EET Service Setup CZL";
         NoSeries: Codeunit "No. Series";
         IsHandled: Boolean;
     begin
@@ -303,19 +316,27 @@ table 31128 "EET Entry CZL"
         "Entry No." := GetLastEntryNo() + 1;
         "Created By" := CopyStr(UserId(), 1, MaxStrLen("Created By"));
         "Created At" := CurrentDateTime();
+        "Sales Regime" := "Sales Regime"::Regular;
         if "Receipt Serial No." = '' then begin
             TestReceiptSerialNoSeries();
             "Receipt Serial No." := NoSeries.GetNextNo(GetReceiptSerialNoSeriesCode(), Today());
         end;
-        if "VAT Registration No." = '' then begin
-            CompanyInformation.Get();
-            "VAT Registration No." := CompanyInformation."VAT Registration No.";
-        end;
+        // if "VAT Registration No." = '' then begin
+        //     CompanyInformation.Get();
+        //     "VAT Registration No." := CompanyInformation."VAT Registration No.";
+        // end;
 
-        EETServiceSetupCZL.Get();
-        if "Appointing VAT Reg. No." = '' then
-            "Appointing VAT Reg. No." := EETServiceSetupCZL."Appointing VAT Reg. No.";
-        "Sales Regime" := EETServiceSetupCZL."Sales Regime";
+        // EETServiceSetupCZL.Get();
+        // if "Appointing VAT Reg. No." = '' then
+        //     "Appointing VAT Reg. No." := EETServiceSetupCZL."Appointing VAT Reg. No.";
+        // "Sales Regime" := EETServiceSetupCZL."Sales Regime";
+        if "Taxpayer ID" = '' then
+            "Taxpayer ID" := GetTaxpayerID();
+        GetEETCashRegister();
+        if "Authorizing Taxpayer ID" = '' then
+            "Authorizing Taxpayer ID" := EETCashRegisterCZL."Authorizing Taxpayer ID";
+        if not "Multiple Taxpayer Auth." then
+            "Multiple Taxpayer Auth." := EETCashRegisterCZL."Multiple Taxpayer Auth.";
 
         OnAfterInitRecord(Rec);
     end;
@@ -407,6 +428,34 @@ table 31128 "EET Entry CZL"
     begin
         EETBusinessPremisesCZL.Get("Business Premises Code");
         exit(EETBusinessPremisesCZL.Identification);
+    end;
+
+    procedure GetBusinessPremisesUnitId(): Code[20]
+    var
+        EETBusinessPremisesCZL: Record "EET Business Premises CZL";
+    begin
+        EETBusinessPremisesCZL.Get("Business Premises Code");
+        exit(EETBusinessPremisesCZL."Unit ID");
+    end;
+
+    local procedure GetTaxpayerID() TaxpayerID: Code[20]
+    var
+        CompanyInformation: Record "Company Information";
+        EETBusinessPremisesCZL: Record "EET Business Premises CZL";
+        EETServiceSetupCZL: Record "EET Service Setup CZL";
+    begin
+        if EETBusinessPremisesCZL.Get("Business Premises Code") then
+            TaxpayerID := EETBusinessPremisesCZL."Taxpayer ID";
+        if TaxpayerID = '' then begin
+            EETServiceSetupCZL.Get();
+            TaxpayerID := EETServiceSetupCZL."Taxpayer ID";
+        end;
+        if TaxpayerID = '' then begin
+            CompanyInformation.Get();
+            TaxpayerID := CopyStr(CompanyInformation."VAT Registration No.", 1, MaxStrLen(TaxpayerID));
+        end;
+
+        OnAfterGetTaxpayerID(Rec, TaxpayerID);
     end;
 
     procedure SaveSignatureCode(SignatureCode: Text)
@@ -659,6 +708,9 @@ table 31128 "EET Entry CZL"
         "Applied Document No." := EETEntryCZL."Applied Document No.";
         "VAT Registration No." := EETEntryCZL."VAT Registration No.";
         "Appointing VAT Reg. No." := EETEntryCZL."Appointing VAT Reg. No.";
+        "Taxpayer ID" := EETEntryCZL."Taxpayer ID";
+        "Authorizing Taxpayer ID" := EETEntryCZL."Authorizing Taxpayer ID";
+        "Multiple Taxpayer Auth." := EETEntryCZL."Multiple Taxpayer Auth.";
         "Sales Regime" := EETEntryCZL."Sales Regime";
         "Total Sales Amount" := EETEntryCZL."Total Sales Amount";
         "Amount Exempted From VAT" := EETEntryCZL."Amount Exempted From VAT";
@@ -709,17 +761,17 @@ table 31128 "EET Entry CZL"
     begin
         case Status of
             Status::Created:
-                StatusStyleExpr := 'Subordinate';
+                StatusStyleExpr := Format(PageStyle::Subordinate);
             Status::Failure:
-                StatusStyleExpr := 'Unfavorable';
+                StatusStyleExpr := Format(PageStyle::Unfavorable);
             Status::Success:
-                StatusStyleExpr := 'Favorable';
+                StatusStyleExpr := Format(PageStyle::Favorable);
             Status::Verified:
-                StatusStyleExpr := 'StandardAccent';
+                StatusStyleExpr := Format(PageStyle::StandardAccent);
             Status::"Verified with Warnings":
-                StatusStyleExpr := 'AttentionAccent';
+                StatusStyleExpr := Format(PageStyle::AttentionAccent);
             Status::"Success with Warnings":
-                StatusStyleExpr := 'Ambiguous';
+                StatusStyleExpr := Format(PageStyle::Ambiguous);
         end;
 
         OnAfterGetStatusStyleExpr(Rec, StatusStyleExpr);
@@ -803,6 +855,11 @@ table 31128 "EET Entry CZL"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCertificateCode(EETEntryCZL: Record "EET Entry CZL"; var CertificateCode: Code[10])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetTaxpayerID(EETEntryCZL: Record "EET Entry CZL"; var TaxpayerID: Code[20])
     begin
     end;
 

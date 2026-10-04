@@ -26,7 +26,7 @@ page 31147 "EET Entry Preview Card CZL"
                 field("Business Premises Code"; Rec."Business Premises Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the business premises.';
+                    ToolTip = 'Specifies the code of the registrating unit.';
                 }
                 field("Cash Register Code"; Rec."Cash Register Code")
                 {

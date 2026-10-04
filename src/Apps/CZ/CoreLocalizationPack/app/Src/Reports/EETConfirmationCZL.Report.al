@@ -71,7 +71,7 @@ report 31121 "EET Confirmation CZL"
             column(CashRegisterCode_EETEntry; "Cash Register Code")
             {
             }
-            column(BusinessPremissesId_EETEntry; GetBusinessPremisesId())
+            column(BusinessPremissesId_EETEntry; GetBusinessPremisesUnitId())
             {
             }
             column(SalesRegimeText_EETEntry; GetSalesRegimeText())
@@ -86,7 +86,7 @@ report 31121 "EET Confirmation CZL"
     labels
     {
         TotalLbl = 'Total:';
-        BusPremisesLbl = 'Business Premises:';
+        BusPremisesLbl = 'Registrating Units:';
         CashRegisterLbl = 'Cash Register:';
         ReceiptSerialNoLbl = 'Receipt Serial No.:';
         BKPLbl = 'BKP:';
