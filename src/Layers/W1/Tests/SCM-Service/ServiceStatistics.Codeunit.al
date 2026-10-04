@@ -434,7 +434,6 @@ codeunit 136130 "Service Statistics"
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::Resource, LibraryResource.CreateResourceNo());
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup());
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::Cost, ServiceCost.Code);
-
         ServiceCreditMemo."Calculate Invoice Discount".Invoke();
         ServiceCreditMemo.ServiceStatistics.Invoke();
 
@@ -2678,6 +2677,7 @@ codeunit 136130 "Service Statistics"
     begin
         Reply := true;
     end;
+
     [PageHandler]
     [Scope('OnPrem')]
     procedure ChangeDiscountOrderPostHandlerNM(var ServiceOrderStatistics: TestPage "Service Order Statistics")
