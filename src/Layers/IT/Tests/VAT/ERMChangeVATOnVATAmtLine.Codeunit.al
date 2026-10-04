@@ -386,7 +386,7 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
         ItemServiceLine: Record "Service Line";
-        VATAmountLine: Record "VAT Amount Line";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
         RoundingVATIdentifier: Code[20];
         VATDifference: Decimal;
         QtyType: Option General,Invoicing,Shipping,Consuming;
@@ -404,21 +404,21 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
         CreateServiceInvoiceWithInvoiceRoundingLine(ServiceHeader, ItemServiceLine, RoundingVATIdentifier);
 
         // [GIVEN] The VAT Amount of the Item line was raised by the VAT Difference in Service Statistics.
-        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, VATAmountLine, false);
-        ChangeVATAmountOnServiceDocument(ServiceHeader, ServiceLine, VATAmountLine, ItemServiceLine."VAT Identifier", VATDifference);
+        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, TempVATAmountLine, false);
+        ChangeVATAmountOnServiceDocument(ServiceHeader, ServiceLine, TempVATAmountLine, ItemServiceLine."VAT Identifier", VATDifference);
 
         // [WHEN] The VAT Amount Lines are recalculated, as on refreshing Service Statistics.
-        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, VATAmountLine, false);
+        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, TempVATAmountLine, false);
 
         // [THEN] The VAT Amount Lines carry the VAT of the Service Lines, with the VAT Difference counted once.
-        VATAmountLine.Reset();
+        TempVATAmountLine.Reset();
         Assert.AreEqual(
-          CalcServiceLinesVATAmount(ServiceHeader), VATAmountLine.GetTotalVATAmount(), 'Total VAT Amount must equal the VAT of the Service Lines.');
+          CalcServiceLinesVATAmount(ServiceHeader), TempVATAmountLine.GetTotalVATAmount(), 'Total VAT Amount must equal the VAT of the Service Lines.');
 
         // [THEN] The 0% invoice rounding VAT Amount Line did not absorb the VAT Difference as a rounding residual.
-        VATAmountLine.SetRange("VAT Identifier", RoundingVATIdentifier);
-        VATAmountLine.FindFirst();
-        Assert.AreEqual(0, VATAmountLine."VAT Amount", 'The invoice rounding VAT Amount Line must not receive the VAT Difference.');
+        TempVATAmountLine.SetRange("VAT Identifier", RoundingVATIdentifier);
+        TempVATAmountLine.FindFirst();
+        Assert.AreEqual(0, TempVATAmountLine."VAT Amount", 'The invoice rounding VAT Amount Line must not receive the VAT Difference.');
     end;
 
     [Test]
@@ -428,7 +428,7 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
         ItemServiceLine: Record "Service Line";
-        VATAmountLine: Record "VAT Amount Line";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
         ERMChangeVATOnVATAmtLine: Codeunit "ERM Change VAT On VAT Amt Line";
         RoundingVATIdentifier: Code[20];
         Residual: Decimal;
@@ -452,16 +452,16 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
         BindSubscription(ERMChangeVATOnVATAmtLine);
 
         // [WHEN] CalcVATAmountLines is called.
-        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, VATAmountLine, false);
+        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, TempVATAmountLine, false);
         UnbindSubscription(ERMChangeVATOnVATAmtLine);
 
         // [THEN] Both VAT Amount Lines are visible on the record handed back to the caller.
-        Assert.AreEqual(2, VATAmountLine.Count(), 'All VAT Amount Lines must be visible after CalcVATAmountLines.');
+        Assert.AreEqual(2, TempVATAmountLine.Count(), 'All VAT Amount Lines must be visible after CalcVATAmountLines.');
 
         // [THEN] The residual was settled on a VAT Amount Line.
-        VATAmountLine.Reset();
+        TempVATAmountLine.Reset();
         Assert.AreEqual(
-          CalcServiceLinesVATAmount(ServiceHeader) + Residual, VATAmountLine.GetTotalVATAmount(), 'The rounding residual must be settled on a VAT Amount Line.');
+          CalcServiceLinesVATAmount(ServiceHeader) + Residual, TempVATAmountLine.GetTotalVATAmount(), 'The rounding residual must be settled on a VAT Amount Line.');
     end;
 
     [Test]
