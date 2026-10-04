@@ -644,16 +644,15 @@ codeunit 12184 "Fattura Doc. Helper"
         BaseString := CopyStr(DelChr(ProgressiveNo, '=', ',?;.:/-_ '), 1, 10);
         ZeroNo := PadStr('', 10 - StrLen(BaseString), '0');
         exit(CompanyInformation."Country/Region Code" +
-          GetCompanyTransmitterId() + '_' + ZeroNo + BaseString);
+          GetCompanyTransmitterId(CompanyInformation) + '_' + ZeroNo + BaseString);
     end;
 
-    internal procedure GetCompanyTransmitterId(): Text
+    internal procedure GetCompanyTransmitterId(CompanyInfo: Record "Company Information"): Text[20]
     begin
-        CompanyInformation.Get();
-        if CompanyInformation."Fiscal Code" <> '' then
-            exit(CompanyInformation."Fiscal Code");
+        if CompanyInfo."Fiscal Code" <> '' then
+            exit(CompanyInfo."Fiscal Code");
 
-        exit(CompanyInformation."VAT Registration No.");
+        exit(CompanyInfo."VAT Registration No.");
     end;
 
     local procedure GetTransmissionType(Customer: Record Customer): Text[5]
