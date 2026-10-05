@@ -161,7 +161,7 @@ codeunit 139189 "CRM Job Queue Entry Inactivity"
         JobQueueEntry.TestField(Status, JobQueueEntry.Status::Ready);
         JobQueueEntry.TestField("System Task ID", SystemTaskId);
         Assert.IsTrue(JobQueueEntry."Earliest Start Date/Time" >= CurrDT + 29000, 'Start time should be shifted to about 30 seconds from now');
-        Assert.IsTrue(JobQueueEntry."Earliest Start Date/Time" < CurrDT + 3600000, 'Start time should be moved closer');
+        Assert.IsTrue(JobQueueEntry."Earliest Start Date/Time" <= CurrentDateTime() + 31000, 'Start time should be shifted to about 30 seconds from now');
     end;
 
     [Test]
