@@ -9,7 +9,7 @@
   "usePsSessionForBc28": true,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/30.0.55525.0//latest",
+  "artifact": "bcinsider/Sandbox/30.0.55683.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "30.0",
@@ -35,6 +35,14 @@
           "CLEAN29",
           "CLEAN30"
         ]
+      }
+    },
+    {
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "enableTaskScheduler": true
       }
     },
     {
