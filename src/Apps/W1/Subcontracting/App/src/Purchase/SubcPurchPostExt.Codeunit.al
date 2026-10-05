@@ -39,6 +39,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
     begin
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
         SetQuantityBaseOnSubcontractingServiceLine(PurchOrderLine, PurchRcptLine);
         if IsFullTrackedSubcontractingReceiptSupported(PurchRcptLine) then
             exit;
@@ -69,8 +71,6 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader);
-
         ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
         ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
         ValueEntry.SetFilter("Item Charge No.", '<>%1', '');
@@ -95,12 +95,15 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     local procedure CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader: Record "Purch. Inv. Header")
     var
-        PurchInvLine: Record "Purch. Inv. Line";
+        ValueEntry: Record "Value Entry";
     begin
-        PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
-        PurchInvLine.SetFilter("Receipt No.", '<>%1', '');
-        PurchInvLine.SetFilter("Prod. Order No.", '<>%1', '');
-        if not PurchInvLine.IsEmpty() then
+        if (PurchInvHeader."Pre-Assigned No." = '') or (PurchInvHeader."Order No." = '') then
+            exit;
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
+        ValueEntry.SetRange("Item Charge No.", '');
+        ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
+        if not ValueEntry.IsEmpty() then
             Error(CreateSeparateInvoiceReversalNotSupportedErrorInfo(PurchInvHeader));
     end;
 
@@ -137,6 +140,10 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then begin
+            IsHandled := true;
+            exit;
+        end;
 
         SetQuantityBaseOnSubcontractingServiceLine(FromPurchLine, PurchRcptLine);
         if not IsFullTrackedOutputSetSupported(PurchRcptLine, ItemLedgerEntry) then
@@ -261,6 +268,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
     begin
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
         if TrackingSpecification."Item Ledger Entry No." = 0 then
             Error(GetTrackedSubcontractingRcptNotSupportedErr);
 
@@ -282,7 +291,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         FillItemJnlLineForSubcontractingItemCharge(ItemJournalLine, TempItemChargeAssignmentPurch);
         if not PurchRcptLine.Get(PurchaseLine."Receipt No.", PurchaseLine."Receipt Line No.") then
             exit;
-        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") or not PurchRcptLineIsLastOperation(PurchRcptLine) then
             exit;
 
         CopySubcontractingProdOrderFieldsToItemJnlLine(ItemJournalLine, PurchRcptLine);
