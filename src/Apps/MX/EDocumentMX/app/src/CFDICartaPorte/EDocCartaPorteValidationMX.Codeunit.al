@@ -99,6 +99,11 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
             TempErrorMessage.LogIfEmpty(SalesHeader, SalesHeader.FieldNo("Exchange Rate USD"), TempErrorMessage."Message Type"::Error);
         end;
 
+        if SalesHeader."SAT ISTMO" then begin
+            TempErrorMessage.LogIfEmpty(SalesHeader, SalesHeader.FieldNo("SAT ISTMO Polo Origen"), TempErrorMessage."Message Type"::Error);
+            TempErrorMessage.LogIfEmpty(SalesHeader, SalesHeader.FieldNo("SAT ISTMO Polo Destino"), TempErrorMessage."Message Type"::Error);
+        end;
+
         TempErrorMessage.LogIfEmpty(SalesHeader, SalesHeader.FieldNo("Transport Operators"), TempErrorMessage."Message Type"::Error);
         CheckAutotransport(SalesHeader."Vehicle Code", false);
         CheckAutotransport(SalesHeader."Trailer 1", true);
@@ -128,6 +133,11 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
             TempErrorMessage.LogIfEmpty(SalesShipmentHeader, SalesShipmentHeader.FieldNo("SAT Customs Regime"), TempErrorMessage."Message Type"::Error);
             TempErrorMessage.LogIfEmpty(SalesShipmentHeader, SalesShipmentHeader.FieldNo("SAT Transfer Reason"), TempErrorMessage."Message Type"::Error);
             TempErrorMessage.LogIfEmpty(SalesShipmentHeader, SalesShipmentHeader.FieldNo("Exchange Rate USD"), TempErrorMessage."Message Type"::Error);
+        end;
+
+        if SalesShipmentHeader."SAT ISTMO" then begin
+            TempErrorMessage.LogIfEmpty(SalesShipmentHeader, SalesShipmentHeader.FieldNo("SAT ISTMO Polo Origen"), TempErrorMessage."Message Type"::Error);
+            TempErrorMessage.LogIfEmpty(SalesShipmentHeader, SalesShipmentHeader.FieldNo("SAT ISTMO Polo Destino"), TempErrorMessage."Message Type"::Error);
         end;
 
         TempErrorMessage.LogIfEmpty(SalesShipmentHeader, SalesShipmentHeader.FieldNo("Transport Operators"), TempErrorMessage."Message Type"::Error);
@@ -178,6 +188,11 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
             TempErrorMessage.LogIfEmpty(TransferHeader, TransferHeader.FieldNo("Exchange Rate USD"), TempErrorMessage."Message Type"::Error);
         end;
 
+        if TransferHeader."SAT ISTMO" then begin
+            TempErrorMessage.LogIfEmpty(TransferHeader, TransferHeader.FieldNo("SAT ISTMO Polo Origen"), TempErrorMessage."Message Type"::Error);
+            TempErrorMessage.LogIfEmpty(TransferHeader, TransferHeader.FieldNo("SAT ISTMO Polo Destino"), TempErrorMessage."Message Type"::Error);
+        end;
+
         TempErrorMessage.LogIfEmpty(TransferHeader, TransferHeader.FieldNo("Transport Operators"), TempErrorMessage."Message Type"::Error);
         CheckAutotransport(TransferHeader."Vehicle Code", false);
         CheckAutotransport(TransferHeader."Trailer 1", true);
@@ -206,6 +221,11 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
             TempErrorMessage.LogIfEmpty(TransferShipmentHeader, TransferShipmentHeader.FieldNo("SAT Customs Regime"), TempErrorMessage."Message Type"::Error);
             TempErrorMessage.LogIfEmpty(TransferShipmentHeader, TransferShipmentHeader.FieldNo("SAT Transfer Reason"), TempErrorMessage."Message Type"::Error);
             TempErrorMessage.LogIfEmpty(TransferShipmentHeader, TransferShipmentHeader.FieldNo("Exchange Rate USD"), TempErrorMessage."Message Type"::Error);
+        end;
+
+        if TransferShipmentHeader."SAT ISTMO" then begin
+            TempErrorMessage.LogIfEmpty(TransferShipmentHeader, TransferShipmentHeader.FieldNo("SAT ISTMO Polo Origen"), TempErrorMessage."Message Type"::Error);
+            TempErrorMessage.LogIfEmpty(TransferShipmentHeader, TransferShipmentHeader.FieldNo("SAT ISTMO Polo Destino"), TempErrorMessage."Message Type"::Error);
         end;
 
         TempErrorMessage.LogIfEmpty(TransferShipmentHeader, TransferShipmentHeader.FieldNo("Transport Operators"), TempErrorMessage."Message Type"::Error);

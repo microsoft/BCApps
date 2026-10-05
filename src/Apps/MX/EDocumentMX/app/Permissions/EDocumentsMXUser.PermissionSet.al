@@ -30,7 +30,14 @@ permissionset 3352 "E-Documents MX User"
         page "MX PAC Web Service Details" = X,
         page "MX PAC WS Detail Edit Dlg" = X,
         page "MX CFDI Cancel Reason Dlg" = X,
+        page "SAT Transport Types MX" = X,
+        page "SAT ISTMO Regions MX" = X,
         report "EDoc CFDI Sales Invoice MX" = X,
         report "EDoc CFDI Sales Credit Memo MX" = X,
-        report "EDoc CFDI Carta Porte MX" = X;
+        report "EDoc CFDI Carta Porte MX" = X,
+        table "SAT Transport Type MX" = X,
+        tabledata "SAT Transport Type MX" = RIMD,
+        table "SAT ISTMO Region MX" = X,
+        tabledata "SAT ISTMO Region MX" = RIMD,
+        codeunit "Carta Porte Fields Copy MX" = X;
 }

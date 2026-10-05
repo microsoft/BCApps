@@ -49,6 +49,7 @@ codeunit 3354 "Export Interfactura MX"
         AdvanceUnitCodeTok: Label 'ACT', Locked = true;
         AdvanceDescriptionTok: Label 'Anticipo bien o servicio', Locked = true;
         AdvanceReverseDescriptionTok: Label 'Aplicacion de anticipo', Locked = true;
+        DefaultTransportTypeTok: Label '01', Locked = true;
 
     procedure Export(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
     var
@@ -1276,10 +1277,15 @@ codeunit 3354 "Export Interfactura MX"
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'Sí');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'EntradaSalidaMerc', 'Salida');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'PaisOrigenDestino', SATUtilities.GetSATCountryCode(SalesShipmentHeader."Ship-to Country/Region Code"));
-            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'ViaEntradaSalida', '01');
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'ViaEntradaSalida', GetCartaPorteTransportType(SalesShipmentHeader."SAT Transport Type"));
         end else
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'No');
         CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TotalDistRec', FormatDecimal(SalesShipmentHeader."Transit Distance", 6));
+        if SalesShipmentHeader."SAT ISTMO" then begin
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'RegistroISTMO', 'Sí');
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'UbicacionPoloOrigen', SalesShipmentHeader."SAT ISTMO Polo Origen");
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'UbicacionPoloDestino', SalesShipmentHeader."SAT ISTMO Polo Destino");
+        end;
 
         if SalesShipmentHeader."Foreign Trade" then begin
             CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'RegimenesAduaneros', '', '', RegimenesNode);
@@ -1407,10 +1413,15 @@ codeunit 3354 "Export Interfactura MX"
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'Sí');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'EntradaSalidaMerc', 'Salida');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'PaisOrigenDestino', SATUtilities.GetSATCountryCode(SalesHeader."Ship-to Country/Region Code"));
-            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'ViaEntradaSalida', '01');
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'ViaEntradaSalida', GetCartaPorteTransportType(SalesHeader."SAT Transport Type"));
         end else
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'No');
         CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TotalDistRec', FormatDecimal(SalesHeader."Transit Distance", 6));
+        if SalesHeader."SAT ISTMO" then begin
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'RegistroISTMO', 'Sí');
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'UbicacionPoloOrigen', SalesHeader."SAT ISTMO Polo Origen");
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'UbicacionPoloDestino', SalesHeader."SAT ISTMO Polo Destino");
+        end;
 
         if SalesHeader."Foreign Trade" then begin
             CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'RegimenesAduaneros', '', '', RegimenesNode);
@@ -1562,10 +1573,15 @@ codeunit 3354 "Export Interfactura MX"
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'Sí');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'EntradaSalidaMerc', 'Salida');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'PaisOrigenDestino', SATUtilities.GetSATCountryCode(LocationTo."Country/Region Code"));
-            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'ViaEntradaSalida', '01');
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'ViaEntradaSalida', GetCartaPorteTransportType(TransferHeader."SAT Transport Type"));
         end else
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'No');
         CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TotalDistRec', FormatDecimal(TransferHeader."Transit Distance", 6));
+        if TransferHeader."SAT ISTMO" then begin
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'RegistroISTMO', 'Sí');
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'UbicacionPoloOrigen', TransferHeader."SAT ISTMO Polo Origen");
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'UbicacionPoloDestino', TransferHeader."SAT ISTMO Polo Destino");
+        end;
 
         if TransferHeader."Foreign Trade" then begin
             CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'RegimenesAduaneros', '', '', RegimenesNode);
@@ -1682,10 +1698,15 @@ codeunit 3354 "Export Interfactura MX"
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'Sí');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'EntradaSalidaMerc', 'Salida');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'PaisOrigenDestino', SATUtilities.GetSATCountryCode(LocationTo."Country/Region Code"));
-            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'ViaEntradaSalida', '01');
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'ViaEntradaSalida', GetCartaPorteTransportType(TransferShipmentHeader."SAT Transport Type"));
         end else
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'No');
         CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TotalDistRec', FormatDecimal(TransferShipmentHeader."Transit Distance", 6));
+        if TransferShipmentHeader."SAT ISTMO" then begin
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'RegistroISTMO', 'Sí');
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'UbicacionPoloOrigen', TransferShipmentHeader."SAT ISTMO Polo Origen");
+            CFDIXMLHelperMX.AddAttributeSimple(CartaPorteNode, 'UbicacionPoloDestino', TransferShipmentHeader."SAT ISTMO Polo Destino");
+        end;
 
         if TransferShipmentHeader."Foreign Trade" then begin
             CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'RegimenesAduaneros', '', '', RegimenesNode);
@@ -3145,6 +3166,9 @@ codeunit 3354 "Export Interfactura MX"
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PaisOrigenDestino', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ViaEntradaSalida', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TotalDistRec', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'RegistroISTMO', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'UbicacionPoloOrigen', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'UbicacionPoloDestino', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
                 end;
             'ubicaciones', 'regimenesaduaneros', 'figuratransporte', 'remolques':
                 begin
@@ -3807,6 +3831,13 @@ codeunit 3354 "Export Interfactura MX"
     [IntegrationEvent(false, false)]
     local procedure OnAfterExport(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
     begin
+    end;
+
+    local procedure GetCartaPorteTransportType(TransportType: Code[10]): Code[10]
+    begin
+        if TransportType = '' then
+            exit(DefaultTransportTypeTok);
+        exit(TransportType);
     end;
 
     [IntegrationEvent(false, false)]
