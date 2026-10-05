@@ -51,6 +51,8 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
         PurchRcptLineToCheck.SetLoadFields("Order No.", "Order Line No.");
         if not PurchRcptLineToCheck.FindSet() then
             exit;
+
+        PurchaseLine.LockTable();
         if IsLegacySubcontractingEnabled() then
             exit;
 
