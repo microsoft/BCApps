@@ -11,6 +11,7 @@ using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Subcontracting.Migration;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using System.Environment.Configuration;
 
@@ -33,9 +34,12 @@ codeunit 149956 "IT Subc. Migration Tests"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
+        PurchaseReceiptNo: Code[20];
+        PurchaseReceiptLineNo: Integer;
         SubcontractingLocationsBlockedErr: Label 'Migration can''t start because one or more subcontracting locations are invalid.';
         UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
         MissingSubcontractingLocationErr: Label 'Migration can''t start because legacy subcontracting data references location %1, but that location doesn''t exist. Update the legacy vendor or purchase document, and then run the precheck again.', Comment = '%1 = location code';
+        OpenWIPPurchaseOrdersExistErr: Label 'There are still open purchase orders with WIP Items. All purchase orders with WIP Items must be completed before disabling Legacy Subcontracting.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1138,6 +1142,45 @@ codeunit 149956 "IT Subc. Migration Tests"
         // [THEN] No Error is thrown
     end;
 
+    [Test]
+    [HandlerFunctions('UndoReceiptAndConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure StartDisableLegacySubcontracting_RechecksOpenWIPAfterConfirmation()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        // [SCENARIO 649448] Migration rechecks open WIP after confirmation and locks prevent a concurrent receipt undo race
+        Initialize();
+
+        // [GIVEN] A fully received legacy WIP purchase line passes the initial precheck
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+#pragma warning disable AL0432
+        PurchaseLine."WIP Item" := true;
+#pragma warning restore AL0432
+        PurchaseLine.Modify();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+        PurchaseReceiptNo := PurchRcptLine."Document No.";
+        PurchaseReceiptLineNo := PurchRcptLine."Line No.";
+
+        // [WHEN] The receipt is undone while the migration confirmation is open
+        asserterror ITSubcMigration.StartDisableLegacySubcontracting(true);
+
+        // [THEN] The post-lock precheck detects the newly open WIP line and stops migration
+        Assert.ExpectedError(OpenWIPPurchaseOrdersExistErr);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IT Subc. Migration Tests");
@@ -1253,6 +1296,18 @@ codeunit 149956 "IT Subc. Migration Tests"
     procedure ConfirmHandlerReturnFalse(Question: Text; var Reply: Boolean)
     begin
         Reply := false;
+    end;
+
+    [ConfirmHandler]
+    procedure UndoReceiptAndConfirmHandler(Question: Text; var Reply: Boolean)
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        UndoPurchaseReceiptLine: Codeunit "Undo Purchase Receipt Line";
+    begin
+        PurchRcptLine.Get(PurchaseReceiptNo, PurchaseReceiptLineNo);
+        UndoPurchaseReceiptLine.SetHideDialog(true);
+        UndoPurchaseReceiptLine.Run(PurchRcptLine);
+        Reply := true;
     end;
 }
 #endif
