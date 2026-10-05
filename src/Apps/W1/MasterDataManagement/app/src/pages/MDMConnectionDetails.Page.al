@@ -51,7 +51,7 @@ page 7232 "MDM Connection Details"
                     }
                     field(SourceCompanyName; SourceCompanyName)
                     {
-                        Caption = 'Source Company Name';
+                        Caption = 'Source Company';
                         ApplicationArea = Suite;
                         ShowMandatory = true;
                         ToolTip = 'Specifies the name of the company in the source environment that data is read from.';
