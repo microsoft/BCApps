@@ -168,6 +168,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPCopyConfig: Page "MCP Copy Config";
         ConfigName: Text[100];
         ConfigDescription: Text[250];
+        EnableDataQueryTools: Boolean;
     begin
         MCPCopyConfig.LookupMode := true;
         if MCPCopyConfig.RunModal() <> Action::LookupOK then
@@ -1520,6 +1521,8 @@ codeunit 8351 "MCP Config Implementation"
             MCPConfiguration.EnableApiTools := ConfigJson.GetBoolean('enableApiTools');
 
         MCPConfiguration.EnableAlQueryTools := false;
+        if ConfigJson.Contains('enableAlQueryTools') then
+            MCPConfiguration.EnableAlQueryTools := ConfirmDataQueryToolsOnImport(ConfigJson.GetBoolean('enableAlQueryTools'));
 
         MCPConfiguration.Insert();
         LogConfigurationCreated(MCPConfiguration);
@@ -1531,6 +1534,19 @@ codeunit 8351 "MCP Config Implementation"
         end;
 
         exit(MCPConfiguration.SystemId);
+    end;
+
+    internal procedure ConfirmDataQueryToolsOnImport(EnableDataQueryTools: Boolean): Boolean
+    var
+        MCPDataQueryBilling: Page "MCP Data Query Billing";
+    begin
+        if not EnableDataQueryTools then
+            exit(false);
+
+        if not GuiAllowed() then
+            exit(false);
+
+        exit(MCPDataQueryBilling.RunModal() = Action::Yes);
     end;
 
     local procedure ImportTool(ConfigId: Guid; ToolJson: JsonObject)
