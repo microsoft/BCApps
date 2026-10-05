@@ -6,8 +6,8 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using System.Azure.KeyVault;
 using System.Environment;
-using System.Integration;
 using System.Security.AccessControl;
+using System.Text;
 
 /// <summary>
 /// Test-only authentication helper for the API test codeunits in this app.
@@ -21,15 +21,20 @@ codeunit 148332 "Expense API Test Auth Helper"
         NavServerUserPasswordKeyTok: Label 'NavServerUserPassword', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Graph Mgt", OnAfterInitializeWebRequestWithURL, '', false, false)]
-    local procedure OnAfterInitializeWebRequest(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    local procedure OnAfterInitializeWebRequest(var HttpRequestMessage: HttpRequestMessage)
     var
+        Base64Convert: Codeunit "Base64 Convert";
+        RequestHeaders: HttpHeaders;
         Password: SecretText;
     begin
         if not ShouldInjectBasicAuth() then
             exit;
         if not TryGetPassword(Password) then
             exit;
-        HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
+        HttpRequestMessage.GetHeaders(RequestHeaders);
+        if RequestHeaders.Contains('Authorization') then
+            RequestHeaders.Remove('Authorization');
+        RequestHeaders.Add('Authorization', SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', UserId(), Password))));
     end;
 
     local procedure ShouldInjectBasicAuth(): Boolean
