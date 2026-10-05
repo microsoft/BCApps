@@ -1712,12 +1712,12 @@ table 246 "Requisition Line"
     var
         IsHandled: Boolean;
     begin
-        Item.Get("No.");
         IsHandled := false;
         OnBeforeCheckBlockedItem(Rec, IsHandled);
         if IsHandled then
             exit(false);
-
+            
+        Item.Get("No.");
         exit(Item.Blocked);
     end;
 
