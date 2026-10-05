@@ -1232,6 +1232,8 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         end;
 
         Clear(GLBHttpRequestMessage);
+        if not EnvironmentInfo.IsSaaS() then
+            OnOverrideRequestUrl(URL);
         GLBRequestUrl := URL;
         GLBHttpRequestMessage.SetRequestUri(URL);
         GLBHttpRequestMessage.Method(Method);
@@ -1952,6 +1954,14 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforeGetPostSalesURL(DocRecRef: RecordRef; var URL: Text)
+    begin
+    end;
+
+    /// <summary>
+    /// Allows tests to redirect document exchange service requests to a mock service. Raised only in non-SaaS environments.
+    /// </summary>
+    [InternalEvent(false)]
+    local procedure OnOverrideRequestUrl(var Url: Text)
     begin
     end;
 }

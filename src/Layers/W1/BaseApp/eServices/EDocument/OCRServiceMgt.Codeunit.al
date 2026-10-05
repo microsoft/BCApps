@@ -8,6 +8,7 @@ using Microsoft.CRM.Outlook;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System;
+using System.Environment;
 using System.IO;
 using System.Telemetry;
 using System.Utilities;
@@ -347,8 +348,11 @@ codeunit 1294 "OCR Service Mgt."
 
     local procedure InitializeRsoRequest(RequestUrl: Text; Method: Text; ReturnType: Text; AddAuthCookie: Boolean; var HttpRequestMessage: HttpRequestMessage)
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         HttpRequestHeaders: HttpHeaders;
     begin
+        if not EnvironmentInformation.IsSaaS() then
+            OnOverrideRequestUrl(RequestUrl);
         HttpRequestMessage.SetRequestUri(RequestUrl);
         HttpRequestMessage.Method(Method);
         if AddAuthCookie then
@@ -1484,5 +1488,12 @@ codeunit 1294 "OCR Service Mgt."
     local procedure OnCorrectOCRFileOnAfterCorrectOCRFileNodes(var OCRFileXMLRootNode: DotNet XmlNode; var IncomingDocument: Record "Incoming Document")
     begin
     end;
-}
 
+    /// <summary>
+    /// Allows tests to redirect OCR service requests to a mock service. Raised only in non-SaaS environments.
+    /// </summary>
+    [InternalEvent(false)]
+    local procedure OnOverrideRequestUrl(var Url: Text)
+    begin
+    end;
+}
