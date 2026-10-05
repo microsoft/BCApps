@@ -183,7 +183,7 @@ page 7232 "MDM Connection Details"
                     SaveConfiguration();
                     // Completing the wizard saves a full cross-environment connection, which is a genuine setup of the
                     // feature; register Set up here so it is captured even when the user declines to enable right away.
-                    FeatureTelemetry.LogUptake('', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::"Set up");
+                    FeatureTelemetry.LogUptake('0000VVS', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::"Set up");
                     EnableSynchronizationOnFinish();
                     CurrPage.Close();
                 end;
@@ -198,7 +198,7 @@ page 7232 "MDM Connection Details"
     begin
         // Opening the cross-environment setup wizard is a genuine discovery of the feature, so register Discovered here
         // too (the main setup page may never be opened in a wizard-only cross-environment setup).
-        FeatureTelemetry.LogUptake('', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000VVT', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
         LoadConfiguration();
         Step := Step::Welcome;
         SetControls();
