@@ -8453,8 +8453,7 @@ codeunit 148301 "Expense Rule Test"
         ExpenseRuleViolation: Record "Expense Rule Violation";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
-        // [FEATURE] [AI TEST]
-        // [SCENARIO 651059] Verify error is raised when an expense itemization line has blank subcategory code.
+        // [SCENARIO 651059] Verify an error is raised for a blank subcategory code when the expense category requires itemization.
         Initialize();
 
         // [GIVEN] Create expense user and expense category with itemization.
@@ -8495,8 +8494,7 @@ codeunit 148301 "Expense Rule Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
-        // [FEATURE] [AI TEST]
-        // [SCENARIO 651059] Verify error is raised when an expense report line itemization line has blank subcategory code.
+        // [SCENARIO 651059] Verify an error is raised for a blank subcategory code when the expense category requires itemization.
         Initialize();
 
         // [GIVEN] Create expense user and expense category with itemization.
