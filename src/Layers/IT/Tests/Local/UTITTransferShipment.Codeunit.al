@@ -9,6 +9,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
+using System.TestLibraries.Utilities;
 
 codeunit 144083 "UT IT Transfer Shipment"
 {
