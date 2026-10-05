@@ -168,7 +168,6 @@ codeunit 8351 "MCP Config Implementation"
         MCPCopyConfig: Page "MCP Copy Config";
         ConfigName: Text[100];
         ConfigDescription: Text[250];
-        EnableDataQueryTools: Boolean;
     begin
         MCPCopyConfig.LookupMode := true;
         if MCPCopyConfig.RunModal() <> Action::LookupOK then
@@ -1536,11 +1535,11 @@ codeunit 8351 "MCP Config Implementation"
         exit(MCPConfiguration.SystemId);
     end;
 
-    internal procedure ConfirmDataQueryToolsOnImport(EnableDataQueryTools: Boolean): Boolean
+    internal procedure ConfirmDataQueryToolsOnImport(ShouldEnableDataQueryTools: Boolean): Boolean
     var
         MCPBillingConfirmation: Page "MCP Billing Confirmation";
     begin
-        if not EnableDataQueryTools then
+        if not ShouldEnableDataQueryTools then
             exit(false);
 
         if not GuiAllowed() then
