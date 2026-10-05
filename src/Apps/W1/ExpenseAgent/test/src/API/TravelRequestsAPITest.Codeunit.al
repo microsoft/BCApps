@@ -10,12 +10,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
-// These HTTP tests remain excluded in Expense_Agent_Tests.DisabledTest.json until the
-// authentication prerequisite provides an authenticated OData endpoint and a dedicated
-// test company with committed fixtures and disabled test isolation.
-// In-process employee filtering, traveler mapping/navigation, lifecycle, date, and scope coverage
-// in "Spend Request Test", and restrictive role coverage in "Expense Permissions Test", remain enabled.
-// Only the HTTP scenarios are excluded.
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
