@@ -752,6 +752,16 @@
   {
     "codeunitId": 134327,
     "codeunitName": "ERM Purchase Order",
+    "method": "PurchaseCreditMemoPostAndVerify"
+  },
+  {
+    "codeunitId": 134327,
+    "codeunitName": "ERM Purchase Order",
+    "method": "PurchaseInvoicePostAndVerify"
+  },
+  {
+    "codeunitId": 134327,
+    "codeunitName": "ERM Purchase Order",
     "method": "PurchaseInvoiceForItemChargeWithVATDifferencePostValuesPricesInclVAT"
   },
   {
