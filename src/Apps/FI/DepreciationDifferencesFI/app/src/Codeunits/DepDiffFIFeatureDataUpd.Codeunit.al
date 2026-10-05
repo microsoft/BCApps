@@ -61,10 +61,7 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
     begin
         StartDateTime := CurrentDateTime;
         FeatureDataUpdateMgt.LogTask(FeatureDataUpdateStatus, 'Upgrade Depreciation Differences FI', StartDateTime);
-        DepDiffFIHelperProcedures.TransferFields(Database::"FA Posting Group", 13462, 13400);
-        DepDiffFIHelperProcedures.TransferFields(Database::"FA Posting Group", 13463, 13401);
-        DepDiffFIHelperProcedures.TransferFields(Database::"FA Ledger Entry", 13464, 13400);
-        DepDiffFIHelperProcedures.TransferFields(Database::"Source Code Setup", 13465, 13400);
+        DepDiffFIHelperProcedures.MigrateFields();
         EndDateTime := CurrentDateTime;
         FeatureDataUpdateMgt.LogTask(FeatureDataUpdateStatus, 'Upgrade Depreciation Differences FI', EndDateTime);
     end;

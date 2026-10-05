@@ -28,18 +28,26 @@ codeunit 13475 "Upgrade Depreciation Diff. FI"
     end;
 
     local procedure UpgradeDepreciationDifferencesFI()
-    var
-        DepDiffFIHelperProcedures: Codeunit "Dep Diff FI Helper Procedures";
     begin
         if UpgradeTag.HasUpgradeTag(DepreciationDifferencesFIUpgradeTag.GetUpgradeTag()) then
             exit;
 
-        DepDiffFIHelperProcedures.TransferFields(Database::"FA Posting Group", 13462, 13400);
-        DepDiffFIHelperProcedures.TransferFields(Database::"FA Posting Group", 13463, 13401);
-        DepDiffFIHelperProcedures.TransferFields(Database::"FA Ledger Entry", 13464, 13400);
-        DepDiffFIHelperProcedures.TransferFields(Database::"Source Code Setup", 13465, 13400);
+        TransferFields(Database::"FA Posting Group", 13462, 13400);
+        TransferFields(Database::"FA Posting Group", 13463, 13401);
+        TransferFields(Database::"FA Ledger Entry", 13464, 13400);
+        TransferFields(Database::"Source Code Setup", 13465, 13400);
 
         UpgradeTag.SetUpgradeTag(DepreciationDifferencesFIUpgradeTag.GetUpgradeTag());
+    end;
+
+    local procedure TransferFields(TableId: Integer; TargetFieldNo: Integer; SourceFieldNo: Integer)
+    var
+        DataTransfer: DataTransfer;
+    begin
+        DataTransfer.SetTables(TableId, TableId);
+        DataTransfer.AddFieldValue(SourceFieldNo, TargetFieldNo);
+        DataTransfer.UpdateAuditFields := false;
+        DataTransfer.CopyFields();
     end;
 }
 #endif

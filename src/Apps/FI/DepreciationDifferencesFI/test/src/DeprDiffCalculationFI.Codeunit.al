@@ -6,9 +6,11 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
+using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
 codeunit 148163 "Depr. Diff. Calculation FI"
@@ -87,6 +89,67 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     end;
 
 #if not CLEAN30
+    [Test]
+    procedure FeatureDataUpdateMigratesLegacyFields()
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        FALedgerEntry: Record "FA Ledger Entry";
+        SourceCodeSetup: Record "Source Code Setup";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepDiffFIFeatureDataUpdate: Codeunit "Dep Diff FI Feature Data Upd.";
+        DeprDifferenceAccount: Code[20];
+        DeprDifferenceBalAccount: Code[20];
+        DeprDifferenceSourceCode: Code[10];
+        FALedgerEntryNo: Integer;
+    begin
+        Initialize();
+
+        DeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
+        DeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
+        DeprDifferenceSourceCode := CopyStr(LibraryUtility.GenerateRandomText(10), 1, MaxStrLen(DeprDifferenceSourceCode));
+
+        LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
+#pragma warning disable AL0432
+        FAPostingGroup."Depr. Difference Acc." := DeprDifferenceAccount;
+        FAPostingGroup."Depr. Difference Bal. Acc." := DeprDifferenceBalAccount;
+#pragma warning restore AL0432
+        FAPostingGroup."Deprec. Difference Account" := '';
+        FAPostingGroup."Deprec. Difference Bal Acct" := '';
+        FAPostingGroup.Modify(false);
+
+        if FALedgerEntry.FindLast() then
+            FALedgerEntryNo := FALedgerEntry."Entry No.";
+        FALedgerEntry.Init();
+        FALedgerEntry."Entry No." := FALedgerEntryNo + 1;
+#pragma warning disable AL0432
+        FALedgerEntry."Depr. Difference Posted" := true;
+#pragma warning restore AL0432
+        FALedgerEntry."Depreciation Difference Posted" := false;
+        FALedgerEntry.Insert(false);
+
+        if not SourceCodeSetup.Get() then begin
+            SourceCodeSetup.Init();
+            SourceCodeSetup.Insert(false);
+        end;
+#pragma warning disable AL0432
+        SourceCodeSetup."Depr. Difference" := DeprDifferenceSourceCode;
+#pragma warning restore AL0432
+        SourceCodeSetup."Depreciation Difference Code" := '';
+        SourceCodeSetup.Modify(false);
+
+        FeatureDataUpdateStatus."Feature Key" := 'DepreciationDifferencesFI';
+        FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+        DepDiffFIFeatureDataUpdate.UpdateData(FeatureDataUpdateStatus);
+
+        FAPostingGroup.Get(FAPostingGroup.Code);
+        FAPostingGroup.TestField("Deprec. Difference Account", DeprDifferenceAccount);
+        FAPostingGroup.TestField("Deprec. Difference Bal Acct", DeprDifferenceBalAccount);
+        FALedgerEntry.Get(FALedgerEntry."Entry No.");
+        FALedgerEntry.TestField("Depreciation Difference Posted", true);
+        SourceCodeSetup.Get();
+        SourceCodeSetup.TestField("Depreciation Difference Code", DeprDifferenceSourceCode);
+    end;
+
     [Test]
     [Scope('OnPrem')]
     procedure CannotRunReportWhenFeatureIsDisabled()
