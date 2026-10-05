@@ -1372,7 +1372,7 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
         Assert.IsTrue(MCPConfiguration.EnableApiTools, 'EnableApiTools mismatch');
         Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'EnableAlQueryTools mismatch');
-        Assert.IsFalse(MCPConfiguration.EnableAgents, 'Agent Tools should be disabled on import');
+        Assert.IsTrue(MCPConfiguration.EnableAgents, 'EnableAgents mismatch');
 
         // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
