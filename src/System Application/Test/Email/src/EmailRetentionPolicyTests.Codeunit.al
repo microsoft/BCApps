@@ -88,7 +88,7 @@ codeunit 134706 "Email Retention Policy Tests"
         // Setup
         CreateEmailInboxRecord(CreateDateTime(CalcDate('<-1Y>', Today), Time()));
         CreateRetentionPolicySetup(RetentionPolicySetup, Database::"Email Inbox", EmailInbox.FieldNo("Received DateTime"), CreateOrFindRetentionPeriod(enum::"Retention Period Enum"::"1 Month"));
-        LibraryAssert.TableIsNotEmpty(Database::"Email Inbox");
+        LibraryAssert.IsFalse(EmailInbox.IsEmpty(), 'Email Inbox must contain a record before applying the retention policy.');
 
         // Exercise
         PermissionsMock.Set('Email - Edit');
@@ -96,7 +96,7 @@ codeunit 134706 "Email Retention Policy Tests"
         PermissionsMock.ClearAssignments();
 
         // Verify
-        LibraryAssert.TableIsEmpty(Database::"Email Inbox");
+        LibraryAssert.IsTrue(EmailInbox.IsEmpty(), 'Email Inbox must be empty after applying the retention policy.');
     end;
 
     [HandlerFunctions('ConfirmApplyRetentionPolicy')]
@@ -113,7 +113,7 @@ codeunit 134706 "Email Retention Policy Tests"
         // Setup
         CreateEmailInboxRecord(CreateDateTime(CalcDate('<-1Y>', Today), Time()));
         CreateRetentionPolicySetupWithLine(RetentionPolicySetup, Database::"Email Inbox", EmailInbox.FieldNo("Received DateTime"), CreateOrFindRetentionPeriod(enum::"Retention Period Enum"::"1 Month"));
-        LibraryAssert.TableIsNotEmpty(Database::"Email Inbox");
+        LibraryAssert.IsFalse(EmailInbox.IsEmpty(), 'Email Inbox must contain a record before applying the retention policy.');
 
         // Exercise
         PermissionsMock.Set('Email - Edit');
@@ -121,7 +121,7 @@ codeunit 134706 "Email Retention Policy Tests"
         PermissionsMock.ClearAssignments();
 
         // Verify
-        LibraryAssert.TableIsEmpty(Database::"Email Inbox");
+        LibraryAssert.IsTrue(EmailInbox.IsEmpty(), 'Email Inbox must be empty after applying the retention policy.');
     end;
 
     local procedure CreateEmailInboxRecord(ReceivedDateTime: DateTime)
