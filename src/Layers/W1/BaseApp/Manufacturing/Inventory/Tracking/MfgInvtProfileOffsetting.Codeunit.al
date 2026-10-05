@@ -222,14 +222,11 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
     local procedure ExcludeRetainedInvtReservFromComponentDemand(var InventoryProfile: Record "Inventory Profile"; var ProdOrderComponent: Record "Prod. Order Component")
     var
         DemandReservationEntry: Record "Reservation Entry";
-        ComponentWithReservedQty: Record "Prod. Order Component";
     begin
         if InventoryProfile."Untracked Quantity" <= 0 then
             exit;
 
-        ComponentWithReservedQty := ProdOrderComponent;
-        ComponentWithReservedQty.CalcFields("Reserved Qty. (Base)");
-        if not ItemOnMultipleProdOrderComponentLines(ComponentWithReservedQty, false) then
+        if not ItemOnMultipleProdOrderComponentLines(ProdOrderComponent, true) then
             exit;
 
         ProdOrderComponent.SetReservationFilters(DemandReservationEntry);
