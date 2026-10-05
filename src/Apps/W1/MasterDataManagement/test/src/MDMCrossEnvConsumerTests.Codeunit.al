@@ -441,7 +441,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerYes')]
+    [HandlerFunctions('ConfirmHandlerYes,ReopenedSetupPageShowsSameEnvHandler')]
     procedure ClearCrossEnvSetupRevertsToSameEnvironment()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -463,8 +463,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
         // [WHEN] the user runs Clear Cross-Environment Setup and confirms
         SetupPage.OpenEdit();
-        SetupPage.ClearCrossEnvSetup.Invoke();
-        SetupPage.Close();
+        SetupPage.ClearCrossEnvSetup.Invoke(); // reopens the setup page (trapped by ReopenedSetupPageShowsSameEnvHandler) and closes this instance
 
         // [THEN] every cross-environment field and the stored secret are cleared
         MasterDataManagementSetup.Get();
@@ -1638,6 +1637,15 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     procedure ConfirmHandlerNo(Question: Text; var Reply: Boolean)
     begin
         Reply := false;
+    end;
+
+    [PageHandler]
+    procedure ReopenedSetupPageShowsSameEnvHandler(var SetupPage: TestPage "Master Data Management Setup")
+    begin
+        // The Clear Cross-Environment Setup action reopens the setup page to reapply field visibility. The reopened page
+        // must show the same-environment source company field and hide the cross-environment source fields.
+        Assert.IsTrue(SetupPage."Company Name".Visible(), 'Same-environment source company field should be visible after clearing cross-environment setup');
+        Assert.IsFalse(SetupPage."Source Company Name".Visible(), 'Cross-environment source company field should be hidden after clearing cross-environment setup');
     end;
 
     local procedure CleanUp()
