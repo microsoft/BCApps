@@ -11,6 +11,7 @@ codeunit 148348 "Expense VAT Spec. API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     var
