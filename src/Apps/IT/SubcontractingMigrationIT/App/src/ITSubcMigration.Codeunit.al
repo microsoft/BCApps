@@ -49,6 +49,10 @@ codeunit 149951 "IT Subc. Migration"
 
         LockTables();
         Clear(PreMigrationCounts);
+        // These authoritative validations cover changes made by other sessions while confirmation was pending.
+#if not CLEAN28
+        LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
+#endif
         RunMigration();
 
         if UIAllowed then

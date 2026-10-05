@@ -14,13 +14,16 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     var
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
+        OverReceiptFeatureIsEnabled: Boolean;
         ReopenLegacyWIPPurchaseLineErr: Label 'You cannot increase Quantity on a completed purchase line with a WIP Item after Legacy Subcontracting has been disabled.';
         UndoLegacyWIPPurchaseReceiptErr: Label 'You cannot undo receipt for a completed purchase line with a WIP Item after Legacy Subcontracting has been disabled.';
 
@@ -54,6 +57,42 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
 
         // [THEN] The retained legacy WIP purchase line cannot be reopened
         Assert.ExpectedError(ReopenLegacyWIPPurchaseLineErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CannotReopenFullyReceivedWIPPurchaseLineWithOverReceiptAfterDisabling()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        LegacyWIPPurchaseGuardTest: Codeunit "Legacy WIP Purchase Guard Test";
+    begin
+        // [SCENARIO 649448] Over-receipt cannot reopen a retained fully received WIP purchase line after disabling Legacy Subcontracting
+        Initialize();
+
+        // [GIVEN] A released retained WIP purchase order item line is fully received and over-receipt is enabled
+        SetLegacySubcontracting(false);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        SetWIPItem(PurchaseLine);
+        PurchaseLine.Validate("Over-Receipt Code", CreateOverReceiptCode());
+        PurchaseLine."Quantity Received" := PurchaseLine.Quantity;
+        PurchaseLine."Outstanding Quantity" := 0;
+        PurchaseLine.Modify();
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LegacyWIPPurchaseGuardTest.SetOverReceiptFeatureEnabled(true);
+        BindSubscription(LegacyWIPPurchaseGuardTest);
+
+        // [WHEN] Over-receipt quantity is entered
+        asserterror PurchaseLine.Validate("Over-Receipt Quantity", 1);
+
+        // [THEN] The nested quantity validation cannot reopen the retained legacy WIP purchase line
+        Assert.ExpectedError(ReopenLegacyWIPPurchaseLineErr);
+        UnbindSubscription(LegacyWIPPurchaseGuardTest);
     end;
 
     [Test]
@@ -95,6 +134,73 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         Assert.ExpectedError(UndoLegacyWIPPurchaseReceiptErr);
     end;
 
+    [Test]
+    [HandlerFunctions('AcceptConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure CanUndoReceiptForNonWIPPurchaseLineAfterDisabling()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+    begin
+        // [SCENARIO 649448] Receipt undo remains available for ordinary purchase lines after disabling Legacy Subcontracting
+        Initialize();
+        SetLegacySubcontracting(false);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseLine."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
+
+        PurchRcptLine.FindFirst();
+        Assert.IsTrue(PurchRcptLine.Correction, 'The ordinary purchase receipt line should be reversed.');
+    end;
+
+    [Test]
+    [HandlerFunctions('AcceptConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure CannotUndoMixedReceiptContainingWIPPurchaseLineAfterDisabling()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        WIPPurchaseLine: Record "Purchase Line";
+        OrdinaryPurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        Vendor: Record Vendor;
+        WIPItem: Record Item;
+        OrdinaryItem: Record Item;
+    begin
+        // [SCENARIO 649448] A mixed receipt selection is not partially reversed when it contains retained WIP
+        Initialize();
+        SetLegacySubcontracting(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(WIPItem);
+        LibraryInventory.CreateItem(OrdinaryItem);
+        LibraryPurchase.CreatePurchaseLine(WIPPurchaseLine, PurchaseHeader, WIPPurchaseLine.Type::Item, WIPItem."No.", 1);
+        SetWIPItem(WIPPurchaseLine);
+        LibraryPurchase.CreatePurchaseLine(OrdinaryPurchaseLine, PurchaseHeader, OrdinaryPurchaseLine.Type::Item, OrdinaryItem."No.", 1);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        SetLegacySubcontracting(false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.FindFirst();
+        asserterror Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
+
+        Assert.ExpectedError(UndoLegacyWIPPurchaseReceiptErr);
+        PurchRcptLine.SetRange(Correction, true);
+        Assert.RecordIsEmpty(PurchRcptLine);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Legacy WIP Purchase Guard Test");
@@ -134,6 +240,29 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         WIPItemFieldRef.Value := true;
         PurchaseLineRecordRef.Modify();
         PurchaseLineRecordRef.SetTable(PurchaseLine);
+    end;
+
+    local procedure CreateOverReceiptCode(): Code[20]
+    var
+        OverReceiptCode: Record "Over-Receipt Code";
+    begin
+        OverReceiptCode.Init();
+        OverReceiptCode.Code := LibraryUtility.GenerateRandomCode20(OverReceiptCode.FieldNo(Code), Database::"Over-Receipt Code");
+        OverReceiptCode.Description := OverReceiptCode.Code;
+        OverReceiptCode."Over-Receipt Tolerance %" := 100;
+        OverReceiptCode.Insert();
+        exit(OverReceiptCode.Code);
+    end;
+
+    procedure SetOverReceiptFeatureEnabled(Enabled: Boolean)
+    begin
+        OverReceiptFeatureIsEnabled := Enabled;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Over-Receipt Mgt.", 'OnIsOverReceiptAllowed', '', false, false)]
+    local procedure SetOverReceiptAllowed(var OverReceiptAllowed: Boolean)
+    begin
+        OverReceiptAllowed := OverReceiptFeatureIsEnabled;
     end;
 
     [ConfirmHandler]

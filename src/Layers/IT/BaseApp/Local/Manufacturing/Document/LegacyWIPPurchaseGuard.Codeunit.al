@@ -18,18 +18,22 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeValidateQuantity', '', false, false)]
     local procedure PreventQuantityIncrease(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    var
+        StoredPurchaseLine: Record "Purchase Line";
     begin
-        if IsHandled or (CurrentFieldNo <> PurchaseLine.FieldNo(Quantity)) then
+        if IsHandled then
             exit;
         if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
             exit;
-        if not IsWIPItem(PurchaseLine) then
+        if not StoredPurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.") then
             exit;
-        if xPurchaseLine."Outstanding Quantity" <> 0 then
+        if not IsWIPItem(StoredPurchaseLine) then
+            exit;
+        if StoredPurchaseLine."Outstanding Quantity" <> 0 then
             exit;
         if IsLegacySubcontractingEnabled() then
             exit;
-        if Abs(PurchaseLine.Quantity) > Abs(PurchaseLine."Quantity Received") then
+        if Abs(PurchaseLine.Quantity) > Abs(StoredPurchaseLine."Quantity Received") then
             Error(ReopenLegacyWIPPurchaseLineErr);
     end;
 
