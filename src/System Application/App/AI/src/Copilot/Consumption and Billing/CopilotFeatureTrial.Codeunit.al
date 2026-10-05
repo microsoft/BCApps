@@ -22,7 +22,7 @@ codeunit 7755 "Copilot Feature Trial"
     /// <param name="TrialId">The trial identifier.</param>
     /// <param name="CopilotCapability">The Copilot capability covered by the trial.</param>
     /// <returns>True if the trial quota has been reported at least once and has quota remaining; otherwise, false.</returns>
-    /// <remarks>The calling module must have registered the Copilot capability.</remarks>
+    /// <remarks>The calling module must have registered the Copilot capability. The trial identifier must not be blank.</remarks>
     [Scope('OnPrem')]
     procedure GetFeatureTrialQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"): Boolean
     var
@@ -44,7 +44,7 @@ codeunit 7755 "Copilot Feature Trial"
     /// <param name="UnpaidSandboxQuotaLimit">The quota limit for unpaid sandbox environments.</param>
     /// <param name="Metadata">Optional additional dimensions and details about the run.</param>
     /// <returns>True if the run was reported; otherwise, false.</returns>
-    /// <remarks>The calling module must have registered the Copilot capability. A trial can only be non-recurring or monthly. Reporting a non-recurring run for a monthly trial causes a runtime error.</remarks>
+    /// <remarks>The calling module must have registered the Copilot capability. The consumption ID must not be empty, the trial identifier must not be blank, and quota limits must not be negative. A trial can only be non-recurring or monthly. Reporting a non-recurring run for a monthly trial causes a runtime error.</remarks>
     [Scope('OnPrem')]
     procedure ReportNonRecurringFeatureTrialQuota(ConsumptionId: Guid; TrialId: Text; CopilotCapability: Enum "Copilot Capability"; PaidProductionQuotaLimit: Integer; PaidSandboxQuotaLimit: Integer; UnpaidProductionQuotaLimit: Integer; UnpaidSandboxQuotaLimit: Integer; Metadata: Text): Boolean
     var
@@ -66,7 +66,7 @@ codeunit 7755 "Copilot Feature Trial"
     /// <param name="UnpaidSandboxQuotaLimit">The quota limit for unpaid sandbox environments.</param>
     /// <param name="Metadata">Optional additional dimensions and details about the run.</param>
     /// <returns>True if the run was reported; otherwise, false.</returns>
-    /// <remarks>The calling module must have registered the Copilot capability. A trial can only be non-recurring or monthly. Reporting a monthly run for a non-recurring trial causes a runtime error.</remarks>
+    /// <remarks>The calling module must have registered the Copilot capability. The consumption ID must not be empty, the trial identifier must not be blank, and quota limits must not be negative. A trial can only be non-recurring or monthly. Reporting a monthly run for a non-recurring trial causes a runtime error.</remarks>
     [Scope('OnPrem')]
     procedure ReportMonthlyFeatureTrialQuota(ConsumptionId: Guid; TrialId: Text; CopilotCapability: Enum "Copilot Capability"; PaidProductionQuotaLimit: Integer; PaidSandboxQuotaLimit: Integer; UnpaidProductionQuotaLimit: Integer; UnpaidSandboxQuotaLimit: Integer; Metadata: Text): Boolean
     var

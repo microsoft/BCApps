@@ -17,6 +17,9 @@ codeunit 132683 "Copilot Test"
         NotRegisteredErr: Label 'Copilot capability has not been registered by the module.';
         AlreadyRegisteredErr: Label 'Capability has already been registered.';
         InvalidBillingTypeErr: Label 'Invalid billing type for Copilot capability ''%1''', Comment = '%1 is the name of the Copilot Capability';
+        ConsumptionIdMustBeSpecifiedErr: Label 'The consumption ID must be specified.';
+        TrialIdMustBeSpecifiedErr: Label 'The trial ID must be specified.';
+        QuotaLimitsMustBeNonNegativeErr: Label 'All trial quota limits must be non-negative.';
 
     [Test]
     procedure TestRegisterCapability()
@@ -294,6 +297,71 @@ codeunit 132683 "Copilot Test"
         // [WHEN] IsCapabilityActive is called
         // [THEN] False is returned
         LibraryAssert.IsFalse(CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Text Capability"), 'Copilot capability should not be enabled');
+    end;
+
+    [Test]
+    procedure TestReportFeatureTrialQuotaWithEmptyConsumptionId()
+    var
+        CopilotFeatureTrial: Codeunit "Copilot Feature Trial";
+        ConsumptionId: Guid;
+    begin
+        // [SCENARIO] Report feature trial quota with an empty consumption ID
+        Initialize();
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", LearnMoreUrlLbl);
+
+        // [WHEN] Feature trial quota is reported
+        asserterror CopilotFeatureTrial.ReportNonRecurringFeatureTrialQuota(ConsumptionId, 'Trial', Enum::"Copilot Capability"::"Text Capability", 0, 0, 0, 0, '');
+
+        // [THEN] An error is thrown
+        LibraryAssert.ExpectedError(ConsumptionIdMustBeSpecifiedErr);
+    end;
+
+    [Test]
+    procedure TestGetFeatureTrialQuotaWithBlankTrialId()
+    var
+        CopilotFeatureTrial: Codeunit "Copilot Feature Trial";
+    begin
+        // [SCENARIO] Get feature trial quota with a blank trial ID
+        Initialize();
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", LearnMoreUrlLbl);
+
+        // [WHEN] Feature trial quota is retrieved
+        asserterror CopilotFeatureTrial.GetFeatureTrialQuotaRemaining(' ', Enum::"Copilot Capability"::"Text Capability");
+
+        // [THEN] An error is thrown
+        LibraryAssert.ExpectedError(TrialIdMustBeSpecifiedErr);
+    end;
+
+    [Test]
+    procedure TestReportFeatureTrialQuotaWithNegativeQuotaLimits()
+    var
+        CopilotFeatureTrial: Codeunit "Copilot Feature Trial";
+        ConsumptionId: Guid;
+    begin
+        // [SCENARIO] Report feature trial quota with negative quota limits
+        Initialize();
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", LearnMoreUrlLbl);
+        ConsumptionId := CreateGuid();
+
+        // [WHEN] Feature trial quota is reported with a negative paid production quota limit
+        asserterror CopilotFeatureTrial.ReportMonthlyFeatureTrialQuota(ConsumptionId, 'Trial', Enum::"Copilot Capability"::"Text Capability", -1, 0, 0, 0, '');
+        // [THEN] An error is thrown
+        LibraryAssert.ExpectedError(QuotaLimitsMustBeNonNegativeErr);
+
+        // [WHEN] Feature trial quota is reported with a negative paid sandbox quota limit
+        asserterror CopilotFeatureTrial.ReportMonthlyFeatureTrialQuota(ConsumptionId, 'Trial', Enum::"Copilot Capability"::"Text Capability", 0, -1, 0, 0, '');
+        // [THEN] An error is thrown
+        LibraryAssert.ExpectedError(QuotaLimitsMustBeNonNegativeErr);
+
+        // [WHEN] Feature trial quota is reported with a negative unpaid production quota limit
+        asserterror CopilotFeatureTrial.ReportMonthlyFeatureTrialQuota(ConsumptionId, 'Trial', Enum::"Copilot Capability"::"Text Capability", 0, 0, -1, 0, '');
+        // [THEN] An error is thrown
+        LibraryAssert.ExpectedError(QuotaLimitsMustBeNonNegativeErr);
+
+        // [WHEN] Feature trial quota is reported with a negative unpaid sandbox quota limit
+        asserterror CopilotFeatureTrial.ReportMonthlyFeatureTrialQuota(ConsumptionId, 'Trial', Enum::"Copilot Capability"::"Text Capability", 0, 0, 0, -1, '');
+        // [THEN] An error is thrown
+        LibraryAssert.ExpectedError(QuotaLimitsMustBeNonNegativeErr);
     end;
 
     local procedure Initialize()

@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
+using System;
 
 codeunit 7754 "Copilot Feature Trial Impl."
 {
@@ -13,19 +14,24 @@ codeunit 7754 "Copilot Feature Trial Impl."
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         CapabilityNotRegisteredErr: Label 'The Copilot capability ''%1'' has not been registered or was registered by another app.', Comment = '%1 is the name of the Copilot capability';
+        ConsumptionIdMustBeSpecifiedErr: Label 'The consumption ID must be specified.';
+        TrialIdMustBeSpecifiedErr: Label 'The trial ID must be specified.';
+        QuotaLimitsMustBeNonNegativeErr: Label 'All trial quota limits must be non-negative.';
         FeatureTrialQuotaReportedTelemetryMsg: Label 'Feature trial quota report completed. The run was within quota: %1.', Locked = true;
 
-    procedure GetFeatureTrialQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
+    internal procedure GetFeatureTrialQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         AIFeatureTrialInfo: DotNet ALAIFeatureTrialInfo;
     begin
         CheckCapabilityOwnership(CopilotCapability, CallerModuleInfo);
+        if TrialId.Trim() = '' then
+            Error(TrialIdMustBeSpecifiedErr);
         AIFeatureTrialInfo := ALCopilotFunctions.GetFeatureTrialQuotaRemaining(TrialId, CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability));
         exit(AIFeatureTrialInfo.IsSetup() and AIFeatureTrialInfo.HasQuotaRemaining());
     end;
 
-    procedure ReportNonRecurringFeatureTrialQuota(ConsumptionId: Guid; TrialId: Text; CopilotCapability: Enum "Copilot Capability"; PaidProductionQuotaLimit: Integer; PaidSandboxQuotaLimit: Integer; UnpaidProductionQuotaLimit: Integer; UnpaidSandboxQuotaLimit: Integer; Metadata: Text; CallerModuleInfo: ModuleInfo): Boolean
+    internal procedure ReportNonRecurringFeatureTrialQuota(ConsumptionId: Guid; TrialId: Text; CopilotCapability: Enum "Copilot Capability"; PaidProductionQuotaLimit: Integer; PaidSandboxQuotaLimit: Integer; UnpaidProductionQuotaLimit: Integer; UnpaidSandboxQuotaLimit: Integer; Metadata: Text; CallerModuleInfo: ModuleInfo): Boolean
     var
         AIFeatureTrialRecurrenceType: DotNet ALAIFeatureTrialRecurrenceType;
     begin
@@ -34,7 +40,7 @@ codeunit 7754 "Copilot Feature Trial Impl."
         exit(ReportFeatureTrialQuota(ConsumptionId, TrialId, CopilotCapability, AIFeatureTrialRecurrenceType, PaidProductionQuotaLimit, PaidSandboxQuotaLimit, UnpaidProductionQuotaLimit, UnpaidSandboxQuotaLimit, Metadata));
     end;
 
-    procedure ReportMonthlyFeatureTrialQuota(ConsumptionId: Guid; TrialId: Text; CopilotCapability: Enum "Copilot Capability"; PaidProductionQuotaLimit: Integer; PaidSandboxQuotaLimit: Integer; UnpaidProductionQuotaLimit: Integer; UnpaidSandboxQuotaLimit: Integer; Metadata: Text; CallerModuleInfo: ModuleInfo): Boolean
+    internal procedure ReportMonthlyFeatureTrialQuota(ConsumptionId: Guid; TrialId: Text; CopilotCapability: Enum "Copilot Capability"; PaidProductionQuotaLimit: Integer; PaidSandboxQuotaLimit: Integer; UnpaidProductionQuotaLimit: Integer; UnpaidSandboxQuotaLimit: Integer; Metadata: Text; CallerModuleInfo: ModuleInfo): Boolean
     var
         AIFeatureTrialRecurrenceType: DotNet ALAIFeatureTrialRecurrenceType;
     begin
@@ -48,6 +54,19 @@ codeunit 7754 "Copilot Feature Trial Impl."
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         AIFeatureTrialReportResult: DotNet ALAIFeatureTrialReportResult;
     begin
+        if IsNullGuid(ConsumptionId) then
+            Error(ConsumptionIdMustBeSpecifiedErr);
+        if TrialId.Trim() = '' then
+            Error(TrialIdMustBeSpecifiedErr);
+        if PaidProductionQuotaLimit < 0 then
+            Error(QuotaLimitsMustBeNonNegativeErr);
+        if PaidSandboxQuotaLimit < 0 then
+            Error(QuotaLimitsMustBeNonNegativeErr);
+        if UnpaidProductionQuotaLimit < 0 then
+            Error(QuotaLimitsMustBeNonNegativeErr);
+        if UnpaidSandboxQuotaLimit < 0 then
+            Error(QuotaLimitsMustBeNonNegativeErr);
+
         AIFeatureTrialReportResult := ALCopilotFunctions.ReportFeatureTrialQuota(
             ConsumptionId,
             TrialId,
