@@ -88,6 +88,23 @@ page 48512 "Fabric Platform Tables"
                     CurrPage.Update(false);
                 end;
             }
+            action(ResetTable)
+            {
+                Caption = 'Reset table';
+                ApplicationArea = All;
+                Image = Refresh;
+                ToolTip = 'Makes the next synchronization run send a full snapshot of the selected table to Microsoft Fabric.';
+
+                trigger OnAction()
+                var
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                begin
+                    if not Confirm(ResetTableQst, false, Rec."Table Name") then
+                        exit;
+
+                    FabricPlatformMgt.ResetTable(Rec."Table ID");
+                end;
+            }
         }
         area(Promoted)
         {
@@ -97,7 +114,11 @@ page 48512 "Fabric Platform Tables"
 
                 actionref(AddTable_Promoted; AddTable) { }
                 actionref(RemoveTable_Promoted; RemoveTable) { }
+                actionref(ResetTable_Promoted; ResetTable) { }
             }
         }
     }
+
+    var
+        ResetTableQst: Label 'The next synchronization run will send a full snapshot of table %1 to Microsoft Fabric. Do you want to continue?', Comment = '%1 = table name';
 }

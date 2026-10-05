@@ -11,6 +11,7 @@ codeunit 48520 "Fabric Platform Mgt"
     // so callers only need read access to these tables directly.
     Permissions = tabledata "Fabric Table Claim" = RIMD,
                   tabledata "Tenant Fabric Companies" = RIMD,
+                  tabledata "Tenant Fabric Export Details" = RM,
                   tabledata "Tenant Fabric Tables" = RIMD;
 
     var
@@ -26,6 +27,9 @@ codeunit 48520 "Fabric Platform Mgt"
         DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         EnableOnCooldownErr: Label 'Enable was already requested recently. Try again in %1 minute(s).', Comment = '%1 = minutes remaining';
         SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Use Stop synchronization before starting a new run.';
+        ResetBlockedWhileRunningErr: Label 'A synchronization run is in progress. Stop the synchronization before resetting a table.';
+        TableResetMsg: Label 'Table %1 was reset. The next synchronization run will send a full snapshot.', Comment = '%1 = table id';
+        TableNothingToResetMsg: Label 'Table %1 has no completed synchronization to reset. The next run will send a full snapshot.', Comment = '%1 = table id';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
         ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling mirroring.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
@@ -425,6 +429,43 @@ codeunit 48520 "Fabric Platform Mgt"
         Telemetry.LogAudit('0000VNI', 'Microsoft Fabric Open Mirroring - export disable requested.');
         if GuiAllowed() then
             Message(DisableRequestedMsg);
+    end;
+
+    internal procedure ResetTable(TableId: Integer)
+    var
+        TenantFabricExportDetails: Record "Tenant Fabric Export Details";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
+        ResetCompanies: List of [Text];
+        ResetCount: Integer;
+    begin
+        if IsSyncAlreadyRunning() then
+            Error(ResetBlockedWhileRunningErr);
+
+        // An empty End Watermark on the latest successful row makes the next run a full snapshot.
+        TenantFabricExportDetails.SetCurrentKey("Start Time");
+        TenantFabricExportDetails.Ascending(false);
+        TenantFabricExportDetails.SetRange("Table ID", TableId);
+        TenantFabricExportDetails.SetRange(State, TenantFabricExportDetails.State::Succeeded);
+        if TenantFabricExportDetails.FindSet() then
+            repeat
+                // Rows are newest first, so the first row seen per company is its latest successful run.
+                if not ResetCompanies.Contains(TenantFabricExportDetails."Company Name") then begin
+                    ResetCompanies.Add(TenantFabricExportDetails."Company Name");
+                    if TenantFabricExportDetails."End Watermark" <> '' then begin
+                        TenantFabricExportDetails."End Watermark" := '';
+                        TenantFabricExportDetails.Modify(false);
+                        ResetCount += 1;
+                    end;
+                end;
+            until TenantFabricExportDetails.Next() = 0;
+
+        Telemetry.LogEvent('0000VNK', 'Fabric mirroring table reset requested.');
+        Telemetry.LogAudit('0000VNL', 'Microsoft Fabric Open Mirroring - table reset requested.');
+        if GuiAllowed() then
+            if ResetCount > 0 then
+                Message(TableResetMsg, TableId)
+            else
+                Message(TableNothingToResetMsg, TableId);
     end;
 
     internal procedure TestConnection()
