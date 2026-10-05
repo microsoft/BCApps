@@ -81,6 +81,7 @@ page 8378 "MCP Config Agent List"
     end;
 
     var
+        MCPConfig: Codeunit "MCP Config";
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         AgentUserName: Code[50];
         IsConfigActive: Boolean;
@@ -97,7 +98,8 @@ page 8378 "MCP Config Agent List"
         MCPAgentLookup.GetSelectedAgents(SelectedAgent);
         if SelectedAgent.FindSet() then
             repeat
-                MCPConfigImplementation.AddAgent(Rec.ID, SelectedAgent."User Security ID");
+                if IsNullGuid(MCPConfig.GetAgentToolId(Rec.ID, SelectedAgent."User Security ID")) then
+                    MCPConfig.CreateAgentTool(Rec.ID, SelectedAgent."User Security ID");
             until SelectedAgent.Next() = 0;
         CurrPage.Update();
     end;

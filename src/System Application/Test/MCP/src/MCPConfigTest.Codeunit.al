@@ -448,6 +448,52 @@ codeunit 130130 "MCP Config Test"
         AssertConfigurationAgentCount(ConfigId, 0);
     end;
 
+    [Test]
+    procedure TestCreateAgentToolWithMissingAgent()
+    var
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+
+        asserterror MCPConfig.CreateAgentTool(ConfigId, CreateGuid());
+
+        Assert.ExpectedError('The selected agent no longer exists.');
+        AssertConfigurationAgentCount(ConfigId, 0);
+    end;
+
+    [Test]
+    procedure TestGetAgentToolId()
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        ConfigId: Guid;
+        AgentId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        AgentId := CreateGuid();
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent', '');
+        MCPConfigurationAgent.Get(ConfigId, AgentId);
+
+        Assert.AreEqual(MCPConfigurationAgent.SystemId, MCPConfig.GetAgentToolId(ConfigId, AgentId), 'Agent tool ID mismatch');
+        Assert.IsTrue(IsNullGuid(MCPConfig.GetAgentToolId(ConfigId, CreateGuid())), 'Missing agent tool should return an empty GUID');
+    end;
+
+    [Test]
+    procedure TestDeleteToolDeletesAgentTool()
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        ConfigId: Guid;
+        AgentId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        AgentId := CreateGuid();
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent', '');
+        MCPConfigurationAgent.Get(ConfigId, AgentId);
+
+        MCPConfig.DeleteTool(MCPConfigurationAgent.SystemId);
+
+        AssertConfigurationAgentCount(ConfigId, 0);
+    end;
+
     #endregion
 
     #region Tools

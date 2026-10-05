@@ -374,7 +374,7 @@ codeunit 8351 "MCP Config Implementation"
         Agent.SetFilter("Publisher Type", '%1|%2', Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party");
     end;
 
-    internal procedure AddAgent(ConfigId: Guid; AgentUserSecurityId: Guid)
+    internal procedure CreateAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
     var
         MCPConfigurationAgent: Record "MCP Configuration Agent";
         MCPConfiguration: Record "MCP Configuration";
@@ -382,13 +382,22 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             Error(ConfigurationNotFoundErr);
 
-        if MCPConfigurationAgent.Get(ConfigId, AgentUserSecurityId) then
-            exit;
-
         MCPConfigurationAgent.ID := ConfigId;
         MCPConfigurationAgent."Agent ID" := AgentUserSecurityId;
         SetAgentMetadata(MCPConfigurationAgent);
         MCPConfigurationAgent.Insert();
+        exit(MCPConfigurationAgent.SystemId);
+    end;
+
+    internal procedure GetAgentToolId(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        EmptyGuid: Guid;
+    begin
+        if MCPConfigurationAgent.Get(ConfigId, AgentUserSecurityId) then
+            exit(MCPConfigurationAgent.SystemId);
+
+        exit(EmptyGuid);
     end;
 
     internal procedure SetAgentMetadata(var MCPConfigurationAgent: Record "MCP Configuration Agent")
@@ -654,12 +663,16 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure DeleteTool(ToolId: Guid)
     var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        if not MCPConfigurationTool.GetBySystemId(ToolId) then
+        if MCPConfigurationTool.GetBySystemId(ToolId) then begin
+            MCPConfigurationTool.Delete();
             exit;
+        end;
 
-        MCPConfigurationTool.Delete();
+        if MCPConfigurationAgent.GetBySystemId(ToolId) then
+            MCPConfigurationAgent.Delete();
     end;
 
     internal procedure AllowRead(ToolId: Guid; Allow: Boolean)

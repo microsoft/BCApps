@@ -215,6 +215,17 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Creates a new agent tool for the specified configuration and agent.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="AgentUserSecurityId">The user security ID of the agent.</param>
+    /// <returns>The SystemId (GUID) of the created agent tool.</returns>
+    procedure CreateAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAgentTool(ConfigId, AgentUserSecurityId));
+    end;
+
+    /// <summary>
     /// Retrieves the SystemId (GUID) of a tool by its configuration ID, object ID and object type.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
@@ -224,6 +235,17 @@ codeunit 8350 "MCP Config"
     procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option Page,Query,Codeunit): Guid
     begin
         exit(MCPConfigImplementation.GetAPIToolId(ConfigId, ObjectId, ObjectType));
+    end;
+
+    /// <summary>
+    /// Retrieves the SystemId (GUID) of an agent tool by its configuration ID and agent user security ID.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="AgentUserSecurityId">The user security ID of the agent.</param>
+    /// <returns>The SystemId (GUID) of the agent tool if found; otherwise, an empty GUID.</returns>
+    procedure GetAgentToolId(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    begin
+        exit(MCPConfigImplementation.GetAgentToolId(ConfigId, AgentUserSecurityId));
     end;
 
 #if not CLEAN29
@@ -243,7 +265,7 @@ codeunit 8350 "MCP Config"
 #endif
 
     /// <summary>
-    /// Deletes the specified tool from the configuration.
+    /// Deletes the specified API or agent tool from the configuration.
     /// </summary>
     /// <param name="ToolSystemId">The SystemId (GUID) of the tool to delete.</param>
     procedure DeleteTool(ToolSystemId: Guid)
