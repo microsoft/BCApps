@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,3 +11,4 @@ permissionsetextension 11107 "D365 READ - GetAddress.io UK Postcodes" extends "D
 {
     Permissions = tabledata "Postcode GetAddress.io Config" = R;
 }
+#endif
