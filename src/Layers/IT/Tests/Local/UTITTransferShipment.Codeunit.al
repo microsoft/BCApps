@@ -2,6 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Test;
+
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
+
 codeunit 144083 "UT IT Transfer Shipment"
 {
     Subtype = Test;
@@ -51,8 +59,7 @@ codeunit 144083 "UT IT Transfer Shipment"
             TransferHeader, TransferLine, Item, FromLocation, ToLocation, InTransitLocation, '', Quantity, WorkDate(), WorkDate());
         LibraryInventory.PostTransferHeader(TransferHeader, true, false);
 
-        TransferShipmentHeader.SetRange("Transfer Order No.", TransferHeader."No.");
-        TransferShipmentHeader.FindFirst();
+        TransferShipmentHeader.Get(TransferHeader."Last Shipment No.");
 
         LibraryVariableStorage.Enqueue(TransferShipmentHeader."No.");
 

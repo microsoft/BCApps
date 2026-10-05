@@ -120,33 +120,6 @@ report 12154 "Subcontract. Transfer Shipment"
                     column(TransportReasonCode_Description; TransportReasonCode.Description)
                     {
                     }
-                    column(VendorAddr_6_; VendorAddr[6])
-                    {
-                    }
-                    column(VendorAddr_5_; VendorAddr[5])
-                    {
-                    }
-                    column(VendorAddr_4_; VendorAddr[4])
-                    {
-                    }
-                    column(VendorAddr_3_; VendorAddr[3])
-                    {
-                    }
-                    column(VendorAddr_2_; VendorAddr[2])
-                    {
-                    }
-                    column(VendorAddr_1_; VendorAddr[1])
-                    {
-                    }
-                    column(VendorAddr_7_; VendorAddr[7])
-                    {
-                    }
-                    column(VendorAddr_8_; VendorAddr[8])
-                    {
-                    }
-                    column(LablVendor; LablVendor)
-                    {
-                    }
                     column(CopyText; CopyText)
                     {
                     }
@@ -337,13 +310,7 @@ report 12154 "Subcontract. Transfer Shipment"
                         DataItemLink = "Document No." = field("No.");
                         DataItemLinkReference = "Transfer Shipment Header";
                         DataItemTableView = sorting("Document No.", "Line No.") where(Quantity = filter(<> 0));
-                        column(RefSubcOrd; RefSubcOrd)
-                        {
-                        }
                         column(EmptyString; '')
-                        {
-                        }
-                        column(RefProdOrd; RefProdOrd)
                         {
                         }
                         column(Transfer_Shipment_Line__Transfer_Shipment_Line___Line_No__; "Transfer Shipment Line"."Line No.")
@@ -584,16 +551,12 @@ report 12154 "Subcontract. Transfer Shipment"
         TransportReasonCode: Record "Transport Reason Code";
         FormatAddr: Codeunit "Format Address";
         TransferToAddr: array[8] of Text[100];
-        VendorAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
         CompanyText: array[4] of Text[60];
         DummyText: Text[60];
-        LablVendor: Text[30];
         CopyText: Text[30];
         DimText: Text[120];
         OldDimText: Text[75];
-        RefSubcOrd: Text[50];
-        RefProdOrd: Text[50];
         MoreLines: Boolean;
         NoOfCopies: Integer;
         NoOfLoops: Integer;

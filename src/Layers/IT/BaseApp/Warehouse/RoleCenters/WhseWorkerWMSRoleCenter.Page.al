@@ -11,9 +11,7 @@ using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
-#if not CLEAN28
 using Microsoft.Manufacturing.Document;
-#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.RoleCenters;
 using Microsoft.Sales.Customer;

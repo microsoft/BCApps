@@ -19,9 +19,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Reports;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-#if not CLEAN28
 using Microsoft.Manufacturing.Document;
-#endif
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;

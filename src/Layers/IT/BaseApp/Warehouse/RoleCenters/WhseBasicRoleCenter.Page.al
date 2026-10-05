@@ -21,9 +21,7 @@ using Microsoft.Inventory.Reports;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-#if not CLEAN28
 using Microsoft.Manufacturing.Document;
-#endif
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
