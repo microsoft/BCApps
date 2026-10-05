@@ -26,6 +26,7 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         EDocPEPPOLBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
         EDocImportXRechnung: Codeunit "Import XRechnung Document";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
 
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
     var
@@ -37,6 +38,7 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         EDocumentDEHelper.CheckSellerContactMandatory(SourceDocumentHeader);
         CheckBankAccountIBANMandatory(SourceDocumentHeader, CompanyInformation);
         EDocumentDEHelper.CheckBuyerReferenceMandatory(EDocumentService, SourceDocumentHeader);
+        DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
         DEContext.Start();
         DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
         EDocPEPPOLBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
@@ -78,6 +80,7 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         TempRecordExportBuffer."Electronic Document Format" := Format(EDocumentService."Document Format");
         TempRecordExportBuffer.Insert();
 
+        ExportXRechnungDocument.SetEDocumentService(EDocumentService);
         ExportXRechnungDocument.Run(TempRecordExportBuffer);
         if not TempRecordExportBuffer."File Content".HasValue() then
             exit;
