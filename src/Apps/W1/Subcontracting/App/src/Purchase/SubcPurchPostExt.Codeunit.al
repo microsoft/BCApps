@@ -177,6 +177,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
             IsHandled := true;
             exit;
         end;
+        if CheckLineQty and (ToPurchLine.Quantity <> PurchRcptLine.Quantity) then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
 
         SetQuantityBaseOnSubcontractingServiceLine(FromPurchLine, PurchRcptLine);
         if not IsFullTrackedOutputSetSupported(PurchRcptLine, ItemLedgerEntry) then
