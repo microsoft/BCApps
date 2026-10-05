@@ -92,6 +92,9 @@ codeunit 7233 "Master Data Management"
         IntegrationRecordNotFoundErr: Label 'The integration record for entity %1 was not found.', Comment = '%1 - entity name';
         RescheduledTaskTxt: label 'Rescheduled task %1 for Job Queue Entry %2 (%3) to run not before %4', Locked = true;
         FeatureNameTxt: Label 'Master Data Management', Locked = true;
+        SameEnvSynchUsageTxt: Label 'Same-environment synchronization', Locked = true;
+        CrossEnvSynchUsageTxt: Label 'Cross-environment synchronization', Locked = true;
+        LastSynchUsageTelemetryDateKeyTok: Label 'MDM-LastSynchUsageTelemetryDate', Locked = true;
         CachedIsSynchronizationRecord: Dictionary of [Text, Boolean];
         CachedDisableEventDrivenSynchJobReschedule: Dictionary of [Text, Boolean];
         NoPermissionToSetUpErr: Label 'Your license does not allow you to set up Master Data Management. To view details about your permissions, see the Effective Permissions page.';
@@ -106,6 +109,45 @@ codeunit 7233 "Master Data Management"
     internal procedure GetTelemetryCategory(): Text
     begin
         exit(CategoryTok);
+    end;
+
+    // Registers feature usage from the synchronization path. FeatureTelemetry.LogUsage is not deduplicated by the
+    // platform, so it is guarded to emit at most once per day per company. This keeps the daily-active usage signal
+    // (same- and cross-environment are logged under distinct events) without the volume of logging on every job run.
+    internal procedure LogSynchronizationUsage()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if HasLoggedSynchronizationUsageToday() then
+            exit; // cheapest check first: after the first daily log, every later job run exits here
+        if not MasterDataManagementSetup.Get() then
+            exit;
+        if not MasterDataManagementSetup."Is Enabled" then
+            exit;
+        FeatureTelemetry.LogUptake('0000OUA', FeatureNameTxt, Enum::"Feature Uptake Status"::Used);
+        if MasterDataManagementSetup.IsCrossEnvironment() then
+            FeatureTelemetry.LogUsage('', FeatureNameTxt, CrossEnvSynchUsageTxt) // telemetry event ID assigned by the NAV registration script
+        else
+            FeatureTelemetry.LogUsage('0000JIR', FeatureNameTxt, SameEnvSynchUsageTxt);
+        SetSynchronizationUsageLoggedToday();
+    end;
+
+    local procedure HasLoggedSynchronizationUsageToday(): Boolean
+    var
+        StoredValue: Text;
+        LastLoggedDate: Date;
+    begin
+        if not IsolatedStorage.Get(LastSynchUsageTelemetryDateKeyTok, DataScope::Company, StoredValue) then
+            exit(false);
+        if not Evaluate(LastLoggedDate, StoredValue, 9) then // format 9 = locale-independent XML date
+            exit(false);
+        exit(LastLoggedDate = Today());
+    end;
+
+    local procedure SetSynchronizationUsageLoggedToday()
+    begin
+        IsolatedStorage.Set(LastSynchUsageTelemetryDateKeyTok, Format(Today(), 0, 9), DataScope::Company);
     end;
 
     internal procedure IsEnabled(): Boolean
