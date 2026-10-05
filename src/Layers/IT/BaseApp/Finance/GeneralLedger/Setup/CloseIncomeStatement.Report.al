@@ -95,10 +95,8 @@ report 94 "Close Income Statement"
                         if TempEntryNoAmountBuffer.Find() then begin
                             TempEntryNoAmountBuffer.Amount := TempEntryNoAmountBuffer.Amount + Amount;
                             TempEntryNoAmountBuffer.Amount2 := TempEntryNoAmountBuffer.Amount2 + "Additional-Currency Amount";
-                            if "Source Currency Code" <> '' then begin
-                                TempEntryNoAmountBuffer."Source Currency Amount" := TempEntryNoAmountBuffer."Source Currency Amount" + "Source Currency Amount";
-                                TempEntryNoAmountBuffer."Source Currency VAT Amount" := TempEntryNoAmountBuffer."Source Currency VAT Amount" + "Source Currency VAT Amount";
-                            end;
+                            TempEntryNoAmountBuffer."Source Currency Amount" := TempEntryNoAmountBuffer."Source Currency Amount" + "Source Currency Amount";
+                            TempEntryNoAmountBuffer."Source Currency VAT Amount" := TempEntryNoAmountBuffer."Source Currency VAT Amount" + "Source Currency VAT Amount";
                             TempEntryNoAmountBuffer.Modify();
                         end else begin
                             TempEntryNoAmountBuffer.Amount := Amount;
@@ -703,8 +701,10 @@ report 94 "Close Income Statement"
             exit(false);
         ProcessedGLEntryGroups.Add(GroupFilter, true);
 
-        GLEntry.CalcSums(Amount);
+        GLEntry.CalcSums(Amount, "Source Currency Amount", "Source Currency VAT Amount");
         GLEntrySource.Amount := GLEntry.Amount;
+        GLEntrySource."Source Currency Amount" := GLEntry."Source Currency Amount";
+        GLEntrySource."Source Currency VAT Amount" := GLEntry."Source Currency VAT Amount";
         TotalAmount += GLEntrySource.Amount;
         if GLSetup."Additional Reporting Currency" <> '' then begin
             GLEntry.CalcSums("Additional-Currency Amount");

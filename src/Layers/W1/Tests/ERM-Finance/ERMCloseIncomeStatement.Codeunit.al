@@ -752,8 +752,6 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalLine: Record "Gen. Journal Line";
         IncomeStatementAccount: Record "G/L Account";
         RetainedEarningsAccountNo: Code[20];
-        BalancingAccountNo: Code[20];
-        SourceCurrencyCode: Code[10];
         ClosingDocumentNo: Code[20];
         FiscalYearStartDate: Date;
         FiscalYearEndDate: Date;
@@ -762,26 +760,48 @@ codeunit 134228 "ERM Close Income Statement"
         // [SCENARIO] Grouped closing sums the source-currency amounts of all LCY entries, not just the first entry.
         Initialize();
 
-        // [GIVEN] A closed fiscal year with AUD LCY, no reporting currency and no selected dimensions
-        PrepareIncomeStatementClosingScenario(GenJournalLine, SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate, 'AUD');
-        CreateIncomeStatementAccount(IncomeStatementAccount);
-        BalancingAccountNo := CreateBalanceGLAccountNo();
-        RetainedEarningsAccountNo := CreateBalanceGLAccountNo();
+        // [GIVEN] Account "A" has two LCY entries of 100 separated by a USD entry, without reporting currency or dimensions
+        PrepareLCYSourceCurrencyClosingScenario(
+            GenJournalLine, IncomeStatementAccount, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
         ClosingDocumentNo := LibraryUtility.GenerateGUID();
-
-        // [GIVEN] Account "A" has two LCY entries of 100, separated by a USD entry on a different date
-        PostIncomeStatementEntry(
-            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 10, 100, '');
-        PostIncomeStatementEntry(
-            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 40, 400, SourceCurrencyCode);
-        PostIncomeStatementEntry(
-            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 70, 100, '');
         Commit();
 
         // [WHEN] Close by business unit with Balance selected and no dimensions selected
         CreateFilteredIncomeStatementClosing(
             GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, ClosingDocumentNo, IncomeStatementAccount."No.",
             PostToRetainedEarningsAcc::Balance, false);
+
+        // [THEN] The LCY closing line offsets both the amount and source-currency amount of the two LCY entries
+        VerifyLCYClosingSourceCurrencyAmount(
+            GenJournalLine, IncomeStatementAccount."No.", FiscalYearStartDate, FiscalYearEndDate);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    procedure CloseIncomeStatementSumsLCYSourceCurrencyAmountWithoutGrouping()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        IncomeStatementAccount: Record "G/L Account";
+        RetainedEarningsAccountNo: Code[20];
+        ClosingDocumentNo: Code[20];
+        FiscalYearStartDate: Date;
+        FiscalYearEndDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Closing without business units or dimensions sums the source-currency amounts of all LCY entries.
+        Initialize();
+
+        // [GIVEN] Account "A" has two LCY entries of 100 separated by a USD entry, without reporting currency or dimensions
+        PrepareLCYSourceCurrencyClosingScenario(
+            GenJournalLine, IncomeStatementAccount, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
+        ClosingDocumentNo := LibraryUtility.GenerateGUID();
+        Commit();
+
+        // [WHEN] Close with Balance selected, without closing by business unit or dimensions
+        CreateFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, ClosingDocumentNo, IncomeStatementAccount."No.",
+            PostToRetainedEarningsAcc::Balance, false, false);
 
         // [THEN] The LCY closing line offsets both the amount and source-currency amount of the two LCY entries
         VerifyLCYClosingSourceCurrencyAmount(
@@ -879,6 +899,23 @@ codeunit 134228 "ERM Close Income Statement"
         VerifyIncomeStatementAccountBalance(IncomeStatementAccounts[2]."No.", FiscalYearStartDate, FiscalYearEndDate, 134241.51);
     end;
 
+    local procedure PrepareLCYSourceCurrencyClosingScenario(var GenJournalLine: Record "Gen. Journal Line"; var IncomeStatementAccount: Record "G/L Account"; var FiscalYearStartDate: Date; var FiscalYearEndDate: Date; var RetainedEarningsAccountNo: Code[20])
+    var
+        BalancingAccountNo: Code[20];
+        SourceCurrencyCode: Code[10];
+    begin
+        PrepareIncomeStatementClosingScenario(GenJournalLine, SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate, 'AUD');
+        CreateIncomeStatementAccount(IncomeStatementAccount);
+        BalancingAccountNo := CreateBalanceGLAccountNo();
+        RetainedEarningsAccountNo := CreateBalanceGLAccountNo();
+        PostIncomeStatementEntry(
+            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 10, 100, '');
+        PostIncomeStatementEntry(
+            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 40, 400, SourceCurrencyCode);
+        PostIncomeStatementEntry(
+            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 70, 100, '');
+    end;
+
     local procedure CreateIncomeStatementAccount(var GLAccount: Record "G/L Account")
     begin
         LibraryERM.CreateGLAccount(GLAccount);
@@ -924,6 +961,13 @@ codeunit 134228 "ERM Close Income Statement"
     end;
 
     local procedure CreateFilteredIncomeStatementClosing(var GenJournalLine: Record "Gen. Journal Line"; FiscalYearEndDate: Date; RetainedEarningsAccountNo: Code[20]; DocumentNo: Code[20]; IncomeAccountFilter: Text; RetainedEarningsPosting: Option; UseDimensions: Boolean)
+    begin
+        CreateFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, DocumentNo, IncomeAccountFilter,
+            RetainedEarningsPosting, true, UseDimensions);
+    end;
+
+    local procedure CreateFilteredIncomeStatementClosing(var GenJournalLine: Record "Gen. Journal Line"; FiscalYearEndDate: Date; RetainedEarningsAccountNo: Code[20]; DocumentNo: Code[20]; IncomeAccountFilter: Text; RetainedEarningsPosting: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean)
     var
         GLAccount: Record "G/L Account";
         CloseIncomeStatementReport: Report "Close Income Statement";
@@ -934,7 +978,7 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(DocumentNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsPosting);
-        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(ClosePerBusinessUnit);
         LibraryVariableStorage.Enqueue(UseDimensions);
         GLAccount.SetFilter("No.", IncomeAccountFilter);
         CloseIncomeStatementReport.SetTableView(GLAccount);
