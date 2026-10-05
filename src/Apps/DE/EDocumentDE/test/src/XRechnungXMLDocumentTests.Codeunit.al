@@ -176,6 +176,52 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatVerifyIssueDateUsesDocumentDate();
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentDate: Date;
+        IssueDatePathTok: Label '/ns0:CreditNote/cbc:IssueDate', Locked = true;
+    begin
+        // [SCENARIO 8904] Export posted sales credit memo uses Document Date, not Posting Date, as IssueDate
+        Initialize();
+
+        // [GIVEN] Create and post Sales Credit Memo with a Document Date different from the Posting Date
+        DocumentDate := CalcDate('<-10D>', WorkDate());
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithDocumentDate("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, DocumentDate));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] IssueDate equals the Document Date and not the Posting Date
+        Assert.AreEqual(FormatDate(SalesCrMemoHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), StrSubstNo(IncorrectValueErr, IssueDatePathTok));
+        Assert.AreNotEqual(FormatDate(SalesCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), 'IssueDate should not equal Posting Date');
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatVerifyIssueDateUsesDocumentDate();
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentDate: Date;
+        IssueDatePathTok: Label '/ubl:Invoice/cbc:IssueDate', Locked = true;
+    begin
+        // [SCENARIO 8904] Export posted service invoice uses Document Date, not Posting Date, as IssueDate
+        Initialize();
+
+        // [GIVEN] Create and post Service Invoice with a Document Date different from the Posting Date
+        DocumentDate := CalcDate('<-10D>', WorkDate());
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocumentWithDocumentDate(DocumentDate));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] IssueDate equals the Document Date and not the Posting Date
+        Assert.AreEqual(FormatDate(ServiceInvoiceHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), StrSubstNo(IncorrectValueErr, IssueDatePathTok));
+        Assert.AreNotEqual(FormatDate(ServiceInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), 'IssueDate should not equal Posting Date');
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyBuyerReferenceAsCustomerReference();
     var
         Customer: Record Customer;
@@ -3998,6 +4044,16 @@ codeunit 13918 "XRechnung XML Document Tests"
         ServiceHeader: Record "Service Header";
     begin
         ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        exit(PostServiceDocument(ServiceHeader));
+    end;
+
+    local procedure CreateAndPostServiceDocumentWithDocumentDate(DocumentDate: Date): Code[20];
+    var
+        ServiceHeader: Record "Service Header";
+    begin
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        ServiceHeader.Validate("Document Date", DocumentDate);
+        ServiceHeader.Modify(true);
         exit(PostServiceDocument(ServiceHeader));
     end;
 
