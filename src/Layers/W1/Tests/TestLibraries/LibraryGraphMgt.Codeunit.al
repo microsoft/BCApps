@@ -101,7 +101,7 @@ codeunit 130618 "Library - Graph Mgt"
         GetTextResponseAndCheckForErrors(HttpRequestMessage, ResponseText, ExpectedResponseCode);
     end;
 
-    procedure PostToWebServiceAndCheckResponseCodeExtended(TargetURL: Text; JSONBody: Text; var ResponseText: Text; var ResponseHeaders: HttpHeaders; ExpectedResponseCode: Integer)
+    procedure PostToWebServiceAndCheckResponseCodeExtended(TargetURL: Text; JSONBody: Text; var ResponseText: Text; var ResponseHeaders: Dictionary of [Text, Text]; ExpectedResponseCode: Integer)
     var
         HttpRequestMessage: HttpRequestMessage;
     begin
@@ -405,7 +405,7 @@ codeunit 130618 "Library - Graph Mgt"
         exit(String);
     end;
 
-    local procedure ExecuteWebRequestAndReadTextResponse(var HttpRequestMessage: HttpRequestMessage; var ResponseText: Text; var ResponseError: Text; var ResponseStatusCode: Integer; var ResponseStatusName: Text; var ResponseHeaders: HttpHeaders): Boolean
+    local procedure ExecuteWebRequestAndReadTextResponse(var HttpRequestMessage: HttpRequestMessage; var ResponseText: Text; var ResponseError: Text; var ResponseStatusCode: Integer; var ResponseStatusName: Text; var ResponseHeaders: Dictionary of [Text, Text]): Boolean
     var
         TempBlob: Codeunit "Temp Blob";
         Successful: Boolean;
@@ -417,11 +417,12 @@ codeunit 130618 "Library - Graph Mgt"
         exit(Successful);
     end;
 
-    local procedure ExecuteWebRequestAndReadResponse(var HttpRequestMessage: HttpRequestMessage; var TempBlob: Codeunit "Temp Blob"; var ResponseError: Text; var ResponseStatusCode: Integer; var ResponseStatusName: Text; var ResponseHeaders: HttpHeaders): Boolean
+    local procedure ExecuteWebRequestAndReadResponse(var HttpRequestMessage: HttpRequestMessage; var TempBlob: Codeunit "Temp Blob"; var ResponseError: Text; var ResponseStatusCode: Integer; var ResponseStatusName: Text; var ResponseHeaders: Dictionary of [Text, Text]): Boolean
     var
         HttpClient: HttpClient;
         HttpResponseMessage: HttpResponseMessage;
         RequestHeaders: HttpHeaders;
+        ContentHeaders: HttpHeaders;
         HttpResponseInStream: InStream;
         ResponseOutStream: OutStream;
         LastError: Text;
@@ -431,6 +432,7 @@ codeunit 130618 "Library - Graph Mgt"
         Clear(TempBlob);
         ResponseStatusCode := 0;
         ResponseStatusName := '';
+        Clear(ResponseHeaders);
 
         ClearLastError();
         OnExecuteWebRequestAndReadResponseOnBeforeGetResponse(HttpRequestMessage);
@@ -449,7 +451,9 @@ codeunit 130618 "Library - Graph Mgt"
 
         ResponseStatusCode := HttpResponseMessage.HttpStatusCode();
         ResponseStatusName := GetStatusName(HttpResponseMessage);
-        ResponseHeaders := HttpResponseMessage.Headers();
+        HttpResponseMessage.Content.GetHeaders(ContentHeaders);
+        AddHeadersToDictionary(ResponseHeaders, HttpResponseMessage.Headers());
+        AddHeadersToDictionary(ResponseHeaders, ContentHeaders);
 
         HttpResponseMessage.Content.ReadAs(HttpResponseInStream);
         TempBlob.CreateOutStream(ResponseOutStream);
@@ -458,7 +462,7 @@ codeunit 130618 "Library - Graph Mgt"
         if HttpResponseMessage.IsSuccessStatusCode() then
             exit(true);
 
-        LastError := StrSubstNo(RemoteServerErr, ResponseStatusCode, HttpResponseMessage.ReasonPhrase());
+        LastError := StrSubstNo(RemoteServerErr, ResponseStatusCode, GetReasonPhrase(HttpResponseMessage, ResponseStatusName));
         ResponseError := LastError;
 
         if not GetErrorFromJSONResponse(ReadTextFromTempBlob(TempBlob), ErrorCode, ErrorMessage) then
@@ -483,10 +487,101 @@ codeunit 130618 "Library - Graph Mgt"
             Result += TextLine;
     end;
 
-    local procedure GetStatusName(var HttpResponseMessage: HttpResponseMessage): Text
+    local procedure AddHeadersToDictionary(var ResponseHeaders: Dictionary of [Text, Text]; Headers: HttpHeaders)
+    var
+        HeaderValues: array[50] of Text;
+        HeaderName: Text;
+        HeaderValue: Text;
+        Index: Integer;
     begin
-        // Matches the System.Net.HttpStatusCode names (for example 'BadRequest') that tests assert on.
-        exit(DelChr(HttpResponseMessage.ReasonPhrase(), '=', ' -'));
+        foreach HeaderName in Headers.Keys() do begin
+            Clear(HeaderValues);
+            Headers.GetValues(HeaderName, HeaderValues);
+            HeaderValue := '';
+            for Index := 1 to ArrayLen(HeaderValues) do
+                if HeaderValues[Index] <> '' then
+                    if HeaderValue = '' then
+                        HeaderValue := HeaderValues[Index]
+                    else
+                        HeaderValue += ',' + HeaderValues[Index];
+            ResponseHeaders.Set(HeaderName, HeaderValue);
+        end;
+    end;
+
+    local procedure GetStatusName(var HttpResponseMessage: HttpResponseMessage): Text
+    var
+        StatusName: Text;
+    begin
+        // Tests assert on the System.Net.HttpStatusCode names (for example 'BadRequest'), so map the code
+        // instead of relying on the reason phrase, which is empty over HTTP/2 and may differ from the enum name.
+        case HttpResponseMessage.HttpStatusCode() of
+            200:
+                exit('OK');
+            201:
+                exit('Created');
+            202:
+                exit('Accepted');
+            204:
+                exit('NoContent');
+            304:
+                exit('NotModified');
+            400:
+                exit('BadRequest');
+            401:
+                exit('Unauthorized');
+            403:
+                exit('Forbidden');
+            404:
+                exit('NotFound');
+            405:
+                exit('MethodNotAllowed');
+            406:
+                exit('NotAcceptable');
+            408:
+                exit('RequestTimeout');
+            409:
+                exit('Conflict');
+            410:
+                exit('Gone');
+            411:
+                exit('LengthRequired');
+            412:
+                exit('PreconditionFailed');
+            413:
+                exit('RequestEntityTooLarge');
+            415:
+                exit('UnsupportedMediaType');
+            416:
+                exit('RequestedRangeNotSatisfiable');
+            422:
+                exit('UnprocessableEntity');
+            428:
+                exit('PreconditionRequired');
+            429:
+                exit('TooManyRequests');
+            500:
+                exit('InternalServerError');
+            501:
+                exit('NotImplemented');
+            502:
+                exit('BadGateway');
+            503:
+                exit('ServiceUnavailable');
+            504:
+                exit('GatewayTimeout');
+        end;
+
+        StatusName := DelChr(HttpResponseMessage.ReasonPhrase(), '=', ' -');
+        if StatusName = '' then
+            StatusName := Format(HttpResponseMessage.HttpStatusCode());
+        exit(StatusName);
+    end;
+
+    local procedure GetReasonPhrase(var HttpResponseMessage: HttpResponseMessage; StatusName: Text): Text
+    begin
+        if HttpResponseMessage.ReasonPhrase() <> '' then
+            exit(HttpResponseMessage.ReasonPhrase());
+        exit(StatusName);
     end;
 
     procedure GetODataTargetURL(ObjType: ObjectType; ObjectNumber: Integer): Text
@@ -887,12 +982,12 @@ codeunit 130618 "Library - Graph Mgt"
 
     local procedure GetTextResponseAndCheckForErrors(var HttpRequestMessage: HttpRequestMessage; var ResponseText: Text; ExpectedResponseCode: Integer)
     var
-        ResponseHeaders: HttpHeaders;
+        ResponseHeaders: Dictionary of [Text, Text];
     begin
         GetTextResponseAndCheckForErrorsExtended(HttpRequestMessage, ResponseText, ResponseHeaders, ExpectedResponseCode);
     end;
 
-    local procedure GetTextResponseAndCheckForErrorsExtended(var HttpRequestMessage: HttpRequestMessage; var ResponseText: Text; var ResponseHeaders: HttpHeaders; ExpectedResponseCode: Integer)
+    local procedure GetTextResponseAndCheckForErrorsExtended(var HttpRequestMessage: HttpRequestMessage; var ResponseText: Text; var ResponseHeaders: Dictionary of [Text, Text]; ExpectedResponseCode: Integer)
     var
         ResponseError: Text;
         ResponseStatusName: Text;
@@ -907,7 +1002,7 @@ codeunit 130618 "Library - Graph Mgt"
 
     local procedure GetResponseAndCheckForErrors(var HttpRequestMessage: HttpRequestMessage; var TempBlob: Codeunit "Temp Blob"; ExpectedResponseCode: Integer)
     var
-        ResponseHeaders: HttpHeaders;
+        ResponseHeaders: Dictionary of [Text, Text];
         ResponseError: Text;
         ResponseStatusName: Text;
         Method: Text;
