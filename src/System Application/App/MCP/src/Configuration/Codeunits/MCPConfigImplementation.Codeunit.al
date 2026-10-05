@@ -1601,8 +1601,6 @@ codeunit 8351 "MCP Config Implementation"
         repeat
             Clear(AgentJson);
             AgentJson.Add('agentId', Format(MCPConfigurationAgent."Agent ID", 0, 9));
-            AgentJson.Add('agentName', MCPConfigurationAgent."Agent Name");
-            AgentJson.Add('agentDescription', MCPConfigurationAgent."Agent Description");
             AgentsArray.Add(AgentJson);
         until MCPConfigurationAgent.Next() = 0;
     end;
@@ -1725,13 +1723,11 @@ codeunit 8351 "MCP Config Implementation"
 
     local procedure ImportAgent(ConfigId: Guid; AgentJson: JsonObject)
     var
-        MCPConfigurationAgent: Record "MCP Configuration Agent";
         AgentIdToken: JsonToken;
         AgentId: Guid;
     begin
         if not AgentJson.Get('agentId', AgentIdToken) then
-            if not AgentJson.Get('agentUserSecurityId', AgentIdToken) then
-                Error(InvalidJsonErr);
+            Error(InvalidJsonErr);
         if not AgentIdToken.IsValue() then
             Error(InvalidJsonErr);
         if AgentIdToken.AsValue().IsNull() then
@@ -1739,13 +1735,7 @@ codeunit 8351 "MCP Config Implementation"
         if not Evaluate(AgentId, AgentIdToken.AsValue().AsText()) then
             Error(InvalidJsonErr);
 
-        MCPConfigurationAgent.ID := ConfigId;
-        MCPConfigurationAgent."Agent ID" := AgentId;
-        if AgentJson.Contains('agentName') then
-            MCPConfigurationAgent."Agent Name" := CopyStr(AgentJson.GetText('agentName'), 1, MaxStrLen(MCPConfigurationAgent."Agent Name"));
-        if AgentJson.Contains('agentDescription') then
-            MCPConfigurationAgent."Agent Description" := CopyStr(AgentJson.GetText('agentDescription'), 1, MaxStrLen(MCPConfigurationAgent."Agent Description"));
-        MCPConfigurationAgent.Insert();
+        CreateAgentTool(ConfigId, AgentId);
     end;
     #endregion
 

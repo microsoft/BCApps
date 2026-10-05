@@ -1327,8 +1327,8 @@ codeunit 130130 "MCP Config Test"
         AgentsArray.Get(0, AgentToken);
         AgentJson := AgentToken.AsObject();
         Assert.AreEqual(Format(AgentId, 0, 9), AgentJson.GetText('agentId'), 'Agent ID mismatch');
-        Assert.AreEqual('Configured agent', AgentJson.GetText('agentName'), 'Agent name mismatch');
-        Assert.AreEqual('', AgentJson.GetText('agentDescription'), 'Agent description mismatch');
+        Assert.IsFalse(AgentJson.Contains('agentName'), 'Agent name should not be exported');
+        Assert.IsFalse(AgentJson.Contains('agentDescription'), 'Agent description should not be exported');
     end;
 
     [Test]
@@ -1336,7 +1336,6 @@ codeunit 130130 "MCP Config Test"
     var
         MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigurationAgent: Record "MCP Configuration Agent";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
         InStream: InStream;
@@ -1344,14 +1343,11 @@ codeunit 130130 "MCP Config Test"
         ImportedConfigId: Guid;
         NewName: Text[100];
         NewDescription: Text[250];
-        AgentId: Guid;
     begin
         // [GIVEN] Configuration with API, data query, and agent tools enabled is created and exported
         SourceConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(SourceConfigId);
         CreateMCPConfigTool(SourceConfigId);
-        AgentId := CreateGuid();
-        InsertConfigurationAgent(SourceConfigId, AgentId, 'Configured agent', '');
         MCPConfiguration.GetBySystemId(SourceConfigId);
         MCPConfiguration.EnableApiTools := true;
         MCPConfiguration.EnableAlQueryTools := true;
@@ -1383,10 +1379,6 @@ codeunit 130130 "MCP Config Test"
         Assert.RecordCount(MCPConfigurationTool, 2);
         MCPConfigurationTool.FindFirst();
         Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version mismatch');
-
-        MCPConfigurationAgent.Get(ImportedConfigId, AgentId);
-        MCPConfigurationAgent.TestField("Agent Name", 'Configured agent');
-        MCPConfigurationAgent.TestField("Agent Description", '');
     end;
 
     #endregion
