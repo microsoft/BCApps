@@ -85,14 +85,6 @@ codeunit 5870 "Calculate BOM Tree"
         exit(GlobalTreeType);
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure GenerateTreeForManyItems', '27.0')]
-    procedure GenerateTreeForItems(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; TreeType: Option " ",Availability,Cost)
-    begin
-        GenerateTreeForManyItems(ParentItem, BOMBuffer, "BOM Tree Type".FromInteger(TreeType));
-    end;
-#endif
-
     procedure GenerateTreeForManyItems(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; TreeType: Enum "BOM Tree Type")
     var
         i: Integer;
@@ -128,14 +120,6 @@ codeunit 5870 "Calculate BOM Tree"
         if not HideDialog and GuiAllowed() then
             Window.Close();
     end;
-
-#if not CLEAN27
-    [Obsolete('Replaced by procedure GenerateTreeForOneItem()', '27.0')]
-    procedure GenerateTreeForItem(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; DemandDate: Date; TreeType: Option)
-    begin
-        GenerateTreeForOneItem(ParentItem, BOMBuffer, DemandDate, "BOM Tree Type".FromInteger(TreeType));
-    end;
-#endif
 
     procedure GenerateTreeForOneItem(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; DemandDate: Date; TreeType: Enum "BOM Tree Type")
     begin
@@ -180,35 +164,6 @@ codeunit 5870 "Calculate BOM Tree"
     begin
         OnGenerateTreeForSource(SourceRecordVar, BOMBuffer, BOMTreeType, ShowBy, DemandDate, ItemFilter, EntryNo);
     end;
-
-#if not CLEAN27
-    [Obsolete('Replaced by procedure GenerateTreeForAssemblyHeader()', '27.0')]
-    procedure GenerateTreeForAsm(AsmHeader: Record Microsoft.Assembly.Document."Assembly Header"; var BOMBuffer: Record "BOM Buffer"; TreeType: Option)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    [Obsolete('Moved to codeunit AsmCalculateBOMTree', '27.0')]
-    procedure GenerateTreeForAssemblyHeader(AsmHeader: Record Microsoft.Assembly.Document."Assembly Header"; var BOMBuffer: Record "BOM Buffer"; TreeType: Enum "BOM Tree Type")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    [Obsolete('Replaced by procedure GenerateTreeForProdOrderLine', '27.0')]
-    procedure GenerateTreeForProdLine(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var BOMBuffer: Record "BOM Buffer"; TreeType: Option)
-    begin
-        GenerateTreeForProdOrderLine(ProdOrderLine, BOMBuffer, "BOM Tree Type".FromInteger(TreeType));
-    end;
-#endif
-
-#if not CLEAN27
-    [Obsolete('Moved to codeunit MfgCalculateBOMTree', '27.0')]
-    procedure GenerateTreeForProdOrderLine(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var BOMBuffer: Record "BOM Buffer"; TreeType: Enum "BOM Tree Type")
-    begin
-    end;
-#endif
 
     procedure CalculateTreeType(var BOMBuffer: Record "BOM Buffer"; ShowTotalAvailability2: Boolean; TreeType: Enum "BOM Tree Type")
     begin
@@ -846,6 +801,7 @@ codeunit 5870 "Calculate BOM Tree"
     begin
     end;
 
+<<<<<<< HEAD
 #if not CLEAN27
     internal procedure RunOnAfterGenerateProdCompSubTree(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var ParentBOMBuffer: Record "BOM Buffer")
     begin
@@ -911,23 +867,12 @@ codeunit 5870 "Calculate BOM Tree"
     end;
 #endif
 
+=======
+>>>>>>> 3f135fd55af4959ce460cc90b1f05d4e48a14564
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFilterBOMBuffer(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; DemandDate: Date; TreeType: Option; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFilterByQuantityPer(var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var IsHandled: Boolean; BOMBuffer: Record "BOM Buffer")
-    begin
-        OnBeforeFilterByQuantityPer(ProductionBOMLine, IsHandled, BOMBuffer);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCalculateBOMTree', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFilterByQuantityPer(var ProductionBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var IsHandled: Boolean; BOMBuffer: Record "BOM Buffer")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenerateTreeForItems(var HideDialog: Boolean)
@@ -939,6 +884,7 @@ codeunit 5870 "Calculate BOM Tree"
     begin
     end;
 
+<<<<<<< HEAD
 #if not CLEAN27
     internal procedure RunOnBeforeTransferFromProdBOM(var BOMBuffer: Record "BOM Buffer"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var ParentItem: Record Item; var ParentBOMBuffer: Record "BOM Buffer"; var EntryNo2: Integer; TreeType: Option " ",Availability,Cost)
     begin
@@ -1017,23 +963,12 @@ codeunit 5870 "Calculate BOM Tree"
     end;
 #endif
 
+=======
+>>>>>>> 3f135fd55af4959ce460cc90b1f05d4e48a14564
     [IntegrationEvent(false, false)]
     local procedure OnGenerateItemSubTreeOnAfterParentItemGet(var ParentItem: Record Item)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnGenerateProdCompSubTreeOnBeforeBOMBufferModify(var BOMBuffer: Record "BOM Buffer"; var ParentBOMBuffer: Record "BOM Buffer"; ParentItem: Record Item)
-    begin
-        OnGenerateProdCompSubTreeOnBeforeBOMBufferModify(BOMBuffer, ParentBOMBuffer, ParentItem);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCalculateBOMTree', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGenerateProdCompSubTreeOnBeforeBOMBufferModify(var BOMBuffer: Record "BOM Buffer"; var ParentBOMBuffer: Record "BOM Buffer"; ParentItem: Record Item)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnTraverseCostTreeOnAfterAddCosts(var ParentBOMBuffer: Record "BOM Buffer"; var BOMBuffer: Record "BOM Buffer")
@@ -1054,45 +989,6 @@ codeunit 5870 "Calculate BOM Tree"
     local procedure OnTraverseTreeOnBeforeCalcAbleToMakeParentAndTopItem(var BOMBuffer: Record "BOM Buffer"; var ParentBOMBuffer: Record "BOM Buffer"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnCalcRoutingLineCostsOnBeforeBOMBufferAdd(RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; LotSize: Decimal; ScrapPct: Decimal; var CapCost: Decimal; var SubcontractedCapCost: Decimal; var CapOverhead: Decimal; var BOMBuffer: Record "BOM Buffer");
-    begin
-        OnCalcRoutingLineCostsOnBeforeBOMBufferAdd(RoutingLine, LotSize, ScrapPct, CapCost, SubcontractedCapCost, CapOverhead, BOMBuffer);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCalculateBOMTree', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcRoutingLineCostsOnBeforeBOMBufferAdd(RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; LotSize: Decimal; ScrapPct: Decimal; var CapCost: Decimal; var SubcontractedCapCost: Decimal; var CapOverhead: Decimal; var BOMBuffer: Record "BOM Buffer");
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnGenerateProdCompSubTreeOnAfterBOMBufferModify(var BOMBuffer: Record "BOM Buffer"; RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; LotSize: Decimal; ParentItem: Record Item; ParentBOMBuffer: Record "BOM Buffer"; TreeType: Option)
-    begin
-        OnGenerateProdCompSubTreeOnAfterBOMBufferModify(BOMBuffer, RoutingLine, LotSize, ParentItem, ParentBOMBuffer, TreeType);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCalculateBOMTree', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGenerateProdCompSubTreeOnAfterBOMBufferModify(var BOMBuffer: Record "BOM Buffer"; RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; LotSize: Decimal; ParentItem: Record Item; ParentBOMBuffer: Record "BOM Buffer"; TreeType: Option)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(var RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var BOMBuffer: Record "BOM Buffer"; var RunIteration: Boolean)
-    begin
-        OnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(RoutingLine, BOMBuffer, RunIteration);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCalculateBOMTree', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(var RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var BOMBuffer: Record "BOM Buffer"; var RunIteration: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGenerateTreeForItemLocalOnBeforeCalculateTreeType(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var TreeType: Option; var EntryNo: BigInteger)
@@ -1118,19 +1014,6 @@ codeunit 5870 "Calculate BOM Tree"
     local procedure OnCalcAvailabilityOnBeforeUpdateAvailableQty(var BOMBuffer: Record "BOM Buffer"; ExpectedQty: Decimal; AvailQty: Decimal; var AvailableVsExpectedCondition: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeGenerateProdOrderLineSubTree(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var BOMBuffer: Record "BOM Buffer"; var ParentBOMBuffer: Record "BOM Buffer"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeGenerateProdOrderLineSubTree(ProdOrderLine, BOMBuffer, ParentBOMBuffer, Result, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCalculateBOMTree', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGenerateProdOrderLineSubTree(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var BOMBuffer: Record "BOM Buffer"; var ParentBOMBuffer: Record "BOM Buffer"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     procedure OnGenerateTreeForSource(SourceRecordVar: Variant; var BOMBuffer: Record "BOM Buffer"; BOMTreeType: Enum "BOM Tree Type"; ShowBy: Enum "BOM Structure Show By"; DemandDate: Date; var ItemFilter: Record Item; var EntryNo: BigInteger)
