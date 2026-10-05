@@ -12,6 +12,7 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Sales.Peppol;
 #endif
 using Microsoft.Sales.Setup;
+using System.Text;
 using System.Utilities;
 using System.Text;
 
@@ -98,12 +99,12 @@ report 190 "Issue Reminders"
                 Window.Close();
                 Commit();
                 if PrintEmailDocument <> PrintEmailDocument::" " then begin
-                    if TempIssuedReminderHeader.FindSet() then begin
+                    if TempIssuedReminderHeader.FindSet() then
                         repeat
                             IssuedReminderHeaderPrint := TempIssuedReminderHeader;
                             IsHandled := false;
                             OnBeforePrintIssuedReminderHeader(IssuedReminderHeaderPrint, IsHandled, PrintEmailDocument, HideDialog);
-                            if not IsHandled then begin
+                            if not IsHandled then
                                 if PrintEmailDocument = PrintEmailDocument::Print then begin
                                     TempIssuedReminderHeaderToPrint := IssuedReminderHeaderPrint;
                                     TempIssuedReminderHeaderToPrint.Insert();
@@ -111,9 +112,7 @@ report 190 "Issue Reminders"
                                     IssuedReminderHeaderPrint.SetRecFilter();
                                     IssuedReminderHeaderPrint.PrintRecords(false, true, HideDialog);
                                 end;
-                            end;
                         until TempIssuedReminderHeader.Next() = 0;
-                    end;
                     if (PrintEmailDocument = PrintEmailDocument::Print) and TempIssuedReminderHeaderToPrint.FindSet() then begin
                         IssuedReminderHeaderRef.GetTable(TempIssuedReminderHeaderToPrint);
                         IssuedReminderHeaderPrint.Reset();
