@@ -420,7 +420,7 @@ page 490 "Acc. Schedule Overview"
                     MultiLine = true;
                     Editable = not ViewOnlyMode;
                 }
-                field("Last Run by User"; TempFinancialReport."Last Run by User")
+                field("Last Run by User"; TempFinancialReport."Last Run by Current User")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Your Last Run';
@@ -432,7 +432,7 @@ page 490 "Acc. Schedule Overview"
                         FinReportAuditLog: Record "Financial Report Audit Log";
                     begin
                         FinReportAuditLog.SetRange("Report Name", TempFinancialReport.Name);
-                        FinReportAuditLog.SetRange(User, UserId());
+                        FinReportAuditLog.SetRange(SystemCreatedBy, UserSecurityId());
                         Page.Run(0, FinReportAuditLog);
                     end;
                 }
@@ -1726,7 +1726,8 @@ page 490 "Acc. Schedule Overview"
         // Transfer filters from FinancialReport
         FinancialReportToLoadTemp.Init();
         FinancialReportToLoadTemp.TransferFields(FinancialReport);
-        FinancialReportToLoadTemp.CalcFields("Last Run by User");
+        FinancialReportToLoadTemp.SetRange("User Security ID Filter", UserSecurityId());
+        FinancialReportToLoadTemp.CalcFields("Last Run by Current User");
         IntroductoryParagraph := FinancialReport.GetIntroductoryParagraph();
         ClosingParagraph := FinancialReport.GetClosingParagraph();
         if not ViewOnlyMode then
