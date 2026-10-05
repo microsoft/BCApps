@@ -19,7 +19,6 @@ using Microsoft.Utilities;
 using System.Globalization;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Security.User;
 using System.Utilities;
 
 table 6906 "Expense Report Header"
@@ -1308,7 +1307,6 @@ table 6906 "Expense Report Header"
 
     local procedure CheckExpenseUserWhenApprovalIsEnabled()
     var
-        UserSetup: Record "User Setup";
         ExpenseUser: Record "Expense User";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -1316,9 +1314,8 @@ table 6906 "Expense Report Header"
         if not ExpenseAgentSetup."Enable Approval Workflow" then
             exit;
 
-        UserSetup.SetLoadFields("Unlimited Expense Approval");
-        ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
-        if UserSetup."Unlimited Expense Approval" then
+        ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+        if ExpenseUser."Unlimited Approval" then
             exit;
 
         ExpenseUser.Get(Rec."Expense User No.");
