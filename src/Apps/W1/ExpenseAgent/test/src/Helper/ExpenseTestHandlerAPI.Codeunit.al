@@ -166,6 +166,7 @@ codeunit 148307 "Expense Test Handler API"
         ApproverExpenseUser.GetBySystemId(approverExpenseUserId);
         ApproverExpenseUser."User Id For Approvals" := CurrentApprovalUserId;
         ApproverExpenseUser.Validate("Can Approve", true);
+        ApproverExpenseUser.Validate("Unlimited Approval", true);
         ApproverExpenseUser.Modify(true);
 
         if ExpenseApprovalSetup.Get(SubmitterExpenseUser."No.") then begin
