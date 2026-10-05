@@ -61,6 +61,58 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CanReopenFullyReceivedWIPPurchaseLineWhileLegacySubcontractingEnabled()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+    begin
+        // [SCENARIO 649448] The compatibility guard does not restrict WIP lines while Legacy Subcontracting is enabled
+        Initialize();
+        SetLegacySubcontracting(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        SetWIPItem(PurchaseLine);
+        PurchaseLine."Quantity Received" := PurchaseLine.Quantity;
+        PurchaseLine."Outstanding Quantity" := 0;
+        PurchaseLine.Modify();
+
+        PurchaseLine.Validate(Quantity, PurchaseLine.Quantity + 1);
+
+        Assert.AreEqual(2, PurchaseLine.Quantity, 'The legacy-enabled purchase line should remain editable.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CannotReopenFullyReceivedNegativeWIPPurchaseLineAfterDisabling()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+    begin
+        // [SCENARIO 649448] Negative completed WIP quantities cannot become outstanding after disabling Legacy Subcontracting
+        Initialize();
+        SetLegacySubcontracting(false);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", -1);
+        SetWIPItem(PurchaseLine);
+        PurchaseLine."Quantity Received" := PurchaseLine.Quantity;
+        PurchaseLine."Outstanding Quantity" := 0;
+        PurchaseLine.Modify();
+
+        asserterror PurchaseLine.Validate(Quantity, -2);
+
+        Assert.ExpectedError(ReopenLegacyWIPPurchaseLineErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure CannotReopenFullyReceivedWIPPurchaseLineWithOverReceiptAfterDisabling()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -163,6 +215,45 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
 
         PurchRcptLine.FindFirst();
         Assert.IsTrue(PurchRcptLine.Correction, 'The ordinary purchase receipt line should be reversed.');
+    end;
+
+    [Test]
+    [HandlerFunctions('AcceptConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure CanUndoSelectedOrdinaryLineWhenReceiptAlsoContainsWIPAfterDisabling()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        WIPPurchaseLine: Record "Purchase Line";
+        OrdinaryPurchaseLine: Record "Purchase Line";
+        WIPPurchRcptLine: Record "Purch. Rcpt. Line";
+        OrdinaryPurchRcptLine: Record "Purch. Rcpt. Line";
+        Vendor: Record Vendor;
+        WIPItem: Record Item;
+        OrdinaryItem: Record Item;
+    begin
+        // [SCENARIO 649448] An unselected completed WIP line does not block undoing an ordinary line from the same receipt
+        Initialize();
+        SetLegacySubcontracting(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(WIPItem);
+        LibraryInventory.CreateItem(OrdinaryItem);
+        LibraryPurchase.CreatePurchaseLine(WIPPurchaseLine, PurchaseHeader, WIPPurchaseLine.Type::Item, WIPItem."No.", 1);
+        SetWIPItem(WIPPurchaseLine);
+        LibraryPurchase.CreatePurchaseLine(OrdinaryPurchaseLine, PurchaseHeader, OrdinaryPurchaseLine.Type::Item, OrdinaryItem."No.", 1);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        SetLegacySubcontracting(false);
+
+        OrdinaryPurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        OrdinaryPurchRcptLine.SetRange("Order Line No.", OrdinaryPurchaseLine."Line No.");
+        OrdinaryPurchRcptLine.FindFirst();
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", OrdinaryPurchRcptLine);
+
+        OrdinaryPurchRcptLine.FindFirst();
+        Assert.IsTrue(OrdinaryPurchRcptLine.Correction, 'The selected ordinary receipt line should be reversed.');
+        WIPPurchRcptLine.Get(OrdinaryPurchRcptLine."Document No.", WIPPurchaseLine."Line No.");
+        Assert.IsFalse(WIPPurchRcptLine.Correction, 'The unselected WIP receipt line should remain unchanged.');
     end;
 
     [Test]
