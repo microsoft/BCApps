@@ -1617,63 +1617,32 @@ codeunit 104000 "Upgrade - BaseApp"
             DefaultDimensionDataTransfer.CopyFields();
         end;
 
-        Clear(DefaultDimension);
-        DefaultDimension.SetRange("Table ID", Database::Item);
-        DefaultDimension.SetFilter(ParentId, '%1', BlankGuid);
-        if not DefaultDimension.IsEmpty() then begin
-            DefaultDimensionDataTransfer.SetTables(Database::Item, Database::"Default Dimension");
-            DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo("Table ID"), '=%1', Database::Item);
-            DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo(ParentId), '%1', BlankGuid);
-            DefaultDimensionDataTransfer.AddFieldValue(Item.FieldNo(SystemId), DefaultDimension.FieldNo(ParentId));
-            DefaultDimensionDataTransfer.AddJoin(Item.FieldNo("No."), DefaultDimension.FieldNo("No."));
-            DefaultDimensionDataTransfer.UpdateAuditFields := false;
-            DefaultDimensionDataTransfer.CopyFields();
-            Clear(DefaultDimensionDataTransfer);
-        end;
-
-        Clear(DefaultDimension);
-        DefaultDimension.SetRange("Table ID", Database::Customer);
-        DefaultDimension.SetFilter(ParentId, '%1', BlankGuid);
-        if not DefaultDimension.IsEmpty() then begin
-            DefaultDimensionDataTransfer.SetTables(Database::Customer, Database::"Default Dimension");
-            DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo("Table ID"), '=%1', Database::Customer);
-            DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo(ParentId), '%1', BlankGuid);
-            DefaultDimensionDataTransfer.AddFieldValue(Customer.FieldNo(SystemId), DefaultDimension.FieldNo(ParentId));
-            DefaultDimensionDataTransfer.AddJoin(Customer.FieldNo("No."), DefaultDimension.FieldNo("No."));
-            DefaultDimensionDataTransfer.UpdateAuditFields := false;
-            DefaultDimensionDataTransfer.CopyFields();
-            Clear(DefaultDimensionDataTransfer);
-        end;
-
-        Clear(DefaultDimension);
-        DefaultDimension.SetRange("Table ID", Database::Vendor);
-        DefaultDimension.SetFilter(ParentId, '%1', BlankGuid);
-        if not DefaultDimension.IsEmpty() then begin
-            DefaultDimensionDataTransfer.SetTables(Database::Vendor, Database::"Default Dimension");
-            DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo("Table ID"), '=%1', Database::Vendor);
-            DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo(ParentId), '%1', BlankGuid);
-            DefaultDimensionDataTransfer.AddFieldValue(Vendor.FieldNo(SystemId), DefaultDimension.FieldNo(ParentId));
-            DefaultDimensionDataTransfer.AddJoin(Vendor.FieldNo("No."), DefaultDimension.FieldNo("No."));
-            DefaultDimensionDataTransfer.UpdateAuditFields := false;
-            DefaultDimensionDataTransfer.CopyFields();
-            Clear(DefaultDimensionDataTransfer);
-        end;
-
-        Clear(DefaultDimension);
-        DefaultDimension.SetRange("Table ID", Database::Employee);
-        DefaultDimension.SetFilter(ParentId, '%1', BlankGuid);
-        if not DefaultDimension.IsEmpty() then begin
-            DefaultDimensionDataTransfer.SetTables(Database::Employee, Database::"Default Dimension");
-            DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo("Table ID"), '=%1', Database::Employee);
-            DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo(ParentId), '%1', BlankGuid);
-            DefaultDimensionDataTransfer.AddFieldValue(Employee.FieldNo(SystemId), DefaultDimension.FieldNo(ParentId));
-            DefaultDimensionDataTransfer.AddJoin(Employee.FieldNo("No."), DefaultDimension.FieldNo("No."));
-            DefaultDimensionDataTransfer.UpdateAuditFields := false;
-            DefaultDimensionDataTransfer.CopyFields();
-            Clear(DefaultDimensionDataTransfer);
-        end;
+        UpgradeDefaultDimensionParentIds(Database::Item, Item.FieldNo("No."), Item.FieldNo(SystemId));
+        UpgradeDefaultDimensionParentIds(Database::Customer, Customer.FieldNo("No."), Customer.FieldNo(SystemId));
+        UpgradeDefaultDimensionParentIds(Database::Vendor, Vendor.FieldNo("No."), Vendor.FieldNo(SystemId));
+        UpgradeDefaultDimensionParentIds(Database::Employee, Employee.FieldNo("No."), Employee.FieldNo(SystemId));
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDefaultDimensionParentTypeUpgradeTag());
+    end;
+
+    local procedure UpgradeDefaultDimensionParentIds(TableId: Integer; NoFieldNo: Integer; SystemIdFieldNo: Integer)
+    var
+        DefaultDimension: Record "Default Dimension";
+        DefaultDimensionDataTransfer: DataTransfer;
+        BlankGuid: Guid;
+    begin
+        DefaultDimension.SetRange("Table ID", TableId);
+        DefaultDimension.SetFilter(ParentId, '%1', BlankGuid);
+        if DefaultDimension.IsEmpty() then
+            exit;
+
+        DefaultDimensionDataTransfer.SetTables(TableId, Database::"Default Dimension");
+        DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo("Table ID"), '=%1', TableId);
+        DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo(ParentId), '%1', BlankGuid);
+        DefaultDimensionDataTransfer.AddFieldValue(SystemIdFieldNo, DefaultDimension.FieldNo(ParentId));
+        DefaultDimensionDataTransfer.AddJoin(NoFieldNo, DefaultDimension.FieldNo("No."));
+        DefaultDimensionDataTransfer.UpdateAuditFields := false;
+        DefaultDimensionDataTransfer.CopyFields();
     end;
 
     local procedure UpgradeDimensionValues()
