@@ -61,7 +61,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnAfterTestCorrectInvoiceIsAllowed, '', false, false)]
-    local procedure BlockUnsupportedSubcontractingInvoiceReversal(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
+    local procedure BlockCancelIfHasSubcontractingItemChargeValueEntry(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
     var
         ValueEntry: Record "Value Entry";
     begin
