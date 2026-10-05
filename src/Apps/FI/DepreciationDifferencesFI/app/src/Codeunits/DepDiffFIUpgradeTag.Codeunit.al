@@ -5,7 +5,9 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
+#if CLEAN30
 using System.Upgrade;
+#endif
 
 codeunit 13476 "Dep Diff FI Upgrade Tag"
 {
