@@ -12,6 +12,7 @@ using System.Utilities;
 /// Report for synchronizing document attachments between internal and external storage.
 /// Supports bulk upload, download, and cleanup operations.
 /// Records every failed attachment and its reason in the Error Message Register and logs it to telemetry.
+/// Isolates each attachment step so a runtime error is reported for that attachment and the batch continues.
 /// Interactive runs also show the failures; background runs complete without raising an error.
 /// </summary>
 report 8752 "DA External Storage Sync"
@@ -50,11 +51,17 @@ report 8752 "DA External Storage Sync"
 
                 if IsInteractive then
                     Dialog.Open(ProcessingMsg, TotalCount);
+
+                Commit(); // Commit before the first isolated worker run.
             end;
 
             trigger OnAfterGetRecord()
             var
+                FailureDocumentAttachment: Record "Document Attachment";
+                StepDocumentAttachment: Record "Document Attachment";
                 FailureReason: Text;
+                TelemetryErrorText: Text;
+                TelemetryErrorCallStack: Text;
                 SyncSuccess: Boolean;
                 DeleteSuccess: Boolean;
             begin
@@ -64,38 +71,42 @@ report 8752 "DA External Storage Sync"
                     Dialog.Update(1, ProcessedCount);
 
                 SyncSuccess := false;
-                ClearLastError();
                 case SyncDirection of
                     SyncDirection::"To External Storage":
                         begin
-                            SyncSuccess := ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment, FailureReason);
+                            SyncSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::Upload, FailureReason, TelemetryErrorText, TelemetryErrorCallStack);
                             if SyncSuccess and (Operation = Operation::Move) then begin
-                                ClearLastError();
-                                DeleteSuccess := ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment, FailureReason);
-                                if not DeleteSuccess then
-                                    LogFailure(StrSubstNo(SourceCleanupFailedErr, FailureReason), FailureReason, 'DeleteInternal');
+                                Commit(); // Persist the external copy before trying to remove the internal source.
+                                GetPersistedDocumentAttachment(DocumentAttachment, StepDocumentAttachment);
+                                DeleteSuccess := RunSyncWorker(StepDocumentAttachment, SyncWorkerStep::DeleteInternal, FailureReason, TelemetryErrorText, TelemetryErrorCallStack);
+                                if not DeleteSuccess then begin
+                                    GetPersistedDocumentAttachment(StepDocumentAttachment, FailureDocumentAttachment);
+                                    LogFailure(FailureDocumentAttachment, StrSubstNo(SourceCleanupFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'DeleteInternal');
+                                end;
                             end;
                         end;
                     SyncDirection::"To Internal Storage":
                         begin
-                            SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment, FailureReason);
+                            SyncSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::Download, FailureReason, TelemetryErrorText, TelemetryErrorCallStack);
                             if SyncSuccess and (Operation = Operation::Move) then begin
-                                DocumentAttachment.SetRange("Stored Internally");
-                                DocumentAttachment.Find();
-                                ClearLastError();
-                                DeleteSuccess := ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment, FailureReason);
-                                if not DeleteSuccess then
-                                    LogFailure(StrSubstNo(SourceCleanupFailedErr, FailureReason), FailureReason, 'DeleteExternal');
-                                DocumentAttachment.SetRange("Stored Internally", false);
+                                Commit(); // Persist the internal copy before trying to remove the external source.
+                                GetPersistedDocumentAttachment(DocumentAttachment, StepDocumentAttachment);
+                                DeleteSuccess := RunSyncWorker(StepDocumentAttachment, SyncWorkerStep::DeleteExternal, FailureReason, TelemetryErrorText, TelemetryErrorCallStack);
+                                if not DeleteSuccess then begin
+                                    GetPersistedDocumentAttachment(StepDocumentAttachment, FailureDocumentAttachment);
+                                    LogFailure(FailureDocumentAttachment, StrSubstNo(SourceCleanupFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'DeleteExternal');
+                                end;
                             end;
                         end;
                 end;
 
-                if not SyncSuccess then
+                if not SyncSuccess then begin
+                    GetPersistedDocumentAttachment(DocumentAttachment, FailureDocumentAttachment);
                     if SyncDirection = SyncDirection::"To External Storage" then
-                        LogFailure(StrSubstNo(CopyFailedErr, FailureReason), FailureReason, 'Upload')
+                        LogFailure(FailureDocumentAttachment, StrSubstNo(CopyFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'Upload')
                     else
-                        LogFailure(StrSubstNo(CopyFailedErr, FailureReason), FailureReason, 'Download');
+                        LogFailure(FailureDocumentAttachment, StrSubstNo(CopyFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'Download');
+                end;
 
                 Commit(); // Commit after each record to avoid lost in communication error with external storage service
 
@@ -164,7 +175,6 @@ report 8752 "DA External Storage Sync"
 
     var
         TempErrorMessage: Record "Error Message" temporary;
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Dialog: Dialog;
         HideDialog: Boolean;
         IsInteractive: Boolean;
@@ -178,8 +188,11 @@ report 8752 "DA External Storage Sync"
         CopyFailedErr: Label 'The attachment could not be copied. %1', Comment = '%1 = Failure reason';
         SourceCleanupFailedErr: Label 'The attachment was copied, but could not be removed from the source storage. %1', Comment = '%1 = Failure reason';
         FailuresRegisteredTxt: Label 'External Storage Synchronization: %1 of %2 attachments failed.', Comment = '%1 = Number of failed attachments, %2 = Number of processed attachments';
+        SyncStepFailedErr: Label 'The attachment synchronization step failed.';
+        SyncStepFailedTelemetryErr: Label 'The attachment synchronization step failed.', Locked = true;
         SyncDirection: Option "To External Storage","To Internal Storage";
         Operation: Option Copy,Move;
+        SyncWorkerStep: Option Upload,Download,DeleteInternal,DeleteExternal;
 
     trigger OnPreReport()
     begin
@@ -195,19 +208,60 @@ report 8752 "DA External Storage Sync"
         HideDialog := NewHideDialog;
     end;
 
-    local procedure LogFailure(FailureMessage: Text; FailureReason: Text; FailureOperation: Text)
+    local procedure RunSyncWorker(var TargetDocumentAttachment: Record "Document Attachment"; Step: Option Upload,Download,DeleteInternal,DeleteExternal; var FailureReason: Text; var TelemetryErrorText: Text; var TelemetryErrorCallStack: Text): Boolean
     var
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-        TelemetryErrorText: Text;
+        DAExtStorageSyncWorker: Codeunit "DA Ext. Storage Sync Worker";
     begin
+        Clear(FailureReason);
+        Clear(TelemetryErrorText);
+        Clear(TelemetryErrorCallStack);
+        Clear(DAExtStorageSyncWorker);
+        ClearLastError();
+
+        DAExtStorageSyncWorker.SetStep(Step);
+        if DAExtStorageSyncWorker.Run(TargetDocumentAttachment) then begin
+            FailureReason := DAExtStorageSyncWorker.GetFailureReason();
+            TelemetryErrorText := DAExtStorageSyncWorker.GetTelemetryErrorText();
+            TelemetryErrorCallStack := DAExtStorageSyncWorker.GetTelemetryErrorCallStack();
+            exit(DAExtStorageSyncWorker.GetResult());
+        end;
+
+        FailureReason := GetLastErrorText();
+        if FailureReason = '' then
+            FailureReason := SyncStepFailedErr;
         TelemetryErrorText := GetLastErrorText(true);
         if TelemetryErrorText = '' then
-            TelemetryErrorText := FailureReason;
-        DAFeatureTelemetry.LogSyncFailed(DocumentAttachment, FailureOperation, TelemetryErrorText, GetLastErrorCallStack(), IsInteractive);
+            TelemetryErrorText := SyncStepFailedTelemetryErr;
+        TelemetryErrorCallStack := GetLastErrorCallStack();
+        exit(false);
+    end;
+
+    local procedure LogFailure(FailedDocumentAttachment: Record "Document Attachment"; FailureMessage: Text; TelemetryErrorText: Text; TelemetryErrorCallStack: Text; FailureOperation: Text)
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+    begin
+        if TelemetryErrorText = '' then
+            TelemetryErrorText := SyncStepFailedTelemetryErr;
+        DAFeatureTelemetry.LogSyncFailed(FailedDocumentAttachment, FailureOperation, TelemetryErrorText, TelemetryErrorCallStack, IsInteractive);
 
         FailedCount += 1;
-        TempErrorMessage.LogMessage(DocumentAttachment, DocumentAttachment.FieldNo("File Name"), TempErrorMessage."Message Type"::Error,
-            StrSubstNo(AttachmentFailedErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension", FailureMessage));
+        TempErrorMessage.LogMessage(FailedDocumentAttachment, FailedDocumentAttachment.FieldNo("File Name"), TempErrorMessage."Message Type"::Error,
+            StrSubstNo(AttachmentFailedErr, FailedDocumentAttachment."File Name" + '.' + FailedDocumentAttachment."File Extension", FailureMessage));
+    end;
+
+    local procedure GetPersistedDocumentAttachment(SourceDocumentAttachment: Record "Document Attachment"; var PersistedDocumentAttachment: Record "Document Attachment")
+    begin
+        PersistedDocumentAttachment.Reset();
+        if PersistedDocumentAttachment.Get(
+            SourceDocumentAttachment."Table ID",
+            SourceDocumentAttachment."No.",
+            SourceDocumentAttachment."Document Type",
+            SourceDocumentAttachment."Line No.",
+            SourceDocumentAttachment.ID)
+        then
+            exit;
+
+        PersistedDocumentAttachment := SourceDocumentAttachment;
     end;
 
     local procedure RegisterFailures()

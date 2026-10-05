@@ -39,6 +39,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         NotStoredExternallyErr: Label 'The attachment is not stored in external storage.', Locked = true;
         NoFileAccountErr: Label 'No file account is assigned to the Document Attachments - External Storage file scenario.', Locked = true;
         SharedExternalFileErr: Label 'The external file is shared with another attachment, so it was not deleted.', Locked = true;
+        HardSyncFailureErr: Label 'Simulated attachment persistence failure.', Locked = true;
 
     #region Successful Operations Tests
 
@@ -456,6 +457,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         FailedAttachment: Record "Document Attachment";
         SuccessfulAttachment: Record "Document Attachment";
         ErrorMessages: TestPage "Error Messages";
+        PreviousFailureErr: Label 'Previous unrelated failure', Locked = true;
     begin
         // [SCENARIO] A failure without a platform error is explained, does not reuse a stale error, and does not stop other attachments.
         Initialize();
@@ -468,7 +470,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         ExpectedSyncSummary := 'Processed 1 attachments successfully. 1 failed.';
         ErrorMessages.Trap();
         Commit();
-        asserterror Error('Previous unrelated failure');
+        asserterror Error(PreviousFailureErr);
+        Assert.ExpectedError(PreviousFailureErr);
 
         Report.Run(Report::"DA External Storage Sync");
 
@@ -476,7 +479,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'Missing content.pdf') > 0, 'The error should identify the attachment');
         Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'could not be copied') > 0, 'The failed operation should be explained');
         Assert.IsTrue(StrPos(ErrorMessages.Description.Value, NoInternalContentErr) > 0, 'The specific reason should be reported');
-        Assert.AreEqual(0, StrPos(ErrorMessages.Description.Value, 'Previous unrelated failure'), 'A stale error must not be reported');
+        Assert.AreEqual(0, StrPos(ErrorMessages.Description.Value, PreviousFailureErr), 'A stale error must not be reported');
         Assert.IsFalse(ErrorMessages.Next(), 'Successful attachments must not be listed as failures');
         ErrorMessages.Close();
         RefreshAttachment(SuccessfulAttachment);
@@ -588,6 +591,44 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         VerifyRegisteredFailure(ErrorMessageRegister.ID, LinkedAttachment, 'Already linked.pdf', AlreadyUploadedErr);
 
         // [THEN] The failures did not stop the remaining attachment from being processed
+        RefreshAttachment(SuccessfulAttachment);
+        Assert.IsTrue(SuccessfulAttachment."Stored Externally", 'Other attachments should still be processed');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler')]
+    procedure SyncInBackgroundRegistersHardFailureAndContinues()
+    var
+        FailedAttachment: Record "Document Attachment";
+        SuccessfulAttachment: Record "Document Attachment";
+        ErrorMessageRegister: Record "Error Message Register";
+        HardErrorSubscriber: Codeunit "DA Ext. Storage Hard Error";
+        DAExternalStorageSync: Report "DA External Storage Sync";
+    begin
+        // [SCENARIO] A runtime error while processing one attachment is registered and does not stop the remaining attachments.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        ErrorMessageRegister.DeleteAll(true);
+
+        CreateNamedDocumentAttachment(FailedAttachment, 'Hard failure', 'pdf');
+        CreateNamedDocumentAttachment(SuccessfulAttachment, 'Still processed', 'pdf');
+        HardErrorSubscriber.FailOnModify(FailedAttachment, HardSyncFailureErr);
+        BindSubscription(HardErrorSubscriber);
+
+        Commit();
+        DAExternalStorageSync.SetHideDialog(true);
+        DAExternalStorageSync.Run();
+        UnbindSubscription(HardErrorSubscriber);
+
+        Assert.AreEqual(1, ErrorMessageRegister.Count(), 'The run should create one Error Message Register entry');
+        ErrorMessageRegister.FindFirst();
+        ErrorMessageRegister.CalcFields(Errors);
+        Assert.AreEqual(1, ErrorMessageRegister.Errors, 'The hard failure should be registered');
+        VerifyRegisteredFailure(ErrorMessageRegister.ID, FailedAttachment, 'Hard failure.pdf', HardSyncFailureErr);
+
+        RefreshAttachment(FailedAttachment);
+        Assert.IsFalse(FailedAttachment."Stored Externally", 'The failed attachment state should be rolled back');
         RefreshAttachment(SuccessfulAttachment);
         Assert.IsTrue(SuccessfulAttachment."Stored Externally", 'Other attachments should still be processed');
     end;

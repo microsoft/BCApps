@@ -32,6 +32,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         AttachmentNotFoundErr: Label 'The attachment no longer exists.';
         SharedExternalFileErr: Label 'The external file is shared with another attachment, so it was not deleted.';
         ExternalOperationFailedErr: Label 'The external storage operation failed.';
+        LastFailureReasonSafeForTelemetry: Boolean;
 
     #region File Scenario Interface Implementation
     /// <summary>
@@ -169,6 +170,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         FileName: Text[2048];
     begin
         FailureReason := '';
+        LastFailureReasonSafeForTelemetry := false;
 
         // Check if feature is enabled
         if not IsFeatureEnabled() then
@@ -181,9 +183,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Check if document is already uploaded
         if DocumentAttachment."External File Path" <> '' then
             exit(FailWith(AlreadyUploadedErr, FailureReason));
-
-        // Telemetry logging for feature usage
-        DAFeatureTelemetry.LogFeatureUsed();
 
         // Get file content from document attachment
         TempBlob.CreateOutStream(OutStream);
@@ -206,6 +205,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             DocumentAttachment."External File Path" := FileName;
             DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
             DocumentAttachment.Modify();
+            DAFeatureTelemetry.LogFeatureUsed();
             DAFeatureTelemetry.LogFileUploaded(DocumentAttachment);
             exit(true);
         end;
@@ -288,6 +288,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalFilePath, FileName : Text;
     begin
         FailureReason := '';
+        LastFailureReasonSafeForTelemetry := false;
 
         // Validate input parameters
         if DocumentAttachment."External File Path" = '' then
@@ -399,6 +400,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure DeleteFromExternalStorage(var DocumentAttachment: Record "Document Attachment"; var FailureReason: Text): Boolean
     begin
         FailureReason := '';
+        LastFailureReasonSafeForTelemetry := false;
 
         // Check if feature is enabled
         if not IsFeatureEnabled() then
@@ -473,6 +475,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         TenantMedia: Record "Tenant Media";
     begin
         FailureReason := '';
+        LastFailureReasonSafeForTelemetry := false;
 
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
@@ -1054,15 +1057,22 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Precondition failures have no platform error; clear any stale one so it is not reported instead.
         ClearLastError();
         FailureReason := Reason;
+        LastFailureReasonSafeForTelemetry := true;
         exit(false);
     end;
 
     local procedure FailWithLastError(var FailureReason: Text): Boolean
     begin
+        LastFailureReasonSafeForTelemetry := false;
         FailureReason := GetLastErrorText();
         if FailureReason = '' then
             FailureReason := ExternalOperationFailedErr;
         exit(false);
+    end;
+
+    internal procedure CanLogLastFailureReasonToTelemetry(): Boolean
+    begin
+        exit(LastFailureReasonSafeForTelemetry);
     end;
 
     local procedure GetNoFileAccountReason(): Text
