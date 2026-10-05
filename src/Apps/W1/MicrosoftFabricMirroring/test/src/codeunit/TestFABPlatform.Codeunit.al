@@ -1184,6 +1184,35 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ResetTableTwiceKeepsWatermarkEmptyAndShowsResetMessage()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        SucceededRunId: Guid;
+    begin
+        //[SCENARIO] Resetting an already reset table still reports the reset instead of nothing to reset
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A successful run of the table
+        SucceededRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 3600000, '100');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] The table was already reset once
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+        //[GIVEN] Expected reset notification for the repeated reset
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+
+        //[WHEN] The table is reset again
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] The End Watermark is still empty and the reset notification was shown
+        VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
+        VerifyNoPendingMessages();
+    end;
+
+    [Test]
     procedure ResetTableFailsWhenSyncIsRunning()
     var
         TenantFabricExportSummary: Record "Tenant Fabric Export Summary";

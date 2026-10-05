@@ -436,7 +436,6 @@ codeunit 48520 "Fabric Platform Mgt"
         TenantFabricExportDetails: Record "Tenant Fabric Export Details";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         ResetCompanies: List of [Text];
-        ResetCount: Integer;
     begin
         if IsSyncAlreadyRunning() then
             Error(ResetBlockedWhileRunningErr);
@@ -454,7 +453,6 @@ codeunit 48520 "Fabric Platform Mgt"
                     if TenantFabricExportDetails."End Watermark" <> '' then begin
                         TenantFabricExportDetails."End Watermark" := '';
                         TenantFabricExportDetails.Modify(false);
-                        ResetCount += 1;
                     end;
                 end;
             until TenantFabricExportDetails.Next() = 0;
@@ -462,7 +460,7 @@ codeunit 48520 "Fabric Platform Mgt"
         Telemetry.LogEvent('0000VNK', 'Fabric mirroring table reset requested.');
         Telemetry.LogAudit('0000VNL', 'Microsoft Fabric Open Mirroring - table reset requested.');
         if GuiAllowed() then
-            if ResetCount > 0 then
+            if ResetCompanies.Count() > 0 then
                 Message(TableResetMsg, TableId)
             else
                 Message(TableNothingToResetMsg, TableId);
