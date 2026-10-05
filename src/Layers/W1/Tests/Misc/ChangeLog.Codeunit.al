@@ -856,7 +856,7 @@ codeunit 139031 "Change Log"
                 AssertEntry(RecRef, RecRef, RecRef.FieldIndex(i).Number, TypeOfChange);
     end;
 
-    local procedure AssertEntry(RecRef: RecordRef; xRecRef: RecordRef; FieldNo: Integer; TypeOfChange: Option Insertion,Modification,Deletion)
+    local procedure AssertEntry(RecRef: RecordRef; xRecRef: RecordRef; FieldNo: Integer; TypeOfChange: Option Insertion,Modification,Deletion): Integer
     var
         ChangeLogEntry: Record "Change Log Entry";
         AffectedRecRef: RecordRef;
@@ -900,6 +900,7 @@ codeunit 139031 "Change Log"
             TypeOfChange::Deletion:
                 asserterror AffectedRecRef.Get(ChangeLogEntry."Record ID");
         end;
+        exit(ChangeLogEntry."Entry No.");
     end;
 
     local procedure AssertNoOfEntriesForPK(RecordRef: RecordRef; TypeOfChange: Option Insertion,Modification,Deletion; NoOfEntries: Integer)
@@ -1977,9 +1978,9 @@ codeunit 139031 "Change Log"
         ChangeLogSetupField: Record "Change Log Setup (Field)";
         ChangeLogEntry: Record "Change Log Entry";
         FieldMonitoringSetup: Record "Field Monitoring Setup";
-        ChangeLogSetupFieldListPage: TestPage "Change Log Setup (Field) List";
         RecRef: RecordRef;
         xRecRef: RecordRef;
+        ChangeLogSetupFieldListPage: TestPage "Change Log Setup (Field) List";
     begin
         // [SCENARIO 648216] Editing a change log field repairs stale monitoring state and restores ordinary change log entries.
         Initialize();
@@ -2010,13 +2011,8 @@ codeunit 139031 "Change Log"
         ChangeLogSetupField.TestField("Log Deletion", true);
         ChangeLogManagement.InitChangeLog();
         CreateModifyAndLogModify(RecRef, xRecRef);
-        AssertEntry(RecRef, xRecRef, GlobalExtraFieldNo[3], TypeOfChangeOption::Modification);
+        ChangeLogEntry.Get(AssertEntry(RecRef, xRecRef, GlobalExtraFieldNo[3], TypeOfChangeOption::Modification));
         AssertNoOfEntriesForPK(RecRef, TypeOfChangeOption::Modification, 1);
-        ChangeLogEntry.SetRange("Table No.", GlobalTableNo);
-        ChangeLogEntry.SetRange("Field No.", GlobalExtraFieldNo[3]);
-        ChangeLogEntry.SetRange("Record ID", RecRef.RecordId);
-        ChangeLogEntry.SetRange("Type of Change", ChangeLogEntry."Type of Change"::Modification);
-        ChangeLogEntry.FindFirst();
         ChangeLogEntry.TestField("Field Log Entry Feature", ChangeLogEntry."Field Log Entry Feature"::"Change Log");
         TearDown();
     end;
