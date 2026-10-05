@@ -19,6 +19,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        ComposedFrenchFeatureStateCleanup: Codeunit "ERM Derog. Feature Cleanup";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         IsInitialized: Boolean;
         DialogErr: Label 'Dialog';
@@ -733,6 +734,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"UT TAB FA Derogatory Depr.");
+        ComposedFrenchFeatureStateCleanup.EnableFeatureForComposedFrenchTests();
 
         if IsInitialized then
             exit;
@@ -823,6 +825,7 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         TaxDepreciationBook.Validate("Derogatory Calc.", NormalDepreciationBook.Code);
         TaxDepreciationBook.Modify(true);
         for Index := 1 to 2 do begin
+            Clear(FixedAsset);
             LibraryFixedAsset.CreateFixedAsset(FixedAsset);
             LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", NormalDepreciationBook.Code);
         end;

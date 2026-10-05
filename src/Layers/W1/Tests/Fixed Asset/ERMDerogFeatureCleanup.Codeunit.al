@@ -13,6 +13,30 @@ codeunit 144151 "ERM Derog. Feature Cleanup"
         FeatureStateCaptured: Boolean;
         FeatureStatusRecordExisted: Boolean;
 
+    procedure EnableFeatureForComposedFrenchTests()
+#if not CLEAN30
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepreciationBookRecordRef: RecordRef;
+        AcceleratedDepreciationFeatureKey: Text[50];
+#endif
+    begin
+#if not CLEAN30
+        DepreciationBookRecordRef.Open(Database::"Depreciation Book");
+        if not DepreciationBookRecordRef.FieldExist(10802) then // Field 10802 identifies the legacy FR schema.
+            exit;
+
+        AcceleratedDepreciationFeatureKey := 'AcceleratedDepreciation';
+        if not FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName()) then begin
+            FeatureDataUpdateStatus."Feature Key" := AcceleratedDepreciationFeatureKey;
+            FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus.Insert();
+        end;
+        FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled;
+        FeatureDataUpdateStatus.Modify();
+#endif
+    end;
+
     procedure CaptureFeatureState(FeatureKey: Text[50]; CompanyNameToCapture: Text[30])
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";

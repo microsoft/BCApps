@@ -18,6 +18,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryReportValidation: Codeunit "Library - Report Validation";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        ComposedFrenchFeatureStateCleanup: Codeunit "ERM Derog. Feature Cleanup";
         IsInitialized: Boolean;
         GroupTotalsCap: Label 'GroupTotals';
         NoFixedAssetCap: Label 'No_FixedAsset';
@@ -37,6 +38,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02ReportWithNoDetails()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -62,6 +64,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02ReportWithFAPostGroup()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -87,6 +90,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02ReportWithPrintDetails()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -111,6 +115,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('PrintFASetupFixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02ReportWithPrintFASetup()
     var
         DerogatoryFADepreciationBook: Record "FA Depreciation Book";
@@ -137,6 +142,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01ReportWithNoDetails()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -163,6 +169,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01ReportWithFAPostGroup()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -191,6 +198,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01ReportWithPrintDetails()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -218,6 +226,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('PrintFASetupFixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01ReportWithPrintFASetup()
     var
         DerogatoryFADepreciationBook: Record "FA Depreciation Book";
@@ -247,6 +256,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01WithoutLinkedBookHasNoDerogatoryAmounts()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -274,6 +284,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02WithoutLinkedBookHasNoDerogatoryAmounts()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -301,6 +312,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01EligibleValuesDoNotLeakToIneligibleAsset()
     var
         EligibleFADepreciationBook: Record "FA Depreciation Book";
@@ -327,6 +339,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02EligibleValuesDoNotLeakToIneligibleAsset()
     var
         EligibleFADepreciationBook: Record "FA Depreciation Book";
@@ -353,6 +366,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01MixedEligibilityReverseOrderDoesNotLeakValues()
     var
         EligibleFADepreciationBook: Record "FA Depreciation Book";
@@ -379,6 +393,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02MixedEligibilityReverseOrderDoesNotLeakValues()
     var
         EligibleFADepreciationBook: Record "FA Depreciation Book";
@@ -405,6 +420,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02HidesZeroDerogatorySections()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -434,6 +450,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('PrintFASetupFixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01PrintSetupIdentifiesIneligibleAsset()
     var
         DerogatoryFADepreciationBook: Record "FA Depreciation Book";
@@ -466,6 +483,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('PrintFASetupFixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02PrintSetupIdentifiesIneligibleAsset()
     var
         DerogatoryFADepreciationBook: Record "FA Depreciation Book";
@@ -498,6 +516,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue01RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01ShowsDerogatoryMovementsAtAllLevels()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -543,6 +562,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02RequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02ShowsDerogatoryAndReclassificationMovementsAtAllLevels()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -636,6 +656,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ShowDerogatoryValueofPreviousMonthInFixedAssetBookValue()
     var
         FixedAsset: Record "Fixed Asset";
@@ -723,6 +744,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('PrintFASetupFixedAssetBookValue01ExcelRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01RendersDerogatoryMovementsAndSetup()
     var
         DerogatoryFADepreciationBook: Record "FA Depreciation Book";
@@ -776,6 +798,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue01ExcelRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue01WithoutLinkedBookHidesDerogatoryColumns()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -806,6 +829,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('PrintFASetupFixedAssetBookValue02ExcelRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02RendersAccountingAndDerogatorySetup()
     var
         DerogatoryFADepreciationBook: Record "FA Depreciation Book";
@@ -838,6 +862,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02ExcelRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02RendersDerogatoryAndReclassificationTotals()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -889,6 +914,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
     [Test]
     [HandlerFunctions('FixedAssetBookValue02ExcelRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FABookValue02WithZeroDerogatoryAmountsHidesRows()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -920,6 +946,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM FA Derogatory Depreciation");
+        ComposedFrenchFeatureStateCleanup.EnableFeatureForComposedFrenchTests();
         LibraryReportDataset.Reset();
 
         if IsInitialized then

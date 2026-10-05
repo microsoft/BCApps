@@ -19,6 +19,7 @@ codeunit 134153 "UT REP FA Derogatory Depr."
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        ComposedFrenchFeatureStateCleanup: Codeunit "ERM Derog. Feature Cleanup";
         IsInitialized: Boolean;
         DialogErr: Label 'Dialog';
 
@@ -122,6 +123,7 @@ codeunit 134153 "UT REP FA Derogatory Depr."
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"UT REP FA Derogatory Depr.");
         LibraryVariableStorage.Clear();
+        ComposedFrenchFeatureStateCleanup.EnableFeatureForComposedFrenchTests();
 
         if IsInitialized then
             exit;

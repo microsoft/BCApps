@@ -21,9 +21,11 @@ codeunit 134085 "ERM FR Feature Bugs"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        ComposedFrenchFeatureStateCleanup: Codeunit "ERM Derog. Feature Cleanup";
         IsInitialized: Boolean;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure BookValueAfterPostDepreciationAndDerogatoryFAJnl()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -56,6 +58,7 @@ codeunit 134085 "ERM FR Feature Bugs"
 
     [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler,DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DerogatoryAmountAfterPostDepreciationAndDerogatoryFAJnl()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -89,6 +92,7 @@ codeunit 134085 "ERM FR Feature Bugs"
 
     [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler,DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DerogatoryEntriesAfterPostDepreciationAndDerogatoryFAJnl()
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -123,6 +127,7 @@ codeunit 134085 "ERM FR Feature Bugs"
 
     [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler,DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PostingDatesAfterPostDepreciationAndDerogatoryFAJnl()
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -160,6 +165,7 @@ codeunit 134085 "ERM FR Feature Bugs"
         GenJournalLine: Record "Gen. Journal Line";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM FR Feature Bugs");
+        ComposedFrenchFeatureStateCleanup.EnableFeatureForComposedFrenchTests();
         GenJournalLine.DeleteAll();
         LibraryVariableStorage.Clear();
 
