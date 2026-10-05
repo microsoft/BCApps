@@ -5,6 +5,7 @@
   "appFolders": [
     "../../../src/Apps/FI/ContosoCoffeeDemoDatasetFI/app",
     "../../../src/Apps/FI/DepreciationDifferencesFI/app",
+    "../../../src/Apps/FI/DepreciationDifferencesFI/demo data",
     "../../../src/Apps/FI/EDocument_FI/demo data",
     "../../../src/Apps/FI/FICore/app",
     "../../../src/Apps/FI/IntrastatFI/app",

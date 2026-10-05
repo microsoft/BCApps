@@ -1871,6 +1871,31 @@
     ]
   },
   {
+    "name": "Depreciation Differences FI Demo Data",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
     "name": "Depreciation Differences FI Tests",
     "groups": [
       {

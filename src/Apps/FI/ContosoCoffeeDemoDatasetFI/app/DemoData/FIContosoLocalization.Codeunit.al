@@ -134,7 +134,6 @@ codeunit 13414 "FI Contoso Localization"
         CreateCurrencyFI: Codeunit "Create Currency FI";
         CreateCurrencyExchRateFI: Codeunit "Create Currency Ex. Rate FI";
         CreateFADepreciationBookFI: Codeunit "Create FA Depreciation Book FI";
-        CreateFAPostingGrpFI: Codeunit "Create FA Posting Grp. FI";
         CreatePaymentTermsFI: Codeunit "Create Payment Terms FI";
         CreateAccScheduleLineFI: Codeunit "Create Acc. Schedule Line FI";
         CreateVatPostingGroupsFI: Codeunit "Create Vat Posting Groups FI";
@@ -185,10 +184,7 @@ codeunit 13414 "FI Contoso Localization"
                     BindSubscription(CreateVATStatementFI);
                 end;
             Enum::"Contoso Demo Data Module"::"Fixed Asset Module":
-                begin
-                    BindSubscription(CreateFADepreciationBookFI);
-                    BindSubscription(CreateFAPostingGrpFI);
-                end;
+                BindSubscription(CreateFADepreciationBookFI);
             Enum::"Contoso Demo Data Module"::"Human Resources Module":
                 BindSubscription(CreateEmployeeFI);
         end;
@@ -216,7 +212,6 @@ codeunit 13414 "FI Contoso Localization"
         CreateCurrencyFI: Codeunit "Create Currency FI";
         CreateCurrencyExchRateFI: Codeunit "Create Currency Ex. Rate FI";
         CreateFADepreciationBookFI: Codeunit "Create FA Depreciation Book FI";
-        CreateFAPostingGrpFI: Codeunit "Create FA Posting Grp. FI";
         CreatePaymentTermsFI: Codeunit "Create Payment Terms FI";
         CreateAccScheduleLineFI: Codeunit "Create Acc. Schedule Line FI";
         CreateVatPostingGroupsFI: Codeunit "Create Vat Posting Groups FI";
@@ -268,10 +263,7 @@ codeunit 13414 "FI Contoso Localization"
                     UnbindSubscription(CreateVATStatementFI);
                 end;
             Enum::"Contoso Demo Data Module"::"Fixed Asset Module":
-                begin
-                    UnBindSubscription(CreateFADepreciationBookFI);
-                    UnBindSubscription(CreateFAPostingGrpFI);
-                end;
+                UnBindSubscription(CreateFADepreciationBookFI);
 
             Enum::"Contoso Demo Data Module"::"Human Resources Module":
                 UnBindSubscription(CreateEmployeeFI);
