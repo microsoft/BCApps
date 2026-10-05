@@ -658,7 +658,6 @@ codeunit 8351 "MCP Config Implementation"
             Error(AgentNotEligibleErr);
 
         MCPConfigurationAgent."Agent Name" := Agent."Display Name";
-        MCPConfigurationAgent."Agent Description" := '';
     end;
 
     internal procedure DeleteAPITool(APIToolId: Guid)

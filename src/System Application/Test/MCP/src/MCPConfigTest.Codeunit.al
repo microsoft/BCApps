@@ -391,8 +391,8 @@ codeunit 130130 "MCP Config Test"
         MCPConfig.EnableAgents(SourceConfigId, true);
         FirstAgentId := CreateGuid();
         SecondAgentId := CreateGuid();
-        InsertConfigurationAgent(SourceConfigId, FirstAgentId, 'First agent', 'First description');
-        InsertConfigurationAgent(SourceConfigId, SecondAgentId, 'Second agent', 'Second description');
+        InsertConfigurationAgent(SourceConfigId, FirstAgentId, 'First agent');
+        InsertConfigurationAgent(SourceConfigId, SecondAgentId, 'Second agent');
 
         NewConfigId := MCPConfig.CopyConfiguration(SourceConfigId, CopyStr(Format(CreateGuid()), 1, 100), 'Copied configuration');
 
@@ -401,10 +401,8 @@ codeunit 130130 "MCP Config Test"
         AssertConfigurationAgentCount(NewConfigId, 2);
         MCPConfigurationAgent.Get(NewConfigId, FirstAgentId);
         MCPConfigurationAgent.TestField("Agent Name", 'First agent');
-        MCPConfigurationAgent.TestField("Agent Description", 'First description');
         MCPConfigurationAgent.Get(NewConfigId, SecondAgentId);
         MCPConfigurationAgent.TestField("Agent Name", 'Second agent');
-        MCPConfigurationAgent.TestField("Agent Description", 'Second description');
         AssertConfigurationAgentCount(SourceConfigId, 2);
     end;
 
@@ -420,9 +418,9 @@ codeunit 130130 "MCP Config Test"
         DeletedConfigId := CreateMCPConfig(false, false, true, false);
         OtherConfigId := CreateMCPConfig(false, false, true, false);
         SharedAgentId := CreateGuid();
-        InsertConfigurationAgent(DeletedConfigId, SharedAgentId, 'Deleted agent', '');
-        InsertConfigurationAgent(DeletedConfigId, CreateGuid(), 'Second agent', '');
-        InsertConfigurationAgent(OtherConfigId, SharedAgentId, 'Retained agent', '');
+        InsertConfigurationAgent(DeletedConfigId, SharedAgentId, 'Deleted agent');
+        InsertConfigurationAgent(DeletedConfigId, CreateGuid(), 'Second agent');
+        InsertConfigurationAgent(OtherConfigId, SharedAgentId, 'Retained agent');
 
         MCPConfig.DeleteConfiguration(DeletedConfigId);
 
@@ -440,7 +438,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         ConfigId := CreateMCPConfig(false, false, true, false);
-        InsertConfigurationAgent(ConfigId, CreateGuid(), 'Configured agent', '');
+        InsertConfigurationAgent(ConfigId, CreateGuid(), 'Configured agent');
 
         MCPConfiguration.GetBySystemId(ConfigId);
         MCPConfiguration.Delete(true);
@@ -470,7 +468,7 @@ codeunit 130130 "MCP Config Test"
     begin
         ConfigId := CreateMCPConfig(false, false, true, false);
         AgentId := CreateGuid();
-        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent', '');
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent');
         MCPConfigurationAgent.Get(ConfigId, AgentId);
 
         Assert.AreEqual(MCPConfigurationAgent.SystemId, MCPConfig.GetAgentToolId(ConfigId, AgentId), 'Agent tool ID mismatch');
@@ -486,7 +484,7 @@ codeunit 130130 "MCP Config Test"
     begin
         ConfigId := CreateMCPConfig(false, false, true, false);
         AgentId := CreateGuid();
-        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent', '');
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent');
         MCPConfigurationAgent.Get(ConfigId, AgentId);
 
         MCPConfig.DeleteAgentTool(MCPConfigurationAgent.SystemId);
@@ -1287,7 +1285,7 @@ codeunit 130130 "MCP Config Test"
         CreateMCPConfigTool(ConfigId);
         CreateMCPConfigTool(ConfigId);
         AgentId := CreateGuid();
-        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent', '');
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent');
         MCPConfiguration.GetBySystemId(ConfigId);
         MCPConfiguration.EnableApiTools := true;
         MCPConfiguration.EnableAlQueryTools := true;
@@ -1417,7 +1415,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfigurationAgent.SetRange(ID, DefaultConfigId);
         OriginalAgentCount := MCPConfigurationAgent.Count();
         AgentId := CreateGuid();
-        InsertConfigurationAgent(DefaultConfigId, AgentId, 'Default agent', '');
+        InsertConfigurationAgent(DefaultConfigId, AgentId, 'Default agent');
 
         // [WHEN] Delete default configuration is called
         asserterror MCPConfig.DeleteConfiguration(MCPConfig.GetConfigurationIdByName(''));
@@ -1954,14 +1952,13 @@ codeunit 130130 "MCP Config Test"
         exit(MCPConfigurationTool.SystemId);
     end;
 
-    local procedure InsertConfigurationAgent(ConfigId: Guid; AgentId: Guid; AgentName: Text[80]; AgentDescription: Text[250])
+    local procedure InsertConfigurationAgent(ConfigId: Guid; AgentId: Guid; AgentName: Text[80])
     var
         MCPConfigurationAgent: Record "MCP Configuration Agent";
     begin
         MCPConfigurationAgent.ID := ConfigId;
         MCPConfigurationAgent."Agent ID" := AgentId;
         MCPConfigurationAgent."Agent Name" := AgentName;
-        MCPConfigurationAgent."Agent Description" := AgentDescription;
         MCPConfigurationAgent.Insert();
     end;
 
