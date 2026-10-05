@@ -17,19 +17,35 @@ codeunit 7755 "Copilot Feature Trial"
         CopilotFeatureTrialImpl: Codeunit "Copilot Feature Trial Impl.";
 
     /// <summary>
-    /// Checks whether a feature trial has quota remaining after its quota has been reported at least once.
+    /// Gets the quota remaining for a feature trial.
     /// </summary>
     /// <param name="TrialId">The trial identifier.</param>
     /// <param name="CopilotCapability">The Copilot capability covered by the trial.</param>
-    /// <returns>True if the trial quota has been reported at least once and has quota remaining; otherwise, false.</returns>
+    /// <returns>The quota remaining for the feature trial.</returns>
     /// <remarks>The calling module must have registered the Copilot capability. The trial identifier must not be blank.</remarks>
     [Scope('OnPrem')]
-    procedure GetFeatureTrialQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"): Boolean
+    procedure GetQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"): Integer
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(CopilotFeatureTrialImpl.GetFeatureTrialQuotaRemaining(TrialId, CopilotCapability, CallerModuleInfo));
+        exit(CopilotFeatureTrialImpl.GetQuotaRemaining(TrialId, CopilotCapability, CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Checks whether a feature trial is not set up or has quota remaining.
+    /// </summary>
+    /// <param name="TrialId">The trial identifier.</param>
+    /// <param name="CopilotCapability">The Copilot capability covered by the trial.</param>
+    /// <returns>True if the trial quota has not been reported or has quota remaining; otherwise, false.</returns>
+    /// <remarks>The calling module must have registered the Copilot capability. The trial identifier must not be blank.</remarks>
+    [Scope('OnPrem')]
+    procedure HasQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"): Boolean
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(CopilotFeatureTrialImpl.HasQuotaRemaining(TrialId, CopilotCapability, CallerModuleInfo));
     end;
 
     /// <summary>

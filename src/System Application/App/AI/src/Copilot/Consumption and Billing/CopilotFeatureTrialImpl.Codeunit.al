@@ -17,9 +17,11 @@ codeunit 7754 "Copilot Feature Trial Impl."
         ConsumptionIdMustBeSpecifiedErr: Label 'The consumption ID must be specified.';
         TrialIdMustBeSpecifiedErr: Label 'The trial ID must be specified.';
         QuotaLimitsMustBeNonNegativeErr: Label 'All trial quota limits must be non-negative.';
+        FeatureTrialQuotaRetrievedTelemetryMsg: Label 'Feature trial quota retrieved. Is set up: %1. Quota limit: %2. Quota consumed: %3. Quota remaining: %4. Expires at: %5. Is expired: %6. Has quota remaining: %7. ', Locked = true;
+        FeatureTrialQuotaLimitsTelemetryMsg: Label 'Paid production quota limit: %1. Paid sandbox quota limit: %2. Unpaid production quota limit: %3. Unpaid sandbox quota limit: %4.', Locked = true;
         FeatureTrialQuotaReportedTelemetryMsg: Label 'Feature trial quota report completed. The run was within quota: %1.', Locked = true;
 
-    internal procedure GetFeatureTrialQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
+    internal procedure GetQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Integer
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         AIFeatureTrialInfo: DotNet ALAIFeatureTrialInfo;
@@ -28,7 +30,44 @@ codeunit 7754 "Copilot Feature Trial Impl."
         if TrialId.Trim() = '' then
             Error(TrialIdMustBeSpecifiedErr);
         AIFeatureTrialInfo := ALCopilotFunctions.GetFeatureTrialQuotaRemaining(TrialId, CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability));
-        exit(AIFeatureTrialInfo.IsSetup() and AIFeatureTrialInfo.HasQuotaRemaining());
+        LogFeatureTrialQuotaRetrieved(AIFeatureTrialInfo);
+        exit(CalculateQuotaRemaining(AIFeatureTrialInfo));
+    end;
+
+    internal procedure HasQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        AIFeatureTrialInfo: DotNet ALAIFeatureTrialInfo;
+    begin
+        CheckCapabilityOwnership(CopilotCapability, CallerModuleInfo);
+        if TrialId.Trim() = '' then
+            Error(TrialIdMustBeSpecifiedErr);
+        AIFeatureTrialInfo := ALCopilotFunctions.GetFeatureTrialQuotaRemaining(TrialId, CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability));
+        LogFeatureTrialQuotaRetrieved(AIFeatureTrialInfo);
+        exit(not AIFeatureTrialInfo.IsSetup() or AIFeatureTrialInfo.HasQuotaRemaining());
+    end;
+
+    local procedure LogFeatureTrialQuotaRetrieved(AIFeatureTrialInfo: DotNet ALAIFeatureTrialInfo)
+    begin
+        Session.LogMessage(
+            '0000VVK',
+            StrSubstNo(FeatureTrialQuotaRetrievedTelemetryMsg, AIFeatureTrialInfo.IsSetup(), AIFeatureTrialInfo.QuotaLimit(), AIFeatureTrialInfo.QuotaConsumed(), CalculateQuotaRemaining(AIFeatureTrialInfo), AIFeatureTrialInfo.ExpiresAt(), AIFeatureTrialInfo.IsExpired(), AIFeatureTrialInfo.HasQuotaRemaining()) +
+            StrSubstNo(FeatureTrialQuotaLimitsTelemetryMsg, AIFeatureTrialInfo.PaidProductionQuotaLimit(), AIFeatureTrialInfo.PaidSandboxQuotaLimit(), AIFeatureTrialInfo.UnpaidProductionQuotaLimit(), AIFeatureTrialInfo.UnpaidSandboxQuotaLimit()),
+            Verbosity::Verbose,
+            DataClassification::SystemMetadata,
+            TelemetryScope::ExtensionPublisher,
+            'Category',
+            CopilotCapabilityImpl.GetCopilotCategory());
+    end;
+
+    local procedure CalculateQuotaRemaining(AIFeatureTrialInfo: DotNet ALAIFeatureTrialInfo): Integer
+    var
+        QuotaRemaining: Integer;
+    begin
+        QuotaRemaining := AIFeatureTrialInfo.QuotaLimit() - AIFeatureTrialInfo.QuotaConsumed();
+        if QuotaRemaining < 0 then
+            exit(0);
+        exit(QuotaRemaining);
     end;
 
     internal procedure ReportNonRecurringFeatureTrialQuota(ConsumptionId: Guid; TrialId: Text; CopilotCapability: Enum "Copilot Capability"; PaidProductionQuotaLimit: Integer; PaidSandboxQuotaLimit: Integer; UnpaidProductionQuotaLimit: Integer; UnpaidSandboxQuotaLimit: Integer; Metadata: Text; CallerModuleInfo: ModuleInfo): Boolean

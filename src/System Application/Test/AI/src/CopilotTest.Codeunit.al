@@ -326,7 +326,13 @@ codeunit 132683 "Copilot Test"
         CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", LearnMoreUrlLbl);
 
         // [WHEN] Feature trial quota is retrieved
-        asserterror CopilotFeatureTrial.GetFeatureTrialQuotaRemaining(' ', Enum::"Copilot Capability"::"Text Capability");
+        asserterror CopilotFeatureTrial.GetQuotaRemaining(' ', Enum::"Copilot Capability"::"Text Capability");
+
+        // [THEN] An error is thrown
+        LibraryAssert.ExpectedError(TrialIdMustBeSpecifiedErr);
+
+        // [WHEN] Whether the feature trial has quota remaining is retrieved
+        asserterror CopilotFeatureTrial.HasQuotaRemaining(' ', Enum::"Copilot Capability"::"Text Capability");
 
         // [THEN] An error is thrown
         LibraryAssert.ExpectedError(TrialIdMustBeSpecifiedErr);
