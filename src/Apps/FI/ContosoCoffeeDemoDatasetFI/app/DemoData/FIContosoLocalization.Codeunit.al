@@ -135,7 +135,9 @@ codeunit 13414 "FI Contoso Localization"
         CreateCurrencyExchRateFI: Codeunit "Create Currency Ex. Rate FI";
         CreateFADepreciationBookFI: Codeunit "Create FA Depreciation Book FI";
         CreateFAPostingGrpFI: Codeunit "Create FA Posting Grp. FI";
+#if not CLEAN30
         CreatePaymentTermsFI: Codeunit "Create Payment Terms FI";
+#endif
         CreateAccScheduleLineFI: Codeunit "Create Acc. Schedule Line FI";
         CreateVatPostingGroupsFI: Codeunit "Create Vat Posting Groups FI";
         CreateVATSetupPostingGrpFI: Codeunit "Create VATSetupPostingGrp. FI";
@@ -145,7 +147,9 @@ codeunit 13414 "FI Contoso Localization"
             Enum::"Contoso Demo Data Module"::Foundation:
                 begin
                     BindSubscription(CreateCountryRegionFI);
+#if not CLEAN30
                     BindSubscription(CreatePaymentTermsFI);
+#endif
                 end;
             Enum::"Contoso Demo Data Module"::Bank:
                 begin
@@ -217,7 +221,9 @@ codeunit 13414 "FI Contoso Localization"
         CreateCurrencyExchRateFI: Codeunit "Create Currency Ex. Rate FI";
         CreateFADepreciationBookFI: Codeunit "Create FA Depreciation Book FI";
         CreateFAPostingGrpFI: Codeunit "Create FA Posting Grp. FI";
+#if not CLEAN30
         CreatePaymentTermsFI: Codeunit "Create Payment Terms FI";
+#endif
         CreateAccScheduleLineFI: Codeunit "Create Acc. Schedule Line FI";
         CreateVatPostingGroupsFI: Codeunit "Create Vat Posting Groups FI";
         CreateVATSetupPostingGrpFI: Codeunit "Create VATSetupPostingGrp. FI";
@@ -227,7 +233,9 @@ codeunit 13414 "FI Contoso Localization"
             Enum::"Contoso Demo Data Module"::Foundation:
                 begin
                     UnBindSubscription(CreateCountryRegionFI);
+#if not CLEAN30
                     UnbindSubscription(CreatePaymentTermsFI);
+#endif
                 end;
             Enum::"Contoso Demo Data Module"::Bank:
                 begin

@@ -7,8 +7,12 @@ namespace Microsoft.DemoData.Foundation;
 
 using Microsoft.Foundation.PaymentTerms;
 
+#if not CLEAN30
 codeunit 13438 "Create Payment Terms FI"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     SingleInstance = true;
     EventSubscriberInstance = Manual;
     InherentEntitlements = X;
@@ -25,18 +29,11 @@ codeunit 13438 "Create Payment Terms FI"
         end;
     end;
 
-#if CLEAN30
-#pragma warning disable AA0137 // PaymentTerms and DisregPmtDiscatFullPmt are only consumed by pre-CLEAN30 code below
-#endif
     local procedure ValidateRecordFields(var PaymentTerms: Record "Payment Terms"; DisregPmtDiscatFullPmt: Boolean)
     begin
-#if CLEAN30
-#pragma warning restore AA0137
-#endif
-#if not CLEAN30
 #pragma warning disable AL0432
         PaymentTerms.Validate("Disreg. Pmt. Disc. at Full Pmt", DisregPmtDiscatFullPmt);
 #pragma warning restore AL0432
-#endif
     end;
 }
+#endif
