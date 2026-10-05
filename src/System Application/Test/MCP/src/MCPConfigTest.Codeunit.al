@@ -1908,12 +1908,11 @@ codeunit 130130 "MCP Config Test"
 
     local procedure AssertAgentSystemTools(var MCPConfigCard: TestPage "MCP Config Card")
     var
-        MCPUtilities: Codeunit "MCP Utilities";
         ExpectedSystemTools: Dictionary of [Text, Text];
         ToolName: Text;
         ToolCount: Integer;
     begin
-        ExpectedSystemTools := MCPUtilities.GetSystemToolsInAgents();
+        MCPConfigTestLibrary.GetAgentSystemTools(ExpectedSystemTools);
         if MCPConfigCard.SystemToolList.First() then
             repeat
                 ToolCount += 1;
