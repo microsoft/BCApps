@@ -137,6 +137,7 @@ codeunit 6154 "API Webhook Notification Send"
         EmptyPayloadPerSubscriptionErr: Label 'Empty payload for subscription. Subscription: %1.', Locked = true;
         EmptyPayloadPerNotificationUrlErr: Label 'Empty payload per notification URL. Notification URL number: %1.', Locked = true;
         CannotGetResponseErr: Label 'Cannot get response. Notification URL number: %1.', Locked = true;
+        RemoteServerErrorTxt: Label 'The remote server returned an error: (%1) %2.', Locked = true, Comment = '%1 = HTTP status code, %2 = reason phrase';
         CannotFindCachedAggregateNotificationErr: Label 'Cannot find cached aggregate notification for subscription. Subscription: %1.', Locked = true;
         CannotFindCachedCollectionAggregateNotificationMsg: Label 'Cannot find cached collection aggregate notification for subscription. Subscription: %1.', Locked = true;
         CannotFindCachedEntityKeyFieldTypeForSubscriptionIdErr: Label 'Cannot find cached entity key field type for subscription. Subscription: %1.', Locked = true;
@@ -1105,7 +1106,9 @@ codeunit 6154 "API Webhook Notification Send"
 
     local procedure SendNotification(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var Reschedule: Boolean): Boolean
     var
+#if not CLEAN30
         HttpStatusCode: DotNet HttpStatusCode;
+#endif
         SubscriptionType: Option Regular,Dataverse;
         HttpStatusCodeNumber: Integer;
         ResponseBody: Text;
@@ -1128,27 +1131,31 @@ codeunit 6154 "API Webhook Notification Send"
 
         Session.LogMessage('000029B', StrSubstNo(SendNotificationMsg, NotificationUrlNumber), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
         Success := SendRequest(
-            NotificationUrlNumber, NotificationUrl, NotificationPayload, ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode);
+            NotificationUrlNumber, NotificationUrl, NotificationPayload, ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCodeNumber);
         if not Success then
             ErrorMessage += GetLastErrorText + ErrorMessage;
-        if not IsNull(HttpStatusCode) then
-            HttpStatusCodeNumber := HttpStatusCode;
 
+#if not CLEAN30
+        if HttpStatusCodeNumber <> 0 then
+            ConvertToDotNetHttpStatusCode(HttpStatusCodeNumber, HttpStatusCode);
+#pragma warning disable AL0432
         OnAfterSendNotification(ErrorMessage, ErrorDetails, HttpStatusCode);
+#pragma warning restore AL0432
+#endif
         OnAfterSendNotificationWithStatusNumber(ErrorMessage, ErrorDetails, HttpStatusCodeNumber);
 
         if not Success then begin
             IsDataverseSubscription := SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = SubscriptionType::Dataverse;
-            Reschedule := ShouldReschedule(HttpStatusCode) or IsDataverseSubscription;
-            Session.LogMessage('000076N', StrSubstNo(SendingNotificationFailedErr, NotificationUrl, HttpStatusCode, ErrorMessage, ErrorDetails), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', APIWebhookCategoryLbl);
+            Reschedule := ShouldReschedule(HttpStatusCodeNumber) or IsDataverseSubscription;
+            Session.LogMessage('000076N', StrSubstNo(SendingNotificationFailedErr, NotificationUrl, HttpStatusCodeNumber, ErrorMessage, ErrorDetails), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', APIWebhookCategoryLbl);
             LogActivity(true, NotificationFailedTitleTxt,
-              StrSubstNo(FailedNotificationDetailsTxt, NotificationUrl, HttpStatusCode, ErrorMessage, ErrorDetails));
+              StrSubstNo(FailedNotificationDetailsTxt, NotificationUrl, HttpStatusCodeNumber, ErrorMessage, ErrorDetails));
             if Reschedule then begin
-                Session.LogMessage('000029C', StrSubstNo(FailedNotificationRescheduleMsg, NotificationUrlNumber, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+                Session.LogMessage('000029C', StrSubstNo(FailedNotificationRescheduleMsg, NotificationUrlNumber, HttpStatusCodeNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
                 exit(false);
             end;
 
-            Session.LogMessage('000029D', StrSubstNo(FailedNotificationRejectedMsg, NotificationUrlNumber, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+            Session.LogMessage('000029D', StrSubstNo(FailedNotificationRejectedMsg, NotificationUrlNumber, HttpStatusCodeNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             exit(false);
         end;
 
@@ -1157,17 +1164,21 @@ codeunit 6154 "API Webhook Notification Send"
     end;
 
     [TryFunction]
-    local procedure SendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCode: DotNet HttpStatusCode)
+    local procedure SendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCodeNumber: Integer)
     var
         APIWebhookSubscription: Record "API Webhook Subscription";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        ResponseHeaders: DotNet NameValueCollection;
-        UTF8Encoding: DotNet UTF8Encoding;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        HttpContent: HttpContent;
+        HttpHeaders: HttpHeaders;
+        ContentHeaders: HttpHeaders;
         MaskedUrl: Text;
-        HttpStatusCodeNumber: Integer;
-        HttpStatusCodeText: Integer;
         CorrelationGuid: Text;
+        Timeout: Integer;
     begin
+        HttpStatusCodeNumber := 0;
+
         if NotificationUrl = '' then begin
             Session.LogMessage('00002A1', StrSubstNo(EmptyNotificationUrlErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             Error(EmptyNotificationUrlErr, NotificationUrlNumber);
@@ -1180,40 +1191,54 @@ codeunit 6154 "API Webhook Notification Send"
 
         CorrelationGuid := LowerCase(System.Format(CreateGuid(), 0, 4));
 
-        HttpWebRequestMgt.Initialize(NotificationUrl);
-        HttpWebRequestMgt.DisableUI();
-        HttpWebRequestMgt.SetMethod('POST');
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.SetContentType('application/json');
-        HttpWebRequestMgt.AddHeader('clientRequestId', CorrelationGuid);
-        HttpWebRequestMgt.AddHeader('x-ms-correlation-id', CorrelationGuid);
+        HttpRequestMessage.Method('POST');
+        HttpRequestMessage.SetRequestUri(NotificationUrl);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Accept', 'application/json');
+        HttpHeaders.Add('clientRequestId', CorrelationGuid);
+        HttpHeaders.Add('x-ms-correlation-id', CorrelationGuid);
 
         Session.LogMessage('0000KX7', StrSubstNo(PostCorrelationGuidTxt, CorrelationGuid), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
 
         if SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = APIWebhookSubscription."Subscription Type"::Dataverse then
-            AddTokenToRequestHeader(HttpWebRequestMgt);
+            AddTokenToRequestHeader(HttpHeaders);
 
-        HttpWebRequestMgt.SetTimeout((GetSendingNotificationTimeout()));
-        // false is to do not add byte order mark
-        UTF8Encoding := UTF8Encoding.UTF8Encoding(false);
-        HttpWebRequestMgt.AddBodyAsTextWithEncoding(NotificationPayload, UTF8Encoding);
+        Timeout := GetSendingNotificationTimeout();
+        if Timeout > 0 then
+            HttpClient.Timeout(Timeout);
 
-        OnSendRequestOnBeforeSendRequestAndReadTextResponse(HttpWebRequestMgt);
+        // The payload is written as UTF-8 without byte order mark; Content-Type is kept as 'application/json' (no charset), as before.
+        HttpContent.WriteFrom(NotificationPayload);
+        HttpContent.GetHeaders(ContentHeaders);
+        if ContentHeaders.Contains('Content-Type') then
+            ContentHeaders.Remove('Content-Type');
+        ContentHeaders.Add('Content-Type', 'application/json');
+        HttpRequestMessage.Content := HttpContent;
+
+        OnSendRequestOnBeforeSendHttpRequest(HttpClient, HttpRequestMessage);
         MaskedUrl := GetMaskedUrl(NotificationUrl);
         Session.LogMessage('0000FBA', StrSubstNo(PostEmittedTxt, MaskedUrl), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
-        if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
-            if IsNull(HttpStatusCode) then
-                Session.LogMessage('00002A3', StrSubstNo(CannotGetResponseErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl)
-            else begin
-                HttpStatusCodeNumber := HttpStatusCode;
-                HttpStatusCodeText := HttpStatusCodeNumber;
-            end;
-            Session.LogMessage('0000FBB', StrSubstNo(PostFailedTxt, GetMaskedUrl(MaskedUrl), HttpStatusCodeText), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            ErrorMessage := GetLastErrorText();
+            Session.LogMessage('00002A3', StrSubstNo(CannotGetResponseErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+            Session.LogMessage('0000FBB', StrSubstNo(PostFailedTxt, GetMaskedUrl(MaskedUrl), HttpStatusCodeNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             Error(CannotGetResponseErr, NotificationUrlNumber);
         end;
+
+        HttpStatusCodeNumber := HttpResponseMessage.HttpStatusCode();
+        if HttpResponseMessage.IsSuccessStatusCode() then begin
+            HttpResponseMessage.Content.ReadAs(ResponseBody);
+            exit;
+        end;
+
+        ErrorMessage := StrSubstNo(RemoteServerErrorTxt, HttpStatusCodeNumber, HttpResponseMessage.ReasonPhrase());
+        HttpResponseMessage.Content.ReadAs(ErrorDetails);
+        Session.LogMessage('0000FBB', StrSubstNo(PostFailedTxt, GetMaskedUrl(MaskedUrl), HttpStatusCodeNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+        Error(CannotGetResponseErr, NotificationUrlNumber);
     end;
 
-    local procedure AddTokenToRequestHeader(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    [NonDebuggable]
+    local procedure AddTokenToRequestHeader(var HttpHeaders: HttpHeaders)
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
         CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
@@ -1221,7 +1246,7 @@ codeunit 6154 "API Webhook Notification Send"
     begin
         if CDSConnectionSetup.Get() then
             CDSIntegrationImpl.GetBusinessEventAccessToken(CDSConnectionSetup."Server Address", false, Token);
-        HttpWebRequestMgt.AddHeader('Authorization', SecretStrSubstNo('Bearer %1', Token));
+        HttpHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', Token));
     end;
 
     local procedure GetMaskedUrl(Url: Text): Text
@@ -1258,14 +1283,10 @@ codeunit 6154 "API Webhook Notification Send"
         exit(MaskedUrl);
     end;
 
-    local procedure ShouldReschedule(var HttpStatusCode: DotNet HttpStatusCode): Boolean
-    var
-        HttpStatusCodeNumber: Integer;
+    local procedure ShouldReschedule(HttpStatusCodeNumber: Integer): Boolean
     begin
-        if IsNull(HttpStatusCode) then
+        if HttpStatusCodeNumber = 0 then
             exit(true);
-
-        HttpStatusCodeNumber := HttpStatusCode;
 
         // 5xx range - Server error
         // 408 - Request Timeout, 429 - Too Many Requests
@@ -1860,10 +1881,19 @@ codeunit 6154 "API Webhook Notification Send"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Use OnAfterSendNotificationWithStatusNumber instead.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSendNotification(var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCode: DotNet HttpStatusCode)
     begin
     end;
+
+    local procedure ConvertToDotNetHttpStatusCode(HttpStatusCodeNumber: Integer; var HttpStatusCode: DotNet HttpStatusCode)
+    begin
+        HttpStatusCode := HttpStatusCode.OK;
+        HttpStatusCode := HttpStatusCode.Parse(HttpStatusCode.GetType(), Format(HttpStatusCodeNumber, 0, 9));
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSendNotificationWithStatusNumber(var ErrorMessage: Text; var ErrorDetails: Text; HttpStatusCode: Integer)
@@ -1934,8 +1964,21 @@ codeunit 6154 "API Webhook Notification Send"
         exit(StrSubstNo(SubscriptionDetailsTxt, SubscriptionId, ResourceUrl, NotificationUrl));
     end;
 
+#if not CLEAN30
+    [Obsolete('This event is no longer raised. The notification is now sent with the native HttpClient; use OnSendRequestOnBeforeSendHttpRequest instead.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnSendRequestOnBeforeSendRequestAndReadTextResponse(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    begin
+    end;
+#endif
+
+    /// <summary>
+    /// Raised right before the webhook notification request is sent. Subscribers can modify the HTTP client (for example, the timeout) and the request message (for example, add headers).
+    /// </summary>
+    /// <param name="HttpClient">The HTTP client that will send the request.</param>
+    /// <param name="HttpRequestMessage">The request message that will be sent.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnSendRequestOnBeforeSendHttpRequest(var HttpClient: HttpClient; var HttpRequestMessage: HttpRequestMessage)
     begin
     end;
 }
