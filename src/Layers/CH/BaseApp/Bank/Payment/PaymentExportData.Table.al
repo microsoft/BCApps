@@ -803,7 +803,6 @@ table 1226 "Payment Export Data"
         "End-to-End ID" := "Payment Information ID";
     end;
 
-    [Scope('OnPrem')]
     procedure SetSwissExport(NewSwissExport: Boolean)
     begin
         SwissExport := NewSwissExport;

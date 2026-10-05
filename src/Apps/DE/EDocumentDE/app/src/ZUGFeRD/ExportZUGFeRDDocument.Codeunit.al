@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -40,6 +41,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         PeppolVATHelper: Codeunit "PEPPOL VAT Helper";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
         EDocItemChargeMapping: Codeunit "E-Doc. Item Charge Mapping";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
+        SourceDocumentRecordRef: RecordRef;
         ItemChargeStructures: Dictionary of [Integer, Integer];
         LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
         LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
@@ -51,6 +54,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
+#if not CLEAN30
+        EDocumentServiceProvided: Boolean;
+#endif
         DocumentLanguageCode: Code[10];
 
     trigger OnRun()
@@ -62,6 +68,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExportSalesDocument(Rec);
 
         UnbindSubscription(ZUGFeRDReportIntegration);
+        ResetProvidedService();
     end;
 
 
@@ -290,11 +297,17 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService();
+#pragma warning restore AL0432
+#endif
         if not DocumentLinesExist(SalesInvoiceHeader, SalesInvLine) then
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesInvoiceHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -309,6 +322,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var FileOutstream: Outstream)
@@ -326,11 +340,17 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService();
+#pragma warning restore AL0432
+#endif
         if not DocumentLinesExist(SalesCrMemoHeader, SalesCrMemoLine) then
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesCrMemoHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -345,6 +365,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(ServiceInvoiceHeader: Record "Service Invoice Header"; var FileOutstream: Outstream)
@@ -364,7 +385,11 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService();
+#pragma warning restore AL0432
+#endif
         ClearItemChargeClassification();
         TransferToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
         SalesInvoiceHeader."Company Bank Account Code" := ServiceInvoiceHeader."Company Bank Account Code";
@@ -378,6 +403,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceInvoiceHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -391,6 +418,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var FileOutstream: Outstream)
@@ -410,7 +438,11 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService();
+#pragma warning restore AL0432
+#endif
         ClearItemChargeClassification();
         TransferToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
         SalesCrMemoHeader."Company Bank Account Code" := ServiceCrMemoHeader."Company Bank Account Code";
@@ -424,6 +456,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceCrMemoHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -437,6 +471,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     local procedure DocumentLinesExist(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"): Boolean
@@ -808,14 +843,17 @@ codeunit 13917 "Export ZUGFeRD Document"
         ItemChargeAllowanceTotalAmount: Decimal;
     begin
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
+        // BT-90 Bank assigned creditor identifier. The CII HeaderTradeSettlement sequence puts
+        // CreditorReferenceID before InvoiceCurrencyCode, so it is added first.
+        InsertCreditorReference(SettlementElement, SalesInvHeader."Payment Method Code", SalesInvHeader."Company Bank Account Code");
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
-        InsertPaymentMethod(SettlementElement, SalesInvHeader."Company Bank Account Code");
+        InsertPaymentMethod(SettlementElement, SalesInvHeader."Payment Method Code", SalesInvHeader."Company Bank Account Code", SalesInvHeader."Direct Debit Mandate ID", SalesInvHeader);
         InsertTradeTax(SettlementElement, SalesInvLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesInvLine, LineDiscAmount, LineAmounts);
         InsertItemChargeAllowanceCharges(SettlementElement, SalesInvLine);
 
-        InsertPaymentTerms(SettlementElement, SalesInvHeader."Payment Terms Code", SalesInvHeader."Due Date");
+        InsertPaymentTerms(SettlementElement, SalesInvHeader."Payment Terms Code", SalesInvHeader."Due Date", GetDirectDebitMandateID(SalesInvHeader."Payment Method Code", SalesInvHeader."Direct Debit Mandate ID"));
         GetDocumentLevelItemChargeTotals(SalesInvLine, ItemChargeTotalAmount, ItemChargeAllowanceTotalAmount);
         MonetarySummationElement := XmlElement.Create('SpecifiedTradeSettlementHeaderMonetarySummation', XmlNamespaceRAM);
         MonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName(Amount)) + LineAmounts.Get(SalesInvLine.FieldName("Inv. Discount Amount")) - ItemChargeTotalAmount + ItemChargeAllowanceTotalAmount)));
@@ -841,12 +879,12 @@ codeunit 13917 "Export ZUGFeRD Document"
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
-        InsertPaymentMethod(SettlementElement, SalesCrMemoHeader."Company Bank Account Code");
+        InsertPaymentMethod(SettlementElement, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '', SalesCrMemoHeader);
         InsertTradeTax(SettlementElement, SalesCrMemoLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesCrMemoLine, LineDiscAmount, LineAmounts);
         InsertItemChargeAllowanceCharges(SettlementElement, SalesCrMemoLine);
 
-        InsertPaymentTerms(SettlementElement, SalesCrMemoHeader."Payment Terms Code", SalesCrMemoHeader."Due Date");
+        InsertPaymentTerms(SettlementElement, SalesCrMemoHeader."Payment Terms Code", SalesCrMemoHeader."Due Date", '');
         GetDocumentLevelItemChargeTotals(SalesCrMemoLine, ItemChargeTotalAmount, ItemChargeAllowanceTotalAmount);
         MonetarySummationElement := XmlElement.Create('SpecifiedTradeSettlementHeaderMonetarySummation', XmlNamespaceRAM);
         MonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName(Amount)) + LineAmounts.Get(SalesCrMemoLine.FieldName("Inv. Discount Amount")) - ItemChargeTotalAmount + ItemChargeAllowanceTotalAmount)));
@@ -1179,7 +1217,26 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
     end;
 
-    local procedure InsertPaymentTerms(var RootXMLNode: XmlElement; PaymentTermsCode: Code[10]; DueDate: Date)
+    local procedure InsertCreditorReference(var SettlementElement: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20])
+    var
+        CreditorNo: Code[35];
+    begin
+        if not DEPaymentMeansHelper.IsDirectDebit(DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode)) then
+            exit;
+        CreditorNo := DEPaymentMeansHelper.GetCreditorNo(CompanyBankAccountCode);
+        if CreditorNo = '' then
+            exit;
+        SettlementElement.Add(XmlElement.Create('CreditorReferenceID', XmlNamespaceRAM, CreditorNo));
+    end;
+
+    local procedure GetDirectDebitMandateID(PaymentMethodCode: Code[10]; DirectDebitMandateID: Code[35]): Code[35]
+    begin
+        if DEPaymentMeansHelper.IsDirectDebit(DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode)) then
+            exit(DirectDebitMandateID);
+        exit('');
+    end;
+
+    local procedure InsertPaymentTerms(var RootXMLNode: XmlElement; PaymentTermsCode: Code[10]; DueDate: Date; DirectDebitMandateID: Code[35])
     var
         PaymentTerms: Record "Payment Terms";
         PaymentTermsElement: XmlElement;
@@ -1196,32 +1253,104 @@ codeunit 13917 "Export ZUGFeRD Document"
         DueDateElement := XmlElement.Create('DueDateDateTime', XmlNamespaceRAM);
         DueDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(DueDate)));
         PaymentTermsElement.Add(DueDateElement);
+        // BT-89 Mandate reference identifier. The CII TradePaymentTerms sequence puts DirectDebitMandateID
+        // after DueDateDateTime, so it is added last.
+        if DirectDebitMandateID <> '' then
+            PaymentTermsElement.Add(XmlElement.Create('DirectDebitMandateID', XmlNamespaceRAM, DirectDebitMandateID));
         RootXMLNode.Add(PaymentTermsElement);
     end;
 
-    local procedure InsertPaymentMethod(var RootXMLNode: XmlElement; CompanyBankAccountCode: Code[20])
+    local procedure InsertPaymentMethod(var RootXMLNode: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35]; RecordVariant: Variant)
     var
-        PaymentMethodElement, PaymentMethodTypeCodeElement, PaymentMethodIBANElement, PaymentMethodBICElement : XmlElement;
+        DataTypeManagement: Codeunit "Data Type Management";
+        HeaderRecordRef: RecordRef;
+        PaymentMethodElement, PaymentMethodTypeCodeElement : XmlElement;
+        PaymentMeansCode: Code[3];
+    begin
+        PaymentMeansCode := DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode);
+        PaymentMethodElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', XmlNamespaceRAM);
+        PaymentMethodTypeCodeElement := XmlElement.Create('TypeCode', XmlNamespaceRAM, PaymentMeansCode);
+        PaymentMethodElement.Add(PaymentMethodTypeCodeElement);
+
+        case PaymentMeansCode of
+            '30', '58':
+                InsertCreditTransferPayment(PaymentMethodElement, CompanyBankAccountCode);
+            '49', '59':
+                InsertDirectDebitPayment(PaymentMethodElement, DirectDebitMandateID);
+        end;
+
+        // The original source document, so that a subscriber sees the service header and not the sales header it was transferred to.
+        // The passed header is only used when InsertSupplyChainTradeTransaction is called directly, without CreateXML.
+        if SourceDocumentRecordRef.Number() <> 0 then
+            OnInsertPaymentMethodOnBeforeAddToRoot(PaymentMethodElement, SourceDocumentRecordRef)
+        else
+            if DataTypeManagement.GetRecordRef(RecordVariant, HeaderRecordRef) then
+                OnInsertPaymentMethodOnBeforeAddToRoot(PaymentMethodElement, HeaderRecordRef);
+        RootXMLNode.Add(PaymentMethodElement);
+    end;
+
+    local procedure InsertDirectDebitPayment(var PaymentMethodElement: XmlElement; DirectDebitMandateID: Code[35])
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+    begin
+        // BG-17 CREDIT TRANSFER (PayeePartyCreditorFinancialAccount, PayeeSpecifiedCreditorFinancialInstitution) must not
+        // be sent for direct debit (BR-DE-25-b). The creditor is identified by BT-90 CreditorReferenceID instead.
+
+        // BT-91 PayerPartyDebtorFinancialAccount = account being charged (customer, direct debit only), resolved via the mandate.
+        if DirectDebitMandateID <> '' then begin
+            SEPADirectDebitMandate.SetLoadFields(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code");
+            if SEPADirectDebitMandate.Get(DirectDebitMandateID) then begin
+                CustomerBankAccount.SetLoadFields(CustomerBankAccount.IBAN);
+                if CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
+                    AddDebtorAccount(PaymentMethodElement, CustomerBankAccount.IBAN);
+            end;
+        end;
+    end;
+
+    local procedure InsertCreditTransferPayment(var PaymentMethodElement: XmlElement; CompanyBankAccountCode: Code[20])
+    var
         IBAN: Text[50];
         SWIFTCode: Code[20];
     begin
+        // PayeePartyCreditorFinancialAccount = company bank account (payment recipient), for invoices and credit memos alike.
+        // Customer bank data is intentionally not used as payee here, even though a customer IBAN/BIC could technically be read
         GetBankAccountPaymentDetails(CompanyBankAccountCode, IBAN, SWIFTCode);
-        PaymentMethodElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', XmlNamespaceRAM);
-        PaymentMethodTypeCodeElement := XmlElement.Create('TypeCode', XmlNamespaceRAM, '58'); //generic for Credit transfer
-        PaymentMethodElement.Add(PaymentMethodTypeCodeElement);
+        AddCreditorAccount(PaymentMethodElement, IBAN);
+        AddCreditorFinancialInstitution(PaymentMethodElement, SWIFTCode);
+    end;
 
-        if IBAN <> '' then begin
-            PaymentMethodIBANElement := XmlElement.Create('PayeePartyCreditorFinancialAccount', XmlNamespaceRAM);
-            PaymentMethodIBANElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
-            PaymentMethodElement.Add(PaymentMethodIBANElement);
-        end;
+    local procedure AddCreditorAccount(var PaymentMethodElement: XmlElement; IBAN: Text[50])
+    var
+        PaymentMethodIBANElement: XmlElement;
+    begin
+        if IBAN = '' then
+            exit;
+        PaymentMethodIBANElement := XmlElement.Create('PayeePartyCreditorFinancialAccount', XmlNamespaceRAM);
+        PaymentMethodIBANElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
+        PaymentMethodElement.Add(PaymentMethodIBANElement);
+    end;
 
-        if SWIFTCode <> '' then begin
-            PaymentMethodBICElement := XmlElement.Create('PayeeSpecifiedCreditorFinancialInstitution', XmlNamespaceRAM);
-            PaymentMethodBICElement.Add(XmlElement.Create('BICID', XmlNamespaceRAM, GetIBAN(SWIFTCode)));
-            PaymentMethodElement.Add(PaymentMethodBICElement);
-        end;
-        RootXMLNode.Add(PaymentMethodElement);
+    local procedure AddDebtorAccount(var PaymentMethodElement: XmlElement; IBAN: Text[50])
+    var
+        DebtorAccountElement: XmlElement;
+    begin
+        if IBAN = '' then
+            exit;
+        DebtorAccountElement := XmlElement.Create('PayerPartyDebtorFinancialAccount', XmlNamespaceRAM);
+        DebtorAccountElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
+        PaymentMethodElement.Add(DebtorAccountElement);
+    end;
+
+    local procedure AddCreditorFinancialInstitution(var PaymentMethodElement: XmlElement; SWIFTCode: Code[20])
+    var
+        PaymentMethodBICElement: XmlElement;
+    begin
+        if SWIFTCode = '' then
+            exit;
+        PaymentMethodBICElement := XmlElement.Create('PayeeSpecifiedCreditorFinancialInstitution', XmlNamespaceRAM);
+        PaymentMethodBICElement.Add(XmlElement.Create('BICID', XmlNamespaceRAM, GetIBAN(SWIFTCode)));
+        PaymentMethodElement.Add(PaymentMethodBICElement);
     end;
 
     local procedure InsertInvDiscountAllowanceCharge(var RootXMLNode: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; var LineDiscAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal])
@@ -1958,12 +2087,44 @@ codeunit 13917 "Export ZUGFeRD Document"
         exit(VATPostingSetup."Tax Category");
     end;
 
+    procedure SetEDocumentService(NewEDocumentService: Record "E-Document Service")
+    begin
+        EDocumentService := NewEDocumentService;
+#if not CLEAN30
+        EDocumentServiceProvided := true;
+#endif
+    end;
+
+    local procedure ResetProvidedService()
+    begin
+        // Clear the per-instance service state at the end of every run so a reused instance never carries
+        // the service provided for an earlier export into a later export that does not provide one.
+        Clear(EDocumentService);
+#if not CLEAN30
+        EDocumentServiceProvided := false;
+#endif
+    end;
+
+#if not CLEAN30
+#pragma warning disable AA0228, AL0432
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService (threaded via "ZUGFeRD Export Context"). This function is still called on every export until CLEAN30: when a service was provided it only raises OnAfterFindEDocumentService without overwriting that service, otherwise it performs the legacy FindLast lookup. As of CLEAN30 this function and that fallback are removed, so any caller that does not provide a service - for example a customized sales report that never sets the ZUGFeRD Export Context - then exports with a blank E-Document Service.', '30.0')]
     local procedure FindEDocumentService()
     begin
+        // A service provided through SetEDocumentService is the service that triggered the export -
+        // never overwrite it with a lookup, but still raise the event so existing subscribers keep working.
+        // When nothing was provided (for example a customized report that does not use the context)
+        // the original lookup runs unchanged.
+        if EDocumentServiceProvided then begin
+            OnAfterFindEDocumentService(EDocumentService);
+            exit;
+        end;
+
         EDocumentService.SetRange("Document Format", EDocumentService."Document Format"::ZUGFeRD);
         if EDocumentService.FindLast() then;
         OnAfterFindEDocumentService(EDocumentService);
     end;
+#pragma warning restore AA0228, AL0432
+#endif
 
     local procedure GetBankAccountPaymentDetails(BankAccountCode: Code[20]; var IBAN: Text[50]; var SWIFTCode: Code[20])
     var
@@ -1981,10 +2142,15 @@ codeunit 13917 "Export ZUGFeRD Document"
     end;
     #endregion
 
+#if not CLEAN30
+#pragma warning disable AA0228
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService (threaded via "ZUGFeRD Export Context"). This event is STILL raised on every export until CLEAN30 - both when a service was provided and on the legacy FindLast lookup path - so existing subscribers keep working during the deprecation window. It no longer exists as of CLEAN30; move any logic that depends on it to the service provided through SetEDocumentService.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service")
     begin
     end;
+#pragma warning restore AA0228
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertSalesInvHeaderData(var XMLCurrNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -2073,6 +2239,15 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertApplicableHeaderTradeAgreement(var HeaderTradeAgreementElement: XmlElement; HeaderRecordRef: RecordRef)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires immediately before the generated payment means element is added to the document root.
+    /// Subscribe to inspect or extend the payment block, using HeaderRecRef to access any field of the source document.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertPaymentMethodOnBeforeAddToRoot(var PaymentMethodElement: XmlElement; HeaderRecRef: RecordRef)
     begin
     end;
 
