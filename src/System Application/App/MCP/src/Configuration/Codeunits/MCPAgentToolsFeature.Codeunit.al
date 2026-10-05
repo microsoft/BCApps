@@ -64,5 +64,5 @@ codeunit 8376 "MCP Agent Tools Feature" implements "MCP Server Features"
     end;
 
     var
-        DescriptionLbl: Label 'Exposes tools to list configured Business Central agents and the reserved agent invocation tool.';
+        DescriptionLbl: Label 'Exposes system tools that let clients discover and invoke the Business Central agents added to Available Agents.';
 }
