@@ -745,6 +745,50 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    procedure CloseIncomeStatementSumsLCYSourceCurrencyAmount()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        IncomeStatementAccount: Record "G/L Account";
+        RetainedEarningsAccountNo: Code[20];
+        BalancingAccountNo: Code[20];
+        SourceCurrencyCode: Code[10];
+        ClosingDocumentNo: Code[20];
+        FiscalYearStartDate: Date;
+        FiscalYearEndDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Grouped closing sums the source-currency amounts of all LCY entries, not just the first entry.
+        Initialize();
+
+        // [GIVEN] A closed fiscal year with AUD LCY, no reporting currency and no selected dimensions
+        PrepareIncomeStatementClosingScenario(GenJournalLine, SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate, 'AUD');
+        CreateIncomeStatementAccount(IncomeStatementAccount);
+        BalancingAccountNo := CreateBalanceGLAccountNo();
+        RetainedEarningsAccountNo := CreateBalanceGLAccountNo();
+        ClosingDocumentNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] Account "A" has two LCY entries of 100, separated by a USD entry on a different date
+        PostIncomeStatementEntry(
+            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 10, 100, '');
+        PostIncomeStatementEntry(
+            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 40, 400, SourceCurrencyCode);
+        PostIncomeStatementEntry(
+            GenJournalLine, IncomeStatementAccount."No.", BalancingAccountNo, FiscalYearStartDate + 70, 100, '');
+        Commit();
+
+        // [WHEN] Close by business unit with Balance selected and no dimensions selected
+        CreateFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, ClosingDocumentNo, IncomeStatementAccount."No.",
+            PostToRetainedEarningsAcc::Balance, false);
+
+        // [THEN] The LCY closing line offsets both the amount and source-currency amount of the two LCY entries
+        VerifyLCYClosingSourceCurrencyAmount(
+            GenJournalLine, IncomeStatementAccount."No.", FiscalYearStartDate, FiscalYearEndDate);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -939,6 +983,29 @@ codeunit 134228 "ERM Close Income Statement"
             Assert.AreEqual(ClosingDate(FiscalYearEndDate), GenJournalLine."Posting Date", 'The journal must use the fiscal-year closing date.');
             Assert.AreEqual(ExpectedDimensionSetID, GenJournalLine."Dimension Set ID", 'The journal must retain only the selected dimensions.');
         until GenJournalLine.Next() = 0;
+    end;
+
+    local procedure VerifyLCYClosingSourceCurrencyAmount(GenJournalLine: Record "Gen. Journal Line"; AccountNo: Code[20]; FiscalYearStartDate: Date; FiscalYearEndDate: Date)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("G/L Account No.", AccountNo);
+        GLEntry.SetRange("Posting Date", FiscalYearStartDate, FiscalYearEndDate);
+        GLEntry.SetRange("Source Currency Code", '');
+        Assert.AreEqual(2, GLEntry.Count(), 'The LCY group must contain both posted entries.');
+        GLEntry.CalcSums(Amount, "Source Currency Amount");
+        Assert.AreEqual(200, GLEntry.Amount, 'The posted LCY entries must total 200.');
+        Assert.AreEqual(200, GLEntry."Source Currency Amount", 'The posted LCY source-currency amounts must total 200.');
+
+        GenJournalLine.SetRange("Account No.", AccountNo);
+        GenJournalLine.SetRange("Source Currency Code", '');
+        Assert.AreEqual(1, GenJournalLine.Count(), 'The LCY group must produce exactly one closing line.');
+        GenJournalLine.FindFirst();
+        Assert.AreEqual(ClosingDate(FiscalYearEndDate), GenJournalLine."Posting Date", 'The journal must use the fiscal-year closing date.');
+        Assert.AreEqual(-GLEntry.Amount, GenJournalLine.Amount, 'The closing amount must offset all entries in the LCY group.');
+        Assert.AreEqual(
+            -GLEntry."Source Currency Amount", GenJournalLine."Source Currency Amount",
+            'The closing source-currency amount must offset all entries in the LCY group, not just the first entry.');
     end;
 
     local procedure SeedLegacyClosingSourceMetadata(DocumentNo: Code[20]; SourceCurrencyCode: Code[10]; FiscalYearEndDate: Date)
