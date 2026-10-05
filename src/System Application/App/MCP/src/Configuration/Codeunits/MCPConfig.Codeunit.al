@@ -265,12 +265,21 @@ codeunit 8350 "MCP Config"
 #endif
 
     /// <summary>
-    /// Deletes the specified API or agent tool from the configuration.
+    /// Deletes the specified API tool from the configuration.
     /// </summary>
     /// <param name="ToolSystemId">The SystemId (GUID) of the tool to delete.</param>
     procedure DeleteTool(ToolSystemId: Guid)
     begin
         MCPConfigImplementation.DeleteTool(ToolSystemId);
+    end;
+
+    /// <summary>
+    /// Deletes the specified agent tool from the configuration.
+    /// </summary>
+    /// <param name="AgentToolSystemId">The SystemId (GUID) of the agent tool to delete.</param>
+    procedure DeleteAgentTool(AgentToolSystemId: Guid)
+    begin
+        MCPConfigImplementation.DeleteAgentTool(AgentToolSystemId);
     end;
 
     /// <summary>

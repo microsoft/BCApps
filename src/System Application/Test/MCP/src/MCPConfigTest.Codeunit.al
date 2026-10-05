@@ -478,7 +478,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestDeleteToolDeletesAgentTool()
+    procedure TestDeleteAgentToolDeletesAgentTool()
     var
         MCPConfigurationAgent: Record "MCP Configuration Agent";
         ConfigId: Guid;
@@ -489,9 +489,31 @@ codeunit 130130 "MCP Config Test"
         InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent', '');
         MCPConfigurationAgent.Get(ConfigId, AgentId);
 
-        MCPConfig.DeleteTool(MCPConfigurationAgent.SystemId);
+        MCPConfig.DeleteAgentTool(MCPConfigurationAgent.SystemId);
 
         AssertConfigurationAgentCount(ConfigId, 0);
+    end;
+
+    [Test]
+    procedure TestDeleteAgentToolDoesNotDeleteAPIToolWithSameSystemId()
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        SharedSystemId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        SharedSystemId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationAgent.ID := ConfigId;
+        MCPConfigurationAgent."Agent ID" := CreateGuid();
+        MCPConfigurationAgent."Agent Name" := 'Configured agent';
+        MCPConfigurationAgent.SystemId := SharedSystemId;
+        MCPConfigurationAgent.Insert(false, true);
+
+        MCPConfig.DeleteAgentTool(SharedSystemId);
+
+        Assert.IsFalse(MCPConfigurationAgent.GetBySystemId(SharedSystemId), 'Agent tool was not deleted');
+        Assert.IsTrue(MCPConfigurationTool.GetBySystemId(SharedSystemId), 'API tool with the same SystemId was deleted');
     end;
 
     #endregion

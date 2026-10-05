@@ -663,16 +663,22 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure DeleteTool(ToolId: Guid)
     var
-        MCPConfigurationAgent: Record "MCP Configuration Agent";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        if MCPConfigurationTool.GetBySystemId(ToolId) then begin
-            MCPConfigurationTool.Delete();
+        if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
-        end;
 
-        if MCPConfigurationAgent.GetBySystemId(ToolId) then
-            MCPConfigurationAgent.Delete();
+        MCPConfigurationTool.Delete();
+    end;
+
+    internal procedure DeleteAgentTool(AgentToolId: Guid)
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+    begin
+        if not MCPConfigurationAgent.GetBySystemId(AgentToolId) then
+            exit;
+
+        MCPConfigurationAgent.Delete();
     end;
 
     internal procedure AllowRead(ToolId: Guid; Allow: Boolean)
