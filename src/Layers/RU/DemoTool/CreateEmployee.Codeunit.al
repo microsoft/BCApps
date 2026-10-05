@@ -102,6 +102,7 @@ codeunit 101600 "Create Employee"
         X66BJamesRoad: Label '66B James Road';
         XPERSONAL: Label 'PERSONAL';
         XPERSEXP: Label 'PERSEXP';
+        XEmplExp: Label 'EMPLEXP', Locked = true;
 
     procedure InsertGeneral("No.": Code[20]; "First Name": Text[30]; "Middle Name": Text[30]; "Last Name": Text[30]; Initials: Text[30]; Address: Text[30]; "Post Code": Code[20]; Title: Text[30]; Sex: Enum "Employee Gender")
     begin
@@ -166,6 +167,11 @@ codeunit 101600 "Create Employee"
         Vend.Validate("Vendor Posting Group", XPERSEXP);
         Vend.Validate("Gen. Bus. Posting Group", XPERSONAL);
         Vend.Modify();
+    end;
+
+    procedure EmployeePostingGroupCode(): Code[20]
+    begin
+        exit(XEmplExp);
     end;
 }
 
