@@ -1143,6 +1143,13 @@ codeunit 6154 "API Webhook Notification Send"
 #pragma warning restore AL0432
 #endif
         OnAfterSendNotificationWithStatusNumber(ErrorMessage, ErrorDetails, HttpStatusCodeNumber);
+#if not CLEAN30
+        // Subscribers of the obsolete event may have changed the status code; it drives rescheduling and logging as before.
+        if IsNull(HttpStatusCode) then
+            HttpStatusCodeNumber := 0
+        else
+            HttpStatusCodeNumber := HttpStatusCode;
+#endif
 
         if not Success then begin
             IsDataverseSubscription := SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = SubscriptionType::Dataverse;
