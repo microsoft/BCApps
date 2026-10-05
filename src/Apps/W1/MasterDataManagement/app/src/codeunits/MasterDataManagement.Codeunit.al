@@ -147,7 +147,9 @@ codeunit 7233 "Master Data Management"
 
     local procedure SetSynchronizationUsageLoggedToday()
     begin
-        IsolatedStorage.Set(LastSynchUsageTelemetryDateKeyTok, Format(Today(), 0, 9), DataScope::Company);
+        // Soft write: capture the result so a failed isolated storage write returns false instead of raising an error.
+        // Telemetry must never fail the synchronization job; if this write is skipped, usage is simply logged again next run.
+        if IsolatedStorage.Set(LastSynchUsageTelemetryDateKeyTok, Format(Today(), 0, 9), DataScope::Company) then;
     end;
 
     internal procedure IsEnabled(): Boolean
