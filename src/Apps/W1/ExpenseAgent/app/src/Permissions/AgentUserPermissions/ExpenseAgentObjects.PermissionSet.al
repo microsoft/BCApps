@@ -128,6 +128,7 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Expense Vendor" = X,
                   table "EA Outbox Email" = X,
                   table "Tenant Feedback Setting" = X,
+                  table Traveler = X,
                   table "Posted Exp. Rep. Line Item" = X,
                   table "Posted Exp. Rep. Line Particip" = X,
                   table "Posted Exp. Rep. Line Per Diem" = X,
