@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.RoleCenters;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -71,7 +71,7 @@ page 9032 "Acc. Payables Activities"
                         RunObject = Page "Purchase Journal";
                         ToolTip = 'Post purchase invoices in a purchase journal that may already contain journal lines.';
                     }
-#if not CLEAN29
+#if not CLEAN30
                     action("Edit Bank Payment to send")
                     {
                         ApplicationArea = Basic, Suite;
@@ -79,7 +79,7 @@ page 9032 "Acc. Payables Activities"
                         RunObject = Page "Bank Payments to send";
                         ToolTip = 'View and edit the payments that will be registered to the vendors.';
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                         ObsoleteReason = 'Moved to Banking and Payments FI app.';
                     }
 #endif

@@ -42,13 +42,13 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Disreg. Pmt. Disc. at Full Pmt"; Rec."Disreg. Pmt. Disc. at Full Pmt")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if you do not want to post a payment discount when it is not used.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
 #endif

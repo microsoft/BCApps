@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.Payables;
 
 using Microsoft.Bank.BankAccount;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Finance.Dimension;
@@ -618,7 +618,7 @@ report 393 "Suggest Vendor Payments"
 
     local procedure GetVendLedgEntries(Positive: Boolean; Future: Boolean)
     var
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         RefPaymentLines: Record "Ref. Payment - Exported";
 #pragma warning restore AL0432
@@ -651,7 +651,7 @@ report 393 "Suggest Vendor Payments"
                 IsHandled := false;
                 OnGetVendLedgEntriesOnBeforeLoop(VendLedgEntry, PostingDate, LastDueDateToPayReq, Future, IsHandled);
                 if not IsHandled then
-#if not CLEAN29
+#if not CLEAN30
                     if (not FIBankingPaymentFeature.IsEnabled()) and SendToBank then begin // + NSFI BANK
 #pragma warning disable AL0432
                         RefPaymentLines.Reset();
@@ -690,7 +690,7 @@ report 393 "Suggest Vendor Payments"
 
     local procedure SaveAmount()
     var
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         RefPaymentLines: Record "Ref. Payment - Exported";
 #pragma warning restore AL0432
@@ -723,7 +723,7 @@ report 393 "Suggest Vendor Payments"
             GenJnlLine.Amount := -VendLedgEntry."Remaining Amount";
         GenJnlLine.Validate(Amount);
 
-#if not CLEAN29
+#if not CLEAN30
         if (not FIBankingPaymentFeatureSA.IsEnabled()) and SendToBank then begin // + NSFI BANK
 #pragma warning disable AL0432
             RefPaymentLines.Reset();
@@ -802,7 +802,7 @@ report 393 "Suggest Vendor Payments"
         GenJnlLine1: Record "Gen. Journal Line";
         DimBuf: Record "Dimension Buffer";
         RemainingAmtAvailable: Decimal;
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         RefPaymentLines: Record "Ref. Payment - Exported";
 #pragma warning restore AL0432
@@ -874,7 +874,7 @@ report 393 "Suggest Vendor Payments"
                                 TempVendorPaymentBuffer.Amount := TempPayableVendorLedgerEntry.Amount;
 
                                 // +NSFI BANK
-#if not CLEAN29
+#if not CLEAN30
                                 if not FIBankingPaymentFeatureMG.IsEnabled() then begin
 #pragma warning disable AL0432
                                     TempVendorPaymentBuffer."Message Type" := VendLedgEntry."Message Type";
@@ -920,7 +920,7 @@ report 393 "Suggest Vendor Payments"
 
         Clear(TempOldVendorPaymentBuffer);
         // +NAFI BANK
-#if not CLEAN29
+#if not CLEAN30
         if (not FIBankingPaymentFeatureMG.IsEnabled()) and SendToBank then
             TempVendorPaymentBuffer.SetCurrentKey("Payment Date", "Vendor No.", "Document No.")
         else
@@ -1337,11 +1337,11 @@ report 393 "Suggest Vendor Payments"
         end;
     end;
 
-#if CLEAN29
-#pragma warning disable AA0137 // EntryNo is only consumed by pre-CLEAN29 code below
+#if CLEAN30
+#pragma warning disable AA0137 // EntryNo is only consumed by pre-CLEAN30 code below
 #endif
     local procedure GetDomesticPaymentDate(EntryNo: Integer): Date
-#if not CLEAN29
+#if not CLEAN30
     var
 #pragma warning disable AL0432
         RefPaymentExported: Record "Ref. Payment - Exported";
@@ -1349,10 +1349,10 @@ report 393 "Suggest Vendor Payments"
         FIBankingPaymentFeatureGDP: Codeunit "FI Banking Payment Feature";
 #endif
     begin
-#if CLEAN29
+#if CLEAN30
 #pragma warning restore AA0137
 #endif
-#if not CLEAN29
+#if not CLEAN30
         if not FIBankingPaymentFeatureGDP.IsEnabled() then begin
 #pragma warning disable AL0432
             RefPaymentExported.SetRange(Transferred, true);

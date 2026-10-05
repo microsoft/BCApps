@@ -1,4 +1,4 @@
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,12 +13,12 @@ using Microsoft.Purchases.Vendor;
 table 32000004 "Ref. Payment - Exported Buffer"
 {
     Caption = 'Ref. Payment - Exported Buffer';
-#if not CLEAN29
+#if not CLEAN30
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 #else
     ObsoleteState = Removed;
-    ObsoleteTag = '32.0';
+    ObsoleteTag = '33.0';
 #endif
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     DataClassification = CustomerContent;

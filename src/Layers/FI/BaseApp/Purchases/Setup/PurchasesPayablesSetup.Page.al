@@ -282,13 +282,13 @@ page 460 "Purchases & Payables Setup"
                     Visible = ExtendedPriceEnabled;
                     ApplicationArea = Basic, Suite;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Bank Batch Nos."; Rec."Bank Batch Nos.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the bank batch number.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
 #endif

@@ -622,7 +622,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         GenJnlLine.CopyFromSalesHeaderApplyTo(SalesHeader);
         GenJnlLine.CopyFromSalesHeaderPayment(SalesHeader);
-#if not CLEAN29
+#if not CLEAN30
         GenJnlLine."Reference No." := InvoicePostingParameters."Auto Document No.";
 #endif
 

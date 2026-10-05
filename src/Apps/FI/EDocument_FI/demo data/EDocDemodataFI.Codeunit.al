@@ -8,7 +8,7 @@ namespace Microsoft.DemoData.Localization;
 using Microsoft.DemoData.Finance;
 using Microsoft.DemoTool;
 using Microsoft.eServices.EDocument.DemoData;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Purchases.Document;
 #endif
 
@@ -27,7 +27,7 @@ codeunit 13439 "EDoc. Demodata FI"
             DefineLocalGLAccountInEDocumentsModuleSetup();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create E-Doc. Sample Invoices", OnUpdateRequiredDataInPurchaseHeaderForPosting, '', false, false)]
     local procedure OnUpdateRequiredDataInPurchaseHeaderForPosting(var PurchaseHeader: Record "Purchase Header")
     begin

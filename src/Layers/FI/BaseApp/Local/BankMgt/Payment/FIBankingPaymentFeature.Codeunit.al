@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-#if not CLEAN29
+#if not CLEAN30
 using System.Environment.Configuration;
 #endif
 
@@ -13,12 +13,12 @@ codeunit 32000003 "FI Banking Payment Feature"
     Access = Internal;
 
     procedure IsEnabled(): Boolean
-#if not CLEAN29
+#if not CLEAN30
     var
         FeatureManagementFacade: Codeunit "Feature Management Facade";
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         exit(FeatureManagementFacade.IsEnabled(FeatureIdTok));
 #else
         exit(true);
@@ -26,7 +26,7 @@ codeunit 32000003 "FI Banking Payment Feature"
     end;
 
     var
-#if not CLEAN29
+#if not CLEAN30
         FeatureIdTok: Label 'BankingAndPaymentsFI', Locked = true;
 #endif
 }

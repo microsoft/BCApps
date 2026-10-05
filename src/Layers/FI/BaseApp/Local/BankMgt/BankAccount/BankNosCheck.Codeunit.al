@@ -5,18 +5,18 @@
 
 namespace Microsoft.Bank.BankAccount;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Setup;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 codeunit 32000002 "Bank Nos Check"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()

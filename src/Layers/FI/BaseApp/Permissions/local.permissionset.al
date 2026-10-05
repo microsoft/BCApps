@@ -1,6 +1,6 @@
 namespace System.Security.AccessControl;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
 #endif
@@ -15,7 +15,7 @@ permissionset 1001 "LOCAL"
     IncludedPermissionSets = "LOCAL READ";
 
     Permissions = tabledata "Depr. Diff. Posting Buffer" = IMD
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                   , tabledata "Foreign Payment Types" = IMD
                   , tabledata "Ref. Payment - Exported" = IMD

@@ -1610,7 +1610,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
         PurchaseHeader.Validate(
           "Vendor Invoice No.", LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Vendor Invoice No."), DATABASE::"Purchase Header"));
         PurchaseHeader.Validate("Posting Date", PostingDate);
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
         PurchaseHeader.Validate("Invoice Message", FixedAssetNo);

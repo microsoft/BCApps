@@ -5,7 +5,7 @@
 
 namespace Microsoft.Bank.Reports;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
@@ -13,11 +13,11 @@ using System.IO;
 using System.Utilities;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 report 32000000 "Import Ref. Payment"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Import Ref. Payment';
     ProcessingOnly = true;

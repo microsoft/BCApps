@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Posting;
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
 using Microsoft.Assembly.Posting;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 #endif
 using Microsoft.CRM.Contact;
@@ -6131,7 +6131,7 @@ codeunit 80 "Sales-Post"
         InvoicePostingParameters."Document No." := GenJnlLineDocNo;
         InvoicePostingParameters."External Document No." := GenJnlLineExtDocNo;
         InvoicePostingParameters."Source Code" := SrcCode;
-#if not CLEAN29
+#if not CLEAN30
         InvoicePostingParameters."Auto Document No." := SalesInvHeader."Reference No.";
 #endif
     end;
@@ -7084,7 +7084,7 @@ codeunit 80 "Sales-Post"
                     GenJnlLineDocNo := SalesInvHeader."No.";
                     GenJnlLineExtDocNo := SalesInvHeader."External Document No.";
                     OnInsertPostedHeadersOnAfterInsertInvoiceHeader(SalesHeader, SalesInvHeader);
-#if not CLEAN29
+#if not CLEAN30
                     InvoicePostingParameters."Auto Document No." := SalesInvHeader."Reference No."
 #endif
                 end else begin // Credit Memo
@@ -7215,7 +7215,7 @@ codeunit 80 "Sales-Post"
         SalesCommentLine: Record "Sales Comment Line";
         RecordLinkManagement: Codeunit "Record Link Management";
         SegManagement: Codeunit SegManagement;
-#if not CLEAN29
+#if not CLEAN30
         BankNosCheck: Codeunit "Bank Nos Check";
         ReferenceNo2: Code[20];
 #endif
@@ -7243,7 +7243,7 @@ codeunit 80 "Sales-Post"
                 SalesInvHeader."Pre-Assigned No. Series" := '';
                 SalesInvHeader."Order No. Series" := SalesHeader."No. Series";
                 SalesInvHeader."Order No." := SalesHeader."No.";
-#if not CLEAN29
+#if not CLEAN30
                 if not PreviewMode then
                     ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
 #endif
@@ -7252,7 +7252,7 @@ codeunit 80 "Sales-Post"
                     AssignPostedDocumentNo(SalesInvHeader."No.", SalesHeader."No.");
                 SalesInvHeader."Pre-Assigned No. Series" := SalesHeader."No. Series";
                 SalesInvHeader."Pre-Assigned No." := SalesHeader."No.";
-#if not CLEAN29
+#if not CLEAN30
                 ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesHeader."No.", SalesHeader."Bill-to Customer No.");
                 if not PreviewMode then
                     ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
@@ -7262,7 +7262,7 @@ codeunit 80 "Sales-Post"
         if GuiAllowed() and not HideProgressWindow then
             Window.Update(1, StrSubstNo(InvoiceNoMsg, SalesHeader."Document Type", SalesHeader."No.", SalesInvHeader."No."));
         SalesInvHeader."Source Code" := SrcCode;
-#if not CLEAN29
+#if not CLEAN30
         SalesInvHeader."Reference No." := ReferenceNo2;
 #endif
         SalesInvHeader."User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesInvHeader."User ID"));

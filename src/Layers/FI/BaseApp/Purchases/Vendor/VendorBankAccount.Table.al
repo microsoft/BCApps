@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 #endif
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Bank.Setup;
@@ -146,7 +146,7 @@ table 288 "Vendor Bank Account"
 
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN30
                 if not FIBankingPaymentFeature.IsEnabled() then
                     if ("Country/Region Code" = '') or ("Country/Region Code" = 'FI') then begin
                         if StrLen("Bank Account No.") > 15 then
@@ -267,30 +267,30 @@ table 288 "Vendor Bank Account"
             ToolTip = 'Specifies the format standard to be used in bank transfers if you use the Bank Clearing Code field to identify you as the sender.';
             TableRelation = "Bank Clearing Standard";
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(13400; "SEPA Payment"; Boolean)
         {
             Caption = 'SEPA Payment';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000001; "Clearing Code"; Text[35])
         {
             Caption = 'Clearing Code';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
 #pragma warning restore AA0232
@@ -350,13 +350,13 @@ table 288 "Vendor Bank Account"
     var
         PostCode: Record "Post Code";
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         BankNosCheck: Codeunit "Bank Nos Check";
 #pragma warning restore AL0432
         FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
 #endif
-#if not CLEAN29
+#if not CLEAN30
         Text1090000: Label 'Domestic %1 must not exceed 15 characters.';
 #endif
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';

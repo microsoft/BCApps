@@ -134,13 +134,13 @@ page 435 "Reminder Lines"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Reference No."; Rec."Reference No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reference number that is calculated from a reference number sequence.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
 #endif

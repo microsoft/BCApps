@@ -5,7 +5,7 @@
 namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.BankAccount;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 #endif
 using Microsoft.EServices.EDocument;
@@ -240,7 +240,7 @@ page 9002 "Acc. Payables Coordinator RC"
                                     Recurring = const(false));
                 ToolTip = 'Register payments to vendors. A payment journal is a type of general journal that is used to post outgoing payment transactions to G/L, bank, customer, vendor, employee, and fixed assets accounts. The Suggest Vendor Payments functions automatically fills the journal with payments that are due. When payments are posted, you can export the payments to a bank file for upload to your bank if your system is set up for electronic banking. You can also issue computer checks from the payment journal.';
             }
-#if not CLEAN29
+#if not CLEAN30
             action("Bank payments to send")
             {
                 ApplicationArea = Basic, Suite;
@@ -249,7 +249,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Page "Bank Payments to send";
                 ToolTip = 'View the payments that will be registered to the vendors.';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
                 ObsoleteReason = 'Moved to Banking and Payments FI app.';
             }
 #endif

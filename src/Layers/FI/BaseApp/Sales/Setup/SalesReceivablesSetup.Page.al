@@ -342,13 +342,13 @@ page 459 "Sales & Receivables Setup"
             group("Reference No.")
             {
                 Caption = 'Reference No.';
-#if not CLEAN29
+#if not CLEAN30
                 field("Invoice No."; Rec."Invoice No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the invoice number that is calculated from the reference number.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Customer No."; Rec."Customer No.")
@@ -356,7 +356,7 @@ page 459 "Sales & Receivables Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the invoicing customer number.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field(Date; Rec.Date)
@@ -364,7 +364,7 @@ page 459 "Sales & Receivables Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the invoice date in the format DDMMYY.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Default Number"; Rec."Default Number")
@@ -372,7 +372,7 @@ page 459 "Sales & Receivables Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a constant number that appears as the first part of the reference number.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Reference Nos."; Rec."Reference Nos.")
@@ -380,14 +380,14 @@ page 459 "Sales & Receivables Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reference number that is calculated from a reference number sequence.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Print Reference No."; Rec."Print Reference No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
 #endif

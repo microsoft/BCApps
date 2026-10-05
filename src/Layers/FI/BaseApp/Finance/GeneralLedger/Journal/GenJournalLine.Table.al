@@ -1060,7 +1060,7 @@ table 81 "Gen. Journal Line"
 
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN30
                 if not FIBankingPaymentFeature.IsEnabled() then
 #pragma warning disable AL0432
                     if "Payment date" = 0D then
@@ -3899,18 +3899,18 @@ table 81 "Gen. Journal Line"
             ObsoleteTag = '25.0';
         }
 #endif
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(32000000; "Reference No."; Code[20])
         {
             Caption = 'Reference No.';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000001; "Message Type"; Option)
@@ -3920,21 +3920,21 @@ table 81 "Gen. Journal Line"
             OptionCaption = 'Reference No,Invoice Information,Message,Long Message,Tax Message';
             OptionMembers = "Reference No","Invoice Information",Message,"Long Message","Tax Message";
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000002; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 
             trigger OnValidate()
             begin
@@ -3949,16 +3949,16 @@ table 81 "Gen. Journal Line"
             end;
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000003; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 
             trigger OnValidate()
             begin
@@ -3968,19 +3968,19 @@ table 81 "Gen. Journal Line"
             end;
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000004; "Payment date"; Date)
         {
             Caption = 'Payment date';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
 #pragma warning restore AA0232
@@ -3999,7 +3999,7 @@ table 81 "Gen. Journal Line"
         }
         key(Key3; "Account Type", "Account No.", "Applies-to Doc. Type", "Applies-to Doc. No.")
         {
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             IncludedFields = "Reference No.";
 #pragma warning restore AL0432
@@ -4230,7 +4230,7 @@ table 81 "Gen. Journal Line"
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
         NotExistErr: Label 'Document number %1 does not exist or is already closed.', Comment = '%1=Document number';
-#if not CLEAN29
+#if not CLEAN30
         RefNoCheck: Codeunit "Bank Nos Check";
         FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
         Text1090006: Label '%1 too long, maximum length is %2 characters.';
@@ -5558,7 +5558,7 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithCustLedgEntry();
             UpdateDocumentTypeAndAppliesTo(CustLedgEntry."Document Type", CustLedgEntry."Document No.");
-#if not CLEAN29
+#if not CLEAN30
             if not FIBankingPaymentFeature.IsEnabled() then
 #pragma warning disable AL0432
                 "Reference No." := CustLedgEntry."Reference No.";
@@ -5653,7 +5653,7 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithVendLedgEntry();
             UpdateDocumentTypeAndAppliesTo(VendLedgEntry."Document Type", VendLedgEntry."Document No.");
-#if not CLEAN29
+#if not CLEAN30
             if not FIBankingPaymentFeature.IsEnabled() then begin
 #pragma warning disable AL0432
                 "Message Type" := VendLedgEntry."Message Type";
@@ -7353,7 +7353,7 @@ table 81 "Gen. Journal Line"
         ReadGLSetup();
         if GLSetup."Journal Templ. Name Mandatory" then
             "Journal Template Name" := PurchHeader."Journal Templ. Name";
-#if not CLEAN29
+#if not CLEAN30
         if not FIBankingPaymentFeature.IsEnabled() then begin
 #pragma warning disable AL0432
             "Message Type" := PurchHeader."Message Type";
@@ -7411,7 +7411,7 @@ table 81 "Gen. Journal Line"
             "Pmt. Discount Date" := PurchHeader."Prepmt. Pmt. Discount Date";
             "Payment Discount %" := PurchHeader."Prepmt. Payment Discount %";
         end;
-#if not CLEAN29
+#if not CLEAN30
         if not FIBankingPaymentFeature.IsEnabled() then begin
 #pragma warning disable AL0432
             "Message Type" := PurchHeader."Message Type";

@@ -5,17 +5,17 @@
 
 namespace Microsoft.Bank.Payment;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 report 32000003 "Suggest Bank Payments"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Suggest Bank Payments';
     ProcessingOnly = true;

@@ -1,10 +1,10 @@
-#if not CLEAN29
+#if not CLEAN30
 codeunit 144021 "Ref. Payment - Exported Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()

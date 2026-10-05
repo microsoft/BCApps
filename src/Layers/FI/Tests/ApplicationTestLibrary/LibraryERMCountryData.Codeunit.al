@@ -10,7 +10,7 @@ codeunit 131305 "Library - ERM Country Data"
 
     var
         LibraryERM: Codeunit "Library - ERM";
-#if not CLEAN29
+#if not CLEAN30
         LibraryUtility: Codeunit "Library - Utility";
 #endif
 
@@ -134,14 +134,14 @@ codeunit 131305 "Library - ERM Country Data"
     end;
 
     procedure UpdateSalesReceivablesSetup()
-#if not CLEAN29
+#if not CLEAN30
     var
         SalesSetup: Record "Sales & Receivables Setup";
         NoSeriesCode: Code[20];
         Modified: Boolean;
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         // Registration No in Sales Invoice
         NoSeriesCode := LibraryUtility.GetGlobalNoSeriesCode();

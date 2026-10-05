@@ -122,13 +122,13 @@ page 425 "Vendor Bank Account Card"
                     ApplicationArea = Basic, Suite;
                     MaskType = Concealed;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Clearing Code"; Rec."Clearing Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a clearing code if the country/region uses the clearing system.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("SEPA Payment"; Rec."SEPA Payment")
@@ -136,7 +136,7 @@ page 425 "Vendor Bank Account Card"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the vendor bank account allows SEPA payments.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
 #endif

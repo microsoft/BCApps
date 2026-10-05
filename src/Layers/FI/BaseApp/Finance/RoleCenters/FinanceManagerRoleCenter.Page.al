@@ -862,14 +862,14 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Payment Application Rules";
                         Tooltip = 'Open the Payment Application Rules page.';
                     }
-#if not CLEAN29
+#if not CLEAN30
                     action("Bank Reference Payments")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Payments to Send';
                         RunObject = page "Bank Payments to send";
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                         ObsoleteReason = 'Moved to Banking and Payments FI app.';
                     }
                     action("Transferfiles")
@@ -878,7 +878,7 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Bank Reference File Setup';
                         RunObject = page "Bank Reference File Setup";
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                         ObsoleteReason = 'Moved to Banking and Payments FI app.';
                     }
 #endif
@@ -917,14 +917,14 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Payment Methods";
                         Tooltip = 'Open the Payment Methods page.';
                     }
-#if not CLEAN29
+#if not CLEAN30
                     action("Payment Method Codes")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Payment Method Codes';
                         RunObject = page "Payment Method Codes";
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                         ObsoleteReason = 'Moved to Banking and Payments FI app.';
                     }
 #endif

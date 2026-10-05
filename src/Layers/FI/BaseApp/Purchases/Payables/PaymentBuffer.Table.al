@@ -139,42 +139,42 @@ table 372 "Payment Buffer"
             OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
         field(32000001; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
         field(32000002; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
         field(32000003; "Payment Date"; Date)
         {
             Caption = 'Payment Date';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
         field(32000004; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
         field(32000005; "Attached to Line No."; Integer)
         {
             Caption = 'Attached to Line No.';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #pragma warning restore AS0105
     }

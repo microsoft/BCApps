@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 #endif
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Reports;
 #endif
 using Microsoft.EServices.EDocument;
@@ -347,13 +347,13 @@ page 255 "Cash Receipt Journal"
                     ApplicationArea = Comments;
                     Visible = false;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Reference No."; Rec."Reference No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reference number that is calculated from a reference number sequence.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
 #endif
@@ -620,13 +620,13 @@ page 255 "Cash Receipt Journal"
     {
         area(navigation)
         {
-#if not CLEAN29
+#if not CLEAN30
             group("Reference File")
             {
                 Caption = 'Reference File';
                 Visible = not FIBankingPaymentFeatureEnabled;
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
                 ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 action("Read Reference File")
                 {
@@ -635,7 +635,7 @@ page 255 "Cash Receipt Journal"
                     Image = SuggestCustomerPayments;
                     ToolTip = 'Import the bank''s reference transfer file. Then specify the bank account whose material you want to use. If the transfer file contains material from several bank accounts, all transactions for all accounts are imported. After the file is imported, all payments for which an open customer transaction with the same reference number are available in the Cash Receipt Journal window.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
                     trigger OnAction()
@@ -654,7 +654,7 @@ page 255 "Cash Receipt Journal"
                     Image = PrintForm;
                     ToolTip = 'Print the Reference Payment report, which contains all transactions imported that have not been posted. The first row shows data from the bank file. The second row shows data that is based on the reference number. If the reference transfer file has transactions without corresponding transaction rows, the transaction''s second row displays TRANSACTION COULD NOT BE AUTOMATICALLY APPLIED. ';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
                     trigger OnAction()
@@ -671,7 +671,7 @@ page 255 "Cash Receipt Journal"
                     Caption = 'Apply Reference Lines';
                     Image = ApplyEntries;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
                     trigger OnAction()
@@ -1197,7 +1197,7 @@ page 255 "Cash Receipt Journal"
                 actionref("Apply Entries_Promoted"; "Apply Entries")
                 {
                 }
-#if not CLEAN29
+#if not CLEAN30
                 actionref("Read Reference File_Promoted"; "Read Reference File")
                 {
                 }
@@ -1354,7 +1354,7 @@ page 255 "Cash Receipt Journal"
         IsHandled: Boolean;
     begin
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
-#if not CLEAN29
+#if not CLEAN30
         FIBankingPaymentFeatureEnabled := FIBankingPaymentFeature.IsEnabled();
 #endif
         IsSaaS := EnvironmentInformation.IsSaaS();
@@ -1408,7 +1408,7 @@ page 255 "Cash Receipt Journal"
         ShowTotalBalance: Boolean;
         BalanceVisible: Boolean;
         TotalBalanceVisible: Boolean;
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         ReadBankFile: Report "Import Ref. Payment";
         ReferenceReport: Report "Ref. Payment Imported";

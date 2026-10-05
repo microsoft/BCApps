@@ -2870,7 +2870,7 @@ table 38 "Purchase Header"
                                 Rec));
             end;
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(32000000; "Message Type"; Option)
         {
@@ -2879,9 +2879,9 @@ table 38 "Purchase Header"
             OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
             OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 
             trigger OnValidate()
             begin
@@ -2889,16 +2889,16 @@ table 38 "Purchase Header"
             end;
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000001; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 
             trigger OnValidate()
             begin
@@ -2920,16 +2920,16 @@ table 38 "Purchase Header"
             end;
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000002; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 
             trigger OnValidate()
             begin
@@ -2939,7 +2939,7 @@ table 38 "Purchase Header"
             end;
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
 #pragma warning restore AA0232
@@ -3163,7 +3163,7 @@ table 38 "Purchase Header"
         StandardCodesMgtGlobal: Codeunit "Standard Codes Mgt.";
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
         CurrencyDate: Date;
-#if not CLEAN29
+#if not CLEAN30
         RefNoCheck: Codeunit "Bank Nos Check";
 #endif
         Confirmed: Boolean;
@@ -3172,7 +3172,7 @@ table 38 "Purchase Header"
         Text034: Label 'You cannot change the %1 when the %2 has been filled in.';
         Text037: Label 'Contact %1 %2 is not related to vendor %3.';
         Text038: Label 'Contact %1 %2 is related to a different company than vendor %3.';
-#if not CLEAN29
+#if not CLEAN30
         Text1090000: Label '%1 is too long, maximum length is %2 characters.';
 #endif
         Text039: Label 'Contact %1 %2 is not related to a vendor.';
@@ -3186,7 +3186,7 @@ table 38 "Purchase Header"
         Text051: Label 'You may have changed a dimension.\\Do you want to update the lines?';
 #pragma warning disable AA0470
         Text052: Label 'The %1 field on the purchase order %2 must be the same as on sales order %3.';
-#if not CLEAN29
+#if not CLEAN30
         Text1090003: Label '%1 and %2 are too long, maximum length is %3 characters.';
 #endif
 #pragma warning restore AA0470

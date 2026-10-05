@@ -32,7 +32,7 @@ codeunit 1402 "Cancel Posted Purch. Cr. Memo"
     begin
         UnapplyEntries(Rec);
         CreateCopyDocument(Rec, PurchHeader);
-#if not CLEAN29
+#if not CLEAN30
         PurchHeader.Validate("Message Type", PurchHeader."Message Type"::Message);
         PurchHeader.Validate("Invoice Message", PurchHeader."No.");
 #endif

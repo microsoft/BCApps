@@ -755,7 +755,7 @@ report 13411 "Service - Invoice (FI)"
                 if not Cust.Get("Bill-to Customer No.") then
                     Clear(Cust);
 
-#if not CLEAN29
+#if not CLEAN30
                 if ("Reference No." = '') or (not SalesSetup."Print Reference No.") then begin
                     RefNoText := '';
                     "Reference No." := '';

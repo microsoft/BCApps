@@ -848,14 +848,14 @@ page 51 "Purchase Invoice"
                         }
                     }
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Message Type"; Rec."Message Type")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the message type for the purchase header.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Invoice Message"; Rec."Invoice Message")
@@ -865,7 +865,7 @@ page 51 "Purchase Invoice"
                     ShowMandatory = true;
                     ToolTip = 'Specifies an invoice message for the purchase header.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
 #endif

@@ -76,7 +76,7 @@ codeunit 101038 "Create Purchase Header"
         "Purchase Header".Validate("Expected Receipt Date", CA.AdjustDate("Posting Date"));
         "Purchase Header".Validate("Document Date", CA.AdjustDate("Posting Date"));
         //+JK MSFI NAVISION 4.0 FI
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         "Purchase Header"."Message Type" := "Message Type";
         "Purchase Header"."Invoice Message" := "Invoice Message";

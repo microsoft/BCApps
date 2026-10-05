@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Posting;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 #endif
 using Microsoft.Finance.Currency;
@@ -1458,15 +1458,15 @@ codeunit 442 "Sales-Post Prepayments"
         OnAfterPostPrepmtInvLineBuffer(GenJnlLine, PrepmtInvLineBuffer, SuppressCommit, GenJnlPostLine);
     end;
 
-#if CLEAN29
-#pragma warning disable AA0137 // SalesInvHeader is only consumed by pre-CLEAN29 code below
+#if CLEAN30
+#pragma warning disable AA0137 // SalesInvHeader is only consumed by pre-CLEAN30 code below
 #endif
     local procedure PostCustomerEntry(SalesHeader: Record "Sales Header"; TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; TotalPrepmtInvLineBufferLCY: Record "Prepayment Inv. Line Buffer"; DocumentType: Option Invoice,"Credit Memo"; PostingDescription: Text[100]; DocType: Enum "Gen. Journal Document Type"; DocNo: Code[20]; ExtDocNo: Text[35]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20]; CalcPmtDisc: Boolean; SalesInvHeader: Record "Sales Invoice Header")
     var
         GenJnlLine: Record "Gen. Journal Line";
         IsHandled: Boolean;
     begin
-#if CLEAN29
+#if CLEAN30
 #pragma warning restore AA0137
 #endif
         IsHandled := false;
@@ -1487,7 +1487,7 @@ codeunit 442 "Sales-Post Prepayments"
             GenJnlLine."Amount (LCY)" := -TotalPrepmtInvLineBufferLCY."Amount Incl. VAT";
             GenJnlLine."Sales/Purch. (LCY)" := -TotalPrepmtInvLineBufferLCY.Amount;
             GenJnlLine."Profit (LCY)" := -TotalPrepmtInvLineBufferLCY.Amount;
-#if not CLEAN29
+#if not CLEAN30
             GenJnlLine."Reference No." := SalesInvHeader."Reference No.";
 #endif
 
@@ -1763,7 +1763,7 @@ codeunit 442 "Sales-Post Prepayments"
     end;
 
     local procedure InsertSalesInvHeader(var SalesInvHeader: Record "Sales Invoice Header"; SalesHeader: Record "Sales Header"; PostingDescription: Text[100]; GenJnlLineDocNo: Code[20]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20])
-#if not CLEAN29
+#if not CLEAN30
     var
         CreateReference: Codeunit "Bank Nos Check";
 #endif
@@ -1783,7 +1783,7 @@ codeunit 442 "Sales-Post Prepayments"
         SalesInvHeader."Prepayment Invoice" := true;
         SalesInvHeader."Prepayment Order No." := SalesHeader."No.";
         SalesInvHeader."No. Series" := PostingNoSeriesCode;
-#if not CLEAN29
+#if not CLEAN30
         SalesInvHeader."Reference No." := CreateReference.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
 #endif
         OnBeforeSalesInvHeaderInsert(SalesInvHeader, SalesHeader, SuppressCommit, GenJnlLineDocNo);

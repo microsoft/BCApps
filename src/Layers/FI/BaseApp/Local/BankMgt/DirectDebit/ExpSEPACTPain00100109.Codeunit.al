@@ -5,16 +5,16 @@
 
 namespace Microsoft.Bank.DirectDebit;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Journal;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 codeunit 13413 "Exp. SEPA CT pain.001.001.09"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     TableNo = "Gen. Journal Line";
 

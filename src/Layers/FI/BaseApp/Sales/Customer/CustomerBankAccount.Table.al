@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 #endif
 using Microsoft.Bank.Setup;
@@ -180,12 +180,12 @@ table 287 "Customer Bank Account"
             trigger OnValidate()
             begin
                 if ("Country/Region Code" = '') or ("Country/Region Code" = 'FI') then
-#if not CLEAN29
+#if not CLEAN30
                 begin
 #endif
                     if StrLen("Bank Account No.") > 15 then
                         Error(Text1090000, FieldCaption("Bank Account No."));
-#if not CLEAN29
+#if not CLEAN30
                     if "Bank Account No." <> '' then
                         BankNosCheck.CheckBankAccount("Bank Account No.", Code);
                 end;
@@ -339,18 +339,18 @@ table 287 "Customer Bank Account"
             TableRelation = "Bank Clearing Standard";
             ToolTip = 'Specifies the format standard to be used in bank transfers if you use the Bank Clearing Code field to identify you as the sender.';
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(32000001; "Clearing Code"; Text[35])
         {
             Caption = 'Clearing Code';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
 #pragma warning restore AA0232
@@ -393,7 +393,7 @@ table 287 "Customer Bank Account"
 
     var
         PostCode: Record "Post Code";
-#if not CLEAN29
+#if not CLEAN30
         BankNosCheck: Codeunit "Bank Nos Check";
 #endif
         Text1090000: Label 'Domestic %1 must not exceed 15 characters.';

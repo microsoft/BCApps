@@ -8,7 +8,7 @@ using Microsoft.Assembly.Setup;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.Ledger;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Bank.Reconciliation;
@@ -140,7 +140,7 @@ codeunit 2 "Company-Initialize"
         SEPACTNameTxt: Label 'SEPA Credit Transfer', MaxLength = 100;
         SEPADDCodeTxt: Label 'SEPADD', Comment = 'No need to translate - but can be translated at will.', MaxLength = 20;
         SEPADDNameTxt: Label 'SEPA Direct Debit', MaxLength = 100;
-#if not CLEAN29
+#if not CLEAN30
         LegacyBankExportCodeTxt: Label 'SEPACT V02', Comment = 'No need to translate - but can be translated at will.';
         LegacyBankExportNameTxt: Label 'SEPA Credit Transfer pain.001.001.02 ';
         FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
@@ -592,7 +592,7 @@ codeunit 2 "Company-Initialize"
               CODEUNIT::"SEPA CT-Export File", XMLPORT::"SEPA CT pain.001.001.03", CODEUNIT::"SEPA CT-Check Line");
             InsertBankExportImportSetup(SEPADDCodeTxt, SEPADDNameTxt, BankExportImportSetup.Direction::Export,
               CODEUNIT::"SEPA DD-Export File", XMLPORT::"SEPA DD pain.008.001.02", CODEUNIT::"SEPA DD-Check Line");
-#if not CLEAN29
+#if not CLEAN30
             if not FIBankingPaymentFeature.IsEnabled() then
                 InsertBankExportImportSetup(LegacyBankExportCodeTxt, LegacyBankExportNameTxt, BankExportImportSetup.Direction::Export,
                   CODEUNIT::"Export SEPA Payment File", 0, 0);

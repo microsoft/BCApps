@@ -29,7 +29,7 @@ codeunit 101931 "Create Local RapidStart Pack"
         BankAccount: Record "Bank Account";
         CustomerBankAccount: Record "Customer Bank Account";
         VendorBankAccount: Record "Vendor Bank Account";
-#if not CLEAN29
+#if not CLEAN30
         PurchaseHeader: Record "Purchase Header";
 #endif
     begin
@@ -46,7 +46,7 @@ codeunit 101931 "Create Local RapidStart Pack"
                     CreateConfigPackageHelper.ValidateField(VendorBankAccount.FieldNo("Bank Account No."), false);
                     CreateConfigPackageHelper.ValidateField(VendorBankAccount.FieldNo("Country/Region Code"), false);
                 end;
-#if not CLEAN29
+#if not CLEAN30
             DATABASE::"Purchase Header":
                 begin
 #pragma warning disable AL0432

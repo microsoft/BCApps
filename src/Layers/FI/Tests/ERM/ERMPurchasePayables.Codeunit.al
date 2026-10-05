@@ -47,7 +47,7 @@ codeunit 134331 "ERM Purchase Payables"
         FieldEnabledErr: Label 'Field %1 must be enabled.', Comment = '%1 - field name';
         IsNotFoundErr: Label 'is not found on the page';
         DateFormulaReverseErr: Label 'Date formula has been reversed incorrectly.';
-#if not CLEAN29
+#if not CLEAN30
         InvoiceMessageErr: Label 'Invoice Message must have a value in Purchase Header: Document Type=%1, No.=%2. It cannot be zero or empty.';
 #endif
         NotificationBatchPurchHeaderMsg: Label 'An error or warning occured during operation Batch processing of Purchase Header records.';
@@ -2140,7 +2140,7 @@ codeunit 134331 "ERM Purchase Payables"
         PurchaseLine.TestField("Direct Unit Cost", 0);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure PostingNoAfterErrorOnPostInvoiceWithBlankInvMessage()
@@ -3530,7 +3530,7 @@ codeunit 134331 "ERM Purchase Payables"
         PurchaseHeader.Modify(true);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreatePurchaseDocumentWithEmptyInvoiceMessage(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type")
     var
         PurchaseLine: Record "Purchase Line";

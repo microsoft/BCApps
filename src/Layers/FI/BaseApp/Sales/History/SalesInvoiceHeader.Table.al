@@ -1283,19 +1283,19 @@ table 112 "Sales Invoice Header"
                 UpdateDisputeStatus();
             end;
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(32000000; "Reference No."; Code[20])
         {
             Caption = 'Reference No.';
             Editable = true;
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
 #pragma warning restore AA0232
@@ -1660,7 +1660,7 @@ table 112 "Sales Invoice Header"
     procedure GetPaymentReference(): Text
     begin
         SalesSetup.Get();
-#if not CLEAN29
+#if not CLEAN30
         if SalesSetup."Print Reference No." then
             exit("Reference No.");
 #endif
@@ -1673,7 +1673,7 @@ table 112 "Sales Invoice Header"
     /// <returns>The payment reference label text.</returns>
     procedure GetPaymentReferenceLbl(): Text
     begin
-#if not CLEAN29
+#if not CLEAN30
         exit(FieldCaption("Reference No."));
 #endif
     end;

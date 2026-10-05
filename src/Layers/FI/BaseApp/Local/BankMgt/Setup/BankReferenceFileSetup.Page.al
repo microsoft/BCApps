@@ -5,15 +5,15 @@
 
 namespace Microsoft.Bank.Setup;
 
-#if not CLEAN29
+#if not CLEAN30
 using System.Telemetry;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 page 32000000 "Bank Reference File Setup"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Reference File Setup';

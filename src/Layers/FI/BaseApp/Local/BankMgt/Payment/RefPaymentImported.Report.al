@@ -5,7 +5,7 @@
 
 namespace Microsoft.Bank.Payment;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
@@ -13,11 +13,11 @@ using Microsoft.Sales.Receivables;
 using System.Utilities;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 report 32000001 "Ref. Payment Imported"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     DefaultLayout = RDLC;
     RDLCLayout = './Local/BankMgt/Payment/RefPaymentImported.rdlc';

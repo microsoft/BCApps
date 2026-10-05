@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
 #endif
@@ -27,7 +27,7 @@ codeunit 1752 "Data Class. Eval. Data Country"
     procedure ClassifyCountrySpecificTables()
     var
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
-#if not CLEAN29
+#if not CLEAN30
         FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
 #endif
     begin
@@ -40,7 +40,7 @@ codeunit 1752 "Data Class. Eval. Data Country"
         ClassifyVATReportHeader();
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Vendor Payment Buffer");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Depr. Diff. Posting Buffer");
-#if not CLEAN29
+#if not CLEAN30
         if not FIBankingPaymentFeature.IsEnabled() then begin
 #pragma warning disable AL0432
             DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Reference File Setup");

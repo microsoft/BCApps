@@ -415,18 +415,18 @@ codeunit 134993 "Reminder - Line Fee on Reports"
         exit(ServiceInvoiceHeader."No.");
     end;
 
-#if CLEAN29
-#pragma warning disable AA0137 // RefNumNos and CheckPrintNo are only consumed by pre-CLEAN29 code
+#if CLEAN30
+#pragma warning disable AA0137 // RefNumNos and CheckPrintNo are only consumed by pre-CLEAN30 code
 #endif
     local procedure SetupRefNumOnSalesAndReceivablesSetup(RefNumNos: Code[20]; CheckPrintNo: Boolean)
     var
         SalesAndReceivablesSetup: Record "Sales & Receivables Setup";
     begin
-#if CLEAN29
+#if CLEAN30
 #pragma warning restore AA0137
 #endif
         SalesAndReceivablesSetup.Get();
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         SalesAndReceivablesSetup."Reference Nos." := RefNumNos;
         SalesAndReceivablesSetup."Print Reference No." := CheckPrintNo;

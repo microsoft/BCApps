@@ -66,18 +66,18 @@ table 3 "Payment Terms"
             ObsoleteTag = '26.0';
         }
 #endif
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(32000001; "Disreg. Pmt. Disc. at Full Pmt"; Boolean)
         {
             Caption = 'Disreg. Pmt. Disc. at Full Pmt';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
 #pragma warning restore AA0232

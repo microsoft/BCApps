@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.ReceivablesPayables;
@@ -15,7 +15,7 @@ codeunit 13410 "Serv. Document Mgt. FI"
 {
     ObsoleteState = Pending;
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Serv-Documents Mgt.", 'OnBeforeServInvHeaderInsert', '', false, false)]
     local procedure OnBeforeServInvHeaderInsert(var ServiceInvoiceHeader: Record "Service Invoice Header")

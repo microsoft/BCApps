@@ -58,7 +58,7 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
         CreditTransferRegister: Record "Credit Transfer Register";
         CreditTransferEntry: Record "Credit Transfer Entry";
         BankExportImportSetup: Record "Bank Export/Import Setup";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         RefPmtExp: Record "Ref. Payment - Exported";
 #pragma warning restore AL0432
@@ -176,7 +176,7 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
                     CreditTransferEntry."Entry No." + 1, TempGenJnlLine.GetAppliesToDocEntryNo());
         until TempGenJnlLine.Next() = 0;
 
-#if not CLEAN29
+#if not CLEAN30
         if not FIBankingPaymentFeature.IsEnabled() then begin
 #pragma warning disable AL0432
             RefPmtExp.SetRange(Transferred, false);

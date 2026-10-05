@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN30
 codeunit 144006 "UT COD Bank Nos Check"
 {
     // This Reference Nos test COD144006 works in collaboration with COD144005. Cod144005 verifies that posting documents will
@@ -21,7 +21,7 @@ codeunit 144006 "UT COD Bank Nos Check"
     Subtype = Test;
     TestPermissions = Disabled;
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()

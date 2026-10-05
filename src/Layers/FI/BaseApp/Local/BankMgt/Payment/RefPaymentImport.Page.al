@@ -5,15 +5,15 @@
 
 namespace Microsoft.Bank.Payment;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Foundation.Navigate;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 page 32000001 "Ref. Payment - Import"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Ref. Payment - Import';
     DataCaptionFields = "Reference No.";

@@ -26,7 +26,7 @@ codeunit 13435 "Create Purchase Order FI"
     begin
         if PurchHeader.FindSet() then
             repeat
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 PurchHeader.Validate("Message Type", PurchHeader."Message Type"::Message);
                 PurchHeader.Validate("Invoice Message", PurchHeader."No.");

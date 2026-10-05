@@ -174,7 +174,7 @@ table 270 "Bank Account"
 
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN30
                 if not FIBankingPaymentFeature.IsEnabled() then
                     if ("Country/Region Code" = '') or ("Country/Region Code" = 'FI') then begin
                         if StrLen("Bank Account No.") > 15 then
@@ -1138,7 +1138,7 @@ table 270 "Bank Account"
         NoSeries: Codeunit "No. Series";
         MoveEntries: Codeunit MoveEntries;
         UpdateContFromBank: Codeunit "BankCont-Update";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         BankNosCheck: Codeunit "Bank Nos Check";
 #pragma warning restore AL0432
@@ -1151,7 +1151,7 @@ table 270 "Bank Account"
 #pragma warning disable AA0470
         Text000: Label 'You cannot change %1 because there are one or more open ledger entries for this bank account.';
         Text003: Label 'Do you wish to create a contact for %1 %2?';
-#if not CLEAN29
+#if not CLEAN30
         Text1090000: Label 'Domestic %1 must not exceed 15 characters.';
 #endif
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a %1 or an %2.';

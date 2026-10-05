@@ -5,7 +5,7 @@
 
 namespace Microsoft.Bank.DirectDebit;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
@@ -22,11 +22,11 @@ using System.Utilities;
 using System.Xml;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 report 13413 "Exp. SEPA CT pain.001.001.09"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Export SEPA Credit Transfer pain.001.001.09';
     ProcessingOnly = true;

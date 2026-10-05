@@ -1005,42 +1005,42 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(32000000; "Invoice No."; Boolean)
         {
             Caption = 'Invoice No.';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000001; "Customer No."; Boolean)
         {
             Caption = 'Customer No.';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000002; Date; Boolean)
         {
             Caption = 'Date';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000003; "Reference Nos."; Code[20])
@@ -1048,9 +1048,9 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Reference Nos.';
             TableRelation = "No. Series".Code;
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 
             trigger OnValidate()
             var
@@ -1070,31 +1070,31 @@ table 311 "Sales & Receivables Setup"
             end;
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000004; "Default Number"; Code[10])
         {
             Caption = 'Default Number';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000005; "Print Reference No."; Boolean)
         {
             Caption = 'Print Reference No.';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
 #pragma warning restore AA0232
@@ -1114,7 +1114,7 @@ table 311 "Sales & Receivables Setup"
     }
 
     var
-#if not CLEAN29
+#if not CLEAN30
         NoSeriesLine: Record "No. Series Line";
         TestNo: Decimal;
         Text1090000: Label 'You cannot assign new numbers from the number series %1 on %2.';

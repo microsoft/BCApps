@@ -646,7 +646,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         PurchaseHeader.Validate(
           "Vendor Invoice No.", LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Vendor Invoice No."), DATABASE::"Purchase Header"));
         PurchaseHeader.Validate("Posting Date", PostingDate);
-#if not CLEAN29
+#if not CLEAN30
         PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
         PurchaseHeader.Validate("Invoice Message", FixedAssetNo);
 #endif

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.DirectDebit;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -55,7 +55,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
     /// <param name="TempGenJnlLine">Target temporary table to populate with generated journal lines.</param>
     local procedure CreateTempJnlLines(var FromGenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary)
     var
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         RefPmtExp: Record "Ref. Payment - Exported";
 #pragma warning restore AL0432
@@ -68,7 +68,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
         if IsHandled then
             exit;
 
-#if not CLEAN29
+#if not CLEAN30
         if not FIBankingPaymentFeature.IsEnabled() then begin
 #pragma warning disable AL0432
             RefPmtExp.SetRange(Transferred, false);

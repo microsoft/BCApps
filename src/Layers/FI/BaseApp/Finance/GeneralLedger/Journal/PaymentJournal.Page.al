@@ -443,14 +443,14 @@ page 256 "Payment Journal"
                     ApplicationArea = Comments;
                     Visible = false;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Message Type"; Rec."Message Type")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the message type for the purchase header.';
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Invoice Message"; Rec."Invoice Message")
@@ -459,7 +459,7 @@ page 256 "Payment Journal"
                     ToolTip = 'Specifies an invoice message for the general journal.';
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
 #endif

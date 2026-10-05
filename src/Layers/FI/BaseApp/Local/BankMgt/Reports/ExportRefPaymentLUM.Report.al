@@ -5,7 +5,7 @@
 
 namespace Microsoft.Bank.Reports;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
@@ -15,11 +15,11 @@ using Microsoft.Purchases.Vendor;
 using System.IO;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
 report 32000004 "Export Ref. Payment -  LUM"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Export Ref. Payment -  LUM';
     ProcessingOnly = true;

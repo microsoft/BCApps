@@ -731,7 +731,7 @@ table 25 "Vendor Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if there is an ongoing dispute for this document.';
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(32000000; "Message Type"; Option)
         {
@@ -740,48 +740,48 @@ table 25 "Vendor Ledger Entry"
             OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
             OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000001; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000002; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
         field(32000003; "Payment Date"; Date)
         {
             Caption = 'Payment Date';
             ObsoleteReason = 'Moved to Banking and Payments FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
         }
 #pragma warning restore AA0232
@@ -1030,7 +1030,7 @@ table 25 "Vendor Ledger Entry"
         "Document Type" := GenJnlLine."Document Type";
         "Document No." := GenJnlLine."Document No.";
         "External Document No." := GenJnlLine."External Document No.";
-#if not CLEAN29
+#if not CLEAN30
         "Message Type" := GenJnlLine."Message Type";
         "Invoice Message" := GenJnlLine."Invoice Message";
         "Invoice Message 2" := GenJnlLine."Invoice Message 2";

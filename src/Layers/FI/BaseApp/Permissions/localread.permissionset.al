@@ -1,6 +1,6 @@
 namespace System.Security.AccessControl;
 
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
 #endif
@@ -13,7 +13,7 @@ permissionset 1002 "LOCAL READ"
     Caption = 'Country/region-specific read only access.';
 
     Permissions = tabledata "Depr. Diff. Posting Buffer" = R
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                   , tabledata "Foreign Payment Types" = R
                   , tabledata "Ref. Payment - Exported" = R
