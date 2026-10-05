@@ -1231,6 +1231,31 @@ codeunit 148346 "Expense Interim Approval Test"
         Assert.ExpectedError(StrSubstNo(NotAuthorizedToRecallExpReportErr, Approver.FieldCaption("Unlimited Approval")));
         Assert.ExpectedErrorCode('Dialog');
     end;
+    
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ApproverWithoutLimitCannotApprove()
+    var
+        Submitter: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 640938] An approver with no approval limit and no unlimited approval cannot approve a report.
+        Initialize();
+
+        // [GIVEN] A report is pending approval with active approver "A1", whose unlimited approval is disabled and limit is zero.
+        CreateSubmittedUnlimitedApprovalScenario(Submitter, Approver, ExpenseReportHeader, 100);
+        Approver.Validate("Unlimited Approval", false);
+        Approver.Modify();
+
+        // [WHEN] "A1" approves the expense report.
+        asserterror ExpenseReportHeader.PerformManualApproved(Approver."No.", true);
+
+        // [THEN] An error explains that the report exceeds "A1"'s approval limit.
+        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", Approver.FieldCaption("Approval Limit (LCY)"), Approver."No."));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
 
     local procedure Initialize()
     var
