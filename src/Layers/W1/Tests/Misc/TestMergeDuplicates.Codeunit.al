@@ -1537,6 +1537,8 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
     procedure T150_MergeCustomers()
     var
         Customer: array[2] of Record Customer;
+        Vendor: array[2] of Record Vendor;
+        VendorCommentLine: array[2] of Record "Comment Line";
         TempMergeDuplicatesBuffer: Record "Merge Duplicates Buffer" temporary;
         GenJournalLine: Record "Gen. Journal Line";
         SalesInvoiceEntityAggregate: Record "Sales Invoice Entity Aggregate";
@@ -1546,6 +1548,8 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         DefaultDimension: Record "Default Dimension";
         DimensionValue: Record "Dimension Value";
         CommentLine: Record "Comment Line";
+        LibrarySmallBusiness: Codeunit "Library - Small Business";
+        Index: Integer;
     begin
         // [FEATURE] [Customer]
         // [SCENARIO] Action 'Merge Duplicate' removes one of customers
@@ -1553,6 +1557,15 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         // [GIVEN] Customers 'A' (ID = 'AAA') and 'B' (ID = 'BBB')
         LibrarySales.CreateCustomer(Customer[1]);
         LibrarySales.CreateCustomer(Customer[2]);
+
+        // [GIVEN] Vendors with the same numbers have comments that must not participate in the customer merge.
+        for Index := 1 to 2 do begin
+            LibraryPurchase.CreateVendor(Vendor[Index]);
+            Vendor[Index].Rename(Customer[Index]."No.");
+            LibrarySmallBusiness.CreateCommentLine(VendorCommentLine[Index], VendorCommentLine[Index]."Table Name"::Vendor, Vendor[Index]."No.");
+            VendorCommentLine[Index].Validate(Comment, Vendor[Index].Name);
+            VendorCommentLine[Index].Modify(true);
+        end;
 
         // [GIVEN] 462939 - Customer 'A' has 3 Comments Lines. Line Numbers: 10000, 15000, 50000
         Clear(CommentLine);
@@ -1626,6 +1639,8 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         TempMergeDuplicatesBuffer.Duplicate := Customer[1]."No.";
         TempMergeDuplicatesBuffer.Current := Customer[2]."No.";
         TempMergeDuplicatesBuffer.Insert();
+        TempMergeDuplicatesBuffer.Validate(Duplicate, Customer[1]."No.");
+        Assert.IsFalse(TempMergeDuplicatesBuffer.FindConflicts(), 'Overlapping comment line numbers must not block a customer merge.');
         LibraryVariableStorage.Enqueue(true); // Reply for ConfirmHandler
         TempMergeDuplicatesBuffer.Merge();
         Assert.ExpectedMessage(ConfirmMergeTxt, LibraryVariableStorage.DequeueText());
@@ -1642,6 +1657,16 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         CommentLine.SetRange("Table Name", CommentLine."Table Name"::Customer);
         CommentLine.SetRange("No.", Customer[2]."No.");
         Assert.RecordCount(CommentLine, 6);
+        CommentLine.SetRange(Comment, Customer[1].Name);
+        Assert.RecordCount(CommentLine, 3);
+        CommentLine.SetRange(Comment, Customer[2].Name);
+        Assert.RecordCount(CommentLine, 2);
+        CommentLine.SetRange(Comment);
+
+        for Index := 1 to 2 do begin
+            Assert.IsTrue(VendorCommentLine[Index].Find(), 'Vendor comments must retain their original keys after a customer merge.');
+            VendorCommentLine[Index].TestField(Comment, Vendor[Index].Name);
+        end;
 
         // [THEN] Journal Line, where "Account No." is 'B', "Bal. Account No." is 'B', "Customer Id" is 'BBB'
         GenJournalLine.Find();
@@ -1890,12 +1915,16 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
     procedure T200_MergeVendors()
     var
         Vendor: array[2] of Record Vendor;
+        Customer: array[2] of Record Customer;
+        CustomerCommentLine: array[2] of Record "Comment Line";
         TempMergeDuplicatesBuffer: Record "Merge Duplicates Buffer" temporary;
         PurchInvEntityAggregate: Record "Purch. Inv. Entity Aggregate";
         IncomingDocument: Record "Incoming Document";
         DefaultDimension: Record "Default Dimension";
         DimensionValue: Record "Dimension Value";
         CommentLine: Record "Comment Line";
+        LibrarySmallBusiness: Codeunit "Library - Small Business";
+        Index: Integer;
     begin
         // [FEATURE] [Vendor]
         // [SCENARIO] Action 'Merge Duplicate' removes one of vendors
@@ -1903,6 +1932,15 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         // [GIVEN] Vendors 'A' (ID = 'AAA') and 'B' (ID = 'BBB')
         LibraryPurchase.CreateVendor(Vendor[1]);
         LibraryPurchase.CreateVendor(Vendor[2]);
+
+        // [GIVEN] Customers with the same numbers have comments that must not participate in the vendor merge.
+        for Index := 1 to 2 do begin
+            LibrarySales.CreateCustomer(Customer[Index]);
+            Customer[Index].Rename(Vendor[Index]."No.");
+            LibrarySmallBusiness.CreateCommentLine(CustomerCommentLine[Index], CustomerCommentLine[Index]."Table Name"::Customer, Customer[Index]."No.");
+            CustomerCommentLine[Index].Validate(Comment, Customer[Index].Name);
+            CustomerCommentLine[Index].Modify(true);
+        end;
 
         // [GIVEN] 462939 - Vendor 'A' has 3 Comments Lines. Line Numbers: 10000, 15000, 50000
         Clear(CommentLine);
@@ -1961,6 +1999,8 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         TempMergeDuplicatesBuffer.Duplicate := Vendor[1]."No.";
         TempMergeDuplicatesBuffer.Current := Vendor[2]."No.";
         TempMergeDuplicatesBuffer.Insert();
+        TempMergeDuplicatesBuffer.Validate(Duplicate, Vendor[1]."No.");
+        Assert.IsFalse(TempMergeDuplicatesBuffer.FindConflicts(), 'Overlapping comment line numbers must not block a vendor merge.');
         TempMergeDuplicatesBuffer.Merge();
 
         // [THEN] Vendor 'A' does not exist,
@@ -1975,6 +2015,16 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         CommentLine.SetRange("Table Name", CommentLine."Table Name"::Vendor);
         CommentLine.SetRange("No.", Vendor[2]."No.");
         Assert.RecordCount(CommentLine, 6);
+        CommentLine.SetRange(Comment, Vendor[1].Name);
+        Assert.RecordCount(CommentLine, 3);
+        CommentLine.SetRange(Comment, Vendor[2].Name);
+        Assert.RecordCount(CommentLine, 2);
+        CommentLine.SetRange(Comment);
+
+        for Index := 1 to 2 do begin
+            Assert.IsTrue(CustomerCommentLine[Index].Find(), 'Customer comments must retain their original keys after a vendor merge.');
+            CustomerCommentLine[Index].TestField(Comment, Customer[Index].Name);
+        end;
 
         // [GIVEN] PurchInvEntityAggregate, where "Sell-to Vendor No." is 'B', "Vendor Id" is 'BBB'
         PurchInvEntityAggregate.Find();

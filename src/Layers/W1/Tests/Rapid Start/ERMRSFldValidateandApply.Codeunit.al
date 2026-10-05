@@ -17,6 +17,7 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         ConfigValidateManagement: Codeunit "Config. Validate Management";
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         APIMockEvents: Codeunit "API Mock Events";
         isInitialized: Boolean;
@@ -1147,8 +1148,6 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
     var
         CommentLine: Record "Comment Line";
         ConfigPackage: Record "Config. Package";
-        ConfigPackageRecord: Record "Config. Package Record";
-        ConfigPackageTable: Record "Config. Package Table";
         Customer: Record Customer;
         Item: Record Item;
         ItemNo: Code[20];
@@ -1158,14 +1157,11 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         LibraryInventory.CreateItem(Item);
         ItemNo := Item."No.";
         Item.Delete(true);
-        Customer."No." := ItemNo;
-        Customer.Insert();
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Rename(ItemNo);
         CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, ItemNo, true);
         AddCommentPackageRecord(ConfigPackage.Code, 2, CommentLine."Table Name"::Customer, ItemNo);
-        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, Database::Item);
-        LibraryRapidStart.SetIncludeAllFields(ConfigPackage.Code, Database::Item, false);
-        LibraryRapidStart.CreatePackageRecord(ConfigPackageRecord, ConfigPackage.Code, Database::Item, 1);
-        LibraryRapidStart.CreatePackageFieldData(ConfigPackageRecord, Item.FieldNo("No."), ItemNo);
+        AddCommentParentPackageRecord(ConfigPackage.Code, Database::Item, ItemNo);
 
         LibraryRapidStart.ValidatePackage(ConfigPackage, true);
         VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
@@ -1177,6 +1173,69 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         CommentLine.TestField(Comment, ConfigPackage.Code);
         CommentLine.Get(CommentLine."Table Name"::Customer, ItemNo, 10000);
         CommentLine.TestField(Comment, ConfigPackage.Code);
+    end;
+
+    [Test]
+    procedure ApplyBankAccountAndCommentInSamePackage()
+    begin
+        // [SCENARIO 651132] A conditional parent with a higher table ID is imported before its comments.
+        VerifyParentAndCommentInSamePackage("Comment Line Table Name"::"Bank Account", Database::"Bank Account");
+    end;
+
+    [Test]
+    procedure ApplyJobAndCommentInSamePackage()
+    begin
+        // [SCENARIO 651132] Comments follow the final, adjusted processing order of their project.
+        VerifyParentAndCommentInSamePackage("Comment Line Table Name"::Job, Database::Job);
+    end;
+
+    [Test]
+    procedure PendingItemDoesNotValidateCustomerComment()
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        Customer: Record Customer;
+        Item: Record Item;
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 651132] A same-number parent in the package must match the comment's table type.
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        ItemNo := Item."No.";
+        Item.Delete(true);
+        Assert.IsFalse(Customer.Get(ItemNo), 'The item number must not identify a customer.');
+        CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Customer, ItemNo, true);
+        AddCommentParentPackageRecord(ConfigPackage.Code, Database::Item, ItemNo);
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+
+        VerifyCommentPackageError(ConfigPackage.Code, ItemNo, Customer.TableCaption());
+    end;
+
+    [Test]
+    procedure CommentBeforePendingParentFailsValidation()
+    var
+        BankAccount: Record "Bank Account";
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ParentNo: Code[20];
+    begin
+        // [SCENARIO 651132] Package data must not bypass an explicitly incorrect parent/child processing order.
+        Initialize();
+        ParentNo := CreatePendingCommentParentPackage(ConfigPackage, CommentLine."Table Name"::"Bank Account", Database::"Bank Account");
+        ConfigPackageTable.Get(ConfigPackage.Code, Database::"Comment Line");
+        ConfigPackageTable."Processing Order" := 1;
+        ConfigPackageTable.Modify();
+        ConfigPackageTable.Get(ConfigPackage.Code, Database::"Bank Account");
+        ConfigPackageTable."Processing Order" := 2;
+        ConfigPackageTable.Modify();
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, false);
+        VerifyCommentPackageError(ConfigPackage.Code, ParentNo, BankAccount.TableCaption());
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
     end;
 
     [Test]
@@ -1194,8 +1253,8 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         LibraryInventory.CreateItem(Item);
         OldItemNo := Item."No.";
         NewItemNo := LibraryUtility.GenerateRandomCode20(Item.FieldNo("No."), Database::Item);
-        Customer."No." := OldItemNo;
-        Customer.Insert();
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Rename(OldItemNo);
         CreateCommentPackage(ConfigPackage, CommentLine."Table Name"::Item, OldItemNo, true);
         AddCommentPackageRecord(ConfigPackage.Code, 2, CommentLine."Table Name"::Customer, OldItemNo);
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
@@ -1235,10 +1294,8 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         VerifyCommentPackageError(ConfigPackage.Code, ParentNo, ParentRecRef.Caption);
         Assert.IsFalse(CommentLine.Get(TableName, ParentNo, 10000), 'An orphan comment must not be inserted.');
 
-        // Only the parent key is needed to exercise the restored relation.
-        ParentFieldRef.Value := ParentNo;
-        ParentRecRef.Insert();
         ParentRecRef.Close();
+        ParentNo := CreateCommentParent(TableName);
 
         CreateCommentPackage(ConfigPackage, TableName, ParentNo, true);
         LibraryRapidStart.ValidatePackage(ConfigPackage, true);
@@ -1248,6 +1305,151 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
         CommentLine.Get(TableName, ParentNo, 10000);
         CommentLine.TestField(Comment, ConfigPackage.Code);
+    end;
+
+    local procedure CreateCommentParent(TableName: Enum "Comment Line Table Name"): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+        Item: Record Item;
+        Resource: Record Resource;
+        Job: Record Job;
+        ResourceGroup: Record "Resource Group";
+        BankAccount: Record "Bank Account";
+        Campaign: Record Campaign;
+        FixedAsset: Record "Fixed Asset";
+        Insurance: Record Insurance;
+        ICPartner: Record "IC Partner";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryResource: Codeunit "Library - Resource";
+        LibraryJob: Codeunit "Library - Job";
+        LibraryMarketing: Codeunit "Library - Marketing";
+        LibraryFixedAsset: Codeunit "Library - Fixed Asset";
+    begin
+        case TableName of
+            TableName::"G/L Account":
+                begin
+                    LibraryERM.CreateGLAccount(GLAccount);
+                    exit(GLAccount."No.");
+                end;
+            TableName::Customer:
+                begin
+                    LibrarySales.CreateCustomer(Customer);
+                    exit(Customer."No.");
+                end;
+            TableName::Vendor:
+                begin
+                    LibraryPurchase.CreateVendor(Vendor);
+                    exit(Vendor."No.");
+                end;
+            TableName::Item:
+                begin
+                    LibraryInventory.CreateItem(Item);
+                    exit(Item."No.");
+                end;
+            TableName::Resource:
+                begin
+                    LibraryResource.CreateResourceNew(Resource);
+                    exit(Resource."No.");
+                end;
+            TableName::Job:
+                begin
+                    LibraryJob.CreateJob(Job);
+                    exit(Job."No.");
+                end;
+            TableName::"Resource Group":
+                begin
+                    LibraryResource.CreateResourceGroup(ResourceGroup);
+                    exit(ResourceGroup."No.");
+                end;
+            TableName::"Bank Account":
+                begin
+                    LibraryERM.CreateBankAccount(BankAccount);
+                    exit(BankAccount."No.");
+                end;
+            TableName::Campaign:
+                begin
+                    LibraryMarketing.CreateCampaign(Campaign);
+                    exit(Campaign."No.");
+                end;
+            TableName::"Fixed Asset":
+                begin
+                    LibraryFixedAsset.CreateFixedAsset(FixedAsset);
+                    exit(FixedAsset."No.");
+                end;
+            TableName::Insurance:
+                begin
+                    LibraryFixedAsset.CreateInsurance(Insurance);
+                    exit(Insurance."No.");
+                end;
+            TableName::"IC Partner":
+                begin
+                    LibraryERM.CreateICPartner(ICPartner);
+                    exit(ICPartner.Code);
+                end;
+            else
+                Assert.Fail(StrSubstNo('Unsupported comment parent type %1.', TableName));
+        end;
+    end;
+
+    local procedure VerifyParentAndCommentInSamePackage(TableName: Enum "Comment Line Table Name"; ParentTableID: Integer)
+    var
+        CommentLine: Record "Comment Line";
+        ConfigPackage: Record "Config. Package";
+        ParentPackageTable: Record "Config. Package Table";
+        CommentPackageTable: Record "Config. Package Table";
+        ParentRecRef: RecordRef;
+        ParentFieldRef: FieldRef;
+        ParentNo: Code[20];
+    begin
+        Initialize();
+        ParentNo := CreatePendingCommentParentPackage(ConfigPackage, TableName, ParentTableID);
+
+        LibraryRapidStart.ValidatePackage(ConfigPackage, true);
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        ParentPackageTable.Get(ConfigPackage.Code, ParentTableID);
+        CommentPackageTable.Get(ConfigPackage.Code, Database::"Comment Line");
+        Assert.IsTrue(
+            CommentPackageTable."Processing Order" > ParentPackageTable."Processing Order",
+            'Comments must follow their parent, including any table-specific processing-order adjustment.');
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        VerifyCommentPackageHasNoErrors(ConfigPackage.Code);
+        ParentRecRef.Open(ParentTableID);
+        ParentFieldRef := ParentRecRef.Field(1);
+        ParentFieldRef.Value := ParentNo;
+        Assert.IsTrue(ParentRecRef.Find(), 'The parent must be imported from the same package.');
+        ParentRecRef.Close();
+        CommentLine.Get(TableName, ParentNo, 10000);
+        CommentLine.TestField(Comment, ConfigPackage.Code);
+    end;
+
+    local procedure CreatePendingCommentParentPackage(var ConfigPackage: Record "Config. Package"; TableName: Enum "Comment Line Table Name"; ParentTableID: Integer) ParentNo: Code[20]
+    var
+        ParentRecRef: RecordRef;
+        ParentFieldRef: FieldRef;
+    begin
+        ParentNo := CreateCommentParent(TableName);
+        ParentRecRef.Open(ParentTableID);
+        ParentFieldRef := ParentRecRef.Field(1);
+        ParentFieldRef.Value := ParentNo;
+        ParentRecRef.Find();
+        ParentRecRef.Delete(true);
+        ParentRecRef.Close();
+        CreateCommentPackage(ConfigPackage, TableName, ParentNo, true);
+        AddCommentParentPackageRecord(ConfigPackage.Code, ParentTableID, ParentNo);
+    end;
+
+    local procedure AddCommentParentPackageRecord(PackageCode: Code[20]; ParentTableID: Integer; ParentNo: Code[20])
+    var
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageRecord: Record "Config. Package Record";
+    begin
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, PackageCode, ParentTableID);
+        LibraryRapidStart.SetIncludeAllFields(PackageCode, ParentTableID, false);
+        LibraryRapidStart.CreatePackageRecord(ConfigPackageRecord, PackageCode, ParentTableID, 1);
+        LibraryRapidStart.CreatePackageFieldData(ConfigPackageRecord, 1, ParentNo);
     end;
 
     local procedure CreateCommentPackage(var ConfigPackage: Record "Config. Package"; TableName: Enum "Comment Line Table Name"; ParentNo: Code[20]; ValidateNo: Boolean)
