@@ -19,11 +19,6 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
     Permissions = TableData "Reservation Entry" = id,
                   TableData "Prod. Order Capacity Need" = rmd;
 
-#if not CLEAN27
-    var
-        InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting";
-#endif
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSupplyToInvProfile', '', true, false)]
     local procedure OnAfterSupplyToInvProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var ToDate: Date; var ReservEntry: Record "Reservation Entry" temporary; var NextLineNo: Integer)
     begin
@@ -41,17 +36,11 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         IsHandled: Boolean;
     begin
         OnBeforeTransProdOrderToProfile(InventoryProfile, Item, ToDate, IsHandled);
-#if not CLEAN27
-        InventoryProfileOffsetting.RunOnBeforeTransProdOrderToProfile(InventoryProfile, Item, ToDate, IsHandled);
-#endif
         if not IsHandled then
             if ProdOrderLine.FindLinesWithItemToPlan(Item, true) then
                 repeat
                     ShouldProcess := ProdOrderLine."Due Date" <> 0D;
                     OnTransProdOrderToProfileOnBeforeProcessLine(ProdOrderLine, ShouldProcess);
-#if not CLEAN27
-                    InventoryProfileOffsetting.RunOnTransProdOrderToProfileOnBeforeProcessLine(ProdOrderLine, ShouldProcess);
-#endif
                     if ShouldProcess then begin
                         InventoryProfile.Init();
                         LineNo += 1;
@@ -135,9 +124,6 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         ReqLine.TransferFromProdOrderLine(ProdOrderLine);
 
         OnAfterSetProdOrder(ReqLine, ProdOrderLine, InventoryProfile);
-#if not CLEAN27
-        InventoryProfileOffsetting.RunOnAfterSetProdOrder(ReqLine, ProdOrderLine, InventoryProfile);
-#endif
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnMaintainPlanningLineOnBeforeValidateNo', '', true, false)]
@@ -424,9 +410,6 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
                         PlanRoutingLine.Insert();
                     until ProdOrderRoutingLine.Next() = 0;
                 OnAfterGetRoutingFromProdOrder(ReqLine);
-#if not CLEAN27
-                InventoryProfileOffsetting.RunOnAfterGetRoutingFromProdOrder(ReqLine);
-#endif
             end;
         OnAfterGetRouting(ReqLine);
     end;
@@ -445,9 +428,6 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         if (not InventorySetup."Location Mandatory") and (ManufacturingSetup."Components at Location" = '') then begin
             IsHandled := false;
             OnFindCombinationOnBeforeCreateTempSKUForLocation(Item, IsHandled);
-#if not CLEAN27
-            InventoryProfileOffsetting.RunOnFindCombinationOnBeforeCreateTempSKUForLocation(Item, IsHandled);
-#endif
             if not IsHandled then
                 sender.CreateTempSKUForLocation(
                     Item."No.",
