@@ -432,6 +432,7 @@ report 1001 "Inventory Valuation"
         Inventory_ValuationCaptionLbl: Label 'Inventory Valuation';
         CurrReport_PAGENOCaptionLbl: Label 'Page';
         This_report_includes_entries_that_have_been_posted_with_expected_costs_CaptionLbl: Label 'This report includes entries that have been posted with expected costs.';
+        ThisReportIncludesExpectedCostsNotCalculatedLbl: Label 'Expected costs have not been calculated.';
         IncreaseInvoicedQtyCaptionLbl: Label 'Increases (LCY)';
         DecreaseInvoicedQtyCaptionLbl: Label 'Decreases (LCY)';
         QuantityCaptionLbl: Label 'Quantity';
@@ -683,9 +684,6 @@ report 1001 "Inventory Valuation"
 
     // Ensures Layout Filter Headings are up to date
     local procedure UpdateRequestPageFilterValues()
-    var
-        ExpectedCostsLbl: Label 'This report includes entries that have been posted with expected costs.';
-        ExpectedCostsNotCalculatedLbl: Label 'Expected costs have not been calculated.';
     begin
         if (StartDate = 0D) and (EndDate = 0D) then
             EndDate := WorkDate();
@@ -704,9 +702,9 @@ report 1001 "Inventory Valuation"
             ItemFilterHeading := '';
 
         if ShowExpected then
-            ReportIncludesExpectedCostsTxt := ExpectedCostsLbl
+            ReportIncludesExpectedCostsTxt := This_report_includes_entries_that_have_been_posted_with_expected_costs_CaptionLbl
         else
-            ReportIncludesExpectedCostsTxt := ExpectedCostsNotCalculatedLbl;
+            ReportIncludesExpectedCostsTxt := ThisReportIncludesExpectedCostsNotCalculatedLbl;
     end;
 
     [IntegrationEvent(false, false)]
