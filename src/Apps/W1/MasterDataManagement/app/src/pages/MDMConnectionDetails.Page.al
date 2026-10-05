@@ -176,8 +176,14 @@ page 7232 "MDM Connection Details"
                 InFooterBar = true;
 
                 trigger OnAction()
+                var
+                    FeatureTelemetry: Codeunit "Feature Telemetry";
+                    MasterDataManagement: Codeunit "Master Data Management";
                 begin
                     SaveConfiguration();
+                    // Completing the wizard saves a full cross-environment connection, which is a genuine setup of the
+                    // feature; register Set up here so it is captured even when the user declines to enable right away.
+                    FeatureTelemetry.LogUptake('', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::"Set up");
                     EnableSynchronizationOnFinish();
                     CurrPage.Close();
                 end;
