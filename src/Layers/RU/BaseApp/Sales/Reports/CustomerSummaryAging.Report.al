@@ -228,7 +228,7 @@ report 105 "Customer - Summary Aging"
                         DtldCustLedgEntry.SetRange("Customer No.", Customer."No.");
                         DtldCustLedgEntry.SetRange("Initial Entry Due Date", PeriodStartDate[i], PeriodStartDate[i + 1] - 1);
                         DtldCustLedgEntry.SetRange("Currency Code", TempCurrency.Code);
-                        DtldCustLedgEntry.SetFilter("Agreement No.", Customer.GetFilter("Agreement Filter"));
+                        DtldCustLedgEntry.SetFilter("Agreement No.", Customer.GetFilter("Agreement Filter")); // RU
                         DtldCustLedgEntry.CalcSums(Amount);
                         CustBalanceDue[i] := DtldCustLedgEntry.Amount;
                         InCustBalanceDueLCY[i] := InCustBalanceDueLCY2[i];
@@ -273,7 +273,7 @@ report 105 "Customer - Summary Aging"
                     DtldCustLedgEntry.SetCurrentKey("Customer No.", "Initial Entry Due Date");
                     DtldCustLedgEntry.SetRange("Customer No.", "No.");
                     DtldCustLedgEntry.SetRange("Initial Entry Due Date", PeriodStartDate[i], PeriodStartDate[i + 1] - 1);
-                    DtldCustLedgEntry.SetFilter("Agreement No.", GetFilter("Agreement Filter"));
+                    DtldCustLedgEntry.SetFilter("Agreement No.", GetFilter("Agreement Filter")); // RU
                     DtldCustLedgEntry.CalcSums("Amount (LCY)");
                     CustBalanceDue[i] := DtldCustLedgEntry."Amount (LCY)";
                     CustBalanceDueLCY[i] := DtldCustLedgEntry."Amount (LCY)";
@@ -435,4 +435,3 @@ report 105 "Customer - Summary Aging"
     begin
     end;
 }
-
