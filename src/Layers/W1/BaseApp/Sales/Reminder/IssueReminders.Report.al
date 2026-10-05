@@ -62,7 +62,6 @@ report 190 "Issue Reminders"
                     Commit();
                     Mark := not ReminderIssue.Run();
                 end;
-
                 if PrintEmailDocument <> PrintEmailDocument::" " then begin
                     ReminderIssue.GetIssuedReminder(IssuedReminderHeader);
                     TempIssuedReminderHeader := IssuedReminderHeader;
@@ -76,9 +75,9 @@ report 190 "Issue Reminders"
             var
                 IssuedReminderHeaderPrint: Record "Issued Reminder Header";
                 TempIssuedReminderHeaderToPrint: Record "Issued Reminder Header" temporary;
-                IssuedReminderHeaderRef: RecordRef;
                 SelectionFilterManagement: Codeunit SelectionFilterManagement;
                 ConfirmManagement: Codeunit "Confirm Management";
+                IssuedReminderHeaderRef: RecordRef;
                 IsHandled: Boolean;
             begin
                 Window.Close();
@@ -245,7 +244,6 @@ report 190 "Issue Reminders"
         begin
             GLSetup.Get();
             VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
-
             if GLSetup."Journal Templ. Name Mandatory" then begin
                 IsJournalTemplNameVisible := true;
                 SalesSetup.get();

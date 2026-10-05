@@ -91,9 +91,9 @@ report 190 "Issue Reminders"
             var
                 IssuedReminderHeaderPrint: Record "Issued Reminder Header";
                 TempIssuedReminderHeaderToPrint: Record "Issued Reminder Header" temporary;
-                IssuedReminderHeaderRef: RecordRef;
                 SelectionFilterManagement: Codeunit SelectionFilterManagement;
                 ConfirmManagement: Codeunit "Confirm Management";
+                IssuedReminderHeaderRef: RecordRef;
                 IsHandled: Boolean;
             begin
                 Window.Close();

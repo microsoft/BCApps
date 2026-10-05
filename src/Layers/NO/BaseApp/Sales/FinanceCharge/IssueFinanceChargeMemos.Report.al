@@ -80,9 +80,9 @@ report 193 "Issue Finance Charge Memos"
             trigger OnPostDataItem()
             var
                 TempIssuedFinChrgMemoHeaderToPrint: Record "Issued Fin. Charge Memo Header" temporary;
-                IssuedFinChrgMemoHeaderRef: RecordRef;
                 SelectionFilterManagement: Codeunit SelectionFilterManagement;
                 ConfirmManagement: Codeunit "Confirm Management";
+                IssuedFinChrgMemoHeaderRef: RecordRef;
                 IsHandled: Boolean;
             begin
                 Window.Close();
