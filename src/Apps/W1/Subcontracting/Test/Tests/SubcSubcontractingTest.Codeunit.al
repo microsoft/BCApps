@@ -3101,7 +3101,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         PostedVendorName := TransferShipmentHeader."Transfer-to Name";
 
         Vendor.Get(TransferShipmentHeader."Source ID");
-        Vendor.Name := LibraryRandom.RandText(MaxStrLen(Vendor.Name));
+        Vendor.Name := CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor.Name)), 1, MaxStrLen(Vendor.Name));
         Vendor.Modify();
         Assert.AreNotEqual(Vendor.Name, PostedVendorName, 'The vendor name must change after posting to verify that the report uses posted values.');
 
