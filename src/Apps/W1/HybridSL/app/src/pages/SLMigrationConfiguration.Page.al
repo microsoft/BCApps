@@ -561,6 +561,7 @@ page 47018 "SL Migration Configuration"
                                 Rec.Validate("Migrate Hist. AP Trx.", EnableDisableAllHistTrx);
                                 Rec.Validate("Migrate Hist. Inv. Trx.", EnableDisableAllHistTrx);
                                 Rec.Validate("Migrate Hist. Purch. Trx.", EnableDisableAllHistTrx);
+                                Rec.Validate("Migrate Hist. Project Trans.", EnableDisableAllHistTrx);
 
                                 repeat
                                     SLCompanyAdditionalSettings.Validate("Migrate Hist. GL Trx.", EnableDisableAllHistTrx);
@@ -568,6 +569,7 @@ page 47018 "SL Migration Configuration"
                                     SLCompanyAdditionalSettings.Validate("Migrate Hist. AP Trx.", EnableDisableAllHistTrx);
                                     SLCompanyAdditionalSettings.Validate("Migrate Hist. Inv. Trx.", EnableDisableAllHistTrx);
                                     SLCompanyAdditionalSettings.Validate("Migrate Hist. Purch. Trx.", EnableDisableAllHistTrx);
+                                    SLCompanyAdditionalSettings.Validate("Migrate Hist. Project Trans.", EnableDisableAllHistTrx);
                                     SLCompanyAdditionalSettings.Modify();
                                 until SLCompanyAdditionalSettings.Next() = 0;
                             end;
@@ -644,6 +646,20 @@ page 47018 "SL Migration Configuration"
                             if PrepSettingsForFieldUpdate() then
                                 repeat
                                     SLCompanyAdditionalSettings.Validate("Migrate Hist. Purch. Trx.", Rec."Migrate Hist. Purch. Trx.");
+                                    SLCompanyAdditionalSettings.Modify();
+                                until SLCompanyAdditionalSettings.Next() = 0;
+                        end;
+                    }
+                    field("Migrate Hist. Project Trans."; Rec."Migrate Hist. Project Trans.")
+                    {
+                        Caption = 'Project Transactions';
+                        ToolTip = 'Specifies whether to migrate Historical Project transactions.';
+
+                        trigger OnValidate()
+                        begin
+                            if PrepSettingsForFieldUpdate() then
+                                repeat
+                                    SLCompanyAdditionalSettings.Validate("Migrate Hist. Project Trans.", Rec."Migrate Hist. Project Trans.");
                                     SLCompanyAdditionalSettings.Modify();
                                 until SLCompanyAdditionalSettings.Next() = 0;
                         end;
@@ -744,7 +760,8 @@ page 47018 "SL Migration Configuration"
                                     Rec."Migrate Hist. AR Trx." and
                                     Rec."Migrate Hist. AP Trx." and
                                     Rec."Migrate Hist. Inv. Trx." and
-                                    Rec."Migrate Hist. Purch. Trx.";
+                                    Rec."Migrate Hist. Purch. Trx." and
+                                    Rec."Migrate Hist. Project Trans.";
 
         GetProjectControllerModuleEnabled();
     end;
@@ -787,6 +804,7 @@ page 47018 "SL Migration Configuration"
                     SLCompanyAdditionalSettingsEachCompany.Validate("Migrate Hist. AP Trx.", Rec."Migrate Hist. AP Trx.");
                     SLCompanyAdditionalSettingsEachCompany.Validate("Migrate Hist. Inv. Trx.", Rec."Migrate Hist. Inv. Trx.");
                     SLCompanyAdditionalSettingsEachCompany.Validate("Migrate Hist. Purch. Trx.", Rec."Migrate Hist. Purch. Trx.");
+                    SLCompanyAdditionalSettingsEachCompany.Validate("Migrate Hist. Project Trans.", Rec."Migrate Hist. Project Trans.");
                     SLCompanyAdditionalSettingsEachCompany.Validate("Skip Posting Account Batches", Rec."Skip Posting Account Batches");
                     SLCompanyAdditionalSettingsEachCompany.Validate("Skip Posting Customer Batches", Rec."Skip Posting Customer Batches");
                     SLCompanyAdditionalSettingsEachCompany.Validate("Skip Posting Vendor Batches", Rec."Skip Posting Vendor Batches");
@@ -854,6 +872,7 @@ page 47018 "SL Migration Configuration"
         Rec.Validate("Migrate Hist. AP Trx.", SLCompanyAdditionalSettingsInit."Migrate Hist. AP Trx.");
         Rec.Validate("Migrate Hist. Inv. Trx.", SLCompanyAdditionalSettingsInit."Migrate Hist. Inv. Trx.");
         Rec.Validate("Migrate Hist. Purch. Trx.", SLCompanyAdditionalSettingsInit."Migrate Hist. Purch. Trx.");
+        Rec.Validate("Migrate Hist. Project Trans.", SLCompanyAdditionalSettingsInit."Migrate Hist. Project Trans.");
         Rec.Validate("Skip Posting Account Batches", SLCompanyAdditionalSettingsInit."Skip Posting Account Batches");
         Rec.Validate("Skip Posting Customer Batches", SLCompanyAdditionalSettingsInit."Skip Posting Customer Batches");
         Rec.Validate("Skip Posting Vendor Batches", SLCompanyAdditionalSettingsInit."Skip Posting Vendor Batches");
@@ -863,7 +882,8 @@ page 47018 "SL Migration Configuration"
                                     Rec."Migrate Hist. AR Trx." and
                                     Rec."Migrate Hist. AP Trx." and
                                     Rec."Migrate Hist. Inv. Trx." and
-                                    Rec."Migrate Hist. Purch. Trx.";
+                                    Rec."Migrate Hist. Purch. Trx." and
+                                    Rec."Migrate Hist. Project Trans.";
 
         CurrPage.Update(true);
 
