@@ -15,9 +15,6 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
 {
     var
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-#if not CLEAN27
-        CalcInventoryAdjmtOrder: Codeunit "Calc. Inventory Adjmt. - Order";
-#endif
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text009: Label 'This %1 Order has not been adjusted.';
@@ -157,9 +154,6 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
         CapLedgEntry.SetRange("Item No.", InvtAdjmtEntryOrder."Item No.");
         IsHandled := false;
         OnCalcActualCapacityCostsOnAfterSetFilters(CapLedgEntry, InvtAdjmtEntryOrder, IsHandled, ShareOfTotalCapCost);
-#if not CLEAN27
-        CalcInventoryAdjmtOrder.RunOnCalcActualCapacityCostsOnAfterSetFilters(CapLedgEntry, InvtAdjmtEntryOrder, IsHandled, ShareOfTotalCapCost);
-#endif
         if not IsHandled then
             if CapLedgEntry.Find('-') then
                 repeat
@@ -182,9 +176,6 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
     begin
         IsHandled := false;
         OnBeforeCalcShareOfCapCost(InvtAdjmtEntryOrder, ShareOfCapCost, IsHandled);
-#if not CLEAN27
-        CalcInventoryAdjmtOrder.RunOnBeforeCalcShareOfCapCost(InvtAdjmtEntryOrder, ShareOfCapCost, IsHandled);
-#endif
         if IsHandled then
             exit(ShareOfCapCost);
 
