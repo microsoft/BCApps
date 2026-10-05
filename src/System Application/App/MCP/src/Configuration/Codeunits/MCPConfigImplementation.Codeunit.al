@@ -73,7 +73,7 @@ codeunit 8351 "MCP Config Implementation"
         NoActiveConfigsFeedbackTxt: Label 'No active configs feedback triggered', Locked = true;
         GeneralFeedbackTxt: Label 'General MCP feedback triggered', Locked = true;
         AgentNotFoundErr: Label 'The selected agent no longer exists.';
-        AgentNotEligibleErr: Label 'Only active agents published by a user or third party can be added to an MCP configuration.';
+        AgentNotEligibleErr: Label 'Only active custom agents can be added to an MCP configuration.';
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid

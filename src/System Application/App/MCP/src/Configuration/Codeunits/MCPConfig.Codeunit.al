@@ -132,10 +132,6 @@ codeunit 8350 "MCP Config"
     /// Agent discovery is limited to agents explicitly added to the configuration, including the default configuration.
     /// Does nothing if the configuration does not exist.
     /// </summary>
-    /// <remarks>
-    /// Before enabling Agent Tools, the caller must ensure that the administrator has acknowledged the applicable pricing and terms.
-    /// For more information, see https://go.microsoft.com/fwlink/?LinkId=2383165.
-    /// </remarks>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable agent tools, false to disable.</param>
     procedure EnableAgents(ConfigId: Guid; Enable: Boolean)
