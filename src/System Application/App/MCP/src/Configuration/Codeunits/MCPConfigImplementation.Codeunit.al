@@ -1538,7 +1538,7 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure ConfirmDataQueryToolsOnImport(EnableDataQueryTools: Boolean): Boolean
     var
-        MCPDataQueryBilling: Page "MCP Data Query Billing";
+        MCPBillingConfirmation: Page "MCP Billing Confirmation";
     begin
         if not EnableDataQueryTools then
             exit(false);
@@ -1546,7 +1546,8 @@ codeunit 8351 "MCP Config Implementation"
         if not GuiAllowed() then
             exit(false);
 
-        exit(MCPDataQueryBilling.RunModal() = Action::Yes);
+        MCPBillingConfirmation.SetFeature("MCP Server Feature"::"Data Query Tools");
+        exit(MCPBillingConfirmation.RunModal() = Action::Yes);
     end;
 
     local procedure ImportTool(ConfigId: Guid; ToolJson: JsonObject)

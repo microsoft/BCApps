@@ -1758,15 +1758,15 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [ModalPageHandler]
-    procedure DataQueryBillingYesHandler(var MCPDataQueryBilling: TestPage "MCP Data Query Billing")
+    procedure DataQueryBillingYesHandler(var MCPBillingConfirmation: TestPage "MCP Billing Confirmation")
     begin
-        MCPDataQueryBilling.Yes().Invoke();
+        MCPBillingConfirmation.Yes().Invoke();
     end;
 
     [ModalPageHandler]
-    procedure DataQueryBillingNoHandler(var MCPDataQueryBilling: TestPage "MCP Data Query Billing")
+    procedure DataQueryBillingNoHandler(var MCPBillingConfirmation: TestPage "MCP Billing Confirmation")
     begin
-        MCPDataQueryBilling.No().Invoke();
+        MCPBillingConfirmation.No().Invoke();
     end;
 
     [ModalPageHandler]

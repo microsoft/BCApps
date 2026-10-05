@@ -5,10 +5,10 @@
 
 namespace System.MCP;
 
-page 8377 "MCP Data Query Billing"
+page 8377 "MCP Billing Confirmation"
 {
     ApplicationArea = All;
-    Caption = 'Activate Data Query Tools';
+    Caption = 'Billing acknowledgement';
     Extensible = false;
     PageType = ConfirmationDialog;
     InherentEntitlements = X;
@@ -18,12 +18,13 @@ page 8377 "MCP Data Query Billing"
     {
         area(Content)
         {
-            label(BillingNotice)
+            field(BillingNotice; BillingNoticeText)
             {
                 ApplicationArea = All;
-                Caption = 'Use of Data Query Tools will incur additional charges. By activating Data Query Tools, you acknowledge that charges will apply according to the applicable pricing and terms.';
+                Editable = false;
                 MultiLine = true;
                 ShowCaption = false;
+                ToolTip = 'Specifies that activating the server feature incurs additional charges.';
             }
             field(LearnMore; LearnMoreLbl)
             {
@@ -33,23 +34,39 @@ page 8377 "MCP Data Query Billing"
                 ShowCaption = false;
                 Style = StandardAccent;
                 StyleExpr = true;
-                ToolTip = 'Open documentation about Data Query Tools pricing and terms.';
+                ToolTip = 'Open documentation about pricing and terms for the billable server feature.';
 
                 trigger OnDrillDown()
                 begin
                     Hyperlink(LearnMoreUrlLbl);
                 end;
             }
-            label(ConfirmationQuestion)
+            field(ConfirmationQuestion; ConfirmationQuestionText)
             {
                 ApplicationArea = All;
-                Caption = 'Do you want to activate Data Query Tools?';
+                Editable = false;
                 MultiLine = true;
                 ShowCaption = false;
+                ToolTip = 'Specifies whether to activate the billable server feature.';
             }
         }
     }
+
+    internal procedure SetFeature(Feature: Enum "MCP Server Feature")
     var
+        FeatureName: Text;
+    begin
+        FeatureName := Format(Feature).Replace(PreviewBillableSuffixTok, '');
+        BillingNoticeText := StrSubstNo(BillingNoticeLbl, FeatureName);
+        ConfirmationQuestionText := StrSubstNo(ConfirmationQuestionLbl, FeatureName);
+    end;
+
+    var
+        BillingNoticeText: Text;
+        ConfirmationQuestionText: Text;
+        BillingNoticeLbl: Label 'Use of %1 will incur additional charges. By activating %1, you acknowledge that charges will apply according to the applicable pricing and terms.', Comment = '%1 = server feature name';
+        ConfirmationQuestionLbl: Label 'Do you want to activate %1?', Comment = '%1 = server feature name';
         LearnMoreLbl: Label 'Learn more';
         LearnMoreUrlLbl: Label 'https://go.microsoft.com/fwlink/?LinkId=2383165', Locked = true;
+        PreviewBillableSuffixTok: Label ' (Preview/Billable)', Locked = true;
 }

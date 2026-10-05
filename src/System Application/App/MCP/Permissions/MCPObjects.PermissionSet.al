@@ -11,7 +11,7 @@ permissionset 8350 "MCP - Objects"
     Assignable = false;
     Caption = 'MCP - Objects';
 
-    Permissions = page "MCP Data Query Billing" = X,
+    Permissions = page "MCP Billing Confirmation" = X,
                   table "MCP API Publisher Group" = X,
                   table "MCP API Version" = X,
                   table "MCP Configuration" = X,
