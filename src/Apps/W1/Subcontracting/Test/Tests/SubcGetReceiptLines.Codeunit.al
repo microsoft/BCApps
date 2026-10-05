@@ -184,6 +184,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure CancelSeparateSubcontractingInvoiceIsBlocked()
     var
         PostedInvoiceHeader: Record "Purch. Inv. Header";
@@ -198,6 +199,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure CorrectSeparateSubcontractingInvoiceIsBlocked()
     var
         PostedInvoiceHeader: Record "Purch. Inv. Header";
@@ -213,7 +215,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CreateCorrectiveCreditMemoForSeparateSubcontractingInvoiceIsBlocked()
     var
         PostedInvoiceHeader: Record "Purch. Inv. Header";
@@ -227,6 +229,48 @@ codeunit 149927 "Subc. Get Receipt Lines"
         asserterror CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PostedInvoiceHeader, PurchaseHeader);
 
         Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure QuantityLimitedTrackedSubcontractingReceiptCopyIsBlockedBeforeMutation()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ReservationEntry: Record "Reservation Entry";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+    begin
+        // [SCENARIO 649862] A quantity-limited tracked subcontracting receipt copy is blocked before changing the invoice line
+        CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            2, true, false, 'LIMIT-SN1', 1, 'LIMIT-SN2', 1, false, true);
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(
+            InvoiceLine, InvoiceHeader, InvoiceLine.Type::Item, Item."No.", 1);
+        InvoiceLine."Receipt No." := PurchRcptLine."Document No.";
+        InvoiceLine."Receipt Line No." := PurchRcptLine."Line No.";
+        InvoiceLine.Modify();
+        Commit();
+
+        asserterror ItemTrackingMgt.CopyHandledItemTrkgToPurchLineWithLineQty(PurchaseLine, InvoiceLine);
+
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+        InvoiceLine.Get(InvoiceLine."Document Type", InvoiceLine."Document No.", InvoiceLine."Line No.");
+        Assert.AreEqual(1, InvoiceLine.Quantity, 'The quantity-limited copy must not change the requested invoice quantity.');
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", InvoiceLine."Document Type".AsInteger(),
+            InvoiceLine."Document No.", InvoiceLine."Line No.", false);
+        Assert.RecordIsEmpty(ReservationEntry);
     end;
 
     [Test]
