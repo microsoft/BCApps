@@ -39,15 +39,15 @@ report 11110 "VAT Statement AT"
 
                 trigger OnPostDataItem()
                 begin
-                    for i := 1 to 99 do begin
-                        if i in [22, 29, 6, 37, 52, 7, 9] then
+                    for i := 1 to 125 do begin
+                        if i in [22, 29, 6, 37, 52, 7, 9, 124] then
                             if Position[i] < 0 then begin
                                 Position[1000] := Position[1000] - Position[i];
                                 Position[i] := 0;
                                 Position[1090] := Position[1090] + Position[i + 1000];
                                 Position[i + 1000] := 0;
                             end;
-                        if i in [72, 73, 8, 88, 10] then
+                        if i in [72, 73, 8, 88, 10, 125] then
                             if Position[i] < 0 then begin
                                 Position[70] := Position[70] - Position[i];
                                 Position[1090] := Position[1090] + Position[i + 1000];
@@ -683,6 +683,7 @@ report 11110 "VAT Statement AT"
             FDFFile.Write('<< /V (' + Format(NumberPar6Abs1) + ')/T (Zahl112)>>');
         WriteFDFDataForPosition(1020, 'Zahl113');
         WriteFDFDataForPosition(22, 'Zahl115a');
+        WriteFDFDataForPosition(124, 'Zahl116a1');
         WriteFDFDataForPosition(29, 'Zahl116a');
         WriteFDFDataForPosition(6, 'Zahl117a');
         WriteFDFDataForPosition(37, 'Zahl118a');
@@ -697,6 +698,7 @@ report 11110 "VAT Statement AT"
         WriteFDFDataForPosition(70, 'Zahl126');
         WriteFDFDataForPosition(71, 'Zahl127');
         WriteFDFDataForPosition(72, 'Zahl128a');
+        WriteFDFDataForPosition(125, 'Zahl128a1');
         WriteFDFDataForPosition(73, 'Zahl129a');
         WriteFDFDataForPosition(8, 'Zahl129a_1');
         WriteFDFDataForPosition(88, 'Zahl130a');
