@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 
 using Microsoft.EServices.EDocument;
 
-codeunit 2171 "E-Document Service Setup Tests"
+codeunit 148755 "E-Document Service Setup Tests"
 {
     Subtype = Test;
     Permissions = tabledata "E-Document Service" = rimd,

@@ -9,7 +9,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.eServices.EDocument;
 using System.Utilities;
 
-codeunit 2167 "CFDI Cancellation Tests"
+codeunit 148751 "CFDI Cancellation Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

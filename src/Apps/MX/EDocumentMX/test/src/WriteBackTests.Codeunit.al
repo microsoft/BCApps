@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 using Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.Sales.Customer;
 
-codeunit 2169 "CFDI Write Back Tests"
+codeunit 148753 "CFDI Write Back Tests"
 {
     Subtype = Test;
 

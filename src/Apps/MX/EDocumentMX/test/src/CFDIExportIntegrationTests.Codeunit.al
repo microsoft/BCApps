@@ -16,7 +16,7 @@ using Microsoft.Sales.Setup;
 using Microsoft.eServices.EDocument;
 using System.Utilities;
 
-codeunit 2170 "CFDI Export Integration Tests"
+codeunit 148754 "CFDI Export Integration Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

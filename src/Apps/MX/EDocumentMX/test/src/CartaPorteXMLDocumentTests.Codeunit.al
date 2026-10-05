@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 
 using Microsoft.EServices.EDocument.Interfactura;
 
-codeunit 2168 "Carta Porte XML Document Tests"
+codeunit 148752 "Carta Porte XML Document Tests"
 {
     Subtype = Test;
 

@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 
 using Microsoft.EServices.EDocument.Interfactura;
 
-codeunit 2166 "CFDI XML Document Tests"
+codeunit 148750 "CFDI XML Document Tests"
 {
     Subtype = Test;
 
