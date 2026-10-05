@@ -253,6 +253,7 @@ codeunit 2752 "Universal Print Graph Helper"
 
     local procedure InvokeRequestAndReadResponse(var HttpRequestMessage: HttpRequestMessage; var ResponseContent: Text; var ErrorMessage: Text; var StatusCode: Integer): Boolean
     var
+        CustomDimensions: Dictionary of [Text, Text];
         HttpClient: HttpClient;
         HttpResponseMessage: HttpResponseMessage;
         RequestId: Text;
@@ -279,8 +280,10 @@ codeunit 2752 "Universal Print Graph Helper"
         end else
             ResponseErrorMessage := GetLastErrorText();
 
-        Session.LogMessage('0000EG1', StrSubstNo(this.InvokeWebRequestFailedTelemetryTxt, StatusCode, ResponseErrorMessage, RequestId, TraceId),
-        Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.UniversalPrintTelemetryCategoryTxt);
+        CustomDimensions.Add('Category', this.UniversalPrintTelemetryCategoryTxt);
+        CustomDimensions.Add('ErrorText', ResponseErrorMessage);
+        Session.LogMessage('0000EG1', StrSubstNo(this.InvokeWebRequestFailedTelemetryTxt, StatusCode, RequestId, TraceId),
+            Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
 
         Clear(ErrorMessage);
         if StatusCode in [401, 403, 404] then begin
@@ -460,7 +463,7 @@ codeunit 2752 "Universal Print Graph Helper"
         UniversalPrintTelemetryCategoryTxt: Label 'Universal Print AL', Locked = true;
         UniversalPrintFeatureTelemetryNameTxt: Label 'Universal Print', Locked = true;
         NoTokenTelemetryTxt: Label 'Access token could not be retrieved.', Locked = true;
-        InvokeWebRequestFailedTelemetryTxt: Label 'Invoking web request has failed. Status %1, Message %2, RequestId %3, TraceId %4', Locked = true;
+        InvokeWebRequestFailedTelemetryTxt: Label 'Invoking web request has failed. Status %1, RequestId %2, TraceId %3', Locked = true;
         NotFoundTelemetryTxt: Label 'Not Found.', Locked = true;
         HttpErrorStatusErr: Label 'The remote service returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 500; %2 = HTTP reason phrase, for example Internal Server Error';
         UniversalPrintPortalUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2153618', Locked = true;
