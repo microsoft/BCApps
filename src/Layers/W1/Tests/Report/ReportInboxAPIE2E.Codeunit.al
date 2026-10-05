@@ -443,6 +443,8 @@ codeunit 135549 "Report Inbox API E2E"
     var
         Company: Record Company;
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         if Company.FindSet() then
             repeat
                 DeleteEntriesIn(Company.Name, UserId());
