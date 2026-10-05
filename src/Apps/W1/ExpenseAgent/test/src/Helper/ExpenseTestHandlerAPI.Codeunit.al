@@ -133,6 +133,7 @@ codeunit 148307 "Expense Test Handler API"
     /// Configures two existing Expense Users as a submitter and approver for integration tests.
     /// The approver uses the current BC service user's ID without exercising the email-based
     /// Expense User onboarding validation, which is outside the lifecycle test's scope.
+    /// The approver gets unlimited approval so report submission is not blocked by approval limits.
     /// </summary>
     /// <remarks>
     /// This endpoint intentionally mutates approval master data in the dedicated integration-test company.
@@ -166,6 +167,7 @@ codeunit 148307 "Expense Test Handler API"
         ApproverExpenseUser.GetBySystemId(approverExpenseUserId);
         ApproverExpenseUser."User Id For Approvals" := CurrentApprovalUserId;
         ApproverExpenseUser.Validate("Can Approve", true);
+        ApproverExpenseUser.Validate("Unlimited Approval", true);
         ApproverExpenseUser.Modify(true);
 
         if ExpenseApprovalSetup.Get(SubmitterExpenseUser."No.") then begin
