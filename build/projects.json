@@ -5759,19 +5759,27 @@
       "owningteam": "\\AI Business Solutions\\Finance"
     },
     "SAF-T Modification DK": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\DK\\SAFTModificationDK\\app",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\SAFTModificationDK\\app",
       "dvdFolder": "Applications\\SAFTModificationDK\\Source",
       "hasTranslations": true,
-      "supportedCountries": "DK",
+      "supportedCountries": [
+        "DK",
+        "AT",
+        "IS"
+      ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "SAF-T Modification DK Tests": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\DK\\SAFTModificationDK\\test",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\SAFTModificationDK\\test",
       "dvdFolder": "Applications\\SAFTModificationDK\\Test",
-      "supportedCountries": "DK",
+      "supportedCountries": [
+        "DK",
+        "AT",
+        "IS"
+      ],
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
