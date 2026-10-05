@@ -2081,34 +2081,41 @@ codeunit 134301 "Workflow Notification Test"
     end;
 
     [Test]
-    [HandlerFunctions('SendNotificationHandler')]
+    [HandlerFunctions('SendNotificationHandler,ApprovalMessageHandler,ConfirmHandlerNo')]
     procedure FailedForegroundNotificationDoesNotBlockApprovalWorkflow()
     var
         Workflow: Record Workflow;
         SalesHeader: Record "Sales Header";
+        ApproverUserSetup: Record "User Setup";
+        ApprovalEntry: Record "Approval Entry";
         NotificationEntry: Record "Notification Entry";
         WorkflowStepInstance: Record "Workflow Step Instance";
+        JobQueueEntry: Record "Job Queue Entry";
         WorkflowSetup: Codeunit "Workflow Setup";
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         AzureADUserTestLibrary: Codeunit "Azure AD User Test Library";
-        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         ConnectorMock: Codeunit "Connector Mock";
     begin
         // [FEATURE] [Approval] [Notification]
         // [SCENARIO 652915] A failed instant approval notification sent in the foreground does not leave the workflow stuck in Processing.
         Initialize();
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Notification Entry Dispatcher");
+        JobQueueEntry.DeleteAll();
 
-        // [GIVEN] Sales Order approval workflow with the current user as the specific approver.
+        // [GIVEN] Approver "A" with an email address. The current user is an approval administrator.
+        LibraryDocumentApprovals.CreateMockupUserSetup(ApproverUserSetup);
+        ApproverUserSetup."E-Mail" := UserEmailAddressTxt;
+        ApproverUserSetup.Modify();
+
+        // [GIVEN] Sales Order approval workflow with "A" as the specific approver.
         WorkflowSetup.InitWorkflow();
         LibraryWorkflow.CopyWorkflowTemplate(Workflow, WorkflowSetup.SalesOrderApprovalWorkflowCode());
-        LibraryWorkflow.SetWorkflowSpecificApprover(Workflow.Code, CopyStr(UserId(), 1, 50));
+        LibraryWorkflow.SetWorkflowSpecificApprover(Workflow.Code, ApproverUserSetup."User ID");
         LibraryWorkflow.EnableWorkflow(Workflow);
 
         // [GIVEN] The current user is a delegated user, so instant notifications are sent in the foreground.
         AzureADUserTestLibrary.SetIsUserDelegated(true);
         BindSubscription(AzureADUserTestLibrary);
-        TestClientTypeSubscriber.SetClientType(ClientType::Background);
-        BindSubscription(TestClientTypeSubscriber);
 
         // [GIVEN] Sending the notification email fails.
         ConnectorMock.FailOnSend(true);
@@ -2123,19 +2130,19 @@ codeunit 134301 "Workflow Notification Test"
         Assert.RecordIsEmpty(WorkflowStepInstance);
 
         // [THEN] The failed Notification Entry is kept with the error for a later dispatch.
-        NotificationEntry.SetRange("Recipient User ID", UserId());
+        NotificationEntry.SetRange("Recipient User ID", ApproverUserSetup."User ID");
         NotificationEntry.FindFirst();
         NotificationEntry.TestField("Error Message");
 
-        // [WHEN] The approver approves the request.
-        ApprovalsMgmt.ApproveRecordApprovalRequest(SalesHeader.RecordId());
+        // [WHEN] The approval administrator approves the request.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, SalesHeader.RecordId());
+        ApprovalsMgmt.ApproveApprovalRequests(ApprovalEntry);
 
         // [THEN] The Sales Order is released.
         SalesHeader.Find();
         SalesHeader.TestField(Status, SalesHeader.Status::Released);
 
         UnbindSubscription(AzureADUserTestLibrary);
-        UnbindSubscription(TestClientTypeSubscriber);
     end;
 
     [Test]
@@ -3275,6 +3282,11 @@ codeunit 134301 "Workflow Notification Test"
 
     [SendNotificationHandler]
     procedure SendNotificationHandler(var Notification: Notification): Boolean
+    begin
+    end;
+
+    [MessageHandler]
+    procedure ApprovalMessageHandler(Message: Text[1024])
     begin
     end;
 
