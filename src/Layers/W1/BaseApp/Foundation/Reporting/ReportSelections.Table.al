@@ -809,7 +809,8 @@ table 77 "Report Selections"
     begin
         FindReportUsageForTable(ReportUsage, TempBodyReportSelections, TableNo);
 
-        SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+        // Run on the found selection so its report layout name and App ID are used, not only the legacy layout code
+        TempBodyReportSelections.SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
 
     [Scope('OnPrem')]
@@ -831,7 +832,8 @@ table 77 "Report Selections"
     begin
         FindReportUsageForCust(ReportUsage, CustNo, TempBodyReportSelections);
 
-        SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+        // Run on the found selection so its report layout name and App ID are used, not only the legacy layout code
+        TempBodyReportSelections.SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
 
     /// <summary>
@@ -867,7 +869,8 @@ table 77 "Report Selections"
     begin
         FindReportUsageForVend(ReportUsage, VendNo, TempBodyReportSelections);
 
-        SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+        // Run on the found selection so its report layout name and App ID are used, not only the legacy layout code
+        TempBodyReportSelections.SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
 
 #if not CLEAN27

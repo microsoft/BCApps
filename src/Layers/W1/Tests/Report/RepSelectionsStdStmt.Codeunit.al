@@ -2352,6 +2352,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     begin
         // [SCENARIO 546893] Run Customer Statement report when some customers have custom Document Layouts for Customer Statement and they are NOT included in report filter.
 
+        Initialize();
+        CreateStandardStatementReportSelection();
+
         // [GIVEN] Document Sending Profile P1.
         SendingProfileCode := CreateDocumentSendingProfile();
 
@@ -2396,6 +2399,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         SendingProfileCode: Code[20];
     begin
         // [SCENARIO 546893] Run Customer Statement report when some customers have custom Document Layouts for Customer Statement and they are included in report filter.
+
+        Initialize();
+        CreateStandardStatementReportSelection();
 
         // [GIVEN] Document Sending Profile P1.
         SendingProfileCode := CreateDocumentSendingProfile();
@@ -2703,6 +2709,14 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CustomReportSelection.Insert(true);
     end;
 
+    local procedure CreateStandardStatementReportSelection()
+    var
+        ReportSelections: Record "Report Selections";
+    begin
+        InsertReportSelections(
+          ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
+        Commit();
+    end;
     local procedure SetBuiltInEmailBodyLayout(var CustomReportSelection: Record "Custom Report Selection"; ReportID: Integer)
     var
         ReportLayoutList: Record "Report Layout List";

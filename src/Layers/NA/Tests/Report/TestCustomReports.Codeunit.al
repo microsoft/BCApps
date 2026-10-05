@@ -63,6 +63,8 @@ codeunit 134761 "Test Custom Reports"
         TempFolderIndex: Integer;
         WrongLayoutErr: Label 'The report was not run with the report layout selected on the document layout.';
         LayoutNotUsedErr: Label 'The report was not run with report layout "%1" for %2.', Comment = '%1 = report layout name, %2 = customer number';
+        LayoutNotRenderedErr: Label 'The document was not rendered with report layout "%1" for %2.', Comment = '%1 = report layout name, %2 = customer number';
+        NoPdfErr: Label 'No PDF document was created.';
         InvoiceDiscountTxt: Label 'Invoice Discount';
         SubtotalTxt: Label 'Subtotal';
         DescriptionReportTotalsLineTxt: Label 'Description_ReportTotalsLine';
@@ -319,11 +321,7 @@ codeunit 134761 "Test Custom Reports"
         Assert.IsTrue(LayoutSelectionSpy.IsLayoutUsedFor(Customer[3]."No.", ''), WrongLayoutErr);
 
         // Tear down, the customers have no entries and would fail statements rendered by later tests
-        CustomReportSelection.Reset();
-        CustomReportSelection.SetRange("Source Type", Database::Customer);
-        CustomReportSelection.SetFilter("Source No.", '%1|%2', Customer[1]."No.", Customer[2]."No.");
-        CustomReportSelection.DeleteAll();
-        Clear(CustomReportSelection);
+        DeleteDocumentLayouts(StrSubstNo('%1|%2', Customer[1]."No.", Customer[2]."No."));
     end;
 
     [Test]
@@ -342,6 +340,113 @@ codeunit 134761 "Test Custom Reports"
         UnbindSubscription(LayoutSelectionSpy);
 
         VerifyStatementLayouts(LayoutSelectionSpy, StandardStatementFullModLayout.Name, StandardStatementModLayout.Name);
+
+        // The web client preview renders the statements, so the rendered documents must use the customer's report layouts too
+        Assert.AreEqual(2, LayoutSelectionSpy.GetRenderCount(CustomerFullMod."No."), WrongLayoutErr);
+        Assert.IsTrue(
+            LayoutSelectionSpy.IsRenderedWithLayout(CustomerFullMod."No.", StandardStatementFullModLayout.Name),
+            StrSubstNo(LayoutNotRenderedErr, StandardStatementFullModLayout.Name, CustomerFullMod."No."));
+        Assert.IsTrue(
+            LayoutSelectionSpy.IsRenderedWithLayout(CustomerFullMod."No.", StandardStatementModLayout.Name),
+            StrSubstNo(LayoutNotRenderedErr, StandardStatementModLayout.Name, CustomerFullMod."No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardStatementDefaultLayoutHandler')]
+    [Scope('OnPrem')]
+    procedure StatementRendersDocumentLayoutInsteadOfCompanyDefaultLayout()
+    var
+        Customer: array[2] of Record Customer;
+        CustomerFilter: Record Customer;
+        SalesHeader: Record "Sales Header";
+        CompanyDefaultLayout: Record "Report Layout List";
+        CustomerLayout: Record "Report Layout List";
+        CustomLayoutReporting: Codeunit "Custom Layout Reporting";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
+        i: Integer;
+    begin
+        // [SCENARIO] A statement is rendered with the report layout on the customer's document layout instead of the company's default layout,
+        // and with the company's default layout for a customer without a document layout.
+        Initialize();
+
+        // [GIVEN] Report layout "D" is the default layout of the company for "Standard Statement"
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Statement", CompanyDefaultLayout);
+        DocumentLayoutTestHelper.SetCompanyDefaultLayout(CompanyDefaultLayout);
+
+        // [GIVEN] Customers C1 and C2 with posted invoices. C1 has a document layout for "Standard Statement" with report layout "L".
+        for i := 1 to ArrayLen(Customer) do begin
+            LibrarySales.CreateCustomer(Customer[i]);
+            CreateSalesRecord(SalesHeader, SalesHeader."Document Type"::Invoice, Customer[i]);
+            LibrarySales.PostSalesDocument(SalesHeader, false, true);
+        end;
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Statement", CustomerLayout);
+        AssignReportLayoutToCustomer(Customer[1]."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement", CustomerLayout);
+
+        // [WHEN] Preview "Standard Statement" for C1 and C2 in the web client, which renders the statements
+        CustomerFilter.SetFilter("No.", '%1|%2', Customer[1]."No.", Customer[2]."No.");
+        CustomLayoutReporting.SetTestModeWebClient(true);
+        BindSubscription(LayoutSelectionSpy);
+        RunStatementReportWithStandardSelection(CustomerFilter, CustomLayoutReporting, TemporaryPath, true, true);
+        UnbindSubscription(LayoutSelectionSpy);
+
+        // [THEN] The statement of C1 is rendered once, with "L"
+        Assert.AreEqual(1, LayoutSelectionSpy.GetRenderCount(Customer[1]."No."), WrongLayoutErr);
+        Assert.IsTrue(
+            LayoutSelectionSpy.IsRenderedWithLayout(Customer[1]."No.", CustomerLayout.Name), StrSubstNo(LayoutNotRenderedErr, CustomerLayout.Name, Customer[1]."No."));
+
+        // [THEN] The statement of C2 is rendered once, with "D"
+        Assert.AreEqual(1, LayoutSelectionSpy.GetRenderCount(Customer[2]."No."), WrongLayoutErr);
+        Assert.IsTrue(
+            LayoutSelectionSpy.IsRenderedWithLayout(Customer[2]."No.", CompanyDefaultLayout.Name),
+            StrSubstNo(LayoutNotRenderedErr, CompanyDefaultLayout.Name, Customer[2]."No."));
+
+        // Tear down
+        DocumentLayoutTestHelper.RemoveCompanyDefaultLayout(REPORT::"Standard Statement");
+        DeleteDocumentLayouts(Customer[1]."No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure InvoicePdfRendersDocumentLayoutInsteadOfCompanyDefaultLayout()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CompanyDefaultLayout: Record "Report Layout List";
+        ReportSelections: Record "Report Selections";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] The PDF of a posted invoice, as attached to e-documents and PEPPOL files, is rendered with the report layout on the
+        // customer's document layout instead of the company's default layout.
+        Initialize();
+
+        // [GIVEN] Report layout "D" is the default layout of the company for "Standard Sales - Invoice"
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Sales - Invoice", CompanyDefaultLayout);
+        DocumentLayoutTestHelper.SetCompanyDefaultLayout(CompanyDefaultLayout);
+        BindSubscription(LayoutSelectionSpy);
+
+        // [WHEN] Get the PDF of the posted invoice of customer "Full Mod", whose document layout for invoices has report layout "L"
+        SalesInvoiceHeader.Get(InvoiceSalesHeaderFullMod."Last Posting No.");
+        SalesInvoiceHeader.SetRecFilter();
+        ReportSelections.GetPdfReportForCust(TempBlob, "Report Selection Usage"::"S.Invoice", SalesInvoiceHeader, CustomerFullMod."No.");
+
+        // [THEN] The invoice is rendered with "L"
+        Assert.IsTrue(TempBlob.HasValue(), NoPdfErr);
+        Assert.AreEqual(InvoiceFullModLayout.Name, LayoutSelectionSpy.GetLastRenderedLayoutName(), WrongLayoutErr);
+
+        // [WHEN] Get the PDF of the posted invoice of customer "Partial Mod", whose document layout for invoices has no report layout
+        Clear(TempBlob);
+        LayoutSelectionSpy.ClearRecordedLayouts();
+        SalesInvoiceHeader.Get(InvoiceSalesHeaderPartialMod."Last Posting No.");
+        SalesInvoiceHeader.SetRecFilter();
+        ReportSelections.GetPdfReportForCust(TempBlob, "Report Selection Usage"::"S.Invoice", SalesInvoiceHeader, CustomerPartialMod."No.");
+        UnbindSubscription(LayoutSelectionSpy);
+
+        // [THEN] The invoice is rendered with "D"
+        Assert.IsTrue(TempBlob.HasValue(), NoPdfErr);
+        Assert.AreEqual(CompanyDefaultLayout.Name, LayoutSelectionSpy.GetLastRenderedLayoutName(), WrongLayoutErr);
+
+        // Tear down
+        DocumentLayoutTestHelper.RemoveCompanyDefaultLayout(REPORT::"Standard Sales - Invoice");
     end;
 
     [Test]
@@ -1296,6 +1401,8 @@ codeunit 134761 "Test Custom Reports"
         // [FEATURE] [Customer]
         // [SCENARIO 319005] Run GetLayoutIteratorKeyFilter function of "Custom Layout Reporting" for a report layout name on consecutive Customer numbers.
         Initialize();
+        // Both statement reports are selected, so the request pages of both are run
+        InitReportSelections();
 
         // [GIVEN] Customers C1, C2,...,C7, that are added both to database and temporary table "T1".
         for i := 1 to ArrayLen(CustomerNo) do begin
@@ -1864,6 +1971,15 @@ codeunit 134761 "Test Custom Reports"
         CustomReportSelection."Custom Report Layout Code" := CustomReportLayoutCode;
         CustomReportSelection.Insert();
         Commit();
+    end;
+
+    local procedure DeleteDocumentLayouts(CustomerNoFilter: Text)
+    begin
+        CustomReportSelection.Reset();
+        CustomReportSelection.SetRange("Source Type", Database::Customer);
+        CustomReportSelection.SetFilter("Source No.", CustomerNoFilter);
+        CustomReportSelection.DeleteAll();
+        Clear(CustomReportSelection);
     end;
 
     local procedure AssignReportLayoutToCustomer(CustomerNo: Code[20]; UsageValue: Enum "Report Selection Usage"; ReportID: Integer; ReportLayoutList: Record "Report Layout List")
