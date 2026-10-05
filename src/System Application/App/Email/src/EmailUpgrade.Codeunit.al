@@ -67,7 +67,7 @@ codeunit 1597 "Email Upgrade"
         exit('MS-373161-EmailLogEntryAdded-20201005');
     end;
 
-    procedure GetEmailInboxAddedToAllowedListUpgradeTag(): Code[250]
+    internal procedure GetEmailInboxAddedToAllowedListUpgradeTag(): Code[250]
     begin
         exit('MS-651131-EmailInboxAddedToAllowedList-20260930');
     end;
