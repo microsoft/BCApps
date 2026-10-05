@@ -183,6 +183,174 @@ codeunit 149927 "Subc. Get Receipt Lines"
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesFromMultiplePartialSubcontractingReceiptsPostsOneInvoice()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        PostedInvoiceHeader: Record "Purch. Inv. Header";
+        ProductionOrder: array[2] of Record "Production Order";
+        PurchRcptLine: array[2] of Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: array[2] of Record "Purchase Header";
+        PurchaseLine: array[2] of Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: array[2] of Integer;
+        CapacityLedgerEntryNo: array[2] of Integer;
+        ExpectedInvoiceCost: array[2] of Decimal;
+        Index: Integer;
+        OutputItemLedgerEntryCount: array[2] of Integer;
+        PartialReceiptQuantity: array[2] of Decimal;
+        PostedInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 10987] Partial receipts from multiple subcontracting orders can be consolidated into one purchase invoice
+        Initialize();
+        PartialReceiptQuantity[1] := 2;
+        PartialReceiptQuantity[2] := 3;
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenterSameVendor(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify(true);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Two partially received subcontracting purchase orders for the same vendor
+        for Index := 1 to 2 do begin
+            SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+                ProductionOrder[Index], "Production Order Status"::Released,
+                ProductionOrder[Index]."Source Type"::Item, Item."No.", 6 + (Index * 2), Location.Code);
+            SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(
+                Item."Routing No.", WorkCenter[2]."No.", ProductionOrder[Index]."No.", PurchaseLine[Index]);
+            PurchaseLine[Index].Validate("Direct Unit Cost", 10 + Index);
+            PurchaseLine[Index].Modify(true);
+            PurchaseHeader[Index].Get(PurchaseLine[Index]."Document Type", PurchaseLine[Index]."Document No.");
+            SubSetupLibrary.EnsureGeneralPostingSetupIsValid(
+                PurchaseLine[Index]."Gen. Bus. Posting Group", PurchaseLine[Index]."Gen. Prod. Posting Group");
+            LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader[Index]);
+            SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader[Index], WarehouseActivityHeader);
+
+            WarehouseActivityLine.Reset();
+            WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+            WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+            WarehouseActivityLine.FindFirst();
+            Assert.IsTrue(
+                WarehouseActivityLine.Quantity > PartialReceiptQuantity[Index],
+                'The inventory put-away must leave an outstanding quantity on the subcontracting order.');
+            WarehouseActivityLine.Validate("Qty. to Handle", PartialReceiptQuantity[Index]);
+            WarehouseActivityLine.Modify(true);
+            LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+            PurchRcptLine[Index].SetRange("Order No.", PurchaseHeader[Index]."No.");
+            PurchRcptLine[Index].SetRange("Order Line No.", PurchaseLine[Index]."Line No.");
+            PurchRcptLine[Index].FindLast();
+            Assert.AreEqual(
+                PartialReceiptQuantity[Index], PurchRcptLine[Index].Quantity,
+                'The posted subcontracting receipt must contain the partial delivery quantity.');
+            PurchaseLine[Index].Get(
+                PurchaseLine[Index]."Document Type", PurchaseLine[Index]."Document No.", PurchaseLine[Index]."Line No.");
+            Assert.AreEqual(
+                PartialReceiptQuantity[Index], PurchaseLine[Index]."Quantity Received",
+                'The subcontracting order must record the partial delivery.');
+            Assert.IsTrue(
+                PurchaseLine[Index]."Outstanding Quantity" > 0,
+                'The subcontracting order must retain its undelivered quantity.');
+
+            CapacityLedgerEntry.Reset();
+            CapacityLedgerEntry.SetRange("Document No.", PurchRcptLine[Index]."Document No.");
+            CapacityLedgerEntry.SetRange("Order No.", ProductionOrder[Index]."No.");
+            CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+            CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", PurchaseHeader[Index]."No.");
+            CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", PurchaseLine[Index]."Line No.");
+            CapacityLedgerEntryCount[Index] := CapacityLedgerEntry.Count();
+            CapacityLedgerEntry.FindFirst();
+            CapacityLedgerEntryNo[Index] := CapacityLedgerEntry."Entry No.";
+
+            ItemLedgerEntry.Reset();
+            ItemLedgerEntry.SetRange("Item No.", Item."No.");
+            ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+            ItemLedgerEntry.SetRange("Order No.", ProductionOrder[Index]."No.");
+            OutputItemLedgerEntryCount[Index] := ItemLedgerEntry.Count();
+        end;
+        Assert.AreNotEqual(
+            PurchaseHeader[1]."No.", PurchaseHeader[2]."No.",
+            'The receipt lines must originate from different subcontracting purchase orders.');
+
+        // [WHEN] Both receipt lines are copied to one purchase invoice and posted
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        for Index := 1 to 2 do begin
+            PurchRcptLine[Index].SetRecFilter();
+            PurchGetReceipt.CreateInvLines(PurchRcptLine[Index]);
+            InvoiceLine.Reset();
+            InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+            InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+            InvoiceLine.SetRange("Receipt No.", PurchRcptLine[Index]."Document No.");
+            InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine[Index]."Line No.");
+            InvoiceLine.FindFirst();
+            Assert.AreEqual(
+                PartialReceiptQuantity[Index], InvoiceLine.Quantity,
+                'The consolidated invoice line must contain the complete partial receipt quantity.');
+            ExpectedInvoiceCost[Index] := Round(InvoiceLine.Quantity * InvoiceLine."Direct Unit Cost");
+        end;
+        InvoiceLine.Reset();
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange(Type, InvoiceLine.Type::Item);
+        Assert.RecordCount(InvoiceLine, 2);
+        InvoiceHeader.Validate("Vendor Invoice No.", 'MULTI-SUBC-INVOICE');
+        InvoiceHeader.Modify(true);
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        // [THEN] One posted invoice preserves both receipt and production cost relationships
+        PostedInvoiceHeader.Get(PostedInvoiceNo);
+        Assert.AreEqual(
+            'MULTI-SUBC-INVOICE', PostedInvoiceHeader."Vendor Invoice No.",
+            'The consolidated invoice must retain the vendor invoice number.');
+        for Index := 1 to 2 do begin
+            PurchRcptLine[Index].Get(PurchRcptLine[Index]."Document No.", PurchRcptLine[Index]."Line No.");
+            Assert.AreEqual(
+                0, PurchRcptLine[Index]."Qty. Rcd. Not Invoiced",
+                'Each partial subcontracting receipt must be fully invoiced.');
+
+            ValueEntry.Reset();
+            ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+            ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+            ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo[Index]);
+            Assert.RecordIsNotEmpty(ValueEntry);
+            ValueEntry.CalcSums("Cost Amount (Actual)");
+            Assert.AreEqual(
+                ExpectedInvoiceCost[Index], Round(ValueEntry."Cost Amount (Actual)"),
+                'Each consolidated invoice line must retain its original capacity cost application.');
+
+            CapacityLedgerEntry.Reset();
+            CapacityLedgerEntry.SetRange("Order No.", ProductionOrder[Index]."No.");
+            CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+            Assert.AreEqual(
+                CapacityLedgerEntryCount[Index], CapacityLedgerEntry.Count(),
+                'Consolidated invoicing must not duplicate capacity output.');
+            ItemLedgerEntry.Reset();
+            ItemLedgerEntry.SetRange("Item No.", Item."No.");
+            ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+            ItemLedgerEntry.SetRange("Order No.", ProductionOrder[Index]."No.");
+            Assert.AreEqual(
+                OutputItemLedgerEntryCount[Index], ItemLedgerEntry.Count(),
+                'Consolidated invoicing must not duplicate item output.');
+        end;
+    end;
+
         Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Separate invoicing must not duplicate item output.');
     end;
 
