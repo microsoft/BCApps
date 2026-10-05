@@ -86,7 +86,7 @@ codeunit 1509 "Notification Entry Dispatcher"
         if not ErrorMessageHandler.HasErrors() then
             exit;
 
-        Session.LogMessage('0000SNF', ForegroundDispatchFailedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NotificationTelemetryCategoryTxt);
+        Session.LogMessage('0000VUX', ForegroundDispatchFailedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NotificationTelemetryCategoryTxt);
         if GuiAllowed() then
             ErrorMessageHandler.NotifyAboutErrors();
     end;
