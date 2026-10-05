@@ -6,6 +6,7 @@
 namespace System.Environment;
 
 using System;
+using System.DataAdministration;
 using System.Environment.Configuration;
 
 codeunit 3702 "Environment Information Impl."
@@ -83,6 +84,16 @@ codeunit 3702 "Environment Information Impl."
         Clear(EnvironmentInformation.Description);
         EnvironmentInformation.Description.CreateOutStream(DescriptionOutStream, GetTextEncoding());
         DescriptionOutStream.WriteText(Description);
+        EnvironmentInformation.Modify();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearDatabaseConfig, '', false, false)]
+    local procedure ClearEnvironmentDescriptionOnEnvironmentCopy(SourceEnv: Enum "Environment Type"; DestinationEnv: Enum "Environment Type")
+    var
+        EnvironmentInformation: Record "Environment Information";
+    begin
+        GetEnvironmentInformationSafe(EnvironmentInformation);
+        Clear(EnvironmentInformation.Description);
         EnvironmentInformation.Modify();
     end;
 
