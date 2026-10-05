@@ -352,68 +352,6 @@ codeunit 8351 "MCP Config Implementation"
         exit(MCPConfiguration.EnableAgents);
     end;
 
-    internal procedure IsAgentEligible(Agent: Record Agent): Boolean
-    begin
-        if Agent.State <> Agent.State::Enabled then
-            exit(false);
-
-        if Agent.Substate <> Agent.Substate::None then
-            exit(false);
-
-        if Agent."Agent Metadata Provider" = Agent."Agent Metadata Provider"::"Personal Agent" then
-            exit(false);
-
-        exit(Agent."Publisher Type" in [Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party"]);
-    end;
-
-    internal procedure SetEligibleAgentFilters(var Agent: Record Agent)
-    begin
-        Agent.SetRange(State, Agent.State::Enabled);
-        Agent.SetRange(Substate, Agent.Substate::None);
-        Agent.SetFilter("Agent Metadata Provider", '<>%1', Agent."Agent Metadata Provider"::"Personal Agent");
-        Agent.SetFilter("Publisher Type", '%1|%2', Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party");
-    end;
-
-    internal procedure CreateAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
-    var
-        MCPConfigurationAgent: Record "MCP Configuration Agent";
-        MCPConfiguration: Record "MCP Configuration";
-    begin
-        if not MCPConfiguration.GetBySystemId(ConfigId) then
-            Error(ConfigurationNotFoundErr);
-
-        MCPConfigurationAgent.ID := ConfigId;
-        MCPConfigurationAgent."Agent ID" := AgentUserSecurityId;
-        SetAgentMetadata(MCPConfigurationAgent);
-        MCPConfigurationAgent.Insert();
-        exit(MCPConfigurationAgent.SystemId);
-    end;
-
-    internal procedure GetAgentToolId(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
-    var
-        MCPConfigurationAgent: Record "MCP Configuration Agent";
-        EmptyGuid: Guid;
-    begin
-        if MCPConfigurationAgent.Get(ConfigId, AgentUserSecurityId) then
-            exit(MCPConfigurationAgent.SystemId);
-
-        exit(EmptyGuid);
-    end;
-
-    internal procedure SetAgentMetadata(var MCPConfigurationAgent: Record "MCP Configuration Agent")
-    var
-        Agent: Record Agent;
-    begin
-        if not Agent.Get(MCPConfigurationAgent."Agent ID") then
-            Error(AgentNotFoundErr);
-
-        if not IsAgentEligible(Agent) then
-            Error(AgentNotEligibleErr);
-
-        MCPConfigurationAgent."Agent Name" := Agent."Display Name";
-        MCPConfigurationAgent."Agent Description" := '';
-    end;
-
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -659,6 +597,68 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool."API Version" := GetHighestAPICodeunitVersion(CodeunitAPIId);
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
+    end;
+
+    internal procedure CreateAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+
+        MCPConfigurationAgent.ID := ConfigId;
+        MCPConfigurationAgent."Agent ID" := AgentUserSecurityId;
+        SetAgentMetadata(MCPConfigurationAgent);
+        MCPConfigurationAgent.Insert();
+        exit(MCPConfigurationAgent.SystemId);
+    end;
+
+    internal procedure GetAgentToolId(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+        EmptyGuid: Guid;
+    begin
+        if MCPConfigurationAgent.Get(ConfigId, AgentUserSecurityId) then
+            exit(MCPConfigurationAgent.SystemId);
+
+        exit(EmptyGuid);
+    end;
+
+    internal procedure IsAgentEligible(Agent: Record Agent): Boolean
+    begin
+        if Agent.State <> Agent.State::Enabled then
+            exit(false);
+
+        if Agent.Substate <> Agent.Substate::None then
+            exit(false);
+
+        if Agent."Agent Metadata Provider" = Agent."Agent Metadata Provider"::"Personal Agent" then
+            exit(false);
+
+        exit(Agent."Publisher Type" in [Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party"]);
+    end;
+
+    internal procedure SetEligibleAgentFilters(var Agent: Record Agent)
+    begin
+        Agent.SetRange(State, Agent.State::Enabled);
+        Agent.SetRange(Substate, Agent.Substate::None);
+        Agent.SetFilter("Agent Metadata Provider", '<>%1', Agent."Agent Metadata Provider"::"Personal Agent");
+        Agent.SetFilter("Publisher Type", '%1|%2', Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party");
+    end;
+
+    internal procedure SetAgentMetadata(var MCPConfigurationAgent: Record "MCP Configuration Agent")
+    var
+        Agent: Record Agent;
+    begin
+        if not Agent.Get(MCPConfigurationAgent."Agent ID") then
+            Error(AgentNotFoundErr);
+
+        if not IsAgentEligible(Agent) then
+            Error(AgentNotEligibleErr);
+
+        MCPConfigurationAgent."Agent Name" := Agent."Display Name";
+        MCPConfigurationAgent."Agent Description" := '';
     end;
 
     internal procedure DeleteAPITool(APIToolId: Guid)
