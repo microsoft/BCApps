@@ -315,15 +315,27 @@ page 99000896 "Available - Transfer Lines"
                 begin
                     Rec.SetFilter("Receipt Date", ReservMgt.GetAvailabilityFilter(ReservEntry."Shipment Date"));
                     Rec.SetRange("Transfer-to Code", ReservEntry."Location Code");
-#pragma warning disable AA0210
-                    Rec.SetFilter("Qty. in Transit (Base)", '>0');
-#pragma warning restore AA0210
                 end;
         end;
         Rec.SetRange("Item No.", ReservEntry."Item No.");
         Rec.SetRange("Variant Code", ReservEntry."Variant Code");
 
         OnAfterSetFilters(Rec, ReservEntry);
+
+         if TransferDirection = TransferDirection::Inbound then
+             MarkAvailableInboundLines();
+    end;
+
+    local procedure MarkAvailableInboundLines()
+    begin
+        Rec.MarkedOnly(false);
+        Rec.ClearMarks();
+        if Rec.FindSet() then
+            repeat
+                if Rec."Qty. in Transit (Base)" > 0 then
+                    Rec.Mark(true);
+            until Rec.Next() = 0;
+        Rec.MarkedOnly(true);
     end;
 
     local procedure ValidateReservationApplicable()

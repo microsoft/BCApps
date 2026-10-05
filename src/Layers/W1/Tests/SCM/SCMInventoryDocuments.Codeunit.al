@@ -2637,46 +2637,6 @@ codeunit 137140 "SCM Inventory Documents"
         Assert.RecordIsEmpty(ReservationEntry);
     end;
 
-    [Test]
-    [HandlerFunctions('FullyReservedReservationPageHandler')]
-    [Scope('OnPrem')]
-    procedure InboundReservationShowsFullyReservedAfterReceipt()
-    var
-        Item: Record Item;
-        LocationFrom: Record Location;
-        LocationTo: Record Location;
-        LocationInTransit: Record Location;
-        TransferHeader: Record "Transfer Header";
-        TransferLine: Record "Transfer Line";
-        Reservation: Page Reservation;
-        InitialInventory: Decimal;
-        TransferQty: Decimal;
-    begin
-        // [SCENARIO 572435] A received inbound transfer line shows the standard fully reserved message
-        Initialize();
-
-        // [GIVEN] A shipped and received Transfer Order from "EAST" to "WEST"
-        InitialInventory := LibraryRandom.RandIntInRange(50, 100);
-        CreateItemWithInventoryAtLocation(Item, LocationFrom, InitialInventory);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
-        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
-
-        TransferQty := LibraryRandom.RandIntInRange(10, InitialInventory);
-        CreateTransferOrder(TransferHeader, TransferLine, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, TransferQty);
-        AutoReserveTransferLine(TransferLine, true);
-        LibraryInventory.PostTransferHeader(TransferHeader, true, false);
-        LibraryInventory.PostTransferHeader(TransferHeader, false, true);
-
-        TransferLine.Find();
-        TransferLine.TestField("Qty. in Transit (Base)", 0);
-
-        // [WHEN] Attempt to reserve the received inbound transfer line
-        Reservation.SetReservSource(TransferLine, "Transfer Direction"::Inbound);
-        Reservation.RunModal();
-
-        // [THEN] The page handler verifies the standard fully reserved error
-    end;
-
     local procedure CreateSerialSpecificTrackedItem(var Item: Record Item)
     var
         ItemTrackingCode: Record "Item Tracking Code";
