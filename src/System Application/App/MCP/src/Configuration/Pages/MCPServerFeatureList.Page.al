@@ -151,13 +151,8 @@ page 8368 "MCP Server Feature List"
 
     local procedure SetActive(NewActive: Boolean)
     var
-        MCPAgentBilling: Page "MCP Agent Billing";
         ServerFeature: Interface "MCP Server Features";
     begin
-        if NewActive and (Rec.Feature = Rec.Feature::"Agent Tools") then
-            if MCPAgentBilling.RunModal() <> Action::Yes then
-                exit;
-
         ServerFeature := Rec.Feature;
         ServerFeature.SetActive(ParentSystemId, NewActive);
 
