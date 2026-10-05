@@ -469,7 +469,6 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         asserterror Error('');
         asserterror FinanceChargeMemoHeader.Get(FinChargeMemoNo);
         Assert.AssertRecordNotFound();
-
     end;
 
     [Test]
@@ -589,13 +588,13 @@ codeunit 134911 "ERM Create Finance Charge Memo"
     var
         Customer: Record Customer;
         SecondCustomer: Record Customer;
+        PrintCaptureSubscriber: Codeunit "ERM Create Finance Charge Memo";
         FirstCustomerNo: Code[20];
         SecondCustomerNo: Code[20];
         FinanceChargeTermsCode: Code[10];
         FirstFinChargeMemoNo: Code[20];
         SecondFinChargeMemoNo: Code[20];
         FinChargeMemoHeaderFilter: Text;
-        PrintCaptureSubscriber: Codeunit "ERM Create Finance Charge Memo";
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] Printing multiple issued finance charge memos uses one print call containing both memos
@@ -611,7 +610,7 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         SecondFinChargeMemoNo := CreateFinChargeMemoAtDate(SecondCustomer, CalcDate('<-1D>', WorkDate()));
         FinChargeMemoHeaderFilter := StrSubstNo('%1|%2', FirstFinChargeMemoNo, SecondFinChargeMemoNo);
         Commit();
-        
+
         // [WHEN] Issue both memos with Print selected
         LibraryVariableStorage.Enqueue(PrintDocRef::Print);
         LibraryVariableStorage.Enqueue(true);
