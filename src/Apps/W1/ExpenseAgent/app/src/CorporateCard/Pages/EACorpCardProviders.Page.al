@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7434 "EA Corp Card Providers"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card Providers';
+    Caption = 'Corporate Card Providers';
     PageType = List;
     UsageCategory = Administration;
     SourceTable = "EA Corp Card Provider";
@@ -87,119 +87,170 @@ page 7434 "EA Corp Card Providers"
     {
         area(Processing)
         {
-            action(UploadSourcePayload)
+            group(Import)
             {
-                Caption = 'Upload source payload';
-                ApplicationArea = Basic, Suite;
-                Image = Import;
-                ToolTip = 'Uploads a source file payload to the selected provider for statement imports.';
+                Caption = 'Import';
 
-                trigger OnAction()
-                begin
-                    UploadSourcePayloadForProvider();
-                end;
-            }
-            action(ClearSourcePayload)
-            {
-                Caption = 'Clear source payload';
-                ApplicationArea = Basic, Suite;
-                Image = Delete;
-                ToolTip = 'Clears the stored source payload and file name for the selected provider.';
+                action(UploadSourcePayload)
+                {
+                    Caption = 'Upload Source File';
+                    ApplicationArea = Basic, Suite;
+                    Image = Import;
+                    ToolTip = 'Upload a source file to the selected provider for statement imports.';
 
-                trigger OnAction()
-                begin
-                    ClearSourcePayloadForProvider();
-                end;
-            }
-            action(ImportStatement)
-            {
-                Caption = 'Import statement';
-                ApplicationArea = Basic, Suite;
-                Image = Import;
-                ToolTip = 'Imports a statement immediately for the selected provider.';
+                    trigger OnAction()
+                    begin
+                        UploadSourcePayloadForProvider();
+                    end;
+                }
+                action(ClearSourcePayload)
+                {
+                    Caption = 'Clear Source File';
+                    ApplicationArea = Basic, Suite;
+                    Image = Delete;
+                    ToolTip = 'Clear the stored source file and file name for the selected provider.';
 
-                trigger OnAction()
-                begin
-                    ImportStatementForProvider();
-                end;
-            }
-            action(Statements)
-            {
-                Caption = 'Statements';
-                ApplicationArea = Basic, Suite;
-                Image = Documents;
-                RunObject = Page "EA Corp Card Statements";
-                RunPageLink = "Provider Code" = field(Code);
-                ToolTip = 'View statements for the selected provider.';
-            }
-            action(Settlements)
-            {
-                Caption = 'Settlements';
-                ApplicationArea = Basic, Suite;
-                Image = Payment;
-                RunObject = Page "EA Corp Card Settlements";
-                RunPageLink = "Provider Code" = field(Code);
-                ToolTip = 'View settlements for the selected provider.';
-            }
-            action(OpenLatestStatement)
-            {
-                Caption = 'Open latest statement';
-                ApplicationArea = Basic, Suite;
-                Image = Navigate;
-                ToolTip = 'Opens the latest imported statement for the selected provider.';
+                    trigger OnAction()
+                    begin
+                        ClearSourcePayloadForProvider();
+                    end;
+                }
+                action(ImportStatement)
+                {
+                    Caption = 'Import Statement';
+                    ApplicationArea = Basic, Suite;
+                    Image = Import;
+                    ToolTip = 'Import a statement immediately for the selected provider.';
 
-                trigger OnAction()
-                begin
-                    OpenLatestStatementForProvider();
-                end;
+                    trigger OnAction()
+                    begin
+                        ImportStatementForProvider();
+                    end;
+                }
             }
-            action(ScheduleImport)
+            group(Scheduling)
             {
-                Caption = 'Schedule import';
-                ApplicationArea = Basic, Suite;
-                Image = Calendar;
-                ToolTip = 'Schedules recurring imports for the selected provider.';
+                Caption = 'Scheduling';
 
-                trigger OnAction()
-                begin
-                    ScheduleProviderImport();
-                end;
+                action(ScheduleImport)
+                {
+                    Caption = 'Schedule Import';
+                    ApplicationArea = Basic, Suite;
+                    Image = Calendar;
+                    ToolTip = 'Schedule recurring imports for the selected provider.';
+
+                    trigger OnAction()
+                    begin
+                        ScheduleProviderImport();
+                    end;
+                }
+                action(UnscheduleImport)
+                {
+                    Caption = 'Unschedule Import';
+                    ApplicationArea = Basic, Suite;
+                    Image = Delete;
+                    ToolTip = 'Remove the scheduled import job for the selected provider.';
+
+                    trigger OnAction()
+                    begin
+                        UnscheduleProviderImport();
+                    end;
+                }
+                action(ViewSchedule)
+                {
+                    Caption = 'View Schedule';
+                    ApplicationArea = Basic, Suite;
+                    Image = List;
+                    ToolTip = 'View the scheduled import job for the selected provider.';
+
+                    trigger OnAction()
+                    begin
+                        ViewProviderSchedule();
+                    end;
+                }
             }
-            action(UnscheduleImport)
+            group(Setup)
             {
-                Caption = 'Unschedule import';
-                ApplicationArea = Basic, Suite;
-                Image = Delete;
-                ToolTip = 'Removes the scheduled import job for the selected provider.';
+                Caption = 'Setup';
 
-                trigger OnAction()
-                begin
-                    UnscheduleProviderImport();
-                end;
+                action(InitializeDataExchange)
+                {
+                    Caption = 'Initialize Data Exchange';
+                    ApplicationArea = Basic, Suite;
+                    Image = Setup;
+                    ToolTip = 'Create or repair the data exchange definition and mappings for the selected provider.';
+
+                    trigger OnAction()
+                    begin
+                        InitializeDataExchangeForProvider();
+                    end;
+                }
             }
-            action(ViewSchedule)
+        }
+        area(Navigation)
+        {
+            group(Provider)
             {
-                Caption = 'View schedule';
-                ApplicationArea = Basic, Suite;
-                Image = List;
-                ToolTip = 'Views the scheduled import job for the selected provider.';
+                Caption = 'Provider';
 
-                trigger OnAction()
-                begin
-                    ViewProviderSchedule();
-                end;
+                action(Statements)
+                {
+                    Caption = 'Statements';
+                    ApplicationArea = Basic, Suite;
+                    Image = Documents;
+                    RunObject = Page "EA Corp Card Statements";
+                    RunPageLink = "Provider Code" = field(Code);
+                    ToolTip = 'View statements for the selected provider.';
+                }
+                action(Settlements)
+                {
+                    Caption = 'Settlements';
+                    ApplicationArea = Basic, Suite;
+                    Image = Payment;
+                    RunObject = Page "EA Corp Card Settlements";
+                    RunPageLink = "Provider Code" = field(Code);
+                    ToolTip = 'View settlements for the selected provider.';
+                }
+                action(OpenLatestStatement)
+                {
+                    Caption = 'Latest Statement';
+                    ApplicationArea = Basic, Suite;
+                    Image = Navigate;
+                    ToolTip = 'Open the latest imported statement for the selected provider.';
+
+                    trigger OnAction()
+                    begin
+                        OpenLatestStatementForProvider();
+                    end;
+                }
             }
-            action(InitializeDataExchange)
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
             {
-                Caption = 'Initialize data exchange';
-                ApplicationArea = Basic, Suite;
-                Image = Setup;
-                ToolTip = 'Creates or repairs Data Exchange definition and mappings for the selected provider.';
+                Caption = 'Process';
 
-                trigger OnAction()
-                begin
-                    InitializeDataExchangeForProvider();
-                end;
+                actionref(ImportStatement_Promoted; ImportStatement)
+                {
+                }
+                actionref(UploadSourcePayload_Promoted; UploadSourcePayload)
+                {
+                }
+                actionref(ViewSchedule_Promoted; ViewSchedule)
+                {
+                }
+            }
+            group(Category_Provider)
+            {
+                Caption = 'Provider';
+
+                actionref(Statements_Promoted; Statements)
+                {
+                }
+                actionref(Settlements_Promoted; Settlements)
+                {
+                }
             }
         }
     }

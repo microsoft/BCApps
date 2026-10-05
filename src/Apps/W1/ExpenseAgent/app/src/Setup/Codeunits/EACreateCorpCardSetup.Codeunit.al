@@ -640,7 +640,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         if not ExpenseAdded then
             Error(NoCsvSampleExpensesErr, ExpenseUserNo);
 
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+        ExpenseReportPost.RunWithCheck(ExpenseReportHeader);
         UpdateCsvSampleTransactionAmountsLCY(CorpCardStatement, ExpenseUserNo);
     end;
 

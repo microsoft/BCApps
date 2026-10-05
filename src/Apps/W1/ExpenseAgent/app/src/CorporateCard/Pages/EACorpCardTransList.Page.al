@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7433 "EA Corp Card Trans List"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card Transactions';
+    Caption = 'Corporate Card Transactions';
     Editable = false;
     PageType = List;
     UsageCategory = Lists;
@@ -100,7 +100,7 @@ page 7433 "EA Corp Card Trans List"
         {
             action(OpenMatchedExpense)
             {
-                Caption = 'Open matched expense';
+                Caption = 'Open Matched Expense';
                 ApplicationArea = Basic, Suite;
                 Image = Navigate;
                 Enabled = Rec."Expense No." <> '';
@@ -119,7 +119,7 @@ page 7433 "EA Corp Card Trans List"
             }
             action(OpenLevel3Details)
             {
-                Caption = 'Show Level 3 details';
+                Caption = 'Level 3 Details';
                 ApplicationArea = Basic, Suite;
                 Image = ViewDetails;
                 ToolTip = 'Shows imported Level 3 tax detail lines for the selected transaction.';
@@ -134,7 +134,7 @@ page 7433 "EA Corp Card Trans List"
             }
             action(OpenProviderStatement)
             {
-                Caption = 'Open provider statement';
+                Caption = 'Provider Statement';
                 ApplicationArea = Basic, Suite;
                 Image = Document;
                 ToolTip = 'Opens the corporate card provider statement linked to the selected transaction.';
@@ -149,6 +149,23 @@ page 7433 "EA Corp Card Trans List"
                     CorpCardStatement.Get(Rec."Statement Entry No.");
                     Page.RunModal(Page::"EA Corp Card Statement", CorpCardStatement);
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Transaction)
+            {
+                Caption = 'Transaction';
+
+                actionref(OpenMatchedExpense_Promoted; OpenMatchedExpense)
+                {
+                }
+                actionref(OpenProviderStatement_Promoted; OpenProviderStatement)
+                {
+                }
+                actionref(OpenLevel3Details_Promoted; OpenLevel3Details)
+                {
+                }
             }
         }
     }

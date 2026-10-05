@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7436 "EA Corp Card Details"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card Level 3 Details';
+    Caption = 'Corporate Card Level 3 Details';
     Editable = false;
     PageType = List;
     UsageCategory = Lists;

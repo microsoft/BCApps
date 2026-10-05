@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7439 "EA Corp Card JQ Schedule"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card Import Schedule';
+    Caption = 'Corporate Card Import Schedule';
     PageType = ListPlus;
     SourceTable = "EA Corp Card Provider";
 

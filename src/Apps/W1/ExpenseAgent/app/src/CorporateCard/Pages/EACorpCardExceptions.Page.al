@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7432 "EA Corp Card Exceptions"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card Exceptions';
+    Caption = 'Corporate Card Exceptions';
     PageType = List;
     UsageCategory = Lists;
     SourceTable = "EA Corp Card Exception";

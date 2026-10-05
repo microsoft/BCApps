@@ -20,10 +20,16 @@ page 7441 "EA Corp Card Dashboard Fact"
             repeater(Statements)
             {
                 ShowCaption = false;
-                field("Statement Entry No."; Rec."Statement Entry No.")
+                field("Statement No."; Rec."Statement No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the internal statement entry number.';
+                    DrillDown = true;
+                    ToolTip = 'Specifies the statement identifier assigned by the provider. Select the value to open the statement.';
+
+                    trigger OnDrillDown()
+                    begin
+                        OpenSelectedStatement();
+                    end;
                 }
                 field("Provider Code"; Rec."Provider Code")
                 {
@@ -34,6 +40,11 @@ page 7441 "EA Corp Card Dashboard Fact"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the statement import or validation status.';
+                }
+                field("Statement Date"; Rec."Statement Date")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the date of the provider statement.';
                 }
                 field(Imported; Rec.Imported)
                 {
@@ -56,16 +67,25 @@ page 7441 "EA Corp Card Dashboard Fact"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of duplicate transactions.';
                 }
-                field("Started DT"; Rec."Started DT")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when statement import started.';
-                }
-                field("Ended DT"; Rec."Ended DT")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when statement import ended.';
-                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(OpenStatement)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open Statement';
+                Image = Document;
+                ToolTip = 'Open the selected corporate card statement.';
+
+                trigger OnAction()
+                begin
+                    OpenSelectedStatement();
+                end;
             }
         }
     }
@@ -83,5 +103,13 @@ page 7441 "EA Corp Card Dashboard Fact"
                 Rec.Insert();
                 StatementCount += 1;
             until (CorpCardStatement.Next() = 0) or (StatementCount = 50);
+    end;
+
+    local procedure OpenSelectedStatement()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        CorpCardStatement.Get(Rec."Statement Entry No.");
+        Page.Run(Page::"EA Corp Card Statement", CorpCardStatement);
     end;
 }

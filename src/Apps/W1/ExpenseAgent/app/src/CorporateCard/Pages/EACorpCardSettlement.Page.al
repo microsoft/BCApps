@@ -52,6 +52,11 @@ page 7447 "EA Corp Card Settlement"
                     Editable = Rec.Status = Rec.Status::Open;
                     ToolTip = 'Specifies the amount that the provider will collect.';
                 }
+            }
+            group(BankAccounts)
+            {
+                Caption = 'Bank Accounts';
+
                 field("Corp Card Bank Account No."; Rec."Corp Card Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -64,6 +69,11 @@ page 7447 "EA Corp Card Settlement"
                     Editable = Rec.Status = Rec.Status::Open;
                     ToolTip = 'Specifies the real bank account from which the settlement will be paid.';
                 }
+            }
+            group(Posting)
+            {
+                Caption = 'Posting';
+
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
@@ -109,6 +119,11 @@ page 7447 "EA Corp Card Settlement"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the transaction number assigned to the settlement entries.';
                 }
+            }
+            group(Reversal)
+            {
+                Caption = 'Reversal';
+
                 field("Reversal Reason"; Rec."Reversal Reason")
                 {
                     ApplicationArea = Basic, Suite;
@@ -230,6 +245,37 @@ page 7447 "EA Corp Card Settlement"
                     CorpCardSettlementMgt.ReverseSettlement(Rec);
                     CurrPage.Update(false);
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                group(Category_Release)
+                {
+                    Caption = 'Release';
+                    ShowAs = SplitButton;
+
+                    actionref(SetReadyToPost_Promoted; SetReadyToPost)
+                    {
+                    }
+                    actionref(Reopen_Promoted; Reopen)
+                    {
+                    }
+                }
+                group(Category_Posting)
+                {
+                    Caption = 'Posting';
+
+                    actionref(PostSettlement_Promoted; PostSettlement)
+                    {
+                    }
+                    actionref(ReverseSettlement_Promoted; ReverseSettlement)
+                    {
+                    }
+                }
             }
         }
     }

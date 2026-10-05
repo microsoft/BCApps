@@ -7,13 +7,13 @@ namespace Microsoft.ExpenseAgent;
 page 7438 "EA Corp Card Dashboard"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card Import Dashboard';
-    PageType = RoleCenter;
+    Caption = 'Corporate Card Dashboard';
+    PageType = Card;
     UsageCategory = Administration;
 
     layout
     {
-        area(RoleCenter)
+        area(Content)
         {
             group(Group1)
             {
@@ -34,13 +34,23 @@ page 7438 "EA Corp Card Dashboard"
 
     actions
     {
-        area(Sections)
+        area(Navigation)
         {
             group(CorpCards)
             {
+                Caption = 'Corporate Cards';
+
+                action(Cards)
+                {
+                    Caption = 'Corporate Cards';
+                    ApplicationArea = Basic, Suite;
+                    Image = Card;
+                    RunObject = Page "EA Corp Card Cards";
+                    ToolTip = 'View and manage corporate cards.';
+                }
                 action(Providers)
                 {
-                    Caption = 'Providers';
+                    Caption = 'Corporate Card Providers';
                     ApplicationArea = Basic, Suite;
                     Image = Setup;
                     RunObject = Page "EA Corp Card Providers";
@@ -48,7 +58,7 @@ page 7438 "EA Corp Card Dashboard"
                 }
                 action(Transactions)
                 {
-                    Caption = 'Transactions';
+                    Caption = 'Corporate Card Transactions';
                     ApplicationArea = Basic, Suite;
                     Image = List;
                     RunObject = Page "EA Corp Card Trans List";
@@ -56,7 +66,7 @@ page 7438 "EA Corp Card Dashboard"
                 }
                 action(ProviderStatements)
                 {
-                    Caption = 'Provider Statements';
+                    Caption = 'Corporate Card Statements';
                     ApplicationArea = Basic, Suite;
                     Image = Documents;
                     RunObject = Page "EA Corp Card Statements";
@@ -64,7 +74,7 @@ page 7438 "EA Corp Card Dashboard"
                 }
                 action(Settlements)
                 {
-                    Caption = 'Settlements';
+                    Caption = 'Corporate Card Settlements';
                     ApplicationArea = Basic, Suite;
                     Image = Payment;
                     RunObject = Page "EA Corp Card Settlements";

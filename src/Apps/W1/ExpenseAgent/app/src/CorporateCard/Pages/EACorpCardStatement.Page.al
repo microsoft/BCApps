@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7444 "EA Corp Card Statement"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card Provider Statement';
+    Caption = 'Corporate Card Statement';
     PageType = Document;
     SourceTable = "EA Corp Card Statement";
 
@@ -64,6 +64,11 @@ page 7444 "EA Corp Card Statement"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the provider statement is open or validated.';
                 }
+            }
+            group(Statistics)
+            {
+                Caption = 'Statistics';
+
                 field("Transaction Total"; Rec."Transaction Total")
                 {
                     ApplicationArea = Basic, Suite;
@@ -118,6 +123,11 @@ page 7444 "EA Corp Card Statement"
                     Caption = 'Unreconciled Amount';
                     ToolTip = 'Specifies the amount represented by unreconciled statement transactions.';
                 }
+            }
+            group(Reconciliation)
+            {
+                Caption = 'Reconciliation';
+
                 field("Closed At"; Rec."Closed At")
                 {
                     ApplicationArea = Basic, Suite;
@@ -180,7 +190,7 @@ page 7444 "EA Corp Card Statement"
             action(ValidateStatement)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Validate statement';
+                Caption = 'Validate Statement';
                 Enabled = Rec.Status = Rec.Status::Imported;
                 Image = Approve;
                 ToolTip = 'Validates import completeness, statement identity, dates, currency, total, and expense matching.';
@@ -212,7 +222,7 @@ page 7444 "EA Corp Card Statement"
             action(OpenSettlement)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Open Settlement';
+                Caption = 'Settlement';
                 Image = Payment;
                 ToolTip = 'Opens the settlement that includes this statement.';
 
@@ -247,6 +257,37 @@ page 7444 "EA Corp Card Statement"
                     UpdateReconciliationSummary();
                     CurrPage.Update(false);
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                group(Category_Validation)
+                {
+                    Caption = 'Validation';
+                    ShowAs = SplitButton;
+
+                    actionref(ValidateStatement_Promoted; ValidateStatement)
+                    {
+                    }
+                    actionref(Reopen_Promoted; Reopen)
+                    {
+                    }
+                }
+                actionref(CloseReconciliation_Promoted; CloseReconciliation)
+                {
+                }
+            }
+            group(Category_Statement)
+            {
+                Caption = 'Statement';
+
+                actionref(OpenSettlement_Promoted; OpenSettlement)
+                {
+                }
             }
         }
     }

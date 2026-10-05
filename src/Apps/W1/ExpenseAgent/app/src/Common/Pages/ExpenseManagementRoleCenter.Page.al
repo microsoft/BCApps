@@ -198,21 +198,28 @@ page 6933 "Expense Management Role Center"
 
                     action("Corp Card Dashboard")
                     {
-                        Caption = 'Corp Card Dashboard';
+                        Caption = 'Corporate Card Dashboard';
                         ApplicationArea = Basic, Suite;
                         RunObject = Page "EA Corp Card Dashboard";
                         ToolTip = 'View corporate card import statistics and recent batches.';
                     }
                     action("Corp Card Providers")
                     {
-                        Caption = 'Corp Card Providers';
+                        Caption = 'Corporate Card Providers';
                         ApplicationArea = Basic, Suite;
                         RunObject = Page "EA Corp Card Providers";
                         ToolTip = 'Manage corporate card providers and scheduling.';
                     }
+                    action("Corporate Cards")
+                    {
+                        Caption = 'Corporate Cards';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EA Corp Card Cards";
+                        ToolTip = 'View and manage corporate cards.';
+                    }
                     action("Corp Card Setup")
                     {
-                        Caption = 'Corp Card Setup';
+                        Caption = 'Corporate Card Setup';
                         ApplicationArea = Basic, Suite;
                         RunObject = Page "Expense Agent Setup";
                         ToolTip = 'Configure corporate card import parameters.';

@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7443 "EA Corp Card Statements"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card Provider Statements';
+    Caption = 'Corporate Card Statements';
     CardPageId = "EA Corp Card Statement";
     Editable = false;
     PageType = List;

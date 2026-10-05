@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7435 "EA Corp Card MCC Map"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Card MCC Map';
+    Caption = 'Corporate Card MCC Map';
     PageType = List;
     UsageCategory = Lists;
     SourceTable = "EA Corp Card MCC Map";

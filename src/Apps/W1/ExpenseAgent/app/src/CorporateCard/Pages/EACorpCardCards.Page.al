@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 page 7431 "EA Corp Card Cards"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Corp Cards';
+    Caption = 'Corporate Cards';
     PageType = List;
     UsageCategory = Lists;
     SourceTable = "EA Corp Card";
@@ -53,7 +53,7 @@ page 7431 "EA Corp Card Cards"
 
     actions
     {
-        area(Processing)
+        area(Navigation)
         {
             action(Transactions)
             {
@@ -70,6 +70,17 @@ page 7431 "EA Corp Card Cards"
                     CorpCardTrans.SetRange("Card Id", Rec."Card Id");
                     Page.RunModal(Page::"EA Corp Card Trans List", CorpCardTrans);
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Card)
+            {
+                Caption = 'Card';
+
+                actionref(Transactions_Promoted; Transactions)
+                {
+                }
             }
         }
     }
