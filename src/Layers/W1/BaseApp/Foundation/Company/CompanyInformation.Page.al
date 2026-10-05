@@ -86,7 +86,7 @@ page 1 "Company Information"
 
                             trigger OnValidate()
                             begin
-                                if EnvironmentInformation.CanStartSession() then; //** .SetEnvironmentDescription(EnvironmentDescription);
+                                EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
                             end;
                         }
                     }
@@ -860,7 +860,7 @@ page 1 "Company Information"
     local procedure LoadDescriptions()
     begin
         CompanyDescription := Rec.GetCompanyDescription();
-      //**  EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
+        EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
     end;
 
     local procedure SetShowMandatoryConditions()
