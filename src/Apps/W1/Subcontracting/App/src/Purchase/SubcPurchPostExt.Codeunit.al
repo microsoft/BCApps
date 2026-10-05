@@ -81,6 +81,18 @@ codeunit 20535 "Subc. Purch. Post Ext"
         Error(CancelNotSupportedErr, PurchInvHeader."No.");
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnBeforeTestIfInvoiceIsPaid, '', false, false)]
+    local procedure BlockSeparateSubcontractingInvoiceReversalBeforeLineValidation(var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnBeforeCreateCopyDocument, '', false, false)]
     local procedure BlockSeparateSubcontractingInvoiceCopy(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; SkipCopyFromDescription: Boolean)
     begin

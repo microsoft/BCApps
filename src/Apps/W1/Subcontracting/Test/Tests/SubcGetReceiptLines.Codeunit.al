@@ -195,7 +195,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
         asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader);
 
-        Assert.ExpectedError('already been fully or partially returned');
+        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
     end;
 
     [Test]
@@ -211,7 +211,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
         asserterror CorrectPostedPurchInvoice.CancelPostedInvoiceStartNewInvoice(PostedInvoiceHeader, PurchaseHeader);
 
-        Assert.ExpectedError('already been fully or partially returned');
+        Assert.ExpectedError('You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.');
     end;
 
     [Test]
