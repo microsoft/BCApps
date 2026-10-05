@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Document;
 
 using Microsoft.Foundation.UOM;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
@@ -565,10 +564,7 @@ table 20406 "Qlty. Inspection Line"
     var
         RecordLink: Record "Record Link";
         RecordLinkManagement: Codeunit "Record Link Management";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanEditLineComments();
-
         GetInspection();
         QltyInspectionHeader.TestField(Status, QltyInspectionHeader.Status::Open);
 
@@ -607,18 +603,6 @@ table 20406 "Qlty. Inspection Line"
         Note := GetMeasurementNote();
         if QltyEditLargeText.RunModalWith(Note) in [Action::LookupOK, Action::OK, Action::Yes] then
             SetMeasurementNote(Note);
-    end;
-
-    /// <summary>
-    /// Opens the current measurement note in a read-only dialog.
-    /// </summary>
-    internal procedure RunModalReadOnlyComment()
-    var
-        QltyEditLargeText: Page "Qlty. Edit Large Text";
-        Note: Text;
-    begin
-        Note := GetMeasurementNote();
-        QltyEditLargeText.RunModalWith(Note);
     end;
 
     /// <summary>
