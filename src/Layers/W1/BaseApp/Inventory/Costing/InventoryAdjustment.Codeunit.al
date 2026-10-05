@@ -43,10 +43,10 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         AvgCostAdjmtEntryPointToAdjust: Record "Avg. Cost Adjmt. Entry Point";
         TempInvtAdjmtBuf: Record "Inventory Adjustment Buffer" temporary;
         TempRndgResidualBuf: Record "Rounding Residual Buffer" temporary;
-        TempAvgCostExceptionBuf: Record "Integer" temporary;
+        TempAvgCostExceptionBuf: Record "BigInteger" temporary;
         AvgCostBuf: Record "Cost Element Buffer";
         TempAvgCostRndgBuf: Record "Rounding Residual Buffer" temporary;
-        TempRevaluationPoint: Record "Integer" temporary;
+        TempRevaluationPoint: Record "BigInteger" temporary;
         TempValueEntryCalcdOutbndCostBuf: Record "Value Entry" temporary;
         ItemApplicationTrace: Record "Item Application Trace";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
@@ -3522,7 +3522,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeIsExcludeFromAvgCostForRevalPoint(var RevaluationPoint: Record "Integer"; var RevaluationCheckValueEntry: Record "Value Entry"; var OutbndValueEntry: Record "Value Entry")
+    local procedure OnBeforeIsExcludeFromAvgCostForRevalPoint(var RevaluationPoint: Record "BigInteger"; var RevaluationCheckValueEntry: Record "Value Entry"; var OutbndValueEntry: Record "Value Entry")
     begin
     end;
 

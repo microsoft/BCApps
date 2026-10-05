@@ -1504,7 +1504,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="ReversalEntry2">Working copy of reversal entries</param>
     /// <param name="TempIntegerAsRevertTransactionNo">Temporary integer record for transaction numbers</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseOnBeforeGetTransactionKey(var ReversalEntry2: Record "Reversal Entry"; var TempIntegerAsRevertTransactionNo: Record "Integer" temporary)
+    local procedure OnReverseOnBeforeGetTransactionKey(var ReversalEntry2: Record "Reversal Entry"; var TempIntegerAsRevertTransactionNo: Record "BigInteger" temporary)
     begin
     end;
 
