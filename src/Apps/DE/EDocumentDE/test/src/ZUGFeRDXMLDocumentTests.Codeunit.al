@@ -5,6 +5,8 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
+using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Finance.Currency;
@@ -57,8 +59,10 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert: Codeunit Assert;
         ZUGFeRDFormat: Codeunit "ZUGFeRD Format";
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        DEXMLDocumentValidator: Codeunit "DE XML Document Validator";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
+        SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document', Locked = true;
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         DocumentAllowanceChargeTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
         InvoiceLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
@@ -69,7 +73,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         BilledQuantityTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeDelivery/ram:BilledQuantity', Locked = true;
         TaxCategoryStandardTok: Label 'S', Locked = true;
         ItemChargeReasonTextTok: Label 'Freight surcharge', Locked = true;
-        ItemChargeReasonCodeTok: Label 'FC', Locked = true;
+        ItemChargeReasonCodeTok: Label 'ZZZ', Locked = true;
         UnitCodeOneTok: Label 'C62', Locked = true;
         UnitCodeHourTok: Label 'HUR', Locked = true;
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
@@ -137,6 +141,168 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created
         VerifyHeaderData(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatWithSecondServicePresent()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] The ZUGFeRD export no longer looks the service up by format via FindLast;
+        // with a second ZUGFeRD service present the export still succeeds using the triggering service
+        // threaded through the ZUGFeRD Export Context.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] A second ZUGFeRD service whose Code sorts after the triggering service.
+        CreateTrailingZUGFeRDService();
+
+        // [WHEN] Export ZUGFeRD Electronic Document using the triggering service.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] ZUGFeRD Electronic Document is produced correctly.
+        VerifyHeaderData(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ZUGFeRDExportContextCarriesServiceAndClearsOnStop()
+    var
+        ServiceFromContext: Record "E-Document Service";
+        ZUGFeRDExportContext: Codeunit "ZUGFeRD Export Context";
+    begin
+        // [SCENARIO 8414] The ZUGFeRD Export Context carries the triggering service between Start and
+        // Stop and clears it on Stop, so the plain report-print path never inherits a stale service.
+        Initialize();
+
+        // [GIVEN] No context is bound.
+        Assert.IsFalse(ZUGFeRDExportContext.HasContext(), 'No context should be bound before Start');
+
+        // [WHEN] The context is started but no service is pushed yet
+        ZUGFeRDExportContext.Start();
+
+        // [THEN] HasContext is still false - bound alone must not suppress the legacy fallback
+        Assert.IsFalse(ZUGFeRDExportContext.HasContext(), 'A started context without a service should not report a context');
+
+        // [WHEN] A blank service is pushed
+        Clear(ServiceFromContext);
+        ZUGFeRDExportContext.SetEDocumentService(ServiceFromContext);
+
+        // [THEN] The blank service is refused
+        Assert.IsFalse(ZUGFeRDExportContext.HasContext(), 'A blank service should be refused by the context');
+
+        // [WHEN] The triggering service is pushed.
+        ZUGFeRDExportContext.SetEDocumentService(EDocumentService);
+
+        // [THEN] The context is bound and returns the pushed service.
+        Assert.IsTrue(ZUGFeRDExportContext.HasContext(), 'Context should report a context once a real service is pushed');
+        ZUGFeRDExportContext.GetEDocumentService(ServiceFromContext);
+        Assert.AreEqual(EDocumentService.Code, ServiceFromContext.Code, 'Context should carry the triggering service');
+
+        // [WHEN] The context is stopped.
+        ZUGFeRDExportContext.Stop();
+
+        // [THEN] The context is no longer bound and returns no service (no leak to the plain-print path).
+        Clear(ServiceFromContext);
+        Assert.IsFalse(ZUGFeRDExportContext.HasContext(), 'Context should be cleared after Stop');
+        ZUGFeRDExportContext.GetEDocumentService(ServiceFromContext);
+        Assert.AreEqual('', ServiceFromContext.Code, 'No service should be returned once the context is stopped');
+    end;
+
+    [Test]
+    procedure ZUGFeRDBlankContextStillFallsBackToFindLastLookup()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        BlankEDocumentService: Record "E-Document Service";
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        LegacyExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        ZUGFeRDExportContext: Codeunit "ZUGFeRD Export Context";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] A context that is started but only ever receives a blank service must not
+        // suppress the legacy FindLast fallback - otherwise the export would silently use a blank service.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing ZUGFeRD service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        TrailingServiceCode := CreateTrailingZUGFeRDService();
+
+        // [WHEN] The context is started and only a blank service is pushed, then the export runs
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        ZUGFeRDExportContext.Start();
+        ZUGFeRDExportContext.SetEDocumentService(BlankEDocumentService);
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempRecordExportBuffer."Electronic Document Format" := Format("E-Document Format"::ZUGFeRD);
+        TempRecordExportBuffer.Insert();
+        LegacyExportZUGFeRDDocument.Run(TempRecordExportBuffer);
+        ZUGFeRDExportContext.Stop();
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] The legacy FindLast lookup still ran, so the event carried the trailing service
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'A blank context must not suppress the legacy FindLast fallback');
+    end;
+
+    [Test]
+    procedure OnAfterFindEDocumentServiceFiresWithProvidedServiceZUGFeRD()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] The obsolete OnAfterFindEDocumentService event still fires during the
+        // deprecation window and carries the service threaded through the ZUGFeRD Export Context.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing ZUGFeRD service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CreateTrailingZUGFeRDService();
+
+        // [WHEN] Export through the format, which sets the context with the triggering service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] The event fired and carried the triggering service, not the trailing one
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the triggering service');
+    end;
+
+    [Test]
+    procedure OnAfterFindEDocumentServiceFiresOnLegacyPathZUGFeRD()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        LegacyExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] A legacy/customized report path that never sets the ZUGFeRD Export Context
+        // keeps the original behaviour: the FindLast lookup runs and the event fires with that service.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing ZUGFeRD service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        TrailingServiceCode := CreateTrailingZUGFeRDService();
+
+        // [WHEN] The export is run directly, so the context is never set
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempRecordExportBuffer."Electronic Document Format" := Format("E-Document Format"::ZUGFeRD);
+        TempRecordExportBuffer.Insert();
+        LegacyExportZUGFeRDDocument.Run(TempRecordExportBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] The event fired and carried the service resolved by FindLast
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the service resolved by FindLast');
     end;
 
     [Test]
@@ -480,6 +646,30 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document uses Bank Account IBAN and SWIFT Code
         VerifyPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', BankAccountIBAN, BankAccountSWIFT);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDirectDebitPaymentMeans();
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CompanyBankAccountCode: Code[20];
+    begin
+        // [SCENARIO] Export posted sales invoice with SEPA direct debit payment means exports the customer's mandate account as payer, the mandate reference and creditor identifier, and no credit transfer account
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithDirectDebit(SEPADirectDebitMandate, CustomerBankAccount, CompanyBankAccountCode));
+        BankAccount.Get(CompanyBankAccountCode);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Settlement contains the mandate reference (BT-89), creditor identifier (BT-90) and customer account as payer (BT-91), but no payee account (BR-DE-25-b)
+        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', SEPADirectDebitMandate.ID, BankAccount, CustomerBankAccount.IBAN);
     end;
 
     [Test]
@@ -846,6 +1036,34 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created
         VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDUsesTriggeringServiceWithSecondServicePresent()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] On the non-invoice Sales Cr.Memo report-extension path the ZUGFeRD export threads the
+        // triggering service through the ZUGFeRD Export Context: with a second (later-sorting) ZUGFeRD service
+        // present the export uses the triggering service, not the one a FindLast lookup would resolve.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Credit Memo and a trailing ZUGFeRD service.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        CreateTrailingZUGFeRDService();
+
+        // [WHEN] Export through the format, which sets the context with the triggering service.
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] The document is produced and the Cr.Memo report extension pushed the triggering service
+        // through the context, so the export used it rather than the trailing one from a FindLast lookup.
+        VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+        Assert.AreEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Report extension must push the triggering service through the context on the Cr.Memo path');
     end;
 
     [Test]
@@ -1340,6 +1558,39 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyCompanyIBANInPaymentMeans();
+    var
+        Customer: Record Customer;
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CustomerIBAN: Text[50];
+        Path: Text;
+    begin
+        // [SCENARIO] Export posted sales cr. memo uses the company IBAN (not the customer's) in PayeePartyCreditorFinancialAccount
+        Initialize();
+
+        // [GIVEN] Create customer with a bank account that has a specific IBAN
+        CustomerIBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        Customer.Get(CreateCustomer());
+        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
+        CustomerBankAccount.IBAN := CustomerIBAN;
+        CustomerBankAccount.Modify(true);
+        Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Create and Post sales cr. memo for that customer
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentForCustomer("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, Customer."No."));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Payment means contains the company IBAN, not the customer's
+        Path := '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeePartyCreditorFinancialAccount/ram:IBANID';
+        Assert.AreEqual(GetIBAN(CompanyInformation.IBAN), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
     #endregion
 
     #region ServiceInvoice
@@ -1515,6 +1766,92 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with bank informarion as payment means
         VerifyPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', ServiceInvoiceHeader."Currency Code");
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInZUGFeRDFormatPassesServiceHeaderToPaymentMeansEvent();
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] OnInsertPaymentMethodOnBeforeAddToRoot carries the posted service invoice, not the sales invoice header it is transferred to for the export
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice.
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The payment means event carried the posted service invoice
+        Assert.AreEqual(ServiceInvoiceHeader.RecordId(), LibraryEDocDE.GetCapturedPaymentMeansHeaderRecordId(), 'The payment means event should carry the posted service invoice');
+    end;
+
+    [Test]
+    procedure ReusedInstanceDirectCallPassesGivenHeaderToPaymentMeansEvent();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempSalesInvoiceLine: Record "Sales Invoice Line" temporary;
+        Currency: Record Currency;
+        ReusedExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        TempBlob: Codeunit "Temp Blob";
+        RootXMLNode: XmlElement;
+        XmlOutStream: OutStream;
+        LineAmount: Dictionary of [Decimal, Decimal];
+        LineVATAmount: Dictionary of [Decimal, Decimal];
+        LineAmounts: Dictionary of [Text, Decimal];
+        LineDiscAmount: Dictionary of [Decimal, Decimal];
+    begin
+        // [SCENARIO] A reused Export ZUGFeRD Document instance must not carry the source document of an earlier
+        // CreateXML into a later direct InsertSupplyChainTradeTransaction call: the payment means event gets the header passed to that call.
+        Initialize();
+
+        // [GIVEN] A posted service invoice and a posted sales invoice
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] A first export of the service invoice on this instance
+        TempBlob.CreateOutStream(XmlOutStream);
+        ReusedExportZUGFeRDDocument.CreateXML(ServiceInvoiceHeader, XmlOutStream);
+
+        // [WHEN] The same instance builds the trade transaction for the sales invoice directly, without CreateXML
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName(Amount), 0);
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName("Inv. Discount Amount"), 0);
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName("Amount Including VAT"), 0);
+        RootXMLNode := XmlElement.Create('Root');
+        BindSubscription(LibraryEDocDE);
+        ReusedExportZUGFeRDDocument.InsertSupplyChainTradeTransaction(RootXMLNode, SalesInvoiceHeader, TempSalesInvoiceLine, '', Currency, LineAmount, LineVATAmount, LineAmounts, LineDiscAmount);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The payment means event carried the sales invoice passed to the direct call, not the earlier service invoice
+        Assert.AreEqual(SalesInvoiceHeader.RecordId(), LibraryEDocDE.GetCapturedPaymentMeansHeaderRecordId(), 'A direct call on a reused instance should pass its own header to the payment means event');
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInZUGFeRDFormatVerifyDirectDebitPaymentMeans();
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        BankAccount: Record "Bank Account";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CompanyBankAccountCode: Code[20];
+    begin
+        // [SCENARIO] Export posted service invoice with SEPA direct debit payment means exports the customer's mandate account as payer, the mandate reference and creditor identifier, and no credit transfer account
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
+        ServiceInvoiceHeader.Get(CreateAndPostServiceInvoiceWithDirectDebit(SEPADirectDebitMandate, CustomerBankAccount, CompanyBankAccountCode));
+        BankAccount.Get(CompanyBankAccountCode);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Settlement contains the mandate reference (BT-89), creditor identifier (BT-90) and customer account as payer (BT-91), but no payee account (BR-DE-25-b)
+        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', SEPADirectDebitMandate.ID, BankAccount, CustomerBankAccount.IBAN);
     end;
 
     [Test]
@@ -1774,6 +2111,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedServiceCrMemoInZUGFeRDFormatPassesServiceHeaderToPaymentMeansEvent();
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] OnInsertPaymentMethodOnBeforeAddToRoot carries the posted service cr. memo, not the sales cr. memo header it is transferred to for the export
+        Initialize();
+
+        // [GIVEN] Create and Post service cr. memo.
+        ServiceCrMemoHeader.Get(CreateAndPostServiceCrMemoDocument());
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The payment means event carried the posted service cr. memo
+        Assert.AreEqual(ServiceCrMemoHeader.RecordId(), LibraryEDocDE.GetCapturedPaymentMeansHeaderRecordId(), 'The payment means event should carry the posted service cr. memo');
+    end;
+
+    [Test]
     procedure ExportPostedServiceCrMemoInZUGFeRDFormatVerifyPaymentTerms();
     var
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
@@ -1970,6 +2328,291 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
         // [THEN] No error occurs
+    end;
+    #endregion
+
+    #region SellerContact
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatSalespersonWithoutPhoneNo();
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when the assigned salesperson has no Phone No., because the seller contact (BG-6) cannot be supplied.
+        Initialize();
+
+        // [GIVEN] Salesperson with Name and E-Mail but without Phone No.
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        SalespersonPurchaser."Phone No." := '';
+        SalespersonPurchaser.Modify();
+
+        // [GIVEN] Sales Invoice with that salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the Phone No. field and the Salesperson/Purchaser as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("Phone No."), SellerContactReasonErr));
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatNoSalespersonCompanyInfoWithoutContactPerson();
+    var
+        CompanyInfo: Record "Company Information";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when no salesperson is assigned and Company Information has no Contact Person.
+        Initialize();
+
+        // [GIVEN] Company Information without Contact Person
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Contact Person" := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Sales Invoice without a salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, '');
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the Contact Person field and Company Information as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Contact Person"), SellerContactReasonErr));
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatSalespersonWithCompleteContact();
+    var
+        CompanyInfo: Record "Company Information";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] A complete salesperson supplies the seller contact (BG-6) even when Company Information is incomplete.
+        Initialize();
+
+        // [GIVEN] Company Information without Contact Person and without Phone No.
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Contact Person" := '';
+        CompanyInfo."Phone No." := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Salesperson with Name, Phone No. and E-Mail
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+
+        // [GIVEN] Sales Invoice with that salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+
+        // [WHEN/THEN] Check does not throw an error
+        CheckSalesHeader(SalesHeader);
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckServiceInvoiceInZUGFeRDFormatNoSalespersonCompanyInfoWithoutPhoneNo();
+    var
+        CompanyInfo: Record "Company Information";
+        ServiceHeader: Record "Service Header";
+    begin
+        // [SCENARIO 8416] The seller contact check also applies to service documents.
+        Initialize();
+
+        // [GIVEN] Company Information without Phone No.
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Phone No." := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Service Invoice without a salesperson
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+
+        // [WHEN] Check the document
+        asserterror CheckServiceHeader(ServiceHeader);
+
+        // [THEN] The error names the Phone No. field and Company Information as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Phone No."), SellerContactReasonErr));
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatSalespersonWithoutName();
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when the assigned salesperson has no Name, because the seller contact (BG-6) cannot be supplied.
+        Initialize();
+
+        // [GIVEN] Salesperson with Phone No. and E-Mail but without Name
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        SalespersonPurchaser.Name := '';
+        SalespersonPurchaser.Modify();
+
+        // [GIVEN] Sales Invoice with that salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the Name field and the Salesperson/Purchaser as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption(Name), SellerContactReasonErr));
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatSalespersonWithoutEmail();
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when the assigned salesperson has no E-Mail.
+        Initialize();
+
+        // [GIVEN] Salesperson with Name and Phone No. but without E-Mail
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        SalespersonPurchaser."E-Mail" := '';
+        SalespersonPurchaser.Modify();
+
+        // [GIVEN] Sales Invoice with that salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the E-Mail field and the Salesperson/Purchaser as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("E-Mail"), SellerContactReasonErr));
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatNoSalespersonCompanyInfoWithoutPhoneNo();
+    var
+        CompanyInfo: Record "Company Information";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when no salesperson is assigned and Company Information has no Phone No.
+        Initialize();
+
+        // [GIVEN] Company Information without Phone No.
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Phone No." := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Sales Invoice without a salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, '');
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the Phone No. field and Company Information as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Phone No."), SellerContactReasonErr));
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatCompanyInfoWithoutEmail();
+    var
+        CompanyInfo: Record "Company Information";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when Company Information has no E-Mail, because it supplies
+        // the seller electronic address (BT-34). That also guarantees the seller contact e-mail (BT-43)
+        // whenever the contact falls back to Company Information.
+        Initialize();
+
+        // [GIVEN] Company Information with a complete seller contact but without E-Mail
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."E-Mail" := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Sales Invoice without a salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, '');
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the E-Mail field of Company Information
+        Assert.ExpectedTestFieldError(CompanyInfo.FieldCaption("E-Mail"), '');
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatNoSalespersonCompanyInfoComplete();
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] A complete Company Information supplies the seller contact (BG-6) when no salesperson is assigned.
+        Initialize();
+
+        // [GIVEN] Sales Invoice without a salesperson and complete Company Information contact data
+        SetCompleteCompanyInfoContact();
+        CreateSalesInvoiceWithSalesperson(SalesHeader, '');
+
+        // [WHEN/THEN] Check does not throw an error
+        CheckSalesHeader(SalesHeader);
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatDeletedSalespersonFallsBackToCompanyInfo();
+    var
+        CompanyInfo: Record "Company Information";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] When the assigned salesperson no longer exists the seller contact falls back to Company Information, like the export does.
+        Initialize();
+
+        // [GIVEN] Company Information without Contact Person
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Contact Person" := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Sales Invoice with a salesperson that is deleted afterwards
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+        SalespersonPurchaser.Delete();
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names Company Information as the source, not the salesperson
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Contact Person"), SellerContactReasonErr));
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckServiceInvoiceInZUGFeRDFormatSalespersonWithoutPhoneNo();
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        ServiceHeader: Record "Service Header";
+    begin
+        // [SCENARIO 8416] The seller contact check also applies to service documents.
+        Initialize();
+
+        // [GIVEN] Salesperson with Name and E-Mail but without Phone No.
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        SalespersonPurchaser."Phone No." := '';
+        SalespersonPurchaser.Modify();
+
+        // [GIVEN] Service Invoice with that salesperson
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        ServiceHeader.Validate("Salesperson Code", SalespersonPurchaser.Code);
+        ServiceHeader.Modify(true);
+
+        // [WHEN] Check the document
+        asserterror CheckServiceHeader(ServiceHeader);
+
+        // [THEN] The error names the Phone No. field and the Salesperson/Purchaser as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("Phone No."), SellerContactReasonErr));
     end;
     #endregion
 
@@ -3401,6 +4044,63 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateCreditorBankAccount(): Code[20]
+    var
+        BankAccount: Record "Bank Account";
+    begin
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        BankAccount."SWIFT Code" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(BankAccount."SWIFT Code"));
+        BankAccount.Validate("Creditor No.", LibraryUtility.GenerateRandomCode(BankAccount.FieldNo("Creditor No."), Database::"Bank Account"));
+        BankAccount.Modify(true);
+        exit(BankAccount."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceWithDirectDebit(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; var CompanyBankAccountCode: Code[20]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := LibraryEDocDE.AddDirectDebitMandateToCustomer(SEPADirectDebitMandate, CustomerBankAccount, CreateCustomer(), PaymentMethodCode);
+        CompanyBankAccountCode := CreateCreditorBankAccount();
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Company Bank Account Code", CompanyBankAccountCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostServiceInvoiceWithDirectDebit(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; var CompanyBankAccountCode: Code[20]): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := LibraryEDocDE.AddDirectDebitMandateToCustomer(SEPADirectDebitMandate, CustomerBankAccount, CreateCustomer(), PaymentMethodCode);
+        CompanyBankAccountCode := CreateCreditorBankAccount();
+        CreateServiceHeader(ServiceHeader, CustomerNo);
+        ServiceHeader.Validate("Payment Method Code", PaymentMethodCode);
+        ServiceHeader.Validate("Company Bank Account Code", CompanyBankAccountCode);
+        ServiceHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        ServiceHeader.Modify(true);
+        CreateServiceLine(ServiceHeader);
+        exit(PostServiceDocument(ServiceHeader));
+    end;
+
+    local procedure CreateAndPostSalesDocumentForCustomer(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; CustomerNo: Code[20]): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
+        CreateSalesLine(SalesHeader, LineType, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostServiceDocument(): Code[20]
     var
         ServiceHeader: Record "Service Header";
@@ -3609,7 +4309,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Customer.DeleteAll();
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", CompanyInformation."VAT Registration No.");
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
         Customer.Validate("E-Invoice Routing No.", LibraryEDocDE.CreateValidRoutingNo());
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);
@@ -3704,7 +4404,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesLine, SalesHeader, LineType, LineNo, LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
         SalesLine.Validate("Unit of Measure", UnitOfMeasure.Code);
-        SalesLine.Validate("Tax Category", LibraryRandom.RandText(2));
+        SalesLine.Validate("Tax Category", TaxCategoryStandardTok);
         if LineDiscount then
             SalesLine.Validate("Line Discount %", LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Modify(true);
@@ -3855,6 +4555,38 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ZUGFeRDFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Release);
     end;
 
+    local procedure CreateSalespersonWithContactInfo(var SalespersonPurchaser: Record "Salesperson/Purchaser")
+    begin
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        SalespersonPurchaser.Validate(Name, CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalespersonPurchaser.Name)));
+        SalespersonPurchaser.Validate("Phone No.", Format(LibraryRandom.RandIntInRange(1000000, 9999999)));
+        SalespersonPurchaser.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
+        SalespersonPurchaser.Modify(true);
+    end;
+
+    local procedure CreateSalesInvoiceWithSalesperson(var SalesHeader: Record "Sales Header"; SalespersonCode: Code[20])
+    begin
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesHeader.Validate("Salesperson Code", SalespersonCode);
+        SalesHeader.Modify(true);
+    end;
+
+    /// <summary>
+    /// Fills the Company Information seller contact (BG-6) fields with valid values.
+    /// Initialize() seeds them only once per suite, so the seller contact tests call this both before
+    /// and after blanking a field, to stay independent of the order the tests run in.
+    /// </summary>
+    local procedure SetCompleteCompanyInfoContact()
+    var
+        CompanyInfo: Record "Company Information";
+    begin
+        CompanyInfo.Get();
+        CompanyInfo."Contact Person" := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(CompanyInfo."Contact Person"));
+        CompanyInfo."Phone No." := CopyStr(LibraryUtility.GenerateRandomText(20), 1, MaxStrLen(CompanyInfo."Phone No."));
+        CompanyInfo."E-Mail" := LibraryUtility.GenerateRandomEmail();
+        CompanyInfo.Modify();
+    end;
+
     local procedure CreateSalesDocumentWithCustomerWithoutVATRegNo(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"): Code[20];
     var
         Customer: Record Customer;
@@ -3901,6 +4633,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempBlob.CreateInStream(PdfInStream);
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(PdfAttachmentStream);
+        PdfAttachmentStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
     end;
 
@@ -3923,6 +4657,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempBlob.CreateInStream(PdfInStream);
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(PdfAttachmentStream);
+        PdfAttachmentStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
     end;
 
@@ -3945,6 +4681,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempBlob.CreateInStream(PdfInStream);
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(PdfAttachmentStream);
+        PdfAttachmentStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
     end;
 
@@ -3967,7 +4705,32 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempBlob.CreateInStream(PdfInStream);
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(PdfAttachmentStream);
+        PdfAttachmentStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
+    end;
+
+    local procedure CreateTrailingZUGFeRDService(): Code[20]
+    var
+        TrailingEDocumentService: Record "E-Document Service";
+    begin
+        // Insert a second ZUGFeRD service whose Code sorts strictly after the triggering service, so
+        // that a FindLast() lookup by format would select this one instead of the triggering service.
+        RemoveTrailingZUGFeRDServices();
+        TrailingEDocumentService := EDocumentService;
+        TrailingEDocumentService.Code := CopyStr(CopyStr(EDocumentService.Code, 1, MaxStrLen(TrailingEDocumentService.Code) - 1) + 'Z', 1, MaxStrLen(TrailingEDocumentService.Code));
+        TrailingEDocumentService.Insert();
+        exit(TrailingEDocumentService.Code);
+    end;
+
+    local procedure RemoveTrailingZUGFeRDServices()
+    var
+        TrailingEDocumentService: Record "E-Document Service";
+    begin
+        // The export path commits under codeunit-level test isolation, so remove the extra service
+        // explicitly to keep the single-service assumption for the rest of the suite.
+        TrailingEDocumentService.SetFilter(Code, '<>%1', EDocumentService.Code);
+        TrailingEDocumentService.DeleteAll();
     end;
 
     local procedure VerifyGLNIdentifier(ExpectedGLN: Code[13]; var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
@@ -4205,6 +4968,26 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
             Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID';
             Assert.AreEqual(GetIBAN(ExpectedSWIFT), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         end;
+    end;
+
+    local procedure VerifyDirectDebitPaymentMeans(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text; ExpectedMandateID: Code[35]; BankAccount: Record "Bank Account"; ExpectedPayerIBAN: Text[50])
+    var
+        Path: Text;
+    begin
+        Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:TypeCode';
+        Assert.AreEqual('59', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        // BT-91 Debited account identifier
+        Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayerPartyDebtorFinancialAccount/ram:IBANID';
+        Assert.AreEqual(GetIBAN(ExpectedPayerIBAN), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        // BG-17 CREDIT TRANSFER must not be exported for direct debit (BR-DE-25-b)
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeePartyCreditorFinancialAccount'), 'PayeePartyCreditorFinancialAccount must not be exported for direct debit (BR-DE-25-b).');
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeeSpecifiedCreditorFinancialInstitution'), 'PayeeSpecifiedCreditorFinancialInstitution must not be exported for direct debit (BR-DE-25-b).');
+        // BT-89 Mandate reference identifier
+        Path := DocumentTok + '/ram:SpecifiedTradePaymentTerms/ram:DirectDebitMandateID';
+        Assert.AreEqual(ExpectedMandateID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        // BT-90 Bank assigned creditor identifier
+        Path := DocumentTok + '/ram:CreditorReferenceID';
+        Assert.AreEqual(BankAccount."Creditor No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyPaymentTerms(PaymentTermsCode: Code[10]; DueDate: Date; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
@@ -4887,6 +5670,10 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ZUGFeRD XML Document Tests");
         if IsInitialized then begin
+            // Self-heal: a prior test that asserted (and possibly failed) after inserting a trailing
+            // service leaves it behind under codeunit-level isolation. Remove it so every test starts
+            // from the single-service fixture regardless of a previous failure.
+            RemoveTrailingZUGFeRDServices();
             RestoreCompanyIdentifiers();
             exit;
         end;
@@ -4901,6 +5688,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
         CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
         CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
+        CompanyInformation."Contact Person" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(CompanyInformation."Contact Person"));
+        CompanyInformation."Phone No." := Format(LibraryRandom.RandIntInRange(1000000, 9999999));
         CompanyInformation.Modify();
         GeneralLedgerSetup.Get();
         EDocumentService.DeleteAll();

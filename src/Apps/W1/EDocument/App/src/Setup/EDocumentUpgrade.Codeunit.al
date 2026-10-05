@@ -29,6 +29,7 @@ codeunit 6168 "E-Document Upgrade"
         UpgradeDataExchV2Defs();
         UpgradeEnableVATOptionsForPurchEDoc();
         EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
+        UpgradeSupportedTypeDirection();
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -69,6 +70,7 @@ codeunit 6168 "E-Document Upgrade"
         PerCompanyUpgradeTags.Add(GetUpgradeProcessDraftEnumTag());
         PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
+        PerCompanyUpgradeTags.Add(GetUpgradeSupportedTypeDirectionTag());
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
@@ -105,7 +107,6 @@ codeunit 6168 "E-Document Upgrade"
     begin
         if UpgradeTag.HasUpgradeTag(GetEnableVATOptionsForPurchEDocTag()) then
             exit;
-
         if PurchasesPayablesSetup.Get() then begin
             PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc" := true;
             PurchasesPayablesSetup."Resolve VAT Group Purch EDoc" := true;
@@ -125,4 +126,49 @@ codeunit 6168 "E-Document Upgrade"
         exit('MS-EDoc-EnableVATOptionsForPurchEDoc-20260520');
     end;
 
+    internal procedure UpgradeSupportedTypeDirection()
+    var
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+        EDocumentService: Record "E-Document Service";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        EDocumentType: Enum "E-Document Type";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetUpgradeSupportedTypeDirectionTag()) then
+            exit;
+        if not EDocServiceSupportedType.IsEmpty() then
+            EDocServiceSupportedType.ModifyAll(Direction, EDocServiceSupportedType.Direction::Both);
+
+        EDocumentService.SetLoadFields(Code);
+        if EDocumentService.FindSet() then
+            repeat
+                foreach EDocumentType in EDocumentType.Ordinals() do
+                    if (EDocumentType <> EDocumentType::None) and not IsFallbackSecondaryType(EDocumentType) then
+                        if not EDocServiceSupportedType.Get(EDocumentService.Code, EDocumentType) then begin
+                            EDocServiceSupportedType.Init();
+                            EDocServiceSupportedType."E-Document Service Code" := EDocumentService.Code;
+                            EDocServiceSupportedType."Source Document Type" := EDocumentType;
+                            EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
+                            EDocServiceSupportedType.Insert(false);
+                        end;
+            until EDocumentService.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(GetUpgradeSupportedTypeDirectionTag());
+    end;
+
+    internal procedure GetUpgradeSupportedTypeDirectionTag(): Code[250]
+    begin
+        exit('MS-EDoc-SupportedTypeDirection-20260824');
+    end;
+
+    local procedure IsFallbackSecondaryType(EDocumentType: Enum "E-Document Type"): Boolean
+    begin
+        exit(EDocumentType in [
+            EDocumentType::"Sales Order",
+            EDocumentType::"Sales Return Order",
+            EDocumentType::"Service Order",
+            EDocumentType::"Finance Charge Memo",
+            EDocumentType::Reminder,
+            EDocumentType::"Purchase Order",
+            EDocumentType::"Purchase Return Order"]);
+    end;
 }
