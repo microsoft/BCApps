@@ -1,4 +1,3 @@
-#if not CLEAN27
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -22,7 +21,6 @@ codeunit 10554 "Upgrade Reverse Charge VAT"
 
     var
         UpgradeTag: Codeunit "Upgrade Tag";
-        UpgTagReverseChargeVAT: Codeunit "Upg. Tag Reverse Charge VAT";
 
     trigger OnUpgradePerCompany()
     var
@@ -32,12 +30,14 @@ codeunit 10554 "Upgrade Reverse Charge VAT"
         if CurrentModuleInfo.AppVersion().Major() < 30 then
             exit;
 
+#if not CLEANSCHEMA30
         UpgradeReverseChargeVAT();
+#endif
     end;
 
     local procedure UpgradeReverseChargeVAT()
     begin
-        if UpgradeTag.HasUpgradeTag(UpgTagReverseChargeVAT.GetReverseChargeVATUpgradeTag()) then
+        if UpgradeTag.HasUpgradeTag(GetReverseChargeVATUpgradeTag()) then
             exit;
 
         TransferFields(Database::"General Ledger Setup", 10500, 10507); // Threshold applies
@@ -61,8 +61,21 @@ codeunit 10554 "Upgrade Reverse Charge VAT"
         TransferFields(Database::"Sales & Receivables Setup", 10502, 10508); // Domestic Customers
         TransferFields(Database::"Sales & Receivables Setup", 10503, 10509); // Invoice Wording
 
-        UpgradeTag.SetUpgradeTag(UpgTagReverseChargeVAT.GetReverseChargeVATUpgradeTag());
+        UpgradeTag.SetUpgradeTag(GetReverseChargeVATUpgradeTag());
     end;
+
+    local procedure GetReverseChargeVATUpgradeTag(): Code[250]
+    begin
+        exit('MS-572379-ReverseChargeVATUpgradeTag-20250416');
+    end;
+
+#if CLEAN27
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
+    local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetReverseChargeVATUpgradeTag());
+    end;
+#endif
 
     local procedure TransferFields(TableId: Integer; SourceFieldNo: Integer; TargetFieldNo: Integer)
     var
@@ -88,4 +101,3 @@ codeunit 10554 "Upgrade Reverse Charge VAT"
         RecRef.Close();
     end;
 }
-#endif
