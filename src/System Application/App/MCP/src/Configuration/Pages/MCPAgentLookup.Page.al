@@ -7,7 +7,7 @@ namespace System.MCP;
 
 using System.Agents;
 
-page 8377 "MCP Agent Lookup"
+page 8379 "MCP Agent Lookup"
 {
     PageType = List;
     ApplicationArea = All;

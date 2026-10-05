@@ -1661,8 +1661,7 @@ codeunit 8351 "MCP Config Implementation"
         if ConfigJson.Contains('enableAlQueryTools') then
             MCPConfiguration.EnableAlQueryTools := ConfigJson.GetBoolean('enableAlQueryTools');
 
-        if ConfigJson.Contains('enableAgents') then
-            MCPConfiguration.EnableAgents := ConfigJson.GetBoolean('enableAgents');
+        MCPConfiguration.EnableAgents := false;
 
         MCPConfiguration.Insert();
         LogConfigurationCreated(MCPConfiguration);

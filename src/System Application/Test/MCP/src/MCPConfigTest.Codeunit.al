@@ -1376,7 +1376,7 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
         Assert.IsTrue(MCPConfiguration.EnableApiTools, 'EnableApiTools mismatch');
         Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'EnableAlQueryTools mismatch');
-        Assert.IsTrue(MCPConfiguration.EnableAgents, 'EnableAgents mismatch');
+        Assert.IsFalse(MCPConfiguration.EnableAgents, 'Agent Tools should be disabled on import');
 
         // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
@@ -1767,6 +1767,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    [HandlerFunctions('AgentBillingYesHandler')]
     procedure TestActivateAgentToolsFromServerFeatures()
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -1788,6 +1789,27 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.GetBySystemId(ConfigId);
         Assert.IsTrue(MCPConfiguration.EnableAgents, 'EnableAgents was not set');
         AssertAgentSystemTools(MCPConfigCard);
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentBillingNoHandler')]
+    procedure TestDeclineAgentToolsBillingFromServerFeatures()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+        GoToAgentToolsFeature(MCPConfigCard);
+
+        MCPConfigCard.ServerFeatureList.Activate.Invoke();
+
+        Assert.AreEqual('Inactive', MCPConfigCard.ServerFeatureList.Status.Value, 'Agent Tools row should remain Inactive');
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableAgents, 'EnableAgents should remain false');
     end;
 
     [Test]
@@ -2033,6 +2055,18 @@ codeunit 130130 "MCP Config Test"
     begin
         MCPAPIObjectLookup.First();
         MCPAPIObjectLookup.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure AgentBillingYesHandler(var MCPAgentBilling: TestPage "MCP Agent Billing")
+    begin
+        MCPAgentBilling.Yes().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure AgentBillingNoHandler(var MCPAgentBilling: TestPage "MCP Agent Billing")
+    begin
+        MCPAgentBilling.No().Invoke();
     end;
 
     [ModalPageHandler]
