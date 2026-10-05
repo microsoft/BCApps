@@ -127,7 +127,7 @@ codeunit 7233 "Master Data Management"
             exit;
         FeatureTelemetry.LogUptake('0000OUA', FeatureNameTxt, Enum::"Feature Uptake Status"::Used);
         if MasterDataManagementSetup.IsCrossEnvironment() then
-            FeatureTelemetry.LogUsage('0000VVR', FeatureNameTxt, CrossEnvSynchUsageTxt) // telemetry event ID assigned by the NAV registration script
+            FeatureTelemetry.LogUsage('0000VVR', FeatureNameTxt, CrossEnvSynchUsageTxt)
         else
             FeatureTelemetry.LogUsage('0000JIR', FeatureNameTxt, SameEnvSynchUsageTxt);
         SetSynchronizationUsageLoggedToday();
