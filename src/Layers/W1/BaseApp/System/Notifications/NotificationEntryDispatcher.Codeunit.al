@@ -33,6 +33,19 @@ codeunit 1509 "Notification Entry Dispatcher"
         EmailBodyFailedToGenerateErr: Label 'Notification (%1)''s email body failed to generate due to: %2', Comment = '%1 = Notification Entry ID, %2 = Error message';
         EmailFailedToSendErr: Label 'Notification (%1)''s email failed to send due to: %2', Comment = '%1 = Notification Entry ID, %2 = Error message';
         NoteFailedToAddErr: Label 'Notification (%1)''s note failed to add due to: %2', Comment = '%1 = Notification Entry ID, %2 = Error message';
+        SendNotificationsContextTxt: Label 'Send notifications';
+        ForegroundDispatchFailedTelemetryTxt: Label 'Failed to dispatch instant notifications in the foreground. The notification entries are kept for a later dispatch.', Locked = true;
+        NotificationTelemetryCategoryTxt: Label 'Notifications', Locked = true;
+        RunInForeground: Boolean;
+
+    /// <summary>
+    /// Specifies that the instant notifications are dispatched in the foreground, as part of the caller's transaction (for example, while a workflow response runs).
+    /// In that case, a notification that cannot be delivered must not stop the caller's transaction. The errors are reported to the user and the notification entries are kept for a later dispatch.
+    /// </summary>
+    internal procedure SetRunInForeground(NewRunInForeground: Boolean)
+    begin
+        RunInForeground := NewRunInForeground;
+    end;
 
     local procedure DispatchInstantNotifications()
     var
@@ -48,7 +61,7 @@ codeunit 1509 "Notification Entry Dispatcher"
 
         if TempNotificationEntryFromTo.FindSet() then begin
             ErrorMessageMgt.Activate(ErrorMessageHandler);
-            ErrorMessageMgt.PushContext(ErrorContextElement, TempNotificationEntryFromTo, 0, '');
+            ErrorMessageMgt.PushContext(ErrorContextElement, TempNotificationEntryFromTo, 0, SendNotificationsContextTxt);
             repeat
                 if not UserSetup.Get(TempNotificationEntryFromTo."Recipient User ID") then
                     UserIdWithError := TempNotificationEntryFromTo."Recipient User ID"
@@ -56,12 +69,26 @@ codeunit 1509 "Notification Entry Dispatcher"
                     if ScheduledInstantly(UserSetup."User ID", TempNotificationEntryFromTo.Type) then
                         DispatchForNotificationType(TempNotificationEntryFromTo.Type, UserSetup, TempNotificationEntryFromTo."Sender User ID")
             until TempNotificationEntryFromTo.Next() = 0;
-            Commit();
-            ErrorMessageMgt.Finish(ErrorMessageHandler);
+            if RunInForeground then
+                NotifyAboutForegroundDispatchErrors(ErrorMessageHandler)
+            else begin
+                Commit();
+                ErrorMessageMgt.Finish(ErrorMessageHandler);
+            end;
         end;
 
         if UserIdWithError <> '' then
             UserSetup.Get(UserIdWithError);
+    end;
+
+    local procedure NotifyAboutForegroundDispatchErrors(var ErrorMessageHandler: Codeunit "Error Message Handler")
+    begin
+        if not ErrorMessageHandler.HasErrors() then
+            exit;
+
+        Session.LogMessage('0000SNF', ForegroundDispatchFailedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NotificationTelemetryCategoryTxt);
+        if GuiAllowed() then
+            ErrorMessageHandler.NotifyAboutErrors();
     end;
 
     local procedure DispatchNotificationTypeForUser(Parameter: Text)
