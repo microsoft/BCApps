@@ -153,6 +153,8 @@ codeunit 130618 "Library - Graph Mgt"
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
         HttpWebRequestMgt.Initialize(TargetURL);
+        // API tests call the local Business Central server, which may require Windows authentication.
+        HttpWebRequestMgt.SetUseDefaultCredentials(true);
         ApplyAuthentication(HttpWebRequestMgt);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
     end;
