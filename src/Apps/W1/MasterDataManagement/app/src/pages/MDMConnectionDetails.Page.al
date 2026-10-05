@@ -1,5 +1,7 @@
 namespace Microsoft.Integration.MDM;
 
+using System.Telemetry;
+
 /// <summary>
 /// Guided setup for reading master data from another Business Central ENVIRONMENT (same tenant). Mirrors the
 /// Intercompany cross-environment partner wizard: consent, then the source environment/company and the
@@ -184,7 +186,13 @@ page 7232 "MDM Connection Details"
     }
 
     trigger OnOpenPage()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        MasterDataManagement: Codeunit "Master Data Management";
     begin
+        // Opening the cross-environment setup wizard is a genuine discovery of the feature, so register Discovered here
+        // too (the main setup page may never be opened in a wizard-only cross-environment setup).
+        FeatureTelemetry.LogUptake('', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
         LoadConfiguration();
         Step := Step::Welcome;
         SetControls();
