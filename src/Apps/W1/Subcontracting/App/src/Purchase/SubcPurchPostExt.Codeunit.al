@@ -36,6 +36,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
     begin
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
         SetQuantityBaseOnSubcontractingServiceLine(PurchOrderLine, PurchRcptLine);
         if IsFullTrackedSubcontractingReceiptSupported(PurchRcptLine) then
             exit;
@@ -171,6 +173,10 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then begin
+            IsHandled := true;
+            exit;
+        end;
 
         SetQuantityBaseOnSubcontractingServiceLine(FromPurchLine, PurchRcptLine);
         if not IsFullTrackedOutputSetSupported(PurchRcptLine, ItemLedgerEntry) then
@@ -372,6 +378,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
     begin
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
         if TrackingSpecification."Item Ledger Entry No." = 0 then
             Error(GetTrackedSubcontractingRcptNotSupportedErr);
 
@@ -393,7 +401,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         FillItemJnlLineForSubcontractingItemCharge(ItemJournalLine, TempItemChargeAssignmentPurch);
         if not PurchRcptLine.Get(PurchaseLine."Receipt No.", PurchaseLine."Receipt Line No.") then
             exit;
-        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") or not PurchRcptLineIsLastOperation(PurchRcptLine) then
             exit;
 
         CopySubcontractingProdOrderFieldsToItemJnlLine(ItemJournalLine, PurchRcptLine);

@@ -83,16 +83,6 @@ codeunit 149927 "Subc. Get Receipt Lines"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Get Receipt Lines");
     end;
 
-#if not CLEAN30
-    [Test]
-    [HandlerFunctions('MessageHandler')]
-    [Obsolete('Use GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice instead.', '30.0')]
-    procedure GetReceiptLinesFromInvtPutAwayReceiptIsCurrentlyBlocked()
-    begin
-        GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice();
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('MessageHandler')]
     procedure GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice()
@@ -272,6 +262,60 @@ codeunit 149927 "Subc. Get Receipt Lines"
         asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
 
         Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines into this document.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForNonLastOperationTrackedSubcontractingReceiptPostsInvoice()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 649862] A non-last-operation subcontracting receipt for a tracked item can be invoiced through Get Receipt Lines
+        CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            2, true, false, 'NON-LAST-SN1', 1, 'NON-LAST-SN2', 1, false, false);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The non-last-operation receipt must be fully invoiced.');
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        Assert.RecordCount(ValueEntry, 1);
+        ValueEntry.FindFirst();
+        Assert.AreEqual(0, ValueEntry."Item Ledger Entry No.", 'A non-last-operation invoice must not reference an item ledger entry.');
+        Assert.AreNotEqual(0, ValueEntry."Capacity Ledger Entry No.", 'A non-last-operation invoice must reference a capacity ledger entry.');
+        CapacityLedgerEntry.Get(ValueEntry."Capacity Ledger Entry No.");
+        Assert.AreEqual(ProductionOrder."No.", CapacityLedgerEntry."Order No.", 'The invoice cost must reference the correct production order.');
+        Assert.AreEqual(PurchRcptLine."Work Center No.", CapacityLedgerEntry."Work Center No.", 'The invoice cost must reference the correct work center.');
+
+        CapacityLedgerEntry.Reset();
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", PurchRcptLine."Work Center No.");
+        Assert.AreEqual(CapacityLedgerEntryCount, CapacityLedgerEntry.Count(), 'Separate invoicing must not duplicate capacity output.');
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Separate invoicing must not create item output for a non-last operation.');
     end;
 
     [Test]
@@ -816,12 +860,12 @@ codeunit 149927 "Subc. Get Receipt Lines"
             CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
                 Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
                 CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
-                2, true, false, 'REV-SN1', 1, 'REV-SN2', 1, false)
+                2, true, false, 'REV-SN1', 1, 'REV-SN2', 1, false, true)
         else
             CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
                 Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
                 CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
-                LibraryRandom.RandIntInRange(5, 10), false, false, '', 0, '', 0, false);
+                LibraryRandom.RandIntInRange(5, 10), false, false, '', 0, '', 0, false, true);
         Quantity := PurchaseLine.Quantity;
     end;
 
@@ -845,7 +889,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
             Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
             CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
-            Quantity, false, true, LotNo1, LotQuantity1, LotNo2, LotQuantity2, false);
+            Quantity, false, true, LotNo1, LotQuantity1, LotNo2, LotQuantity2, false, true);
     end;
 #pragma warning restore AA0228
 
@@ -865,12 +909,12 @@ codeunit 149927 "Subc. Get Receipt Lines"
             CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
                 Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
                 CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
-                1, true, false, 'WHSE-SERIAL', 1, '', 0, true)
+                1, true, false, 'WHSE-SERIAL', 1, '', 0, true, true)
         else
             CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
                 Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
                 CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
-                5, false, true, 'WHSE-LOT', 5, '', 0, true);
+                5, false, true, 'WHSE-LOT', 5, '', 0, true, true);
     end;
 
     local procedure CreateSubcontractingReceiptForSeparateInvoiceWithTracking(
@@ -890,7 +934,8 @@ codeunit 149927 "Subc. Get Receipt Lines"
         TrackingQuantity1: Decimal;
         TrackingNo2: Code[50];
         TrackingQuantity2: Decimal;
-        UseWarehouseReceipt: Boolean)
+        UseWarehouseReceipt: Boolean;
+        LastOperation: Boolean)
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -906,6 +951,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         WarehouseReceiptLine: Record "Warehouse Receipt Line";
         WorkCenter: array[2] of Record "Work Center";
         WarehouseReceiptPage: TestPage "Warehouse Receipt";
+        SubcontractingWorkCenterIndex: Integer;
     begin
         Assert.IsFalse(
             TrackSerialOutput and TrackLotOutput,
@@ -919,13 +965,16 @@ codeunit 149927 "Subc. Get Receipt Lines"
                 SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter)
             else
                 SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingWorkCenterIndex := 2;
+        if not LastOperation then
+            SubcontractingWorkCenterIndex := 1;
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[SubcontractingWorkCenterIndex]."No.");
         if UseWarehouseReceipt then
             SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location)
         else
             SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
 
-        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor.Get(WorkCenter[SubcontractingWorkCenterIndex]."Subcontractor No.");
         Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify(true);
@@ -934,7 +983,8 @@ codeunit 149927 "Subc. Get Receipt Lines"
             ProductionOrder, "Production Order Status"::Released,
             ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(
+            Item."Routing No.", WorkCenter[SubcontractingWorkCenterIndex]."No.", PurchaseLine);
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 25, 2));
         PurchaseLine.Modify(true);
         if TrackSerialOutput or TrackLotOutput then begin
@@ -981,34 +1031,37 @@ codeunit 149927 "Subc. Get Receipt Lines"
             LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
         end else begin
             SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
-            if TrackSerialOutput then begin
-                WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
-                WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
-                WarehouseActivityLine.FindSet();
-                WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity1);
-                WarehouseActivityLine.Validate("Serial No.", TrackingNo1);
-                WarehouseActivityLine.Modify(true);
-                WarehouseActivityLine.Next();
-                WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
-                WarehouseActivityLine.Validate("Serial No.", TrackingNo2);
-                WarehouseActivityLine.Modify(true);
-            end else
-                if TrackLotOutput then begin
+            if not LastOperation then
+                LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader)
+            else
+                if TrackSerialOutput then begin
                     WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
                     WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
-                    WarehouseActivityLine.SetRange("Lot No.", TrackingNo1);
-                    WarehouseActivityLine.FindFirst();
-                    Assert.AreEqual(TrackingQuantity1, WarehouseActivityLine.Quantity, 'The first lot must retain its production tracking quantity.');
+                    WarehouseActivityLine.FindSet();
                     WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity1);
+                    WarehouseActivityLine.Validate("Serial No.", TrackingNo1);
                     WarehouseActivityLine.Modify(true);
-
-                    WarehouseActivityLine.SetRange("Lot No.", TrackingNo2);
-                    WarehouseActivityLine.FindFirst();
-                    Assert.AreEqual(TrackingQuantity2, WarehouseActivityLine.Quantity, 'The second lot must retain its production tracking quantity.');
+                    WarehouseActivityLine.Next();
                     WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
+                    WarehouseActivityLine.Validate("Serial No.", TrackingNo2);
                     WarehouseActivityLine.Modify(true);
                 end else
-                    LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+                    if TrackLotOutput then begin
+                        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+                        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+                        WarehouseActivityLine.SetRange("Lot No.", TrackingNo1);
+                        WarehouseActivityLine.FindFirst();
+                        Assert.AreEqual(TrackingQuantity1, WarehouseActivityLine.Quantity, 'The first lot must retain its production tracking quantity.');
+                        WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity1);
+                        WarehouseActivityLine.Modify(true);
+
+                        WarehouseActivityLine.SetRange("Lot No.", TrackingNo2);
+                        WarehouseActivityLine.FindFirst();
+                        Assert.AreEqual(TrackingQuantity2, WarehouseActivityLine.Quantity, 'The second lot must retain its production tracking quantity.');
+                        WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
+                        WarehouseActivityLine.Modify(true);
+                    end else
+                        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
             LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
         end;
 
@@ -1016,7 +1069,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
         PurchRcptLine.FindFirst();
         CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[SubcontractingWorkCenterIndex]."No.");
         CapacityLedgerEntryCount := CapacityLedgerEntry.Count();
         CapacityLedgerEntry.FindFirst();
         CapacityLedgerEntryNo := CapacityLedgerEntry."Entry No.";
