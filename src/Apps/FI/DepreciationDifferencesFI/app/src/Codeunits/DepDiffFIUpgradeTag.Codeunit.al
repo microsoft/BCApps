@@ -13,11 +13,13 @@ codeunit 13476 "Dep Diff FI Upgrade Tag"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+#if CLEAN30
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure OnGetPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetUpgradeTag());
     end;
+#endif
 
     procedure GetUpgradeTag(): Code[250]
     begin

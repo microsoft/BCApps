@@ -12,6 +12,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
+using System.Upgrade;
 
 codeunit 148163 "Depr. Diff. Calculation FI"
 {
@@ -89,6 +90,19 @@ codeunit 148163 "Depr. Diff. Calculation FI"
     end;
 
 #if not CLEAN30
+    [Test]
+    procedure UpgradeTagIsNotRegisteredBeforeClean30()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        DepDiffFIUpgradeTag: Codeunit "Dep Diff FI Upgrade Tag";
+    begin
+        Initialize();
+
+        Assert.IsFalse(
+            UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()),
+            'The depreciation differences migration tag must not be registered before CLEAN30.');
+    end;
+
     [Test]
     procedure FeatureDataUpdateMigratesLegacyFields()
     var
