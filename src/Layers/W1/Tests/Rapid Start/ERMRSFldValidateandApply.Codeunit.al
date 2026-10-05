@@ -33,6 +33,7 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         GetOptionNoErr: Label 'GetOptionNo function returns wrong result.';
         ConfigPackContErr: Label 'Config Package contains errors';
         ItemUOMWeightErr: Label 'Item unit of measure weight is incorrect';
+        UnsupportedCommentParentTypeErr: Label 'Unsupported comment parent type %1.', Comment = '%1 - comment table name';
 
     local procedure Initialize()
     begin
@@ -665,7 +666,6 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
         Customer: Record Customer;
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalTemplate: Record "Gen. Journal Template";
-        LibrarySales: Codeunit "Library - Sales";
         RecRef: RecordRef;
         CurrencyCode: Code[10];
     begin
@@ -1389,7 +1389,7 @@ codeunit 136609 "ERM RS Fld. Validate and Apply"
                     exit(ICPartner.Code);
                 end;
             else
-                Assert.Fail(StrSubstNo('Unsupported comment parent type %1.', TableName));
+                Assert.Fail(StrSubstNo(UnsupportedCommentParentTypeErr, TableName));
         end;
     end;
 

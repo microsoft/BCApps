@@ -1563,7 +1563,7 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
             LibraryPurchase.CreateVendor(Vendor[Index]);
             Vendor[Index].Rename(Customer[Index]."No.");
             LibrarySmallBusiness.CreateCommentLine(VendorCommentLine[Index], VendorCommentLine[Index]."Table Name"::Vendor, Vendor[Index]."No.");
-            VendorCommentLine[Index].Validate(Comment, Vendor[Index].Name);
+            VendorCommentLine[Index].Validate(Comment, CopyStr(Vendor[Index].Name, 1, MaxStrLen(VendorCommentLine[Index].Comment)));
             VendorCommentLine[Index].Modify(true);
         end;
 
@@ -1664,7 +1664,9 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         CommentLine.SetRange(Comment);
 
         for Index := 1 to 2 do begin
-            Assert.IsTrue(VendorCommentLine[Index].Find(), 'Vendor comments must retain their original keys after a customer merge.');
+            Assert.IsTrue(
+                VendorCommentLine[Index].Get(VendorCommentLine[Index]."Table Name", VendorCommentLine[Index]."No.", VendorCommentLine[Index]."Line No."),
+                'Vendor comments must retain their original keys after a customer merge.');
             VendorCommentLine[Index].TestField(Comment, Vendor[Index].Name);
         end;
 
@@ -1938,7 +1940,7 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
             LibrarySales.CreateCustomer(Customer[Index]);
             Customer[Index].Rename(Vendor[Index]."No.");
             LibrarySmallBusiness.CreateCommentLine(CustomerCommentLine[Index], CustomerCommentLine[Index]."Table Name"::Customer, Customer[Index]."No.");
-            CustomerCommentLine[Index].Validate(Comment, Customer[Index].Name);
+            CustomerCommentLine[Index].Validate(Comment, CopyStr(Customer[Index].Name, 1, MaxStrLen(CustomerCommentLine[Index].Comment)));
             CustomerCommentLine[Index].Modify(true);
         end;
 
@@ -2022,7 +2024,9 @@ CustomerBankAccount[1]."Customer No.", CustomerBankAccount[2]."Customer No.", Te
         CommentLine.SetRange(Comment);
 
         for Index := 1 to 2 do begin
-            Assert.IsTrue(CustomerCommentLine[Index].Find(), 'Customer comments must retain their original keys after a vendor merge.');
+            Assert.IsTrue(
+                CustomerCommentLine[Index].Get(CustomerCommentLine[Index]."Table Name", CustomerCommentLine[Index]."No.", CustomerCommentLine[Index]."Line No."),
+                'Customer comments must retain their original keys after a vendor merge.');
             CustomerCommentLine[Index].TestField(Comment, Customer[Index].Name);
         end;
 

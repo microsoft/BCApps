@@ -1558,7 +1558,7 @@ codeunit 8611 "Config. Package Management"
             repeat
                 if RelatedConfigPackageTable.Get(PackageCode, TableRelationsMetadata."Related Table ID") then begin
                     SetupTableProcessingOrder(PackageCode, RelatedConfigPackageTable."Table ID", CheckedConfigPackageTable, StackLevel + 1);
-                    RelatedConfigPackageTable.Find();
+                    RelatedConfigPackageTable.Get(PackageCode, TableRelationsMetadata."Related Table ID");
                     // Use the final order, including adjustments such as the project-table delay.
                     ProcessingOrder := MaxInt(ProcessingOrder, RelatedConfigPackageTable."Processing Order" + 1);
                     ClearFieldBranchCheckingHistory(PackageCode, CheckedConfigPackageTable, StackLevel);
