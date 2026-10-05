@@ -3,9 +3,6 @@ codeunit 117566 "Add Employee"
 
     trigger OnRun()
     begin
-        // InsertRec(XKH,XKatherinelc,XHulllc,XKHULL,XServiceManager,XKHULL,X12SelsdonRoad,XLondon,
-        //   'GB-N16 34Z','020-2584-1095','7223-4321-8744',Xlmcronusdemositecom,
-        //   '1294370062',XUADMI,'4921826-897','1',XADM,XMONTH);
         InsertRec(XKH, XKatherinelc, XHulllc, XKHULL, XServiceManager, XKHULL, X12SelsdonRoad, XLondon,
           'DE-49293', '020-2584-1095', '7223-4321-8744', Xlmcronusdemositecom,
           '1294370062', XUADMI, '4921826-897', '1', XADM, XMONTH);
@@ -33,6 +30,7 @@ codeunit 117566 "Add Employee"
 
     procedure InsertRec(Fld1: Text[250]; Fld2: Text[250]; Fld4: Text[250]; Fld5: Text[250]; Fld6: Text[250]; Fld7: Text[250]; Fld8: Text[250]; Fld11: Text[250]; Fld13: Text[250]; Fld14: Text[250]; Fld15: Text[250]; Fld16: Text[250]; Fld21: Text[250]; Fld22: Text[250]; Fld23: Text[250]; Fld24: Text[250]; Fld27: Text[250]; Fld28: Text[250])
     var
+        CreateEmployee: Codeunit "Create Employee";
         CreatePostCode: Codeunit "Create Post Code";
     begin
         Clear(NewRec);
@@ -55,6 +53,7 @@ codeunit 117566 "Add Employee"
         Evaluate(NewRec.Gender, Fld24);
         Evaluate(NewRec."Emplymt. Contract Code", Fld27);
         Evaluate(NewRec."Statistics Group Code", Fld28);
+        NewRec.Validate("Employee Posting Group", CreateEmployee.EmployeePostingGroupCode());
         NewRec.Insert();
     end;
 
