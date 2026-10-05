@@ -19,16 +19,17 @@ codeunit 8223 "Create Corp Card Bank Account"
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         ContosoBank: Codeunit "Contoso Bank";
-        CreateBankAccPostingGrp: Codeunit "Create Bank Acc. Posting Grp";
         CreateBankExImportSetup: Codeunit "Create Bank Ex/Import Setup";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
         CreateNoSeries: Codeunit "Create No. Series";
         SalespersonPurchaser: Codeunit "Create Salesperson/Purchaser";
+        CorpCardBankAccountPostingGroup: Code[20];
     begin
         ContosoCoffeeDemoDataSetup.Get();
+        CorpCardBankAccountPostingGroup := CreateCorpCardSetup.EnsureCorpCardBankAccountPostingGroup();
         ContosoBank.InsertBankAccount(
             CorpCardBankAccount(), CorpCardBankAccountNameLbl, '', '', '', CorpCardBankAccountNoTok, 0,
-            CreateBankAccPostingGrp.Checking(), SalespersonPurchaser.OtisFalls(),
+            CorpCardBankAccountPostingGroup, SalespersonPurchaser.OtisFalls(),
             ContosoCoffeeDemoDataSetup."Country/Region Code", '', CreateNoSeries.PaymentReconciliationJournals(),
             '', '', '', CreateBankExImportSetup.SEPACAMT());
         CreateCorpCardSetup.CreateDefaults();

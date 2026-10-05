@@ -4,7 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.ExpenseAgent;
 
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Setup;
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Account;
 
 codeunit 148354 EACorpCardSetupTests
 {
@@ -22,9 +25,12 @@ codeunit 148354 EACorpCardSetupTests
     [Test]
     procedure CreateDefaultsIsIdempotentAndSeedsPayload()
     var
+        BankAccount: Record "Bank Account";
+        BankAccountPostingGroup: Record "Bank Account Posting Group";
         CorpCardProvider: Record "EA Corp Card Provider";
         ExpenseCategory: Record "Expense Category";
         ExpensePostingGroup: Record "Expense Posting Group";
+        GLAccount: Record "G/L Account";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
         ProviderCountBefore: Integer;
         ProviderCountAfter: Integer;
@@ -52,6 +58,12 @@ codeunit 148354 EACorpCardSetupTests
         ExpenseCategory.Get(AirlineExpenseCategoryCodeTok);
         Assert.AreNotEqual('', ExpenseCategory."Posting Group", 'CreateDefaults must assign the posting group on corporate card expense categories.');
         Assert.IsTrue(ExpensePostingGroup.Get(ExpenseCategory."Posting Group"), 'The assigned expense posting group must exist.');
+
+        Assert.IsTrue(BankAccount.Get(CorpCardAccountTok), 'CreateDefaults must create the corporate card bank account.');
+        Assert.AreEqual(CorpCardAccountTok, BankAccount."Bank Acc. Posting Group", 'The corporate card bank account must use its dedicated posting group.');
+        Assert.IsTrue(BankAccountPostingGroup.Get(CorpCardAccountTok), 'CreateDefaults must create the corporate card bank account posting group.');
+        Assert.AreEqual(CorpCardAccountTok, BankAccountPostingGroup."G/L Account No.", 'The corporate card posting group must use its dedicated G/L account.');
+        Assert.IsTrue(GLAccount.Get(CorpCardAccountTok), 'CreateDefaults must create the corporate card G/L account.');
 
         CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
         CorpCardProvider.CalcFields("Source Payload");
@@ -103,5 +115,6 @@ codeunit 148354 EACorpCardSetupTests
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', Locked = true;
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
+        CorpCardAccountTok: Label 'CORPCARD', Locked = true;
         AirlineExpenseCategoryCodeTok: Label 'AIRLINE', Locked = true;
 }

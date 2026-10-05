@@ -3,6 +3,7 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Ledger;
 using Microsoft.Bank.Setup;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.NoSeries;
 using System.IO;
 
@@ -21,6 +22,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         tabledata "Data Exch. Field Mapping" = rimd,
         tabledata "Bank Account" = rim,
         tabledata "Bank Account Ledger Entry" = r,
+        tabledata "Bank Account Posting Group" = rim,
         tabledata "EA Corp Card" = rimd,
         tabledata "EA Corp Card Provider" = rimd,
         tabledata "EA Corp Card Settlement" = rimd,
@@ -29,7 +31,8 @@ codeunit 7442 "EA Create Corp Card Setup"
         tabledata "EA Corp Card Trans" = rm,
         tabledata Expense = rm,
         tabledata "Expense Category" = rm,
-        tabledata "Expense Report Header" = rimd;
+        tabledata "Expense Report Header" = rimd,
+        tabledata "G/L Account" = rim;
 
     trigger OnRun()
     begin
@@ -139,24 +142,63 @@ codeunit 7442 "EA Create Corp Card Setup"
     local procedure EnsureCorpCardBankAccount()
     var
         BankAccount: Record "Bank Account";
-        BankAccountPostingGroup: Record "Bank Account Posting Group";
         BankExportImportSetup: Record "Bank Export/Import Setup";
         NoSeries: Record "No. Series";
+        IsModified: Boolean;
     begin
-        if BankAccount.Get(CorpCardBankAccountTok) then
-            exit;
+        EnsureCorpCardBankAccountPostingGroup();
 
-        BankAccount.Init();
-        BankAccount.Validate("No.", CorpCardBankAccountTok);
-        BankAccount.Validate(Name, CorpCardBankAccountNameLbl);
-        BankAccount."Bank Account No." := CorpCardBankAccountNoTok;
-        if BankAccountPostingGroup.Get(LcyBankAccountPostingGroupTok) then
-            BankAccount."Bank Acc. Posting Group" := BankAccountPostingGroup.Code;
-        if NoSeries.Get(PaymentReconciliationNoSeriesTok) then
-            BankAccount."Pmt. Rec. No. Series" := NoSeries.Code;
-        if BankExportImportSetup.Get(SepaCamtImportFormatTok) then
-            BankAccount."Bank Statement Import Format" := BankExportImportSetup.Code;
-        BankAccount.Insert(true);
+        if not BankAccount.Get(CorpCardBankAccountTok) then begin
+            BankAccount.Init();
+            BankAccount.Validate("No.", CorpCardBankAccountTok);
+            BankAccount.Validate(Name, CorpCardBankAccountNameLbl);
+            BankAccount."Bank Account No." := CorpCardBankAccountNoTok;
+            BankAccount.Validate("Bank Acc. Posting Group", CorpCardBankAccountPostingGroupTok);
+            if NoSeries.Get(PaymentReconciliationNoSeriesTok) then
+                BankAccount."Pmt. Rec. No. Series" := NoSeries.Code;
+            if BankExportImportSetup.Get(SepaCamtImportFormatTok) then
+                BankAccount."Bank Statement Import Format" := BankExportImportSetup.Code;
+            BankAccount.Insert(true);
+            exit;
+        end;
+
+        if BankAccount."Bank Acc. Posting Group" <> CorpCardBankAccountPostingGroupTok then begin
+            BankAccount.Validate("Bank Acc. Posting Group", CorpCardBankAccountPostingGroupTok);
+            IsModified := true;
+        end;
+        if IsModified then
+            BankAccount.Modify(true);
+    end;
+
+    internal procedure EnsureCorpCardBankAccountPostingGroup(): Code[20]
+    var
+        BankAccountPostingGroup: Record "Bank Account Posting Group";
+        GLAccount: Record "G/L Account";
+    begin
+        if not GLAccount.Get(CorpCardGLAccountTok) then begin
+            GLAccount.Init();
+            GLAccount.Validate("No.", CorpCardGLAccountTok);
+            GLAccount.Validate(Name, CorpCardGLAccountNameLbl);
+            GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+            GLAccount.Validate("Account Category", GLAccount."Account Category"::Assets);
+            GLAccount.Validate("Account Type", GLAccount."Account Type"::Posting);
+            GLAccount.Validate("Direct Posting", false);
+            GLAccount.Validate("Reconciliation Account", true);
+            GLAccount.Insert(true);
+        end else begin
+            GLAccount.TestField("Account Type", GLAccount."Account Type"::Posting);
+            GLAccount.TestField("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        end;
+
+        if not BankAccountPostingGroup.Get(CorpCardBankAccountPostingGroupTok) then begin
+            BankAccountPostingGroup.Init();
+            BankAccountPostingGroup.Validate(Code, CorpCardBankAccountPostingGroupTok);
+            BankAccountPostingGroup.Validate("G/L Account No.", GLAccount."No.");
+            BankAccountPostingGroup.Insert(true);
+        end else
+            BankAccountPostingGroup.TestField("G/L Account No.", GLAccount."No.");
+
+        exit(BankAccountPostingGroup.Code);
     end;
 
     internal procedure EnsureDataExchangeForProvider(var CorpCardProvider: Record "EA Corp Card Provider")
@@ -1180,6 +1222,9 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardBankAccountTok: Label 'CORPCARD', Locked = true;
         CorpCardBankAccountNameLbl: Label 'Corporate Card Settlement Account', MaxLength = 100;
         CorpCardBankAccountNoTok: Label '99-55-000', Locked = true;
+        CorpCardBankAccountPostingGroupTok: Label 'CORPCARD', MaxLength = 20, Locked = true;
+        CorpCardGLAccountTok: Label 'CORPCARD', MaxLength = 20, Locked = true;
+        CorpCardGLAccountNameLbl: Label 'Corporate Card Settlement Account', MaxLength = 100;
         LcyBankAccountPostingGroupTok: Label 'LCY', MaxLength = 20, Locked = true;
         PaymentReconciliationNoSeriesTok: Label 'PREC', Locked = true;
         SepaCamtImportFormatTok: Label 'SEPA CAMT', Locked = true;
