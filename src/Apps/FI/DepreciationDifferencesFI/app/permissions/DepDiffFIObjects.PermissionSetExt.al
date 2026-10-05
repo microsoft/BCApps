@@ -17,10 +17,10 @@ permissionsetextension 13485 "Dep Diff FI - Objects" extends "D365 BASIC"
         codeunit "Dep Diff FI Subscribers" = X,
         codeunit "Dep Diff FI Feature Data Upd." = X,
         codeunit "FI Depreciation Diff. Feature" = X,
+        codeunit "Dep Diff FI Helper Procedures" = X,
 #else
         codeunit "Upgrade Depreciation Diff. FI" = X,
 #endif
         codeunit "Dep Diff FI Upgrade Tag" = X,
-        codeunit "Dep Diff FI Data Class." = X,
-        codeunit "Dep Diff FI Helper Procedures" = X;
+        codeunit "Dep Diff FI Data Class." = X;
 }

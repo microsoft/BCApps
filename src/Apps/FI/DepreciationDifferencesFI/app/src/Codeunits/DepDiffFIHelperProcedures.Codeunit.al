@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -59,3 +60,4 @@ codeunit 13481 "Dep Diff FI Helper Procedures"
         SourceCodeSetup.Modify(false);
     end;
 }
+#endif
