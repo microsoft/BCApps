@@ -661,11 +661,11 @@ codeunit 8351 "MCP Config Implementation"
         exit(MCPConfigurationTool.SystemId);
     end;
 
-    internal procedure DeleteTool(ToolId: Guid)
+    internal procedure DeleteAPITool(APIToolId: Guid)
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        if not MCPConfigurationTool.GetBySystemId(ToolId) then
+        if not MCPConfigurationTool.GetBySystemId(APIToolId) then
             exit;
 
         MCPConfigurationTool.Delete();

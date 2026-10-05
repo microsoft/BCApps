@@ -267,11 +267,23 @@ codeunit 8350 "MCP Config"
     /// <summary>
     /// Deletes the specified API tool from the configuration.
     /// </summary>
-    /// <param name="ToolSystemId">The SystemId (GUID) of the tool to delete.</param>
+    /// <param name="APIToolSystemId">The SystemId (GUID) of the API tool to delete.</param>
+    procedure DeleteAPITool(APIToolSystemId: Guid)
+    begin
+        MCPConfigImplementation.DeleteAPITool(APIToolSystemId);
+    end;
+
+#if not CLEAN30
+    /// <summary>
+    /// Deletes the specified API tool from the configuration.
+    /// </summary>
+    /// <param name="ToolSystemId">The SystemId (GUID) of the API tool to delete.</param>
+    [Obsolete('Renamed to DeleteAPITool.', '30.0')]
     procedure DeleteTool(ToolSystemId: Guid)
     begin
-        MCPConfigImplementation.DeleteTool(ToolSystemId);
+        DeleteAPITool(ToolSystemId);
     end;
+#endif
 
     /// <summary>
     /// Deletes the specified agent tool from the configuration.

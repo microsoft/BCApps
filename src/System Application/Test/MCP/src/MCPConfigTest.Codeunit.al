@@ -561,6 +561,21 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestDeleteAPITool()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        APIToolId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        APIToolId := CreateMCPConfigTool(ConfigId);
+
+        MCPConfig.DeleteAPITool(APIToolId);
+
+        Assert.IsFalse(MCPConfigurationTool.GetBySystemId(APIToolId), 'API tool was not deleted');
+    end;
+
+    [Test]
     procedure TestCreateAPIToolSetsAPIVersion()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
