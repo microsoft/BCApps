@@ -830,7 +830,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
                             NewWarehouseActivityLine, TempTrackingSpecification,
                             RemQtyToPickBase, OutstandingQtyBase, ReservationExists, IsHandled);
                         if not IsHandled then begin
-                            ITQtyToPickBase := Abs(TempTrackingSpecification."Qty. to Handle (Base)");
+                            ITQtyToPickBase := Minimum(RemQtyToPickBase, Abs(TempTrackingSpecification."Qty. to Handle (Base)"));
                             TotalITQtyToPickBase += ITQtyToPickBase;
                             if ITQtyToPickBase > 0 then begin
                                 NewWarehouseActivityLine.CopyTrackingFromSpec(TempTrackingSpecification);

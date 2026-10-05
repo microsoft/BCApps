@@ -208,7 +208,7 @@ codeunit 1297 "Http Web Request Mgt."
         HttpWebRequest.Method := 'GET';
         HttpWebRequest.KeepAlive := true;
         HttpWebRequest.AllowAutoRedirect := true;
-        HttpWebRequest.UseDefaultCredentials := true;
+        HttpWebRequest.UseDefaultCredentials := false;
         HttpWebRequest.Timeout := 60000;
         HttpWebRequest.Accept('application/xml');
         HttpWebRequest.ContentType('application/xml');
@@ -217,7 +217,7 @@ codeunit 1297 "Http Web Request Mgt."
 
         GlobalSkipCheckHttps := true;
         GlobalProgressDialogEnabled := GuiAllowed;
-        TraceLogEnabled := true;
+        TraceLogEnabled := false;
     end;
 
     [Scope('OnPrem')]
@@ -363,6 +363,8 @@ codeunit 1297 "Http Web Request Mgt."
 
         FileStream := FileStream.FileStream(BodyFilePath, FileMode.Open);
         FileStream.CopyTo(HttpWebRequest.GetRequestStream());
+        FileStream.Close();
+        FileStream.Dispose();
     end;
 
     [Scope('OnPrem')]
@@ -392,6 +394,17 @@ codeunit 1297 "Http Web Request Mgt."
         Credential.UserName := BasicUserId;
         Credential.Password := BasicUserPassword.Unwrap();
         HttpWebRequest.Credentials := Credential;
+    end;
+
+    /// <summary>
+    /// Specifies whether the request is authenticated with the default credentials of the Business Central service account.
+    /// Default credentials are not sent unless explicitly enabled. Only enable this for trusted endpoints that require Windows authentication.
+    /// </summary>
+    /// <param name="UseDefaultCredentials">True to send the default credentials; otherwise, false.</param>
+    [Scope('OnPrem')]
+    procedure SetUseDefaultCredentials(UseDefaultCredentials: Boolean)
+    begin
+        HttpWebRequest.UseDefaultCredentials := UseDefaultCredentials;
     end;
 
     [Scope('OnPrem')]

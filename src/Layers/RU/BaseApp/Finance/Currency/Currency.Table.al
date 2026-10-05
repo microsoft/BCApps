@@ -756,6 +756,7 @@ table 4 Currency
             Caption = 'Currency Symbol Position';
             ToolTip = 'Specifies the position of the currency symbol in relation to the amount.';
             DataClassification = SystemMetadata;
+            InitValue = Default;
         }
 #if not CLEANSCHEMA26
         field(720; "Coupled to CRM"; Boolean)

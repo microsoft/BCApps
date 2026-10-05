@@ -346,6 +346,8 @@ table 6103 "E-Document Service"
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"E-Document Service", 'I')]
     internal procedure GetPDFReaderService()
+    var
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
         if Rec.Get(AzureDocumentIntelligenceTok) then
             exit;
@@ -357,6 +359,12 @@ table 6103 "E-Document Service"
         Rec."Automatic Import Processing" := "E-Doc. Automatic Processing"::No;
         Rec."Verify Purch. Total Amounts" := true;
         Rec.Insert(true);
+
+        EDocServiceSupportedType.Init();
+        EDocServiceSupportedType."E-Document Service Code" := Rec.Code;
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
+        EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
+        EDocServiceSupportedType.Insert(false);
     end;
 
     internal procedure IsAutomaticProcessingEnabled(): Boolean

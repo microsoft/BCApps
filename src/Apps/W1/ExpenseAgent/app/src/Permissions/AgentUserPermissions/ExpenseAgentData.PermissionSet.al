@@ -64,5 +64,6 @@ permissionset 6953 "Expense Agent - Data"
                   tabledata "Expense Agent Env. Consumption" = Ri,
                   tabledata "Tenant Feedback Setting" = R,
                   tabledata "EA Outbox Email" = RIM,
+                  tabledata Traveler = RIMD,
                   tabledata "Expense Activity Log Entry" = Rimd;
 }

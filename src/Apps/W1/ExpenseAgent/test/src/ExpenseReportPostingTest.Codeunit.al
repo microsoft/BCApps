@@ -8798,6 +8798,7 @@ codeunit 148302 "Expense Report Posting Test"
         SubmitterExpenseUser.Validate("E-mail", UserEmail);
         SubmitterExpenseUser.Validate("Can Approve", true);
         SubmitterExpenseUser.Validate("Entra Id", CreateGuid());
+        SubmitterExpenseUser.Validate("Unlimited Approval", true);
         SubmitterExpenseUser.Modify();
 
         LibraryDocumentApprovals.CreateMockupUserSetup(FinalApproverUserSetup);
@@ -8809,6 +8810,7 @@ codeunit 148302 "Expense Report Posting Test"
         ApproverExpenseUser.Validate("E-mail", UserEmail);
         ApproverExpenseUser.Validate("Can Approve", true);
         ApproverExpenseUser.Validate("Entra Id", CreateGuid());
+        ApproverExpenseUser.Validate("Unlimited Approval", true);
         ApproverExpenseUser.Modify();
 
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, SubmitterExpenseUser."No.", ApproverExpenseUser."No.");

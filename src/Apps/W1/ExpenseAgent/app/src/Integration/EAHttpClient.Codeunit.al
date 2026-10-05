@@ -6,6 +6,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using System;
+using System.Apps;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Environment;
@@ -421,6 +422,16 @@ codeunit 6941 "EA Http Client"
         if not TryGetJsonBoolean(AllowedToken.AsValue(), Allowed) then
             exit(false);
         exit(Allowed);
+    end;
+
+    [TryFunction]
+    internal procedure TryEnableHttpRequestForExpenseAgentApp()
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(CallerModuleInfo);
+        ExtensionManagement.ConfigureExtensionHttpClientRequestsAllowance(CallerModuleInfo.PackageId(), true);
     end;
 
     [TryFunction]

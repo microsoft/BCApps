@@ -11,6 +11,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -1363,6 +1364,74 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure RejectOrderActionReachableOnInboundSalesOrderDraft()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocumentSalesDraft: TestPage "E-Document Sales Draft";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Reject Order is reachable on the sales order draft page a seller opens for an inbound order.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+
+        EDocumentSalesDraft.Trap();
+        EDocumentHelper.OpenDraftPage(EDocument);
+
+        Assert.IsTrue(EDocumentSalesDraft.RejectOrder.Visible(), 'Reject Order should be reachable on the inbound sales order draft page.');
+        EDocumentSalesDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('RejectOrderConfirmHandler')]
+    procedure RejectOrderFromInboundSalesOrderDraftCreatesRejectionResponse()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessage: Record "E-Document Message";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocumentSalesDraft: TestPage "E-Document Sales Draft";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Rejecting an inbound order from the sales order draft creates an outgoing rejection response.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+        EDocumentService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
+        EDocumentService.Modify();
+
+        EDocumentSalesDraft.Trap();
+        EDocumentHelper.OpenDraftPage(EDocument);
+        EDocumentSalesDraft.RejectOrder.Invoke();
+        EDocumentSalesDraft.Close();
+
+        EDocumentMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentMessage.SetRange(Direction, "E-Document Direction"::Outgoing);
+        EDocumentMessage.SetRange("Response Type", "E-Doc. Response Type"::Rejected);
+        Assert.IsFalse(EDocumentMessage.IsEmpty(), 'Rejecting the order should create an outgoing rejection response.');
+    end;
+
+    [ConfirmHandler]
+    procedure RejectOrderConfirmHandler(Question: Text; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
+    [Test]
     procedure FinishDraftSalesOrder_CanBeUndone()
     var
         EDocument: Record "E-Document";
@@ -1438,6 +1507,78 @@ codeunit 139883 "E-Doc Process Test"
         Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'The status should be Processed after FinishDraft regardless of OrderTypeCode.');
         SalesHeader.Get(EDocument."Document Record ID");
         Assert.AreEqual("Sales Document Type"::Order, SalesHeader."Document Type", 'OrderTypeCode=221 should produce a Sales Order, not a Blanket Order.');
+    end;
+
+    [Test]
+    procedure FinishDraftSalesOrder_LineRequestedDeliveryDateDoesNotLeakFromHeader()
+    var
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocRecordLink: Record "E-Doc. Record Link";
+        EDocument: Record "E-Document";
+        EDocSalesHeader: Record "E-Document Sales Header";
+        EDocSalesLine: Record "E-Document Sales Line";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        // [SCENARIO] A PEPPOL Order XML has a header Requested Delivery Date, a first line with its own (different) Requested Delivery Date,
+        // and a second line with no Delivery block at all. FinishDraft must not let the header's date leak onto the second line.
+        Initialize(Enum::"Service Integration"::"Mock");
+        // Work date must be on/after the 'XYZ' currency's exchange rate start (22-Jan-2026, set up in Initialize)
+        // and on/before the XML's requested delivery dates (Feb 2026), or Sales Line validation blocks on a shipment date before work date.
+        WorkDate(DMY2Date(22, 1, 2026));
+        EDocRecordLink.DeleteAll();
+
+        // [GIVEN] The XML is parsed into staging records (header RDD = 15-Feb-2026, line 1 RDD = 20-Feb-2026, line 2 has no Delivery block)
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+
+        // [GIVEN] BC-resolved fields are set (customer + item), simulating what PrepareDraft would do
+        LibraryEDoc.GetGenericItem(Item);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."[BC] Customer No." := Customer."No.";
+        EDocSalesHeader.Modify();
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if EDocSalesLine.FindSet() then
+            repeat
+                EDocSalesLine."[BC] Sales Line Type" := "Sales Line Type"::Item;
+                EDocSalesLine."[BC] Sales Line No." := Item."No.";
+                EDocSalesLine.Modify();
+            until EDocSalesLine.Next() = 0;
+
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+
+        // [WHEN] FinishDraft runs with the real EDocCreateSalesOrder implementation
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+
+        // [THEN] The Sales Header gets the header's Requested Delivery Date
+        SalesHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual(DMY2Date(15, 2, 2026), SalesHeader."Requested Delivery Date", 'Sales Header Requested Delivery Date should match the XML header value.');
+
+        // [THEN] Line 1 (Widget A, E-Doc Line No. 10000) keeps its own, different Requested Delivery Date;
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindSet();
+        repeat
+            EDocRecordLink.SetRange("Target Table No.", Database::"Sales Line");
+            EDocRecordLink.SetRange("Target SystemId", SalesLine.SystemId);
+            EDocRecordLink.FindFirst();
+            EDocSalesLine.GetBySystemId(EDocRecordLink."Source SystemId");
+
+            case EDocSalesLine."Line No." of
+                10000:
+                    Assert.AreEqual(DMY2Date(20, 2, 2026), SalesLine."Requested Delivery Date", 'Line 1 Requested Delivery Date should match its own XML value, not the header.');
+                20000:
+                    Assert.AreEqual(0D, SalesLine."Requested Delivery Date", 'Line 2 Requested Delivery Date should stay blank, not leak the header value.');
+            end;
+        until SalesLine.Next() = 0;
     end;
 
     [Test]

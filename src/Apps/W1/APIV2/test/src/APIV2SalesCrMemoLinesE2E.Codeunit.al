@@ -20,6 +20,7 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         LibraryGraphDocumentTools: Codeunit "Library - Graph Document Tools";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryERM: Codeunit "Library - ERM";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryApplicationArea: Codeunit "Library - Application Area";
         IsInitialized: Boolean;
@@ -1267,7 +1268,6 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         Resource: Record "Resource";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         FixedAsset: Record "Fixed Asset";
-        LibraryERM: Codeunit "Library - ERM";
         LibraryResource: Codeunit "Library - Resource";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
     begin

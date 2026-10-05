@@ -164,7 +164,13 @@ page 6991 "Expense Agent Setup Wizard"
                                         ConfigUpdated();
                                         CurrPage.Update(true);
                                     end;
-                                end;
+                                end else
+                                    if Rec."Default Approver No." <> '' then
+                                        if Confirm(ClearDefaultApproverQst, false) then begin
+                                            Rec."Default Approver No." := '';
+                                            ConfigUpdated();
+                                            CurrPage.Update(true);
+                                        end;
                             end;
                         }
                     }
@@ -733,6 +739,7 @@ page 6991 "Expense Agent Setup Wizard"
                 {
                     Caption = 'Rate per unit';
                     ToolTip = 'Specifies the reimbursement amount per unit of distance used to calculate mileage expenses.';
+                    Enabled = StandardRateOfMileageEnabled;
 
                     trigger OnValidate()
                     begin
@@ -926,6 +933,7 @@ page 6991 "Expense Agent Setup Wizard"
 
         FeatureTelemetry.LogUptake('0000UBU', Rec.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
 
+        if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         IsConfigUpdated := false;
         LoadSetup();
         ExpenseDashboardUrl := GetExpenseDashboardUrl();
@@ -942,6 +950,7 @@ page 6991 "Expense Agent Setup Wizard"
 
     trigger OnAfterGetCurrRecord()
     var
+        MileageRateSetup: Record "Mileage Rate Setup";
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
     begin
         UpdateAgentSetupBuffer();
@@ -950,6 +959,7 @@ page 6991 "Expense Agent Setup Wizard"
         if Rec."Default Mileage UOM" = '' then
             Rec."Default Mileage UOM" := CreateExpenseAgentSetup.GetDefaultMileageUOM();
         RefreshPerDiemSummaries();
+        StandardRateOfMileageEnabled := MileageRateSetup.IsEmpty();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -1008,6 +1018,7 @@ page 6991 "Expense Agent Setup Wizard"
         PartialDayRuleEnabled: Boolean;
         UseCanaryEndpoint: Boolean;
         CanaryToggleVisible: Boolean;
+        StandardRateOfMileageEnabled: Boolean;
         PaymentMethodsLinkTxt: Label 'Preview the default payment methods that will be added';
         PaymentMethodsAppliedLinkTxt: Label 'View payment methods including new defaults';
         PostingGroupsLinkTxt: Label 'Preview the default expense posting groups that will be added';
@@ -1041,6 +1052,7 @@ page 6991 "Expense Agent Setup Wizard"
         AgentUserNameLbl: Label 'Expense Agent', Locked = true;
         AgentDisplayNameLbl: Label 'Expense Agent', MaxLength = 80;
         AgentSummaryLbl: Label 'Processes employee expense reports by extracting receipt data, validating against company policies, and routing for approval.';
+        ClearDefaultApproverQst: Label 'Do you want to remove the current default approver?';
 
     local procedure LoadSetup()
     var

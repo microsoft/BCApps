@@ -383,21 +383,9 @@ codeunit 10 "Type Helper"
 
     procedure EvaluateUnixTimestamp(Timestamp: BigInteger): DateTime
     var
-        ResultDateTime: DateTime;
-        EpochDateTime: DateTime;
-        TimezoneOffset: Duration;
-        TimestampInMilliseconds: BigInteger;
+        UnixTimestamp: Codeunit "Unix Timestamp";
     begin
-        if not GetUserTimezoneOffset(TimezoneOffset) then
-            TimezoneOffset := 0;
-
-        EpochDateTime := CreateDateTime(DMY2Date(1, 1, 1970), 0T);
-
-        TimestampInMilliseconds := Timestamp * 1000;
-
-        ResultDateTime := EpochDateTime + TimestampInMilliseconds + TimezoneOffset;
-
-        exit(ResultDateTime);
+        exit(UnixTimestamp.EvaluateTimestamp(Timestamp));
     end;
 
     procedure EvaluateUTCDateTime(DateTimeText: Text) EvaluatedDateTime: DateTime
@@ -1054,4 +1042,3 @@ codeunit 10 "Type Helper"
     begin
     end;
 }
-

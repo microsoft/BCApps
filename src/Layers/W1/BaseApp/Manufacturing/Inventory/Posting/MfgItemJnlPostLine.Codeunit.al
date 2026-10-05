@@ -32,9 +32,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         Location: Record Location;
         ManufacturingSetup: Record "Manufacturing Setup";
         WhseJnlLine: Record "Warehouse Journal Line";
-#if not CLEAN27
-        ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
-#endif
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
         ProdOrderWarehouseMgt: Codeunit "Prod. Order Warehouse Mgt.";
@@ -71,9 +68,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnPostConsumptionOnBeforeCheckOrderType(ProdOrderComp, ItemJnlLine, IsHandled);
-#if not CLEAN27
-        sender.RunOnPostConsumptionOnBeforeCheckOrderType(ProdOrderComp, ItemJnlLine, IsHandled);
-#endif
         if not IsHandled then
             ItemJnlLine.TestField("Order Type", ItemJnlLine."Order Type"::Production);
         ProdOrderComp.SetCurrentKey(Status, "Prod. Order No.", "Prod. Order Line No.", "Item No.", "Line No.");
@@ -91,14 +85,8 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         RemQtyToPost := ItemJnlLine.Quantity;
 
         OnPostConsumptionOnBeforeFindSetProdOrderComp(ProdOrderComp, ItemJnlLine);
-#if not CLEAN27
-        sender.RunOnPostConsumptionOnBeforeFindSetProdOrderComp(ProdOrderComp, ItemJnlLine);
-#endif
         if ProdOrderComp.FindSet() then begin
             OnPostConsumptionOnAfterFindProdOrderComp(ProdOrderComp);
-#if not CLEAN27
-            sender.RunOnPostConsumptionOnAfterFindProdOrderComp(ProdOrderComp);
-#endif
             if ItemJnlLine.TrackingExists() and not sender.GetSkipRetrieveItemTracking() then
                 UseItemTrackingApplication :=
                   MfgItemTrackingMgt.RetrieveConsumpItemTracking(ItemJnlLine, TempHandlingSpecification);
@@ -113,9 +101,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             repeat
                 IsHandled := false;
                 OnPostConsumptionOnBeforeCalcRemQtyToPostThisLine(ProdOrderComp, ItemJnlLine, TempHandlingSpecification, RemQtyToPost, UseItemTrackingApplication, LastLoop, IsHandled);
-#if not CLEAN27
-                sender.RunOnPostConsumptionOnBeforeCalcRemQtyToPostThisLine(ProdOrderComp, ItemJnlLine, TempHandlingSpecification, RemQtyToPost, UseItemTrackingApplication, LastLoop, IsHandled);
-#endif
                 if not IsHandled then
                     if UseItemTrackingApplication then begin
                         TempHandlingSpecification.SetRange("Source Ref. No.", ProdOrderComp."Line No.");
@@ -149,9 +134,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
                 ProdOrderComp.CalcFields("Act. Consumption (Qty)");
                 NewRemainingQty := ProdOrderComp."Expected Qty. (Base)" - ProdOrderComp."Act. Consumption (Qty)" - QtyToPost;
                 OnPostConsumptionOnAfterCalcNewRemainingQty(ProdOrderComp, NewRemainingQty, QtyToPost);
-#if not CLEAN27
-                sender.RunOnPostConsumptionOnAfterCalcNewRemainingQty(ProdOrderComp, NewRemainingQty, QtyToPost);
-#endif
                 NewRemainingQty := Round(NewRemainingQty, UOMMgt.QtyRndPrecision());
                 if (NewRemainingQty * ProdOrderComp."Expected Qty. (Base)") <= 0 then begin
                     QtyToPost := ProdOrderComp."Remaining Qty. (Base)";
@@ -166,9 +148,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
                 IsHandled := false;
                 OnPostConsumptionOnBeforeCalcRemainingQuantity(ProdOrderComp, ItemJnlLine, NewRemainingQty, QtyToPost, IsHandled, RemQtyToPost);
-#if not CLEAN27
-                sender.RunOnPostConsumptionOnBeforeCalcRemainingQuantity(ProdOrderComp, ItemJnlLine, NewRemainingQty, QtyToPost, IsHandled, RemQtyToPost);
-#endif
                 if not IsHandled then
                     ProdOrderComp."Remaining Quantity" := Round(ProdOrderComp."Remaining Qty. (Base)" / ProdOrderComp."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
 
@@ -186,9 +165,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
                             ItemJnlLine, ProdOrderComp, ProdOrderComp."Line No.", QtyToPost, true, ItemLedgEntryNo,
                             TempSplitItemJnlLine, sender);
                     OnPostConsumptionOnAfterInsertEntry(ProdOrderComp);
-#if not CLEAN27
-                    sender.RunOnPostConsumptionOnAfterInsertEntry(ProdOrderComp);
-#endif
                 end;
 
                 if UseItemTrackingApplication then begin
@@ -205,9 +181,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         end;
 
         OnPostConsumptionOnRemQtyToPostOnBeforeInsertConsumpEntry(ItemJnlLine, ProdOrderComp);
-#if not CLEAN27
-        sender.RunOnPostConsumptionOnRemQtyToPostOnBeforeInsertConsumpEntry(ItemJnlLine, ProdOrderComp);
-#endif
         IsHandled := false;
         OnPostConsumptionOnBeforeInsertRemainingConsumpEntry(ItemJnlLine, ProdOrderComp, IsHandled);
         if not IsHandled then
@@ -219,9 +192,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ProdOrderCompModified := false;
 
         OnAfterPostConsumption(ProdOrderComp, ItemJnlLine);
-#if not CLEAN27
-        sender.RunOnAfterPostConsumption(ProdOrderComp, ItemJnlLine);
-#endif
     end;
 
     local procedure CheckItemTrackingOfComp(GlobalItemTrackingSetup: Record "Item Tracking Setup"; TempHandlingSpecification: Record "Tracking Specification"; ItemJnlLine: Record "Item Journal Line")
@@ -233,9 +203,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ItemJnlLine.CheckTrackingIfRequired(ItemTrackingSetup2);
 
         OnAfterCheckItemTrackingOfComp(TempHandlingSpecification, ItemJnlLine);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnAfterCheckItemTrackingOfComp(TempHandlingSpecification, ItemJnlLine);
-#endif
     end;
 
     local procedure InsertConsumpEntry(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderComp: Record "Prod. Order Component"; ProdOrderCompLineNo: Integer; QtyBase: Decimal; ModifyProdOrderComp: Boolean; ItemLedgEntryNo: Integer; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var sender: Codeunit "Item Jnl.-Post Line")
@@ -243,9 +210,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         PostWhseJnlLine: Boolean;
     begin
         OnBeforeInsertConsumpEntry(ProdOrderComp, QtyBase, ModifyProdOrderComp, ItemJnlLine, TempSplitItemJnlLine);
-#if not CLEAN27
-        sender.RunOnBeforeInsertConsumpEntry(ProdOrderComp, QtyBase, ModifyProdOrderComp, ItemJnlLine, TempSplitItemJnlLine);
-#endif
 
         ItemJnlLine.Quantity := QtyBase;
         ItemJnlLine."Quantity (Base)" := QtyBase;
@@ -256,9 +220,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             if not sender.GetCalledFromInvtPutawayPick() then
                 ProdOrderCompReserve.TransferPOCompToItemJnlLine(ProdOrderComp, ItemJnlLine, QtyBase);
             OnBeforeProdOrderCompModify(ProdOrderComp, ItemJnlLine);
-#if not CLEAN27
-            sender.RunOnBeforeProdOrderCompModify(ProdOrderComp, ItemJnlLine);
-#endif
             ProdOrderComp.Modify();
         end;
 
@@ -273,18 +234,12 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         end;
 
         OnInsertConsumpEntryOnBeforePostItem(ItemJnlLine, ProdOrderComp, PostWhseJnlLine, WhseJnlLine);
-#if not CLEAN27
-        sender.RunOnInsertConsumpEntryOnBeforePostItem(ItemJnlLine, ProdOrderComp, PostWhseJnlLine, WhseJnlLine);
-#endif
 
         sender.PostItem(ItemJnlLine);
         if PostWhseJnlLine then
             sender.RegisterWhseJnlLine(WhseJnlLine);
 
         OnAfterInsertConsumpEntry(WhseJnlLine, ProdOrderComp, QtyBase, PostWhseJnlLine, ItemJnlLine, ItemLedgEntryNo);
-#if not CLEAN27
-        sender.RunOnAfterInsertConsumpEntry(WhseJnlLine, ProdOrderComp, QtyBase, PostWhseJnlLine, ItemJnlLine, ItemLedgEntryNo);
-#endif
     end;
 
     local procedure ReservationExists(ItemJnlLine: Record "Item Journal Line"): Boolean
@@ -296,9 +251,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforeReservationExists(ItemJnlLine, Result, IsHandled);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeReservationExists(ItemJnlLine, Result, IsHandled);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -442,17 +394,11 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         SkipInventoryValueZeroCheck: Boolean;
     begin
         OnBeforePostOutput(ItemJnlLine, SkipInventoryValueZeroCheck);
-#if not CLEAN27
-        sender.RunOnBeforePostOutput(ItemJnlLine);
-#endif
 
         if ItemJnlLine."Stop Time" <> 0 then begin
             sender.InsertCapLedgEntry(ItemJnlLine, CapLedgEntry, ItemJnlLine."Stop Time", ItemJnlLine."Stop Time");
             SkipPost := ItemJnlLine.OnlyStopTime();
             OnPostOutputOnAfterInsertCapLedgEntry(ItemJnlLine, SkipPost);
-#if not CLEAN27
-            sender.RunOnPostOutputOnAfterInsertCapLedgEntry(ItemJnlLine, SkipPost);
-#endif
             if SkipPost then
                 exit;
         end;
@@ -482,16 +428,10 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         sender.CalcDirAndIndirCostAmts(DirCostAmt, IndirCostAmt, ValuedQty, ItemJnlLine);
 
         OnPostOutputOnBeforeInsertCostValueEntries(ItemJnlLine, CapLedgEntry, ValuedQty, DirCostAmt, IndirCostAmt, sender);
-#if not CLEAN27
-        sender.RunOnPostOutputOnBeforeInsertCostValueEntries(ItemJnlLine, CapLedgEntry, ValuedQty, DirCostAmt, IndirCostAmt);
-#endif
         sender.InsertCapValueEntry(ItemJnlLine, CapLedgEntry, ItemJnlLine."Value Entry Type"::"Direct Cost", ValuedQty, ValuedQty, DirCostAmt);
         sender.InsertCapValueEntry(ItemJnlLine, CapLedgEntry, ItemJnlLine."Value Entry Type"::"Indirect Cost", ValuedQty, 0, IndirCostAmt);
 
         OnPostOutputOnAfterInsertCostValueEntries(ItemJnlLine, CapLedgEntry, sender.GetCalledFromAdjustment(), sender.GetPostToGL(), sender);
-#if not CLEAN27
-        sender.RunOnPostOutputOnAfterInsertCostValueEntries(ItemJnlLine, CapLedgEntry, sender.GetCalledFromAdjustment(), sender.GetPostToGL());
-#endif
 
         if LastOperation and (ItemJnlLine."Output Quantity" <> 0) then begin
             sender.CheckItemTracking(ItemJnlLine);
@@ -505,9 +445,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
             IsHandled := false;
             OnPostOutputOnBeforeGetMfgAmounts(ItemJnlLine, ProdOrder, IsHandled);
-#if not CLEAN27
-            sender.RunOnPostOutputOnBeforeGetMfgAmounts(ItemJnlLine, ProdOrder, IsHandled);
-#endif
             if not IsHandled then begin
                 MfgItem.Get(ProdOrderLine."Item No.");
                 MfgItem.TestField("Gen. Prod. Posting Group");
@@ -519,16 +456,10 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
                     else
                         MfgUnitCost := MfgItem."Unit Cost";
                 OnPostOutputOnAfterSetMfgUnitCost(ItemJnlLine, MfgUnitCost, ProdOrderLine);
-#if not CLEAN27
-                sender.RunOnPostOutputOnAfterSetMfgUnitCost(ItemJnlLine, MfgUnitCost, ProdOrderLine);
-#endif
 
                 ItemJnlLine.Amount := ItemJnlLine."Output Quantity" * MfgUnitCost;
                 ItemJnlLine."Amount (ACY)" := ACYMgt.CalcACYAmt(ItemJnlLine.Amount, ItemJnlLine."Posting Date", false);
                 OnPostOutputOnAfterUpdateAmounts(ItemJnlLine);
-#if not CLEAN27
-                sender.RUnOnPostOutputOnAfterUpdateAmounts(ItemJnlLine);
-#endif
 
                 ItemJnlLine."Gen. Bus. Posting Group" := ProdOrder."Gen. Bus. Posting Group";
                 ItemJnlLine."Gen. Prod. Posting Group" := MfgItem."Gen. Prod. Posting Group";
@@ -542,9 +473,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
             PostWhseJnlLine := true;
             OnPostOutputOnBeforeCreateWhseJnlLine(ItemJnlLine, PostWhseJnlLine);
-#if not CLEAN27
-            sender.RunOnPostOutputOnBeforeCreateWhseJnlLine(ItemJnlLine, PostWhseJnlLine);
-#endif
             if PostWhseJnlLine then begin
                 GetLocation(ItemJnlLine."Location Code");
                 if Location."Bin Mandatory" and (not sender.GetCalledFromInvtPutawayPick()) then
@@ -554,9 +482,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
                     end;
             end;
             OnPostOutputOnAfterCreateWhseJnlLine(ItemJnlLine);
-#if not CLEAN27
-            sender.RunOnPostOutputOnAfterCreateWhseJnlLine(ItemJnlLine);
-#endif
 
             if ItemJnlLine.Subcontracting and ItemJnlLine.Correction then
                 ItemJnlLineSubContracting := ItemJnlLine;
@@ -571,23 +496,14 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
             IsHandled := false;
             OnPostOutputOnBeforePostItem(ItemJnlLine, ProdOrderLine, IsHandled);
-#if not CLEAN27
-            sender.RunOnPostOutputOnBeforePostItem(ItemJnlLine, ProdOrderLine, IsHandled);
-#endif
             if not IsHandled then
                 sender.PostItem(ItemJnlLine);
 
             IsHandled := false;
             OnPostOutputOnBeforeUpdateProdOrderLine(ItemJnlLine, IsHandled);
-#if not CLEAN27
-            sender.RunOnPostOutputOnBeforeUpdateProdOrderLine(ItemJnlLine, IsHandled);
-#endif
             if not IsHandled then begin
                 UpdateProdOrderLine(ItemJnlLine, ProdOrderLine, ReTrack, sender.GetItemLedgerEntryNo());
                 OnPostOutputOnAfterUpdateProdOrderLine(ItemJnlLine, WhseJnlLine, GlobalItemLedgerEntry);
-#if not CLEAN27
-                sender.RunOnPostOutputOnAfterUpdateProdOrderLine(ItemJnlLine, WhseJnlLine, GlobalItemLedgerEntry);
-#endif
             end;
 
             if PostWhseJnlLine then
@@ -603,9 +519,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         end;
 
         OnAfterPostOutput(GlobalItemLedgerEntry, ProdOrderLine, ItemJnlLine);
-#if not CLEAN27
-        sender.RunOnAfterPostOutput(GlobalItemLedgerEntry, ProdOrderLine, ItemJnlLine);
-#endif
     end;
 
     local procedure GetItem(ItemNo: Code[20]; ForceGetItem: Boolean): Boolean
@@ -640,9 +553,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforePostOutputForProdOrder(ItemJnlLine, LastOperation, IsHandled);
-#if not CLEAN27
-        sender.RunOnBeforePostOutputForProdOrder(ItemJnlLine, LastOperation, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -659,9 +569,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ProdOrderRtngLine.SetRange("Routing Reference No.", ItemJnlLine."Routing Reference No.");
         ProdOrderRtngLine.SetRange("Routing No.", ItemJnlLine."Routing No.");
         OnPostOutputOnAfterProdOrderRtngLineSetFilters(ProdOrderRtngLine);
-#if not CLEAN27
-        sender.RunOnPostOutputOnAfterProdOrderRtngLineSetFilters(ProdOrderRtngLine);
-#endif
         if not ProdOrderRtngLine.IsEmpty() then begin
             ItemJnlLine.TestField("Operation No.");
             ItemJnlLine.TestField("No.");
@@ -675,9 +582,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
             ApplyCapNeed(ItemJnlLine, ItemJnlLine."Setup Time (Base)", ItemJnlLine."Run Time (Base)");
             OnPostOutputForProdOrderOnAfterApplyCapNeed(ItemJnlLine, ValuedQty);
-#if not CLEAN27
-            sender.RunOnPostOutputForProdOrderOnAfterApplyCapNeed(ItemJnlLine, ValuedQty);
-#endif
         end;
 
         if ItemJnlLine."Operation No." <> '' then
@@ -692,9 +596,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
         ShouldFlushOperation := ItemJnlLine."Output Quantity" >= 0;
         OnBeforeCallFlushOperation(ItemJnlLine, ShouldFlushOperation);
-#if not CLEAN27
-        sender.RunOnBeforeCallFlushOperation(ItemJnlLine, ShouldFlushOperation);
-#endif
         if ShouldFlushOperation then
             FlushOperation(
                 ItemJnlLine, ProdOrder, ProdOrderLine, GlobalItemTrackingSetup, GlobalItemTrackingCode, LastOperation, sender);
@@ -706,9 +607,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforeGetOutputProdOrder(ProdOrder, ItemJnlLine, IsHandled);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeGetOutputProdOrder(ProdOrder, ItemJnlLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -721,9 +619,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforeGetOutputProdOrderLine(ProdOrderLine, ItemJnlLine, IsHandled);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeGetOutputProdOrderLine(ProdOrderLine, ItemJnlLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -736,9 +631,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforeGetProdOrderRoutingLine(ProdOrderRoutingLine, OldItemJnlLine, IsHandled);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeGetProdOrderRoutingLine(ProdOrderRoutingLine, OldItemJnlLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -754,9 +646,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforePostOutputUpdateProdOrderRtngLine(ProdOrderRtngLine, ItemJnlLine, IsHandled);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforePostOutputUpdateProdOrderRtngLine(ProdOrderRtngLine, ItemJnlLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -767,18 +656,12 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             ProdOrderRtngLine."Routing Status" := ProdOrderRtngLine."Routing Status"::"In Progress";
         LastOperation := (not NextOperationExist(ProdOrderRtngLine));
         OnPostOutputOnBeforeProdOrderRtngLineModify(ProdOrderRtngLine, ProdOrderLine, ItemJnlLine, LastOperation);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnPostOutputOnBeforeProdOrderRtngLineModify(ProdOrderRtngLine, ProdOrderLine, ItemJnlLine, LastOperation);
-#endif 
         ProdOrderRtngLine.Modify();
     end;
 
     local procedure NextOperationExist(var ProdOrderRtngLine: Record "Prod. Order Routing Line"): Boolean
     begin
         OnBeforeNextOperationExist(ProdOrderRtngLine);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeNextOperationExist(ProdOrderRtngLine);
-#endif
         exit(ProdOrderRtngLine."Next Operation No." <> '');
     end;
 
@@ -795,9 +678,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             CapQty := ItemJnlLine.Quantity + ItemJnlLine."Scrap Quantity";
 
         OnAfterCalcCapQty(ItemJnlLine, CapQty);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnAfterCalcCapQty(ItemJnlLine, CapQty);
-#endif
     end;
 
     local procedure ApplyCapNeed(var ItemJnlLine: Record "Item Journal Line"; PostedSetupTime: Decimal; PostedRunTime: Decimal)
@@ -811,9 +691,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforeOnApplyCapNeed(ItemJnlLine, PostedSetupTime, PostedRunTime, IsHandled);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeOnApplyCapNeed(ItemJnlLine, PostedSetupTime, PostedRunTime, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -832,9 +709,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             ProdOrderCapNeed.ModifyAll("Allocated Time", 0)
         else begin
             OnApplyCapNeedOnAfterSetFilters(ProdOrderCapNeed, ItemJnlLine);
-#if not CLEAN27
-            ItemJnlPostLine.RunOnApplyCapNeedOnAfterSetFilters(ProdOrderCapNeed, ItemJnlLine);
-#endif
             CalcCapLedgerEntriesSetupRunTime(ItemJnlLine, PrevSetupTime, PrevRunTime);
 
             if PostedSetupTime <> 0 then begin
@@ -876,9 +750,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         CapLedgerEntry.SetRange("Routing Reference No.", ItemJnlLine."Routing Reference No.");
         CapLedgerEntry.SetRange("Operation No.", ItemJnlLine."Operation No.");
         OnCalcCapLedgerEntriesSetupRunTimeOnAfterCapLedgerEntrySetFilters(CapLedgerEntry, ItemJnlLine);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnCalcCapLedgerEntriesSetupRunTimeOnAfterCapLedgerEntrySetFilters(CapLedgerEntry, ItemJnlLine);
-#endif
 
         CapLedgerEntry.CalcSums("Setup Time", "Run Time");
         TotalSetupTime := CapLedgerEntry."Setup Time";
@@ -890,9 +761,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ReservMgt: Codeunit "Reservation Management";
     begin
         OnBeforeUpdateProdOrderLine(ProdOrderLine, ItemJnlLine, ReTrack);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeUpdateProdOrderLine(ProdOrderLine, ItemJnlLine, ReTrack);
-#endif
 
         if ItemJnlLine."Output Quantity (Base)" > ProdOrderLine."Remaining Qty. (Base)" then
             ProdOrderLineReserve.AssignForPlanning(ProdOrderLine);
@@ -905,9 +773,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             ProdOrderLine."Remaining Qty. (Base)" := 0;
         ProdOrderLine."Remaining Quantity" := ProdOrderLine."Remaining Qty. (Base)" / ProdOrderLine."Qty. per Unit of Measure";
         OnBeforeProdOrderLineModify(ProdOrderLine, ItemJnlLine, ItemLedgEntryNo);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeProdOrderLineModify(ProdOrderLine, ItemJnlLine, ItemLedgEntryNo);
-#endif
         ProdOrderLine.Modify();
 
         if ReTrack then begin
@@ -917,9 +782,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         end;
 
         OnAfterUpdateProdOrderLine(ProdOrderLine, ReTrack, ItemJnlLine);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnAfterUpdateProdOrderLine(ProdOrderLine, ReTrack, ItemJnlLine);
-#endif
     end;
 
     local procedure FlushOperation(
@@ -936,9 +798,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         xCalledFromInvtPutawayPick: Boolean;
     begin
         OnBeforeFlushOperation(ProdOrder, ProdOrderLine, ItemJnlLine, LastOperation);
-#if not CLEAN27
-        sender.RunOnBeforeFlushOperation(ProdOrder, ProdOrderLine, ItemJnlLine, LastOperation);
-#endif
 
         if ItemJnlLine."Operation No." = '' then
             exit;
@@ -954,9 +813,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
         GetProdOrderRoutingLine(ProdOrderRoutingLine, ItemJnlLineSaved);
         OnFlushOperationOnBeforeCheckRoutingLinkCode(ProdOrder, ProdOrderLine, ProdOrderRoutingLine, ItemJnlLine, LastOperation);
-#if not CLEAN27
-        sender.RunOnFlushOperationOnBeforeCheckRoutingLinkCode(ProdOrder, ProdOrderLine, ProdOrderRoutingLine, ItemJnlLine, LastOperation);
-#endif
         if ProdOrderRoutingLine."Routing Link Code" <> '' then begin
             ProdOrderComp.SetCurrentKey(Status, "Prod. Order No.", "Routing Link Code", "Flushing Method");
             ProdOrderComp.SetRange("Flushing Method", ProdOrderComp."Flushing Method"::Forward, ProdOrderComp."Flushing Method"::"Pick + Backward");
@@ -965,9 +821,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             ProdOrderComp.SetRange("Prod. Order No.", ItemJnlLineSaved."Order No.");
             ProdOrderComp.SetRange("Prod. Order Line No.", ItemJnlLineSaved."Order Line No.");
             OnFlushOperationOnAfterProdOrderCompSetFilters(ProdOrderComp, ItemJnlLineSaved, ProdOrderRoutingLine);
-#if not CLEAN27
-            sender.RunOnFlushOperationOnAfterProdOrderCompSetFilters(ProdOrderComp, ItemJnlLineSaved, ProdOrderRoutingLine);
-#endif
             if ProdOrderComp.FindSet() then begin
                 sender.SetSkipRetrieveItemTracking(true);
                 repeat
@@ -985,9 +838,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         sender.SetCalledFromInvtPutawayPick(xCalledFromInvtPutawayPick);
 
         OnAfterFlushOperation(ProdOrder, ProdOrderLine, ItemJnlLine);
-#if not CLEAN27
-        sender.RunOnAfterFlushOperation(ProdOrder, ProdOrderLine, ItemJnlLine);
-#endif
     end;
 
     procedure PostFlushedConsumption(var ItemJnlLine: Record "Item Journal Line"; ProdOrder: Record "Production Order"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderComp: Record "Prod. Order Component"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line"; var sender: Codeunit "Item Jnl.-Post Line")
@@ -1003,9 +853,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforePostFlushedConsump(ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine, IsHandled);
-#if not CLEAN27
-        sender.RunOnBeforePostFlushedConsump(ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -1015,9 +862,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         CompItem.TestField("Rounding Precision");
 
         OnPostFlushedConsumptionOnBeforeCalcQtyToPost(ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine, OutputQtyBase);
-#if not CLEAN27
-        sender.RunOnPostFlushedConsumptionOnBeforeCalcQtyToPost(ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine, OutputQtyBase);
-#endif
         if ProdOrderComp."Flushing Method" in
            [ProdOrderComp."Flushing Method"::Backward, ProdOrderComp."Flushing Method"::"Pick + Backward"]
         then begin
@@ -1033,9 +877,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
             QtyToPost := ProdOrderComp.GetNeededQty(CalcBasedOn::"Expected Output", true);
         QtyToPost := UOMMgt.RoundToItemRndPrecision(QtyToPost, CompItem."Rounding Precision");
         OnPostFlushedConsumpOnAfterCalcQtyToPost(ProdOrder, ProdOrderLine, ProdOrderComp, OutputQtyBase, QtyToPost, OldItemJnlLine, ProdOrderRoutingLine, CompItem);
-#if not CLEAN27
-        sender.RunOnPostFlushedConsumpOnAfterCalcQtyToPost(ProdOrder, ProdOrderLine, ProdOrderComp, OutputQtyBase, QtyToPost, OldItemJnlLine, ProdOrderRoutingLine, CompItem);
-#endif
         if QtyToPost = 0 then
             exit;
 
@@ -1067,34 +908,22 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ItemJnlLine."Gen. Bus. Posting Group" := ProdOrder."Gen. Bus. Posting Group";
         ItemJnlLine."Gen. Prod. Posting Group" := CompItem."Gen. Prod. Posting Group";
         OnPostFlushedConsumpOnAfterCopyProdOrderFieldsToItemJnlLine(ItemJnlLine, OldItemJnlLine, ProdOrderLine, ProdOrderComp, CompItem);
-#if not CLEAN27
-        sender.RunOnPostFlushedConsumpOnAfterCopyProdOrderFieldsToItemJnlLine(ItemJnlLine, OldItemJnlLine, ProdOrderLine, ProdOrderComp, CompItem);
-#endif
 
         TempTrackingSpecificationSaved.Reset();
         TempTrackingSpecificationSaved.DeleteAll();
         sender.SaveTempTrackingSpecification(TempTrackingSpecificationSaved);
 
         OnPostFlushedConsumpOnBeforeProdOrderCompReserveTransferPOCompToItemJnlLine(ItemJnlLine, ProdOrderComp);
-#if not CLEAN27
-        sender.RunOnPostFlushedConsumpOnBeforeProdOrderCompReserveTransferPOCompToItemJnlLine(ItemJnlLine, ProdOrderComp);
-#endif
         ProdOrderCompReserve.TransferPOCompToItemJnlLine(
           ProdOrderComp, ItemJnlLine, Round(QtyToPost * ProdOrderComp."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()));
 
         OnBeforePostFlushedConsumpItemJnlLine(ItemJnlLine);
-#if not CLEAN27
-        sender.RunOnBeforePostFlushedConsumpItemJnlLine(ItemJnlLine);
-#endif
         sender.PostFlushedConsumptionItemJnlLine(
             ItemJnlLine, GetCombinedDimSetID(ProdOrderLine."Dimension Set ID", ProdOrderComp."Dimension Set ID"));
 
         sender.RestoreTempTrackingSpecification(TempTrackingSpecificationSaved);
 
         OnAfterPostFlushedConsump(ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine);
-#if not CLEAN27
-        sender.RunOnAfterPostFlushedConsump(ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine);
-#endif
     end;
 
     local procedure GetCombinedDimSetID(DimSetID1: Integer; DimSetID2: Integer): Integer
@@ -1151,9 +980,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforeGetProdOrderLine(ProdOrderLine, OrderNo, OrderLineNo, IsHandled);
-#if not CLEAN27
-        ItemJnlPostLine.RunOnBeforeGetProdOrderLine(ProdOrderLine, OrderNo, OrderLineNo, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -1172,9 +998,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
         IsHandled := false;
         OnCorrectOutputValuationDateOnBeforeCheckProdOrder(ItemLedgerEntry, IsHandled);
-#if not CLEAN27
-        sender.RunOnCorrectOutputValuationDateOnBeforeCheckProdOrder(ItemLedgerEntry, IsHandled);
-#endif
         if not IsHandled then
             if not ProductionOrder.Get(ProductionOrder.Status::Released, ItemLedgerEntry."Order No.") then
                 exit;
@@ -1188,9 +1011,6 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ValueEntry.SetRange("Order Line No.", ItemLedgerEntry."Order Line No.");
         ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Output);
         OnCorrectOutputValuationDateOnBeforeValueEntryFindSet(ValueEntry);
-#if not CLEAN27
-        sender.RunOnCorrectOutputValuationDateOnBeforeValueEntryFindSet(ValueEntry);
-#endif
         if ValueEntry.FindSet() then
             repeat
                 TempValueEntry := ValueEntry;

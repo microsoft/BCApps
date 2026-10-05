@@ -1252,14 +1252,14 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for internal procedure HandleNotificationActionIgnore from Qlty. Notification Mgmt. codeunit.
+    /// Wrapper for internal procedure HandleDontShowAssignToYourself from Qlty. Notification Mgmt. codeunit.
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
-    internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
+    internal procedure HandleDontShowAssignToYourself(NotificationToShow: Notification)
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
-        QltyNotificationMgmt.HandleNotificationActionIgnore(NotificationToShow);
+        QltyNotificationMgmt.HandleDontShowAssignToYourself(NotificationToShow);
     end;
 
     #endregion Qlty. Notification Mgmt. Wrappers

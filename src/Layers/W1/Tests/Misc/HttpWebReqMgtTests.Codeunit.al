@@ -91,6 +91,25 @@ codeunit 134297 "Http Web Req. Mgt. Tests"
         // No validation - other than the function passes
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestSetUseDefaultCredentials()
+    var
+        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+    begin
+        // [GIVEN] Everything set up for new request on prem.
+        Initialize();
+        LibraryLowerPermissions.SetO365Basic();
+
+        // [WHEN] We initialize Http Web Request Management with a new Url and opt in and out of default credentials
+        HttpWebRequestMgt.Initialize(UrlTok);
+        HttpWebRequestMgt.SetUseDefaultCredentials(true);
+        HttpWebRequestMgt.SetUseDefaultCredentials(false);
+
+        // [THEN]
+        // No validation - other than the function passes
+    end;
+
     [Scope('OnPrem')]
     procedure Initialize()
     begin

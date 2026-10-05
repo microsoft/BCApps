@@ -88,6 +88,7 @@ codeunit 5278 "Create No. Series"
         ContosoNoSeries.InsertNoSeries(TransferOrder(), TransferOrderLbl, '1001', '2999', '2995', '', 1, Enum::"No. Series Implementation"::Normal, false);
         ContosoNoSeries.InsertNoSeries(TransferShipment(), TransferShipmentLbl, '108001', '109999', '109995', '', 1, Enum::"No. Series Implementation"::Normal, false);
         ContosoNoSeries.InsertNoSeries(TransferReceipt(), TransferReceiptLbl, '109001', '1010999', '1010995', '', 1, Enum::"No. Series Implementation"::Normal, false);
+        ContosoNoSeries.InsertNoSeries(SpendRequest(), SpendRequestLbl, '10001', '19999', '19995', '', 1, Enum::"No. Series Implementation"::Sequence, false);
     end;
 
     procedure AssemblyBlanketOrders(): Code[20]
@@ -466,6 +467,11 @@ codeunit 5278 "Create No. Series"
         exit(TransferReceiptTok);
     end;
 
+    procedure SpendRequest(): Text[20]
+    begin
+        exit(SpendRequestTok);
+    end;
+
     var
         AssemblyBlanketOrdersLbl: Label 'Assembly Blanket Orders', MaxLength = 100;
         AssemblyOrdersLbl: Label 'Assembly Orders', MaxLength = 100;
@@ -546,5 +552,6 @@ codeunit 5278 "Create No. Series"
         TransferShipmentLbl: Label 'Transfer Shipment', MaxLength = 100;
         TransferReceiptTok: Label 'T-RCPT', MaxLength = 20;
         TransferReceiptLbl: Label 'Transfer Receipt', MaxLength = 100;
-
+        SpendRequestTok: Label 'SPENDRQ', MaxLength = 20;
+        SpendRequestLbl: Label 'Spend Request', MaxLength = 100;
 }

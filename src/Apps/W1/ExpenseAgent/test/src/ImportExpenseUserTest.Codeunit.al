@@ -18,8 +18,11 @@ codeunit 148316 "Import Expense User Test"
         Assert: Codeunit "Assert";
         LibraryExpense: Codeunit "Library - Expense";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryTemplates: Codeunit "Library - Templates";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        NoEligibleExpenseUsersErr: Label 'There are no selected expense users eligible for employee creation.';
+        EmployeesCreatedMsg: Label 'Employee creation completed for %1 expense user(s).', Comment = '%1 = number of processed expense users';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -302,6 +305,81 @@ codeunit 148316 "Import Expense User Test"
         Assert.AreEqual(SecondApprover."No.", ExpenseApprovalSetup."Approver No.", 'Approver No. should have been reassigned to the new Default Approver.');
     end;
 
+    [Test]
+    procedure CreateEmployeesFromExpenseUsersErrorsWhenNoEligibleSelectedUsers()
+    var
+        ExpenseUser: Record "Expense User";
+        SelectedExpenseUsers: Record "Expense User";
+    begin
+        // [SCENARIO 624708] CreateEmployeesFromExpenseUsers throws when selected users are not eligible for employee creation.
+        Initialize();
+        LibraryExpense.UpdateCreateEmpForExpenseUsersInAgentSetup(true);
+
+        // [GIVEN] Two Expense Users selected, both with blank email so they are ineligible.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser.Validate("Employee No.", '');
+        ExpenseUser.Validate(Name, CopyStr('User ' + Format(LibraryRandom.RandIntInRange(1, 100000)), 1, MaxStrLen(ExpenseUser.Name)));
+        ExpenseUser.Validate("E-mail", '');
+        ExpenseUser.Modify(true);
+
+        SelectedExpenseUsers.SetRange("No.", ExpenseUser."No.");
+
+        // [WHEN] Bulk create employee is invoked for the selected users.
+        asserterror ExpenseUser.CreateEmployeesFromExpenseUsers(SelectedExpenseUsers);
+
+        // [THEN] The expected eligibility error is shown.
+        Assert.ExpectedError(NoEligibleExpenseUsersErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,EmployeeTemplateHandler')]
+    procedure CreateEmployeesFromExpenseUsersProcessesOnlyEligibleSelectedUsers()
+    var
+        EligibleExpenseUser: Record "Expense User";
+        IneligibleExpenseUser: Record "Expense User";
+        SelectedExpenseUsers: Record "Expense User";
+        EmployeeTempl: array[2] of Record "Employee Templ.";
+        EligibleEmail: Text[80];
+    begin
+        // [SCENARIO 624708] CreateEmployeesFromExpenseUsers creates employees only for selected eligible users.
+        Initialize();
+        LibraryExpense.UpdateCreateEmpForExpenseUsersInAgentSetup(true);
+
+        // [GIVEN] Template feature is enabled and the handler will select the second template.
+        LibraryTemplates.EnableTemplatesFeature();
+        LibraryTemplates.CreateEmployeeTemplateWithData(EmployeeTempl[1]);
+        LibraryTemplates.CreateEmployeeTemplateWithData(EmployeeTempl[2]);
+        LibraryVariableStorage.Enqueue(EmployeeTempl[2].Code);
+
+        // [GIVEN] One eligible selected Expense User (blank Employee No., non-blank Name and E-mail).
+        LibraryExpense.CreateExpenseUser(EligibleExpenseUser);
+        EligibleExpenseUser.Validate("Employee No.", '');
+        EligibleExpenseUser.Validate(Name, CopyStr('Eligible ' + Format(LibraryRandom.RandIntInRange(1, 100000)), 1, MaxStrLen(EligibleExpenseUser.Name)));
+        EligibleEmail := CopyStr(LibraryUtility.GenerateRandomEmail(), 1, MaxStrLen(EligibleExpenseUser."E-mail"));
+        EligibleExpenseUser.Validate("E-mail", EligibleEmail);
+        EligibleExpenseUser.Modify(true);
+
+        // [GIVEN] One selected but ineligible Expense User (blank Employee No., blank E-mail).
+        LibraryExpense.CreateExpenseUser(IneligibleExpenseUser);
+        IneligibleExpenseUser.Validate("Employee No.", '');
+        IneligibleExpenseUser.Validate(Name, CopyStr('Ineligible ' + Format(LibraryRandom.RandIntInRange(1, 100000)), 1, MaxStrLen(IneligibleExpenseUser.Name)));
+        IneligibleExpenseUser.Validate("E-mail", '');
+        IneligibleExpenseUser.Modify(true);
+
+        SelectedExpenseUsers.SetFilter("No.", '%1|%2', EligibleExpenseUser."No.", IneligibleExpenseUser."No.");
+
+        // [WHEN] Bulk create employee is invoked.
+        LibraryVariableStorage.Enqueue(StrSubstNo(EmployeesCreatedMsg, 1));
+        EligibleExpenseUser.CreateEmployeesFromExpenseUsers(SelectedExpenseUsers);
+
+        // [THEN] Only the eligible user got linked to an employee.
+        EligibleExpenseUser.Get(EligibleExpenseUser."No.");
+        Assert.AreNotEqual('', EligibleExpenseUser."Employee No.", 'Eligible expense user must be linked to an employee.');
+
+        IneligibleExpenseUser.Get(IneligibleExpenseUser."No.");
+        Assert.AreEqual('', IneligibleExpenseUser."Employee No.", 'Ineligible expense user must remain without an employee link.');
+    end;
+
     local procedure CreateApproverExpenseUser(var ApproverExpenseUser: Record "Expense User")
     begin
         LibraryExpense.CreateExpenseUser(ApproverExpenseUser);
@@ -366,5 +444,15 @@ codeunit 148316 "Import Expense User Test"
     procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure EmployeeTemplateHandler(var EmployeeTemplateList: Page "Select Employee Templ. List"; var Reply: Action)
+    var
+        EmployeeTemplate: Record "Employee Templ.";
+    begin
+        EmployeeTemplate.Get(LibraryVariableStorage.DequeueText());
+        EmployeeTemplateList.SetRecord(EmployeeTemplate);
+        Reply := Action::LookupOK;
     end;
 }

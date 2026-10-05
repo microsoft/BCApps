@@ -1672,6 +1672,16 @@
   {
     "codeunitId": 138702,
     "codeunitName": "Retention Policy Test",
+    "method": "TestApplyRetentionPolicyContinuesAfterPolicyError"
+  },
+  {
+    "codeunitId": 138702,
+    "codeunitName": "Retention Policy Test",
+    "method": "TestApplyRetentionPolicyContinuesBelowLimitAcrossTables"
+  },
+  {
+    "codeunitId": 138702,
+    "codeunitName": "Retention Policy Test",
     "method": "TestApplyRetentionPolicyDeleteMaxLinesBufferOneTable"
   },
   {
@@ -1728,6 +1738,16 @@
     "codeunitId": 138702,
     "codeunitName": "Retention Policy Test",
     "method": "TestApplyRetentionPolicyOldestRecordMatchesExpirationDate"
+  },
+  {
+    "codeunitId": 138702,
+    "codeunitName": "Retention Policy Test",
+    "method": "TestApplyRetentionPolicyStopsAtLimitAcrossTables"
+  },
+  {
+    "codeunitId": 138702,
+    "codeunitName": "Retention Policy Test",
+    "method": "TestApplyRetentionPolicyStopsWithRecordsRemainingAcrossTables"
   },
   {
     "codeunitId": 138702,

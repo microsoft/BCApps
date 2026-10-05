@@ -1067,8 +1067,19 @@ codeunit 143006 "Library - SII"
         XMLDoc.Save(XmlStream);
         XmlFile.Close();
 
-        XsdPath := GetInetRoot() + '\GDL\ES\App\Test\SIIxmlschema\SuministroLR.xsd';
+        XsdPath := ResolveTestAssetPath('\GDL\ES\App\Test\SiiXmlSchema\SuministroLR.xsd');
         Assert.IsTrue(LibraryVerifyXMLSchema.VerifyXMLAgainstSchema(XmlPath, XsdPath, Message), Message);
+    end;
+
+    local procedure ResolveTestAssetPath(RelativePath: Text): Text
+    var
+        FileManagement: Codeunit "File Management";
+        BCAppsAssetPath: Text;
+    begin
+        BCAppsAssetPath := GetInetRoot() + '\App\BCApps\src' + RelativePath;
+        if FileManagement.ServerFileExists(BCAppsAssetPath) then
+            exit(BCAppsAssetPath);
+        exit(GetInetRoot() + RelativePath);
     end;
 
     [Scope('OnPrem')]

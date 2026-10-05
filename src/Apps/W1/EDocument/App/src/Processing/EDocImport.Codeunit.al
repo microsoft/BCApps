@@ -693,6 +693,7 @@ codeunit 6140 "E-Doc. Import"
         EDocExport: Codeunit "E-Doc. Export";
         SourceDocumentHeaderMapped, SourceDocumentLineMapped : RecordRef;
         EDocInterface: Interface "E-Document";
+        ErrorText: Text;
     begin
         OnBeforePrepareReceivedDoc(EDocument, TempBlob, SourceDocumentHeader, SourceDocumentLine, TempEDocMapping);
 
@@ -706,6 +707,11 @@ codeunit 6140 "E-Doc. Import"
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocTypeIsNotSupportedErr, EDocument."Document Type"));
                 exit;
             end;
+        end;
+
+        if not EDocExport.CheckDocumentTypeSupportedForImport(EDocumentService, EDocument."Document Type", ErrorText) then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
+            exit;
         end;
 
         // Commit before getting full info with error handling (if Codeunit.Run then )

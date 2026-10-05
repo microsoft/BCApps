@@ -142,10 +142,12 @@ table 30142 "Shpfy Refund Header"
         field(108; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            Editable = false;
         }
         field(109; "Presentment Currency Code"; Code[10])
         {
             Caption = 'Presentment Currency Code';
+            Editable = false;
             ToolTip = 'Specifies the presentment currency code for the refund.';
         }
         field(110; "Tax Area Code"; Code[20])
