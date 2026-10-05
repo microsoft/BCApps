@@ -3907,10 +3907,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Bin: Record Bin;
+        DestinationBin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         // [SCENARIO] Create a direct transfer order for untracked items from a non-directed location with bins
 
@@ -3924,8 +3926,9 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] Three bins are created at the source location
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
-        // [GIVEN] A destination location is created
-        LibraryWarehouse.CreateLocation(DestinationLocation);
+        // [GIVEN] A destination location with mandatory bins is created
+        LibraryWarehouse.CreateLocationWMS(DestinationLocation, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(DestinationBin, DestinationLocation.Code, LibraryUtility.GenerateGUID(), '', '');
 
         // [GIVEN] An untracked item is created
         LibraryInventory.CreateItem(Item);
@@ -3945,7 +3948,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionGenRule.Delete();
 
         // [WHEN] Transfer disposition is performed for 50 units to the destination location
-        LibraryAssert.IsTrue(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', DestinationLocation.Code, ''), 'Should have created transfer.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', DestinationLocation.Code, DestinationBin.Code, ''), 'Should have created transfer.');
 
         // [THEN] One direct transfer header is created between source and destination locations
 #pragma warning disable AA0210 
@@ -3964,6 +3967,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferLine.FindFirst();
         LibraryAssert.AreEqual(50, TransferLine.Quantity, 'Should have requested quantity.');
         LibraryAssert.AreEqual(Bin.Code, TransferLine."Transfer-from Bin Code", 'Should have transfer-from bin code.');
+        LibraryAssert.AreEqual(DestinationBin.Code, TransferLine."Transfer-To Bin Code", 'Should have selected transfer-to bin code.');
     end;
 
     [Test]

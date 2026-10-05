@@ -1829,6 +1829,20 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
+    /// Wrapper for internal QltyDispTransfer.PerformDisposition (8-argument version).
+    /// </summary>
+    internal procedure PerformTransferDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text;
+                                                                                                                                                                       OptionalSourceBinFilter: Text;
+                                                                                                                                                                       DestinationLocationCode: Code[10];
+                                                                                                                                                                       DestinationBinCode: Code[20];
+                                                                                                                                                                       OptionalInTransitLocationCode: Code[10]): Boolean
+    var
+        QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
+    begin
+        exit(QltyDispTransfer.PerformDisposition(QltyInspectionHeader, OptionalSpecificQuantity, QltyQuantityBehavior, OptionalSourceLocationFilter, OptionalSourceBinFilter, DestinationLocationCode, DestinationBinCode, OptionalInTransitLocationCode));
+    end;
+
+    /// <summary>
     /// Wrapper for internal QltyDispMoveAutoChoose.MoveInventory.
     /// </summary>
     internal procedure MoveInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; UseMovement: Boolean): Boolean

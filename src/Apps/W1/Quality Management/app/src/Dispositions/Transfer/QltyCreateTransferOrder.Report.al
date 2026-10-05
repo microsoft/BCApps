@@ -29,7 +29,7 @@ report 20410 "Qlty. Create Transfer Order"
             var
                 QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
             begin
-                QltyDispTransfer.PerformDisposition(CurrentInspection, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, Destination, InTransit);
+                QltyDispTransfer.PerformDisposition(CurrentInspection, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, Destination, DestinationBin, InTransit);
             end;
         }
     }
@@ -202,6 +202,49 @@ report 20410 "Qlty. Create Transfer Order"
                         Caption = 'Location';
                         ToolTip = 'Specifies the location where the inventory will be transferred.';
                         ShowMandatory = true;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateDestinationBinState();
+                            CurrReport.RequestOptionsPage.Update(true);
+                        end;
+                    }
+                    field(ChooseDestinationBin; DestinationBin)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Bin';
+                        ToolTip = 'Specifies the bin at the destination location where the inventory will be transferred.';
+                        ShowMandatory = true;
+                        Enabled = ShowDestinationBin;
+
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            Bin: Record Bin;
+                            BinList: Page "Bin List";
+                        begin
+                            if Destination = '' then
+                                exit(false);
+
+                            Bin.SetRange("Location Code", Destination);
+                            BinList.SetTableView(Bin);
+                            BinList.LookupMode(true);
+                            if BinList.RunModal() <> Action::LookupOK then
+                                exit(false);
+
+                            BinList.GetRecord(Bin);
+                            Text := Bin.Code;
+                            exit(true);
+                        end;
+
+                        trigger OnValidate()
+                        var
+                            Bin: Record Bin;
+                        begin
+                            if DestinationBin = '' then
+                                exit;
+
+                            Bin.Get(Destination, DestinationBin);
+                        end;
                     }
                 }
                 group(Transfer)
@@ -232,6 +275,11 @@ report 20410 "Qlty. Create Transfer Order"
                 }
             }
         }
+
+        trigger OnOpenPage()
+        begin
+            UpdateDestinationBinState();
+        end;
     }
 
     var
@@ -245,11 +293,33 @@ report 20410 "Qlty. Create Transfer Order"
         MovePassed: Boolean;
         MoveFailed: Boolean;
         Destination: Code[10];
+        DestinationBin: Code[20];
         InTransit: Code[10];
         DirectTransfer: Boolean;
+        ShowDestinationBin: Boolean;
 
     trigger OnInitReport()
     begin
         MoveSpecific := true;
+    end;
+
+    local procedure UpdateDestinationBinState()
+    var
+        Bin: Record Bin;
+        DestinationLocation: Record Location;
+    begin
+        ShowDestinationBin := false;
+        if DestinationLocation.Get(Destination) then
+            ShowDestinationBin := DestinationLocation."Bin Mandatory" and not DestinationLocation."Directed Put-away and Pick";
+        if DestinationBin = '' then
+            exit;
+
+        if not ShowDestinationBin then begin
+            Clear(DestinationBin);
+            exit;
+        end;
+
+        if not Bin.Get(Destination, DestinationBin) then
+            Clear(DestinationBin);
     end;
 }
