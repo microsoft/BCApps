@@ -30,6 +30,51 @@ if (-not (Get-Command Invoke-ScriptInBcContainer -ErrorAction SilentlyContinue))
 
 Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 
+Describe "ParallelTestExecution clean app scope settings" {
+    BeforeEach {
+        $script:savedScopeSetting = $env:settings
+    }
+    AfterEach {
+        $env:settings = $script:savedScopeSetting
+    }
+
+    It "selects <ExpectedCount> canonical names for <Scenario>" -ForEach @(
+        @{ Scenario = 'absent'; Settings = '{}'; ExpectedCount = 2; Expected = @('Expense Agent Tests', 'Other Tests') }
+        @{ Scenario = 'explicit empty'; Settings = '{"cleanTestCodeunitExecutionAppNames":[]}'; ExpectedCount = 0; Expected = @() }
+        @{ Scenario = 'case-insensitive exact name'; Settings = '{"cleanTestCodeunitExecutionAppNames":["expense agent tests"]}'; ExpectedCount = 1; Expected = @('Expense Agent Tests') }
+    ) {
+        $env:settings = $Settings
+        InModuleScope ParallelTestExecution -Parameters @{ ExpectedCount = $ExpectedCount; Expected = $Expected } {
+            $result = @(Get-CleanTestAppNames -AppNamesToTest @('Expense Agent Tests', 'Other Tests') `
+                -AppIdByName @{ 'Expense Agent Tests' = 'expense-id'; 'Other Tests' = 'other-id' })
+            $result.Count | Should -Be $ExpectedCount
+            if ($ExpectedCount) { $result | Should -Be $Expected }
+        }
+    }
+
+    It "rejects <Scenario> rather than falling back to all apps" -ForEach @(
+        @{ Scenario = 'string'; Settings = '{"cleanTestCodeunitExecutionAppNames":"Expense Agent Tests"}' }
+        @{ Scenario = 'false'; Settings = '{"cleanTestCodeunitExecutionAppNames":false}' }
+        @{ Scenario = 'null'; Settings = '{"cleanTestCodeunitExecutionAppNames":null}' }
+        @{ Scenario = 'number'; Settings = '{"cleanTestCodeunitExecutionAppNames":7}' }
+        @{ Scenario = 'object'; Settings = '{"cleanTestCodeunitExecutionAppNames":{}}' }
+        @{ Scenario = 'null member'; Settings = '{"cleanTestCodeunitExecutionAppNames":[null]}' }
+        @{ Scenario = 'empty member'; Settings = '{"cleanTestCodeunitExecutionAppNames":[" "]}' }
+        @{ Scenario = 'numeric member'; Settings = '{"cleanTestCodeunitExecutionAppNames":[7]}' }
+        @{ Scenario = 'nested array'; Settings = '{"cleanTestCodeunitExecutionAppNames":[["Expense Agent Tests"]]}' }
+        @{ Scenario = 'unknown name'; Settings = '{"cleanTestCodeunitExecutionAppNames":["Expense Agent Test"]}' }
+        @{ Scenario = 'wildcard'; Settings = '{"cleanTestCodeunitExecutionAppNames":["Expense*"]}' }
+    ) {
+        $env:settings = $Settings
+        InModuleScope ParallelTestExecution {
+            {
+                Get-CleanTestAppNames -AppNamesToTest @('Expense Agent Tests') `
+                    -AppIdByName @{ 'Expense Agent Tests' = 'expense-id' }
+            } | Should -Throw '*cleanTestCodeunitExecutionAppNames*'
+        }
+    }
+}
+
 Describe "ParallelTestExecution app-name resolution" {
     BeforeEach {
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting { $true } -ParameterFilter {
@@ -937,6 +982,102 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                     -not $SkipAutomaticDisabledPass
                 }
                 ($script:fixtureParameters | ConvertTo-Json -Depth 5) | Should -Be $script:originalFixtureParameters
+            }
+        }
+
+        Context "app-scoped clean execution" {
+            BeforeEach {
+                $script:savedScopeSettings = $env:settings
+                $env:settings = '{"cleanTestCodeunitExecutionAppNames":["Tests"]}'
+                InModuleScope ParallelTestExecution {
+                    Mock Get-BcContainerAppInfo {
+                        @(
+                            [PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' }
+                            [PSCustomObject]@{ IsInstalled = $true; Name = 'Other'; AppId = 'other-id' }
+                        )
+                    }
+                }
+            }
+            AfterEach {
+                $env:settings = $script:savedScopeSettings
+            }
+
+            It "does no clean discovery or reset for <Selection>" -ForEach @(
+                @{ Selection = 'empty list'; Settings = '{"cleanTestCodeunitExecutionAppNames":[]}' }
+                @{ Selection = 'installed app outside this bucket'; Settings = '{"cleanTestCodeunitExecutionAppNames":["Other"]}' }
+            ) {
+                $env:settings = $Settings
+                InModuleScope ParallelTestExecution {
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'UnitTest' -appNamesToTest @('Tests') | Should -BeTrue
+                    Should -Invoke Get-RequiredDisabledWorkItems -Times 0
+                    Should -Invoke Reset-BcTestTenant -Times 0
+                    Should -Invoke New-BcTestTenantTemplate -Times 0
+                    Should -Invoke Invoke-WarmupDispatch -Times 1 -Exactly -ParameterFilter {
+                        $CleanTenantAppNames.Count -eq 0
+                    }
+                    Should -Invoke Start-TestAppDispatch -Times 1 -Exactly -ParameterFilter {
+                        -not $SkipAutomaticDisabledPass
+                    }
+                }
+            }
+
+            It "leaves a malformed unused scope inert when the gate is off" {
+                $env:settings = '{"cleanTestCodeunitExecutionAppNames":false}'
+                InModuleScope ParallelTestExecution {
+                    Mock Get-ALGoSetting { $false } -ParameterFilter { $Key -eq 'enableCleanTestCodeunitExecution' }
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'UnitTest' -appNamesToTest @('Tests') | Should -BeTrue
+                    Should -Invoke Get-RequiredDisabledWorkItems -Times 0
+                    Should -Invoke Reset-BcTestTenant -Times 0
+                    Should -Invoke Start-TestAppDispatch -Times 1 -Exactly -ParameterFilter { -not $SkipAutomaticDisabledPass }
+                }
+            }
+
+            It "scopes discovery and ordinary suppression including reruns=<Rerun>" -ForEach @(
+                @{ Rerun = $false }
+                @{ Rerun = $true }
+            ) {
+                InModuleScope ParallelTestExecution -Parameters @{ Rerun = $Rerun } {
+                    $script:requestScopeRerun = $Rerun
+                    Mock Start-TestAppDispatch {
+                        if ($AppName -eq 'Other' -and $script:requestScopeRerun) {
+                            $script:requestScopeRerun = $false
+                            $State.rerun = @([PSCustomObject]@{ appName = 'Other'; suffix = 'rerun1'; excludeTenant = 'worker-a' })
+                        }
+                    }
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'UnitTest' -appNamesToTest @('Tests', 'Other') | Should -BeTrue
+                    Should -Invoke Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+                        $AppNamesToTest.Count -eq 1 -and $AppNamesToTest[0] -eq 'Tests'
+                    }
+                    Should -Invoke Invoke-WarmupDispatch -Times 1 -Exactly -ParameterFilter {
+                        $CleanTenantAppNames.Count -eq 1 -and $CleanTenantAppNames[0] -eq 'Tests'
+                    }
+                    Should -Invoke Start-TestAppDispatch -Times 1 -Exactly -ParameterFilter {
+                        $AppName -eq 'Tests' -and $SkipAutomaticDisabledPass
+                    }
+                    Should -Invoke Start-TestAppDispatch -Times 0 -Exactly -ParameterFilter {
+                        $AppName -eq 'Other' -and $SkipAutomaticDisabledPass
+                    }
+                    if ($Rerun) {
+                        Should -Invoke Start-TestAppDispatch -Times 1 -Exactly -ParameterFilter {
+                            $AppName -eq 'Other' -and $Verb -eq 'Re-running' -and -not $SkipAutomaticDisabledPass
+                        }
+                    }
+                }
+            }
+
+            It "keeps Legacy out of clean execution" {
+                InModuleScope ParallelTestExecution {
+                    Mock Get-RequiredDisabledWorkItems { @() }
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'Legacy' -appNamesToTest @('Tests', 'Other') | Should -BeTrue
+                    Should -Invoke Reset-BcTestTenant -Times 0
+                    Should -Invoke New-BcTestTenantTemplate -Times 0
+                    Should -Invoke Invoke-RequiredDisabledTestExecution -Times 0
+                    Should -Invoke Start-TestAppDispatch -Times 2 -Exactly -ParameterFilter { $TestType -eq 'Legacy' }
+                }
             }
         }
 

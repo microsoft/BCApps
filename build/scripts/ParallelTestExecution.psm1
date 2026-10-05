@@ -97,6 +97,42 @@ function ConvertTo-RequiredDisabledWorkItems {
     )
 }
 
+<#
+.SYNOPSIS
+    Selects canonical installed app names for gated clean-codeunit execution.
+.DESCRIPTION
+    The optional cleanTestCodeunitExecutionAppNames setting is an exact, case-insensitive
+    array of installed app names. Missing means all apps in this bucket; an empty array
+    means none. Apps outside this selection retain ordinary execution, including retries.
+    Called only after enableCleanTestCodeunitExecution is enabled.
+#>
+function Get-CleanTestAppNames {
+    param(
+        [string[]]$AppNamesToTest,
+        [Hashtable]$AppIdByName
+    )
+
+    # Read the property itself: pipeline output collapses an empty array into $null.
+    $settings = if ($env:settings) { $env:settings | ConvertFrom-Json } else { [PSCustomObject]@{} }
+    $property = $settings.PSObject.Properties['cleanTestCodeunitExecutionAppNames']
+    if ($null -eq $property) {
+        return @($AppNamesToTest)
+    }
+    $configured = $property.Value
+    if ($configured -isnot [array]) {
+        throw "AL-Go setting 'cleanTestCodeunitExecutionAppNames' must be an array of app names."
+    }
+    foreach ($name in $configured) {
+        if ($name -isnot [string] -or [string]::IsNullOrWhiteSpace($name)) {
+            throw "AL-Go setting 'cleanTestCodeunitExecutionAppNames' must contain non-empty app names."
+        }
+        if (-not $AppIdByName.ContainsKey($name)) {
+            throw "Unknown installed app '$name' in 'cleanTestCodeunitExecutionAppNames'."
+        }
+    }
+    return @($AppNamesToTest | Where-Object { $_ -in $configured })
+}
+
 function Get-RequiredDisabledWorkItems {
     param(
         [Parameter(Mandatory=$true)]
@@ -1348,9 +1384,9 @@ function Invoke-ParallelTestExecution {
     $cleanTenantAppNames = @()
     $requiredDisabledWorkItems = @()
     if ($cleanCodeunitExecution) {
-        $cleanTenantAppNames = $appNamesToTest
+        $cleanTenantAppNames = @(Get-CleanTestAppNames -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName)
     }
-    if ($cleanCodeunitExecution -and $testType -ne 'Legacy' -and $tenantInfo.Count -gt 1) {
+    if ($cleanTenantAppNames.Count -gt 0 -and $testType -ne 'Legacy' -and $tenantInfo.Count -gt 1) {
         $sourceTenantInfo = @($tenantInfo | Where-Object { $_.Id -eq $parameters.tenant })
         if ($sourceTenantInfo.Count -ne 1 -or [string]::IsNullOrWhiteSpace($sourceTenantInfo[0].DatabaseName)) {
             throw "Could not determine the database name for source tenant '$($parameters.tenant)'."
@@ -1371,17 +1407,17 @@ function Invoke-ParallelTestExecution {
         try {
             $requiredDisabledWorkItems = @(
                 Get-RequiredDisabledWorkItems -Parameters $discoveryParameters -TestType $testType `
-                    -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
+                    -AppNamesToTest $cleanTenantAppNames -AppIdByName $appIdByName
             )
         }
         finally {
             Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $discoveryTenant.Id `
                 -TenantDatabaseName $discoveryTenant.DatabaseName -TemplateDatabaseName $sourceTenantInfo[0].DatabaseName
         }
-    } elseif ($cleanCodeunitExecution) {
+    } elseif ($cleanTenantAppNames.Count -gt 0) {
         $requiredDisabledWorkItems = @(
             Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
-                -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
+                -AppNamesToTest $cleanTenantAppNames -AppIdByName $appIdByName
         )
     }
     $templateDatabaseName = ""
@@ -1475,7 +1511,7 @@ function Invoke-ParallelTestExecution {
             Start-TestAppDispatch -Parameters $parameters -AppName $rerunItem.appName -AppId $appIdByName[$rerunItem.appName] `
                 -Tenant $tenant -ScriptPath $scriptPath -TestType $testType -State $state `
                 -Verb 'Re-running' -FileSuffix $rerunItem.suffix `
-                -SkipAutomaticDisabledPass:$cleanCodeunitExecution
+                -SkipAutomaticDisabledPass:($rerunItem.appName -in $cleanTenantAppNames)
             continue
         }
 
@@ -1497,7 +1533,7 @@ function Invoke-ParallelTestExecution {
             }
             Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
                 -ScriptPath $scriptPath -TestType $testType -State $state `
-                -SkipAutomaticDisabledPass:$cleanCodeunitExecution -Verb $verb
+                -SkipAutomaticDisabledPass:($appName -in $cleanTenantAppNames) -Verb $verb
         } else {
             # Nothing left to dispatch; drain any still-running jobs. New transient failures and
             # reruns discovered here are picked up at the top of the next loop iteration.
