@@ -108,7 +108,7 @@ table 5853 "Invt. Receipt Line"
         {
             Caption = 'Applies-to Entry';
         }
-        field(31; "Item Rcpt. Entry No."; Integer)
+        field(31; "Item Rcpt. Entry No."; BigInteger)
         {
             Caption = 'Item Rcpt. Entry No.';
         }

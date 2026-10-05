@@ -73,7 +73,7 @@ table 1206 "Credit Transfer Entry"
         /// <summary>
         /// Ledger entry number that this credit transfer applies to.
         /// </summary>
-        field(5; "Applies-to Entry No."; Integer)
+        field(5; "Applies-to Entry No."; BigInteger)
         {
             Caption = 'Applies-to Entry No.';
             ToolTip = 'Specifies the entry number of the purchase invoice that the vendor ledger entry behind this credit transfer was applied to.';

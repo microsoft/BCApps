@@ -29,7 +29,7 @@ table 5408 "Prod. Ord. Line Tracking Buff."
         {
             Caption = 'Production Order Line No.';
         }
-        field(5; "Buffer Entry No."; Integer)
+        field(5; "Buffer Entry No."; BigInteger)
         {
             Caption = 'Buffer Entry No.';
         }

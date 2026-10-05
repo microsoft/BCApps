@@ -90,13 +90,13 @@ table 46 "Item Register"
             ToolTip = 'Specifies the last value entry number in this register.';
             TableRelation = "Value Entry";
         }
-        field(5831; "From Capacity Entry No."; Integer)
+        field(5831; "From Capacity Entry No."; BigInteger)
         {
             Caption = 'From Capacity Entry No.';
             ToolTip = 'Specifies the first capacity entry number in the register.';
             TableRelation = Microsoft.Manufacturing.Capacity."Capacity Ledger Entry";
         }
-        field(5832; "To Capacity Entry No."; Integer)
+        field(5832; "To Capacity Entry No."; BigInteger)
         {
             Caption = 'To Capacity Entry No.';
             ToolTip = 'Specifies the last capacity ledger entry number in this register.';
@@ -134,7 +134,7 @@ table 46 "Item Register"
         }
     }
 
-    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+    procedure GetNextEntryNo(UseLegacyPosting: Boolean): BigInteger
     begin
         if not UseLegacyPosting then
             exit(GetNextEntryNo());

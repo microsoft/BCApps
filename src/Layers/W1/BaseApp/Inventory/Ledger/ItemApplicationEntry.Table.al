@@ -181,7 +181,7 @@ table 339 "Item Application Entry"
 
     var
         TempVisitedItemApplicationEntry: Record "Item Application Entry" temporary;
-        TempItemLedgerEntryInChainNo: Record "Integer" temporary;
+        TempItemLedgerEntryInChainNo: Record "BigInteger" temporary;
 #if not CLEAN27
         SearchedItemLedgerEntry: Record "Item Ledger Entry";
 #endif

@@ -121,7 +121,7 @@ table 1294 "Applied Payment Entry"
         /// Entry number of the specific ledger entry being applied.
         /// Links the payment to a particular customer invoice, vendor bill, or other transaction.
         /// </summary>
-        field(23; "Applies-to Entry No."; Integer)
+        field(23; "Applies-to Entry No."; BigInteger)
         {
             Caption = 'Applies-to Entry No.';
             TableRelation = if ("Account Type" = const("G/L Account")) "G/L Entry"

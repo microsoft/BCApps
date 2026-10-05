@@ -555,7 +555,7 @@ table 1570 "G/L Entry Posting Preview"
         /// <summary>
         /// Entry number of the last dimension correction made to this preview G/L entry.
         /// </summary>
-        field(495; "Last Dim. Correction Entry No."; Integer)
+        field(495; "Last Dim. Correction Entry No."; BigInteger)
         {
             Caption = 'Last Dim. Correction Entry No.';
             Editable = false;
@@ -589,7 +589,7 @@ table 1570 "G/L Entry Posting Preview"
         /// <summary>
         /// Reference to the original G/L entry number for this preview entry.
         /// </summary>
-        field(1571; "G/L Entry No."; Integer)
+        field(1571; "G/L Entry No."; BigInteger)
         {
             Caption = 'G/L Entry No.';
             MinValue = 0;
@@ -615,7 +615,7 @@ table 1570 "G/L Entry Posting Preview"
         /// <summary>
         /// Fixed asset entry number related to this preview G/L entry.
         /// </summary>
-        field(5601; "FA Entry No."; Integer)
+        field(5601; "FA Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Entry No.';

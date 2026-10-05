@@ -148,11 +148,11 @@ table 5857 "Direct Trans. Line"
             Editable = false;
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
-        field(31; "Item Shpt. Entry No."; Integer)
+        field(31; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
         }
-        field(33; "Item Rcpt. Entry No."; Integer)
+        field(33; "Item Rcpt. Entry No."; BigInteger)
         {
             Caption = 'Item Rcpt. Entry No.';
         }

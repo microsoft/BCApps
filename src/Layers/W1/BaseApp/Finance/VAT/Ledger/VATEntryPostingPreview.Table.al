@@ -607,7 +607,7 @@ table 1571 "VAT Entry Posting Preview"
         /// <summary>
         /// Reference to the source VAT entry number for preview traceability.
         /// </summary>
-        field(1571; "VAT Entry No."; Integer)
+        field(1571; "VAT Entry No."; BigInteger)
         {
             Caption = 'VAT Entry No.';
             MinValue = 0;

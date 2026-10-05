@@ -237,7 +237,7 @@ codeunit 7600 "Calendar Management"
     local procedure AddBaseCalendarChanges(NewCustomizedCalendarChange: Record "Customized Calendar Change"; var TempCustomizedCalendarChange: record "Customized Calendar Change" temporary)
     var
         BaseCalendarChange: Record "Base Calendar Change";
-        EntryNo: BigInteger;
+        EntryNo: Integer;
     begin
         OnBeforeAddBaseCalendarChanges(NewCustomizedCalendarChange, TempCustomizedCalendarChange, BaseCalendarChange);
 

@@ -6013,7 +6013,7 @@ codeunit 22 "Item Jnl.-Post Line"
         OnAfterGetUpdatedAppliedQtyForConsumption(OldItemLedgerEntry, ItemLedgerEntry, ReservationEntry2, SourceType, AppliedQty);
     end;
 
-    procedure PostDeferredValueEntriesToGL(PostponedValueEntries: List of [Integer])
+    procedure PostDeferredValueEntriesToGL(PostponedValueEntries: List of [BigInteger])
     var
         ValueEntry: Record "Value Entry";
         ValueEntryUpdate: Record "Value Entry";

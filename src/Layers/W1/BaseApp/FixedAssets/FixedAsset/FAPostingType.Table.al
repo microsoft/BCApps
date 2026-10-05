@@ -31,7 +31,7 @@ table 5644 "FA Posting Type"
         {
             Caption = 'G/L Entry';
         }
-        field(5; "Entry No."; Integer)
+        field(5; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

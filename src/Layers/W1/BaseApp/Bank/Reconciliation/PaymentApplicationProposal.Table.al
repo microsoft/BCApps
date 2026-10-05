@@ -120,7 +120,7 @@ table 1293 "Payment Application Proposal"
         /// Entry number of the ledger entry to apply the payment to.
         /// Links the payment to a specific open customer, vendor, or other ledger entry.
         /// </summary>
-        field(23; "Applies-to Entry No."; Integer)
+        field(23; "Applies-to Entry No."; BigInteger)
         {
             Caption = 'Applies-to Entry No.';
             ToolTip = 'Specifies the number of the customer or vendor ledger entry that the payment will be applied to when you post the payment reconciliation journal line.';

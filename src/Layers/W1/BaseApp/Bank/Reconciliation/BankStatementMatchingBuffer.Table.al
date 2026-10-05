@@ -41,7 +41,7 @@ table 1250 "Bank Statement Matching Buffer"
         /// Ledger entry number of the potential match candidate.
         /// References the bank account, customer, vendor, or GL entry that could match the statement line.
         /// </summary>
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

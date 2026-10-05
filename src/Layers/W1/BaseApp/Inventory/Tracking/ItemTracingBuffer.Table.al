@@ -25,7 +25,7 @@ table 6520 "Item Tracing Buffer"
             Caption = 'Line No.';
             DataClassification = SystemMetadata;
         }
-        field(2; "Parent Item Ledger Entry No."; Integer)
+        field(2; "Parent Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Parent Item Ledger Entry No.';
             ToolTip = 'Specifies the parent of the traced item ledger entry.';
