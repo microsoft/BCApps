@@ -14,9 +14,6 @@ codeunit 989 "Asm. Create Invt.Pick/Movement"
 {
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-#if not CLEAN27
-        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
-#endif
         ProdAsmJobWhseHandlingTelemetryCategoryTok: Label 'Prod/Asm/Project Whse. Handling', Locked = true;
         ProdAsmJobWhseHandlingTelemetryTok: Label 'Prod/Asm/Project Whse. Handling in used for warehouse pick.', Locked = true;
 
@@ -110,9 +107,6 @@ codeunit 989 "Asm. Create Invt.Pick/Movement"
                     FeatureTelemetry.LogUsage('0000KT3', ProdAsmJobWhseHandlingTelemetryCategoryTok, ProdAsmJobWhseHandlingTelemetryTok);
                 IsHandled := false;
                 OnBeforeCreatePickOrMoveLineFromAssemblyLoop(WarehouseActivityHeader, AssemblyHeader, IsHandled, AssemblyLine);
-#if not CLEAN27
-                sender.RunOnBeforeCreatePickOrMoveLineFromAssemblyLoop(WarehouseActivityHeader, AssemblyHeader, IsHandled, AssemblyLine);
-#endif
                 if not IsHandled and CanPickAssemblyLine(AssemblyLine, ReservedFromStock) then
                     if not
                        NewWarehouseActivityLine.ActivityExists(Database::"Assembly Line", AssemblyLine."Document Type".AsInteger(), AssemblyLine."Document No.", AssemblyLine."Line No.", 0, 0)
@@ -139,9 +133,6 @@ codeunit 989 "Asm. Create Invt.Pick/Movement"
                         RemQtyToPickBase := AssemblyLine."Quantity (Base)" - AssemblyLine."Remaining Quantity (Base)" +
                         AssemblyLine."Quantity to Consume (Base)" - AssemblyLine."Qty. Picked (Base)";
                         OnBeforeNewWhseActivLineInsertFromAssembly(NewWarehouseActivityLine, AssemblyLine, WarehouseActivityHeader, RemQtyToPickBase);
-#if not CLEAN27
-                        sender.RunOnBeforeNewWhseActivLineInsertFromAssembly(NewWarehouseActivityLine, AssemblyLine, WarehouseActivityHeader, RemQtyToPickBase);
-#endif
                         AssemblyLine.CalcFields(AssemblyLine."Reserved Quantity");
                         sender.CreatePickOrMoveLine(NewWarehouseActivityLine, RemQtyToPickBase, RemQtyToPickBase, AssemblyLine."Reserved Quantity" <> 0);
                     end;
@@ -167,9 +158,6 @@ codeunit 989 "Asm. Create Invt.Pick/Movement"
         end;
 
         OnBeforeFindAssemblyLine(AssemblyLine, AssemblyHeader, WarehouseActivityHeader);
-#if not CLEAN27
-        CreateInventoryPickMovement.RunOnBeforeFindAssemblyLine(AssemblyLine, AssemblyHeader, WarehouseActivityHeader);
-#endif
         exit(AssemblyLine.Find('-'));
     end;
 
