@@ -8579,12 +8579,13 @@
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreatePurchaseDocumentWithItem(
             PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, CreateVendor(),
-            Item."No.", 10, '', WorkDate());
-        PurchaseLine.Validate("Qty. to Receive", 5);
+            Item."No.", LibraryRandom.RandIntInRange(10, 10), '', WorkDate());
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 100, 2));
+        PurchaseLine.Validate("Qty. to Receive", LibraryRandom.RandIntInRange(5, 5));
         PurchaseLine.Modify(true);
         PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
 
-        // [GIVEN] A Corrective Credit Memo for Quantity 2.
+        // [GIVEN] A Corrective Credit Memo for the posted Quantity 5.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeaderCorrection);
         PurchaseHeaderCorrection.Validate("Vendor Cr. Memo No.", PurchaseHeaderCorrection."No.");
         PurchaseHeaderCorrection.Modify(true);
@@ -8592,7 +8593,7 @@
         PurchaseLineCorrection.SetRange("Document No.", PurchaseHeaderCorrection."No.");
         PurchaseLineCorrection.SetRange("No.", Item."No.");
         PurchaseLineCorrection.FindFirst();
-        PurchaseLineCorrection.Validate(Quantity, 2);
+        PurchaseLineCorrection.Validate(Quantity, PurchaseLine."Qty. to Receive");
         PurchaseLineCorrection.Modify(true);
 
         // [WHEN] The Corrective Credit Memo is posted.

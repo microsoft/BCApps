@@ -8704,9 +8704,13 @@ codeunit 134327 "ERM Purchase Order"
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreatePurchaseDocumentWithItem(
             PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, CreateVendor(),
-            Item."No.", 10, '', WorkDate());
-        PurchaseLine.Validate("Qty. to Receive", 5);
+            Item."No.", LibraryRandom.RandIntInRange(10, 10), '', WorkDate());
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 100, 2));
+        PurchaseLine.Validate("Qty. to Receive", LibraryRandom.RandIntInRange(5, 5));
         PurchaseLine.Modify(true);
+        PurchaseHeader.CalcFields("Amount Including VAT");
+        PurchaseHeader.Validate("Check Total", PurchaseHeader."Amount Including VAT");
+        PurchaseHeader.Modify(true);
         PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
 
         // [GIVEN] A Corrective Credit Memo for the posted Quantity 5.
@@ -8717,8 +8721,11 @@ codeunit 134327 "ERM Purchase Order"
         PurchaseLineCorrection.SetRange("Document No.", PurchaseHeaderCorrection."No.");
         PurchaseLineCorrection.SetRange("No.", Item."No.");
         PurchaseLineCorrection.FindFirst();
-        PurchaseLineCorrection.Validate(Quantity, 5);
+        PurchaseLineCorrection.Validate(Quantity, PurchaseLine."Qty. to Receive");
         PurchaseLineCorrection.Modify(true);
+        PurchaseHeaderCorrection.CalcFields("Amount Including VAT");
+        PurchaseHeaderCorrection.Validate("Check Total", PurchaseHeaderCorrection."Amount Including VAT");
+        PurchaseHeaderCorrection.Modify(true);
 
         // [WHEN] The Corrective Credit Memo is posted.
         PurchaseCreditMemo.OpenView();
