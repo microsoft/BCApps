@@ -14,7 +14,6 @@ using Microsoft.Sales.Peppol;
 using Microsoft.Sales.Setup;
 using System.Text;
 using System.Utilities;
-using System.Text;
 
 /// <summary>
 /// Posts reminder documents in batch, creating issued reminders and general ledger entries for fees and interest.
