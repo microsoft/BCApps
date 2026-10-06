@@ -273,6 +273,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if NewApproverExpenseUserNo = '' then
             Error(InterimApproverRequiredErr);
 
+        CheckInterimApproverConflict(ExpenseReportHeader, NewApproverExpenseUserNo);
+
         if (ActorExpenseUserNo <> '') and (ActorExpenseUserNo <> ExpenseReportHeader."Expense User No.") then
             Error(InterimApproverActorErr, ExpenseReportHeader."Expense User No.");
 
@@ -286,11 +288,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if AssignedInterimApproverNo = '' then
             AssignedInterimApproverNo := NewApproverExpenseUserNo;
 
-        if AssignedInterimApproverNo = ExpenseReportHeader."Expense User No." then
-            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Expense User No."), ExpenseReportHeader."Expense User No.");
-
-        if AssignedInterimApproverNo = ExpenseReportHeader."Final Approver No." then
-            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Final Approver No."), ExpenseReportHeader."Final Approver No.");
+        CheckInterimApproverConflict(ExpenseReportHeader, AssignedInterimApproverNo);
 
         if AssignedInterimApproverNo <> NewApproverExpenseUserNo then begin
             InterimApprover.Get(AssignedInterimApproverNo);
@@ -299,6 +297,15 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         SetInterimApproverInExpenseReport(ExpenseReportHeader, InterimApprover);
         LogInterimApproverAssigned(ExpenseReportHeader, InterimApprover, ActorExpenseUserNo);
+    end;
+
+    local procedure CheckInterimApproverConflict(ExpenseReportHeader: Record "Expense Report Header"; InterimApproverExpenseUserNo: Code[20])
+    begin
+        if InterimApproverExpenseUserNo = ExpenseReportHeader."Expense User No." then
+            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Expense User No."), ExpenseReportHeader."Expense User No.");
+
+        if InterimApproverExpenseUserNo = ExpenseReportHeader."Final Approver No." then
+            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Final Approver No."), ExpenseReportHeader."Final Approver No.");
     end;
 
     procedure AssignAlternateApprover(var ExpenseReportHeader: Record "Expense Report Header"; NewApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
