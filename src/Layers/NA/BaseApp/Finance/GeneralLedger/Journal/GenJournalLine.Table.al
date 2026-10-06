@@ -6420,9 +6420,8 @@ table 81 "Gen. Journal Line"
         GenJournalLine.SetFilter("Line No.", '<>%1', "Line No.");
         GenJournalLine.SetRange("Document Type", "Applies-to Doc. Type");
         GenJournalLine.SetRange("Document No.", "Applies-to Doc. No.");
-        if not GenJournalLine.IsEmpty() then begin
+        if not GenJournalLine.IsEmpty() then
             GenJournalLine.ModifyAll("Applied Automatically", false, "Account Type", GenJournalLine."Account Type"::"G/L Account", "Account No.", '');
-        end;
     end;
 
     procedure GetIncomingDocumentURL(): Text[1024]

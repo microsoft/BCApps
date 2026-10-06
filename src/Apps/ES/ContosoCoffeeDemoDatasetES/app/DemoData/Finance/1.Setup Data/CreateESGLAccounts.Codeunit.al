@@ -4018,9 +4018,8 @@ codeunit 10780 "Create ES GL Accounts"
         GLAccount: Record "G/L Account";
     begin
         GLAccount.SetRange("No.", FromGLAccountNo, ToGLAccountNo);
-        if GLAccount.FindSet() then begin
+        if GLAccount.FindSet() then
             GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", "Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
-        end;
     end;
 
     local procedure UpdateApiAccountType(GLAccountNo: Code[20]; AccountType: Enum "G/L Account Type"; GenPostingType: Enum "General Posting Type")

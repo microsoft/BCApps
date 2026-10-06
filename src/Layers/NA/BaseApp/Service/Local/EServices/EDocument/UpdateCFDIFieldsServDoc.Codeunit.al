@@ -33,9 +33,8 @@ codeunit 27091 "Update CFDI Fields Serv. Doc"
         Customer.FindSet();
         repeat
             ServiceHeader.SetRange("Bill-to Customer No.", Customer."No.");
-            if not ServiceHeader.IsEmpty() then begin
+            if not ServiceHeader.IsEmpty() then
                 ServiceHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose", "CFDI Relation", Customer."CFDI Relation");
-            end;
 
             ServiceInvoiceHeader.SetFilter(
               "Electronic Document Status", '%1|%2|%3',
@@ -52,9 +51,8 @@ codeunit 27091 "Update CFDI Fields Serv. Doc"
               ServiceCrMemoHeader."Electronic Document Status"::"Stamp Request Error",
               ServiceCrMemoHeader."Electronic Document Status"::"Cancel Error");
             ServiceCrMemoHeader.SetRange("Bill-to Customer No.", Customer."No.");
-            if not ServiceCrMemoHeader.IsEmpty() then begin
+            if not ServiceCrMemoHeader.IsEmpty() then
                 ServiceCrMemoHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose", "CFDI Relation", Customer."CFDI Relation");
-            end;
         until Customer.Next() = 0;
     end;
 }

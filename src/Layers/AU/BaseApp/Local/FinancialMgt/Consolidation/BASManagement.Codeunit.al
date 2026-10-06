@@ -422,18 +422,16 @@ codeunit 11601 "BAS Management"
             BASCalcEntry.SetRange("Company Name", BASBusUnits."Company Name");
             BASCalcEntry.SetRange("BAS Document No.", BASCalcSheetSubsid.A1);
             BASCalcEntry.SetRange("BAS Version", BASCalcSheetSubsid."BAS Version");
-            if not BASCalcEntry.IsEmpty() then begin
+            if not BASCalcEntry.IsEmpty() then
                 BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1, "Consol. Version No.", TempBASCalcSheet."BAS Version");
-            end;
         until BASBusUnits.Next() = 0;
 
         BASCalcEntry.Reset();
         BASCalcEntry.SetRange("Company Name", CompanyName);
         BASCalcEntry.SetRange("BAS Document No.", TempBASCalcSheet.A1);
         BASCalcEntry.SetRange("BAS Version", TempBASCalcSheet."BAS Version");
-        if not BASCalcEntry.IsEmpty() then begin
+        if not BASCalcEntry.IsEmpty() then
             BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1, "Consol. Version No.", TempBASCalcSheet."BAS Version");
-        end;
 
         UpdateConsolBASCalculationSheet(TempBASCalcSheet, BASCalcSheetConsol);
         Message(Text1450025, TempBASCalcSheet.A1, TempBASCalcSheet."BAS Version");

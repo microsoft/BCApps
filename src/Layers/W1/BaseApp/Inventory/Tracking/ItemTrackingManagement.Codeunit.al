@@ -1931,11 +1931,10 @@ codeunit 6500 "Item Tracking Management"
         if TempReservEntry."Source Type" = Database::"Transfer Line" then begin
             TransLine.Get(TempReservEntry."Source ID", TempReservEntry."Source Ref. No.");
             TempReservEntry.ModifyAll("Reservation Status", TempReservEntry."Reservation Status"::Surplus);
-            if TempReservEntry."Source Subtype" = 0 then begin
-                TempReservEntry.ModifyAll("Location Code", TransLine."Transfer-from Code", "Expected Receipt Date", 0D, "Shipment Date", TransLine."Shipment Date");
-            end else begin
+            if TempReservEntry."Source Subtype" = 0 then
+                TempReservEntry.ModifyAll("Location Code", TransLine."Transfer-from Code", "Expected Receipt Date", 0D, "Shipment Date", TransLine."Shipment Date")
+            else
                 TempReservEntry.ModifyAll("Location Code", TransLine."Transfer-to Code", "Expected Receipt Date", TransLine."Receipt Date", "Shipment Date", 0D);
-            end;
         end;
     end;
 

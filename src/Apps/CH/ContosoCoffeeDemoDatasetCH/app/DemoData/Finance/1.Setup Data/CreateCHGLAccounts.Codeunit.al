@@ -1160,9 +1160,8 @@ codeunit 11580 "Create CH GL Accounts"
         GLAccount: Record "G/L Account";
     begin
         GLAccount.SetRange("No.", FromGLAccountNo, ToGLAccountNo);
-        if GLAccount.FindSet() then begin
+        if GLAccount.FindSet() then
             GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", "Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
-        end;
     end;
 
     procedure PostAcc(): Code[20]

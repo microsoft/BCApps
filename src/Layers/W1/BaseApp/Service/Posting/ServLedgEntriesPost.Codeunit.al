@@ -223,9 +223,8 @@ codeunit 5912 "ServLedgEntries-Post"
                 ServLedgEntry.SetRange("Entry No.", ApplyToServLedgEntry."Entry No.");
                 OnInsertServLedgerEntrySaleOnBeforeCloseEntries(ServLedgEntry, ApplyToServLedgEntry, ServLine, ServHeader);
                 ServLedgEntry.ModifyAll(Open, false);
-                if ServHeader."Document Type" = ServHeader."Document Type"::Invoice then begin
+                if ServHeader."Document Type" = ServHeader."Document Type"::Invoice then
                     ServLedgEntry.ModifyAll("Document Type", ServLedgEntry."Document Type"::Invoice, "Document No.", GenJnlLineDocNo);
-                end;
                 exit;
             end;
             ApplyToServLedgEntry.Open := false;

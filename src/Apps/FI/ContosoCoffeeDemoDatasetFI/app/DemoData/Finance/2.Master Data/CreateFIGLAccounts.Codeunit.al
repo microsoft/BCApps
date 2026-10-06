@@ -1685,9 +1685,8 @@ codeunit 13405 "Create FI GL Accounts"
         GLAccount: Record "G/L Account";
     begin
         GLAccount.SetRange("No.", FromGLAccountNo, ToGLAccountNo);
-        if GLAccount.FindSet() then begin
+        if GLAccount.FindSet() then
             GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", "Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
-        end;
     end;
 
     procedure Intangibleassets(): Code[20]

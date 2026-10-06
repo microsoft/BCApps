@@ -179,9 +179,8 @@ codeunit 7006 "Price Helper - V16"
     begin
         PriceListLine.SetRange("Asset Type", AssetType);
         PriceListLine.SetRange("Asset No.", xAssetNo);
-        if not PriceListLine.IsEmpty() then begin
+        if not PriceListLine.IsEmpty() then
             PriceListLine.ModifyAll("Product No.", AssetNo, "Asset No.", AssetNo);
-        end;
 
         PriceWorksheetLine.SetRange("Asset Type", AssetType);
         PriceWorksheetLine.SetRange("Asset No.", xAssetNo);
