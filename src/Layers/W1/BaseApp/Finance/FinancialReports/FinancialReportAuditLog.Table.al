@@ -79,5 +79,8 @@ table 8390 "Financial Report Audit Log"
         key(ReportUser; "Report Name", User, SystemCreatedAt)
         {
         }
+        key(ReportUserSecurityId; "Report Name", SystemCreatedBy, SystemCreatedAt)
+        {
+        }
     }
 }
