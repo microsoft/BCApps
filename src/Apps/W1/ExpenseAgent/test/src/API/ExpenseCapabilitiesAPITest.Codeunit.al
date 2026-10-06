@@ -18,10 +18,11 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryExpenseAgent: Codeunit "Library - Expense Agent";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
+        ApprovalConversationCapabilityNameTok: Label 'approvalConversation', Locked = true;
+        TravelRequestCapabilityNameTok: Label 'travelRequest', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -75,6 +76,44 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
             'Response must contain an enabled activityLog capability row.');
+    end;
+
+    [Test]
+    procedure ApprovalConversationCapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Approval conversation is advertised when the supporting API actions are installed.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] ApprovalConversation is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, ApprovalConversationCapabilityNameTok, true),
+            'Response must contain an enabled approvalConversation capability row.');
+    end;
+
+    [Test]
+    procedure TravelRequestCapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Travel requests are advertised when the supporting APIs are installed.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] TravelRequest is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, TravelRequestCapabilityNameTok, true),
+            'Response must contain an enabled travelRequest capability row.');
     end;
 
     [Test]
@@ -206,7 +245,9 @@ codeunit 148318 "Expense Capabilities API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Capabilities API Test");
         IsInitialized := true;
         Commit();

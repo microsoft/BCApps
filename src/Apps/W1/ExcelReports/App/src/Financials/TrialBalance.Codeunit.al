@@ -193,7 +193,7 @@ codeunit 4410 "Trial Balance"
     var
         TempTotalsBuffer: Record "EXR Trial Balance Buffer" temporary;
         AccountToTotals: Dictionary of [Code[20], List of [Code[20]]];
-        AccountNoFilter: Text;
+        AccountNoFilter, Dimension1Filter, Dimension2Filter : Text;
         StartDate, EndDate : Date;
     begin
         Session.LogMessage('0000PYC', 'Running query-based trial balance', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'Excel Reports');
@@ -202,11 +202,13 @@ codeunit 4410 "Trial Balance"
         // the trial balance returns starting balance, net change, and ending balance with regard to such dates
         GetRangeDatesForGLAccountFilter(GLAccount.GetFilter("Date Filter"), StartDate, EndDate);
         AccountNoFilter := GLAccount.GetFilter("No.");
+        Dimension1Filter := GLAccount.GetFilter("Global Dimension 1 Filter");
+        Dimension2Filter := GLAccount.GetFilter("Global Dimension 2 Filter");
 
         if GlobalBreakdownByBusinessUnit then
-            InsertTrialBalanceFromBUQuery(Dimension1Values, Dimension2Values, TrialBalanceData, StartDate, EndDate, AccountNoFilter)
+            InsertTrialBalanceFromBUQuery(Dimension1Values, Dimension2Values, TrialBalanceData, StartDate, EndDate, AccountNoFilter, Dimension1Filter, Dimension2Filter)
         else
-            InsertTrialBalanceFromQuery(Dimension1Values, Dimension2Values, TrialBalanceData, StartDate, EndDate, AccountNoFilter);
+            InsertTrialBalanceFromQuery(Dimension1Values, Dimension2Values, TrialBalanceData, StartDate, EndDate, AccountNoFilter, Dimension1Filter, Dimension2Filter);
 
         if GlobalIncludeBudgetData then
             InsertBudgetDataFromQuery(GLAccount, TrialBalanceData, StartDate, EndDate);
@@ -219,13 +221,17 @@ codeunit 4410 "Trial Balance"
         MergeTotalsIntoBuffer(TempTotalsBuffer, TrialBalanceData);
     end;
 
-    local procedure InsertTrialBalanceFromQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text)
+    local procedure InsertTrialBalanceFromQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text; Dimension1Filter: Text; Dimension2Filter: Text)
     var
         EXRTrialBalanceQuery: Query "EXR Trial Balance";
     begin
         // We first get the balances at the ending date
         if AccountNoFilter <> '' then
             EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.AccountNo, AccountNoFilter);
+        if Dimension1Filter <> '' then
+            EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.DimensionValue1Code, Dimension1Filter);
+        if Dimension2Filter <> '' then
+            EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.DimensionValue2Code, Dimension2Filter);
         EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', EndDate);
         EXRTrialBalanceQuery.Open();
         while EXRTrialBalanceQuery.Read() do begin
@@ -290,13 +296,17 @@ codeunit 4410 "Trial Balance"
         end;
     end;
 
-    local procedure InsertTrialBalanceFromBUQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text)
+    local procedure InsertTrialBalanceFromBUQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text; Dimension1Filter: Text; Dimension2Filter: Text)
     var
         EXRTrialBalanceBUQuery: Query "EXR Trial Balance BU";
     begin
         // We first get the balances at the ending date
         if AccountNoFilter <> '' then
             EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.AccountNo, AccountNoFilter);
+        if Dimension1Filter <> '' then
+            EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.DimensionValue1Code, Dimension1Filter);
+        if Dimension2Filter <> '' then
+            EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.DimensionValue2Code, Dimension2Filter);
         EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', EndDate);
         EXRTrialBalanceBUQuery.Open();
         while EXRTrialBalanceBUQuery.Read() do begin

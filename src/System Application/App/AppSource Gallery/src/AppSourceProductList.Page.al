@@ -13,7 +13,7 @@ using System.Environment.Configuration;
 page 2515 "AppSource Product List"
 {
     PageType = List;
-    Caption = 'Microsoft AppSource apps';
+    Caption = 'Microsoft Marketplace apps';
     ApplicationArea = All;
     UsageCategory = Administration;
     Editable = false;
@@ -106,10 +106,10 @@ page 2515 "AppSource Product List"
         {
             action(OpenAppSource)
             {
-                Caption = 'Go to AppSource';
+                Caption = 'Go to Marketplace';
                 Scope = Page;
                 Image = GoTo;
-                ToolTip = 'View all apps on AppSource';
+                ToolTip = 'View all apps on Marketplace';
 
                 trigger OnAction()
                 begin
@@ -119,10 +119,10 @@ page 2515 "AppSource Product List"
 
             action(OpenInAppSource)
             {
-                Caption = 'View on AppSource';
+                Caption = 'View on Marketplace';
                 Scope = Repeater;
                 Image = Info;
-                ToolTip = 'View selected app on AppSource';
+                ToolTip = 'View selected app on Marketplace';
 
                 trigger OnAction()
                 begin
@@ -135,7 +135,7 @@ page 2515 "AppSource Product List"
                 Caption = 'Edit User Settings';
                 RunObject = page "User Settings";
                 Image = UserSetup;
-                ToolTip = 'Locale determines the language used for details about the app in Business Central and on AppSource.';
+                ToolTip = 'Locale determines the language used for details about the app in Business Central and on Marketplace.';
             }
         }
 
@@ -145,7 +145,7 @@ page 2515 "AppSource Product List"
             {
                 Caption = 'Refresh apps';
                 Scope = Page;
-                ToolTip = 'Refreshes the list by downloading the latest apps from Microsoft AppSource';
+                ToolTip = 'Refreshes the list by downloading the latest apps from Microsoft Marketplace';
                 Image = Refresh;
 
                 trigger OnAction()

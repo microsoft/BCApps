@@ -10,7 +10,7 @@ enum 10971 "FR Regulatory Comment Type"
 
     value(0; None)
     {
-        Caption = '';
+        Caption = ' ';
     }
     value(1; AAA)
     {

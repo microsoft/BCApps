@@ -35,7 +35,7 @@ codeunit 6363 "Pagero API Requests"
         HttpHeaders.Add('Authorization', PageroAuthMgt.GetAuthBearerTxt());
         HttpHeaders.Add('Accept', '*/*');
         HttpRequestMessage.Method('POST');
-        HttpRequestMessage.SetRequestUri(ExternalConnectionSetup."FileAPI URL");
+        HttpRequestMessage.SetRequestUri(PageroAuthMgt.GetFileAPIURL());
 
         MultiPartContent :=
             PageroConnection.PrepareMultipartContent(
@@ -70,7 +70,7 @@ codeunit 6363 "Pagero API Requests"
         HttpHeaders.Add('Accept', '*/*');
         HttpRequestMessage.Method('POST');
 
-        EndpointUrl := ExternalConnectionSetup."Fileparts URL" + '/' + EDocument."Filepart ID" + '/action';
+        EndpointUrl := PageroAuthMgt.GetFilepartsURL() + '/' + EDocument."Filepart ID" + '/action';
         HttpRequestMessage.SetRequestUri(EndpointUrl);
         JsonObj.Add('action', ActionName);
         JsonObj.WriteTo(Payload);
@@ -95,7 +95,7 @@ codeunit 6363 "Pagero API Requests"
         HttpHeaders.Add('Accept', 'application/json');
         HttpRequestMessage.Method('GET');
 
-        EndpointURL := ExternalConnectionSetup."FileAPI URL" + '/' + EDocument."File ID" + '/fileparts?Status=AwaitingInteraction,Error';
+        EndpointURL := PageroAuth.GetFileAPIURL() + '/' + EDocument."File ID" + '/fileparts?Status=AwaitingInteraction,Error';
         HttpRequestMessage.SetRequestUri(EndpointURL);
 
         exit(HttpClient.Send(HttpRequestMessage, HttpResponseMessage));
@@ -117,7 +117,7 @@ codeunit 6363 "Pagero API Requests"
         HttpHeaders.Add('Accept', 'application/json');
 
         HttpRequestMessage.Method('GET');
-        EndpointURL := ExternalConnectionSetup."DocumentAPI Url" + '?fileId=' + EDocument."File ID";
+        EndpointURL := PageroAuth.GetDocumentAPIURL() + '?fileId=' + EDocument."File ID";
         HttpRequestMessage.SetRequestUri(EndpointURL);
 
         exit(HttpClient.Send(HttpRequestMessage, HttpResponseMessage));
@@ -140,7 +140,7 @@ codeunit 6363 "Pagero API Requests"
 
         HttpRequestMessage.Method('GET');
         EndpointURL :=
-            ExternalConnectionSetup."DocumentAPI Url" +
+            PageroAuth.GetDocumentAPIURL() +
             '?direction=Received&documentType=Invoice&documentType=PaymentReminder&showFetchedOnly=false&companyId=' + ExternalConnectionSetup."Company Id";
         if Parameters.ContainsKey('limit') then
             if Parameters.Get('limit') <> '' then
@@ -169,7 +169,7 @@ codeunit 6363 "Pagero API Requests"
         HttpHeaders.Add('Accept', 'application/json');
         HttpRequestMessage.Method('GET');
 
-        EndpointURL := ExternalConnectionSetup."DocumentAPI URL" + '/' + DocumentId + '/targetdocument';
+        EndpointURL := PageroAuth.GetDocumentAPIURL() + '/' + DocumentId + '/targetdocument';
         HttpRequestMessage.SetRequestUri(EndpointURL);
 
         exit(HttpClient.Send(HttpRequestMessage, HttpResponseMessage));
@@ -192,7 +192,7 @@ codeunit 6363 "Pagero API Requests"
 
         HttpRequestMessage.Method('GET');
         EndpointURL :=
-            ExternalConnectionSetup."DocumentAPI Url" +
+            PageroAuth.GetDocumentAPIURL() +
             '?documentType=ApplicationResponse' +
             '&direction=Received' +
             '&showFetchedOnly=false' +
@@ -221,7 +221,7 @@ codeunit 6363 "Pagero API Requests"
         HttpHeaders.Add('Accept', '*/*');
         HttpRequestMessage.Method('POST');
 
-        EndpointUrl := ExternalConnectionSetup."DocumentAPI URL" + '/fetch';
+        EndpointUrl := PageroAuthMgt.GetDocumentAPIURL() + '/fetch';
         HttpRequestMessage.SetRequestUri(EndpointUrl);
         JsonObj.Add('ids', DocumentId);
         JsonObj.WriteTo(Payload);

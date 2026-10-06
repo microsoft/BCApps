@@ -22,9 +22,6 @@ using Microsoft.Service.History;
 codeunit 10789 "Service Posting Subscr. ES"
 {
     var
-#if not CLEAN27
-        ServPostingJournalsMgt: Codeunit "Serv-Posting Journals Mgt.";
-#endif
         CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
         Text1100000: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
         Text1100001: Label 'The posting process has been cancelled by the user.';
@@ -64,11 +61,13 @@ codeunit 10789 "Service Posting Subscr. ES"
         ValidatePaymentTermsOnPost(ServiceHeader);
     end;
 
+#pragma warning disable AS0022 // Accepted: pre-existing CLEAN29-gated scope reduction; the method becomes local when CLEAN29 is defined
 #if not CLEAN29
     procedure ValidatePaymentTermsOnPost(var ServiceHeader: Record "Service Header")
 #else
     local procedure ValidatePaymentTermsOnPost(var ServiceHeader: Record "Service Header")
 #endif
+#pragma warning restore AS0022
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         PaymentTerms: Record "Payment Terms";
@@ -120,9 +119,6 @@ codeunit 10789 "Service Posting Subscr. ES"
             then
                 Error(CannotCreateCarteraDocErr);
         OnCreateBillsOnBeforeSplitServiceInv(ServiceHeader, CustLedgEntry, TotalServiceLine);
-#if not CLEAN27
-        ServPostingJournalsMgt.RunOnCreateBillsOnBeforeSplitServiceInv(ServiceHeader, CustLedgEntry, TotalServiceLine);
-#endif
         SourceCodeSetup.Get();
         if (ServiceHeader."Bal. Account No." = '') and (ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo") and CarteraSetup.ReadPermission then
             ServInvoiceSplitPayment.SplitServiceInvoice(
