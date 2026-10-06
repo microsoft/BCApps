@@ -1,3 +1,4 @@
+﻿#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,3 +11,4 @@ permissionsetextension 10502 "GetAddress.io UK Postcodes Local Read" extends "LO
 {
     Permissions = tabledata "Postcode Notif. Memory" = R;
 }
+#endif

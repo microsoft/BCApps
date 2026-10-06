@@ -19,9 +19,6 @@ codeunit 945 "Asm. Carry Out Action"
         ReqLineReserve: Codeunit "Req. Line-Reserve";
         ReservationManagement: Codeunit "Reservation Management";
         AsmReservCheckDateConfl: Codeunit "Asm. ReservCheckDateConfl";
-#if not CLEAN27
-        CarryOutAction: Codeunit "Carry Out Action";
-#endif
         PrintOrder: Boolean;
         CouldNotChangeSupplyTxt: Label 'The supply type could not be changed in order %1, order line %2.', Comment = '%1 - Production Order No. or Assembly Header No. or Purchase Header No., %2 - Production Order Line or Assembly Line No. or Purchase Line No.';
 
@@ -37,9 +34,6 @@ codeunit 945 "Asm. Carry Out Action"
     begin
         PrintOrder := AsmOrderChoice = AsmOrderChoice::"Make Assembly Orders & Print";
         OnCarryOutActionsFromAssemblyOrderOnAfterCalcPrintOrder(PrintOrder, AsmOrderChoice);
-#if not CLEAN27
-        CarryOutAction.RunOnCarryOutActionsFromAssemblyOrderOnAfterCalcPrintOrder(PrintOrder, AsmOrderChoice);
-#endif
         case RequisitionLine."Action Message" of
             RequisitionLine."Action Message"::New:
                 InsertAsmHeader(RequisitionLine, AssemblyHeader, TempDocumentEntry);
@@ -61,14 +55,8 @@ codeunit 945 "Asm. Carry Out Action"
         AssemblyHeader.Init();
         AssemblyHeader."Document Type" := AssemblyHeader."Document Type"::Order;
         OnInsertAsmHeaderOnBeforeAsmHeaderInsert(AssemblyHeader, RequisitionLine);
-#if not CLEAN27
-        CarryOutAction.RunOnInsertAsmHeaderOnBeforeAsmHeaderInsert(AssemblyHeader, RequisitionLine);
-#endif        
         AssemblyHeader.Insert(true);
         OnInsertAsmHeaderOnAfterAsmHeaderInsert(AssemblyHeader, RequisitionLine);
-#if not CLEAN27
-        CarryOutAction.RunOnInsertAsmHeaderOnAfterAsmHeaderInsert(AssemblyHeader, RequisitionLine);
-#endif
         AssemblyHeader.SetWarningsOff();
         AssemblyHeader.Validate("Item No.", RequisitionLine."No.");
         AssemblyHeader.Validate("Unit of Measure Code", RequisitionLine."Unit of Measure Code");
@@ -105,9 +93,6 @@ codeunit 945 "Asm. Carry Out Action"
         AddResourceComponents(RequisitionLine, AssemblyHeader);
 
         OnAfterInsertAsmHeader(RequisitionLine, AssemblyHeader);
-#if not CLEAN27
-        CarryOutAction.RunOnAfterInsertAsmHeader(RequisitionLine, AssemblyHeader);
-#endif
         if PrintOrder then
             CollectAsmOrderForPrinting(AssemblyHeader);
 
@@ -134,9 +119,6 @@ codeunit 945 "Asm. Carry Out Action"
             AssemblyHeader.Validate("Planning Flexibility", RequisitionLine."Planning Flexibility");
             AssemblyHeader.Validate("Due Date", RequisitionLine."Due Date");
             OnAsmOrderChgAndResheduleOnBeforeAsmHeaderModify(RequisitionLine, AssemblyHeader);
-#if not CLEAN27
-            CarryOutAction.RunOnAsmOrderChgAndResheduleOnBeforeAsmHeaderModify(RequisitionLine, AssemblyHeader);
-#endif
             AssemblyHeader.Modify(true);
             AssemblyHeaderReserve.TransferPlanningLineToAsmHdr(RequisitionLine, AssemblyHeader, 0, true);
             ReqLineReserve.UpdateDerivedTracking(RequisitionLine);
@@ -230,9 +212,6 @@ codeunit 945 "Asm. Carry Out Action"
                 AssemblyLine."Shortcut Dimension 2 Code" := PlanningComponent."Shortcut Dimension 2 Code";
 
                 OnAfterTransferAsmPlanningComp(PlanningComponent, AssemblyLine);
-#if not CLEAN27
-                CarryOutAction.RunOnAfterTransferAsmPlanningComp(PlanningComponent, AssemblyLine);
-#endif
                 AssemblyLine.Insert();
 
                 AssemblyLineReserve.TransferPlanningCompToAsmLine(PlanningComponent, AssemblyLine, 0, true);
@@ -276,9 +255,6 @@ codeunit 945 "Asm. Carry Out Action"
     begin
         IsHandled := false;
         OnBeforeAddResourceComponents(RequisitionLine, AssemblyHeader, IsHandled);
-#if not CLEAN27
-        CarryOutAction.RunOnBeforeAddResourceComponents(RequisitionLine, AssemblyHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -297,9 +273,6 @@ codeunit 945 "Asm. Carry Out Action"
     begin
         IsHandled := false;
         OnBeforeDeleteAssemblyLines(RequisitionLine, IsHandled);
-#if not CLEAN27
-        CarryOutAction.RunOnBeforeDeleteAssemblyLines(RequisitionLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 
