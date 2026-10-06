@@ -1231,6 +1231,8 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricExportSummary.State := TenantFabricExportSummary.State::Running;
         TenantFabricExportSummary."Start Time" := CurrentDateTime();
         TenantFabricExportSummary.Insert(false);
+        //[GIVEN] The data is committed so it survives the asserterror rollback
+        Commit();
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
