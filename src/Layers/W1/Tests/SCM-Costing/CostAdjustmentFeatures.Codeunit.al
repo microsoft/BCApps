@@ -22,12 +22,20 @@ codeunit 137085 "Cost Adjustment Features"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         Initialized: Boolean;
+        BufferedItemNo: Code[20];
+        BufferedEntryNo: Integer;
+        BufferSeeded: Boolean;
+        BufferAdjustmentPasses: Integer;
 
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Cost Adjustment Features");
         LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
+        Clear(BufferedItemNo);
+        Clear(BufferedEntryNo);
+        Clear(BufferSeeded);
+        Clear(BufferAdjustmentPasses);
 
         if Initialized then
             exit;
@@ -1691,6 +1699,191 @@ codeunit 137085 "Cost Adjustment Features"
         VerifyItemCostAmountZero(Item."No.");
     end;
 
+    [Test]
+    procedure CompletedBufferedEntryRemainsAdjusted()
+    var
+        Item: Record Item;
+        InboundItemLedgerEntry: Record "Item Ledger Entry";
+        OutboundItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+        ValueEntryCount: Integer;
+    begin
+        // [FEATURE] [AI test 0.3] [Cost Adjustment]
+        // [SCENARIO] An entry buffered by an earlier pass stays unmarked after a later pass completes it.
+        Initialize();
+
+        // [GIVEN] Fully invoiced, applied entries "I" and "O", with "I" pending at the first pass boundary.
+        CreateAppliedEntriesForBufferTest(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+        SetEntryToBuffer(InboundItemLedgerEntry);
+
+        // [WHEN] Cost adjustment processes the pending entry again and finalizes the run.
+        BindSubscription(this);
+        RunBufferedCostAdjustment(Item, InventoryAdjustment);
+        UnbindSubscription(this);
+
+        // [THEN] Both passes ran, costs balance, and the completed entry is not marked again.
+        VerifyBufferAdjustmentPasses();
+        VerifyCompletedAppliedEntries(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+
+        // [WHEN] Cost adjustment is run again without seeding another pending entry.
+        ValueEntry.SetRange("Item No.", Item."No.");
+        ValueEntryCount := ValueEntry.Count();
+        RunCostAdjustment(Item."No.");
+
+        // [THEN] No extra value entries are posted and the completed entries remain adjusted.
+        Assert.AreEqual(ValueEntryCount, ValueEntry.Count(), 'Repeated adjustment must not post extra value entries.');
+        VerifyCompletedAppliedEntries(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+    end;
+
+    [Test]
+    procedure CompletedBufferedEntryRemovesLastItemKey()
+    var
+        Item: Record Item;
+        InboundItemLedgerEntry: Record "Item Ledger Entry";
+        OutboundItemLedgerEntry: Record "Item Ledger Entry";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+    begin
+        // [FEATURE] [AI test 0.3] [Cost Adjustment]
+        // [SCENARIO] Completing the last buffered entry removes the item key from the pending buffer.
+        Initialize();
+
+        // [GIVEN] Fully invoiced, applied entries "I" and "O", with only "I" buffered after the first pass.
+        CreateAppliedEntriesForBufferTest(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+        SetEntryToBuffer(InboundItemLedgerEntry);
+
+        // [WHEN] The second adjustment pass completes the last buffered entry.
+        BindSubscription(this);
+        RunBufferedCostAdjustment(Item, InventoryAdjustment);
+        UnbindSubscription(this);
+
+        // [THEN] The item no longer has a pending buffer key.
+        VerifyBufferAdjustmentPasses();
+        Assert.IsFalse(
+            InventoryAdjustment.CallAppliedEntryToAdjustBufExists(Item."No."),
+            'Completing the last buffered entry must remove the item key.');
+        VerifyCompletedAppliedEntries(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+    end;
+
+    [Test]
+    procedure CompletedBufferedEntryPreservesPendingEntry()
+    var
+        Item: Record Item;
+        InboundItemLedgerEntry: Record "Item Ledger Entry";
+        OutboundItemLedgerEntry: Record "Item Ledger Entry";
+        PendingItemLedgerEntry: Record "Item Ledger Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+    begin
+        // [FEATURE] [AI test 0.3] [Cost Adjustment]
+        // [SCENARIO] Removing a completed entry preserves another same-item entry awaiting sales invoicing.
+        Initialize();
+
+        // [GIVEN] Fully invoiced entries "I" and "O" and another receipt "P" applied to an uninvoiced shipment.
+        CreateAppliedEntriesForBufferTest(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+        PostPurchaseOrder(Item."No.", 10, WorkDate() + 2, 20);
+        FindItemLedgerEntry(PendingItemLedgerEntry, Item."No.", WorkDate() + 2);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        SalesHeader.Validate("Posting Date", WorkDate() + 3);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 10);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+        SetEntryToBuffer(InboundItemLedgerEntry);
+
+        // [WHEN] The later adjustment pass completes "I" while "P" still needs adjustment.
+        BindSubscription(this);
+        RunBufferedCostAdjustment(Item, InventoryAdjustment);
+        UnbindSubscription(this);
+
+        // [THEN] The pending entry and its item key survive, but the completed entry stays unmarked.
+        VerifyBufferAdjustmentPasses();
+        VerifyPendingBufferedEntry(PendingItemLedgerEntry, InventoryAdjustment);
+        VerifyCompletedAppliedEntries(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+    end;
+
+    [Test]
+    procedure UnbufferedAppliedEntriesRemainAdjusted()
+    var
+        Item: Record Item;
+        InboundItemLedgerEntry: Record "Item Ledger Entry";
+        OutboundItemLedgerEntry: Record "Item Ledger Entry";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+    begin
+        // [FEATURE] [AI test 0.3] [Cost Adjustment]
+        // [SCENARIO] Normal adjustment of fully invoiced entries without a pending buffer remains unchanged.
+        Initialize();
+
+        // [GIVEN] Fully invoiced, applied entries "I" and "O" without a previous-pass buffer.
+        CreateAppliedEntriesForBufferTest(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+
+        // [WHEN] Cost adjustment completes normally.
+        RunBufferedCostAdjustment(Item, InventoryAdjustment);
+
+        // [THEN] Costs and flags are correct, and no pending item key is created.
+        VerifyCompletedAppliedEntries(Item, InboundItemLedgerEntry, OutboundItemLedgerEntry);
+        Assert.IsFalse(
+            InventoryAdjustment.CallAppliedEntryToAdjustBufExists(Item."No."),
+            'Normal completed adjustment must not create a pending item key.');
+    end;
+
+    local procedure CreateAppliedEntriesForBufferTest(var Item: Record Item; var InboundItemLedgerEntry: Record "Item Ledger Entry"; var OutboundItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+        CreateItem(Item, Item."Costing Method"::FIFO);
+        PostItemJournalLine(Item."No.", 10, 10, WorkDate());
+        FindItemLedgerEntry(InboundItemLedgerEntry, Item."No.", WorkDate());
+        PostItemJournalLine(Item."No.", '', -10, 0, WorkDate() + 1, InboundItemLedgerEntry."Entry No.");
+        FindItemLedgerEntry(OutboundItemLedgerEntry, Item."No.", WorkDate() + 1);
+    end;
+
+    local procedure SetEntryToBuffer(ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+        BufferedItemNo := ItemLedgerEntry."Item No.";
+        BufferedEntryNo := ItemLedgerEntry."Entry No.";
+        LibraryVariableStorage.Enqueue('CompletedBufferedEntry');
+    end;
+
+    local procedure RunBufferedCostAdjustment(var Item: Record Item; var InventoryAdjustment: Codeunit "Inventory Adjustment")
+    begin
+        Item.SetRecFilter();
+        InventoryAdjustment.SetFilterItem(Item);
+        InventoryAdjustment.SetProperties(false, false);
+        InventoryAdjustment.MakeMultiLevelAdjmt();
+    end;
+
+    local procedure VerifyBufferAdjustmentPasses()
+    begin
+        Assert.IsTrue(BufferSeeded, 'The previous-pass pending buffer must be seeded.');
+        Assert.AreEqual(2, BufferAdjustmentPasses, 'The buffered entry must be processed in a second adjustment pass.');
+        Assert.AreEqual('CompletedBufferedEntry', LibraryVariableStorage.DequeueText(), 'Unexpected subscription test context.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure VerifyCompletedAppliedEntries(var Item: Record Item; var InboundItemLedgerEntry: Record "Item Ledger Entry"; var OutboundItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+        InboundItemLedgerEntry.Get(InboundItemLedgerEntry."Entry No.");
+        OutboundItemLedgerEntry.Get(OutboundItemLedgerEntry."Entry No.");
+        InboundItemLedgerEntry.CalcFields("Cost Amount (Actual)");
+        OutboundItemLedgerEntry.CalcFields("Cost Amount (Actual)");
+        Assert.AreEqual(100, InboundItemLedgerEntry."Cost Amount (Actual)", 'Inbound actual cost must remain unchanged.');
+        Assert.AreEqual(-100, OutboundItemLedgerEntry."Cost Amount (Actual)", 'Outbound actual cost must match the applied inbound cost.');
+        Assert.IsFalse(InboundItemLedgerEntry."Applied Entry to Adjust", 'Completed buffered entry must remain unmarked after finalization.');
+        Assert.IsFalse(OutboundItemLedgerEntry."Applied Entry to Adjust", 'Completed outbound entry must remain unmarked after finalization.');
+        Item.Get(Item."No.");
+        Assert.IsTrue(Item."Cost is Adjusted", 'The item adjustment pass must complete.');
+    end;
+
+    local procedure VerifyPendingBufferedEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; var InventoryAdjustment: Codeunit "Inventory Adjustment")
+    begin
+        ItemLedgerEntry.Get(ItemLedgerEntry."Entry No.");
+        ItemLedgerEntry.CalcFields("Cost Amount (Actual)");
+        Assert.AreEqual(200, ItemLedgerEntry."Cost Amount (Actual)", 'Pending receipt actual cost must remain unchanged.');
+        Assert.IsTrue(ItemLedgerEntry."Applied Entry to Adjust", 'The receipt awaiting sales invoicing must remain marked.');
+        Assert.IsTrue(
+            InventoryAdjustment.CallAppliedEntryToAdjustBufExists(ItemLedgerEntry."Item No."),
+            'An item with another pending entry must retain its buffer key.');
+    end;
+
     local procedure CreateItem(var Item: Record Item; CostingMethod: Enum "Costing Method")
     begin
         LibraryInventory.CreateItem(Item);
@@ -1831,6 +2024,27 @@ codeunit 137085 "Cost Adjustment Features"
             if Item."No." = LibraryVariableStorage.PeekText(3) then
                 Assert.Fail(Item."No.");
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", OnBeforeUpdateItemUnitCost2, '', false, false)]
+    local procedure SeedPreviousPassPendingEntry(var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [Integer]])
+    var
+        ItemLedgerEntryNos: List of [Integer];
+    begin
+        if (BufferedEntryNo = 0) or (Item."No." <> BufferedItemNo) then
+            exit;
+
+        BufferAdjustmentPasses += 1;
+        if BufferSeeded then
+            exit;
+
+        // Model an earlier pass that left this entry pending; subsequent passes use only product logic.
+        if not ItemLedgEntryToAdjust.Get(Item."No.", ItemLedgerEntryNos) then
+            ItemLedgEntryToAdjust.Add(Item."No.", ItemLedgerEntryNos);
+        if not ItemLedgerEntryNos.Contains(BufferedEntryNo) then
+            ItemLedgerEntryNos.Add(BufferedEntryNo);
+        ItemLedgEntryToAdjust.Set(Item."No.", ItemLedgerEntryNos);
+        BufferSeeded := true;
     end;
 
     [ConfirmHandler]
