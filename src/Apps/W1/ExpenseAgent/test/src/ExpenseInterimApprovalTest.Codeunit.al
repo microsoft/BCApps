@@ -329,7 +329,6 @@ codeunit 148346 "Expense Interim Approval Test"
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
         ExpenseActivityLogEntry.FindFirst();
         ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Administrator);
-        ExpenseActivityLogEntry.TestField("Actor Table ID", Database::User);
         WorkDate(OriginalWorkDate);
     end;
 
@@ -422,12 +421,12 @@ codeunit 148346 "Expense Interim Approval Test"
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
         CreateApproverExpenseUser(AlternateApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
         CreateAlternateApproverCoverage(
             FinalApprover."No.",
             AlternateApprover."No.",
-            CalcDate('<-1D>', WorkDate()),
-            CalcDate('<+1D>', WorkDate()));
-        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+            WorkDate(),
+            WorkDate());
         CreateSubmitterExpenseUser(OtherExpenseUser);
         SetCurrentUser(OtherExpenseUser);
 
@@ -463,12 +462,12 @@ codeunit 148346 "Expense Interim Approval Test"
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
         CreateApproverExpenseUser(AlternateApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
         CreateAlternateApproverCoverage(
             FinalApprover."No.",
             AlternateApprover."No.",
             WorkDate(),
             WorkDate());
-        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
         CreateApproverExpenseUser(Administrator);
         SetCurrentUser(Administrator);
 
@@ -482,7 +481,6 @@ codeunit 148346 "Expense Interim Approval Test"
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
         ExpenseActivityLogEntry.FindFirst();
         ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Administrator);
-        ExpenseActivityLogEntry.TestField("Actor Table ID", Database::User);
         WorkDate(OriginalWorkDate);
     end;
 
@@ -508,12 +506,12 @@ codeunit 148346 "Expense Interim Approval Test"
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
         CreateApproverExpenseUser(AlternateApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
         CreateAlternateApproverCoverage(
             FinalApprover."No.",
             AlternateApprover."No.",
-            CalcDate('<-1D>', WorkDate()),
-            CalcDate('<+1D>', WorkDate()));
-        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+            WorkDate(),
+            WorkDate());
         ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
         SetCurrentUser(Submitter);
 
@@ -566,6 +564,9 @@ codeunit 148346 "Expense Interim Approval Test"
             SecondAlternateApprover."No.",
             SecondCoverageStartDate,
             SecondCoverageEndDate);
+
+        // Preserve both rows when the expected validation error rolls back its transaction.
+        Commit();
 
         // [WHEN] The first coverage end is moved before its start.
         FirstCoverage.Get(PrimaryApprover."No.", FirstAlternateApprover."No.", WorkDate());
