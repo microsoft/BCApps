@@ -31,6 +31,7 @@ codeunit 20512 "Subc. Reporting Triggers Ext"
             exit;
 
         LotSize := 1;
+        Item.SetLoadFields("Lot Size");
         if Item.Get(ItemNo) then
             if Item."Lot Size" <> 0 then
                 LotSize := Item."Lot Size";
