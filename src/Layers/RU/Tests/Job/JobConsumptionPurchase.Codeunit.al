@@ -6836,6 +6836,7 @@ codeunit 136302 "Job Consumption Purchase"
         JobLedgerEntry.SetRange("Job Task No.", JobTask."Job Task No.");
         Assert.RecordCount(JobLedgerEntry, 2);
 
+        PrevLinkedGLEntryNo := 0;
         JobLedgerEntry.FindSet();
         repeat
             GLEntry.Get(JobLedgerEntry."Ledger Entry No.");
