@@ -16,23 +16,23 @@ codeunit 13486 "Dep. Diff. Demo Data FI"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Contoso Demo Tool", 'OnBeforeGeneratingDemoData', '', false, false)]
     local procedure OnBeforeGeneratingDemoData(Module: Enum "Contoso Demo Data Module"; ContosoDemoDataLevel: Enum "Contoso Demo Data Level")
     var
-        CreateFAPostingGrpFI: Codeunit "Create FA Posting Grp. FI";
+        CreateDeprDiffFAPostGrp: Codeunit "Create Depr. Diff. FA Post Grp";
     begin
         if not IsFixedAssetSetupData(Module, ContosoDemoDataLevel) then
             exit;
 
-        BindSubscription(CreateFAPostingGrpFI);
+        BindSubscription(CreateDeprDiffFAPostGrp);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Contoso Demo Tool", 'OnAfterGeneratingDemoData', '', false, false)]
     local procedure OnAfterGeneratingDemoData(Module: Enum "Contoso Demo Data Module"; ContosoDemoDataLevel: Enum "Contoso Demo Data Level")
     var
-        CreateFAPostingGrpFI: Codeunit "Create FA Posting Grp. FI";
+        CreateDeprDiffFAPostGrp: Codeunit "Create Depr. Diff. FA Post Grp";
     begin
         if not IsFixedAssetSetupData(Module, ContosoDemoDataLevel) then
             exit;
 
-        UnBindSubscription(CreateFAPostingGrpFI);
+        UnBindSubscription(CreateDeprDiffFAPostGrp);
     end;
 
     local procedure IsFixedAssetSetupData(Module: Enum "Contoso Demo Data Module"; ContosoDemoDataLevel: Enum "Contoso Demo Data Level"): Boolean

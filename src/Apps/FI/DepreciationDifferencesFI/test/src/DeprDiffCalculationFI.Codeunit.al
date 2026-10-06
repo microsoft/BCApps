@@ -58,7 +58,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         ZeroDifferenceLineErr: Label '''%1'' report contains lines with 0 in difference amount', Comment = '%1 is the report name.';
         ExpectedReportRowErr: Label 'The report did not produce the expected difference row.';
         HandledMessage: Text;
-        DifferenceAmtErr: Label 'Current row does not have ''DifferenceAmt'' value greater than zero. Value  = <%1>.', Comment = '%1 is the name of the DataSet field, and %2 is the value of that field.';
+        DifferenceAmtErr: Label 'Current row does not have ''DifferenceAmt'' value greater than zero. Value  = <%1>.', Comment = '%1 is the DifferenceAmt value.';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
 #if not CLEAN30
         FeatureNotEnabledErr: Label 'The Depreciation Differences FI feature must be enabled before you can run this report.';
@@ -150,6 +150,10 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 #pragma warning restore AL0432
         SourceCodeSetup."Depreciation Difference Code" := '';
         SourceCodeSetup.Modify(false);
+
+        Assert.IsTrue(
+            DepDiffFIFeatureDataUpdate.IsDataUpdateRequired(),
+            'The feature data update must be required when legacy depreciation difference data exists.');
 
         FeatureDataUpdateStatus."Feature Key" := 'DepreciationDifferencesFI';
         FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));

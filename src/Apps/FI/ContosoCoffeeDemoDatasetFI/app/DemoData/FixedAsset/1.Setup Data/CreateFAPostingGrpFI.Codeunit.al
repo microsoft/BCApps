@@ -13,6 +13,9 @@ using Microsoft.FixedAssets.FixedAsset;
 
 codeunit 13445 "Create FA Posting Grp. FI"
 {
+    ObsoleteReason = 'Use the Depreciation Differences FI Demo Data app to generate depreciation difference setup data.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
     SingleInstance = true;
     EventSubscriberInstance = Manual;
     InherentEntitlements = X;
