@@ -63,8 +63,8 @@ codeunit 130131 "MCP Config Test Library"
 
     procedure GetAgentSystemTools(var SystemTools: Dictionary of [Text, Text])
     var
-        MCPAgentToolsFeature: Codeunit "MCP Agent Tools Feature";
         TempMCPSystemTool: Record "MCP System Tool" temporary;
+        MCPAgentToolsFeature: Codeunit "MCP Agent Tools Feature";
     begin
         Clear(SystemTools);
         MCPAgentToolsFeature.LoadSystemTools(TempMCPSystemTool);
