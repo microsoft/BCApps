@@ -64,7 +64,7 @@ pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create self-billed E-Document';
                     Image = CreateDocument;
-                    ToolTip = 'Creates a self-billed E-Document from this posted purchase invoice and sends it via service. Only available for vendors with a self-billing agreement and registered participant IDs.';
+                    ToolTip = 'Creates a self-billed E-Document from this posted purchase invoice and sends it via service. Only available for self-billing invoices with registered participant IDs.';
                     Enabled = (not SelfBillEDocumentExists) and CanSelfBill;
 
                     trigger OnAction()
@@ -105,6 +105,6 @@ pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
 
         EDocument.SetRange("Document Record ID", Rec.RecordId());
         SelfBillEDocumentExists := not EDocument.IsEmpty();
-        CanSelfBill := EDocumentSubscribers.IsEligibleForSelfBilling(Rec."Buy-from Vendor No.");
+        CanSelfBill := EDocumentSubscribers.IsEligibleForSelfBilling(Rec);
     end;
 }

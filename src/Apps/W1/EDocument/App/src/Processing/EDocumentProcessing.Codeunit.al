@@ -224,6 +224,23 @@ codeunit 6108 "E-Document Processing"
         exit(EDocumentWorkflowProcessing.GetEDocumentServiceFromPreviousSendOrExportResponse(WorkflowStepInstance, EDocumentService));
     end;
 
+    /// <summary>
+    /// A posted purchase credit memo is self-billed when it is applied to a posted self-billing invoice.
+    /// Posted credit memos have no self-billing field of their own, so the state is derived from the invoice.
+    /// </summary>
+    /// <param name="PurchCrMemoHdr">The posted purchase credit memo to check.</param>
+    /// <returns>True if the credit memo is applied to a posted self-billing invoice.</returns>
+    procedure IsSelfBilledCreditMemo(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."): Boolean
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        if PurchCrMemoHdr."Applies-to Doc. Type" <> PurchCrMemoHdr."Applies-to Doc. Type"::Invoice then
+            exit(false);
+        if not PurchInvHeader.Get(PurchCrMemoHdr."Applies-to Doc. No.") then
+            exit(false);
+        exit(PurchInvHeader."Self-Billing Invoice");
+    end;
+
     procedure GetDocSendingProfileForDocRef(var RecRef: RecordRef): Record "Document Sending Profile";
     var
         SalesHeader: Record "Sales Header";

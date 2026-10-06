@@ -53,7 +53,7 @@ pageextension 6147 "E-Doc. Posted Purch. Cr. Memo" extends "Posted Purchase Cred
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create self-billed E-Document';
                     Image = CreateDocument;
-                    ToolTip = 'Creates a self-billed E-Document from this posted purchase credit memo and sends it via service. Only available for vendors with a self-billing agreement and registered participant IDs.';
+                    ToolTip = 'Creates a self-billed E-Document from this posted purchase credit memo and sends it via service. Only available for credit memos applied to a self-billing invoice, with registered participant IDs.';
                     Enabled = (not SelfBillEDocumentExists) and CanSelfBill;
 
                     trigger OnAction()
@@ -88,7 +88,7 @@ pageextension 6147 "E-Doc. Posted Purch. Cr. Memo" extends "Posted Purchase Cred
 
         EDocument.SetRange("Document Record ID", Rec.RecordId());
         SelfBillEDocumentExists := not EDocument.IsEmpty();
-        CanSelfBill := EDocumentSubscribers.IsEligibleForSelfBilling(Rec."Buy-from Vendor No.");
+        CanSelfBill := EDocumentSubscribers.IsEligibleForSelfBilling(Rec);
     end;
 }
 

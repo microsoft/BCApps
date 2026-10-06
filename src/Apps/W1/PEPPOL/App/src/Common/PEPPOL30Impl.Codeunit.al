@@ -304,7 +304,10 @@ codeunit 37201 "PEPPOL30 Impl."
                     PurchInvHeader.SetRange("No.", PurchaseHeader."No.");
                     if PurchInvHeader.IsEmpty() then
                         exit(false);
-                    ReportSelections.GetPdfReportForVend(TempBlob, "Report Selection Usage"::"P.Invoice", PurchInvHeader, PurchaseHeader."Buy-from Vendor No.");
+                    if PurchaseHeader."Self-Billing Invoice" then
+                        ReportSelections.GetPdfReportForVend(TempBlob, "Report Selection Usage"::"P.Self Billing Invoice", PurchInvHeader, PurchaseHeader."Buy-from Vendor No.")
+                    else
+                        ReportSelections.GetPdfReportForVend(TempBlob, "Report Selection Usage"::"P.Invoice", PurchInvHeader, PurchaseHeader."Buy-from Vendor No.");
                 end;
             PurchaseHeader."Document Type"::"Credit Memo":
                 begin

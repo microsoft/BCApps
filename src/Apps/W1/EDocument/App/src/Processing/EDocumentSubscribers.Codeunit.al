@@ -26,7 +26,6 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Setup;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
@@ -297,23 +296,23 @@ codeunit 6103 "E-Document Subscribers"
         if PurchInvHdrNo <> '' then begin
             if PurchInvHeader.Get(PurchInvHdrNo) then begin
                 PointEDocumentToPostedDocument(PurchaseHeader, PurchInvHeader, PurchInvHdrNo, Enum::"E-Document Type"::"Purchase Invoice", PurchInvHeader."Posting Date");
-                CreateSelfBilledEDocument(CommitIsSupressed, PurchaseHeader."Buy-from Vendor No.", PurchInvHeader, Enum::"E-Document Type"::"Self-Billed Purchase Invoice");
+                if IsEligibleForSelfBilling(PurchInvHeader) then
+                    CreateSelfBilledEDocument(CommitIsSupressed, PurchInvHeader, Enum::"E-Document Type"::"Self-Billed Purchase Invoice");
             end;
         end else
             if PurchCrMemoHdr.Get(PurchCrMemoHdrNo) then begin
                 PointEDocumentToPostedDocument(PurchaseHeader, PurchCrMemoHdr, PurchCrMemoHdrNo, Enum::"E-Document Type"::"Purchase Credit Memo", PurchCrMemoHdr."Posting Date");
-                CreateSelfBilledEDocument(CommitIsSupressed, PurchaseHeader."Buy-from Vendor No.", PurchCrMemoHdr, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo");
+                if IsEligibleForSelfBilling(PurchCrMemoHdr) then
+                    CreateSelfBilledEDocument(CommitIsSupressed, PurchCrMemoHdr, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo");
             end;
     end;
 
-    local procedure CreateSelfBilledEDocument(CommitIsSupressed: Boolean; VendorNo: Code[20]; PostedRecord: Variant; DocumentType: Enum "E-Document Type")
+    local procedure CreateSelfBilledEDocument(CommitIsSupressed: Boolean; PostedRecord: Variant; DocumentType: Enum "E-Document Type")
     var
         DocumentSendingProfile: Record "Document Sending Profile";
         RecRef: RecordRef;
     begin
         if not AllowCreateEDocument(CommitIsSupressed, false, false, 'Purch.-Post') then
-            exit;
-        if not IsEligibleForSelfBilling(VendorNo) then
             exit;
 
         RecRef.GetTable(PostedRecord);
@@ -322,20 +321,34 @@ codeunit 6103 "E-Document Subscribers"
     end;
 
     /// <summary>
-    /// Self-billing eligibility gate: vendor agreement + both participant IDs present. Shared by
-    /// this posting subscriber and the manual "Create E-Document" page actions' Enabled guard.
+    /// Self-billing eligibility gate: the posted invoice is a self-billing invoice and both participant IDs
+    /// are present. Shared by the posting subscriber and the manual "Create E-Document" page action's Enabled guard.
     /// </summary>
-    /// <param name="VendorNo">The vendor to check.</param>
-    procedure IsEligibleForSelfBilling(VendorNo: Code[20]): Boolean
+    /// <param name="PurchInvHeader">The posted purchase invoice to check.</param>
+    procedure IsEligibleForSelfBilling(PurchInvHeader: Record "Purch. Inv. Header"): Boolean
+    begin
+        if not PurchInvHeader."Self-Billing Invoice" then
+            exit(false);
+        exit(HasSelfBillingParticipants(PurchInvHeader."Buy-from Vendor No."));
+    end;
+
+    /// <summary>
+    /// Self-billing eligibility gate: the posted credit memo is applied to a self-billing invoice and both participant
+    /// IDs are present. Shared by the posting subscriber and the manual "Create E-Document" page action's Enabled guard.
+    /// </summary>
+    /// <param name="PurchCrMemoHdr">The posted purchase credit memo to check.</param>
+    procedure IsEligibleForSelfBilling(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."): Boolean
+    begin
+        if not EDocumentProcessing.IsSelfBilledCreditMemo(PurchCrMemoHdr) then
+            exit(false);
+        exit(HasSelfBillingParticipants(PurchCrMemoHdr."Buy-from Vendor No."));
+    end;
+
+    local procedure HasSelfBillingParticipants(VendorNo: Code[20]): Boolean
     var
-        Vendor: Record Vendor;
         ServiceParticipant: Codeunit "Service Participant";
     begin
         if VendorNo = '' then
-            exit(false);
-        if not Vendor.Get(VendorNo) then
-            exit(false);
-        if not Vendor."Self-Billing Agreement" then
             exit(false);
         if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Vendor, VendorNo) = 0 then
             exit(false);
