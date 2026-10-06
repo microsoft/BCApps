@@ -332,28 +332,69 @@ codeunit 20535 "Subc. Purch. Post Ext"
         end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnInsertValueEntryOnBeforeUpdateItemLedgerEntry, '', false, false)]
+    local procedure UpdateTrackedSubcontractingInvoiceCapacityEntries(
+        var ValueEntry: Record "Value Entry";
+        var ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemJournalLine: Record "Item Journal Line";
+        var IsHandled: Boolean)
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        if IsHandled then
+            exit;
+        if ValueEntry."Entry Type" <> ValueEntry."Entry Type"::"Direct Cost" then
+            exit;
+        if not SetTrackedSubcontractingCapacityEntryFilters(CapacityLedgerEntry, ItemLedgerEntry, ItemJournalLine) then
+            exit;
+
+        CapacityLedgerEntry.LockTable();
+        if not CapacityLedgerEntry.FindSet(true) then
+            exit;
+        repeat
+            CapacityLedgerEntry."Invoiced Quantity" := CapacityLedgerEntry."Output Quantity";
+            CapacityLedgerEntry."Completely Invoiced" := true;
+            CapacityLedgerEntry.Modify();
+        until CapacityLedgerEntry.Next() = 0;
+        IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertValueEntry, '', false, false)]
     local procedure SetTrackedSubcontractingInvoiceCapacityCostTarget(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line")
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
-        if ItemJournalLine."Entry Type" <> ItemJournalLine."Entry Type"::Purchase then
-            exit;
-        if ItemJournalLine."Subc. Item Charge Assign." or (ItemJournalLine."Subc. Purch. Order No." = '') then
-            exit;
         if not ItemLedgerEntry.Get(ItemJournalLine."Item Shpt. Entry No.") then
             exit;
-
-        CapacityLedgerEntry.SetRange("Item Register No.", ItemLedgerEntry."Item Register No.");
-        CapacityLedgerEntry.SetRange(Subcontracting, true);
-        CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", ItemJournalLine."Subc. Purch. Order No.");
-        CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", ItemJournalLine."Subc. Purch. Order Line No.");
+        if not SetTrackedSubcontractingCapacityEntryFilters(CapacityLedgerEntry, ItemLedgerEntry, ItemJournalLine) then
+            exit;
         if not CapacityLedgerEntry.FindFirst() then
             exit;
 
         ValueEntry."Item Ledger Entry No." := 0;
         ValueEntry."Capacity Ledger Entry No." := CapacityLedgerEntry."Entry No.";
+    end;
+
+    local procedure SetTrackedSubcontractingCapacityEntryFilters(
+        var CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemJournalLine: Record "Item Journal Line"): Boolean
+    begin
+        if ItemJournalLine."Entry Type" <> ItemJournalLine."Entry Type"::Purchase then
+            exit(false);
+        if ItemJournalLine."Subc. Item Charge Assign." or (ItemJournalLine."Subc. Purch. Order No." = '') then
+            exit(false);
+        if (ItemJournalLine.Quantity <> 0) or (ItemJournalLine."Invoiced Quantity" = 0) then
+            exit(false);
+        if ItemLedgerEntry."Entry No." <> ItemJournalLine."Item Shpt. Entry No." then
+            exit(false);
+
+        CapacityLedgerEntry.SetRange("Item Register No.", ItemLedgerEntry."Item Register No.");
+        CapacityLedgerEntry.SetRange(Subcontracting, true);
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", ItemJournalLine."Subc. Purch. Order No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", ItemJournalLine."Subc. Purch. Order Line No.");
+        exit(true);
     end;
 
     local procedure SetSubcontractingPurchaseIdentity(var ItemJnlLine: Record "Item Journal Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
