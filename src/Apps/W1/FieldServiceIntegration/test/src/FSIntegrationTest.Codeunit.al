@@ -2052,7 +2052,9 @@ codeunit 139204 "FS Integration Test"
         PrepareBookingImport(ServiceHeader, FSWorkOrder, ExcludedBooking, IncludedBooking, false);
         IntegrationTableMapping.Get('SRVORDERLINE-RESOURC');
         IntegrationTableMapping.SetIntegrationTableFilter('');
+#pragma warning disable AA0214
         IntegrationTableMapping.Modify();
+#pragma warning restore AA0214
 
         // [WHEN] The work order synchronizes without an additional mapping filter.
         RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
@@ -2170,11 +2172,10 @@ codeunit 139204 "FS Integration Test"
         FSWorkOrder: Record "FS Work Order";
         ExcludedLine: Record "Service Line";
         IncludedLine: Record "Service Line";
-        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
         ServiceLineRecordRef: RecordRef;
     begin
         // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
-        // [SCENARIO 649829] The public target-specific export API filters its supplied record set.
+        // [SCENARIO 649829] The target-specific export filters its supplied record set.
         Initialize();
 
         // [GIVEN] A product mapping excludes "L1" from the current order's line view.
@@ -2186,8 +2187,8 @@ codeunit 139204 "FS Integration Test"
         FSIntegrationTestLibrary.ClearSynchronizationCandidates();
         BindSubscription(FSIntegrationTestLibrary);
 
-        // [WHEN] The public target-specific export runs.
-        FSIntTableSubscriber.SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
+        // [WHEN] The target-specific export runs.
+        FSIntegrationTestLibrary.SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
         UnbindSubscription(FSIntegrationTestLibrary);
 
         // [THEN] Only "L2" reaches per-record synchronization.
@@ -2215,7 +2216,9 @@ codeunit 139204 "FS Integration Test"
         ProductFilter.SetView(IntegrationTableMapping.GetIntegrationTableFilter());
         ProductFilter.SetRange(LineStatus);
         IntegrationTableMapping.SetIntegrationTableFilter(ProductFilter.GetView(false));
+#pragma warning disable AA0214
         IntegrationTableMapping.Modify();
+#pragma warning restore AA0214
 
         // [WHEN] The unchanged work order synchronizes its children.
         RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
@@ -2245,7 +2248,9 @@ codeunit 139204 "FS Integration Test"
         BookingFilter.SetView(IntegrationTableMapping.GetIntegrationTableFilter());
         BookingFilter.SetRange(Duration);
         IntegrationTableMapping.SetIntegrationTableFilter(BookingFilter.GetView(false));
+#pragma warning disable AA0214
         IntegrationTableMapping.Modify();
+#pragma warning restore AA0214
 
         // [WHEN] The unchanged work order synchronizes its children using the default mapping.
         RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, true);
@@ -2275,7 +2280,9 @@ codeunit 139204 "FS Integration Test"
         LineFilter.SetView(IntegrationTableMapping.GetTableFilter());
         LineFilter.SetRange(Description);
         IntegrationTableMapping.SetTableFilter(LineFilter.GetView(false));
+#pragma warning disable AA0214
         IntegrationTableMapping.Modify();
+#pragma warning restore AA0214
 
         // [WHEN] The unchanged service order synchronizes its children.
         RunAuxiliaryServiceOrderSync(ServiceHeader, FSWorkOrder, false);
@@ -2729,9 +2736,11 @@ codeunit 139204 "FS Integration Test"
     end;
 
     local procedure VerifySynchronizationSelection(CandidateRecordId: RecordId; ExpectedSelected: Boolean; ExpectedCount: Integer)
+    var
+        CandidateSelectionErr: Label 'Mapping filters must control auxiliary selection of %1.', Comment = '%1 = candidate record ID';
     begin
         Assert.AreEqual(ExpectedSelected, FSIntegrationTestLibrary.WasSelectedForSynchronization(CandidateRecordId),
-            StrSubstNo('Mapping filters must control auxiliary selection of %1.', CandidateRecordId));
+            StrSubstNo(CandidateSelectionErr, CandidateRecordId));
         Assert.AreEqual(ExpectedCount, FSIntegrationTestLibrary.GetSynchronizationCandidateCount(CandidateRecordId.TableNo()),
             'Auxiliary synchronization must not select records outside the mapping and parent scope.');
         Assert.AreEqual(0, FSIntegrationTestLibrary.GetEmptySynchronizationRequestCount(), 'Do not delegate empty record sets to the synchronization API.');

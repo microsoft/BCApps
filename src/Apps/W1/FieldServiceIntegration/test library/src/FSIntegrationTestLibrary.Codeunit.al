@@ -136,6 +136,21 @@ codeunit 139205 "FS Integration Test Library"
     end;
 
     /// <summary>
+    /// Synchronizes a filtered record set to a specific Field Service integration table.
+    /// </summary>
+    /// <param name="RecordsToSynchRecordRef">The filtered source records to synchronize.</param>
+    /// <param name="TargetTable">The target integration table ID.</param>
+    /// <param name="IgnoreChanges">Specifies whether to synchronize records without detected changes.</param>
+    /// <param name="IgnoreSynchOnlyCoupledRecords">Specifies whether to ignore the mapping's coupled-record restriction.</param>
+    /// <returns>The synchronization job ID.</returns>
+    procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
+    var
+        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
+    begin
+        exit(FSIntTableSubscriber.SynchRecordsToIntegrationTable(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords));
+    end;
+
+    /// <summary>
     /// Clears the synchronization candidates and synchronization counters captured by this test library.
     /// </summary>
     procedure ClearSynchronizationCandidates()

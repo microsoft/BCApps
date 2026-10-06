@@ -1401,7 +1401,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         end;
     end;
 
-    procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean) JobID: Guid
+    internal procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean) JobID: Guid
     var
         IntegrationTableMapping: Record "Integration Table Mapping";
         IntegrationTableSynch: Codeunit "Integration Table Synch.";
