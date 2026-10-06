@@ -3912,7 +3912,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        LibraryUtility: Codeunit "Library - Utility";
     begin
         // [SCENARIO] Create a direct transfer order for untracked items from a non-directed location with bins
 
