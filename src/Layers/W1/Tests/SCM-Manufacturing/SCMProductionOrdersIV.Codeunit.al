@@ -4579,6 +4579,7 @@ codeunit 137083 "SCM Production Orders IV"
         ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
         UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
         Quantity: Decimal;
+        LastValueEntryNo: Integer;
     begin
         // [SCENARIO 651524] Adjust Cost must not create a Variance Value Entry with "Expected Cost" = Yes
         // after a Finished Production Order of a Standard Cost item is reopened, its entries reversed and new output posted.
@@ -4589,6 +4590,9 @@ codeunit 137083 "SCM Production Orders IV"
         LibraryInventory.SetExpectedCostPosting(true);
         LibraryInventory.SetAutomaticCostAdjmtNever();
         Quantity := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] Update "Journal Templ. Name Mandatory" in General Ledger Setup.
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
 
         // [GIVEN] Component Item "C" with Unit Cost different from the Standard Cost of the production item.
         LibraryInventory.CreateItem(CompItem);
@@ -4650,17 +4654,30 @@ codeunit 137083 "SCM Production Orders IV"
         // [GIVEN] Production Order is finished again.
         LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
 
+        // [GIVEN] Save the last Value Entry No. before running Adjust Cost again.
+        ValueEntry.FindLast();
+        LastValueEntryNo := ValueEntry."Entry No.";
+
         // [WHEN] Run Adjust Cost - Item Entries.
         LibraryCosting.AdjustCostItemEntries(StrSubstNo('%1|%2', CompItem."No.", ProdItem."No."), '');
 
-        // [THEN] No Value Entry other than "Direct Cost" or "Revaluation" (e.g. Variance) has "Expected Cost" = Yes for item "P".
+        // [THEN] Adjust Cost created a new adjustment Variance Value Entry for item "P".
+        ValueEntry.Reset();
+        ValueEntry.SetFilter("Entry No.", '>%1', LastValueEntryNo);
         ValueEntry.SetRange("Item No.", ProdItem."No.");
-        ValueEntry.SetFilter("Entry Type", '<>%1&<>%2', ValueEntry."Entry Type"::"Direct Cost", ValueEntry."Entry Type"::Revaluation);
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
+        ValueEntry.SetRange(Adjustment, true);
         Assert.RecordIsNotEmpty(ValueEntry);
-        ValueEntry.SetRange("Expected Cost", true);
-        Assert.IsTrue(
-            ValueEntry.IsEmpty(),
-            StrSubstNo(ValueMustBeEqualErr, ValueEntry.FieldCaption("Expected Cost"), false, ValueEntry.TableCaption()));
+
+        // [THEN] Every Variance Value Entry created by Adjust Cost for item "P" has "Expected Cost" = No.
+        ValueEntry.SetRange(Adjustment);
+        ValueEntry.FindSet();
+        repeat
+            Assert.AreEqual(
+                false,
+                ValueEntry."Expected Cost",
+                StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Expected Cost"), false, ValueEntry."Entry No.", ValueEntry.TableCaption()));
+        until ValueEntry.Next() = 0;
 
         // [THEN] Post Inventory Cost to G/L completes successfully and posts all Value Entries of item "P".
         LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), '');
