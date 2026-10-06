@@ -70,7 +70,7 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUsage('0000W5Q', ExternalStorageTok, 'External File Retained', Dimensions);
     end;
 
-    internal procedure LogSyncRetention(RetainedCount: Integer)
+    internal procedure LogSyncRetention(RetainedCount: Integer; RetiredCount: Integer; RetirementBlockedCount: Integer)
     var
         Dimensions: Dictionary of [Text, Text];
     begin
@@ -79,6 +79,8 @@ codeunit 8754 "DA Feature Telemetry"
 
         Dimensions.Add('Category', ExternalStorageCategoryLbl);
         Dimensions.Add('RetainedCount', Format(RetainedCount));
+        Dimensions.Add('LocallyRetiredCount', Format(RetiredCount));
+        Dimensions.Add('RetirementBlockedCount', Format(RetirementBlockedCount));
         FeatureTelemetry.LogUsage('0000W5R', ExternalStorageTok, 'External Cleanup Blocked During Sync', Dimensions);
     end;
 

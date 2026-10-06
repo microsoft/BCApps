@@ -184,15 +184,38 @@ page 8751 "Document Attachment - External"
             action("Delete from External")
             {
                 Enabled = Rec."Stored Internally" and Rec."Stored Externally";
-                Caption = 'Delete from External';
-                ToolTip = 'External deletion is currently blocked. External files and attachment metadata are retained; no cleanup is scheduled.';
+                Caption = 'Retire External Reference';
+                ToolTip = 'Retire only the local external reference after confirming nonempty internal file content. Remote files are retained and no remote cleanup is scheduled.';
                 Image = Delete;
 
                 trigger OnAction()
                 var
+                    DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+                    RetiredCount: Integer;
+                    BlockedCount: Integer;
+                    FailureReason: Text;
+                    FirstFailureReason: Text;
                 begin
-                    Message(ExternalStorageImpl.GetExternalDeletionBlockedMessage());
+                    if not Confirm(RetireExternalReferencesQst) then
+                        exit;
+
+                    CurrPage.SetSelectionFilter(DocumentAttachment);
+                    DocumentAttachment.SetRange("Stored Externally", true);
+                    if DocumentAttachment.FindSet() then
+                        repeat
+                            if ExternalStorageImpl.RetireExternalReference(DocumentAttachment, FailureReason) then
+                                RetiredCount += 1
+                            else begin
+                                BlockedCount += 1;
+                                if FirstFailureReason = '' then
+                                    FirstFailureReason := FailureReason;
+                            end;
+                        until DocumentAttachment.Next() = 0;
+
+                    Message(ReferencesRetiredMsg, RetiredCount, BlockedCount, FirstFailureReason);
+                    UpdateExternalStorageStats();
+                    CurrPage.Update(false);
                 end;
             }
             action("Delete from Internal")
@@ -251,6 +274,8 @@ page 8751 "Document Attachment - External"
     }
 
     var
+        RetireExternalReferencesQst: Label 'Retire the selected local external references after confirming internal content? Remote files will not be deleted.';
+        ReferencesRetiredMsg: Label '%1 external reference(s) retired locally; remote files were retained. %2 reference(s) could not be retired. %3', Comment = '%1 = Retired reference count, %2 = Blocked reference count, %3 = First blocked reason';
         DeleteFilesFromIntStorageQst: Label 'Are you sure you want to delete the selected file(s) from internal storage?';
         FilesCopiedMsg: Label '%1 file(s) copied successfully to internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesDeletedIntStorageMsg: Label '%1 file(s) deleted successfully from internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';

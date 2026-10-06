@@ -41,6 +41,9 @@ report 8752 "DA External Storage Sync"
                 ProcessedCount := 0;
                 FailedCount := 0;
                 RetainedCount := 0;
+                RetiredCount := 0;
+                RetirementBlockedCount := 0;
+                Clear(FirstRetirementFailureReason);
 
                 if GuiAllowed() then
                     Dialog.Open(ProcessingMsg, TotalCount);
@@ -50,6 +53,7 @@ report 8752 "DA External Storage Sync"
             var
                 SyncSuccess: Boolean;
                 DeleteSuccess: Boolean;
+                FailureReason: Text;
             begin
                 ProcessedCount += 1;
 
@@ -69,9 +73,25 @@ report 8752 "DA External Storage Sync"
                         end;
                     SyncDirection::"To Internal Storage":
                         begin
-                            SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment);
-                            if SyncSuccess and (Operation = Operation::Move) then
+                            if (Operation = Operation::Move) and DocumentAttachment."Stored Internally" then
+                                SyncSuccess := ExternalStorageImpl.RetireExternalReference(DocumentAttachment, FailureReason);
+
+                            if SyncSuccess then begin
                                 RetainedCount += 1;
+                                RetiredCount += 1;
+                            end else begin
+                                SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment);
+                                if SyncSuccess and (Operation = Operation::Move) then begin
+                                    RetainedCount += 1;
+                                    if ExternalStorageImpl.RetireExternalReference(DocumentAttachment, FailureReason) then
+                                        RetiredCount += 1
+                                    else begin
+                                        RetirementBlockedCount += 1;
+                                        if FirstRetirementFailureReason = '' then
+                                            FirstRetirementFailureReason := FailureReason;
+                                    end;
+                                end;
+                            end;
                         end;
                 end;
 
@@ -91,10 +111,13 @@ report 8752 "DA External Storage Sync"
                 if GuiAllowed() then begin
                     if TotalCount <> 0 then
                         Dialog.Close();
-                    if RetainedCount > 0 then
-                        Message(ProcessedWithRetentionMsg, ProcessedCount - FailedCount, FailedCount, RetainedCount)
+                    if RetirementBlockedCount > 0 then
+                        Message(ProcessedWithBlockedRetirementMsg, ProcessedCount - FailedCount, FailedCount, RetainedCount, RetiredCount, RetirementBlockedCount, FirstRetirementFailureReason)
                     else
-                        Message(ProcessedMsg, ProcessedCount - FailedCount, FailedCount);
+                        if RetainedCount > 0 then
+                            Message(ProcessedWithRetentionMsg, ProcessedCount - FailedCount, FailedCount, RetainedCount, RetiredCount)
+                        else
+                            Message(ProcessedMsg, ProcessedCount - FailedCount, FailedCount);
                 end;
             end;
         }
@@ -123,7 +146,7 @@ report 8752 "DA External Storage Sync"
                         ApplicationArea = All;
                         Caption = 'Operation';
                         OptionCaption = 'Copy,Move';
-                        ToolTip = 'Specifies whether to copy or move files. Move to external storage releases internal content after upload. Move to internal storage currently retains external files and metadata because external cleanup is blocked.';
+                        ToolTip = 'Specifies whether to copy or move files. Copy keeps both references. Move to internal storage restores content and retires local external references only after confirming internal bytes. Remote files are always retained.';
                     }
                     field(MaxRecordsToProcessField; MaxRecordsToProcess)
                     {
@@ -143,11 +166,15 @@ report 8752 "DA External Storage Sync"
         Dialog: Dialog;
         FailedCount: Integer;
         RetainedCount: Integer;
+        RetiredCount: Integer;
+        RetirementBlockedCount: Integer;
+        FirstRetirementFailureReason: Text;
         MaxRecordsToProcess: Integer;
         ProcessedCount: Integer;
         TotalCount: Integer;
         ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
-        ProcessedWithRetentionMsg: Label 'Processed %1 attachments successfully. %2 failed. External files and metadata for %3 attachment(s) were retained because external cleanup is blocked.', Comment = '%1 = Number of processed attachments, %2 = Number of failed attachments, %3 = Number of attachments retained externally';
+        ProcessedWithRetentionMsg: Label 'Processed %1 attachments successfully. %2 failed. Remote files for %3 attachment(s) were retained. %4 external reference(s) were retired locally.', Comment = '%1 = Number of processed attachments, %2 = Number of failed attachments, %3 = Number of remote files retained, %4 = Number of local references retired';
+        ProcessedWithBlockedRetirementMsg: Label 'Processed %1 attachments successfully. %2 failed. Remote files for %3 attachment(s) were retained. %4 external reference(s) were retired locally; %5 could not be retired. %6', Comment = '%1 = Number of processed attachments, %2 = Number of failed attachments, %3 = Number of remote files retained, %4 = Number of local references retired, %5 = Number of blocked retirements, %6 = First blocked reason';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
         SyncDirection: Option "To External Storage","To Internal Storage";
         Operation: Option Copy,Move;
@@ -160,8 +187,6 @@ report 8752 "DA External Storage Sync"
             SyncDirection::"To Internal Storage":
                 begin
                     DocumentAttachment.SetRange("Stored Externally", true);
-                    if Operation = Operation::Move then
-                        DocumentAttachment.SetRange("Stored Internally", false);
                 end;
         end;
     end;
@@ -170,7 +195,7 @@ report 8752 "DA External Storage Sync"
     var
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
     begin
-        DAFeatureTelemetry.LogSyncRetention(RetainedCount);
+        DAFeatureTelemetry.LogSyncRetention(RetainedCount, RetiredCount, RetirementBlockedCount);
         // Log manual sync when run from UI (GuiAllowed), auto sync when run from job queue
         if GuiAllowed() then
             DAFeatureTelemetry.LogManualSync()

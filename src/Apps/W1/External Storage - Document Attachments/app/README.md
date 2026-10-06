@@ -15,6 +15,7 @@ The External Storage extension provides seamless integration between Microsoft D
 
 ### **External File Retention**
 - **External Retention**: Physical external-file deletion is blocked as an interim data-loss prevention measure, including when attachments are removed from BC
+- **Verified Local Retirement**: A local external reference can be retired only when its current attachment has confirmed nonempty internal media content; the remote file is not contacted or deleted
 - **No External Cleanup**: No automatic or deferred external cleanup is scheduled
 
 ### **Customizable Root Folder**
@@ -65,10 +66,11 @@ The External Storage extension provides seamless integration between Microsoft D
 #### Upload and Delete Policy
 - **External Cleanup Status**: This extension does not physically delete external files. The saved **Delete External File on Attachment Delete** setting is disabled on the setup page and does not enable cleanup.
 - **Attachment Deletion**: Business Central attachment rows can still be removed, but their external bytes are retained, including lone files and files shared by copied or posted attachments.
-- **Explicit Delete from External**: The action explains that cleanup is blocked. All external metadata remains intact, including for shared and foreign-environment references. Programmatic deletion attempts return `false`; they do not report completed deletion.
-- **Move to Internal Storage**: Files can still be restored internally. The sync report separately reports retained external files and metadata rather than treating a successful restore as a cleanup failure.
+- **Retire External Reference**: After confirmation, the action locks the current permanent attachment and its media, requires **Stored Internally** plus an existing, nonempty media blob, and clears only local external metadata. Shared/copied/foreign-environment rows with valid internal bytes can retire safely because the remote file is never contacted. Missing, empty, inconsistent, temporary, missing-row or stale references remain blocked with an explanation.
+- **Copy to Internal Storage**: Restore internal content while preserving both internal and external references.
+- **Move to Internal Storage**: Restore internal content and locally retire the external reference only after the same actual-content checks. Existing valid internal copies can retire without reading the remote account again. The report distinguishes locally retired references, retained remote files, restore failures and blocked retirements.
 - **Retention Consequences**: Removing an attachment row can leave an orphaned external file. Storage consumption can grow; there is no retention period, cleanup job, or automatic re-enablement on upgrade.
-- **Configuration Consequences**: Retained external references continue to participate in the existing safeguards against disabling the feature or reassigning/unassigning its file account. This interim change does not provide a force-detach or cleanup bypass.
+- **Configuration Lifecycle**: Copy alone keeps external-reference safeguards active. To disable the feature or change/unassign the account, use **To Internal Storage + Move**, or restore with Copy and then **Retire External Reference**. Once all local external references have safely retired, those safeguards no longer block configuration changes. There is no force-detach bypass for missing internal bytes.
 
 This is an interim mitigation for shared external attachment deletion (AB#647643), not an authoritative ownership or deferred-deletion protocol. A shared-reference lookup cannot close the concurrent copy/delete window, and current generic connectors cannot all prove deletion of the exact owned remote object. External cleanup remains blocked for every connector; no provider-subset or live-path deletion fallback is used. Read, upload, internal restoration and existing migration behavior remain available.
 
@@ -127,20 +129,21 @@ From **Document Attachment - External** page:
 - **Upload to External Storage**: Upload selected file manually
 - **Download from External Storage**: Download file for viewing
 - **Download to Internal Storage**: Restore file to internal storage
-- **Delete from External Storage**: Show the blocked-cleanup notice; retain external files and metadata
+- **Retire External Reference**: Confirm actual internal content and retire local external metadata only; retain the remote file
 - **Delete from Internal Storage**: Remove file from internal storage only
 
 #### Bulk Operations
 From **External Storage Synchronize** report:
 - **To External Storage**: Upload multiple files to external storage
 - **From External Storage**: Download multiple files from external storage
-- **Move to Internal Storage**: Restore internal content while retaining the external file and reference
+- **Copy to Internal Storage**: Restore content and keep both references
+- **Move to Internal Storage**: Restore content and retire the local external reference while retaining remote bytes
 
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality
 - Document preview, download, and management work seamlessly
 - Files deleted internally are automatically retrieved from external storage when accessed
-- Upload, read and internal restore remain available; external deletion now explains retention instead of reporting completion
+- Upload, read and internal restore remain available; retirement messages identify local metadata retirement and retained remote bytes, never completed physical deletion
 - Cross-environment and cross-company access is handled automatically
 
 ## Important Notes
@@ -151,6 +154,7 @@ From **External Storage Synchronize** report:
 - Test thoroughly in a sandbox environment before production use
 - Verify file accessibility after migration
 - This interim policy only prevents deletion sent by this extension. It does not protect against other storage consumers, remote administrators, unsupported metadata changes, or unrelated migration/internal-storage failures.
+- Actual-content checks establish local byte availability, not remote-object ownership or independent provider readback provenance. Integration with deferred internal cleanup must cancel pending cleanup on restore and invalidate upload provenance after local retirement in the same transaction.
 
 ### Environment Changes
 - When moving between environments, use the **Migrate Files** action
