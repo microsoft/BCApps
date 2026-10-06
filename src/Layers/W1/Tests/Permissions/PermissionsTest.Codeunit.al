@@ -316,6 +316,8 @@ codeunit 139400 "Permissions Test"
         Assert.IsTrue(MiniformFunctionGroup.ReadPermission, 'MiniformFunctionGroup does not have read permission');
         Assert.IsTrue(WhereUsedBaseCalendar.ReadPermission, 'WhereUsedBaseCalendar does not have read permission');
         Assert.IsTrue(AssemblyCommentLine.ReadPermission, 'AssemblyCommentLine does not have read permission');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]
@@ -520,9 +522,12 @@ codeunit 139400 "Permissions Test"
         AccessControl: Record "Access Control";
         TempPermissionBuffer: Record "Permission Buffer" temporary;
         EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         SpecificPageId: Integer;
     begin
         // [SCENARIO 615963] A specific object permission is displayed instead of the wildcard permission
+        // [GIVEN] OnPrem, so entitlement permissions are not resolved for the test user
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         // [GIVEN] A permission set with an indirect wildcard permission
         SpecificPageId := Page::"Customer Card";
         LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
@@ -574,9 +579,12 @@ codeunit 139400 "Permissions Test"
         AccessControl: Record "Access Control";
         TempPermissionBuffer: Record "Permission Buffer" temporary;
         EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         SpecificPageId: Integer;
     begin
         // [SCENARIO 615963] A specific exclusion is displayed instead of the wildcard permission
+        // [GIVEN] OnPrem, so entitlement permissions are not resolved for the test user
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         // [GIVEN] A permission set with a wildcard permission
         SpecificPageId := Page::"Customer Card";
         LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
