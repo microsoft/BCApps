@@ -77,8 +77,17 @@ restricted-current-user permission-failure tests.
 The first FI and CH CI results passed both nonexistent-user failure-signal
 tests. All seven HTTP scenarios failed in fixture cleanup before their result
 assertions: the stored User buffer was stale. Cleanup now reloads the owned
-user by its User Security ID before deletion. Authentication, key lifecycle
-and rollback remain unproven until fresh CI executes those assertions.
+user by its User Security ID before deletion. The following NZ and DK run
+passed both getter tests and reached the seven final HTTP-scenario assertions,
+but all seven failed because the SOAP transport helper returned false. Both
+apps had been compiled, published and installed. Authentication, key lifecycle
+and rollback remain unproven: these transport failures mask the controls.
+
+The fixture now captures a fixed transport stage, AL error code and call stack
+before cleanup, plus numeric HTTP status and the platform's blocked-response
+flag when available. A failed send remains a failed scenario. Diagnostics
+never include the URI, username, credentials, raw error text or response body.
+No transport permission, app allowlist or provider behavior is changed.
 
 Existing codeunit 139494 continues to cover the default provider, instance
 lifetime, and final-event ordering. The 117 existing credential-pipeline and

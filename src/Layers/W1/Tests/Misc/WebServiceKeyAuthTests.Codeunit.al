@@ -22,6 +22,12 @@ codeunit 139497 "Web Service Key Auth Tests"
         ServiceName: Text;
         ResponseText: Text;
         ResponseStatus: Integer;
+        TransportStage: Text;
+        TransportErrorCode: Text;
+        TransportErrorCallStack: Text;
+        SendSucceeded: Boolean;
+        ResponseBlockStateKnown: Boolean;
+        ResponseBlockedByEnvironment: Boolean;
 
     [Test]
     procedure MissingKeyAuthenticatesAnotherHttpSession()
@@ -37,7 +43,7 @@ codeunit 139497 "Web Service Key Auth Tests"
         Commit();
 
         // [WHEN] A separate session configures the provider and sends real OData requests.
-        RequestSucceeded := TryRunScenario('Missing', '');
+        RequestSucceeded := RunScenario('Missing', '');
         DeleteFixture();
         Commit();
 
@@ -59,7 +65,7 @@ codeunit 139497 "Web Service Key Auth Tests"
         Commit();
 
         // [WHEN] The same Graph instance authenticates twice.
-        RequestSucceeded := TryRunScenario('Repeated', '');
+        RequestSucceeded := RunScenario('Repeated', '');
         DeleteFixture();
         Commit();
 
@@ -81,7 +87,7 @@ codeunit 139497 "Web Service Key Auth Tests"
         Commit();
 
         // [WHEN] Requests use the first, second, and first instances in that order.
-        RequestSucceeded := TryRunScenario('SecondInstance', '');
+        RequestSucceeded := RunScenario('SecondInstance', '');
         DeleteFixture();
         Commit();
 
@@ -106,7 +112,7 @@ codeunit 139497 "Web Service Key Auth Tests"
         Commit();
 
         // [WHEN] A new provider instance authenticates as "U".
-        RequestSucceeded := TryRunScenario('Existing', '');
+        RequestSucceeded := RunScenario('Existing', '');
         DeleteFixture();
         Commit();
 
@@ -132,7 +138,7 @@ codeunit 139497 "Web Service Key Auth Tests"
         Sleep(1100);
 
         // [WHEN] The provider tries to configure authentication.
-        RequestSucceeded := TryRunScenario('Expired', '');
+        RequestSucceeded := RunScenario('Expired', '');
         DeleteFixture();
         Commit();
 
@@ -159,7 +165,7 @@ codeunit 139497 "Web Service Key Auth Tests"
         Commit();
 
         // [WHEN] Another session inserts the marker, configures the provider, and raises an error.
-        RequestSucceeded := TryRunScenario('Rollback', MarkerCode);
+        RequestSucceeded := RunScenario('Rollback', MarkerCode);
         MarkerWasCommitted := CountryRegion.Get(MarkerCode);
         CountryRegion.SetRange(Code, MarkerCode);
         CountryRegion.DeleteAll();
@@ -185,7 +191,7 @@ codeunit 139497 "Web Service Key Auth Tests"
         Commit();
 
         // [WHEN] The session selects Microsoft authentication and then None.
-        RequestSucceeded := TryRunScenario('None', '');
+        RequestSucceeded := RunScenario('None', '');
         DeleteFixture();
         Commit();
 
@@ -254,6 +260,12 @@ codeunit 139497 "Web Service Key Auth Tests"
         Clear(FixturePassword);
         Clear(ResponseText);
         Clear(ResponseStatus);
+        Clear(TransportStage);
+        Clear(TransportErrorCode);
+        Clear(TransportErrorCallStack);
+        Clear(SendSucceeded);
+        Clear(ResponseBlockStateKnown);
+        Clear(ResponseBlockedByEnvironment);
     end;
 
     [NonDebuggable]
@@ -274,7 +286,20 @@ codeunit 139497 "Web Service Key Auth Tests"
         WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Codeunit, Codeunit::"Web Service Key Auth Probe", ServiceName, true);
     end;
 
+    local procedure RunScenario(Scenario: Text; MarkerCode: Code[10]): Boolean
+    begin
+        ClearLastError();
+        if not TryRunScenario(Scenario, MarkerCode) then begin
+            // Capture only non-secret error metadata before fixture cleanup can replace it.
+            TransportErrorCode := GetLastErrorCode();
+            TransportErrorCallStack := GetLastErrorCallStack();
+            exit(false);
+        end;
+        exit(SendSucceeded);
+    end;
+
     [TryFunction]
+    [NonDebuggable]
     local procedure TryRunScenario(Scenario: Text; MarkerCode: Code[10])
     var
         TenantWebService: Record "Tenant Web Service";
@@ -284,25 +309,43 @@ codeunit 139497 "Web Service Key Auth Tests"
         Content: HttpContent;
         Headers: HttpHeaders;
     begin
+        TransportStage := 'WriteContent';
         Content.WriteFrom(
             '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' +
             '<RunScenario xmlns="urn:microsoft-dynamics-schemas/codeunit/' + ServiceName + '">' +
             '<scenario>' + Scenario + '</scenario><markerCode>' + MarkerCode + '</markerCode>' +
             '</RunScenario></s:Body></s:Envelope>');
+        TransportStage := 'SetContentHeaders';
         Content.GetHeaders(Headers);
         Headers.Clear();
         Headers.Add('Content-Type', 'text/xml; charset=utf-8');
+        TransportStage := 'SetRequestContentAndMethod';
         Request.Content := Content;
         Request.Method := 'POST';
+        TransportStage := 'ReadTenantWebService';
         TenantWebService.Get(TenantWebService."Object Type"::Codeunit, ServiceName);
+        TransportStage := 'ResolveSoapUri';
         Request.SetRequestUri(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Codeunit, Codeunit::"Web Service Key Auth Probe", TenantWebService));
+        TransportStage := 'SetSoapAction';
         Request.GetHeaders(Headers);
         Headers.Add('SOAPAction', 'urn:microsoft-dynamics-schemas/codeunit/' + ServiceName + ':RunScenario');
+        TransportStage := 'SetAuthorization';
         Headers.Add('Authorization', SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', FixtureUser."User Name", FixturePassword))));
-        if not Client.Send(Request, Response) then
-            Error('The disposable web service key probe could not be reached.');
+        TransportStage := 'Send';
+        SendSucceeded := Client.Send(Request, Response);
+        if not SendSucceeded then begin
+            TransportErrorCode := GetLastErrorCode();
+            TransportErrorCallStack := GetLastErrorCallStack();
+        end;
+        ResponseBlockedByEnvironment := Response.IsBlockedByEnvironment();
+        ResponseBlockStateKnown := true;
+        if not SendSucceeded then
+            exit;
+        TransportStage := 'ReadStatus';
         ResponseStatus := Response.HttpStatusCode();
+        TransportStage := 'ReadBody';
         Response.Content.ReadAs(ResponseText);
+        TransportStage := 'Complete';
     end;
 
     local procedure DeleteFixture()
@@ -326,8 +369,8 @@ codeunit 139497 "Web Service Key Auth Tests"
         ResponseDocument: XmlDocument;
         ResultNode: XmlNode;
     begin
-        Assert.IsTrue(RequestSucceeded, 'The disposable SOAP probe must return a response.');
-        Assert.AreEqual(200, ResponseStatus, 'The SOAP probe must complete all HTTP and key assertions.');
+        Assert.IsTrue(RequestSucceeded, 'The disposable SOAP probe must return a response. ' + GetTransportDiagnostics());
+        Assert.AreEqual(200, ResponseStatus, 'The SOAP probe must complete all HTTP and key assertions. ' + GetTransportDiagnostics());
         Assert.IsTrue(XmlDocument.ReadFrom(ResponseText, ResponseDocument), 'The SOAP response must be XML.');
         Assert.IsTrue(ResponseDocument.SelectSingleNode('//*[local-name()="return_value"]', ResultNode), 'The probe must return a result.');
         Assert.AreEqual('true', ResultNode.AsXmlElement().InnerText(), 'The probe must confirm success.');
@@ -335,8 +378,16 @@ codeunit 139497 "Web Service Key Auth Tests"
 
     local procedure VerifyFailedScenario(RequestSucceeded: Boolean; ExpectedError: Text)
     begin
-        Assert.IsTrue(RequestSucceeded, 'The disposable SOAP probe must return an error response.');
-        Assert.AreEqual(500, ResponseStatus, 'The probe must return a SOAP fault.');
+        Assert.IsTrue(RequestSucceeded, 'The disposable SOAP probe must return an error response. ' + GetTransportDiagnostics());
+        Assert.AreEqual(500, ResponseStatus, 'The probe must return a SOAP fault. ' + GetTransportDiagnostics());
         Assert.IsTrue(ResponseText.Contains(ExpectedError), 'The SOAP fault must contain the expected explicit error.');
+    end;
+
+    local procedure GetTransportDiagnostics(): Text
+    begin
+        exit(StrSubstNo(
+            'Stage=%1; SendSucceeded=%2; HttpStatus=%3; BlockedKnown=%4; Blocked=%5; ErrorCode=%6; CallStack=%7',
+            TransportStage, SendSucceeded, ResponseStatus, ResponseBlockStateKnown, ResponseBlockedByEnvironment,
+            TransportErrorCode, TransportErrorCallStack));
     end;
 }
