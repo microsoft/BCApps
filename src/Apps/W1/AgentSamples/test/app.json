@@ -13,7 +13,7 @@
   "logo": "ExtensionLogo.png",
   "screenshots": [],
   "application": "30.0.0.0",
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "dependencies": [
     {
       "id": "698cfedb-66b9-44a8-b5ae-1ec18bd32fa7",

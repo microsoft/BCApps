@@ -2772,11 +2772,36 @@ codeunit 137069 "SCM Production Orders"
         ProdOrderComponent: Record "Prod. Order Component";
     begin
         // [FEATURE] [UT] [Production Order Component]
-        // [SCENARIO 375248] Field "Completely Picked" of Production Order table should not be calculated for supplied Components
+        // [SCENARIO 651757] Field "Completely Picked" of Production Order table should be calculated for supplied Components
 
         // [GIVEN] Production Order with Supplied Completely Picked Component
         CreateRelProdOrder(ProductionOrder);
         CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", LibraryRandom.RandInt(9), true);
+
+        // [WHEN] CALCFIELDS for "Completely Picked" of Production Order
+        ProductionOrder.CalcFields("Completely Picked");
+
+        // [THEN] "Completely Picked" of Production Order is "TRUE"
+        ProductionOrder.TestField("Completely Picked", true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ProdOrderNotCompletelyPickedWithUnpickedSuppliedComponent()
+    var
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [FEATURE] [UT] [Production Order Component]
+        // [SCENARIO 651757] An unpicked supplied component makes the Production Order not completely picked
+
+        // [GIVEN] Production Order with a completely picked ordinary component
+        CreateRelProdOrder(ProductionOrder);
+        CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", 0, true);
+
+        // [GIVEN] The Production Order also has an unpicked supplied component
+        ProdOrderComponent."Line No." := 10000;
+        CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", LibraryRandom.RandInt(9), false);
 
         // [WHEN] CALCFIELDS for "Completely Picked" of Production Order
         ProductionOrder.CalcFields("Completely Picked");
@@ -5162,6 +5187,42 @@ codeunit 137069 "SCM Production Orders"
         Assert.ExpectedTestFieldError(RoutingHeader.FieldCaption(Status), Format(RoutingHeader.Status::Certified));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReopenRefinishDoesNotRepostSetupTimeForBackwardFlushedProdOrder()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        FinishedProdOrder: Record "Production Order";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        SetupTimeAfterFirstFinish: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 646792] Reopening and re-finishing a production order does not repost the backward-flushed routing setup time.
+        Initialize();
+
+        // [GIVEN] Item with a backward-flushed routing that has Setup Time and Run Time.
+        CreateItemWithRoutingSetUpForBackwardFlushing(Item);
+
+        // [GIVEN] Released production order changed to Finished, posting the setup time once.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandIntInRange(10, 20));
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+        SetupTimeAfterFirstFinish := GetTotalSetupTimeOnCapacityLedgerEntries(ProductionOrder."No.");
+        Assert.IsTrue(SetupTimeAfterFirstFinish > 0, 'Setup time must be posted when the production order is finished.');
+
+        // [GIVEN] The finished production order is reopened back to Released.
+        FinishedProdOrder.Get(FinishedProdOrder.Status::Finished, ProductionOrder."No.");
+        ProdOrderStatusMgt.ProcessProdOrderForReopen(FinishedProdOrder);
+
+        // [WHEN] The production order is changed to Finished again.
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+
+        // [THEN] The total setup time on the capacity ledger entries is not doubled.
+        Assert.AreEqual(
+          SetupTimeAfterFirstFinish, GetTotalSetupTimeOnCapacityLedgerEntries(ProductionOrder."No."),
+          'Setup time must not be reposted when reopening and re-finishing the production order.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6584,6 +6645,16 @@ codeunit 137069 "SCM Production Orders"
         CapacityLedgerEntry.TestField("Run Time", RunTime);
     end;
 
+    local procedure GetTotalSetupTimeOnCapacityLedgerEntries(ProdOrderNo: Code[20]): Decimal
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", ProdOrderNo);
+        CapacityLedgerEntry.CalcSums("Setup Time");
+        exit(CapacityLedgerEntry."Setup Time");
+    end;
+
     local procedure VerifyTrackingOnRequisitionLine(ItemNo: Code[20]; LotNo: Variant; Quantity: Variant)
     var
         RequisitionLine: Record "Requisition Line";
@@ -7493,4 +7564,3 @@ codeunit 137069 "SCM Production Orders"
         SalesOrderPlanning."&Create Prod. Order".Invoke();
     end;
 }
-

@@ -341,6 +341,93 @@ codeunit 139587 "Shpfy Order Totals FB Test"
         LibraryAssert.AreEqual(284, OrderTotalsFactBox."Presentment Total Amount".AsDecimal(), 'Presentment Total Amount must be shown.');
     end;
 
+    [Test]
+    procedure TestShopifyTotalsExcludeExchangeItemShopCurrency()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTotalsFactBox: TestPage "Shpfy Order Totals FactBox";
+    begin
+        // [SCENARIO] For a shop-currency order with an exchange item, the Shopify totals exclude the exchange item's
+        // [SCENARIO] contribution, so they reconcile with the BC sales document (which also excludes the exchange item).
+        Initialize();
+
+        // [GIVEN] A shop-currency Shopify order whose totals include an exchange item (subtotal 50, tax 5).
+        CreateShopifyOrderHeader(OrderHeader);
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        OrderHeader."Subtotal Amount" := 250; // 200 kept + 50 exchange
+        OrderHeader."VAT Amount" := 25;        // 20 kept + 5 exchange
+        OrderHeader."Total Amount" := 275;     // 220 kept + 55 exchange
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader.Modify();
+
+        // [GIVEN] The order has an exchange item line (unit price 50) with its own tax line (5).
+        CreateExchangeItemWithTax(OrderHeader."Shopify Order Id", 50, 0, 5, 0);
+
+        // [WHEN] Opening the Order Totals factbox
+        OrderTotalsFactBox.OpenView();
+        OrderTotalsFactBox.GoToRecord(OrderHeader);
+
+        // [THEN] The shown Shopify totals exclude the exchange item.
+        LibraryAssert.AreEqual(200, OrderTotalsFactBox."Subtotal Amount".AsDecimal(), 'Subtotal must exclude the exchange item.');
+        LibraryAssert.AreEqual(20, OrderTotalsFactBox.VATAmount.AsDecimal(), 'VAT must exclude the exchange item tax.');
+        LibraryAssert.AreEqual(220, OrderTotalsFactBox."Total Amount".AsDecimal(), 'Total must exclude the exchange item subtotal and tax.');
+    end;
+
+    [Test]
+    procedure TestShopifyTotalsExcludeExchangeItemPresentmentCurrency()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTotalsFactBox: TestPage "Shpfy Order Totals FactBox";
+    begin
+        // [SCENARIO] For a presentment-currency order with an exchange item, the presentment totals exclude the exchange
+        // [SCENARIO] item's contribution.
+        Initialize();
+
+        // [GIVEN] A presentment-currency Shopify order whose presentment totals include an exchange item (subtotal 100, tax 10).
+        CreateShopifyOrderHeader(OrderHeader);
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Presentment Currency";
+        OrderHeader."Presentment Subtotal Amount" := 500; // 400 kept + 100 exchange
+        OrderHeader."Presentment VAT Amount" := 50;        // 40 kept + 10 exchange
+        OrderHeader."Presentment Total Amount" := 550;     // 440 kept + 110 exchange
+        OrderHeader."Pres. Shipping Charges Amount" := 0;
+        OrderHeader.Modify();
+
+        // [GIVEN] The order has an exchange item line (presentment unit price 100) with its own tax line (presentment 10).
+        CreateExchangeItemWithTax(OrderHeader."Shopify Order Id", 0, 100, 0, 10);
+
+        // [WHEN] Opening the Order Totals factbox
+        OrderTotalsFactBox.OpenView();
+        OrderTotalsFactBox.GoToRecord(OrderHeader);
+
+        // [THEN] The shown presentment totals exclude the exchange item.
+        LibraryAssert.AreEqual(400, OrderTotalsFactBox."Presentment Subtotal Amount".AsDecimal(), 'Presentment Subtotal must exclude the exchange item.');
+        LibraryAssert.AreEqual(40, OrderTotalsFactBox."Presentment VAT Amount".AsDecimal(), 'Presentment VAT must exclude the exchange item tax.');
+        LibraryAssert.AreEqual(440, OrderTotalsFactBox."Presentment Total Amount".AsDecimal(), 'Presentment Total must exclude the exchange item subtotal and tax.');
+    end;
+
+    local procedure CreateExchangeItemWithTax(ShopifyOrderId: BigInteger; UnitPrice: Decimal; PresentmentUnitPrice: Decimal; TaxAmount: Decimal; PresentmentTaxAmount: Decimal)
+    var
+        OrderLine: Record "Shpfy Order Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        LineId: BigInteger;
+    begin
+        LineId := Any.IntegerInRange(1000000, 2147483647);
+        OrderLine.Init();
+        OrderLine."Shopify Order Id" := ShopifyOrderId;
+        OrderLine."Line Id" := LineId;
+        OrderLine.Quantity := 1;
+        OrderLine."Unit Price" := UnitPrice;
+        OrderLine."Presentment Unit Price" := PresentmentUnitPrice;
+        OrderLine."Is Exchange Item" := true;
+        OrderLine.Insert();
+
+        OrderTaxLine.Init();
+        OrderTaxLine."Parent Id" := LineId;
+        OrderTaxLine.Amount := TaxAmount;
+        OrderTaxLine."Presentment Amount" := PresentmentTaxAmount;
+        OrderTaxLine.Insert(true);
+    end;
+
     local procedure VerifyOpenSalesDocumentSection(var OrderTotalsFactBox: TestPage "Shpfy Order Totals FactBox"; SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";

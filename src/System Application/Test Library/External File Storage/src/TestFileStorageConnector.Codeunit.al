@@ -26,6 +26,8 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream);
     begin
+        if FailOnGetFile then
+            Error(FailedToGetFileErr);
     end;
 
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream);
@@ -42,6 +44,7 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     procedure FileExists(AccountId: Guid; Path: Text): Boolean;
     begin
+        FileExistsCallCount += 1;
     end;
 
     procedure DeleteFile(AccountId: Guid; Path: Text);
@@ -59,6 +62,21 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     internal procedure ResetLastDeletedPath()
     begin
         Clear(LastDeletedFilePath);
+    end;
+
+    internal procedure GetFileExistsCallCount(): Integer
+    begin
+        exit(FileExistsCallCount);
+    end;
+
+    internal procedure ResetFileExistsCallCount()
+    begin
+        Clear(FileExistsCallCount);
+    end;
+
+    internal procedure SetFailOnGetFile(NewFailOnGetFile: Boolean)
+    begin
+        FailOnGetFile := NewFailOnGetFile;
     end;
 
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
@@ -122,5 +140,8 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     var
         FileConnectorMock: Codeunit "File Connector Mock";
+        FailOnGetFile: Boolean;
+        FileExistsCallCount: Integer;
         LastDeletedFilePath: Text;
+        FailedToGetFileErr: Label 'Failed to get file.';
 }

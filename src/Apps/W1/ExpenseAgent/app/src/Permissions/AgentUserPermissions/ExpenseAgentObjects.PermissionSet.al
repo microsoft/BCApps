@@ -57,9 +57,16 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Posted Exp. Rep. Line Att. API" = X,
                   page "Posted Exp. Rep. Line Item API" = X,
                   page "Posted Exp. Report Lines API" = X,
+#if not CLEAN30
+#pragma warning disable AL0432 // Object is obsoleted
                   page "Spend Requests API" = X,
                   page "Spend Request Details API" = X,
+#pragma warning restore AL0432
+#endif
+                  page "Travel Requests API" = X,
+                  page "Travel Request Details API" = X,
                   page "Travelers API" = X,
+                  query "Travel Request Employees" = X,
                   page "Tenant Feedback Setting API" = X,
                   page "Expense Projects API" = X,
                   page "Exp. Policies To Eval API" = X,
@@ -121,6 +128,7 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Expense Vendor" = X,
                   table "EA Outbox Email" = X,
                   table "Tenant Feedback Setting" = X,
+                  table Traveler = X,
                   table "Posted Exp. Rep. Line Item" = X,
                   table "Posted Exp. Rep. Line Particip" = X,
                   table "Posted Exp. Rep. Line Per Diem" = X,
@@ -137,7 +145,6 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Auto Population" = X,
                   codeunit "Expense Capabilities Provider" = X,
                   codeunit "Expense Activity Log Mgt." = X,
-                  codeunit "Expense Projects Builder" = X,
                   codeunit "Exp. Policies To Eval Builder" = X,
                   codeunit "Expense Consumption Handler" = X,
                   codeunit "Expense Currency" = X,
@@ -151,6 +158,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Report-Post" = X,
                   codeunit "Expense Preview Post Instance" = X,
                   codeunit "Expense Preview Post Mgt." = X,
+                  codeunit "Expense Projects Builder" = X,
                   codeunit "Expense Report" = X,
                   codeunit "Expense Report Approval Mgmt" = X,
                   codeunit "Expense Report Batch Post Mgt." = X,
@@ -158,6 +166,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Report Manual Reopen" = X,
                   codeunit "Expense Rule Validation" = X,
                   codeunit "Expense Total Caption Class" = X,
+                  codeunit "Travel Request Approval" = X,
                   codeunit "Expense Vendor Matching" = X,
                   codeunit "Exp. Attach. Buffer Handler" = X,
                   codeunit "Exp. Preview Post. Subscriber" = X,

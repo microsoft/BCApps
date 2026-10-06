@@ -56,6 +56,7 @@ table 8059 "Subscription Line"
 
             trigger OnValidate()
             begin
+                CheckSubscriptionLineStartDateChangeAllowed();
                 DateFormulaManagement.ErrorIfDateEmpty("Subscription Line Start Date", FieldCaption("Subscription Line Start Date"));
                 UpdateNextBillingDate("Subscription Line Start Date" - 1);
                 CheckServiceDates();
@@ -1024,11 +1025,7 @@ table 8059 "Subscription Line"
                     FieldNo("Invoicing Item No."):
                         Validate("Invoicing Item No.", "Invoicing Item No.");
                     FieldNo("Subscription Line Start Date"):
-                        begin
-                            Rec.ErrorIfBillingLineArchiveForServiceCommitmentExist();
-                            Rec.ErrorIfBillingLineForServiceCommitmentExist();
-                            Validate("Subscription Line Start Date", "Subscription Line Start Date");
-                        end;
+                        Validate("Subscription Line Start Date", "Subscription Line Start Date");
                     FieldNo("Subscription Line End Date"):
                         Validate("Subscription Line End Date", "Subscription Line End Date");
                     FieldNo(Quantity):
@@ -1477,9 +1474,40 @@ table 8059 "Subscription Line"
     end;
 
     internal procedure ErrorIfBillingLineForServiceCommitmentExist()
+    var
+        BillingLine: Record "Billing Line";
     begin
-        if BillingLineExists() then
+        BillingLine.FilterBillingLineOnServiceCommitment(Rec."Entry No.");
+        if not BillingLine.IsEmpty() then
             Error(BillingLineForServiceCommitmentExistErr);
+    end;
+
+    /// <summary>
+    /// Checks whether the Subscription Line Start Date may still be changed.
+    /// The change is allowed as long as no billing has taken place for the Subscription Line, or as long as the
+    /// Next Billing Date is still on the Subscription Line Start Date, which is the state after a cancellation
+    /// or a credit memo and the case in which the billing period legitimately has to be corrected.
+    /// </summary>
+    local procedure CheckSubscriptionLineStartDateChangeAllowed()
+    begin
+        CheckBillingStateAllowsSubscriptionLineStartDateChange();
+        OnAfterCheckSubscriptionLineStartDateChangeAllowed(Rec);
+    end;
+
+    local procedure CheckBillingStateAllowsSubscriptionLineStartDateChange()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        SubscriptionLine.SetLoadFields("Subscription Line Start Date", "Next Billing Date");
+        if not SubscriptionLine.Get(Rec."Entry No.") then
+            exit;
+        if SubscriptionLine."Next Billing Date" = SubscriptionLine."Subscription Line Start Date" then
+            exit;
+
+        ErrorIfBillingLineArchiveForServiceCommitmentExist();
+        ErrorIfBillingLineForServiceCommitmentExist();
     end;
 
     internal procedure GetPartnerNoFromContract(): Code[20]
@@ -1506,8 +1534,7 @@ table 8059 "Subscription Line"
         BillingLineArchive: Record "Billing Line Archive";
     begin
         BillingLineArchive.FilterBillingLineArchiveOnServiceCommitment(Rec."Entry No.");
-        BillingLineArchive.CalcSums(Amount);
-        if BillingLineArchive.Amount <> 0 then
+        if not BillingLineArchive.IsEmpty() then
             Error(BillingLineArchiveForServiceCommitmentExistErr);
     end;
 
@@ -1599,7 +1626,7 @@ table 8059 "Subscription Line"
             "Service Partner"::Customer:
                 begin
                     ContractsItemManagement.CreateTempSalesHeader(TempSalesHeader, TempSalesHeader."Document Type"::Order, ServiceObject."End-User Customer No.", ServiceObject."Bill-to Customer No.", Rec."Subscription Line Start Date", Rec."Currency Code");
-                    ContractsItemManagement.CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, Rec."Subscription Line Start Date", ServiceObject."Variant Code");
+                    ContractsItemManagement.CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject, Rec."Subscription Line Start Date");
                     Rec."Calculation Base Amount" := ContractsItemManagement.CalculateUnitPrice(TempSalesHeader, TempSalesLine);
                 end;
             "Service Partner"::Vendor:
@@ -1837,15 +1864,33 @@ table 8059 "Subscription Line"
     internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
-        UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
+        UsageDataBilling.SetFilter("Usage Base Pricing", '>=%1', Enum::"Usage Based Pricing"::"Usage Quantity");
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetFilter("Charge Start Date", '>=%1', BillingFromDate);
         UsageDataBilling.SetFilter("Charge End Date", '<=%1', CalcDate('<1D>', BillingToDate));
+        OnAfterSetUsageDataBillingFilters(UsageDataBilling, Rec, BillingFromDate, BillingToDate);
     end;
 
     internal procedure IsUsageBasedBillingValid(): Boolean
     begin
         exit(Rec."Usage Based Billing" and (Rec."Subscription Header No." <> ''));
+    end;
+
+    internal procedure GetUsageDataChargeEndDateCrossingPeriodEnd(BillingFromDate: Date; BillingToDate: Date) ChargeEndDate: Date
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        if not Rec.IsUsageBasedBillingValid() then
+            exit;
+
+        UsageDataBilling.SetCurrentKey("Subscription Line Entry No.", "Document Type", "Charge End Date");
+        UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
+        UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
+        UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
+        UsageDataBilling.SetRange("Charge Start Date", BillingFromDate, BillingToDate);
+        UsageDataBilling.SetFilter("Charge End Date", '>%1', BillingToDate);
+        if UsageDataBilling.FindLast() then
+            ChargeEndDate := UsageDataBilling."Charge End Date";
     end;
 
     local procedure GetOriginalInvoicedToDateIfRebillingMetadataExist() OriginalInvoicedToDate: Date
@@ -2025,6 +2070,8 @@ table 8059 "Subscription Line"
                     end;
                 end;
         end;
+        if (Rec."Period Calculation" = Rec."Period Calculation"::"Align to End of Month") and not (Letter in ['D', 'W']) and (Rec."Subscription Line End Date" <> 0D) and (NextToDate < Rec."Subscription Line End Date") and (Rec."Subscription Line End Date" <= CalcDate(PeriodFormula, FromDate) - 1) then
+            NextToDate := Rec."Subscription Line End Date";
     end;
 
     local procedure GetBillingReferenceDate() BillingReferenceDate: Date
@@ -2118,6 +2165,21 @@ table 8059 "Subscription Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateNextBillingDate(var SubscriptionLine: Record "Subscription Line"; LastBillingToDate: Date)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the Subscription Line Start Date change has passed the billing state check.
+    /// Subscribers can only tighten the rule, by raising an error of their own.
+    /// </summary>
+    /// <param name="SubscriptionLine">The Subscription Line carrying the new Subscription Line Start Date.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckSubscriptionLineStartDateChangeAllowed(SubscriptionLine: Record "Subscription Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; SubscriptionLine: Record "Subscription Line"; BillingFromDate: Date; BillingToDate: Date)
     begin
     end;
 

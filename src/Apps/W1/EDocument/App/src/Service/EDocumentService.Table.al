@@ -298,6 +298,12 @@ table 6103 "E-Document Service"
             ToolTip = 'Specifies the evaluator that determines if a document is eligible for export via this service.';
             DataClassification = SystemMetadata;
         }
+        field(42; "Item Charge E-Invoice Mapping"; Enum "Item Charge E-Invoice Mapping")
+        {
+            Caption = 'Item Charge Mapping';
+            ToolTip = 'Specifies how item charges on posted documents are represented in the e-documents that this service exports. Automatic classifies each item charge based on its assignment to invoice lines. Document Level Allowance/Charge exports every item charge as an allowance or charge of the whole document. Invoice Line Allowance/Charge exports it as an allowance or charge of the invoice line it is assigned to. Invoice Line with Unit Code exports it as a separate invoice line with a unit code. An item charge with its own E-Invoice Mapping overrides this setting.';
+            DataClassification = SystemMetadata;
+        }
         #region [60-80] are reserved for purchase draft document settings.
         field(60; "Verify Purch. Total Amounts"; Boolean)
         {
@@ -340,6 +346,8 @@ table 6103 "E-Document Service"
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"E-Document Service", 'I')]
     internal procedure GetPDFReaderService()
+    var
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
         if Rec.Get(AzureDocumentIntelligenceTok) then
             exit;
@@ -351,6 +359,12 @@ table 6103 "E-Document Service"
         Rec."Automatic Import Processing" := "E-Doc. Automatic Processing"::No;
         Rec."Verify Purch. Total Amounts" := true;
         Rec.Insert(true);
+
+        EDocServiceSupportedType.Init();
+        EDocServiceSupportedType."E-Document Service Code" := Rec.Code;
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
+        EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
+        EDocServiceSupportedType.Insert(false);
     end;
 
     internal procedure IsAutomaticProcessingEnabled(): Boolean
