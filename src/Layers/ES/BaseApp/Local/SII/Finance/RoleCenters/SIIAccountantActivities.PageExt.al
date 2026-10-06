@@ -6,7 +6,8 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000131 "SII Accountant Activities" extends "Accountant Activities"
+#pragma warning disable AS0088
+pageextension 7000031 "SII Accountant Activities" extends "Accountant Activities"
 {
     layout
     {

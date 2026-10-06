@@ -6,7 +6,8 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000139 "SII Bookkeeper Activities" extends "Bookkeeper Activities"
+#pragma warning disable AS0088
+pageextension 7000039 "SII Bookkeeper Activities" extends "Bookkeeper Activities"
 {
     layout
     {
