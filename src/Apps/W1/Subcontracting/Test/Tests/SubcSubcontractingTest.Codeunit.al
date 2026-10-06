@@ -3106,15 +3106,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreNotEqual(Vendor.Name, PostedVendorName, 'The vendor name must change after posting to verify that the report uses posted values.');
 
         // [WHEN] The standard transfer shipment report is run after the vendor name changes
-        LibraryVariableStorage.Clear();
-        LibraryVariableStorage.Enqueue(TransferShipmentHeader."No.");
-        Report.Run(Report::"Transfer Shipment");
+        TransferShipmentHeader.SetRecFilter();
+        Report.Run(Report::"Transfer Shipment", true, false, TransferShipmentHeader);
         LibraryReportDataset.LoadDataSetFile();
 
         // [THEN] The report shows the posted subcontractor and order references
         VerifySubcontractingTransferShipmentReport(
             TransferShipmentHeader, TransferShipmentLine, PurchaseLine."Document No.", PostedVendorName);
-        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -3131,13 +3129,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndPostOrdinaryTransferShipment(TransferShipmentHeader);
 
         // [WHEN] The standard transfer shipment report is run
-        LibraryVariableStorage.Enqueue(TransferShipmentHeader."No.");
-        Report.Run(Report::"Transfer Shipment");
+        TransferShipmentHeader.SetRecFilter();
+        Report.Run(Report::"Transfer Shipment", true, false, TransferShipmentHeader);
         LibraryReportDataset.LoadDataSetFile();
 
         // [THEN] The report keeps the ordinary shipment and leaves subcontracting references blank
         VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader);
-        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -3776,11 +3773,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [RequestPageHandler]
     procedure TransferShipmentRequestPageHandler(var TransferShipment: TestRequestPage "Transfer Shipment")
-    var
-        TransferShipmentNo: Variant;
     begin
-        LibraryVariableStorage.Dequeue(TransferShipmentNo);
-        TransferShipment."Transfer Shipment Header".SetFilter("No.", TransferShipmentNo);
         TransferShipment.SaveAsXml(
             LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
