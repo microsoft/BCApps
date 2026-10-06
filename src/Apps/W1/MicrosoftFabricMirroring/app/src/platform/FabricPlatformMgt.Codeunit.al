@@ -39,6 +39,7 @@ codeunit 48520 "Fabric Platform Mgt"
         OpenFabricSetupLbl: Label 'Open Fabric Platform Setup';
         OpenFabricCompaniesLbl: Label 'Open Fabric Platform Companies';
         OpenFabricTablesLbl: Label 'Open Fabric Platform Tables';
+        StopSynchronizationLbl: Label 'Stop synchronization';
         SetupRequiredTitleLbl: Label 'Setup required';
         SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable mirroring again.';
 
@@ -416,6 +417,15 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(StopRequestedMsg);
     end;
 
+    /// <summary>
+    /// Error action handler that stops the running synchronization.
+    /// </summary>
+    /// <param name="ErrInfo">The error that triggered the action.</param>
+    procedure StopExportFromErrorAction(ErrInfo: ErrorInfo)
+    begin
+        StopExport();
+    end;
+
     internal procedure DisableExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
@@ -436,9 +446,13 @@ codeunit 48520 "Fabric Platform Mgt"
         TenantFabricExportDetails: Record "Tenant Fabric Export Details";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         ResetCompanies: List of [Text];
+        ResetBlockedErrorInfo: ErrorInfo;
     begin
-        if IsSyncAlreadyRunning() then
-            Error(ResetBlockedWhileRunningErr);
+        if IsSyncAlreadyRunning() then begin
+            ResetBlockedErrorInfo := ErrorInfo.Create(ResetBlockedWhileRunningErr);
+            ResetBlockedErrorInfo.AddAction(StopSynchronizationLbl, Codeunit::"Fabric Platform Mgt", 'StopExportFromErrorAction');
+            Error(ResetBlockedErrorInfo);
+        end;
 
         // An empty End Watermark on the latest successful row makes the next run a full snapshot.
         TenantFabricExportDetails.SetCurrentKey("Start Time");

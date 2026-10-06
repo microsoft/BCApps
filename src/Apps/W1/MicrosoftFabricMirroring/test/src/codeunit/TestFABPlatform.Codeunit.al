@@ -23,6 +23,7 @@ codeunit 140012 "Test FAB Platform"
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
         TableResetMsg: Label 'Table %1 was reset. The next synchronization run will send a full snapshot.', Comment = '%1 = table id';
         TableNothingToResetMsg: Label 'Table %1 has no completed synchronization to reset. The next run will send a full snapshot.', Comment = '%1 = table id';
+        UnexpectedEndWatermarkErr: Label 'Unexpected End Watermark for company %1, table %2.', Comment = '%1 = company name, %2 = table id';
 
     local procedure Initialize()
     var
@@ -1268,7 +1269,7 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricExportDetails.Get(RunId, CompanyName, TableId);
         Assert.AreEqual(
             ExpectedWatermark, TenantFabricExportDetails."End Watermark",
-            StrSubstNo('Unexpected End Watermark for company %1, table %2.', CompanyName, TableId));
+            StrSubstNo(UnexpectedEndWatermarkErr, CompanyName, TableId));
     end;
 
     local procedure VerifyNoPendingMessages()

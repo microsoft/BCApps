@@ -6,10 +6,13 @@ codeunit 48525 "Fabric Platform Http Client"
 {
     Access = Internal;
 
+    var
+        BearerAuthorizationTok: Label 'Bearer %1', Locked = true;
+
     internal procedure CreateClientWithBearer(AccessToken: SecretText) RestClientResult: Codeunit "Rest Client"
     begin
         RestClientResult := CreateClient();
-        RestClientResult.SetAuthorizationHeader(SecretStrSubstNo('Bearer %1', AccessToken));
+        RestClientResult.SetAuthorizationHeader(SecretStrSubstNo(BearerAuthorizationTok, AccessToken));
     end;
 
     internal procedure BuildJsonRequest(Method: Text; Url: Text; JsonBody: Text) HttpRequestMessage: Codeunit "Http Request Message"
