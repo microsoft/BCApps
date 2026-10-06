@@ -9,7 +9,7 @@ using System.Environment;
 using System.ExternalFileStorage;
 using System.Threading;
 
-codeunit 8755 "DA Internal Cleanup Mgt."
+codeunit 8759 "DA Internal Cleanup Mgt."
 {
     Access = Internal;
     InherentPermissions = X;

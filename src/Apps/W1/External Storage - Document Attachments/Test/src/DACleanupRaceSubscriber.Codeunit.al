@@ -9,7 +9,7 @@ using Microsoft.Foundation.Attachment;
 using System.TestLibraries.ExternalFileStorage;
 using System.Utilities;
 
-codeunit 136821 "DA Cleanup Race Subscriber"
+codeunit 136822 "DA Cleanup Race Subscriber"
 {
     EventSubscriberInstance = Manual;
 
