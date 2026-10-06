@@ -16,6 +16,7 @@ codeunit 132973 "SharePoint Test Library"
         LastContextInfoRequestUri: Text;
         LastRawRequestUri: Text;
         LastRequestUri: Text;
+        ReturnFolderMissing: Boolean;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Request Helper", 'OnBeforeSendRequest', '', false, false)]
     local procedure RunOnBeforeSendRequest(HttpRequestMessage: HttpRequestMessage; var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; var IsHandled: Boolean; Method: Text)
@@ -185,7 +186,15 @@ codeunit 132973 "SharePoint Test Library"
     var
         HttpHeaders: HttpHeaders;
     begin
-        SharePointOperationResponse.SetHttpResponse('{"d":{"Exists":true}}', HttpHeaders, 200, true, 'OK');
+        if ReturnFolderMissing then
+            SharePointOperationResponse.SetHttpResponse('{"value":false}', HttpHeaders, 200, true, 'OK')
+        else
+            SharePointOperationResponse.SetHttpResponse('{"value":true}', HttpHeaders, 200, true, 'OK');
+    end;
+
+    procedure SetFolderExistsResponse(FolderExists: Boolean)
+    begin
+        ReturnFolderMissing := not FolderExists;
     end;
 
     local procedure GetEmptySuccessTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")

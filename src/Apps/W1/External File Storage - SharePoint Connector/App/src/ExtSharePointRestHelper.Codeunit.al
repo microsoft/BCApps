@@ -269,20 +269,26 @@ codeunit 4609 "Ext. SharePoint REST Helper"
 
     local procedure InitPath(SharePointAccount: Record "Ext. SharePoint Account"; var Path: Text)
     var
+        Uri: Codeunit Uri;
+        BaseFolderPath: Text;
         SitePath: Text;
     begin
         // Extract site path from SharePoint URL
         SitePath := GetSitePathFromUrl(SharePointAccount."SharePoint Url");
 
-        // Combine base folder path with the file path
-        Path := CombinePath(SharePointAccount."Base Relative Folder Path", Path);
+        BaseFolderPath := SharePointAccount."Base Relative Folder Path";
+        if SharePointAccount."REST Base Folder Path Format" = Enum::"Ext. SharePoint Path Format"::URL then
+            BaseFolderPath := Uri.UnescapeDataString(BaseFolderPath);
+
+        // Decode URL-derived configuration only; attachment paths may contain literal percent sequences.
+        Path := CombinePath(BaseFolderPath, Path);
 
         // Ensure path starts with forward slash
         if not Path.StartsWith('/') then
             Path := '/' + Path;
 
         // Prepend site path if it exists and path doesn't already include it
-        if (SitePath <> '') and (not Path.StartsWith(SitePath)) then
+        if (SitePath <> '') and (Path <> SitePath) and (not Path.StartsWith(SitePath + '/')) then
             Path := SitePath + Path;
     end;
 
@@ -292,7 +298,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         PathSegment: Text;
     begin
         Uri.Init(SharePointUrl);
-        PathSegment := Uri.GetAbsolutePath();
+        PathSegment := Uri.UnescapeDataString(Uri.GetAbsolutePath());
 
         // Remove trailing slash if present
         if PathSegment.EndsWith('/') then

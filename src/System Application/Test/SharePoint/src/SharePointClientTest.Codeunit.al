@@ -68,6 +68,19 @@ codeunit 132970 "SharePoint Client Test"
     end;
 
     [Test]
+    procedure TestFolderExistsByDecodedPathReturnsFalse()
+    begin
+        Initialize();
+        SharePointTestLibrary.SetFolderExistsResponse(false);
+
+        Assert.IsFalse(
+            SharePointClient.FolderExistsByServerRelativePath('/sites/Test/Shared Documents/Missing #50%'),
+            'The folder existence parser should return false for a missing folder');
+        AssertRawRequestEscapesHashAndPercent();
+        SharePointTestLibrary.SetFolderExistsResponse(true);
+    end;
+
+    [Test]
     procedure TestDecodedPathFileAndFolderOperationsEscapeHashAndPercent()
     var
         TempSharePointFile: Record "SharePoint File" temporary;
@@ -77,6 +90,7 @@ codeunit 132970 "SharePoint Client Test"
     begin
         // [SCENARIO] Decoded-path APIs encode legal # and % characters without changing URL-based APIs.
         Initialize();
+        SharePointTestLibrary.SetFolderExistsResponse(true);
         FolderPath := '/sites/Test/Shared Documents/Year #50%';
         InitDummyFile(FileInStream);
 
