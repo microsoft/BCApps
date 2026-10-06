@@ -227,6 +227,52 @@ codeunit 135005 "ERM Financial Report Schedules"
     end;
 
     [Test]
+    procedure ExportScheduleToEmailUsesDefaultSubjectWhenBlank()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        TempEmailAccount: Record "Email Account";
+        FinancialReportSchedule: Record "Financial Report Schedule";
+        User: Record User;
+        EmailMessage: Codeunit "Email Message";
+        EmailScenario: Codeunit "Email Scenario";
+        FinancialReportExportJob: Codeunit "Financial Report Export Job";
+        NewUserId: Code[50];
+        UserEmail: Text[100];
+    begin
+        // [SCENARIO] When the schedule has no custom Email Subject, the export email falls back to the default subject.
+        Initialize();
+        ClearSchedules();
+        ClearScheduleJobQueueEntry();
+
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector");
+        EmailScenario.SetEmailAccount(Enum::"Email Scenario"::"Financial Report", TempEmailAccount);
+
+        NewUserId := LibraryUtility.GenerateRandomCode(User.FieldNo("User Name"), Database::User);
+        UserEmail := 'user@cronus.com';
+        CreateUserSetupWithEmail(NewUserId, UserEmail);
+
+        // [GIVEN] A financial report with an amount line
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithAmount(AccScheduleName.Name);
+
+        // [GIVEN] A financial report schedule with a recipient and no custom email subject
+        FinancialReportSchedule := CreateSchedule(AccScheduleName.Name, true, true, true);
+        CreateUserRecipient(NewUserId, AccScheduleName.Name, FinancialReportSchedule.Code);
+
+        Commit();
+
+        // [WHEN] The financial report schedule export job is run
+        FinancialReportExportJob.Run();
+
+        // [THEN] The email uses the default subject (prefixed 'Financial Report:'), not a custom one
+        EmailMessage.Get(ConnectorMock.GetEmailMessageID());
+        Assert.AreEqual(
+            1, StrPos(EmailMessage.GetSubject(), 'Financial Report:'),
+            'The default email subject should be used when Email Subject is blank.');
+    end;
+
+    [Test]
     [HandlerFunctions('AccountScheduleRequestPageHandler')]
     procedure StoreScheduleFilter()
     var
