@@ -116,7 +116,7 @@ table 7431 "EA Corp Card Settlement Line"
         {
             Clustered = true;
         }
-        key(Settlement; "Settlement Entry No.")
+        key(Settlement; "Settlement Entry No.", "Inactive")
         {
             SumIndexFields = "Statement Amount";
         }
