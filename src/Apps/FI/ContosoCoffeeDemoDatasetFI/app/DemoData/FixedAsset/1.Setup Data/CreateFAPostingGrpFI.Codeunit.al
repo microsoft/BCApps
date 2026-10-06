@@ -6,9 +6,6 @@
 namespace Microsoft.DemoData.FixedAsset;
 
 using Microsoft.DemoData.Finance;
-#if not CLEAN30
-using Microsoft.FixedAssets.Depreciation;
-#endif
 using Microsoft.FixedAssets.FixedAsset;
 
 codeunit 13445 "Create FA Posting Grp. FI"
@@ -38,21 +35,10 @@ codeunit 13445 "Create FA Posting Grp. FI"
     end;
 
     local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
-#if not CLEAN30
-    var
-        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
-#endif
     begin
-#if not CLEAN30
-        if not DepreciationDifferencesFIFeature.IsEnabled() then begin
 #pragma warning disable AL0432
-            FAPostingGroup.Validate("Depr. Difference Acc.", DeprDifferenceAcc);
-            FAPostingGroup.Validate("Depr. Difference Bal. Acc.", DeprDifferenceBalAcc);
+        FAPostingGroup.Validate("Depr. Difference Acc.", DeprDifferenceAcc);
+        FAPostingGroup.Validate("Depr. Difference Bal. Acc.", DeprDifferenceBalAcc);
 #pragma warning restore AL0432
-            exit;
-        end;
-#endif
-        FAPostingGroup.Validate("Deprec. Difference Account", DeprDifferenceAcc);
-        FAPostingGroup.Validate("Deprec. Difference Bal Acct", DeprDifferenceBalAcc);
     end;
 }
