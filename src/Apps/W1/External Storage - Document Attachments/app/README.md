@@ -13,9 +13,9 @@ The External Storage extension provides seamless integration between Microsoft D
 - **Migration Support**: Built-in migration tool to move files between company folders when needed
 - **Environment Hash Display**: View current environment hash for reference and troubleshooting
 
-### **Flexible Deletion Policies**
-- **Delete from External Storage**: Optionally delete unreferenced files from external storage when eligible attachments are removed from BC
-- **Automatic Cleanup**: Scheduled job queue can automatically delete expired files based on retention policy
+### **External File Retention**
+- **External Retention**: Physical external-file deletion is blocked as an interim data-loss prevention measure, including when attachments are removed from BC
+- **No External Cleanup**: No automatic or deferred external cleanup is scheduled
 
 ### **Customizable Root Folder**
 - Configure a custom root folder path for all attachments
@@ -52,7 +52,7 @@ The External Storage extension provides seamless integration between Microsoft D
    - Configure settings:
      - **Enabled**: Enable the External Storage feature
      - **Root Folder**: Select the root folder path for attachments (use AssistEdit to browse)
-     - **Delete from External Storage**: Enable to delete external files when attachments are removed from BC
+     - **External Cleanup Status**: Review the retention notice; the saved deletion policy is currently inactive
 
 ### Configuration Options
 
@@ -63,13 +63,14 @@ The External Storage extension provides seamless integration between Microsoft D
   - Use AssistEdit button to browse and select folder interactively
 
 #### Upload and Delete Policy
-- **Delete from External Storage**: When enabled, an eligible attachment's external file is deleted only when the shared-reference lookup finds no other persisted, externally stored attachment in the company with the same complete path. This protects the sequential copy/delete flows from quotes to orders and onto posted documents.
-- **Shared References**: Explicit external deletion clears only the selected attachment's external metadata when the file is shared. Other attachments and the external file remain unchanged.
-- **Copy and Environment Protection**: Copied attachments marked to skip deletion and files belonging to another environment or company keep their existing deletion protections. Removing the source does not transfer cleanup ownership to a protected copy; such a file is retained even after the last protected copy is removed.
+- **External Cleanup Status**: This extension does not physically delete external files. The saved **Delete External File on Attachment Delete** setting is disabled on the setup page and does not enable cleanup.
+- **Attachment Deletion**: Business Central attachment rows can still be removed, but their external bytes are retained, including lone files and files shared by copied or posted attachments.
+- **Explicit Delete from External**: The action explains that cleanup is blocked. All external metadata remains intact, including for shared and foreign-environment references. Programmatic deletion attempts return `false`; they do not report completed deletion.
+- **Move to Internal Storage**: Files can still be restored internally. The sync report separately reports retained external files and metadata rather than treating a successful restore as a cleanup failure.
+- **Retention Consequences**: Removing an attachment row can leave an orphaned external file. Storage consumption can grow; there is no retention period, cleanup job, or automatic re-enablement on upgrade.
+- **Configuration Consequences**: Retained external references continue to participate in the existing safeguards against disabling the feature or reassigning/unassigning its file account. This interim change does not provide a force-detach or cleanup bypass.
 
-Shared-reference lookup uses a compact SHA256 path index followed by a complete, case-sensitive path comparison, rather than indexing the 2,048-character path. Insert and modify database events maintain the hash even with table triggers disabled. A one-time, per-company upgrade backfills existing external references; blank-hash legacy references remain protected before backfill.
-
-The lookup does not establish atomic ownership with external storage: a concurrent copy can create a reference between the lookup and physical deletion. It also does not resolve connector-specific path aliases or references outside the current company. Existing environment/company ownership guards and the configured file scenario still apply.
+This is an interim mitigation for shared external attachment deletion (AB#647643), not an authoritative ownership or deferred-deletion protocol. A shared-reference lookup cannot close the concurrent copy/delete window, and current generic connectors cannot all prove deletion of the exact owned remote object. External cleanup remains blocked for every connector; no provider-subset or live-path deletion fallback is used. Read, upload, internal restoration and existing migration behavior remain available.
 
 ## Usage
 
@@ -126,20 +127,20 @@ From **Document Attachment - External** page:
 - **Upload to External Storage**: Upload selected file manually
 - **Download from External Storage**: Download file for viewing
 - **Download to Internal Storage**: Restore file to internal storage
-- **Delete from External Storage**: Remove an eligible attachment's external reference; delete the file only if it is not shared
+- **Delete from External Storage**: Show the blocked-cleanup notice; retain external files and metadata
 - **Delete from Internal Storage**: Remove file from internal storage only
 
 #### Bulk Operations
 From **External Storage Synchronize** report:
 - **To External Storage**: Upload multiple files to external storage
 - **From External Storage**: Download multiple files from external storage
-- **Delete Expired Files**: Clean up files based on retention policy
+- **Move to Internal Storage**: Restore internal content while retaining the external file and reference
 
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality
 - Document preview, download, and management work seamlessly
 - Files deleted internally are automatically retrieved from external storage when accessed
-- No change to end-user experience
+- Upload, read and internal restore remain available; external deletion now explains retention instead of reporting completion
 - Cross-environment and cross-company access is handled automatically
 
 ## Important Notes
@@ -149,6 +150,7 @@ From **External Storage Synchronize** report:
 - Always maintain proper backups of your external storage
 - Test thoroughly in a sandbox environment before production use
 - Verify file accessibility after migration
+- This interim policy only prevents deletion sent by this extension. It does not protect against other storage consumers, remote administrators, unsupported metadata changes, or unrelated migration/internal-storage failures.
 
 ### Environment Changes
 - When moving between environments, use the **Migrate Files** action

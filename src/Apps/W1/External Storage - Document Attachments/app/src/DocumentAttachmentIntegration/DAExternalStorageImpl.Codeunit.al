@@ -23,6 +23,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
     var
         CannotRetrieveExternalFileErr: Label 'The file %1 could not be retrieved from external storage. Verify that the file exists and that the external file storage account is configured and accessible.', Comment = '%1 = File name';
+        ExternalDeletionBlockedMsg: Label 'External file deletion is blocked to prevent loss of files referenced by other attachments. External files and attachment metadata are retained. You can still copy files to internal storage. No external cleanup is scheduled.';
 
     #region File Scenario Interface Implementation
     /// <summary>
@@ -340,11 +341,13 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     /// <summary>
-    /// Deletes a document attachment from external storage.
+    /// Blocks external file deletion and retains the attachment's external metadata.
     /// </summary>
     /// <param name="DocumentAttachment">The document attachment record to delete from external storage.</param>
-    /// <returns>True if deletion was successful, false otherwise.</returns>
+    /// <returns>False because external file deletion is blocked.</returns>
     procedure DeleteFromExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
     begin
         // Check if feature is enabled
         if not IsFeatureEnabled() then
@@ -363,91 +366,13 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if DocumentAttachment."Skip Delete On Copy" then
             exit(false);
 
-        // Check if file belongs to another environment - if so, just clear the reference
-        if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then begin
-            DocumentAttachment.MarkAsNotUploadedToExternal();
-            exit(true);
-        end;
-
-        if IsExternalFileShared(DocumentAttachment) then begin
-            DocumentAttachment.MarkAsNotUploadedToExternal();
-            exit(true);
-        end;
-
-        if not DeleteExternalFile(DocumentAttachment."External File Path", DocumentAttachment) then
-            exit(false);
-
-        DocumentAttachment.MarkAsNotUploadedToExternal();
-        exit(true);
-    end;
-
-    local procedure IsExternalFileShared(DocumentAttachment: Record "Document Attachment"): Boolean
-    var
-        OtherDocumentAttachment: Record "Document Attachment";
-    begin
-        OtherDocumentAttachment.ChangeCompany(DocumentAttachment.CurrentCompany());
-        OtherDocumentAttachment.SetCurrentKey("Stored Externally", "External File Path Hash");
-        OtherDocumentAttachment.SetRange("Stored Externally", true);
-        OtherDocumentAttachment.SetRange("External File Path Hash", GetExternalFilePathHash(DocumentAttachment."External File Path"));
-        OtherDocumentAttachment.SetRange("External File Path", DocumentAttachment."External File Path");
-        OtherDocumentAttachment.SetFilter(SystemId, '<>%1', DocumentAttachment.SystemId);
-        if HasExactExternalFileReference(OtherDocumentAttachment, DocumentAttachment."External File Path") then
-            exit(true);
-
-        // Protect legacy references until their company has completed the hash backfill.
-        OtherDocumentAttachment.SetRange("External File Path Hash", '');
-        exit(HasExactExternalFileReference(OtherDocumentAttachment, DocumentAttachment."External File Path"));
-    end;
-
-    local procedure HasExactExternalFileReference(var DocumentAttachment: Record "Document Attachment"; ExternalFilePath: Text): Boolean
-    begin
-        DocumentAttachment.SetLoadFields("External File Path");
-        if DocumentAttachment.FindSet() then
-            repeat
-                // A digest match is only a candidate; compare the complete, case-sensitive path.
-                if DocumentAttachment."External File Path" = ExternalFilePath then
-                    exit(true);
-            until DocumentAttachment.Next() = 0;
+        DAFeatureTelemetry.LogExternalFileRetained(DocumentAttachment, 'ExplicitDelete');
         exit(false);
     end;
 
-    internal procedure GetExternalFilePathHash(ExternalFilePath: Text): Text[64]
-    var
-        CryptographyManagement: Codeunit "Cryptography Management";
-        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+    internal procedure GetExternalDeletionBlockedMessage(): Text
     begin
-        if ExternalFilePath = '' then
-            exit('');
-
-        exit(CryptographyManagement.GenerateHash(ExternalFilePath, HashAlgorithmType::SHA256));
-    end;
-
-    local procedure UpdateExternalFilePathHash(var DocumentAttachment: Record "Document Attachment")
-    begin
-        if DocumentAttachment."Stored Externally" then
-            DocumentAttachment."External File Path Hash" := GetExternalFilePathHash(DocumentAttachment."External File Path")
-        else
-            DocumentAttachment."External File Path Hash" := '';
-    end;
-
-    local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"): Boolean
-    var
-        TempFileAccount: Record "File Account";
-        ExternalFileStorage: Codeunit "External File Storage";
-        FileScenarioCU: Codeunit "File Scenario";
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-        FileScenario: Enum "File Scenario";
-    begin
-        FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
-            exit(false);
-
-        ExternalFileStorage.Initialize(FileScenario);
-        if not ExternalFileStorage.DeleteFile(ExternalFilePath) then
-            exit(false);
-
-        DAFeatureTelemetry.LogFileDeleted(DocumentAttachmentForTelemetry);
-        exit(true);
+        exit(ExternalDeletionBlockedMsg);
     end;
 
     /// <summary>
@@ -808,18 +733,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     #region Document Attachment Handling
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeInsertEvent, '', false, false)]
-    local procedure OnBeforeInsertDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
-    begin
-        UpdateExternalFilePathHash(Rec);
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeModifyEvent, '', false, false)]
-    local procedure OnBeforeModifyDocumentAttachment(var Rec: Record "Document Attachment"; var xRec: Record "Document Attachment"; RunTrigger: Boolean)
-    begin
-        UpdateExternalFilePathHash(Rec);
-    end;
-
     /// <summary>
     /// Handles automatic upload of new document attachments to external storage upon insertion of the attachment record.
     /// </summary>
@@ -855,32 +768,31 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     /// <summary>
-    /// Handles automatic deletion of document attachments from external storage upon deletion of the attachment record.
+    /// Logs retained external content after deletion of an eligible attachment record without deleting the external file.
     /// </summary>
     /// <param name="Rec">The document attachment record.</param>
     /// <param name="RunTrigger">Indicates if the trigger should run.</param>
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterDeleteEvent, '', true, true)]
     local procedure OnAfterDeleteDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
     begin
         // Exit early if trigger is not running
         if not RunTrigger then
             exit;
 
-        if not IsEligibleForExternalFileDeletionOnRecordDelete(Rec) then
+        if not ShouldLogExternalFileRetentionOnRecordDelete(Rec) then
             exit;
 
-        if IsExternalFileShared(Rec) then
-            exit;
-
-        DeleteExternalFile(Rec."External File Path", Rec);
+        DAFeatureTelemetry.LogExternalFileRetained(Rec, 'RecordDelete');
     end;
 
     /// <summary>
-    /// Evaluates whether the external blob backing a just-deleted Document Attachment row should be removed.
+    /// Evaluates whether retained external content should be logged for a just-deleted attachment row.
     /// </summary>
     /// <param name="DocumentAttachment">The document attachment record carrying the field values from the deleted row.</param>
-    /// <returns>True if the external file is eligible for deletion; otherwise false.</returns>
-    local procedure IsEligibleForExternalFileDeletionOnRecordDelete(var DocumentAttachment: Record "Document Attachment"): Boolean
+    /// <returns>True if the previous automatic-deletion policy requested cleanup; otherwise false.</returns>
+    local procedure ShouldLogExternalFileRetentionOnRecordDelete(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
     begin

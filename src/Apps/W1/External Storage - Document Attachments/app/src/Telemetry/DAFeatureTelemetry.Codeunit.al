@@ -62,12 +62,24 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogError('0000RNY', ExternalStorageTok, 'Downloading file from external storage', ErrorText, ErrorCallStack, Dimensions);
     end;
 
-    internal procedure LogFileDeleted(DocumentAttachment: Record "Document Attachment")
+    internal procedure LogExternalFileRetained(DocumentAttachment: Record "Document Attachment"; Operation: Text)
     var
         Dimensions: Dictionary of [Text, Text];
     begin
-        GetTelemetryDimensions(DocumentAttachment, 'Delete', Dimensions);
-        FeatureTelemetry.LogUsage('0000RNT', ExternalStorageTok, 'File Deleted', Dimensions);
+        GetFailureTelemetryDimensions(DocumentAttachment, Operation, Dimensions);
+        FeatureTelemetry.LogUsage('0000W5Q', ExternalStorageTok, 'External File Retained', Dimensions);
+    end;
+
+    internal procedure LogSyncRetention(RetainedCount: Integer)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        if RetainedCount = 0 then
+            exit;
+
+        Dimensions.Add('Category', ExternalStorageCategoryLbl);
+        Dimensions.Add('RetainedCount', Format(RetainedCount));
+        FeatureTelemetry.LogUsage('0000W5R', ExternalStorageTok, 'External Cleanup Blocked During Sync', Dimensions);
     end;
 
     internal procedure LogCompanyMigration()

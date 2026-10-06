@@ -37,6 +37,12 @@ page 8751 "Document Attachment - External"
                     StyleExpr = true;
                     ToolTip = 'Shows the percentage of files uploaded to external storage.';
                 }
+                field(ExternalCleanupStatus; ExternalCleanupStatus)
+                {
+                    Caption = 'External Cleanup Status';
+                    Editable = false;
+                    ToolTip = 'Specifies why external files and attachment metadata are retained instead of deleted.';
+                }
             }
             repeater(General)
             {
@@ -179,34 +185,14 @@ page 8751 "Document Attachment - External"
             {
                 Enabled = Rec."Stored Internally" and Rec."Stored Externally";
                 Caption = 'Delete from External';
-                ToolTip = 'Delete the selected file(s) from external storage.';
+                ToolTip = 'External deletion is currently blocked. External files and attachment metadata are retained; no cleanup is scheduled.';
                 Image = Delete;
 
                 trigger OnAction()
                 var
-                    DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
-                    SuccessCount: Integer;
-                    FailedCount: Integer;
                 begin
-                    if not Confirm(DeleteFilesFromExternalStorageQst) then
-                        exit;
-
-                    CurrPage.SetSelectionFilter(DocumentAttachment);
-                    DocumentAttachment.SetRange("Stored Internally", true);
-                    DocumentAttachment.SetRange("Stored Externally", true);
-                    SuccessCount := 0;
-                    FailedCount := 0;
-                    if DocumentAttachment.FindSet() then
-                        repeat
-                            if ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment) then
-                                SuccessCount += 1
-                            else
-                                FailedCount += 1;
-                        until DocumentAttachment.Next() = 0;
-
-                    if SuccessCount + FailedCount > 0 then
-                        Message(FilesDeletedExternalStorageMsg, SuccessCount, FailedCount);
+                    Message(ExternalStorageImpl.GetExternalDeletionBlockedMessage());
                 end;
             }
             action("Delete from Internal")
@@ -265,16 +251,15 @@ page 8751 "Document Attachment - External"
     }
 
     var
-        DeleteFilesFromExternalStorageQst: Label 'Are you sure you want to delete the selected file(s) from external storage?';
         DeleteFilesFromIntStorageQst: Label 'Are you sure you want to delete the selected file(s) from internal storage?';
         FilesCopiedMsg: Label '%1 file(s) copied successfully to internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
-        FilesDeletedExternalStorageMsg: Label '%1 file(s) deleted successfully from external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesDeletedIntStorageMsg: Label '%1 file(s) deleted successfully from internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesDownloadedMsg: Label '%1 file(s) downloaded successfully. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesUploadedMsg: Label '%1 file(s) uploaded successfully to external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         ExternalStorageStatsTxt: Label '%1% (%2/%3) files are uploaded to external storage', Comment = '%1 = Percentage, %2 = External count, %3 = Total count';
         UploadActionEnabled: Boolean;
         ExternalStorageStatsText: Text;
+        ExternalCleanupStatus: Text;
 
     trigger OnAfterGetRecord()
     var
@@ -284,7 +269,10 @@ page 8751 "Document Attachment - External"
     end;
 
     trigger OnOpenPage()
+    var
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
+        ExternalCleanupStatus := ExternalStorageImpl.GetExternalDeletionBlockedMessage();
         UpdateExternalStorageStats();
     end;
 

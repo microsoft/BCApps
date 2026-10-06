@@ -58,20 +58,6 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
             Editable = false;
             ToolTip = 'Specifies whether to skip deletion of this attachment from external storage.';
         }
-        field(8756; "External File Path Hash"; Text[64])
-        {
-            Caption = 'External File Path Hash';
-            DataClassification = SystemMetadata;
-            Editable = false;
-            ToolTip = 'Specifies the SHA256 hash used to find attachments referencing the same external file path.';
-        }
-    }
-
-    keys
-    {
-        key(ExternalFileReference; "Stored Externally", "External File Path Hash")
-        {
-        }
     }
 
     /// <summary>

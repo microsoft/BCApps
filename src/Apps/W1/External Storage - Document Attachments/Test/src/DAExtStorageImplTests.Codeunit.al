@@ -16,9 +16,7 @@ using Microsoft.Sales.Setup;
 using System.Environment;
 using System.ExternalFileStorage;
 using System.TestLibraries.ExternalFileStorage;
-using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
-using System.Upgrade;
 using System.Utilities;
 
 codeunit 136820 "DA Ext. Storage Impl. Tests"
@@ -100,13 +98,14 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure DeleteFromExternalSucceedsForUploadedFile()
+    procedure DeleteFromExternalRetainsUploadedFileAndMetadata()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        OriginalDocumentAttachment: Record "Document Attachment";
         Result: Boolean;
     begin
-        // [SCENARIO] Delete from external should succeed for properly uploaded file
+        // [SCENARIO] Explicit external deletion is blocked without changing uploaded metadata.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
@@ -116,18 +115,13 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
         DocumentAttachment.SetRecFilter();
         DocumentAttachment.FindFirst();
+        OriginalDocumentAttachment := DocumentAttachment;
 
         // [WHEN] Delete is attempted
         Result := DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment);
 
-        // [THEN] Delete should succeed
-        Assert.IsTrue(Result, 'Delete should succeed for uploaded file');
-
-        // [THEN] Document should be marked as not stored externally
-        DocumentAttachment.SetRecFilter();
-        DocumentAttachment.FindFirst();
-        Assert.IsFalse(DocumentAttachment."Stored Externally", 'Document should not be marked as stored externally');
-        Assert.AreEqual('', DocumentAttachment."External File Path", 'External file path should be cleared');
+        Assert.IsFalse(Result, 'Blocked cleanup must not report successful deletion');
+        VerifyExternalMetadataRetained(DocumentAttachment, OriginalDocumentAttachment);
     end;
 
     [Test]
@@ -386,15 +380,13 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure RecordDeleteRemovesBlobFromExternalStorage()
+    procedure RecordDeleteRetainsLoneExternalFile()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         ExternalFilePath: Text;
     begin
-        // [SCENARIO] Deleting a Document Attachment row must delete its blob via the OnAfterDelete subscriber.
-        // Regression test for the bug where the subscriber called DeleteFromExternalStorage(Rec), which
-        // started with Rec.Find() and exited because the row was already gone, leaving the blob orphaned.
+        // [SCENARIO] Even a lone external file is retained when its attachment row is deleted.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
@@ -410,9 +402,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [WHEN] The Document Attachment row is deleted (fires OnAfterDeleteEvent)
         DocumentAttachment.Delete(true);
 
-        // [THEN] The subscriber invoked DeleteFile against the external connector with the stored path
-        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
-            'External connector DeleteFile should be invoked with the stored External File Path when the attachment row is deleted');
+        Assert.IsFalse(DocumentAttachment.Find(), 'The attachment row must still be deleted');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Lone external files must also be retained');
     end;
 
     [Test]
@@ -1042,11 +1033,15 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure SalesPostingKeepsSharedExternalFile()
     var
         SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         DocumentAttachment: Record "Document Attachment";
+        LineDocumentAttachment: Record "Document Attachment";
         PostedDocumentAttachment: Record "Document Attachment";
+        PostedLineDocumentAttachment: Record "Document Attachment";
         SourceNo: Code[20];
         PostedNo: Code[20];
         ExternalFilePath: Text;
+        LineExternalFilePath: Text;
     begin
         // [SCENARIO] Actual sales posting copies the external-only attachment before deleting its source.
         Initialize();
@@ -1058,13 +1053,22 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateUploadedExternalOnlyAttachment(DocumentAttachment);
         DocumentAttachment.Rename(Database::"Sales Header", SourceNo, DocumentAttachment."Document Type"::Invoice, 0, DocumentAttachment.ID);
         ExternalFilePath := DocumentAttachment."External File Path";
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SourceNo);
+        SalesLine.FindFirst();
+        CreateUploadedExternalOnlyAttachment(LineDocumentAttachment);
+        LineDocumentAttachment.Rename(Database::"Sales Line", SourceNo, LineDocumentAttachment."Document Type"::Invoice, SalesLine."Line No.", LineDocumentAttachment.ID);
+        LineExternalFilePath := LineDocumentAttachment."External File Path";
 
         PostedNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         Assert.IsFalse(SalesHeader.Get(SalesHeader."Document Type"::Invoice, SourceNo), 'Posting must delete the source sales invoice');
         VerifySourceAttachmentDeleted(Database::"Sales Header", SourceNo);
+        VerifySourceAttachmentDeleted(Database::"Sales Line", SourceNo);
         FindHeaderAttachment(PostedDocumentAttachment, Database::"Sales Invoice Header", PostedNo);
         VerifySharedExternalFileRetained(PostedDocumentAttachment, ExternalFilePath);
+        FindHeaderAttachment(PostedLineDocumentAttachment, Database::"Sales Invoice Line", PostedNo);
+        VerifySharedExternalFileRetained(PostedLineDocumentAttachment, LineExternalFilePath);
     end;
 
     [Test]
@@ -1072,11 +1076,15 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure PurchasePostingKeepsSharedExternalFile()
     var
         PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
         DocumentAttachment: Record "Document Attachment";
+        LineDocumentAttachment: Record "Document Attachment";
         PostedDocumentAttachment: Record "Document Attachment";
+        PostedLineDocumentAttachment: Record "Document Attachment";
         SourceNo: Code[20];
         PostedNo: Code[20];
         ExternalFilePath: Text;
+        LineExternalFilePath: Text;
     begin
         // [SCENARIO] Actual purchase posting retains the file copied onto the posted invoice.
         Initialize();
@@ -1088,13 +1096,22 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateUploadedExternalOnlyAttachment(DocumentAttachment);
         DocumentAttachment.Rename(Database::"Purchase Header", SourceNo, DocumentAttachment."Document Type"::Invoice, 0, DocumentAttachment.ID);
         ExternalFilePath := DocumentAttachment."External File Path";
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", SourceNo);
+        PurchaseLine.FindFirst();
+        CreateUploadedExternalOnlyAttachment(LineDocumentAttachment);
+        LineDocumentAttachment.Rename(Database::"Purchase Line", SourceNo, LineDocumentAttachment."Document Type"::Invoice, PurchaseLine."Line No.", LineDocumentAttachment.ID);
+        LineExternalFilePath := LineDocumentAttachment."External File Path";
 
         PostedNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         Assert.IsFalse(PurchaseHeader.Get(PurchaseHeader."Document Type"::Invoice, SourceNo), 'Posting must delete the source purchase invoice');
         VerifySourceAttachmentDeleted(Database::"Purchase Header", SourceNo);
+        VerifySourceAttachmentDeleted(Database::"Purchase Line", SourceNo);
         FindHeaderAttachment(PostedDocumentAttachment, Database::"Purch. Inv. Header", PostedNo);
         VerifySharedExternalFileRetained(PostedDocumentAttachment, ExternalFilePath);
+        FindHeaderAttachment(PostedLineDocumentAttachment, Database::"Purch. Inv. Line", PostedNo);
+        VerifySharedExternalFileRetained(PostedLineDocumentAttachment, LineExternalFilePath);
     end;
 
     [Test]
@@ -1122,39 +1139,44 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure DirectDeleteDetachesSharedExternalFile()
+    procedure DirectDeleteRetainsSharedExternalMetadata()
     var
         DocumentAttachment: Record "Document Attachment";
         CopiedDocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        OriginalDocumentAttachment: Record "Document Attachment";
+        OriginalCopiedDocumentAttachment: Record "Document Attachment";
         ExternalFilePath: Text;
     begin
-        // [SCENARIO] Explicit deletion removes only the selected shared reference.
+        // [SCENARIO] Explicit deletion keeps both shared references and the external file.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
         CreateUploadedExternalOnlyAttachment(DocumentAttachment);
         CreateCopyOfDocumentAttachment(DocumentAttachment, CopiedDocumentAttachment);
         ExternalFilePath := DocumentAttachment."External File Path";
+        OriginalDocumentAttachment := DocumentAttachment;
+        RefreshAttachment(CopiedDocumentAttachment);
+        OriginalCopiedDocumentAttachment := CopiedDocumentAttachment;
 
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'Shared deletion must detach successfully');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'Shared cleanup must be blocked');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'Repeated cleanup must remain blocked');
 
-        VerifyExternalReferenceDetached(DocumentAttachment);
+        VerifyExternalMetadataRetained(DocumentAttachment, OriginalDocumentAttachment);
         VerifySharedExternalFileRetained(CopiedDocumentAttachment, ExternalFilePath);
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromExternalStorage(CopiedDocumentAttachment), 'The final eligible reference must still be removable');
-        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(), 'Final explicit deletion must clean up the file');
-        VerifyExternalReferenceDetached(CopiedDocumentAttachment);
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(CopiedDocumentAttachment), 'The other shared reference must also be blocked');
+        VerifyExternalMetadataRetained(CopiedDocumentAttachment, OriginalCopiedDocumentAttachment);
     end;
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure LastEligibleReferenceDeletesExternalFile()
+    procedure LastEligibleReferenceRetainsExternalFile()
     var
         DocumentAttachment: Record "Document Attachment";
         CopiedDocumentAttachment: Record "Document Attachment";
         ExternalFilePath: Text;
     begin
-        // [SCENARIO] An unflagged last reference still cleans up after the protected copy is removed.
+        // [SCENARIO] Removing the final unflagged reference still retains the external file.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
@@ -1168,7 +1190,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         DocumentAttachment.Delete(true);
 
-        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(), 'The final eligible reference must delete its file');
+        Assert.AreNotEqual('', ExternalFilePath, 'The test must have an external file');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'The final eligible reference must also retain its file');
     end;
 
     [Test]
@@ -1199,22 +1222,25 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure ForeignExternalReferenceIsDetachedWithoutDeletion()
+    procedure ForeignExternalReferenceKeepsMetadata()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        OriginalDocumentAttachment: Record "Document Attachment";
     begin
-        // [SCENARIO] Explicit deletion of a foreign reference never deletes the owning environment's file.
+        // [SCENARIO] Explicit foreign deletion retains both file and reference metadata.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
         CreateUploadedExternalOnlyAttachment(DocumentAttachment);
         DocumentAttachment."Source Environment Hash" := 'FOREIGN';
         DocumentAttachment.Modify(false);
+        RefreshAttachment(DocumentAttachment);
+        OriginalDocumentAttachment := DocumentAttachment;
 
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'The foreign reference must detach');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'Foreign cleanup must be blocked');
 
-        VerifyExternalReferenceDetached(DocumentAttachment);
+        VerifyExternalMetadataRetained(DocumentAttachment, OriginalDocumentAttachment);
         Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Foreign files must never be physically deleted');
     end;
 
@@ -1225,6 +1251,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment: Record "Document Attachment";
         CopiedDocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        OriginalDocumentAttachment: Record "Document Attachment";
     begin
         // [SCENARIO] Failed retrieval is not permission to delete a shared file.
         Initialize();
@@ -1232,11 +1259,12 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         EnableFeatureWithDelete();
         CreateUploadedExternalOnlyAttachment(DocumentAttachment);
         CreateCopyOfDocumentAttachment(DocumentAttachment, CopiedDocumentAttachment);
+        OriginalDocumentAttachment := DocumentAttachment;
         FileConnectorMock.SetFailOnGetFile(true);
 
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'Detaching a shared reference needs no readback');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'A retrieval failure must not bypass blocked cleanup');
 
-        VerifyExternalReferenceDetached(DocumentAttachment);
+        VerifyExternalMetadataRetained(DocumentAttachment, OriginalDocumentAttachment);
         RefreshAttachment(CopiedDocumentAttachment);
         Assert.IsTrue(CopiedDocumentAttachment."Stored Externally", 'The other reference must remain');
         Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'A retrieval failure must not cause physical deletion');
@@ -1282,72 +1310,87 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     #endregion
 
-    #region External Path Identity Tests
+    #region External Retention Tests
 
     [Test]
-    procedure ExternalPathHashTracksInsertAndModifyWithoutTriggers()
+    [HandlerFunctions('ConfirmYesHandler,RetentionBlockedMessageHandler')]
+    procedure ExplicitDeletePageShowsBlockedWithoutChangingMetadata()
     var
         DocumentAttachment: Record "Document Attachment";
-        CopiedDocumentAttachment: Record "Document Attachment";
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
-        OriginalHash: Text[64];
+        OriginalDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentExternal: TestPage "Document Attachment - External";
+        ExternalStorageSetup: TestPage "DA External Storage Setup";
     begin
-        // [SCENARIO] Trigger-disabled writes maintain and repair the compact identity.
+        // [SCENARIO] The explicit action explains blocked cleanup instead of reporting deletion.
         Initialize();
-        CreateExternallyStoredOnlyDocument(DocumentAttachment);
-        RefreshAttachment(DocumentAttachment);
-        OriginalHash := DocumentAttachment."External File Path Hash";
-        Assert.AreEqual(64, StrLen(OriginalHash), 'The digest must contain the complete SHA256 hash');
-        Assert.AreEqual(DAExternalStorageImpl.GetExternalFilePathHash(DocumentAttachment."External File Path"), OriginalHash, 'Insert(false) must derive the hash');
-        CreateCopyOfDocumentAttachment(DocumentAttachment, CopiedDocumentAttachment);
-        Assert.AreEqual(OriginalHash, CopiedDocumentAttachment."External File Path Hash", 'TransferFields and Insert(false) must maintain identity');
+        SetupFileScenarioWithTestConnector();
+        EnableFeatureWithDelete();
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        UploadDocumentAttachment(DocumentAttachment);
+        OriginalDocumentAttachment := DocumentAttachment;
 
-        DocumentAttachment."External File Path" := 'changed/path/file.txt';
-        DocumentAttachment.Modify(false);
-        RefreshAttachment(DocumentAttachment);
-        Assert.AreNotEqual(OriginalHash, DocumentAttachment."External File Path Hash", 'Changing the path must change the hash');
-        Assert.AreEqual(DAExternalStorageImpl.GetExternalFilePathHash(DocumentAttachment."External File Path"),
-            DocumentAttachment."External File Path Hash", 'Modify(false) must derive the new hash');
+        ExternalStorageSetup.OpenEdit();
+        Assert.IsFalse(ExternalStorageSetup."Delete from External Storage".Enabled(), 'The saved policy must not allow cleanup to be re-enabled');
+        ExternalStorageSetup.Close();
+        DocumentAttachmentExternal.OpenView();
+        DocumentAttachmentExternal.GoToRecord(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachmentExternal."Delete from External".Enabled(), 'The action must explain why cleanup is blocked');
+        DocumentAttachmentExternal."Delete from External".Invoke();
+        DocumentAttachmentExternal.Close();
 
-        SetLegacyExternalPathHash(DocumentAttachment, '');
-        DocumentAttachment."File Name" := 'ChangedName';
-        DocumentAttachment.Modify(false);
-        RefreshAttachment(DocumentAttachment);
-        Assert.AreEqual(DAExternalStorageImpl.GetExternalFilePathHash(DocumentAttachment."External File Path"),
-            DocumentAttachment."External File Path Hash", 'An unrelated modification must repair a legacy blank hash');
-
-        DocumentAttachment."External File Path" := '';
-        DocumentAttachment.Modify(false);
-        Assert.AreEqual('', DocumentAttachment."External File Path Hash", 'Clearing the path must clear its hash');
-        CopiedDocumentAttachment."Stored Externally" := false;
-        CopiedDocumentAttachment.Modify(false);
-        Assert.AreEqual('', CopiedDocumentAttachment."External File Path Hash", 'Internal-only rows must not retain an external hash');
+        VerifyExternalMetadataRetained(DocumentAttachment, OriginalDocumentAttachment);
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
-    procedure UploadAndDetachMaintainPathHash()
+    [HandlerFunctions('ConfirmYesHandler,MoveToInternalRequestPageHandler,SyncRetentionMessageHandler')]
+    procedure MoveToInternalRestoresContentAndReportsExternalRetention()
     var
         DocumentAttachment: Record "Document Attachment";
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
-        OriginalHash: Text[64];
+        ExternalFilePath: Text;
+        ExternalUploadDate: DateTime;
+        SourceEnvironmentHash: Text[32];
     begin
-        // [SCENARIO] Upload and detach maintain identity; failed migration leaves file and identity intact.
+        // [SCENARIO] Move to internal succeeds as a restore and explicitly reports retained external content.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
         CreateUploadedExternalOnlyAttachment(DocumentAttachment);
-        OriginalHash := DocumentAttachment."External File Path Hash";
-        Assert.AreEqual(DAExternalStorageImpl.GetExternalFilePathHash(DocumentAttachment."External File Path"), OriginalHash, 'Upload must persist the hash');
+        ExternalFilePath := DocumentAttachment."External File Path";
+        ExternalUploadDate := DocumentAttachment."External Upload Date";
+        SourceEnvironmentHash := DocumentAttachment."Source Environment Hash";
+        DocumentAttachment.SetRecFilter();
+
+        Report.RunModal(Report::"DA External Storage Sync", true, false, DocumentAttachment);
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'The external file must be restored internally');
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Restore must succeed');
+        Assert.IsTrue(DocumentAttachment."Stored Externally", 'The external reference must remain');
+        Assert.AreEqual(ExternalFilePath, DocumentAttachment."External File Path", 'Retain the external path');
+        Assert.AreEqual(ExternalUploadDate, DocumentAttachment."External Upload Date", 'Retain the upload date');
+        Assert.AreEqual(SourceEnvironmentHash, DocumentAttachment."Source Environment Hash", 'Retain environment metadata');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Move to internal must not send a remote DELETE');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure FailedMigrationPreservesExternalMetadata()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        OriginalDocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+    begin
+        // [SCENARIO] A failed migration cannot delete content or clear the external reference.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeatureWithDelete();
+        CreateUploadedExternalOnlyAttachment(DocumentAttachment);
+        OriginalDocumentAttachment := DocumentAttachment;
         FileConnectorMock.SetFailOnGetFile(true);
 
         Assert.IsFalse(DAExternalStorageImpl.MigrateFileToCurrentEnvironment(DocumentAttachment), 'Migration must fail when retrieval fails');
-        RefreshAttachment(DocumentAttachment);
-        Assert.AreEqual(OriginalHash, DocumentAttachment."External File Path Hash", 'Failed migration must preserve identity');
-        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Failed retrieval must not cause physical deletion');
-        FileConnectorMock.SetFailOnGetFile(false);
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'Final deletion must succeed');
-        VerifyExternalReferenceDetached(DocumentAttachment);
+
+        VerifyExternalMetadataRetained(DocumentAttachment, OriginalDocumentAttachment);
     end;
 
     [Test]
@@ -1376,13 +1419,13 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure LongPathsWithDifferentSuffixesAreNotShared()
+    procedure DistinctLongExternalPathsAreRetained()
     var
         DocumentAttachment: Record "Document Attachment";
         OtherDocumentAttachment: Record "Document Attachment";
         ExternalFilePath: Text[2048];
     begin
-        // [SCENARIO] Paths differing only at their final character identify different files.
+        // [SCENARIO] Retention does not depend on matching even the last character of a long path.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
@@ -1393,22 +1436,22 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateCopyOfDocumentAttachment(DocumentAttachment, OtherDocumentAttachment);
         OtherDocumentAttachment."External File Path" := CopyStr(ExternalFilePath, 1, 2047) + 'b';
         OtherDocumentAttachment.Modify(false);
-        Assert.AreNotEqual(DocumentAttachment."External File Path Hash", OtherDocumentAttachment."External File Path Hash", 'Hash the complete path, not a prefix');
+        Assert.AreNotEqual(DocumentAttachment."External File Path", OtherDocumentAttachment."External File Path", 'The paths must differ');
 
         DocumentAttachment.Delete(true);
 
-        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(), 'A different long path must not prevent cleanup');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Distinct long paths must also be retained');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure InternalOnlyReferenceDoesNotPreventExternalDeletion()
+    procedure InternalOnlyMetadataDoesNotAuthorizeExternalDeletion()
     var
         DocumentAttachment: Record "Document Attachment";
         OtherDocumentAttachment: Record "Document Attachment";
         ExternalFilePath: Text;
     begin
-        // [SCENARIO] An internal-only row with stale path metadata is not an external reference.
+        // [SCENARIO] An internal-only copy must not authorize cleanup of its external source.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
@@ -1420,155 +1463,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         DocumentAttachment.Delete(true);
 
-        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(), 'Internal-only rows must not prevent cleanup');
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
-    procedure LegacySharedReferencePreventsRecordDeletion()
-    var
-        DocumentAttachment: Record "Document Attachment";
-        LegacyDocumentAttachment: Record "Document Attachment";
-        ExternalFilePath: Text;
-    begin
-        // [SCENARIO] Blank-hash legacy references protect the file before upgrade.
-        Initialize();
-        SetupFileScenarioWithTestConnector();
-        EnableFeatureWithDelete();
-        CreateExternallyStoredOnlyDocument(DocumentAttachment);
-        CreateCopyOfDocumentAttachment(DocumentAttachment, LegacyDocumentAttachment);
-        SetLegacyExternalPathHash(LegacyDocumentAttachment, '');
-        ExternalFilePath := DocumentAttachment."External File Path";
-
-        DocumentAttachment.Delete(true);
-
-        VerifySharedExternalFileRetained(LegacyDocumentAttachment, ExternalFilePath);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
-    procedure LegacySharedReferencePreventsDirectDeletion()
-    var
-        DocumentAttachment: Record "Document Attachment";
-        LegacyDocumentAttachment: Record "Document Attachment";
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
-        ExternalFilePath: Text;
-    begin
-        // [SCENARIO] Explicit deletion also protects a blank-hash legacy reference.
-        Initialize();
-        SetupFileScenarioWithTestConnector();
-        EnableFeatureWithDelete();
-        CreateExternallyStoredOnlyDocument(DocumentAttachment);
-        CreateCopyOfDocumentAttachment(DocumentAttachment, LegacyDocumentAttachment);
-        SetLegacyExternalPathHash(LegacyDocumentAttachment, '');
-        ExternalFilePath := DocumentAttachment."External File Path";
-
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'Shared deletion must detach successfully');
-
-        VerifyExternalReferenceDetached(DocumentAttachment);
-        VerifySharedExternalFileRetained(LegacyDocumentAttachment, ExternalFilePath);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
-    procedure HashMatchStillRequiresFullPathMatch()
-    var
-        DocumentAttachment: Record "Document Attachment";
-        OtherDocumentAttachment: Record "Document Attachment";
-        ExternalFilePath: Text;
-    begin
-        // [SCENARIO] Simulated digest collisions do not establish shared identity.
-        Initialize();
-        SetupFileScenarioWithTestConnector();
-        EnableFeatureWithDelete();
-        CreateExternallyStoredOnlyDocument(DocumentAttachment);
-        CreateCopyOfDocumentAttachment(DocumentAttachment, OtherDocumentAttachment);
-        OtherDocumentAttachment."External File Path" := 'different/path/file.txt';
-        OtherDocumentAttachment.Modify(false);
-        SetLegacyExternalPathHash(OtherDocumentAttachment, DocumentAttachment."External File Path Hash");
-        ExternalFilePath := DocumentAttachment."External File Path";
-
-        DocumentAttachment.Delete(true);
-
-        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(), 'Full-path confirmation must reject a digest collision');
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
-    procedure LegacyPathCaseDifferenceIsNotShared()
-    var
-        DocumentAttachment: Record "Document Attachment";
-        OtherDocumentAttachment: Record "Document Attachment";
-        ExternalFilePath: Text;
-    begin
-        // [SCENARIO] A case-distinct legacy path does not refer to the same file.
-        Initialize();
-        SetupFileScenarioWithTestConnector();
-        EnableFeatureWithDelete();
-        CreateExternallyStoredOnlyDocument(DocumentAttachment);
-        CreateCopyOfDocumentAttachment(DocumentAttachment, OtherDocumentAttachment);
-        OtherDocumentAttachment."External File Path" := UpperCase(DocumentAttachment."External File Path");
-        OtherDocumentAttachment.Modify(false);
-        SetLegacyExternalPathHash(OtherDocumentAttachment, '');
-        ExternalFilePath := DocumentAttachment."External File Path";
-
-        DocumentAttachment.Delete(true);
-
-        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(), 'Legacy path identity must remain case-sensitive');
-    end;
-
-    [Test]
-    procedure ExternalPathHashUpgradeIsScopedAndIdempotent()
-    var
-        DocumentAttachment: Record "Document Attachment";
-        OtherDocumentAttachment: Record "Document Attachment";
-        InternalDocumentAttachment: Record "Document Attachment";
-        EmptyPathDocumentAttachment: Record "Document Attachment";
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
-        DAExternalStorageUpgrade: Codeunit "DA External Storage Upgrade";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
-        UpgradeTags: List of [Code[250]];
-        ModifiedAt: DateTime;
-    begin
-        // [SCENARIO] Per-company backfill visits all legacy external paths and runs only once.
-        Initialize();
-        if UpgradeTag.HasUpgradeTag(DAExternalStorageUpgrade.GetExternalFilePathHashUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(DAExternalStorageUpgrade.GetExternalFilePathHashUpgradeTag(), CompanyName());
-        CreateExternallyStoredOnlyDocument(DocumentAttachment);
-        SetLegacyExternalPathHash(DocumentAttachment, '');
-        CreateCopyOfDocumentAttachment(DocumentAttachment, OtherDocumentAttachment);
-        SetLegacyExternalPathHash(OtherDocumentAttachment, '');
-        CreateCopyOfDocumentAttachment(DocumentAttachment, InternalDocumentAttachment);
-        InternalDocumentAttachment."Stored Externally" := false;
-        InternalDocumentAttachment.Modify(false);
-        CreateCopyOfDocumentAttachment(DocumentAttachment, EmptyPathDocumentAttachment);
-        EmptyPathDocumentAttachment."External File Path" := '';
-        EmptyPathDocumentAttachment.Modify(false);
-        ModifiedAt := InternalDocumentAttachment.SystemModifiedAt;
-
-        DAExternalStorageUpgrade.UpgradeExternalFilePathHashes();
-
-        RefreshAttachment(DocumentAttachment);
-        RefreshAttachment(OtherDocumentAttachment);
-        RefreshAttachment(InternalDocumentAttachment);
-        RefreshAttachment(EmptyPathDocumentAttachment);
-        Assert.AreEqual(DAExternalStorageImpl.GetExternalFilePathHash(DocumentAttachment."External File Path"),
-            DocumentAttachment."External File Path Hash", 'Backfill the first legacy path');
-        Assert.AreEqual(DocumentAttachment."External File Path Hash", OtherDocumentAttachment."External File Path Hash", 'Backfill all rows while the index changes');
-        Assert.AreEqual('', InternalDocumentAttachment."External File Path Hash", 'Internal-only rows must stay unindexed');
-        Assert.AreEqual(ModifiedAt, InternalDocumentAttachment.SystemModifiedAt, 'Do not modify internal-only rows');
-        Assert.AreEqual('', EmptyPathDocumentAttachment."External File Path Hash", 'Empty paths must stay unindexed');
-        Assert.IsTrue(UpgradeTag.HasUpgradeTag(DAExternalStorageUpgrade.GetExternalFilePathHashUpgradeTag()), 'Record the company upgrade tag');
-        UpgradeTag.GetPerCompanyUpgradeTags(UpgradeTags);
-        Assert.IsTrue(UpgradeTags.Contains(DAExternalStorageUpgrade.GetExternalFilePathHashUpgradeTag()), 'Register the tag for new companies');
-
-        SetLegacyExternalPathHash(DocumentAttachment, '');
-        ModifiedAt := DocumentAttachment.SystemModifiedAt;
-        DAExternalStorageUpgrade.UpgradeExternalFilePathHashes();
-        RefreshAttachment(DocumentAttachment);
-        Assert.AreEqual('', DocumentAttachment."External File Path Hash", 'A completed company upgrade must not rerun the backfill');
-        Assert.AreEqual(ModifiedAt, DocumentAttachment.SystemModifiedAt, 'A completed upgrade must not modify rows again');
+        Assert.AreNotEqual('', ExternalFilePath, 'The source must have an external file');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'An internal-only copy cannot enable external cleanup');
     end;
 
     #endregion
@@ -1638,24 +1534,25 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.IsTrue(ExternalFileStorage.GetFile(ExternalFilePath, AttachmentInStream), 'The remaining path must be readable through the mock connector');
     end;
 
-    local procedure VerifyExternalReferenceDetached(var DocumentAttachment: Record "Document Attachment")
+    local procedure VerifyExternalMetadataRetained(var DocumentAttachment: Record "Document Attachment"; OriginalDocumentAttachment: Record "Document Attachment")
     begin
         RefreshAttachment(DocumentAttachment);
-        Assert.IsFalse(DocumentAttachment."Stored Externally", 'The selected attachment must be detached');
-        Assert.AreEqual('', DocumentAttachment."External File Path", 'Clear the selected path');
-        Assert.AreEqual('', DocumentAttachment."External File Path Hash", 'Clear the selected hash');
-        Assert.AreEqual(0DT, DocumentAttachment."External Upload Date", 'Clear the selected upload date');
+        Assert.AreEqual(OriginalDocumentAttachment."Stored Externally", DocumentAttachment."Stored Externally", 'Retain the external storage flag');
+        Assert.AreEqual(OriginalDocumentAttachment."External File Path", DocumentAttachment."External File Path", 'Retain the exact external path');
+        Assert.AreEqual(OriginalDocumentAttachment."External Upload Date", DocumentAttachment."External Upload Date", 'Retain the upload date');
+        Assert.AreEqual(OriginalDocumentAttachment."Source Environment Hash", DocumentAttachment."Source Environment Hash", 'Retain source environment metadata');
+        Assert.AreEqual(OriginalDocumentAttachment."Stored Internally", DocumentAttachment."Stored Internally", 'Do not alter internal storage');
+        Assert.AreEqual(OriginalDocumentAttachment."Document Reference ID".MediaId(), DocumentAttachment."Document Reference ID".MediaId(), 'Do not alter internal media');
+        Assert.AreEqual(OriginalDocumentAttachment.SystemModifiedAt, DocumentAttachment.SystemModifiedAt, 'Blocked cleanup must not modify the row');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Blocked cleanup must not send a remote DELETE');
     end;
 
-    local procedure SetLegacyExternalPathHash(var DocumentAttachment: Record "Document Attachment"; PathHash: Text[64])
+    local procedure UploadDocumentAttachment(var DocumentAttachment: Record "Document Attachment")
     var
-        LegacyDocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
-        LegacyDocumentAttachment.GetBySystemId(DocumentAttachment.SystemId);
-        LegacyDocumentAttachment.SetRecFilter();
-        LegacyDocumentAttachment.ModifyAll("External File Path Hash", PathHash, false);
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload must succeed');
         RefreshAttachment(DocumentAttachment);
-        Assert.AreEqual(PathHash, DocumentAttachment."External File Path Hash", 'Persist the legacy or collision fixture without modify events');
     end;
 
     local procedure Initialize()
@@ -1806,6 +1703,29 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure ConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [MessageHandler]
+    procedure RetentionBlockedMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, 'External file deletion is blocked') > 0, 'The action must explain blocked cleanup');
+        Assert.IsTrue(StrPos(Message, 'No external cleanup is scheduled') > 0, 'The action must not promise deferred completion');
+    end;
+
+    [RequestPageHandler]
+    procedure MoveToInternalRequestPageHandler(var ExternalStorageSync: TestRequestPage "DA External Storage Sync")
+    begin
+        ExternalStorageSync.SyncDirectionField.SetValue(1);
+        ExternalStorageSync.OperationField.SetValue(1);
+        ExternalStorageSync.MaxRecordsToProcessField.SetValue(0);
+        ExternalStorageSync.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    procedure SyncRetentionMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, 'Processed 1 attachments successfully. 0 failed.') > 0, 'External retention must not be counted as a failed internal restore');
+        Assert.IsTrue(StrPos(Message, '1 attachment(s) were retained') > 0, 'The report must distinguish retained external content');
     end;
 
     #endregion

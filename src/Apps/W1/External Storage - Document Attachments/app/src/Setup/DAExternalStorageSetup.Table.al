@@ -60,7 +60,7 @@ table 8750 "DA External Storage Setup"
         field(7; "Delete from External Storage"; Boolean)
         {
             Caption = 'Delete External File on Attachment Delete';
-            ToolTip = 'Specifies if files should be deleted from external storage when the attachment is deleted from Business Central.';
+            ToolTip = 'Specifies the saved external deletion policy. External cleanup is currently blocked regardless of this setting, so files are retained when attachments are deleted.';
             InitValue = true;
         }
         field(10; "Root Folder"; Text[250])
