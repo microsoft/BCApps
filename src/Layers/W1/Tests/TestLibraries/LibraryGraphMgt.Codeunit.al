@@ -477,7 +477,7 @@ codeunit 130618 "Library - Graph Mgt"
         exit(false);
     end;
 
-    local procedure ReadTextFromTempBlob(var TempBlob: Codeunit "Temp Blob") Result: Text
+    local procedure ReadTextFromTempBlob(var TempBlob: Codeunit "Temp Blob"): Text
     var
         ResponseInStream: InStream;
         ResponseTextBuilder: TextBuilder;
