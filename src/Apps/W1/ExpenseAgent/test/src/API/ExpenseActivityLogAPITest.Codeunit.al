@@ -22,7 +22,6 @@ codeunit 148343 "Expense Activity Log API Test"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseActivityLogEntries', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
@@ -476,11 +475,14 @@ codeunit 148343 "Expense Activity Log API Test"
         RequestBody.WriteTo(RequestText);
         ReportURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(SubmitterExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ExpenseReportsServiceNameTok);
-        ReportURL += '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)) + ')';
+        ReportURL := LibraryGraphMgt.AppendPathToTargetURL(
+            ReportURL, '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)) + ')');
         Commit();
 
         // [WHEN] The standard submission action is requested through the submitting user.
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(ReportURL + '/' + SubmitWithCommentActionTok, RequestText, ResponseText, 200);
+        Clear(ResponseText);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            LibraryGraphMgt.AppendPathToTargetURL(ReportURL, '/' + SubmitWithCommentActionTok), RequestText, ResponseText, 200);
 
         // [THEN] Exactly one structured snapshot is visible without a new callback or capability.
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
@@ -488,7 +490,8 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
         ExpenseActivityLogEntry.FindFirst();
         Clear(ResponseText);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, ReportURL + '/' + ServiceNameTok, 200);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText, LibraryGraphMgt.AppendPathToTargetURL(ReportURL, '/' + ServiceNameTok), 200);
         VerifyPolicyCategoryCode(ResponseText, ExpenseCategory.Code);
         ResponseText := LowerCase(ResponseText);
         Assert.AreNotEqual(0, StrPos(ResponseText, '"eventtype":"policyevaluated"'), 'The event type must identify the policy snapshot.');
@@ -502,7 +505,8 @@ codeunit 148343 "Expense Activity Log API Test"
         HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(SubmitterExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
         Clear(ResponseText);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, HistoryURL + '?$filter=historyActorRole eq ''Submitter''', 200);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(HistoryURL, '$filter=historyActorRole eq ''Submitter'''), 200);
 
         // [THEN] The real submitter sees the agent snapshot in the complete timeline.
         Assert.AreNotEqual(0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)))), 'The submitter timeline must contain the snapshot.');
@@ -511,7 +515,8 @@ codeunit 148343 "Expense Activity Log API Test"
         HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(ApproverExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
         Clear(ResponseText);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, HistoryURL + '?$filter=historyActorRole eq ''Approver''', 200);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(HistoryURL, '$filter=historyActorRole eq ''Approver'''), 200);
 
         // [THEN] The agent event must not grant approver participation.
         Assert.AreEqual(0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)))), 'The agent snapshot must not grant approver history access.');
@@ -803,7 +808,9 @@ codeunit 148343 "Expense Activity Log API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         if not ExpenseAgentSetup.Get() then begin
