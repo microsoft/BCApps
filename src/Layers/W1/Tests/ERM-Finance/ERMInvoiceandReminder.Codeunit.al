@@ -929,6 +929,7 @@ codeunit 134907 "ERM Invoice and Reminder"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Invoice and Reminder");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
         // Lazy Setup.
         if IsInitialized then
@@ -1481,6 +1482,8 @@ codeunit 134907 "ERM Invoice and Reminder"
     [RequestPageHandler]
     procedure SuggestLinesWithDefaultFiltersReportHandler(var SuggestReminderLines: TestRequestPage "Suggest Reminder Lines")
     begin
+        // Request page values are saved, so reset the Due Date filter that other tests may have set.
+        SuggestReminderLines.CustLedgEntry2.SetFilter("Due Date", '');
         SuggestReminderLines.OK().Invoke();
     end;
 
