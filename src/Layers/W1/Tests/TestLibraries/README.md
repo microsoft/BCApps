@@ -12,10 +12,12 @@ deliberately unchanged until real HTTP proofs succeed.
 
 ## Credential lifecycle
 
-- Read key and expiry together through the shipped platform
-  `NavUserAccountHelper.TryGetWebServicesKey`. The public
-  `Identity Management.GetWebServicesKey` returns **error text** on retrieval
-  failure, so it cannot safely serve as a password getter.
+- Use public `Identity Management.GetWebServicesKey` and
+  `GetWebServiceExpiryDate`, with no direct DotNet calls in the provider.
+  Each getter substitutes a value on failure (error text or the current time).
+  Clear AL's last-error state immediately before each call and reject nonempty
+  `GetLastErrorText()` immediately afterwards, before returning credentials.
+  Never match localized failure phrases or infer the key's format.
 - Reuse a valid existing key, including an existing non-expiring key. Do not
   rotate it, extend its expiry, cache it globally, or clear it after a request.
 - Reject retrieval failures and expired keys explicitly. A failure is never
@@ -32,6 +34,9 @@ provisioning in a tenant; it is not an inter-tenant lock or protection against
 external administrators deliberately rotating a key. Its interaction with
 platform credential storage/cache and authentication must still be verified.
 Cloned tenants have separate credential state and are not a global cache.
+The two public getters are not an atomic key/expiry snapshot. External key
+rotation between these reads is not coordinated by the provider's user-row
+lock; do not claim that the lock protects against administrative rotation.
 
 ## Disposable CI proofs
 
@@ -61,15 +66,24 @@ The seven HTTP tests assert:
    creation, detecting an implicit platform commit.
 7. Selecting `None` restores 401 after a successful authenticated request.
 
+Two additional behavioral tests call the public key and expiry getters with
+separate nonexistent user IDs after `ClearLastError()`, then require a nonempty
+`GetLastErrorText()`. They neither inspect failure text nor create credentials.
+These tests must prove the platform failure signal before the public-wrapper
+approach is accepted; a false result with empty last-error state blocks this
+design rather than justifying format heuristics. They do not substitute for
+restricted-current-user permission-failure tests.
+
 Existing codeunit 139494 continues to cover the default provider, instance
 lifetime, and final-event ordering. The 117 existing credential-pipeline and
 parallel-execution Pester tests provide regression coverage for the unchanged
 harness. They do not test this AL provider's authentication behavior. No
-source-pattern tests are added; Windows/SaaS guards and retrieval failures
-still require behavioral validation.
+source-pattern tests are added; Windows/SaaS guards and restricted-user
+retrieval failures still require behavioral validation.
 
 **Outstanding acceptance gates:** compiled/published CI execution and artifacts;
-platform semantics for absent/expired keys; immediate cross-session visibility;
+fresh last-error signaling for both public getters; platform semantics for
+absent/expired keys; immediate cross-session visibility;
 rollback and lock behavior; simultaneous first use in separate sessions;
 restricted-user retrieval/creation errors; Windows/SaaS runtime guards.
 If creating a key requires committing the caller's transaction or cannot

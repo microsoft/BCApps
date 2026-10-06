@@ -193,6 +193,57 @@ codeunit 139497 "Web Service Key Auth Tests"
         VerifySuccessfulScenario(RequestSucceeded);
     end;
 
+    [Test]
+    [NonDebuggable]
+    procedure PublicKeyGetterSignalsUnknownUserFailure()
+    var
+        User: Record User;
+        UnknownUserId: Guid;
+        ErrorWasReported: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 646383] The public key getter reports a failed lookup through fresh AL last-error state.
+        Initialize();
+
+        // [GIVEN] User "U" does not exist and the previous error state is cleared.
+        UnknownUserId := CreateGuid();
+        Assert.IsFalse(User.Get(UnknownUserId), 'The failure probe must use a nonexistent user.');
+        ClearLastError();
+
+        // [WHEN] The public getter cannot retrieve a key for "U".
+        IdentityManagement.GetWebServicesKey(UnknownUserId);
+        ErrorWasReported := GetLastErrorText() <> '';
+        ClearLastError();
+
+        // [THEN] Failure is detectable without interpreting the returned text as a credential.
+        Assert.IsTrue(ErrorWasReported, 'A failed public key lookup must set AL last-error state; otherwise this provider design is blocked.');
+    end;
+
+    [Test]
+    procedure PublicExpiryGetterSignalsUnknownUserFailure()
+    var
+        User: Record User;
+        UnknownUserId: Guid;
+        ErrorWasReported: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 646383] The public expiry getter reports failure despite returning a fallback date.
+        Initialize();
+
+        // [GIVEN] User "U" does not exist and the previous error state is cleared.
+        UnknownUserId := CreateGuid();
+        Assert.IsFalse(User.Get(UnknownUserId), 'The failure probe must use a nonexistent user.');
+        ClearLastError();
+
+        // [WHEN] The public getter cannot retrieve the expiry for "U".
+        IdentityManagement.GetWebServiceExpiryDate(UnknownUserId);
+        ErrorWasReported := GetLastErrorText() <> '';
+        ClearLastError();
+
+        // [THEN] Failure is detectable without relying on the fallback date or localized error text.
+        Assert.IsTrue(ErrorWasReported, 'A failed public expiry lookup must set AL last-error state; otherwise this provider design is blocked.');
+    end;
+
     local procedure Initialize()
     var
         EnvironmentInfo: Codeunit "Environment Information";

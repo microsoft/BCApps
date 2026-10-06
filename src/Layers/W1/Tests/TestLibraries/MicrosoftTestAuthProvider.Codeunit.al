@@ -5,7 +5,6 @@
 
 namespace Microsoft.TestLibraries.ERP;
 
-using System;
 using System.Environment;
 using System.Security.AccessControl;
 
@@ -72,18 +71,28 @@ codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provide
     [NonDebuggable]
     local procedure ReadAuthenticationPassword(var ExpiryDate: DateTime): SecretText
     var
-        UserAccountHelper: DotNet NavUserAccountHelper;
+        IdentityManagement: Codeunit "Identity Management";
         Password: SecretText;
         WebServiceKey: Text[80];
     begin
         // Identity Management.GetWebServicesKey returns error text on failure, not a failure flag.
-        // Read key and expiry together, and never interpret a failed read as a missing key.
-        if not UserAccountHelper.TryGetWebServicesKey(UserSecurityId(), WebServiceKey, ExpiryDate) then begin
+        // Check fresh error state, never localized error text or the credential's format.
+        ClearLastError();
+        WebServiceKey := IdentityManagement.GetWebServicesKey(UserSecurityId());
+        if GetLastErrorText() <> '' then begin
             Clear(WebServiceKey);
             Error(KeyRetrievalFailedErr);
         end;
         Password := WebServiceKey;
         Clear(WebServiceKey);
+
+        // The expiry getter also substitutes a value on failure; validate its error state separately.
+        ClearLastError();
+        ExpiryDate := IdentityManagement.GetWebServiceExpiryDate(UserSecurityId());
+        if GetLastErrorText() <> '' then begin
+            Clear(Password);
+            Error(KeyRetrievalFailedErr);
+        end;
         exit(Password);
     end;
 }
