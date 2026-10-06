@@ -141,14 +141,6 @@ page 6910 "Expense Report"
                     Editable = false;
                     Visible = AgentEnabled;
                 }
-                field("Alternate Approver No."; Rec."Alternate Approver No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the alternate approver currently assigned to this expense report.';
-                    Importance = Additional;
-                    Editable = false;
-                    Visible = AgentEnabled;
-                }
                 group("Approver Comment")
                 {
                     Caption = 'Approval Comments';

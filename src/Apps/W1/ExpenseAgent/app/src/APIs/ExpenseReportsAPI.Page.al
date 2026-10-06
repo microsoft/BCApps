@@ -188,16 +188,6 @@ page 6928 "Expense Reports API"
                     Caption = 'Interim Approver Name';
                     Editable = false;
                 }
-                field(alternateApproverNo; Rec."Alternate Approver No.")
-                {
-                    Caption = 'Alternate Approver No.';
-                    Editable = false;
-                }
-                field(alternateApproverName; Rec."Alternate Approver Name")
-                {
-                    Caption = 'Alternate Approver Name';
-                    Editable = false;
-                }
                 field(reimbursementCurrencyCode; ReimbursementCurrencyCodeDisplay)
                 {
                     Caption = 'Reimbursement Currency Code';
