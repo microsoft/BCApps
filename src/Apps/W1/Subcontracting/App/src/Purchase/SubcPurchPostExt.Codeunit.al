@@ -16,6 +16,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
+using Microsoft.Warehouse.History;
 codeunit 20535 "Subc. Purch. Post Ext"
 {
     var
@@ -25,32 +26,26 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
 #endif
         CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Use the ''Create Corrective Credit Memo'' action to create a credit memo for this invoice.', Comment = '%1 = Posted Purchase Invoice No.';
+        SeparateInvoiceReversalNotSupportedErr: Label 'You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.';
+        SeparateInvoiceReversalNotSupportedTitleLbl: Label 'Posted purchase invoice cannot be reversed';
+        SeparateInvoiceReversalNotSupportedDetailedMsg: Label 'Cancel, Correct, and Create Corrective Credit Memo are not supported for purchase invoices created from subcontracting receipt lines.';
+        ShowPostedPurchaseInvoiceLbl: Label 'Show Posted Purchase Invoice';
         ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
-        GetSubcontractingRcptNotSupportedErr: Label 'You cannot copy subcontracting receipt lines into this document. Subcontracting purchase orders must be invoiced from the subcontracting order itself, not by getting the receipt lines into a separate document.';
+        GetTrackedSubcontractingRcptNotSupportedErr: Label 'You cannot copy tracked subcontracting receipt lines into this document. Invoice tracked subcontracting receipts from the subcontracting order instead.';
+        ItemLedgerEntryBufferMustBeTemporaryErr: Label 'The item ledger entry buffer must be temporary.';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Get Receipt", OnAfterPurchRcptLineSetFilters, '', false, false)]
-    local procedure ExcludeSubcontractingLinesOnAfterPurchRcptLineSetFilters(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseHeader: Record "Purchase Header")
+    [EventSubscriber(ObjectType::Table, Database::"Purch. Rcpt. Line", OnBeforeInsertInvLineFromRcptLine, '', false, false)]
+    local procedure BlockTrackedSubcontractingReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var PurchLine: Record "Purchase Line"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
-#if not CLEAN29
-#pragma warning disable AL0432
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
-#endif
-        PurchRcptLine.SetRange("Prod. Order No.", '');
-    end;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
+        SetQuantityBaseOnSubcontractingServiceLine(PurchOrderLine, PurchRcptLine);
+        if IsFullTrackedSubcontractingReceiptSupported(PurchRcptLine) then
+            exit;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Get Receipt", OnCreateInvLinesOnBeforeInsertLineIteration, '', false, false)]
-    local procedure BlockSubcontractingLinesOnCreateInvLinesOnBeforeInsertLineIteration(var PurchRcptLine2: Record "Purch. Rcpt. Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TransferLine: Boolean; var IsHandled: Boolean)
-    begin
-#if not CLEAN29
-#pragma warning disable AL0432
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-            exit;
-#endif
-        if PurchRcptLine2."Prod. Order No." <> '' then
-            Error(GetSubcontractingRcptNotSupportedErr);
+        Error(GetTrackedSubcontractingRcptNotSupportedErr);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
@@ -80,12 +75,226 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
         ValueEntry.SetFilter("Item Charge No.", '<>%1', '');
         ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
+        if ValueEntry.IsEmpty() then
+            exit;
+
+        Error(CancelNotSupportedErr, PurchInvHeader."No.");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnBeforeTestIfInvoiceIsPaid, '', false, false)]
+    local procedure BlockSeparateSubcontractingInvoiceReversalBeforeLineValidation(var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnBeforeCreateCopyDocument, '', false, false)]
+    local procedure BlockSeparateSubcontractingInvoiceCopy(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; SkipCopyFromDescription: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader);
+    end;
+
+    local procedure CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        if (PurchInvHeader."Pre-Assigned No." = '') or (PurchInvHeader."Order No." = '') then
+            exit;
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
+        ValueEntry.SetRange("Item Charge No.", '');
+        ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
         if not ValueEntry.IsEmpty() then
-            Error(CancelNotSupportedErr, PurchInvHeader."No.");
+            Error(CreateSeparateInvoiceReversalNotSupportedErrorInfo(PurchInvHeader));
+    end;
+
+    local procedure CreateSeparateInvoiceReversalNotSupportedErrorInfo(PurchInvHeader: Record "Purch. Inv. Header") ReversalNotSupportedErrorInfo: ErrorInfo
+    begin
+        ReversalNotSupportedErrorInfo.Title := SeparateInvoiceReversalNotSupportedTitleLbl;
+        ReversalNotSupportedErrorInfo.Message := SeparateInvoiceReversalNotSupportedErr;
+        ReversalNotSupportedErrorInfo.DetailedMessage := SeparateInvoiceReversalNotSupportedDetailedMsg;
+        ReversalNotSupportedErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        ReversalNotSupportedErrorInfo.ErrorType := ErrorType::Client;
+        ReversalNotSupportedErrorInfo.RecordId := PurchInvHeader.RecordId;
+        ReversalNotSupportedErrorInfo.PageNo := Page::"Posted Purchase Invoice";
+        ReversalNotSupportedErrorInfo.AddNavigationAction(ShowPostedPurchaseInvoiceLbl);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", OnBeforeCopyHandledItemTrkgToPurchLine, '', false, false)]
+    local procedure CopyTrackedSubcontractingOutputToSeparateInvoice(FromPurchLine: Record "Purchase Line"; var ToPurchLine: Record "Purchase Line"; CheckLineQty: Boolean; var IsHandled: Boolean)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        MissingExactCostReversingLink: Boolean;
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if ToPurchLine."Document Type" <> ToPurchLine."Document Type"::Invoice then
+            exit;
+        if not PurchRcptLine.Get(ToPurchLine."Receipt No.", ToPurchLine."Receipt Line No.") then
+            exit;
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
+            exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then begin
+            IsHandled := true;
+            exit;
+        end;
+        if CheckLineQty and (ToPurchLine.Quantity <> PurchRcptLine.Quantity) then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
+
+        SetQuantityBaseOnSubcontractingServiceLine(FromPurchLine, PurchRcptLine);
+        if not IsFullTrackedOutputSetSupported(PurchRcptLine, ItemLedgerEntry) then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
+
+        ToPurchLine.Validate(Quantity, PurchRcptLine.Quantity);
+        ToPurchLine.Validate("Qty. to Invoice", ToPurchLine.Quantity);
+        PurchRcptLine.CalcBaseQuantities(ToPurchLine, PurchRcptLine."Quantity (Base)" / PurchRcptLine.Quantity);
+        ToPurchLine.Modify(true);
+        if not CopyItemLedgerEntriesUpToQuantity(
+            TempItemLedgerEntry, ItemLedgerEntry, PurchRcptLine."Quantity (Base)", 0)
+        then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
+
+        IsHandled := true;
+        ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
+            TempItemLedgerEntry, ToPurchLine, false, MissingExactCostReversingLink,
+            false, false, true);
+        CreateInvoiceTrackingSpecifications(ToPurchLine, TempItemLedgerEntry);
+    end;
+
+    local procedure CopyItemLedgerEntriesUpToQuantity(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; var ItemLedgerEntry: Record "Item Ledger Entry"; QuantityBase: Decimal; QuantityAlreadyInvoicedBase: Decimal): Boolean
+    var
+        BufferMustBeTemporaryErrorInfo: ErrorInfo;
+        EntryQuantityBase: Decimal;
+        QuantityToCopy: Decimal;
+        QuantityToSkipBase: Decimal;
+        RemainingQuantityBase: Decimal;
+    begin
+        if not TempItemLedgerEntry.IsTemporary() then begin
+            BufferMustBeTemporaryErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            BufferMustBeTemporaryErrorInfo.ErrorType := ErrorType::Internal;
+            BufferMustBeTemporaryErrorInfo.Verbosity := Verbosity::Error;
+            BufferMustBeTemporaryErrorInfo.Message := ItemLedgerEntryBufferMustBeTemporaryErr;
+            Error(BufferMustBeTemporaryErrorInfo);
+        end;
+
+        TempItemLedgerEntry.Reset();
+        TempItemLedgerEntry.DeleteAll();
+        RemainingQuantityBase := Abs(QuantityBase);
+        QuantityToSkipBase := Abs(QuantityAlreadyInvoicedBase);
+        if (RemainingQuantityBase = 0) or not ItemLedgerEntry.FindSet() then
+            exit(false);
+        repeat
+            EntryQuantityBase := Abs(ItemLedgerEntry.Quantity);
+            if QuantityToSkipBase >= EntryQuantityBase then
+                QuantityToSkipBase -= EntryQuantityBase
+            else begin
+                QuantityToCopy := EntryQuantityBase - QuantityToSkipBase;
+                QuantityToSkipBase := 0;
+                if QuantityToCopy > RemainingQuantityBase then
+                    QuantityToCopy := RemainingQuantityBase;
+                RemainingQuantityBase -= QuantityToCopy;
+                if ItemLedgerEntry.Quantity < 0 then
+                    QuantityToCopy := -QuantityToCopy;
+
+                TempItemLedgerEntry := ItemLedgerEntry;
+                TempItemLedgerEntry.Quantity := QuantityToCopy;
+                TempItemLedgerEntry."Remaining Quantity" := QuantityToCopy;
+                TempItemLedgerEntry.Insert();
+            end;
+        until (ItemLedgerEntry.Next() = 0) or (RemainingQuantityBase = 0);
+
+        TempItemLedgerEntry.Reset();
+        exit((RemainingQuantityBase = 0) and not TempItemLedgerEntry.IsEmpty());
+    end;
+
+    local procedure CreateInvoiceTrackingSpecifications(PurchaseLine: Record "Purchase Line"; var TempItemLedgerEntry: Record "Item Ledger Entry" temporary)
+    var
+        ReservationEntry: Record "Reservation Entry";
+        TrackingSpecification: Record "Tracking Specification";
+        NextEntryNo: Integer;
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(),
+            PurchaseLine."Document No.", PurchaseLine."Line No.", false);
+        if not ReservationEntry.FindSet(true) then
+            exit;
+
+        TrackingSpecification.LockTable();
+        NextEntryNo := TrackingSpecification.GetLastEntryNo() + 1;
+        repeat
+            SetReservationEntryOutputApplication(ReservationEntry, TempItemLedgerEntry);
+            TrackingSpecification.Init();
+            TrackingSpecification.TransferFields(ReservationEntry);
+            TrackingSpecification."Entry No." := NextEntryNo;
+            TrackingSpecification."Source Type" := Database::"Purchase Line";
+            TrackingSpecification."Source Subtype" := PurchaseLine."Document Type".AsInteger();
+            TrackingSpecification."Source ID" := PurchaseLine."Document No.";
+            TrackingSpecification."Source Ref. No." := PurchaseLine."Line No.";
+            TrackingSpecification."Qty. to Handle" := 0;
+            TrackingSpecification."Qty. to Handle (Base)" := 0;
+            TrackingSpecification."Qty. to Invoice (Base)" := ReservationEntry."Qty. to Invoice (Base)";
+            TrackingSpecification."Item Ledger Entry No." := ReservationEntry."Appl.-to Item Entry";
+            TrackingSpecification.Insert();
+
+            ReservationEntry."Item Ledger Entry No." := TrackingSpecification."Entry No.";
+            ReservationEntry.Modify();
+            NextEntryNo += 1;
+        until ReservationEntry.Next() = 0;
+    end;
+
+    local procedure SetReservationEntryOutputApplication(var ReservationEntry: Record "Reservation Entry"; var TempItemLedgerEntry: Record "Item Ledger Entry" temporary)
+    begin
+        TempItemLedgerEntry.Reset();
+        TempItemLedgerEntry.SetRange("Item No.", ReservationEntry."Item No.");
+        TempItemLedgerEntry.SetRange("Variant Code", ReservationEntry."Variant Code");
+        TempItemLedgerEntry.SetRange("Serial No.", ReservationEntry."Serial No.");
+        TempItemLedgerEntry.SetRange("Lot No.", ReservationEntry."Lot No.");
+        TempItemLedgerEntry.SetRange("Package No.", ReservationEntry."Package No.");
+        if TempItemLedgerEntry.Count() <> 1 then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
+        TempItemLedgerEntry.FindFirst();
+        if Abs(TempItemLedgerEntry.Quantity) <> Abs(ReservationEntry."Quantity (Base)") then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
+
+        ReservationEntry."Appl.-to Item Entry" := TempItemLedgerEntry."Entry No.";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeGetPurchRcptLineFromTrackingOrUpdateItemEntryRelation, '', false, false)]
+    local procedure UseSubcontractingOutputApplicationForTrackedReceipt(var PurchRcptLine: Record "Purch. Rcpt. Line"; var TrackingSpecification: Record "Tracking Specification"; var ItemEntryRelation: Record "Item Entry Relation"; var IsHandled: Boolean)
+    begin
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
+            exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
+        if TrackingSpecification."Item Ledger Entry No." = 0 then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
+
+        ItemEntryRelation."Item Entry No." := TrackingSpecification."Item Ledger Entry No.";
+        IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
-    local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
+    local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -94,10 +303,19 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
 #endif
         FillItemJnlLineForSubcontractingItemCharge(ItemJournalLine, TempItemChargeAssignmentPurch);
+        if not PurchRcptLine.Get(PurchaseLine."Receipt No.", PurchaseLine."Receipt Line No.") then
+            exit;
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") or not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
+
+        CopySubcontractingProdOrderFieldsToItemJnlLine(ItemJournalLine, PurchRcptLine);
+        ItemJournalLine."Subc. Item Charge Assign." := false;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", OnAfterPostItemJnlLineCopyProdOrder, '', false, false)]
     local procedure MfgPurchPostOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -105,9 +323,44 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
-        ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
-        ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
+        if PurchRcptLine.Get(PurchLine."Receipt No.", PurchLine."Receipt Line No.") then
+            SetSubcontractingPurchaseIdentity(ItemJnlLine, PurchRcptLine)
+        else begin
+            ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
+            ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
+            ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertValueEntry, '', false, false)]
+    local procedure SetTrackedSubcontractingInvoiceCapacityCostTarget(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line")
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        if ItemJournalLine."Entry Type" <> ItemJournalLine."Entry Type"::Purchase then
+            exit;
+        if ItemJournalLine."Subc. Item Charge Assign." or (ItemJournalLine."Subc. Purch. Order No." = '') then
+            exit;
+        if not ItemLedgerEntry.Get(ItemJournalLine."Item Shpt. Entry No.") then
+            exit;
+
+        CapacityLedgerEntry.SetRange("Item Register No.", ItemLedgerEntry."Item Register No.");
+        CapacityLedgerEntry.SetRange(Subcontracting, true);
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", ItemJournalLine."Subc. Purch. Order No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", ItemJournalLine."Subc. Purch. Order Line No.");
+        if not CapacityLedgerEntry.FindFirst() then
+            exit;
+
+        ValueEntry."Item Ledger Entry No." := 0;
+        ValueEntry."Capacity Ledger Entry No." := CapacityLedgerEntry."Entry No.";
+    end;
+
+    local procedure SetSubcontractingPurchaseIdentity(var ItemJnlLine: Record "Item Journal Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    begin
+        ItemJnlLine."Subc. Purch. Order No." := PurchRcptLine."Order No.";
+        ItemJnlLine."Subc. Purch. Order Line No." := PurchRcptLine."Order Line No.";
+        ItemJnlLine."Subc. Operation No." := PurchRcptLine."Operation No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemChargePerRcptOnAfterCalcDistributeCharge, '', false, false)]
@@ -129,7 +382,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         PurchRcptLine: Record "Purch. Rcpt. Line";
         SubcSessionState: Codeunit "Subc. Session State";
     begin
-#if not CLEAN28
+#if not CLEAN29
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -155,6 +408,134 @@ codeunit 20535 "Subc. Purch. Post Ext"
         exit(Item."Item Tracking Code" <> '');
     end;
 
+    local procedure IsFullTrackedSubcontractingReceiptSupported(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        if IsWarehouseReceiptOrigin(PurchRcptLine) then
+            exit(false);
+        if not UsesBaseUnitOfMeasure(PurchRcptLine) then
+            exit(false);
+        if not ItemUsesSupportedFullTracking(PurchRcptLine."No.") then
+            exit(false);
+        if PurchRcptLine."Qty. Invoiced (Base)" <> 0 then
+            exit(false);
+        if PurchRcptLine."Qty. Rcd. Not Invoiced" <> PurchRcptLine.Quantity then
+            exit(false);
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit(false);
+
+        exit(IsFullTrackedOutputSetSupported(PurchRcptLine, ItemLedgerEntry));
+    end;
+
+    local procedure IsWarehouseReceiptOrigin(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        PostedWhseReceiptLine: Record "Posted Whse. Receipt Line";
+    begin
+        PostedWhseReceiptLine.SetRange(
+            "Posted Source Document", PostedWhseReceiptLine."Posted Source Document"::"Posted Receipt");
+        PostedWhseReceiptLine.SetRange("Posted Source No.", PurchRcptLine."Document No.");
+        PostedWhseReceiptLine.SetRange("Source No.", PurchRcptLine."Order No.");
+        PostedWhseReceiptLine.SetRange("Source Line No.", PurchRcptLine."Order Line No.");
+        exit(not PostedWhseReceiptLine.IsEmpty());
+    end;
+
+    local procedure UsesBaseUnitOfMeasure(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        Item: Record Item;
+    begin
+        Item.SetLoadFields("Base Unit of Measure");
+        if not Item.Get(PurchRcptLine."No.") then
+            exit(false);
+
+        exit(
+            (PurchRcptLine."Unit of Measure Code" = Item."Base Unit of Measure") and
+            (PurchRcptLine."Qty. per Unit of Measure" = 1));
+    end;
+
+    local procedure ItemUsesSupportedFullTracking(ItemNo: Code[20]): Boolean
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        Item.SetLoadFields("Item Tracking Code");
+        Item.Get(ItemNo);
+        ItemTrackingCode.SetLoadFields(
+            "SN Specific Tracking", "Lot Specific Tracking", "Package Specific Tracking");
+        ItemTrackingCode.Get(Item."Item Tracking Code");
+        if ItemTrackingCode."Package Specific Tracking" then
+            exit(false);
+
+        exit(
+            ItemTrackingCode."SN Specific Tracking" xor
+            ItemTrackingCode."Lot Specific Tracking");
+    end;
+
+    local procedure IsFullTrackedOutputSetSupported(
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        var ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    var
+        OutputQuantityBase: Decimal;
+    begin
+        if not SetSubcontractingOutputEntryFilters(ItemLedgerEntry, PurchRcptLine) then
+            exit(false);
+        if not ItemLedgerEntry.FindSet() then
+            exit(false);
+        repeat
+            OutputQuantityBase += Abs(ItemLedgerEntry.Quantity);
+            if (ItemLedgerEntry."Serial No." <> '') and (Abs(ItemLedgerEntry.Quantity) <> 1) then
+                exit(false);
+            if not HasUniqueOutputTrackingKey(ItemLedgerEntry, ItemLedgerEntry) then
+                exit(false);
+        until ItemLedgerEntry.Next() = 0;
+
+        exit(OutputQuantityBase = Abs(PurchRcptLine."Quantity (Base)"));
+    end;
+
+    local procedure HasUniqueOutputTrackingKey(
+        var FilteredItemLedgerEntry: Record "Item Ledger Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    var
+        MatchingItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        MatchingItemLedgerEntry.CopyFilters(FilteredItemLedgerEntry);
+        MatchingItemLedgerEntry.SetRange("Item No.", ItemLedgerEntry."Item No.");
+        MatchingItemLedgerEntry.SetRange("Variant Code", ItemLedgerEntry."Variant Code");
+        MatchingItemLedgerEntry.SetRange("Serial No.", ItemLedgerEntry."Serial No.");
+        MatchingItemLedgerEntry.SetRange("Lot No.", ItemLedgerEntry."Lot No.");
+        MatchingItemLedgerEntry.SetRange("Package No.", ItemLedgerEntry."Package No.");
+        exit(MatchingItemLedgerEntry.Count() = 1);
+    end;
+
+    local procedure SetSubcontractingOutputEntryFilters(var ItemLedgerEntry: Record "Item Ledger Entry"; PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+#pragma warning disable AA0210
+        CapacityLedgerEntry.SetRange(Subcontracting, true);
+        CapacityLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
+        CapacityLedgerEntry.SetRange("Item No.", PurchRcptLine."No.");
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
+        CapacityLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order No.", PurchRcptLine."Order No.");
+        CapacityLedgerEntry.SetRange("Subc. Purch. Order Line No.", PurchRcptLine."Order Line No.");
+        if not CapacityLedgerEntry.FindFirst() then
+            exit(false);
+#pragma warning restore AA0210
+
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Item No.", PurchRcptLine."No.");
+        ItemLedgerEntry.SetRange("Item Register No.", CapacityLedgerEntry."Item Register No.");
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        ItemLedgerEntry.SetRange("Subc. Purch. Order No.", PurchRcptLine."Order No.");
+        ItemLedgerEntry.SetRange("Subc. Purch. Order Line No.", PurchRcptLine."Order Line No.");
+        ItemLedgerEntry.SetRange(Positive, true);
+        exit(true);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry, '', false, false)]
     local procedure UpdatePurchLineDimSetIDFromCapLedgEntryForNonLastOperations(var PurchaseLineToPost: Record "Purchase Line"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     var
@@ -163,7 +544,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         SubcSessionState: Codeunit "Subc. Session State";
         StoredRecordID: RecordId;
     begin
-#if not CLEAN28
+#if not CLEAN29
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
