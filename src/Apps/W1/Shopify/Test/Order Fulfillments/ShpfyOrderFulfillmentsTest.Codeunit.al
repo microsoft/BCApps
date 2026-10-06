@@ -31,11 +31,11 @@ codeunit 139578 "Shpfy Order Fulfillments Test"
         TrackingNo: Text[20];
     begin
         // [SCENARIO] Extract the data out json token that contains a fulfillment info into the "Shpfy Order Fulfillment" record.
-        // [GIVEN] A random Generated Fufilment
+        // [GIVEN] A random Generated Fufilment that has not been delivered yet (deliveredAt is null)
         Id := Any.IntegerInRange(10000, 99999);
         OrderId := Any.IntegerInRange(10000, 99999);
         TrackingNo := CopyStr(Any.AlphabeticText(MaxStrLen(TrackingNo)), 1, MaxStrLen(TrackingNo));
-        JFulfillment := GetRandomFullFilmentAsJsonToken(Id, TrackingNo);
+        JFulfillment := GetRandomFullFilmentAsJsonToken(Id, TrackingNo, 0DT);
 
         // [WHEN] Invoke the function ImportFulfillment(JFulfillment)
         OrderFulfillments.ImportFulfillment(OrderId, JFulfillment);
@@ -45,9 +45,71 @@ codeunit 139578 "Shpfy Order Fulfillments Test"
 
         // [THEN] TrackingNo = ShpfyOrderfulfillment."Tracking Number"
         LibraryAssert.AreEqual(TrackingNo, Orderfulfillment."Tracking Number", 'Tracking number check');
+
+        // [THEN] "Delivered At" stays blank when Shopify has not set deliveredAt yet
+        LibraryAssert.AreEqual(0DT, Orderfulfillment."Delivered At", 'Delivered At should be blank when not delivered');
     end;
 
-    local procedure GetRandomFullFilmentAsJsonToken(id: BigInteger; TrackingNo: Text): JsonToken
+    [Test]
+    procedure UnitTestImportFulfillmentSetsDeliveredAt()
+    var
+        Orderfulfillment: Record "Shpfy Order Fulfillment";
+        OrderFulfillments: Codeunit "Shpfy Order Fulfillments";
+        Id: BigInteger;
+        OrderId: BigInteger;
+        DeliveredAt: DateTime;
+        JFulfillment: JsonToken;
+        TrackingNo: Text[20];
+    begin
+        // [SCENARIO] deliveredAt from Shopify is parsed into the "Delivered At" field on import.
+        // [GIVEN] A random generated fulfillment that has already been delivered
+        Id := Any.IntegerInRange(10000, 99999);
+        OrderId := Any.IntegerInRange(10000, 99999);
+        TrackingNo := CopyStr(Any.AlphabeticText(MaxStrLen(TrackingNo)), 1, MaxStrLen(TrackingNo));
+        DeliveredAt := CreateDateTime(Today - 1, Time);
+        JFulfillment := GetRandomFullFilmentAsJsonToken(Id, TrackingNo, DeliveredAt);
+
+        // [WHEN] Invoke the function ImportFulfillment(JFulfillment)
+        OrderFulfillments.ImportFulfillment(OrderId, JFulfillment);
+
+        // [THEN] "Delivered At" matches the deliveredAt value from Shopify
+        LibraryAssert.IsTrue(Orderfulfillment.Get(Id), 'Get "Shpfy Order Fufillment" record');
+        LibraryAssert.AreEqual(DeliveredAt, Orderfulfillment."Delivered At", 'Delivered At check');
+    end;
+
+    [Test]
+    procedure UnitTestImportFulfillmentUpdatesDeliveredAtOnReimport()
+    var
+        Orderfulfillment: Record "Shpfy Order Fulfillment";
+        OrderFulfillments: Codeunit "Shpfy Order Fulfillments";
+        Id: BigInteger;
+        OrderId: BigInteger;
+        DeliveredAt: DateTime;
+        JFulfillment: JsonToken;
+        TrackingNo: Text[20];
+    begin
+        // [SCENARIO] Re-importing an existing fulfillment (e.g. after a full order re-sync) picks up
+        // a deliveredAt value that Shopify only populated after the fulfillment was first created.
+        // [GIVEN] A fulfillment that was already imported without a deliveredAt value
+        Id := Any.IntegerInRange(10000, 99999);
+        OrderId := Any.IntegerInRange(10000, 99999);
+        TrackingNo := CopyStr(Any.AlphabeticText(MaxStrLen(TrackingNo)), 1, MaxStrLen(TrackingNo));
+        JFulfillment := GetRandomFullFilmentAsJsonToken(Id, TrackingNo, 0DT);
+        OrderFulfillments.ImportFulfillment(OrderId, JFulfillment);
+        Orderfulfillment.Get(Id);
+        LibraryAssert.AreEqual(0DT, Orderfulfillment."Delivered At", 'Delivered At should be blank before delivery');
+
+        // [WHEN] The same fulfillment is re-imported after Shopify has since set deliveredAt
+        DeliveredAt := CreateDateTime(Today, Time);
+        JFulfillment := GetRandomFullFilmentAsJsonToken(Id, TrackingNo, DeliveredAt);
+        OrderFulfillments.ImportFulfillment(OrderId, JFulfillment);
+
+        // [THEN] "Delivered At" is updated on the existing record
+        Orderfulfillment.Get(Id);
+        LibraryAssert.AreEqual(DeliveredAt, Orderfulfillment."Delivered At", 'Delivered At should be updated on re-import');
+    end;
+
+    local procedure GetRandomFullFilmentAsJsonToken(id: BigInteger; TrackingNo: Text; DeliveredAt: DateTime): JsonToken
     var
         JFulfillment: JsonObject;
         JLocation: JsonObject;
@@ -72,7 +134,10 @@ codeunit 139578 "Shpfy Order Fulfillments Test"
         JFulfillment.Add('name', Any.AlphabeticText(5));
         JFulfillment.Add('createdAt', Format(CurrentDateTime - 1, 0, 9));
         JFulfillment.Add('updatedAt', CurrentDateTime);
-        JFulfillment.Add('deliveredAt', JNull);
+        if DeliveredAt = 0DT then
+            JFulfillment.Add('deliveredAt', JNull)
+        else
+            JFulfillment.Add('deliveredAt', Format(DeliveredAt, 0, 9));
         JFulfillment.Add('displayStatus', 'FULFILLED');
         JFulfillment.Add('estimatedDeliveryAt', JNull);
         JFulfillment.Add('status', 'SUCCESS');
