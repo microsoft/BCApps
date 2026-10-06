@@ -82,7 +82,7 @@ codeunit 5596 "Create QM Insp. Template Hdr"
         exit(BeansTok);
     end;
 
-    procedure BeansDesc(): Text[100]
+    internal procedure BeansDesc(): Text[100]
     begin
         exit(BeansDescLbl);
     end;

@@ -21,9 +21,11 @@ codeunit 5598 "Create QM Generation Rule"
         ContosoQualityManagement: Codeunit "Contoso Quality Management";
         CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
         CreateWhseItemCategory: Codeunit "Create Whse Item Category";
+        ItemFilter: Text[2048];
     begin
         Item.SetRange("Item Category Code", CreateWhseItemCategory.Beans());
-        ContosoQualityManagement.InsertQualityInspectionGenRule(3, 30, Enum::"Qlty. Gen. Rule Intent"::Purchase, CreateQMInspTemplateHdr.Beans(), Database::"Purchase Line", '', CreateQMInspTemplateHdr.BeansDesc(), Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic", Item.GetView(false));
+        ItemFilter := CopyStr(Item.GetView(false), 1, MaxStrLen(ItemFilter));
+        ContosoQualityManagement.InsertQualityInspectionGenRule(3, 30, Enum::"Qlty. Gen. Rule Intent"::Purchase, CreateQMInspTemplateHdr.Beans(), Database::"Purchase Line", '', CreateQMInspTemplateHdr.BeansDesc(), Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic", ItemFilter);
         ContosoQualityManagement.InsertQualityInspectionGenRule(4, 40, Enum::"Qlty. Gen. Rule Intent"::Purchase, CreateQMInspTemplateHdr.Receive(), Database::"Purchase Line", '', CreateQMInspTemplateHdr.ReceiveDesc(), Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
     end;
 }

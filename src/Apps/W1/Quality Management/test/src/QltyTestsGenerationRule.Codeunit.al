@@ -231,13 +231,13 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
-        LibraryInventory: Codeunit "Library - Inventory";
+        LocalLibraryInventory: Codeunit "Library - Inventory";
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Find a generation rule that has an item filter and verify it matches the specified item
 
         // [GIVEN] An item is created
-        LibraryInventory.CreateItem(Item);
+        LocalLibraryInventory.CreateItem(Item);
 
         // [GIVEN] A quality inspection template is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
@@ -266,15 +266,15 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         Item: Record Item;
         ItemAttribute: Record "Item Attribute";
         ItemAttributeValue: Record "Item Attribute Value";
-        LibraryInventory: Codeunit "Library - Inventory";
+        LocalLibraryInventory: Codeunit "Library - Inventory";
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Find a generation rule that has an item attribute filter and verify it matches items with the specified attribute
 
         // [GIVEN] An item is created with an attribute value
-        LibraryInventory.CreateItem(Item);
-        LibraryInventory.CreateItemAttributeWithValue(ItemAttribute, ItemAttributeValue, ItemAttribute.Type::Integer, '1');
-        LibraryInventory.CreateItemAttributeValueMapping(Database::Item, Item."No.", ItemAttribute.ID, ItemAttributeValue.ID);
+        LocalLibraryInventory.CreateItem(Item);
+        LocalLibraryInventory.CreateItemAttributeWithValue(ItemAttribute, ItemAttributeValue, ItemAttribute.Type::Integer, '1');
+        LocalLibraryInventory.CreateItemAttributeValueMapping(Database::Item, Item."No.", ItemAttribute.ID, ItemAttributeValue.ID);
 
         // [GIVEN] A quality inspection template is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
@@ -536,6 +536,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansTrackedPurchase_ManualSelectsBeans()
     var
         Item: Record Item;
@@ -555,6 +556,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansTrackedPurchase_AutomaticSelectsBeans()
     var
         Item: Record Item;
@@ -574,6 +576,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansPurchase_OtherItemSelectsBeans()
     var
         Item: Record Item;
@@ -594,6 +597,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoPurchase_NonBeansItemSelectsReceive()
     var
         Item: Record Item;
@@ -616,6 +620,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoPurchase_NonItemLineSelectsReceive()
     var
         Item: Record Item;
@@ -645,6 +650,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansRule_HasPurchaseScopeAndPriority()
     var
         BeansQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -664,6 +670,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansRule_RepeatedSeedingIsIdempotent()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -689,11 +696,12 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansRule_RepeatedSeedingPreservesCustomization()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
-        CustomizedItemFilter: Text;
+        CustomizedItemFilter: Text[2048];
     begin
         // [FEATURE] [AI test 0.3] [Quality Management]
         // [SCENARIO] The default demo overwrite guard preserves a customized BEANS rule on regeneration.
@@ -704,7 +712,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         LibraryAssert.IsTrue(QltyInspectionGenRule.Get(3), 'The demo seeder must create the BEANS rule.');
         CreateTrackedDemoItem(Item, '', BeansCategoryTok);
         Item.SetRange("No.", Item."No.");
-        CustomizedItemFilter := Item.GetView(false);
+        CustomizedItemFilter := CopyStr(Item.GetView(false), 1, MaxStrLen(CustomizedItemFilter));
         QltyInspectionGenRule.Validate("Item Filter", CustomizedItemFilter);
         QltyInspectionGenRule.Validate(Description, CustomizedRuleDescTok);
         QltyInspectionGenRule.Validate("Sort Order", 17);

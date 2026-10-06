@@ -232,7 +232,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                             SearchItem.SetRecFilter();
                             SearchItem.FilterGroup(20);
                             SearchItem.SetView(QltyInspectionGenRule."Item Filter");
-                            if SearchItem.Count() > 0 then
+                            if not SearchItem.IsEmpty() then
                                 if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
                                     TempQltyInspectionGenRule := QltyInspectionGenRule;
                                     Found := TempQltyInspectionGenRule.Insert();
