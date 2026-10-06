@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 
 codeunit 148354 EACorpCardSetupTests
@@ -17,6 +18,7 @@ codeunit 148354 EACorpCardSetupTests
     var
         Assert: Codeunit "Assert";
         CorpCardTestLib: Codeunit EACorpCardTestLib;
+        LibraryERM: Codeunit "Library - ERM";
         LibraryExpense: Codeunit "Library - Expense";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
@@ -71,6 +73,66 @@ codeunit 148354 EACorpCardSetupTests
         Assert.AreEqual(60, CorpCardProvider."Source Payload Record Count", 'CSV provider must persist all sample payload records.');
     end;
 
+    [Test]
+    procedure CsvSampleScenarioCreatesTwoSettlementsForThreeEmployeesEach()
+    var
+        PaymentBankAccount: Record "Bank Account";
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+        SettlementCount: Integer;
+    begin
+        Initialize();
+
+        LibraryERM.CreateBankAccount(PaymentBankAccount);
+        PaymentBankAccount.Validate("Bank Acc. Posting Group", LcyBankAccountPostingGroupTok);
+        PaymentBankAccount.Modify(true);
+
+        CreateCorpCardSetup.CreateCsvSampleScenario(PaymentBankAccount."No.");
+
+        CorpCardSettlement.SetRange("Provider Code", CorpCardCsvProviderCodeTok);
+        CorpCardSettlement.SetFilter("Settlement No.", CorpCardCsvSampleSettlementFilterTok);
+        Assert.IsTrue(CorpCardSettlement.FindSet(), 'The CSV sample scenario must create settlements.');
+        repeat
+            SettlementCount += 1;
+            Assert.AreEqual(
+                CorpCardSettlement.Status::Posted, CorpCardSettlement.Status,
+                'Each CSV sample settlement must be posted.');
+            AssertCsvSampleSettlementContainsThreeEmployees(CorpCardSettlement);
+        until CorpCardSettlement.Next() = 0;
+
+        Assert.AreEqual(2, SettlementCount, 'The CSV sample scenario must create two settlements.');
+    end;
+
+    local procedure AssertCsvSampleSettlementContainsThreeEmployees(CorpCardSettlement: Record "EA Corp Card Settlement")
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        ExpenseUserNos: Dictionary of [Code[20], Boolean];
+    begin
+        CorpCardSettlementLine.SetRange("Settlement Entry No.", CorpCardSettlement."Settlement Entry No.");
+        CorpCardSettlementLine.SetRange(Inactive, false);
+        Assert.AreEqual(1, CorpCardSettlementLine.Count(), 'Each CSV sample settlement must contain one statement.');
+        CorpCardSettlementLine.FindFirst();
+
+        CorpCardTrans.SetRange("Statement Entry No.", CorpCardSettlementLine."Statement Entry No.");
+        Assert.AreEqual(30, CorpCardTrans.Count(), 'Each CSV sample statement must contain 30 transactions.');
+        CorpCardTrans.FindSet();
+        repeat
+            CurrencyExchangeRate.SetRange("Currency Code", CorpCardTrans."Currency Code");
+            CurrencyExchangeRate.SetFilter("Starting Date", '..%1', CorpCardTrans."Trans Date");
+            Assert.IsFalse(
+                CurrencyExchangeRate.IsEmpty(),
+                'Each CSV sample transaction must have an exchange rate effective on or before its transaction date.');
+            CorpCard.Get(CorpCardTrans."Card Id");
+            if not ExpenseUserNos.ContainsKey(CorpCard."Expense User No.") then
+                ExpenseUserNos.Add(CorpCard."Expense User No.", true);
+        until CorpCardTrans.Next() = 0;
+
+        Assert.AreEqual(3, ExpenseUserNos.Count(), 'Each CSV sample settlement must cover three employees.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -113,6 +175,8 @@ codeunit 148354 EACorpCardSetupTests
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', Locked = true;
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
+        CorpCardCsvSampleSettlementFilterTok: Label 'CSV-SAMPLE-SETTLEMENT-*', Locked = true;
         CorpCardAccountTok: Label 'CORPCARD', Locked = true;
+        LcyBankAccountPostingGroupTok: Label 'LCY', Locked = true;
         AirlineExpenseCategoryCodeTok: Label 'AIRLINE', Locked = true;
 }

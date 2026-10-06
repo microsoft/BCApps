@@ -3,6 +3,7 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Ledger;
 using Microsoft.Bank.Setup;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.NoSeries;
 using System.IO;
@@ -89,12 +90,10 @@ codeunit 7442 "EA Create Corp Card Setup"
     internal procedure CreateCsvSampleScenario(PaymentBankAccountNo: Code[20])
     var
         CorpCardProvider: Record "EA Corp Card Provider";
-        CorpCardSettlement: Record "EA Corp Card Settlement";
-        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
-        CorpCardStatement: Record "EA Corp Card Statement";
+        FirstCorpCardStatement: Record "EA Corp Card Statement";
+        SecondCorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
-        CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
         CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
     begin
         CreateDefaults();
@@ -105,25 +104,73 @@ codeunit 7442 "EA Create Corp Card Setup"
             Error(CsvSampleScenarioAlreadyExistsErr);
 
         CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
-        EnsureSamplePayloadForProvider(CorpCardProvider);
+        RefreshCsvSamplePayloadForExchangeRatePeriod(CorpCardProvider);
         CorpCardFeedMgt.RunImport(CorpCardProvider.Code);
 
         CorpCardProvider.Get(CorpCardProvider.Code);
-        CorpCardStatement.Get(CorpCardProvider."Last Statement Entry No.");
-        CorpCardStatement.TestField(Status, CorpCardStatement.Status::Imported);
-        if CorpCardStatement.Imported <> GetCorpCardSampleTransactionCount() then
-            Error(CsvSampleImportCountErr, GetCorpCardSampleTransactionCount(), CorpCardStatement.Imported);
+        FirstCorpCardStatement.Get(CorpCardProvider."Last Statement Entry No.");
+        FirstCorpCardStatement.TestField(Status, FirstCorpCardStatement.Status::Imported);
+        if FirstCorpCardStatement.Imported <> GetCorpCardSampleTransactionCount() then
+            Error(CsvSampleImportCountErr, GetCorpCardSampleTransactionCount(), FirstCorpCardStatement.Imported);
 
-        CompleteCsvSampleStatement(CorpCardStatement);
-        CorpCardStatementMgt.ValidateStatement(CorpCardStatement);
+        SplitCsvSampleStatement(FirstCorpCardStatement, SecondCorpCardStatement);
+        CompleteCsvSampleStatement(FirstCorpCardStatement, 1);
+        CompleteCsvSampleStatement(SecondCorpCardStatement, 2);
+        CorpCardStatementMgt.ValidateStatement(FirstCorpCardStatement);
+        CorpCardStatementMgt.ValidateStatement(SecondCorpCardStatement);
         if PaymentBankAccountNo = '' then
             PaymentBankAccountNo := FindLcyPaymentBankAccount();
         ConfigureCsvProviderSettlementAccounts(CorpCardProvider, PaymentBankAccountNo);
-        CreateAndPostCsvSampleExpenseReports(CorpCardStatement);
+        CreateAndPostCsvSampleExpenseReports(FirstCorpCardStatement);
+        CreateAndPostCsvSampleExpenseReports(SecondCorpCardStatement);
+        CreateAndPostCsvSampleSettlement(CorpCardProvider.Code, FirstCorpCardStatement, 1);
+        CreateAndPostCsvSampleSettlement(CorpCardProvider.Code, SecondCorpCardStatement, 2);
+    end;
 
+    local procedure SplitCsvSampleStatement(var FirstCorpCardStatement: Record "EA Corp Card Statement"; var SecondCorpCardStatement: Record "EA Corp Card Statement")
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        SecondCorpCardStatement.Init();
+        SecondCorpCardStatement."Provider Code" := FirstCorpCardStatement."Provider Code";
+        SecondCorpCardStatement."Started DT" := FirstCorpCardStatement."Started DT";
+        SecondCorpCardStatement."Ended DT" := FirstCorpCardStatement."Ended DT";
+        SecondCorpCardStatement."Source Ref" := FirstCorpCardStatement."Source Ref";
+        SecondCorpCardStatement.Status := SecondCorpCardStatement.Status::Imported;
+        SecondCorpCardStatement."Data Exch Entry No." := FirstCorpCardStatement."Data Exch Entry No.";
+        SecondCorpCardStatement."Source File Name" := FirstCorpCardStatement."Source File Name";
+        SecondCorpCardStatement."Source Payload Hash" := FirstCorpCardStatement."Source Payload Hash";
+        SecondCorpCardStatement.Insert(true);
+
+        CorpCardTrans.SetRange("Statement Entry No.", FirstCorpCardStatement."Statement Entry No.");
+        CorpCardTrans.SetFilter(
+            "Card Id", '%1|%2|%3',
+            BuildProviderSampleCardId(4), BuildProviderSampleCardId(5), BuildProviderSampleCardId(6));
+        if CorpCardTrans.FindSet(true) then
+            repeat
+                CorpCardTrans."Statement Entry No." := SecondCorpCardStatement."Statement Entry No.";
+                CorpCardTrans.Modify(true);
+            until CorpCardTrans.Next() = 0;
+
+        CorpCardTrans.Reset();
+        CorpCardTrans.SetRange("Statement Entry No.", FirstCorpCardStatement."Statement Entry No.");
+        FirstCorpCardStatement.Imported := CorpCardTrans.Count();
+        FirstCorpCardStatement.Modify(true);
+
+        CorpCardTrans.SetRange("Statement Entry No.", SecondCorpCardStatement."Statement Entry No.");
+        SecondCorpCardStatement.Imported := CorpCardTrans.Count();
+        SecondCorpCardStatement.Modify(true);
+    end;
+
+    local procedure CreateAndPostCsvSampleSettlement(ProviderCode: Code[20]; CorpCardStatement: Record "EA Corp Card Statement"; SettlementSequenceNo: Integer)
+    var
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
+        CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
+    begin
         CorpCardSettlement.Init();
-        CorpCardSettlement.Validate("Provider Code", CorpCardProvider.Code);
-        CorpCardSettlement.Validate("Settlement No.", CorpCardSampleSettlementNoTok);
+        CorpCardSettlement.Validate("Provider Code", ProviderCode);
+        CorpCardSettlement.Validate("Settlement No.", StrSubstNo(CorpCardSampleSettlementNoTok, SettlementSequenceNo));
         CorpCardSettlement.Validate("Settlement Date", WorkDate());
         CorpCardSettlement.Validate("Currency Code", '');
         CorpCardSettlement.Validate("Settlement Amount", CorpCardStatement.GetTotalInCurrency(''));
@@ -361,7 +408,6 @@ codeunit 7442 "EA Create Corp Card Setup"
 
     local procedure EnsureSamplePayloadForProvider(var CorpCardProvider: Record "EA Corp Card Provider")
     var
-        PayloadOutStr: OutStream;
         SamplePayload: Text;
         SampleFileName: Text[250];
     begin
@@ -376,6 +422,23 @@ codeunit 7442 "EA Create Corp Card Setup"
         if not GetProviderSamplePayload(CorpCardProvider.Code, SamplePayload, SampleFileName) then
             exit;
 
+        SetProviderSamplePayload(CorpCardProvider, SamplePayload, SampleFileName);
+    end;
+
+    local procedure RefreshCsvSamplePayloadForExchangeRatePeriod(var CorpCardProvider: Record "EA Corp Card Provider")
+    var
+        PeriodEndDate: Date;
+        PeriodStartDate: Date;
+    begin
+        GetCsvSampleExchangeRatePeriod(PeriodStartDate, PeriodEndDate);
+        SetProviderSamplePayload(
+            CorpCardProvider, BuildCsvSamplePayload(PeriodStartDate, PeriodEndDate), CorpCardCsvSampleFileNameTok);
+    end;
+
+    local procedure SetProviderSamplePayload(var CorpCardProvider: Record "EA Corp Card Provider"; SamplePayload: Text; SampleFileName: Text[250])
+    var
+        PayloadOutStr: OutStream;
+    begin
         Clear(CorpCardProvider."Source Payload");
         CorpCardProvider."Source Payload".CreateOutStream(PayloadOutStr, TextEncoding::UTF8);
         PayloadOutStr.WriteText(SamplePayload);
@@ -394,7 +457,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         case ProviderCode of
             CorpCardCsvProviderCodeTok:
                 begin
-                    SamplePayload := BuildCsvSamplePayload();
+                    SamplePayload := BuildCsvSamplePayload(DMY2Date(1, 6, 2026), DMY2Date(28, 6, 2026));
                     SampleFileName := CorpCardCsvSampleFileNameTok;
                     exit(true);
                 end;
@@ -414,28 +477,28 @@ codeunit 7442 "EA Create Corp Card Setup"
         exit(CopyStr(StrSubstNo(CorpCardSampleCardIdTok, PadNumberLeft(SequenceNo, 4)), 1, 50));
     end;
 
-    local procedure BuildCsvSamplePayload(): Text
+    local procedure BuildCsvSamplePayload(PeriodStartDate: Date; PeriodEndDate: Date): Text
     var
         CsvPayloadBuilder: TextBuilder;
         TransactionNo: Integer;
     begin
         CsvPayloadBuilder.AppendLine('ProviderTransId,CardId,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes');
         for TransactionNo := 1 to GetCorpCardSampleTransactionCount() do
-            AppendCsvSampleTransaction(CsvPayloadBuilder, TransactionNo);
+            AppendCsvSampleTransaction(CsvPayloadBuilder, TransactionNo, PeriodStartDate, PeriodEndDate);
 
         exit(CsvPayloadBuilder.ToText());
     end;
 
-    local procedure AppendCsvSampleTransaction(var CsvPayloadBuilder: TextBuilder; TransactionNo: Integer)
+    local procedure AppendCsvSampleTransaction(var CsvPayloadBuilder: TextBuilder; TransactionNo: Integer; PeriodStartDate: Date; PeriodEndDate: Date)
     var
         AmountInCents: Integer;
         CardSequenceNo: Integer;
-        DayNo: Integer;
         MerchantName: Text;
         MCC: Code[4];
+        TransactionDate: Date;
     begin
         CardSequenceNo := ((TransactionNo - 1) mod 6) + 1;
-        DayNo := (TransactionNo mod 28) + 1;
+        TransactionDate := PeriodStartDate + ((TransactionNo - 1) mod (PeriodEndDate - PeriodStartDate + 1));
         if TransactionNo <= 54 then
             AmountInCents := 1250 + (TransactionNo * 713)
         else
@@ -445,8 +508,28 @@ codeunit 7442 "EA Create Corp Card Setup"
         CsvPayloadBuilder.AppendLine(
             StrSubstNo(
                 CorpCardSampleCsvLineTok,
-                PadNumberLeft(TransactionNo, 5), PadNumberLeft(CardSequenceNo, 4), PadNumberLeft(DayNo, 2),
-                PadNumberLeft(DayNo + 1, 2), FormatAmountInCents(AmountInCents), MerchantName, MCC, TransactionNo));
+                PadNumberLeft(TransactionNo, 5), PadNumberLeft(CardSequenceNo, 4), FormatDateForSamplePayload(TransactionDate),
+                FormatAmountInCents(AmountInCents), MerchantName, MCC, TransactionNo));
+    end;
+
+    local procedure GetCsvSampleExchangeRatePeriod(var PeriodStartDate: Date; var PeriodEndDate: Date)
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        PeriodEndDate := WorkDate();
+        CurrencyExchangeRate.SetRange("Currency Code", CorpCardSampleCurrencyCodeTok);
+        CurrencyExchangeRate.SetFilter("Starting Date", '..%1', PeriodEndDate);
+        if not CurrencyExchangeRate.FindLast() then
+            Error(CsvSampleExchangeRateMissingErr, CorpCardSampleCurrencyCodeTok, PeriodEndDate);
+
+        PeriodStartDate := PeriodEndDate - 27;
+        if PeriodStartDate < CurrencyExchangeRate."Starting Date" then
+            PeriodStartDate := CurrencyExchangeRate."Starting Date";
+    end;
+
+    local procedure FormatDateForSamplePayload(Value: Date): Text
+    begin
+        exit(Format(Value, 0, '<Year4>-<Month,2>-<Day,2>'));
     end;
 
     local procedure GetCsvSampleMerchant(TransactionNo: Integer; var MerchantName: Text; var MCC: Code[4])
@@ -535,17 +618,31 @@ codeunit 7442 "EA Create Corp Card Setup"
             '</CorporateCardTransactions>');
     end;
 
-    local procedure CompleteCsvSampleStatement(var CorpCardStatement: Record "EA Corp Card Statement")
+    local procedure CompleteCsvSampleStatement(var CorpCardStatement: Record "EA Corp Card Statement"; StatementSequenceNo: Integer)
     var
         CorpCardTrans: Record "EA Corp Card Trans";
+        PeriodEndDate: Date;
+        PeriodStartDate: Date;
     begin
         CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
-        CorpCardTrans.FindFirst();
+        if not CorpCardTrans.FindFirst() then
+            Error(CsvSampleStatementNoTransactionsErr, CorpCardStatement."Statement Entry No.");
+        PeriodStartDate := CorpCardTrans."Trans Date";
+        PeriodEndDate := CorpCardTrans."Trans Date";
+
+        CorpCardTrans.FindSet();
+        repeat
+            if CorpCardTrans."Trans Date" < PeriodStartDate then
+                PeriodStartDate := CorpCardTrans."Trans Date";
+            if CorpCardTrans."Trans Date" > PeriodEndDate then
+                PeriodEndDate := CorpCardTrans."Trans Date";
+        until CorpCardTrans.Next() = 0;
+
         CorpCardStatement.CalcFields("Transaction Total");
-        CorpCardStatement.Validate("Statement No.", CorpCardSampleStatementNoTok);
-        CorpCardStatement.Validate("Statement Date", DMY2Date(30, 6, 2026));
-        CorpCardStatement.Validate("Period Start Date", DMY2Date(1, 6, 2026));
-        CorpCardStatement.Validate("Period End Date", DMY2Date(28, 6, 2026));
+        CorpCardStatement.Validate("Statement No.", StrSubstNo(CorpCardSampleStatementNoTok, StatementSequenceNo));
+        CorpCardStatement.Validate("Statement Date", PeriodEndDate);
+        CorpCardStatement.Validate("Period Start Date", PeriodStartDate);
+        CorpCardStatement.Validate("Period End Date", PeriodEndDate);
         CorpCardStatement.Validate("Currency Code", CorpCardTrans."Currency Code");
         CorpCardStatement.Validate("Statement Total", CorpCardStatement."Transaction Total");
         CorpCardStatement.Modify(true);
@@ -1215,10 +1312,11 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         CorpCardXmlSampleFileNameTok: Label 'CorpCard-Sample-60.xml', Locked = true;
         CorpCardSampleFirstTransIdTok: Label 'TXN00001', MaxLength = 50, Locked = true;
-        CorpCardSampleSettlementNoTok: Label 'CSV-SAMPLE-SETTLEMENT', MaxLength = 50, Locked = true;
-        CorpCardSampleStatementNoTok: Label 'CSV-SAMPLE-2026-06', MaxLength = 50, Locked = true;
+        CorpCardSampleSettlementNoTok: Label 'CSV-SAMPLE-SETTLEMENT-%1', MaxLength = 50, Locked = true;
+        CorpCardSampleStatementNoTok: Label 'CSV-SAMPLE-STATEMENT-%1', MaxLength = 50, Locked = true;
         CorpCardSampleCardIdTok: Label 'CORPCARD-%1', MaxLength = 50, Locked = true;
-        CorpCardSampleCsvLineTok: Label 'TXN%1,CORPCARD-%2,2026-06-%3,2026-06-%4,%5,USD,%6,%7,US,Sample transaction %8', Locked = true;
+        CorpCardSampleCurrencyCodeTok: Label 'USD', MaxLength = 10, Locked = true;
+        CorpCardSampleCsvLineTok: Label 'TXN%1,CORPCARD-%2,%3,%3,%4,USD,%5,%6,US,Sample transaction %7', Locked = true;
         CorpCardBankAccountTok: Label 'CORPCARD', Locked = true;
         CorpCardBankAccountNameLbl: Label 'Corporate Card Settlement Account', MaxLength = 100;
         CorpCardBankAccountNoTok: Label '99-55-000', Locked = true;
@@ -1230,6 +1328,8 @@ codeunit 7442 "EA Create Corp Card Setup"
         SepaCamtImportFormatTok: Label 'SEPA CAMT', Locked = true;
         CsvSampleImportCountErr: Label 'The CSV sample import must create %1 transactions, but it created %2.', Comment = '%1 = expected transaction count, %2 = actual transaction count';
         CsvSampleScenarioAlreadyExistsErr: Label 'The CSV sample corporate card scenario has already been imported.';
+        CsvSampleExchangeRateMissingErr: Label 'No %1 exchange rate exists on or before %2. Define an exchange rate before creating the CSV sample scenario.', Comment = '%1 = currency code, %2 = work date';
+        CsvSampleStatementNoTransactionsErr: Label 'CSV sample statement entry %1 has no transactions.', Comment = '%1 = statement entry number';
         NoCsvSampleExpensesErr: Label 'No CSV sample expenses were found for expense user %1.', Comment = '%1 = expense user number';
         BankAccountCurrencyMismatchErr: Label 'Bank account %1 uses currency %2, but the CSV sample statement uses currency %3.', Comment = '%1 = bank account number, %2 = bank account currency code, %3 = statement currency code';
         NoLcyPaymentBankAccountErr: Label 'No local-currency bank account with the LCY posting group was found for the CSV sample settlement.';
