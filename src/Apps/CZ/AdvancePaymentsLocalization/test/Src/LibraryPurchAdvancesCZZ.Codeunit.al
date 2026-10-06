@@ -228,7 +228,7 @@ codeunit 148008 "Library - Purch. Advances CZZ"
         VATPostingSetup: Record "VAT Posting Setup";
     begin
         LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+        LibraryERM.FindGeneralPostingSetupInvtBase(GeneralPostingSetup);
         LibraryERM.CreateGLAccount(GLAccount);
         GLAccount.Validate("Gen. Posting Type", GLAccount."Gen. Posting Type"::Purchase);
         GLAccount.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
