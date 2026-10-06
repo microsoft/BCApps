@@ -29,6 +29,11 @@
       "action": "Warning"
     },
     {
+      "id": "AA0248",
+      "action": "None",
+      "justification": "Wrong, useless rule."
+    },
+    {
       "id": "AL0605",
       "action": "None",
       "justification": "Use of implicit 'with' will be removed in the future. Qualify with 'Rec'."

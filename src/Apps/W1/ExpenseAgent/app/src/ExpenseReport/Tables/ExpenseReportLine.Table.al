@@ -444,12 +444,8 @@ table 6907 "Expense Report Line"
                     Rec."Spend Request Close" := false;
                 end;
 
-                if Rec.Refundable and (Rec."Expense User No." <> '') then begin
-                    Rec.SetSkipSpendRequestClose(true);
-                    Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
-                    Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
-                    Rec.SetSkipSpendRequestClose(false);
-                end;
+                if Rec.Refundable and (Rec."Expense User No." <> '') then
+                    InheritSpendRequestFromHeader();
 
                 UpdateAmounts();
             end;
@@ -1060,12 +1056,18 @@ table 6907 "Expense Report Line"
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
+                Traveler: Record Traveler;
+                HasMultipleTravelers: Boolean;
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." <> '' then begin
                     Rec.TestField(Refundable, true);
                     CheckTraveler();
-                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose);
+                    // Closing a shared travel request would block the expense reports of the other travelers, so do not offer it.
+                    HasMultipleTravelers := Traveler.HasMultipleTravelers(Rec."Spend Request No.");
+                    if HasMultipleTravelers then
+                        Rec."Spend Request Close" := false;
+                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose or HasMultipleTravelers);
                     SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Refundable Amount (LCY)");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
@@ -1325,6 +1327,59 @@ table 6907 "Expense Report Line"
         exit("Expense Policy Status"::Cleared);
     end;
 
+    /// <summary>
+    /// Returns counts only for a complete current policy set. Uses the caller's line read isolation
+    /// for policy and evaluation reads, preserving stable snapshots without strengthening ordinary reads.
+    /// Completion requires confirmation at or after every result; a never-confirmed empty policy set is complete.
+    /// </summary>
+    internal procedure IsPolicyEvaluationComplete(var PolicyStatus: Enum "Expense Policy Status"; var FailedCount: Integer; var PassedCount: Integer): Boolean
+    var
+        TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary;
+        PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePolicies: Boolean;
+        HasOutstandingPolicies: Boolean;
+        CurrentFailedCount: Integer;
+        CurrentPassedCount: Integer;
+    begin
+        FailedCount := 0;
+        PassedCount := 0;
+        PolicyStatus := PolicyStatus::"Not Evaluated";
+        if Rec."Policies Evaluated At" <> 0DT then begin
+            PolicyStatus := PolicyStatus::Stale;
+            if Rec."Evaluated Policy Version" <> Rec."Policy Eval Version" then
+                exit(false);
+        end;
+
+        PoliciesToEvalBuilder.GetEvaluationState(Rec, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, Rec.ReadIsolation);
+        if HasOutstandingPolicies then
+            exit(false);
+        if not HasApplicablePolicies then begin
+            PolicyStatus := PolicyStatus::"No Policies";
+            exit(true);
+        end;
+        if Rec."Policies Evaluated At" = 0DT then
+            exit(false);
+
+        if TempMatchedEvaluations.FindSet() then
+            repeat
+                if (TempMatchedEvaluations."Evaluated At" = 0DT) or
+                   (TempMatchedEvaluations."Evaluated At" > Rec."Policies Evaluated At")
+                then
+                    exit(false);
+                if TempMatchedEvaluations.Compliant then
+                    CurrentPassedCount += 1
+                else
+                    CurrentFailedCount += 1;
+            until TempMatchedEvaluations.Next() = 0;
+
+        FailedCount := CurrentFailedCount;
+        PassedCount := CurrentPassedCount;
+        PolicyStatus := PolicyStatus::Cleared;
+        if FailedCount > 0 then
+            PolicyStatus := PolicyStatus::Flagged;
+        exit(true);
+    end;
+
     internal procedure HasCurrentPolicyViolation(): Boolean
     var
         ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
@@ -1353,12 +1408,17 @@ table 6907 "Expense Report Line"
 
     internal procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)
     var
+        ParentExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
         PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
         DocumentNo: Code[20];
         LineNo: Integer;
     begin
         DocumentNo := Rec."Document No.";
         LineNo := Rec."Line No.";
+        // Serialize report snapshots before locking a line, matching the submission lock order.
+        ParentExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
+        ParentExpenseReportHeader.Get(DocumentNo);
         Rec.LockTable();
         Rec.Get(DocumentNo, LineNo);
         if EvaluatedSubjectVersion <> Rec."Policy Eval Version" then
@@ -1370,6 +1430,7 @@ table 6907 "Expense Report Line"
         Rec."Policies Evaluated At" := CurrentDateTime();
         // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
         Rec.Modify(false);
+        ExpenseActivityLogMgt.LogPolicyEvaluationIfReady(ParentExpenseReportHeader);
     end;
 
     internal procedure InvalidatePolicyEvaluation()
@@ -1807,7 +1868,46 @@ table 6907 "Expense Report Line"
     var
         SpendRequest: Record "Spend Request";
     begin
+        // A closed travel request has no remaining budget to check.
+        if IsSpendRequestClosed(Rec."Spend Request No.") then
+            exit;
+
         SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Refundable Amount (LCY)");
+    end;
+
+    /// <summary>
+    /// Links a line that becomes refundable to the travel request of its expense report header,
+    /// with the same close setting as the header.
+    /// </summary>
+    local procedure InheritSpendRequestFromHeader()
+    begin
+        if IsSpendRequestClosed(ExpenseReportHeader."Spend Request No.") then begin
+            // The shared travel request was closed. Keep the line linked so the report can still be edited;
+            // posting requires an approved travel request, so the link must be removed before the report is posted.
+            Rec."Spend Request No." := ExpenseReportHeader."Spend Request No.";
+            Rec."Spend Request Close" := false;
+            exit;
+        end;
+
+        // Only the header decides whether the travel request is closed, so do not ask again for the line.
+        Rec.SetSkipSpendRequestClose(true);
+        Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
+        Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
+        Rec.SetSkipSpendRequestClose(false);
+    end;
+
+    local procedure IsSpendRequestClosed(SpendRequestNo: Code[20]): Boolean
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if SpendRequestNo = '' then
+            exit(false);
+
+        SpendRequest.SetLoadFields(Status);
+        if not SpendRequest.Get(SpendRequestNo) then
+            exit(false);
+
+        exit(SpendRequest.Status = SpendRequest.Status::Closed);
     end;
 
     local procedure UpdateVATAmount()
