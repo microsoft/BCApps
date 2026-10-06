@@ -40,7 +40,7 @@ codeunit 131023 "API Test Auth Context"
             exit;
 
         HttpRequestMessage.GetHeaders(RequestHeaders);
-        if RequestHeaders.Contains('Authorization') then
+        if RequestHeaders.Contains('Authorization') or RequestHeaders.ContainsSecret('Authorization') then
             RequestHeaders.Remove('Authorization');
         RequestHeaders.Add('Authorization', SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', BasicUserName, BasicPassword))));
     end;

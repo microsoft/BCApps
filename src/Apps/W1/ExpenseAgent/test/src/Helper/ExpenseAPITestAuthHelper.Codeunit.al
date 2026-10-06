@@ -32,7 +32,7 @@ codeunit 148332 "Expense API Test Auth Helper"
         if not TryGetPassword(Password) then
             exit;
         HttpRequestMessage.GetHeaders(RequestHeaders);
-        if RequestHeaders.Contains('Authorization') then
+        if RequestHeaders.Contains('Authorization') or RequestHeaders.ContainsSecret('Authorization') then
             RequestHeaders.Remove('Authorization');
         RequestHeaders.Add('Authorization', SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', UserId(), Password))));
     end;

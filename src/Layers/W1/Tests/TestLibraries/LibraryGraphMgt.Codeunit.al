@@ -440,7 +440,7 @@ codeunit 130618 "Library - Graph Mgt"
         // API tests call the local Business Central server, which may require Windows authentication.
         // Explicit authentication (for example Basic) configured on the request takes precedence.
         HttpRequestMessage.GetHeaders(RequestHeaders);
-        if not RequestHeaders.Contains('Authorization') then
+        if not (RequestHeaders.Contains('Authorization') or RequestHeaders.ContainsSecret('Authorization')) then
             HttpClient.UseDefaultNetworkWindowsAuthentication();
         HttpClient.Timeout(60000);
 
@@ -480,11 +480,14 @@ codeunit 130618 "Library - Graph Mgt"
     local procedure ReadTextFromTempBlob(var TempBlob: Codeunit "Temp Blob") Result: Text
     var
         ResponseInStream: InStream;
+        ResponseTextBuilder: TextBuilder;
         TextLine: Text;
     begin
         TempBlob.CreateInStream(ResponseInStream);
         while ResponseInStream.ReadText(TextLine) > 0 do
-            Result += TextLine;
+            ResponseTextBuilder.Append(TextLine);
+
+        exit(ResponseTextBuilder.ToText());
     end;
 
     local procedure AddHeadersToDictionary(var ResponseHeaders: Dictionary of [Text, Text]; Headers: HttpHeaders)
