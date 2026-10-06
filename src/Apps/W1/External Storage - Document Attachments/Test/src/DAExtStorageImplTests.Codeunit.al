@@ -603,8 +603,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         FailedAttachment: Record "Document Attachment";
         SuccessfulAttachment: Record "Document Attachment";
         ErrorMessageRegister: Record "Error Message Register";
-        HardErrorSubscriber: Codeunit "DA Ext. Storage Hard Error";
         DAExternalStorageSync: Report "DA External Storage Sync";
+        HardErrorSubscriber: Codeunit "DA Ext. Storage Hard Error";
         FailedExternalFilePath: Text;
     begin
         // [SCENARIO] A runtime error while processing one attachment is registered and does not stop the remaining attachments.
