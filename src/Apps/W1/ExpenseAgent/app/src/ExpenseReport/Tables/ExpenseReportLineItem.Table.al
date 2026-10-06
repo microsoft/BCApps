@@ -160,6 +160,7 @@ table 6911 "Expense Report Line Item"
 
     trigger OnModify()
     begin
+        Rec.TestField("Expense Subcategory Code");
         InvalidateParentPolicy();
     end;
 
