@@ -92,6 +92,36 @@ table 50000 "Test Table"
         $result.Issues.Count | Should -Be 2
     }
 
+    It 'flags only the unwrapped ObsoleteTag when another in the same file is wrapped' {
+        $alcontent = @'
+table 50000 "Test Table"
+{
+    fields
+    {
+#if not CLEANSCHEMA30
+        field(1; "Wrapped Field"; Code[10])
+        {
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+#endif
+        field(2; "Bare Field"; Code[10])
+        {
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+    }
+}
+'@
+        Set-Content -Path TestDrive:\MixedWrapping.al -Value $alcontent
+        $result = Test-ObsoleteTagPreprocessors -filePath 'TestDrive:\MixedWrapping.al'
+        $result | Should -Not -Be $null
+        $result.Issues.Count | Should -Be 1
+        $result.Issues[0] | Should -BeLike '*ObsoleteTag found outside preprocessor block*'
+        # The reported line must be the bare field's ObsoleteTag (line 15), not the wrapped one (line 9)
+        $result.Issues[0] | Should -BeLike '*:15:*'
+    }
+
     It 'ignores ObsoleteTag inside a single-line comment' {
         $alcontent = @'
 table 50000 "Test Table"
