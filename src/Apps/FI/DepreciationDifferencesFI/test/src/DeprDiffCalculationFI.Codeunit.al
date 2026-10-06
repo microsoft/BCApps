@@ -635,6 +635,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
         // [THEN] Depreciation Difference is posted
         Assert.AreEqual(DeprDiffPostedTxt, LibraryVariableStorage.DequeueText(), 'DeprDiffPostedTxt must be equal to Report13402.Text13408');
+        LibraryVariableStorage.AssertEmpty();
         DisableFeature();
     end;
 
