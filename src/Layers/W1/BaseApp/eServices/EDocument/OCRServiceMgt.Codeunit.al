@@ -1116,7 +1116,7 @@ codeunit 1294 "OCR Service Mgt."
         ResponseStr: InStream;
         XMLRootNode: DotNet XmlNode;
         AttachmentName: Text[250];
-        ContentType: Text[50];
+        ContentType: Text;
         TrackId: Text;
         IsHandled: Boolean;
         Result: Integer;
