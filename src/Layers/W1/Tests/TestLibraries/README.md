@@ -74,6 +74,12 @@ approach is accepted; a false result with empty last-error state blocks this
 design rather than justifying format heuristics. They do not substitute for
 restricted-current-user permission-failure tests.
 
+The first FI and CH CI results passed both nonexistent-user failure-signal
+tests. All seven HTTP scenarios failed in fixture cleanup before their result
+assertions: the stored User buffer was stale. Cleanup now reloads the owned
+user by its User Security ID before deletion. Authentication, key lifecycle
+and rollback remain unproven until fresh CI executes those assertions.
+
 Existing codeunit 139494 continues to cover the default provider, instance
 lifetime, and final-event ordering. The 117 existing credential-pipeline and
 parallel-execution Pester tests provide regression coverage for the unchanged

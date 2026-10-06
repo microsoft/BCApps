@@ -315,6 +315,8 @@ codeunit 139497 "Web Service Key Auth Tests"
         TenantWebService.DeleteAll(true);
         AccessControl.SetRange("User Security ID", FixtureUser."User Security ID");
         AccessControl.DeleteAll(true);
+        // Password/key operations can update the user through another record buffer or session.
+        FixtureUser.Get(FixtureUser."User Security ID");
         FixtureUser.Delete(true);
         Clear(FixturePassword);
     end;
