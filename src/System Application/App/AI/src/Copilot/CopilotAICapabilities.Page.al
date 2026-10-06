@@ -329,8 +329,10 @@ page 7775 "Copilot AI Capabilities"
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.EarlyPreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
+
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             CopilotNotifications.ShowCapabilitiesNotAvailableOnPremNotification();
+
         if (WithinGeo and not WithinEUDB) and (not AllowDataMovement) then
             CopilotNotifications.ShowPrivacyNoticeDisagreedNotification();
 
@@ -341,6 +343,7 @@ page 7775 "Copilot AI Capabilities"
         WithinEUDBArea := WithinEUDB;
         WithinAOAIServicesInRegionArea := WithinGeo and (not WithinEUDB);
         WithinAOAIOutOfRegionArea := (not WithinGeo) and (not WithinEUDB);
+
         if EnvironmentInformation.IsSaaSInfrastructure() then begin
             CopilotNotifications.ShowBillingInTheFutureNotification();
             CurrPage.EnqueueBackgroundTask(TaskId, Codeunit::"Copilot Quota Impl.");
@@ -367,12 +370,14 @@ page 7775 "Copilot AI Capabilities"
                 exit;
             end;
         end;
+
         if Results.ContainsKey(HasSetupBillingLbl) then begin
             Results.Get(HasSetupBillingLbl, Value);
             if Evaluate(HasBilling, Value) then;
             if HasBilling then
                 exit;
         end;
+
         if Results.ContainsKey(QuotaUsedPercentageLbl) then begin
             Results.Get(QuotaUsedPercentageLbl, Value);
             if Evaluate(QuotaUsedPercentage, Value) then;
@@ -412,6 +417,7 @@ page 7775 "Copilot AI Capabilities"
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
     begin
+
         if BingOptIn then
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), "Privacy Notice Approval State"::Agreed)
         else begin
@@ -425,6 +431,7 @@ page 7775 "Copilot AI Capabilities"
     [IntegrationEvent(false, false)]
     local procedure OnRegisterCopilotCapability()
     begin
+
     end;
 
     var
