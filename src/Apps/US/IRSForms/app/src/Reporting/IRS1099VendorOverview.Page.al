@@ -52,6 +52,10 @@ page 10072 "IRS 1099 Vendor Overview"
                 {
                     Tooltip = 'Specifies the number of the 1099 form box.';
                 }
+                field("Adjustment Amount"; Rec."Adjustment Amount")
+                {
+                    ToolTip = 'Specifies the adjustment amount for the vendor, form number and form box number in the selected reporting period.';
+                }
                 field(Amount; Rec.Amount)
                 {
                     Tooltip = 'Specifies the total amount of all transactions for the vendor, form number and form box number in the selected reporting period.';
@@ -64,8 +68,6 @@ page 10072 "IRS 1099 Vendor Overview"
             }
         }
     }
-
-    var
 
     var
         TempVendFormBoxBuffer: Record "IRS 1099 Vend. Form Box Buffer" temporary;
@@ -92,6 +94,7 @@ page 10072 "IRS 1099 Vendor Overview"
         TempIRS1099CalcParameters."Period No." := IRSReportingPeriodNo;
         IRSFormsFacade.GetVendorFormBoxAmount(TempVendFormBoxBuffer, TempIRS1099CalcParameters);
         TempVendFormBoxBuffer.SetRange("Buffer Type", TempVendFormBoxBuffer."Buffer Type"::Amount);
+        TempVendFormBoxBuffer.SetAutoCalcFields("Adjustment Amount", "Minimum Reportable Amount");
         if not TempVendFormBoxBuffer.FindSet() then begin
             Message(NoDataForSelectedPeriodMsg);
             exit;
