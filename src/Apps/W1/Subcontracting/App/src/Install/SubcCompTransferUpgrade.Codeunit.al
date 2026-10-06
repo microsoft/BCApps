@@ -41,11 +41,24 @@ codeunit 20509 "Subc. Comp. Transfer Upgrade"
         ItemLedgerEntry.SetFilter("Prod. Order Comp. Line No.", '<>0');
         if ItemLedgerEntry.FindSet(true) then
             repeat
-                ComponentAtSubcontractor := ItemLedgerEntry.IsSubcontractorComponentTransfer();
-                if ItemLedgerEntry."Subc. Component at Subcontr." <> ComponentAtSubcontractor then begin
-                    ItemLedgerEntry."Subc. Component at Subcontr." := ComponentAtSubcontractor;
-                    ItemLedgerEntry.Modify();
-                end;
+                if ItemLedgerEntry.TryGetSubcontractorComponentTransfer(ComponentAtSubcontractor) then begin
+                    if ItemLedgerEntry."Subc. Component at Subcontr." <> ComponentAtSubcontractor then begin
+                        ItemLedgerEntry."Subc. Component at Subcontr." := ComponentAtSubcontractor;
+                        ItemLedgerEntry.Modify();
+                    end;
+                end else
+                    Session.LogMessage(
+                        '0000W1S',
+                        StrSubstNo(SkippedComponentTransferMsg, ItemLedgerEntry."Entry No.", ItemLedgerEntry."Document Type", ItemLedgerEntry."Document No."),
+                        Verbosity::Warning,
+                        DataClassification::CustomerContent,
+                        TelemetryScope::ExtensionPublisher,
+                        'Category',
+                        SubcontractingUpgradeCategoryLbl);
             until ItemLedgerEntry.Next() = 0;
     end;
+
+    var
+        SkippedComponentTransferMsg: Label 'Skipped the subcontractor component transfer migration for item ledger entry %1 because posted %2 %3 is missing or unsupported.', Comment = '%1 = item ledger entry number, %2 = document type, %3 = document number', Locked = true;
+        SubcontractingUpgradeCategoryLbl: Label 'Subcontracting Upgrade', Locked = true;
 }

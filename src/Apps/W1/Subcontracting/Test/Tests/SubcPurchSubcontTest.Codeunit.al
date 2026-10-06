@@ -812,7 +812,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
     [Test]
     [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
-    procedure ComponentTransferBackfillRejectsMissingPostedDocument()
+    procedure ComponentTransferBackfillSkipsMissingPostedDocument()
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderComponent: Record "Prod. Order Component";
@@ -823,7 +823,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         SubcCompTransferUpgrade: Codeunit "Subc. Comp. Transfer Upgrade";
     begin
         // [FEATURE] [AI test 0.3] [Subcontracting]
-        // [SCENARIO] Missing historical evidence blocks migration instead of silently replacing the transferred total with zero.
+        // [SCENARIO] Missing historical evidence is skipped instead of blocking migration or replacing the transferred total with zero.
         Initialize();
 
         // [GIVEN] A posted component receipt whose historical document is no longer available
@@ -837,12 +837,12 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         TransferReceiptHeader.Delete();
 
         // [WHEN] Historical component transfers are migrated
-        asserterror SubcCompTransferUpgrade.MigrateComponentTransfers();
+        SubcCompTransferUpgrade.MigrateComponentTransfers();
 
-        // [THEN] The missing document and ledger entry are reported, not guessed from current setup
-        Assert.ExpectedError('Cannot identify the subcontractor movement for item ledger entry');
-        Assert.ExpectedError(ItemLedgerEntry."Document No.");
-        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'Failed migration must not erase the previously classified quantity.');
+        // [THEN] The affected entry keeps its previous classification
+        ItemLedgerEntry.Get(ItemLedgerEntry."Entry No.");
+        Assert.IsTrue(ItemLedgerEntry."Subc. Component at Subcontr.", 'Skipped migration must not erase the previously classified quantity.');
+        VerifyTransferredComponentQuantity(ProdOrderComponent, 2, 'Skipped migration must not erase the previously classified quantity.');
         LibraryVariableStorage.AssertEmpty();
     end;
 
