@@ -30,6 +30,9 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         GLBShowCostShareAs: Option "Single-level","Rolled-up";
         IncorrectValueErr: Label 'Incorrect value of %1.%2.';
         UnitCostMustMatchStdCostErr: Label 'Unit cost in bom cost shares must match item standard cost';
+        ExpectedCostSharesRowErr: Label 'Expected a %1 cost shares row for %2.', Comment = '%1 = BOM type, %2 = number';
+        ReplenishmentSystemMustBeBlankErr: Label '%1 replenishment system must be blank after navigating from an item.', Comment = '%1 = BOM type';
+        ReplenishmentSystemMustStayBlankErr: Label '%1 replenishment system must stay blank after revisiting the item.', Comment = '%1 = BOM type';
 
     [Test]
     procedure WorkCenterReplenishmentSystemIsBlank()
@@ -571,7 +574,7 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         BOMCostShares.Expand(true);
         BOMCostShares.FILTER.SetFilter(Type, Format(BOMType));
         BOMCostShares.FILTER.SetFilter("No.", No);
-        Assert.IsTrue(BOMCostShares.First(), StrSubstNo('Expected a %1 cost shares row for %2.', BOMType, No));
+        Assert.IsTrue(BOMCostShares.First(), StrSubstNo(ExpectedCostSharesRowErr, BOMType, No));
         BOMCostShares.Type.AssertEquals(Format(BOMType));
         BOMCostShares."No.".AssertEquals(No);
     end;
@@ -589,8 +592,8 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         BOMCostShares."Replenishment System".AssertEquals(Format(Item."Replenishment System"));
         SelectCostSharesRow(BOMCostShares, CapacityType, CapacityNo);
         SecondCapacityReplenishment := BOMCostShares."Replenishment System".Value();
-        Assert.AreEqual('', FirstCapacityReplenishment, StrSubstNo('%1 replenishment system must be blank after navigating from an item.', CapacityType));
-        Assert.AreEqual('', SecondCapacityReplenishment, StrSubstNo('%1 replenishment system must stay blank after revisiting the item.', CapacityType));
+        Assert.AreEqual('', FirstCapacityReplenishment, StrSubstNo(ReplenishmentSystemMustBeBlankErr, CapacityType));
+        Assert.AreEqual('', SecondCapacityReplenishment, StrSubstNo(ReplenishmentSystemMustStayBlankErr, CapacityType));
     end;
 
     local procedure SetupItemWithRoutingWithCosts(var Item: Record Item)
