@@ -37,6 +37,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         ReturnFileExists: Boolean;
         ResourcePathFileName: Text;
         SharePointUrlLbl: Label 'https://contoso.sharepoint.com/sites/test', Locked = true;
+        UnexpectedResourcePathRequestErr: Label 'Unexpected ResourcePath request: %1', Comment = '%1 = Mock HTTP request path';
 
     #region File Operations
 
@@ -467,7 +468,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
             Request.RequestType = HttpRequestType::DELETE:
                 Response.Content.WriteFrom('{}');
             else
-                Error('Unexpected ResourcePath request: %1', Request.Path);
+                Error(UnexpectedResourcePathRequestErr, Request.Path);
         end;
     end;
 
