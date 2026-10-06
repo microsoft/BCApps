@@ -147,6 +147,11 @@ table 6902 "Expense Itemization"
             Description := Expense.Description;
     end;
 
+    trigger OnModify()
+    begin
+        Rec.TestField("Expense Subcategory Code");
+    end;
+
     trigger OnDelete()
     begin
         TestStatusOpenOfExpense();

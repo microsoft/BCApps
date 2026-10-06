@@ -8526,6 +8526,138 @@ codeunit 148301 "Expense Rule Test"
         Assert.RecordIsNotEmpty(ExpenseReportRuleViolation);
     end;
 
+    [Test]
+    procedure BlankExpenseItemizationSubcategoryCannotBeSaved()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory1: Record "Expense Subcategory";
+        ExpenseSubCategory2: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ZeroRateItemization: Record "Expense Itemization";
+        NonzeroRateItemization: Record "Expense Itemization";
+    begin
+        // [SCENARIO 651059] Saving a blank subcategory is rejected for zero-rate and nonzero-rate expense itemizations.
+        Initialize();
+
+        // [GIVEN] An expense user and an expense category that requires itemization.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+
+        // [GIVEN] Two valid subcategories and an expense with zero-rate and nonzero-rate itemizations.
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory1, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory2, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory1.Code, '', true, '', LibraryRandom.RandDec(100, 2));
+        LibraryExpense.CreateExpenseItemization(ZeroRateItemization, Expense, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 0, 1);
+        LibraryExpense.CreateExpenseItemization(NonzeroRateItemization, Expense, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 10, 1);
+
+        // [WHEN] Save the zero-rate itemization with a blank subcategory.
+        ZeroRateItemization."Expense Subcategory Code" := '';
+        asserterror ZeroRateItemization.Modify(true);
+
+        // [THEN] The save is rejected and the persisted row remains unchanged.
+        Assert.ExpectedTestFieldError(ZeroRateItemization.FieldCaption("Expense Subcategory Code"), '');
+        ZeroRateItemization.Get(ZeroRateItemization."Expense No.", ZeroRateItemization."Line No.");
+        Assert.AreEqual(ExpenseSubCategory1.Code, ZeroRateItemization."Expense Subcategory Code", 'The zero-rate itemization subcategory must remain unchanged.');
+        Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The zero-rate itemization daily rate must remain unchanged.');
+
+        // [WHEN] Save the zero-rate itemization with a valid replacement subcategory.
+        ZeroRateItemization.Validate("Expense Subcategory Code", ExpenseSubCategory2.Code);
+        ZeroRateItemization.Modify(true);
+        ZeroRateItemization.Get(ZeroRateItemization."Expense No.", ZeroRateItemization."Line No.");
+
+        // [THEN] The valid replacement is persisted and the daily rate is unchanged.
+        Assert.AreEqual(ExpenseSubCategory2.Code, ZeroRateItemization."Expense Subcategory Code", 'The valid zero-rate subcategory update must be saved.');
+        Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The valid zero-rate update must preserve the daily rate.');
+
+        // [WHEN] Save the nonzero-rate itemization with a blank subcategory.
+        NonzeroRateItemization."Expense Subcategory Code" := '';
+        asserterror NonzeroRateItemization.Modify(true);
+
+        // [THEN] The save is rejected and the persisted row remains unchanged.
+        Assert.ExpectedTestFieldError(NonzeroRateItemization.FieldCaption("Expense Subcategory Code"), '');
+        NonzeroRateItemization.Get(NonzeroRateItemization."Expense No.", NonzeroRateItemization."Line No.");
+        Assert.AreEqual(ExpenseSubCategory1.Code, NonzeroRateItemization."Expense Subcategory Code", 'The nonzero-rate itemization subcategory must remain unchanged.');
+        Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The nonzero-rate itemization daily rate must remain unchanged.');
+
+        // [WHEN] Save the nonzero-rate itemization with a valid replacement subcategory.
+        NonzeroRateItemization.Validate("Expense Subcategory Code", ExpenseSubCategory2.Code);
+        NonzeroRateItemization.Modify(true);
+        NonzeroRateItemization.Get(NonzeroRateItemization."Expense No.", NonzeroRateItemization."Line No.");
+
+        // [THEN] The valid replacement is persisted and the daily rate is unchanged.
+        Assert.AreEqual(ExpenseSubCategory2.Code, NonzeroRateItemization."Expense Subcategory Code", 'The valid nonzero-rate subcategory update must be saved.');
+        Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The valid nonzero-rate update must preserve the daily rate.');
+    end;
+
+    [Test]
+    procedure BlankExpenseReportItemizationSubcategoryCannotBeSaved()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory1: Record "Expense Subcategory";
+        ExpenseSubCategory2: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ZeroRateItemization: Record "Expense Report Line Item";
+        NonzeroRateItemization: Record "Expense Report Line Item";
+    begin
+        // [SCENARIO 651059] Saving a blank subcategory is rejected for zero-rate and nonzero-rate report itemizations.
+        Initialize();
+
+        // [GIVEN] An expense user and an expense category that requires itemization.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+
+        // [GIVEN] Two valid subcategories and an expense report line.
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory1, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory2, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, '', true, '', 100);
+
+        // [GIVEN] Zero-rate and nonzero-rate itemizations with valid subcategories.
+        LibraryExpense.CreateExpenseReportLineItemization(ZeroRateItemization, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 0, 1);
+        LibraryExpense.CreateExpenseReportLineItemization(NonzeroRateItemization, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 10, 1);
+
+        // [WHEN] Save the zero-rate report itemization with a blank subcategory.
+        ZeroRateItemization."Expense Subcategory Code" := '';
+        asserterror ZeroRateItemization.Modify(true);
+
+        // [THEN] The save is rejected and the persisted row remains unchanged.
+        Assert.ExpectedTestFieldError(ZeroRateItemization.FieldCaption("Expense Subcategory Code"), '');
+        ZeroRateItemization.Get(ZeroRateItemization."Expense Report No.", ZeroRateItemization."Expense Report Line No.", ZeroRateItemization."Line No.");
+        Assert.AreEqual(ExpenseSubCategory1.Code, ZeroRateItemization."Expense Subcategory Code", 'The zero-rate report itemization subcategory must remain unchanged.');
+        Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The zero-rate report itemization daily rate must remain unchanged.');
+
+        // [WHEN] Save the zero-rate report itemization with a valid replacement subcategory.
+        ZeroRateItemization.Validate("Expense Subcategory Code", ExpenseSubCategory2.Code);
+        ZeroRateItemization.Modify(true);
+        ZeroRateItemization.Get(ZeroRateItemization."Expense Report No.", ZeroRateItemization."Expense Report Line No.", ZeroRateItemization."Line No.");
+
+        // [THEN] The valid replacement is persisted and the daily rate is unchanged.
+        Assert.AreEqual(ExpenseSubCategory2.Code, ZeroRateItemization."Expense Subcategory Code", 'The valid zero-rate report subcategory update must be saved.');
+        Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The valid zero-rate report update must preserve the daily rate.');
+
+        // [WHEN] Save the nonzero-rate report itemization with a blank subcategory.
+        NonzeroRateItemization."Expense Subcategory Code" := '';
+        asserterror NonzeroRateItemization.Modify(true);
+
+        // [THEN] The save is rejected and the persisted row remains unchanged.
+        Assert.ExpectedTestFieldError(NonzeroRateItemization.FieldCaption("Expense Subcategory Code"), '');
+        NonzeroRateItemization.Get(NonzeroRateItemization."Expense Report No.", NonzeroRateItemization."Expense Report Line No.", NonzeroRateItemization."Line No.");
+        Assert.AreEqual(ExpenseSubCategory1.Code, NonzeroRateItemization."Expense Subcategory Code", 'The nonzero-rate report itemization subcategory must remain unchanged.');
+        Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The nonzero-rate report itemization daily rate must remain unchanged.');
+
+        // [WHEN] Save the nonzero-rate report itemization with a valid replacement subcategory.
+        NonzeroRateItemization.Validate("Expense Subcategory Code", ExpenseSubCategory2.Code);
+        NonzeroRateItemization.Modify(true);
+        NonzeroRateItemization.Get(NonzeroRateItemization."Expense Report No.", NonzeroRateItemization."Expense Report Line No.", NonzeroRateItemization."Line No.");
+
+        // [THEN] The valid replacement is persisted and the daily rate is unchanged.
+        Assert.AreEqual(ExpenseSubCategory2.Code, NonzeroRateItemization."Expense Subcategory Code", 'The valid nonzero-rate report subcategory update must be saved.');
+        Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The valid nonzero-rate report update must preserve the daily rate.');
+    end;
+
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
