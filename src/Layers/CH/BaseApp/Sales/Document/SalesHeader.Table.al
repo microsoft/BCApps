@@ -9733,10 +9733,6 @@ table 36 "Sales Header"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         IsHandled: Boolean;
     begin
-        SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Restore Order qty. on return" then
-            exit;
-
         SalesCreditMemoHeader.SetLoadFields("Pre-Assigned No.", "Cust. Ledger Entry No.");
         SalesCreditMemoHeader.SetRange("Pre-Assigned No.", Rec."No.");
         if not SalesCreditMemoHeader.FindFirst() then
@@ -9745,6 +9741,10 @@ table 36 "Sales Header"
         IsHandled := false;
         OnBeforeUpdateSalesOrderLineIfExist(Rec, IsHandled);
         if IsHandled then
+            exit;
+
+        SalesReceivablesSetup.GetRecordOnce();
+        if not SalesReceivablesSetup."Restore Order qty. on return" then
             exit;
 
         CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");

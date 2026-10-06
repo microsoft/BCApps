@@ -7833,10 +7833,6 @@ table 38 "Purchase Header"
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         IsHandled: Boolean;
     begin
-        PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order qty. on return" then
-            exit;
-
         PurchaseCrMemoHeader.SetLoadFields("Pre-Assigned No.");
         PurchaseCrMemoHeader.SetRange("Pre-Assigned No.", Rec."No.");
         if not PurchaseCrMemoHeader.FindFirst() then
@@ -7845,6 +7841,10 @@ table 38 "Purchase Header"
         IsHandled := false;
         OnBeforeUpdatePurchaseOrderLineIfExist(Rec, IsHandled);
         if IsHandled then
+            exit;
+
+        PurchasesPayablesSetup.GetRecordOnce();
+        if not PurchasesPayablesSetup."Restore Order qty. on return" then
             exit;
 
         CorrectPostedPurchInvoice.UpdatePurchaseOrderLineIfExist(PurchaseCrMemoHeader."No.");

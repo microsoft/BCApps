@@ -1132,13 +1132,13 @@ codeunit 1303 "Correct Posted Sales Invoice"
         UndoPostingManagement: Codeunit "Undo Posting Management";
         IsHandled: Boolean;
     begin
-        SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Restore Order qty. on return" then
-            exit;
-
         IsHandled := false;
         OnBeforeUpdateSalesOrderLinesFromCancelledInvoice(SalesInvoiceHeaderNo, IsHandled);
         if IsHandled then
+            exit;
+
+        SalesReceivablesSetup.GetRecordOnce();
+        if not SalesReceivablesSetup."Restore Order qty. on return" then
             exit;
 
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeaderNo);
