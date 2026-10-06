@@ -28,8 +28,10 @@ codeunit 134776 "Document Attachment Tests"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        FailGetRefTableRecordId: RecordId;
         SubscriberSourceRecordId: RecordId;
         ExpectedPurchaseDocumentFlow: Boolean;
+        ForceGetRefTableFail: Boolean;
         isInitialized: Boolean;
         RecallNotifications: Boolean;
         ResolveRecRefInSubscriber: Boolean;
@@ -4900,33 +4902,38 @@ codeunit 134776 "Document Attachment Tests"
     [HandlerFunctions('DocumentAttachmentDetailsMPH')]
     procedure EnsureShowDetailsUsesRecRefResolvedBySubscriber()
     var
-        Customer: Record Customer;
-        DocumentAttachment: Record "Document Attachment";
+        HostCustomer: Record Customer;
+        SubscriberCustomer: Record Customer;
         DocumentAttachmentTests: Codeunit "Document Attachment Tests";
         RecRef: RecordRef;
-        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
+        CustomerCard: TestPage "Customer Card";
     begin
         // [SCENARIO 646549] An extension that resolves the RecordRef in OnAfterGetRecRefFail must still be able to open the attachments.
         Initialize();
 
+        // [GIVEN] Customer "HostCust" with an attachment, shown in the Documents FactBox of the Customer Card.
+        LibrarySales.CreateCustomer(HostCustomer);
+        RecRef.Get(HostCustomer.RecordId());
+        CreateDocAttach(RecRef, 'HostCust.jpeg', false, false);
+
         // [GIVEN] Customer with an attachment "SubscriberCust", which the subscriber returns as the source record.
-        LibrarySales.CreateCustomer(Customer);
-        RecRef.Get(Customer.RecordId());
+        LibrarySales.CreateCustomer(SubscriberCustomer);
+        RecRef.Get(SubscriberCustomer.RecordId());
         CreateDocAttach(RecRef, 'SubscriberCust.jpeg', false, false);
 
-        // [GIVEN] Document Attachment that points to a table the FactBox cannot map on its own.
-        CreateDocAttachForUnmappedTable(DocumentAttachment);
+        // [GIVEN] Customer Card opened for "HostCust".
+        CustomerCard.OpenView();
+        CustomerCard.GoToRecord(HostCustomer);
 
-        // [GIVEN] Subscriber that resolves the Customer in OnAfterGetRecRefFail.
-        DocumentAttachmentTests.SetSubscriberSourceRecord(Customer.RecordId());
+        // [GIVEN] The FactBox cannot resolve "HostCust" on its own, and a subscriber resolves "SubscriberCust" in OnAfterGetRecRefFail.
+        DocumentAttachmentTests.SetForceGetRefTableFail(HostCustomer.RecordId());
+        DocumentAttachmentTests.SetSubscriberSourceRecord(SubscriberCustomer.RecordId());
         BindSubscription(DocumentAttachmentTests);
 
-        // [WHEN] Show details is invoked for that attachment on the factbox.
-        DocAttachmentListFactbox.OpenView();
-        DocAttachmentListFactbox.Filter.SetFilter("Table ID", Format(DocumentAttachment."Table ID"));
-        DocAttachmentListFactbox.Filter.SetFilter("No.", DocumentAttachment."No.");
-        DocAttachmentListFactbox.OpenInDetail.Invoke();
+        // [WHEN] Show details is invoked on the Documents FactBox.
+        CustomerCard."Attached Documents List".OpenInDetail.Invoke();
         UnbindSubscription(DocumentAttachmentTests);
+        CustomerCard.Close();
 
         // [THEN] No error is raised and the details page opens for the record that the subscriber resolved.
         Assert.AreEqual('SubscriberCust', LibraryVariableStorage.DequeueText(), UnexpectedAttachmentInDetailsErr);
@@ -5673,6 +5680,25 @@ codeunit 134776 "Document Attachment Tests"
             exit;
 
         RecRef.Get(SubscriberSourceRecordId);
+    end;
+
+    internal procedure SetForceGetRefTableFail(RecordIdToFail: RecordId)
+    begin
+        FailGetRefTableRecordId := RecordIdToFail;
+        ForceGetRefTableFail := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterGetRefTable', '', false, false)]
+    local procedure FailGetRefTableOnAfterGetRefTable(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment")
+    begin
+        if not ForceGetRefTableFail then
+            exit;
+            
+        if RecRef.Number() = 0 then
+            exit;
+
+        if RecRef.RecordId() = FailGetRefTableRecordId then
+            RecRef.Close();
     end;
 
     [ModalPageHandler]
