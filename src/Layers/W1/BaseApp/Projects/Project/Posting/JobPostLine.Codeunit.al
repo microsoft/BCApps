@@ -8,7 +8,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -595,36 +594,6 @@ codeunit 1001 "Job Post-Line"
         if JobPlanningLineInvoice.FindFirst() then begin
             JobPlanningLineInvoice."Job Ledger Entry No." := JobLedgerEntryNo;
             JobPlanningLineInvoice.Modify();
-        end;
-    end;
-
-    procedure PostJobPurchaseLinesFromQueue(var TempJobLineQueue: Record "Invoice Posting Buffer" temporary)
-    begin
-        TempPurchaseLineJob.Reset();
-        if TempPurchaseLineJob.FindSet() then
-            repeat
-                TempJobLineQueue.Reset();
-                TempJobLineQueue.SetRange("Fixed Asset Line No.", TempPurchaseLineJob."Line No.");
-                if TempJobLineQueue.FindFirst() then begin
-                    TempJobJournalLine.Reset();
-                    TempJobJournalLine.SetRange("Line No.", TempPurchaseLineJob."Line No.");
-                    TempJobJournalLine.FindFirst();
-                    JobJnlPostLine.SetGLEntryNo(TempJobLineQueue."Deferral Line No.");
-                    JobJnlPostLine.RunWithCheck(TempJobJournalLine);
-                end;
-            until TempPurchaseLineJob.Next() = 0;
-    end;
-
-    procedure PostSingleJobPurchaseLine(LineNo: Integer; GLEntryNo: Integer)
-    begin
-        TempPurchaseLineJob.Reset();
-        TempPurchaseLineJob.SetRange("Line No.", LineNo);
-        if TempPurchaseLineJob.FindFirst() then begin
-            TempJobJournalLine.Reset();
-            TempJobJournalLine.SetRange("Line No.", LineNo);
-            TempJobJournalLine.FindFirst();
-            JobJnlPostLine.SetGLEntryNo(GLEntryNo);
-            JobJnlPostLine.RunWithCheck(TempJobJournalLine);
         end;
     end;
 

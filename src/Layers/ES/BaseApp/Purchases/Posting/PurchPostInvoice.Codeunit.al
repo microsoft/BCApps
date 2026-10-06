@@ -565,7 +565,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine: Record "Gen. Journal Line";
         JobPurchLine: Record "Purchase Line";
         PurchHeader: Record "Purchase Header";
-        TempJobPostingQueue: Record "Invoice Posting Buffer" temporary;
+        TempJobSourcePurchLine: Record "Purchase Line" temporary;
+        JobLineViews: Dictionary of [Integer, List of [Text]];
+        JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]];
         GLEntryNo: Integer;
         LineCount: Integer;
     begin
@@ -600,10 +602,10 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                 if (TempInvoicePostingBuffer."Job No." <> '') and
                    (TempInvoicePostingBuffer.Type = TempInvoicePostingBuffer.Type::"G/L Account")
                 then
-                    PostJobLine(TempInvoicePostingBuffer, GLEntryNo, TempJobPostingQueue, JobPurchLine);
+                    PostJobLine(TempInvoicePostingBuffer, GLEntryNo, JobPurchLine, TempJobSourcePurchLine, JobLineViews, JobLineGLEntryNos);
             until TempInvoicePostingBuffer.Next(-1) = 0;
 
-        PostQueuedJobLines(TempJobPostingQueue);
+        PostDeferredJobLines(TempJobSourcePurchLine, JobLineViews, JobLineGLEntryNos);
 
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := TempInvoicePostingBuffer.Amount;
@@ -1414,28 +1416,49 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         end;
     end;
 
-    local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: Integer; var TempJobPostingQueue: Record "Invoice Posting Buffer" temporary; var JobPurchLine: Record "Purchase Line")
+    local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: Integer; var JobPurchLine: Record "Purchase Line"; var TempJobSourcePurchLine: Record "Purchase Line" temporary; var JobLineViews: Dictionary of [Integer, List of [Text]]; var JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]])
     var
-        TempQueueEntry: Record "Invoice Posting Buffer" temporary;
+        Views: List of [Text];
+        GLEntryNos: List of [Integer];
+        SourceLineNo: Integer;
     begin
-        PurchSetup.Get();
-        if PurchSetup."Copy Line Descr. to G/L Entry" and (InvoicePostingBuffer."Fixed Asset Line No." <> 0) then begin
-            TempQueueEntry := InvoicePostingBuffer;
-            TempQueueEntry."Deferral Line No." := GLEntryNo;
-            TempJobPostingQueue := TempQueueEntry;
-            TempJobPostingQueue.Insert();
-        end else begin
-            SetJobLineFilters(JobPurchLine, InvoicePostingBuffer);
+        SetJobLineFilters(JobPurchLine, InvoicePostingBuffer);
+
+        SourceLineNo := InvoicePostingBuffer."Fixed Asset Line No.";
+        if SourceLineNo <> 0 then
+            PurchSetup.Get();
+        if (SourceLineNo = 0) or not PurchSetup."Copy Line Descr. to G/L Entry" then begin
             JobPostLine.PostJobPurchaseLines(JobPurchLine.GetView(), GLEntryNo);
+            exit;
         end;
+
+        // The posting buffer is processed in descending key order, so project posting is deferred to follow the source line order.
+        if JobLineViews.ContainsKey(SourceLineNo) then begin
+            Views := JobLineViews.Get(SourceLineNo);
+            GLEntryNos := JobLineGLEntryNos.Get(SourceLineNo);
+        end else begin
+            TempJobSourcePurchLine."Line No." := SourceLineNo;
+            TempJobSourcePurchLine.Insert();
+        end;
+        Views.Add(JobPurchLine.GetView());
+        GLEntryNos.Add(GLEntryNo);
+        JobLineViews.Set(SourceLineNo, Views);
+        JobLineGLEntryNos.Set(SourceLineNo, GLEntryNos);
     end;
 
-    local procedure PostQueuedJobLines(var TempJobPostingQueue: Record "Invoice Posting Buffer" temporary)
+    local procedure PostDeferredJobLines(var TempJobSourcePurchLine: Record "Purchase Line" temporary; JobLineViews: Dictionary of [Integer, List of [Text]]; JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]])
+    var
+        Views: List of [Text];
+        GLEntryNos: List of [Integer];
+        Index: Integer;
     begin
-        if TempJobPostingQueue.IsEmpty() then
-            exit;
-
-        JobPostLine.PostJobPurchaseLinesFromQueue(TempJobPostingQueue);
+        if TempJobSourcePurchLine.FindSet() then
+            repeat
+                Views := JobLineViews.Get(TempJobSourcePurchLine."Line No.");
+                GLEntryNos := JobLineGLEntryNos.Get(TempJobSourcePurchLine."Line No.");
+                for Index := 1 to Views.Count() do
+                    JobPostLine.PostJobPurchaseLines(Views.Get(Index), GLEntryNos.Get(Index));
+            until TempJobSourcePurchLine.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]

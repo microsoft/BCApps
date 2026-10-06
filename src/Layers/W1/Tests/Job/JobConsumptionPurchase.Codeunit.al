@@ -2948,6 +2948,74 @@ codeunit 136302 "Job Consumption Purchase"
     end;
 
     [Test]
+    procedure PurchaseInvoiceWithGLAccLinesAndCopyLineDescrPostsJobLinesInSourceLineOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        Descriptions: array[3] of Text[100];
+        GLAccountNo: Code[20];
+        DocumentNo: Code[20];
+        Index: Integer;
+    begin
+        // [FEATURE] [G/L Account] [Project Planning Line]
+        // [SCENARIO 651522] Project planning lines follow the purchase line order when "Copy Line Descr. to G/L Entry" is enabled
+        Initialize();
+
+        // [GIVEN] "Copy Line Descr. to G/L Entry" = true in Purchases & Payables Setup
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Copy Line Descr. to G/L Entry", true);
+        PurchasesPayablesSetup.Modify(true);
+
+        // [GIVEN] Purchase invoice with G/L Account lines "L1", "L2", "L3" with different descriptions for the same project task and "Job Line Type" = Budget
+        LibraryJob.CreateJob(Job);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        GLAccountNo := LibraryERM.CreateGLAccountWithPurchSetup();
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
+        for Index := 1 to ArrayLen(Descriptions) do begin
+            LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+            PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(1000, 2));
+            PurchaseLine.Validate("Job No.", JobTask."Job No.");
+            PurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
+            PurchaseLine.Validate("Job Line Type", PurchaseLine."Job Line Type"::Budget);
+            Descriptions[Index] := LibraryUtility.GenerateGUID();
+            PurchaseLine.Description := Descriptions[Index];
+            PurchaseLine.Modify(true);
+        end;
+
+        // [WHEN] Post the purchase invoice
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Project planning lines are created in the order "L1", "L2", "L3"
+        JobPlanningLine.SetRange("Job No.", JobTask."Job No.");
+        JobPlanningLine.SetRange("Job Task No.", JobTask."Job Task No.");
+        Assert.RecordCount(JobPlanningLine, ArrayLen(Descriptions));
+        JobPlanningLine.FindSet();
+        for Index := 1 to ArrayLen(Descriptions) do begin
+            JobPlanningLine.TestField(Description, Descriptions[Index]);
+            JobPlanningLine.Next();
+        end;
+
+        // [THEN] Project ledger entries are created in the order "L1", "L2", "L3" and each is linked to the G/L entry of its own line
+        JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
+        JobLedgerEntry.SetRange("Document No.", DocumentNo);
+        Assert.RecordCount(JobLedgerEntry, ArrayLen(Descriptions));
+        JobLedgerEntry.FindSet();
+        for Index := 1 to ArrayLen(Descriptions) do begin
+            JobLedgerEntry.TestField(Description, Descriptions[Index]);
+            GLEntry.Get(JobLedgerEntry."Ledger Entry No.");
+            GLEntry.TestField(Description, Descriptions[Index]);
+            JobLedgerEntry.Next();
+        end;
+    end;
+
+    [Test]
     procedure PurchCreditMemoWithJobViaGetReturnShipmentLine()
     var
         JobTask: Record "Job Task";
@@ -6794,6 +6862,7 @@ codeunit 136302 "Job Consumption Purchase"
     var
         GLEntry: Record "G/L Entry";
         JobLedgerEntry: Record "Job Ledger Entry";
+        PrevLinkedGLEntryNo: Integer;
     begin
         GLEntry.SetRange("Document No.", DocumentNo);
         GLEntry.SetRange("G/L Account No.", GLAccountNo);
@@ -6803,15 +6872,15 @@ codeunit 136302 "Job Consumption Purchase"
         JobLedgerEntry.SetRange("Job Task No.", JobTask."Job Task No.");
         Assert.RecordCount(JobLedgerEntry, 2);
 
-        JobLedgerEntry.FindFirst();
-        GLEntry.FindFirst();
-        JobLedgerEntry.TestField("Ledger Entry No.", GLEntry."Entry No.");
-        JobLedgerEntry.TestField("Dimension Set ID", GLEntry."Dimension Set ID");
-
-        JobLedgerEntry.Next();
-        GLEntry.Next();
-        JobLedgerEntry.TestField("Ledger Entry No.", GLEntry."Entry No.");
-        JobLedgerEntry.TestField("Dimension Set ID", GLEntry."Dimension Set ID");
+        JobLedgerEntry.FindSet();
+        repeat
+            GLEntry.Get(JobLedgerEntry."Ledger Entry No.");
+            GLEntry.TestField("Document No.", DocumentNo);
+            GLEntry.TestField("G/L Account No.", GLAccountNo);
+            JobLedgerEntry.TestField("Dimension Set ID", GLEntry."Dimension Set ID");
+            Assert.AreNotEqual(PrevLinkedGLEntryNo, GLEntry."Entry No.", 'Project ledger entries must be linked to different G/L entries.');
+            PrevLinkedGLEntryNo := GLEntry."Entry No.";
+        until JobLedgerEntry.Next() = 0;
     end;
 
     local procedure UpdatePurchaseLineDirectUnitCost(PurchaseHeader: Record "Purchase Header")
