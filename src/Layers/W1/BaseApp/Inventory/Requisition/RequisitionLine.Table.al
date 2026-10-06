@@ -654,13 +654,14 @@ table 246 "Requisition Line"
                     UpdateReplenishmentSystem();
                     if "Variant Code" <> xRec."Variant Code" then begin
                         "Bin Code" := '';
-                        if ("Location Code" <> '') and ("No." <> '') then begin
-                            GetLocation("Location Code");
-                            ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
-                            OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
-                            if ShouldGetDefaultBin then
-                                WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
-                        end;
+                        if ("Location Code" <> '') and ("No." <> '') then
+                            if not IsDropShipment() then begin
+                                GetLocation("Location Code");
+                                ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+                                OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
+                                if ShouldGetDefaultBin then
+                                    WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
+                            end;
                     end;
                     if ItemVend.Get("Vendor No.", "No.", "Variant Code") then
                         "Vendor Item No." := ItemVend."Vendor Item No.";
@@ -2848,6 +2849,7 @@ table 246 "Requisition Line"
         "No." := UnplannedDemand."Item No.";
         "Location Code" := UnplannedDemand."Location Code";
         "Bin Code" := UnplannedDemand."Bin Code";
+        "Drop Shipment" := UnplannedDemand."Drop Shipment";
         Validate("No.");
         Validate("Variant Code", UnplannedDemand."Variant Code");
         UpdateDescription();
@@ -2866,7 +2868,6 @@ table 246 "Requisition Line"
         Level := 1;
         "Action Message" := ReqLine."Action Message"::New;
         "User ID" := CopyStr(UserId(), 1, MaxStrLen("User ID"));
-        "Drop Shipment" := UnplannedDemand."Drop Shipment";
 
         UpdateSalesOrderDetailForDropShipment();
 
@@ -3131,6 +3132,8 @@ table 246 "Requisition Line"
             GetLocation("Location Code");
             OnSetFromBinCodeOnSetBinCode(Rec, Location);
             ShouldGetDefaultBin := ("Bin Code" = '') and Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+            if ShouldGetDefaultBin then
+                ShouldGetDefaultBin := not IsDropShipment();
             OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
             if ShouldGetDefaultBin then
                 WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
