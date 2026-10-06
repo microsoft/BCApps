@@ -23,6 +23,7 @@ codeunit 11443 "Payment Tolerance Mgt. NL"
         Vendor: Record Vendor;
         NewCustLedgEntry: Record "Cust. Ledger Entry";
         NewVendLedgEntry: Record "Vendor Ledger Entry";
+        CBGStatement: Record "CBG Statement";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         AppliedAmount: Decimal;
         OriginalAppliedAmount: Decimal;
@@ -30,9 +31,8 @@ codeunit 11443 "Payment Tolerance Mgt. NL"
         AmounttoApply: Decimal;
         PmtDiscAmount: Decimal;
         MaxPmtTolAmount: Decimal;
-        CBGStatementLineApplID: Code[20];
+        CBGStatementLineApplID: Code[50];
         ApplnRoundingPrecision: Decimal;
-        CBGStatement: Record "CBG Statement";
         UseDocumentNo: Code[20];
     begin
         MaxPmtTolAmount := 0;
@@ -40,7 +40,6 @@ codeunit 11443 "Payment Tolerance Mgt. NL"
         AppliedAmount := 0;
         ApplyingAmount := 0;
         AmounttoApply := 0;
-
         if CBGStatementLine."Account Type" = CBGStatementLine."Account Type"::Customer then begin
             Customer.Get(CBGStatementLine."Account No.");
             if Customer."Block Payment Tolerance" then
@@ -57,7 +56,6 @@ codeunit 11443 "Payment Tolerance Mgt. NL"
         if CBGStatementLine."Applies-to Doc. No." = '' then
             if CBGStatementLine."Applies-to ID" <> '' then
                 CBGStatementLineApplID := CBGStatementLine."Applies-to ID";
-
         if CBGStatementLine."Account Type" = CBGStatementLine."Account Type"::Customer then begin
             NewCustLedgEntry."Posting Date" := CBGStatementLine.Date;
             NewCustLedgEntry."Document No." := CBGStatementLine."Document No.";
@@ -94,7 +92,6 @@ codeunit 11443 "Payment Tolerance Mgt. NL"
         end;
 
         OriginalAppliedAmount := AppliedAmount;
-
         if GLSetup."Pmt. Disc. Tolerance Warning" then
             case CBGStatementLine."Account Type" of
                 CBGStatementLine."Account Type"::Customer:
@@ -108,12 +105,10 @@ codeunit 11443 "Payment Tolerance Mgt. NL"
                     then
                         exit(false);
             end;
-
         if Abs(AmounttoApply) >= Abs(AppliedAmount - PmtDiscAmount - MaxPmtTolAmount) then begin
             AppliedAmount := AppliedAmount - PmtDiscAmount;
             if Abs(AppliedAmount) > Abs(AmounttoApply) then
                 AppliedAmount := AmounttoApply;
-
             if ((Abs(AppliedAmount + ApplyingAmount) - ApplnRoundingPrecision) <= Abs(MaxPmtTolAmount)) and
               (MaxPmtTolAmount <> 0) and ((Abs(AppliedAmount + ApplyingAmount) - ApplnRoundingPrecision) <> 0) and
               ((Abs(AppliedAmount + ApplyingAmount) > ApplnRoundingPrecision))
@@ -122,7 +117,6 @@ codeunit 11443 "Payment Tolerance Mgt. NL"
                     UseDocumentNo := CBGStatement."Document No."
                 else
                     UseDocumentNo := CBGStatementLine."Document No.";
-
                 if CBGStatementLine."Account Type" = CBGStatementLine."Account Type"::Customer then begin
                     if GLSetup."Payment Tolerance Warning" then begin
                         if PaymentToleranceMgt.CallPmtTolWarning(
@@ -152,7 +146,6 @@ codeunit 11443 "Payment Tolerance Mgt. NL"
                     end else
                         PaymentToleranceMgt.PutVendPmtTolAmount(NewVendLedgEntry, ApplyingAmount, AppliedAmount, CBGStatementLineApplID);
             end;
-
         end;
         exit(true);
     end;

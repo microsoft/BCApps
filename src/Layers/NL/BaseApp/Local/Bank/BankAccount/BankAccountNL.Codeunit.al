@@ -22,5 +22,5 @@ codeunit 11430 "Bank Account NL"
 
     var
         LocalFunctionalityMgt: Codeunit "Local Functionality Mgt.";
-        IncorrectBankAccountNoMsg: Label '%1 %2 may not be filled out correctly.';
+        IncorrectBankAccountNoMsg: Label '%1 %2 may not be filled out correctly.', Comment = '%1 = Bank Account No. field caption, %2 = Bank Account No.';
 }
