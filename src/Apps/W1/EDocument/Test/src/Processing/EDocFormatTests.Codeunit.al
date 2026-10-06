@@ -14,6 +14,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
+using Microsoft.Peppol;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
