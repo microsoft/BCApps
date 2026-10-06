@@ -18,12 +18,9 @@ codeunit 10811 "Generate File XML"
     var
         StartingDate: Date;
         EndingDate: Date;
-        ProgressDialog: Dialog;
         FRGeneralLedgerXMLTok: Label 'FR Export General Ledger Entries to XML File', Locked = true;
         FRGLXMLFrameworkTok: Label 'FR General Ledger Entries XML generated via Audit File Export Framework';
         NoEntriesToExportErr: Label 'There are no entries to export within the defined filter. The file was not created.';
-        CreateFileTxt: label 'Creating FEC audit file\';
-        ProcessTransactionsTxt: label 'Processing transactions: #1###', Comment = '#1 - percent of processed G/L Entries';
 
     procedure GenerateXMLFile(AuditFileExportLine: Record "Audit File Export Line"; var TempBlob: Codeunit "Temp Blob")
     var
@@ -38,8 +35,6 @@ codeunit 10811 "Generate File XML"
         InitGlobalVariables(AuditFileExportHeader);
 
         FeatureTelemetry.LogUptake('0000V8T', FRGeneralLedgerXMLTok, Enum::"Feature Uptake Status"::"Set up");
-
-        OpenProgressDialog(CreateFileTxt + ProcessTransactionsTxt);
 
         TempBlob.CreateOutStream(OutStream);
         GLEntry.SetCurrentKey("Posting Date", "G/L Account No.", "Dimension Set ID");
@@ -66,12 +61,6 @@ codeunit 10811 "Generate File XML"
         GLEntry.SetFilter("G/L Account No.", GLAccNoFilter);
         if GLEntry.IsEmpty() then
             Error(NoEntriesToExportErr);
-    end;
-
-    local procedure OpenProgressDialog(DialogContent: Text)
-    begin
-        if GuiAllowed() then
-            ProgressDialog.Open(DialogContent);
     end;
 
     procedure InitGlobalVariables(AuditFileExportHeader: Record "Audit File Export Header")

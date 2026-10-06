@@ -151,11 +151,12 @@ xmlport 10803 "Export G/L Entries FR"
                     if not GuiAllowed() then
                         exit;
 
-                    CurrentCount += 1;
-                    if ((CurrentCount * 10) mod TotalCount = 0) then begin
-                        Window.Update(1, "G/L Entry"."Entry No.");
-                        Window.Update(2, "G/L Entry"."Posting Date");
-                    end;
+                    if CurrentDateTime() < NextProgressUpdate then
+                        exit;
+
+                    Window.Update(1, "G/L Entry"."Entry No.");
+                    Window.Update(2, "G/L Entry"."Posting Date");
+                    NextProgressUpdate := CurrentDateTime() + 250;
                 end;
             }
         }
@@ -175,20 +176,21 @@ xmlport 10803 "Export G/L Entries FR"
 
     trigger OnPostXmlPort()
     begin
-        Window.Close();
+        if GuiAllowed() then
+            Window.Close();
     end;
 
     trigger OnPreXmlPort()
     begin
+        if not GuiAllowed() then
+            exit;
+
         Window.Open(
           Text001Lbl +
           Text002Lbl +
           Text003Lbl);
 
-        if GuiAllowed() then begin
-            CurrentCount := 0;
-            TotalCount := "g/l entry".Count;
-        end;
+        NextProgressUpdate := CurrentDateTime();
     end;
 
     var
@@ -196,8 +198,7 @@ xmlport 10803 "Export G/L Entries FR"
         Text002Lbl: Label 'Entry No.           #1######\', Comment = '%1 = Value';
         Text003Lbl: Label 'Posting Date        #2######', Comment = '%2 = Date';
         Window: Dialog;
-        CurrentCount: Integer;
-        TotalCount: Integer;
+        NextProgressUpdate: DateTime;
 
     procedure InitializeRequest(var GLEntry: Record "G/L Entry"; StartDate: Date; EndDate: Date)
     begin
