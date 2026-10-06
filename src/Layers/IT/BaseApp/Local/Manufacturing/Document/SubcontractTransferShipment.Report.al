@@ -120,6 +120,33 @@ report 12154 "Subcontract. Transfer Shipment"
                     column(TransportReasonCode_Description; TransportReasonCode.Description)
                     {
                     }
+                    column(VendorAddr_1_; LegacyVendorAddr[1])
+                    {
+                    }
+                    column(VendorAddr_2_; LegacyVendorAddr[2])
+                    {
+                    }
+                    column(VendorAddr_3_; LegacyVendorAddr[3])
+                    {
+                    }
+                    column(VendorAddr_4_; LegacyVendorAddr[4])
+                    {
+                    }
+                    column(VendorAddr_5_; LegacyVendorAddr[5])
+                    {
+                    }
+                    column(VendorAddr_6_; LegacyVendorAddr[6])
+                    {
+                    }
+                    column(VendorAddr_7_; LegacyVendorAddr[7])
+                    {
+                    }
+                    column(VendorAddr_8_; LegacyVendorAddr[8])
+                    {
+                    }
+                    column(LablVendor; LegacyVendorLabel)
+                    {
+                    }
                     column(CopyText; CopyText)
                     {
                     }
@@ -351,6 +378,12 @@ report 12154 "Subcontract. Transfer Shipment"
                         column(Transfer_Shipment_Line__Item_No__Caption; FieldCaption("Item No."))
                         {
                         }
+                        column(RefSubcOrd; LegacySubcontractOrderNo)
+                        {
+                        }
+                        column(RefProdOrd; LegacyProductionOrderNo)
+                        {
+                        }
                         dataitem(DimensionLoop2; "Integer")
                         {
                             DataItemTableView = sorting(Number) where(Number = filter(1 ..));
@@ -555,9 +588,13 @@ report 12154 "Subcontract. Transfer Shipment"
         TransferToAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
         CompanyText: array[4] of Text[60];
+        LegacyVendorAddr: array[8] of Text[100];
         DummyText: Text[60];
         CopyText: Text[30];
         DimText: Text[120];
+        LegacyProductionOrderNo: Code[20];
+        LegacySubcontractOrderNo: Code[20];
+        LegacyVendorLabel: Text[100];
         OldDimText: Text[75];
         MoreLines: Boolean;
         NoOfCopiesToPrint: Integer;

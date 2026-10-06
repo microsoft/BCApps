@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
@@ -3032,78 +3033,45 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,TransferShipmentRequestPageHandler')]
+    [HandlerFunctions('TransferShipmentRequestPageHandler')]
     procedure TransferShipmentReportShowsPostedSubcontractingReferences()
     var
-        Bin: Record Bin;
-        Item: Record Item;
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
-        ProdOrderComp: Record "Prod. Order Component";
-        ProductionOrder: Record "Production Order";
-        PurchaseLine: Record "Purchase Line";
-        TransferHeader: Record "Transfer Header";
-        TransferLine: Record "Transfer Line";
         TransferShipmentHeader: Record "Transfer Shipment Header";
         TransferShipmentLine: Record "Transfer Shipment Line";
         Vendor: Record Vendor;
-        WorkCenter: array[2] of Record "Work Center";
-        PurchaseHeaderPage: TestPage "Purchase Order";
+        ProductionOrderNo: Code[20];
+        PurchaseOrderNo: Code[20];
         PostedVendorName: Text[100];
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 649580] The standard transfer shipment report shows references stored on a posted subcontracting shipment.
         Initialize();
+        SelectSubcontractingTransferShipmentLayout();
 
-        // [GIVEN] A posted shipment for a subcontracting transfer
-        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
-        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
-        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
-        UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
-        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+        // [GIVEN] A posted transfer shipment retaining subcontracting references
+        CreateAndPostOrdinaryTransferShipment(TransferShipmentHeader);
+        LibraryPurchase.CreateVendor(Vendor);
+        PostedVendorName := Vendor.Name;
+        PurchaseOrderNo := CopyStr(LibraryRandom.RandText(MaxStrLen(PurchaseOrderNo)), 1, MaxStrLen(PurchaseOrderNo));
+        ProductionOrderNo := CopyStr(LibraryRandom.RandText(MaxStrLen(ProductionOrderNo)), 1, MaxStrLen(ProductionOrderNo));
+        TransferShipmentHeader."Subc. Source Type" := TransferShipmentHeader."Subc. Source Type"::Subcontracting;
+        TransferShipmentHeader."Source ID" := Vendor."No.";
+        TransferShipmentHeader."Transfer-to Name" := PostedVendorName;
+        TransferShipmentHeader."Transfer-to Address" := Vendor.Address;
+        TransferShipmentHeader."Subcontr. Purch. Order No." := PurchaseOrderNo;
+        TransferShipmentHeader.Modify();
 
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
+        TransferShipmentLine.FindFirst();
+        TransferShipmentLine."Subc. Prod. Order No." := ProductionOrderNo;
+        TransferShipmentLine.Modify();
 
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        PurchaseLine.FindFirst();
-
-        PurchaseHeaderPage.OpenView();
-        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
-        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
-
-        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
-#pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
-#pragma warning restore AA0210
-        ProdOrderComp.FindFirst();
-
-        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
-        TransferLine.FindFirst();
-        TransferHeader.Get(TransferLine."Document No.");
-
-        Location.Get(TransferHeader."Transfer-from Code");
-        Item.Get(ProdOrderComp."Item No.");
-        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
-        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
-
-        TransferShipmentHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
-        TransferShipmentHeader.FindFirst();
-        PostedVendorName := TransferShipmentHeader."Transfer-to Name";
-
+        // [GIVEN] The vendor master data changes after posting
         Vendor.Get(TransferShipmentHeader."Source ID");
         Vendor.Name := CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor.Name)), 1, MaxStrLen(Vendor.Name));
         Vendor.Modify();
         Assert.AreNotEqual(Vendor.Name, PostedVendorName, 'The vendor name must change after posting to verify that the report uses posted values.');
+        Commit();
 
         // [WHEN] The standard transfer shipment report is run after the vendor name changes
         TransferShipmentHeader.SetRecFilter();
@@ -3112,7 +3080,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [THEN] The report shows the posted subcontractor and order references
         VerifySubcontractingTransferShipmentReport(
-            TransferShipmentHeader, TransferShipmentLine, PurchaseLine."Document No.", PostedVendorName);
+            TransferShipmentHeader, TransferShipmentLine, PurchaseOrderNo, PostedVendorName);
     end;
 
     [Test]
@@ -3124,6 +3092,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 649580] The standard transfer shipment report leaves subcontracting references blank for an ordinary transfer.
         Initialize();
+        SelectSubcontractingTransferShipmentLayout();
 
         // [GIVEN] A posted ordinary transfer shipment
         CreateAndPostOrdinaryTransferShipment(TransferShipmentHeader);
@@ -4534,25 +4503,59 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     local procedure VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header")
+    var
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        SubcTransferShipmentData: Codeunit "Subc. Transfer Shipment Data";
+        SubcontractorAddress: array[8] of Text[100];
+        SubcontractorAddressValue: Text[100];
+        SubcontractorName: Text[100];
+        SubcontractorNo: Code[20];
+        SubcontractPurchaseOrderNo: Code[20];
     begin
         LibraryReportDataset.AssertElementWithValueExists('No_TransShptHeader', TransferShipmentHeader."No.");
-        LibraryReportDataset.AssertElementWithValueExists('SubcVendorNo', '');
-        LibraryReportDataset.AssertElementWithValueExists('SubcVendorName', '');
-        LibraryReportDataset.AssertElementWithValueExists('SubcPurchaseOrderNo', '');
-        LibraryReportDataset.AssertElementWithValueExists('SubcProductionOrderNo', '');
+        SubcTransferShipmentData.GetHeaderData(
+            TransferShipmentHeader, SubcontractorNo, SubcontractorName, SubcontractorAddressValue,
+            SubcontractorAddress, SubcontractPurchaseOrderNo);
+        Assert.AreEqual('', SubcontractorNo, 'An ordinary shipment must not expose a subcontractor number.');
+        Assert.AreEqual('', SubcontractorName, 'An ordinary shipment must not expose a subcontractor name.');
+        Assert.AreEqual('', SubcontractorAddressValue, 'An ordinary shipment must not expose a subcontractor address.');
+        Assert.AreEqual('', SubcontractPurchaseOrderNo, 'An ordinary shipment must not expose a subcontract purchase order number.');
+        TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
+        TransferShipmentLine.FindFirst();
+        Assert.AreEqual('', TransferShipmentLine."Subc. Prod. Order No.", 'An ordinary shipment must not expose a production order number.');
     end;
 
     local procedure VerifySubcontractingTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line"; PurchaseOrderNo: Code[20]; PostedVendorName: Text[100])
+    var
+        SubcTransferShipmentData: Codeunit "Subc. Transfer Shipment Data";
+        SubcontractorAddress: array[8] of Text[100];
+        SubcontractorAddressValue: Text[100];
+        SubcontractorName: Text[100];
+        SubcontractorNo: Code[20];
+        SubcontractPurchaseOrderNo: Code[20];
     begin
-        LibraryReportDataset.AssertElementWithValueExists('SubcVendorNo', TransferShipmentHeader."Source ID");
-        LibraryReportDataset.AssertElementWithValueExists('SubcVendorName', PostedVendorName);
-        LibraryReportDataset.AssertElementWithValueExists('SubcPurchaseOrderNo', PurchaseOrderNo);
+        SubcTransferShipmentData.GetHeaderData(
+            TransferShipmentHeader, SubcontractorNo, SubcontractorName, SubcontractorAddressValue,
+            SubcontractorAddress, SubcontractPurchaseOrderNo);
+        Assert.AreEqual(TransferShipmentHeader."Source ID", SubcontractorNo, 'The report data must use the posted subcontractor number.');
+        Assert.AreEqual(PostedVendorName, SubcontractorName, 'The report data must use the posted subcontractor name.');
+        Assert.AreEqual(TransferShipmentHeader."Transfer-to Address", SubcontractorAddressValue, 'The report data must use the posted subcontractor address.');
+        Assert.AreEqual(PurchaseOrderNo, SubcontractPurchaseOrderNo, 'The report data must use the posted subcontract purchase order number.');
 
         TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
         TransferShipmentLine.FindSet();
         repeat
-            LibraryReportDataset.AssertElementWithValueExists('SubcProductionOrderNo', TransferShipmentLine."Subc. Prod. Order No.");
+            Assert.AreNotEqual('', TransferShipmentLine."Subc. Prod. Order No.", 'The report line must expose the posted production order number.');
         until TransferShipmentLine.Next() = 0;
+    end;
+
+    local procedure SelectSubcontractingTransferShipmentLayout()
+    var
+        DesignTimeReportSelection: Codeunit "Design-time Report Selection";
+        SubcontractingAppId: Guid;
+    begin
+        Evaluate(SubcontractingAppId, '1f32a50d-0057-4b95-b5df-cc04d7e89470');
+        DesignTimeReportSelection.SetSelectedLayout('SubcontractingTransferShipment', SubcontractingAppId);
     end;
 
     procedure SelectRequisitionTemplateName(): Code[10]
