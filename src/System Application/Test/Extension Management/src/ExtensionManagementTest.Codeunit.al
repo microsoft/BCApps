@@ -42,7 +42,7 @@ codeunit 133100 "Extension Management Test"
         ExtensionNotInstalledErr: Label 'Extension should be installed.';
         PackageIdExistsErr: Label 'The returned extension pakage does not exist';
         NullPackageIdErr: Label 'There should not be an extension corresponding to the returned package ID';
-        NotSufficientPermissionErr: Label 'You do not have the required permissions to install the selected app. Contact your Partner or system administrator to install the app or assign you permissions.';
+        NotSufficientPermissionErr: Label 'You do not have sufficient permissions to manage extensions. Please contact your administrator.';
         PackageIdExtensionVersionErr: Label 'The package Id does not poin to the correct extension version';
 
     local procedure SetNavAppIds()
