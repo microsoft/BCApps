@@ -34,6 +34,9 @@ page 7415 "Excise Tax Type Card"
                 {
                     ToolTip = 'Specifies whether this tax type is active and available for use.';
                 }
+                field("Bonded Location Treatment"; Rec."Bonded Location Treatment")
+                {
+                }
             }
             group(Reporting)
             {

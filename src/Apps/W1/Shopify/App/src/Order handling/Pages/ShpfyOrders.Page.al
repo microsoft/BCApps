@@ -314,6 +314,7 @@ page 30115 "Shpfy Orders"
             {
                 ApplicationArea = All;
                 Caption = 'Sync Shipments To Shopify';
+                Enabled = HasShopifyOrders;
                 Image = Export;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -465,6 +466,16 @@ page 30115 "Shpfy Orders"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        ShopifyOrderHeader: Record "Shpfy Order Header";
+    begin
+        if Rec.GetFilter("Shop Code") <> '' then
+            ShopifyOrderHeader.SetFilter("Shop Code", Rec.GetFilter("Shop Code"));
+        HasShopifyOrders := not ShopifyOrderHeader.IsEmpty();
+    end;
+
     var
         ConfirmLbl: Label 'Create sales document(s) from the selected Shopify order(s)?';
+        HasShopifyOrders: Boolean;
 }
