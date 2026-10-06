@@ -32,8 +32,6 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector.ResetLastDeletedPath();
         TestFileStorageConnector.ResetFileExistsCallCount();
         TestFileStorageConnector.SetFailOnGetFile(false);
-        TestFileStorageConnector.SetReturnDifferentContent(false);
-        TestFileStorageConnector.SetStoreFileContent(false);
     end;
 
     procedure GetAccounts(var FileAccount: Record "File Account")
@@ -151,19 +149,5 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector: Codeunit "Test File Storage Connector";
     begin
         TestFileStorageConnector.SetFailOnGetFile(FailOnGetFile);
-    end;
-
-    procedure SetReturnDifferentContent(ReturnDifferentContent: Boolean)
-    var
-        TestFileStorageConnector: Codeunit "Test File Storage Connector";
-    begin
-        TestFileStorageConnector.SetReturnDifferentContent(ReturnDifferentContent);
-    end;
-
-    procedure SetStoreFileContent(StoreFileContent: Boolean)
-    var
-        TestFileStorageConnector: Codeunit "Test File Storage Connector";
-    begin
-        TestFileStorageConnector.SetStoreFileContent(StoreFileContent);
     end;
 }

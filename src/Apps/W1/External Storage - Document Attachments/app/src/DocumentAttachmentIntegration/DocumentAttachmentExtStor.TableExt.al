@@ -69,8 +69,6 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
         "Stored Externally" := false;
         "External Upload Date" := 0DT;
         "External File Path" := '';
-        "Source Environment Hash" := '';
-        "Skip Delete On Copy" := false;
         Modify();
     end;
 
