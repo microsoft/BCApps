@@ -6,13 +6,19 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Setup;
+#if not CLEAN30
 using Microsoft.Foundation.AuditCodes;
+#endif
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
+#if not CLEAN30
 using System.Environment.Configuration;
+#endif
 using System.TestLibraries.Utilities;
+#if not CLEAN30
 using System.Upgrade;
+#endif
 
 codeunit 148163 "Depr. Diff. Calculation FI"
 {
