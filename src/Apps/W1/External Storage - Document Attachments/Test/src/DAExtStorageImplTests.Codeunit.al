@@ -40,6 +40,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         NoFileAccountErr: Label 'No file account is assigned to the Document Attachments - External Storage file scenario.', Locked = true;
         SharedExternalFileErr: Label 'The external file is shared with another attachment, so it was not deleted.', Locked = true;
         HardSyncFailureErr: Label 'Simulated attachment persistence failure.', Locked = true;
+        WorkerNotInitializedErr: Label 'The External Storage synchronization worker can only be run by the External Storage Sync report.', Locked = true;
 
     #region Successful Operations Tests
 
@@ -604,11 +605,13 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         ErrorMessageRegister: Record "Error Message Register";
         HardErrorSubscriber: Codeunit "DA Ext. Storage Hard Error";
         DAExternalStorageSync: Report "DA External Storage Sync";
+        FailedExternalFilePath: Text;
     begin
         // [SCENARIO] A runtime error while processing one attachment is registered and does not stop the remaining attachments.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
         ErrorMessageRegister.DeleteAll(true);
 
         CreateNamedDocumentAttachment(FailedAttachment, 'Hard failure', 'pdf');
@@ -629,8 +632,27 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         RefreshAttachment(FailedAttachment);
         Assert.IsFalse(FailedAttachment."Stored Externally", 'The failed attachment state should be rolled back');
+        FailedExternalFilePath := FileConnectorMock.GetLastDeletedPath();
+        Assert.AreNotEqual('', FailedExternalFilePath, 'The orphaned external file should be deleted after the failed upload');
+        Assert.IsFalse(ExternalFileExists(FailedExternalFilePath), 'The failed attachment external file should not remain in external storage');
         RefreshAttachment(SuccessfulAttachment);
         Assert.IsTrue(SuccessfulAttachment."Stored Externally", 'Other attachments should still be processed');
+        Assert.AreNotEqual(FailedExternalFilePath, SuccessfulAttachment."External File Path", 'The successful attachment should use a different external file');
+        Assert.IsTrue(ExternalFileExists(SuccessfulAttachment."External File Path"), 'The successful attachment external file should remain in external storage');
+    end;
+
+    [Test]
+    procedure SyncWorkerErrorsWhenRunWithoutInitializedStep()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] The isolated synchronization worker cannot be run without internal report initialization.
+        Initialize();
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+
+        asserterror Codeunit.Run(Codeunit::"DA Ext. Storage Sync Worker", DocumentAttachment);
+
+        Assert.ExpectedError(WorkerNotInitializedErr);
     end;
 
     #endregion
@@ -1651,6 +1673,14 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
             DocumentAttachment."Document Type",
             DocumentAttachment."Line No.",
             DocumentAttachment.ID);
+    end;
+
+    local procedure ExternalFileExists(ExternalFilePath: Text): Boolean
+    var
+        ExternalFileStorage: Codeunit "External File Storage";
+    begin
+        ExternalFileStorage.Initialize(Enum::"File Scenario"::"Doc. Attach. - External Storage");
+        exit(ExternalFileStorage.FileExists(ExternalFilePath));
     end;
 
     local procedure VerifyRegisteredFailure(RegisterID: Guid; DocumentAttachment: Record "Document Attachment"; FileName: Text; Reason: Text)

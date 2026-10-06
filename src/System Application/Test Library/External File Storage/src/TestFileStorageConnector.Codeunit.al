@@ -76,6 +76,10 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     procedure FileExists(AccountId: Guid; Path: Text): Boolean;
     begin
         FileExistsCallCount += 1;
+        if not StoreFileContent then
+            exit(false);
+
+        exit(StoredFileIndexes.ContainsKey(Format(AccountId) + Path));
     end;
 
     procedure DeleteFile(AccountId: Guid; Path: Text);
@@ -83,6 +87,9 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         // The platform invokes connector callbacks inside a TryFunction, so we cannot
         // Modify() a table from here. Stash the path in a SingleInstance global instead.
         LastDeletedFilePath := Path;
+        if StoreFileContent then
+            if StoredFileIndexes.ContainsKey(Format(AccountId) + Path) then
+                StoredFileIndexes.Remove(Format(AccountId) + Path);
     end;
 
     internal procedure GetLastDeletedPath(): Text

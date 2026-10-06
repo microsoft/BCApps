@@ -15,10 +15,13 @@ codeunit 8755 "DA Ext. Storage Sync Worker"
     var
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Result: Boolean;
+        StepInitialized: Boolean;
         FailureReason: Text;
         TelemetryErrorText: Text;
         TelemetryErrorCallStack: Text;
-        Step: Option Upload,Download,DeleteInternal,DeleteExternal;
+        ExternalFilePath: Text[2048];
+        Step: Option Upload,Download,DeleteInternal,DeleteExternal,DeleteOrphanedFile;
+        WorkerNotInitializedErr: Label 'The External Storage synchronization worker can only be run by the External Storage Sync report.';
         SyncStepFailedTelemetryErr: Label 'The attachment synchronization step failed.', Locked = true;
 
     trigger OnRun()
@@ -27,6 +30,9 @@ codeunit 8755 "DA Ext. Storage Sync Worker"
         Clear(FailureReason);
         Clear(TelemetryErrorText);
         Clear(TelemetryErrorCallStack);
+
+        if not StepInitialized then
+            Error(WorkerNotInitializedErr);
 
         case Step of
             Step::Upload:
@@ -37,15 +43,23 @@ codeunit 8755 "DA Ext. Storage Sync Worker"
                 Result := DAExternalStorageImpl.DeleteFromInternalStorage(Rec, FailureReason);
             Step::DeleteExternal:
                 Result := DAExternalStorageImpl.DeleteFromExternalStorage(Rec, FailureReason);
+            Step::DeleteOrphanedFile:
+                Result := DAExternalStorageImpl.DeleteExternalFileByPath(ExternalFilePath, FailureReason);
         end;
 
         if not Result then
             CaptureFailureTelemetry(DAExternalStorageImpl.CanLogLastFailureReasonToTelemetry());
     end;
 
-    internal procedure SetStep(NewStep: Option Upload,Download,DeleteInternal,DeleteExternal)
+    internal procedure SetStep(NewStep: Option Upload,Download,DeleteInternal,DeleteExternal,DeleteOrphanedFile)
     begin
         Step := NewStep;
+        StepInitialized := true;
+    end;
+
+    internal procedure SetExternalFilePath(NewExternalFilePath: Text[2048])
+    begin
+        ExternalFilePath := NewExternalFilePath;
     end;
 
     internal procedure GetResult(): Boolean
@@ -66,6 +80,11 @@ codeunit 8755 "DA Ext. Storage Sync Worker"
     internal procedure GetTelemetryErrorCallStack(): Text
     begin
         exit(TelemetryErrorCallStack);
+    end;
+
+    internal procedure GetLastCreatedExternalFilePath(): Text[2048]
+    begin
+        exit(DAExternalStorageImpl.GetLastCreatedExternalFilePath());
     end;
 
     local procedure CaptureFailureTelemetry(CanLogFailureReasonToTelemetry: Boolean)
