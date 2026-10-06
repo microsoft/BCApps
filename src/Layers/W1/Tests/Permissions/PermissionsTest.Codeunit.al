@@ -769,6 +769,7 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet: Record "Tenant Permission Set";
         ExpandedPermission: Record "Expanded Permission";
         PermSetAssignmentBuffer: Record "Perm. Set Assignment Buffer";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         PermissionsOverview: TestPage "Permissions Overview";
     begin
         // [SCENARIO] A local user with permission set is shown in the permissions overview factbox
@@ -793,6 +794,8 @@ codeunit 139400 "Permissions Test"
             Assert.AreEqual(LocalUser."User Name", PermissionsOverview.PermissionSetUsers.UserName.Value,
                 'Local user assigned permission set was not found in factbox');
         until (ExpandedPermission.Next() = 0);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]
@@ -806,6 +809,7 @@ codeunit 139400 "Permissions Test"
         ExpandedPermission: Record "Expanded Permission";
         PermSetAssignmentBuffer: Record "Perm. Set Assignment Buffer";
         SecurityGroup: Codeunit "Security Group";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         PermissionsOverview: TestPage "Permissions Overview";
     begin
         // [SCENARIO] A security group with with user and permission set is shown in the permissions overview factbox
@@ -836,6 +840,8 @@ codeunit 139400 "Permissions Test"
             Assert.AreEqual(GraphUser."User Name", PermissionsOverview.PermissionSetUsers.UserName.Value,
                 'Graph user inheriting permission set from security group was not found in factbox');
         until (ExpandedPermission.Next() = 0);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]
@@ -986,8 +992,12 @@ codeunit 139400 "Permissions Test"
         var SecurityGroupBuffer: Record "Security Group Buffer")
     var
         SecurityGroup: Codeunit "Security Group";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         UserInfo: DotNet UserInfo;
     begin
+        // Microsoft Entra security groups are only resolved on SaaS
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
         Clear(AzureADGraphTestLibrary);
         Clear(SecurityGroupsTestLibrary);
         Clear(MockGraphQueryTestLibrary);
