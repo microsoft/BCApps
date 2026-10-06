@@ -1,5 +1,6 @@
 namespace Microsoft.FabricExport;
 
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Fabric;
@@ -1263,34 +1264,30 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
-    procedure ModifyFieldFailsForUnsupportedType()
+    procedure RenameFieldFailsForUnsupportedType()
     var
         Customer: Record Customer;
         TenantFabricTableFields: Record "Tenant Fabric Table Fields";
     begin
-        //[SCENARIO] An existing selection of an unsupported field cannot be modified
+        //[SCENARIO] A selected field cannot be renamed to a field of an unsupported type
         //[GIVEN] Initialize
         Initialize();
-        //[GIVEN] A selected field of type Media that bypassed validation by being renamed from a supported field
+        //[GIVEN] A selected field of a supported type
         TenantFabricTableFields.Init();
         TenantFabricTableFields."Table ID" := Database::Customer;
         TenantFabricTableFields."Field ID" := Customer.FieldNo(Name);
-        TenantFabricTableFields."Field Name" := 'Image';
         TenantFabricTableFields.Insert(false);
-        TenantFabricTableFields.Rename(Database::Customer, Customer.FieldNo(Image));
-        // Commit so the failed Modify does not roll back the GIVEN row; Initialize clears it in the next test.
+        // Commit so the failed Rename does not roll back the GIVEN row; Initialize clears it in the next test.
         Commit();
-        //[GIVEN] A new field name
-        TenantFabricTableFields."Field Name" := 'Renamed';
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
-        //[WHEN] The field is modified
-        asserterror TenantFabricTableFields.Modify(true);
+        //[WHEN] The field is renamed to a field of type Media
+        asserterror TenantFabricTableFields.Rename(Database::Customer, Customer.FieldNo(Image));
 
-        //[THEN] The modification is rejected and the stored name is unchanged
-        VerifyFieldModifyRejected(Database::Customer, Customer.FieldNo(Image), 'Image', 'is not supported');
+        //[THEN] The rename is rejected and the original selection is unchanged
+        VerifyFieldRenameRejected(Database::Customer, Customer.FieldNo(Name), Customer.FieldNo(Image), 'is not supported');
     end;
 
     local procedure FindVirtualTableId(): Integer
@@ -1365,13 +1362,13 @@ codeunit 140012 "Test FAB Platform"
         Assert.IsFalse(TenantFabricTableFields.Get(TableId, FieldId), StrSubstNo(FieldNotSelectedErr, FieldId, TableId));
     end;
 
-    local procedure VerifyFieldModifyRejected(TableId: Integer; FieldId: Integer; ExpectedFieldName: Text; ExpectedError: Text)
+    local procedure VerifyFieldRenameRejected(TableId: Integer; OriginalFieldId: Integer; RejectedFieldId: Integer; ExpectedError: Text)
     var
         TenantFabricTableFields: Record "Tenant Fabric Table Fields";
     begin
         Assert.ExpectedError(ExpectedError);
-        TenantFabricTableFields.Get(TableId, FieldId);
-        Assert.AreEqual(ExpectedFieldName, TenantFabricTableFields."Field Name", 'Expected the stored field name to be unchanged.');
+        Assert.IsTrue(TenantFabricTableFields.Get(TableId, OriginalFieldId), 'Expected the original field to remain selected.');
+        Assert.IsFalse(TenantFabricTableFields.Get(TableId, RejectedFieldId), 'Expected the unsupported field not to be selected.');
     end;
 
     #region Handlers
