@@ -2130,12 +2130,14 @@ codeunit 134301 "Workflow Notification Test"
         Assert.RecordIsEmpty(WorkflowStepInstance);
 
         // [THEN] The failed Notification Entry is kept with the error for a later dispatch.
-        NotificationEntry.SetRange("Recipient User ID", ApproverUserSetup."User ID");
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, SalesHeader.RecordId());
+        NotificationEntry.SetRange("Triggered By Record", ApprovalEntry.RecordId);
+        NotificationEntry.SetRange(Type, NotificationEntry.Type::Approval);
         NotificationEntry.FindFirst();
+        NotificationEntry.TestField("Recipient User ID", ApproverUserSetup."User ID");
         NotificationEntry.TestField("Error Message");
 
         // [WHEN] The approval administrator approves the request.
-        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, SalesHeader.RecordId());
         ApprovalsMgmt.ApproveApprovalRequests(ApprovalEntry);
 
         // [THEN] The Sales Order is released.
