@@ -62,9 +62,11 @@ The seven HTTP tests assert:
 7. Selecting `None` restores 401 after a successful authenticated request.
 
 Existing codeunit 139494 continues to cover the default provider, instance
-lifetime, and final-event ordering. Source-contract Pester checks cover the
-failure-flag branch and early Windows/SaaS guards; these are **not** Windows,
-SaaS, permission-failure, or runtime authentication-mode tests.
+lifetime, and final-event ordering. The 117 existing credential-pipeline and
+parallel-execution Pester tests provide regression coverage for the unchanged
+harness. They do not test this AL provider's authentication behavior. No
+source-pattern tests are added; Windows/SaaS guards and retrieval failures
+still require behavioral validation.
 
 **Outstanding acceptance gates:** compiled/published CI execution and artifacts;
 platform semantics for absent/expired keys; immediate cross-session visibility;
