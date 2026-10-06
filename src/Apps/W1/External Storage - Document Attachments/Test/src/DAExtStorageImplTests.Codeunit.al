@@ -661,8 +661,9 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         asserterror Codeunit.Run(Codeunit::"DA Ext. Storage Sync Worker", DocumentAttachment);
 
+        // ErrorType::Internal sends the developer invariant to telemetry and replaces the error text with a generic platform error.
         Assert.ExpectedErrorCode(DialogErrorCodeTok);
-        Assert.IsTrue(GetLastErrorText(true).Contains(WorkerNotInitializedErr), 'The developer invariant should be retained in system-metadata diagnostics');
+        Assert.IsFalse(GetLastErrorText(true).Contains(WorkerNotInitializedErr), 'The internal invariant should be replaced by the generic platform error');
     end;
 
     [Test]
@@ -1811,6 +1812,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment."External File Path" := 'test/environment/Document_Attachment/file-' + Format(CreateGuid()) + '.txt';
         DocumentAttachment."External Upload Date" := CurrentDateTime();
         DocumentAttachment.Modify();
+        RefreshAttachment(DocumentAttachment);
     end;
 
     local procedure CreateExternallyStoredOnlyDocument(var DocumentAttachment: Record "Document Attachment")

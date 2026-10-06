@@ -213,6 +213,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             DocumentAttachment."External File Path" := FileName;
             DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
             DocumentAttachment.Modify();
+            // SQL stores DateTime with lower precision than CurrentDateTime(); return the persisted row so stale-reference guards match it.
+            DocumentAttachment.GetBySystemId(DocumentAttachment.SystemId);
             DAFeatureTelemetry.LogFeatureUsed();
             DAFeatureTelemetry.LogFileUploaded(DocumentAttachment);
             exit(true);
