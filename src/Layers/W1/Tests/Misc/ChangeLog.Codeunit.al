@@ -1935,12 +1935,16 @@ codeunit 139031 "Change Log"
         ChangeLogSetupField."Monitor Sensitive Field" := true;
         ChangeLogSetupField.Notify := true;
         ChangeLogSetupField.Modify();
+        // Preserve the monitoring setup when the expected page error rolls back the transaction.
+        Commit();
         OpenChangeLogSetupFieldList(ChangeLogSetupFieldListPage, GlobalTableNo, GlobalExtraFieldNo[3]);
 
         asserterror ChangeLogSetupFieldListPage."Log Insertion".SetValue(false);
         Assert.ExpectedTestFieldError(ChangeLogSetupTable.FieldCaption("Monitor Sensitive Field"), Format(false));
         ChangeLogSetupFieldListPage.Close();
 
+        ChangeLogSetupTable.Get(GlobalTableNo);
+        ChangeLogSetupTable.TestField("Monitor Sensitive Field", true);
         ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[3]);
         ChangeLogSetupField.TestField("Monitor Sensitive Field", true);
         ChangeLogSetupField.TestField(Notify, true);
