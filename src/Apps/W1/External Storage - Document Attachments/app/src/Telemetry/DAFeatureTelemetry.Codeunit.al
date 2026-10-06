@@ -70,6 +70,27 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUsage('0000RNT', ExternalStorageTok, 'File Deleted', Dimensions);
     end;
 
+    internal procedure LogExternalFileRetained(DocumentAttachment: Record "Document Attachment"; Operation: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        GetFailureTelemetryDimensions(DocumentAttachment, Operation, Dimensions);
+        FeatureTelemetry.LogUsage('0000W5Q', ExternalStorageTok, 'External File Retained', Dimensions);
+    end;
+
+    internal procedure LogSyncRetention(RetainedCount: Integer; RetiredCount: Integer; RetirementBlockedCount: Integer)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        if RetainedCount = 0 then
+            exit;
+        Dimensions.Add('Category', ExternalStorageCategoryLbl);
+        Dimensions.Add('RetainedCount', Format(RetainedCount));
+        Dimensions.Add('LocallyRetiredCount', Format(RetiredCount));
+        Dimensions.Add('RetirementBlockedCount', Format(RetirementBlockedCount));
+        FeatureTelemetry.LogUsage('0000W5R', ExternalStorageTok, 'External Cleanup Blocked During Sync', Dimensions);
+    end;
+
     internal procedure LogCompanyMigration()
     begin
         FeatureTelemetry.LogUsage('0000RNU', ExternalStorageTok, 'Company Migration');

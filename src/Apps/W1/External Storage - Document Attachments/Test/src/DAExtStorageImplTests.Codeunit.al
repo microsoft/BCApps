@@ -39,7 +39,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         AlreadyUploadedErr: Label 'The attachment already references a file in external storage.', Locked = true;
         NotStoredExternallyErr: Label 'The attachment is not stored in external storage.', Locked = true;
         NoFileAccountErr: Label 'No file account is assigned to the Document Attachments - External Storage file scenario.', Locked = true;
-        SharedExternalFileErr: Label 'The external file is shared with another attachment, so it was not deleted.', Locked = true;
+        RetirementFeatureDisabledErr: Label 'Enable External Storage before retiring an external reference.', Locked = true;
         HardSyncFailureErr: Label 'Simulated attachment persistence failure.', Locked = true;
         WorkerNotInitializedErr: Label 'The External Storage synchronization worker can only be run by the External Storage Sync report.', Locked = true;
 
@@ -104,7 +104,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure DeleteFromExternalSucceedsForUploadedFile()
+    procedure RetireUploadedExternalReferenceKeepsInternalContent()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
@@ -132,6 +132,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment.FindFirst();
         Assert.IsFalse(DocumentAttachment."Stored Externally", 'Document should not be marked as stored externally');
         Assert.AreEqual('', DocumentAttachment."External File Path", 'External file path should be cleared');
+        Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'Internal content must remain available');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'The compatibility entry point must not delete remote content');
     end;
 
     [Test]
@@ -344,12 +346,14 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.AreEqual('pdf', DocumentAttachment."File Extension", 'Upload must preserve the original extension');
 
         SyncToInternalStorage := true;
+        ExpectedSyncSummary := 'Processed 1 attachments successfully. 0 failed. Remote files for 1 attachment(s) were retained. 1 external reference(s) were retired locally; 0 retirement(s) were blocked.';
         Commit();
         Report.Run(Report::"DA External Storage Sync");
 
         RefreshAttachment(DocumentAttachment);
         Assert.IsTrue(DocumentAttachment."Stored Internally", 'The attachment should be restored internally');
-        Assert.IsFalse(DocumentAttachment."Stored Externally", 'Move should clear the external reference');
+        Assert.IsFalse(DocumentAttachment."Stored Externally", 'Move should retire only the local external reference');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Move must retain the remote bytes');
         Assert.AreEqual('/Invoice Nov''25', DocumentAttachment."File Name", 'Download must preserve the original name');
         Assert.AreEqual('pdf', DocumentAttachment."File Extension", 'Download must preserve the original extension');
         Assert.AreEqual(OriginalContent, GetAttachmentContent(DocumentAttachment), 'Storage Sync must preserve the file content');
@@ -511,7 +515,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DAExternalStorageSetup.Modify();
         SyncToInternalStorage := true;
         MoveAttachments := true;
-        ExpectedSyncSummary := 'Processed 0 attachments successfully. 1 failed.';
+        ExpectedSyncSummary := 'Processed 1 attachments successfully. 0 failed. Remote files for 1 attachment(s) were retained. 0 external reference(s) were retired locally; 1 retirement(s) were blocked.';
         ErrorMessages.Trap();
 
         Commit();
@@ -519,8 +523,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         Assert.IsTrue(ErrorMessages.First(), 'The failed cleanup should be listed');
         Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'Invoice Nov25.pdf') > 0, 'The error should identify the attachment');
-        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'copied, but could not be removed') > 0, 'The cleanup failure should be explained');
-        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, FeatureDisabledErr) > 0, 'The specific cleanup reason should be reported');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, 'local external reference could not be retired') > 0, 'The local retirement refusal should be explained');
+        Assert.IsTrue(StrPos(ErrorMessages.Description.Value, RetirementFeatureDisabledErr) > 0, 'The specific refusal reason should be reported');
         ErrorMessages.Close();
         RefreshAttachment(DocumentAttachment);
         Assert.IsTrue(DocumentAttachment."Stored Internally", 'The restored content should be retained');
@@ -700,6 +704,120 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     #endregion
 
+    #region Local Reference Retirement Worker Tests
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure SyncWorkerRetiresRestoredReferenceWithoutRemoteDelete()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        SyncWorker: Codeunit "DA Ext. Storage Sync Worker";
+        ExternalFilePath: Text;
+        OriginalContent: Text;
+        WorkerStep: Option Upload,Download,DeleteInternal,RetireExternalReference;
+    begin
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+        CreateNamedDocumentAttachment(DocumentAttachment, 'Local retirement', 'pdf');
+        OriginalContent := GetAttachmentContent(DocumentAttachment);
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should succeed');
+        ExternalFilePath := DocumentAttachment."External File Path";
+        FileConnectorMock.SetFailOnGetFile(true);
+        FileConnectorMock.FailOnSend(true);
+        Commit();
+
+        SyncWorker.SetStep(WorkerStep::RetireExternalReference);
+        Assert.IsTrue(SyncWorker.Run(DocumentAttachment), 'Local retirement should not raise a runtime error');
+        Assert.IsTrue(SyncWorker.GetResult(), 'Verified internal content should allow local reference retirement');
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsFalse(DocumentAttachment."Stored Externally", 'Only the local external reference should be retired');
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Internal content must remain available');
+        Assert.AreEqual(OriginalContent, GetAttachmentContent(DocumentAttachment), 'The original internal bytes should remain');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'The worker must not call external DeleteFile');
+        Assert.AreEqual(0, FileConnectorMock.GetFileExistsCallCount(), 'Retirement must not query the external file');
+        Assert.IsTrue(ExternalFileExists(ExternalFilePath), 'Remote bytes must remain after local retirement');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure SyncWorkerBlocksExternalOnlyReferenceRetirement()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        SyncWorker: Codeunit "DA Ext. Storage Sync Worker";
+        ExternalFilePath: Text;
+        FailureReason: Text;
+        WorkerStep: Option Upload,Download,DeleteInternal,RetireExternalReference;
+    begin
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+        ExternalFilePath := DocumentAttachment."External File Path";
+        FileConnectorMock.SetFailOnGetFile(true);
+        Commit();
+
+        SyncWorker.SetStep(WorkerStep::RetireExternalReference);
+        Assert.IsTrue(SyncWorker.Run(DocumentAttachment), 'A blocked retirement should return a diagnostic');
+        Assert.IsFalse(SyncWorker.GetResult(), 'External-only content must not lose its reference');
+        Assert.AreNotEqual('', SyncWorker.GetFailureReason(), 'The blocked retirement must explain why');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment, FailureReason), 'The diagnostic compatibility overload must not bypass the content guard');
+        Assert.AreNotEqual('', FailureReason, 'The compatibility overload should explain the blocked retirement');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment), 'The original compatibility entry point must not bypass the content guard');
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.AreEqual(ExternalFilePath, DocumentAttachment."External File Path", 'The external reference must remain');
+        Assert.IsTrue(DocumentAttachment."Stored Externally", 'The external-only attachment must remain accessible');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Blocked retirement must not call external DeleteFile');
+        Assert.AreEqual(0, FileConnectorMock.GetFileExistsCallCount(), 'Blocked retirement must not query external storage');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure SyncWorkerBlocksStaleReferenceRetirement()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        StaleAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        SyncWorker: Codeunit "DA Ext. Storage Sync Worker";
+        ExternalFilePath: Text;
+        FailureReason: Text;
+        WorkerStep: Option Upload,Download,DeleteInternal,RetireExternalReference;
+    begin
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should succeed');
+        ExternalFilePath := DocumentAttachment."External File Path";
+        StaleAttachment := DocumentAttachment;
+        Clear(DocumentAttachment."Document Reference ID");
+        DocumentAttachment."Stored Internally" := false;
+        DocumentAttachment.Modify();
+        FileConnectorMock.SetFailOnGetFile(true);
+        Commit();
+
+        SyncWorker.SetStep(WorkerStep::RetireExternalReference);
+        Assert.IsTrue(SyncWorker.Run(StaleAttachment), 'A stale retirement should return a diagnostic');
+        Assert.IsFalse(SyncWorker.GetResult(), 'A stale snapshot must not authorize retirement');
+        Assert.AreNotEqual('', SyncWorker.GetFailureReason(), 'The stale retirement must explain why');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(StaleAttachment, FailureReason), 'The diagnostic overload must reject the stale snapshot');
+        Assert.AreNotEqual('', FailureReason, 'The diagnostic overload must explain the stale snapshot');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromExternalStorage(StaleAttachment), 'The original overload must reject the stale snapshot');
+
+        RefreshAttachment(DocumentAttachment);
+        Assert.AreEqual(ExternalFilePath, DocumentAttachment."External File Path", 'The current external reference must remain');
+        Assert.IsTrue(DocumentAttachment."Stored Externally", 'The current external-only state must remain');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Stale retirement must not call external DeleteFile');
+        Assert.AreEqual(0, FileConnectorMock.GetFileExistsCallCount(), 'Stale retirement must not query external storage');
+    end;
+
+    #endregion
+
     #region Failure Condition Tests
 
     [Test]
@@ -806,12 +924,12 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         // [THEN] Delete should fail and explain why
         Assert.IsFalse(Result, 'Delete should fail when feature is disabled');
-        Assert.AreEqual(FeatureDisabledErr, FailureReason, 'The disabled feature should be reported');
+        Assert.AreEqual(RetirementFeatureDisabledErr, FailureReason, 'The disabled retirement feature should be reported');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure DeleteSkippedWhenSkipDeleteOnCopyIsSet()
+    procedure CopiedReferenceWithInternalContentCanRetireLocally()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
@@ -832,13 +950,16 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Result := DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment, FailureReason);
 
         // [THEN] Delete should fail (skipped) and explain why
-        Assert.IsFalse(Result, 'Delete should be skipped when Skip Delete On Copy is set');
-        Assert.AreEqual(SharedExternalFileErr, FailureReason, 'The shared external file should be reported');
+        Assert.IsTrue(Result, 'A copied reference with confirmed internal bytes can retire locally');
+        Assert.AreEqual('', FailureReason, 'Successful local retirement should have no refusal reason');
 
         // [THEN] Document should still be marked as externally stored
         DocumentAttachment.SetRecFilter();
         DocumentAttachment.FindFirst();
-        Assert.IsTrue(DocumentAttachment."Stored Externally", 'Document should still be marked as stored externally');
+        Assert.IsFalse(DocumentAttachment."Stored Externally", 'Only the local external reference should be retired');
+        Assert.IsFalse(DocumentAttachment."Skip Delete On Copy", 'Retirement should clear stale copy metadata');
+        Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'Copied internal content must remain');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'The two-argument compatibility entry point must not delete remote content');
     end;
 
     [Test]
@@ -896,15 +1017,13 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure RecordDeleteRemovesBlobFromExternalStorage()
+    procedure RecordDeleteRetainsLoneExternalFile()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         ExternalFilePath: Text;
     begin
-        // [SCENARIO] Deleting a Document Attachment row must delete its blob via the OnAfterDelete subscriber.
-        // Regression test for the bug where the subscriber called DeleteFromExternalStorage(Rec), which
-        // started with Rec.Find() and exited because the row was already gone, leaving the blob orphaned.
+        // [SCENARIO] Automatic attachment deletion must not send a remote DELETE, even for a lone reference.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
@@ -920,9 +1039,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [WHEN] The Document Attachment row is deleted (fires OnAfterDeleteEvent)
         DocumentAttachment.Delete(true);
 
-        // [THEN] The subscriber invoked DeleteFile against the external connector with the stored path
-        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
-            'External connector DeleteFile should be invoked with the stored External File Path when the attachment row is deleted');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(),
+            'The subscriber must retain remote content when the attachment row is deleted');
     end;
 
     [Test]

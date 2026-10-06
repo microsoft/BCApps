@@ -19,7 +19,7 @@ codeunit 8755 "DA Ext. Storage Sync Worker"
         FailureReason: Text;
         TelemetryErrorText: Text;
         TelemetryErrorCallStack: Text;
-        Step: Option Upload,Download,DeleteInternal,DeleteExternal;
+        Step: Option Upload,Download,DeleteInternal,RetireExternalReference;
         WorkerNotInitializedErr: Label 'The External Storage synchronization worker can only be run by the External Storage Sync report.';
         SyncStepFailedTelemetryErr: Label 'The attachment synchronization step failed.', Locked = true;
 
@@ -46,15 +46,15 @@ codeunit 8755 "DA Ext. Storage Sync Worker"
                 Result := DAExternalStorageImpl.DownloadFromExternalStorageToInternal(Rec, FailureReason);
             Step::DeleteInternal:
                 Result := DAExternalStorageImpl.DeleteFromInternalStorage(Rec, FailureReason);
-            Step::DeleteExternal:
-                Result := DAExternalStorageImpl.DeleteFromExternalStorage(Rec, FailureReason);
+            Step::RetireExternalReference:
+                Result := DAExternalStorageImpl.RetireExternalReference(Rec, FailureReason);
         end;
 
         if not Result then
             CaptureFailureTelemetry(DAExternalStorageImpl.CanLogLastFailureReasonToTelemetry());
     end;
 
-    internal procedure SetStep(NewStep: Option Upload,Download,DeleteInternal,DeleteExternal)
+    internal procedure SetStep(NewStep: Option Upload,Download,DeleteInternal,RetireExternalReference)
     begin
         Step := NewStep;
         StepInitialized := true;
