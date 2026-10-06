@@ -369,11 +369,65 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(true);
         end;
 
+        if IsExternalFileShared(DocumentAttachment) then begin
+            DocumentAttachment.MarkAsNotUploadedToExternal();
+            exit(true);
+        end;
+
         if not DeleteExternalFile(DocumentAttachment."External File Path", DocumentAttachment) then
             exit(false);
 
         DocumentAttachment.MarkAsNotUploadedToExternal();
         exit(true);
+    end;
+
+    local procedure IsExternalFileShared(DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        OtherDocumentAttachment: Record "Document Attachment";
+    begin
+        OtherDocumentAttachment.ChangeCompany(DocumentAttachment.CurrentCompany());
+        OtherDocumentAttachment.SetCurrentKey("Stored Externally", "External File Path Hash");
+        OtherDocumentAttachment.SetRange("Stored Externally", true);
+        OtherDocumentAttachment.SetRange("External File Path Hash", GetExternalFilePathHash(DocumentAttachment."External File Path"));
+        OtherDocumentAttachment.SetRange("External File Path", DocumentAttachment."External File Path");
+        OtherDocumentAttachment.SetFilter(SystemId, '<>%1', DocumentAttachment.SystemId);
+        if HasExactExternalFileReference(OtherDocumentAttachment, DocumentAttachment."External File Path") then
+            exit(true);
+
+        // Protect legacy references until their company has completed the hash backfill.
+        OtherDocumentAttachment.SetRange("External File Path Hash", '');
+        exit(HasExactExternalFileReference(OtherDocumentAttachment, DocumentAttachment."External File Path"));
+    end;
+
+    local procedure HasExactExternalFileReference(var DocumentAttachment: Record "Document Attachment"; ExternalFilePath: Text): Boolean
+    begin
+        DocumentAttachment.SetLoadFields("External File Path");
+        if DocumentAttachment.FindSet() then
+            repeat
+                // A digest match is only a candidate; compare the complete, case-sensitive path.
+                if DocumentAttachment."External File Path" = ExternalFilePath then
+                    exit(true);
+            until DocumentAttachment.Next() = 0;
+        exit(false);
+    end;
+
+    internal procedure GetExternalFilePathHash(ExternalFilePath: Text): Text[64]
+    var
+        CryptographyManagement: Codeunit "Cryptography Management";
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+    begin
+        if ExternalFilePath = '' then
+            exit('');
+
+        exit(CryptographyManagement.GenerateHash(ExternalFilePath, HashAlgorithmType::SHA256));
+    end;
+
+    local procedure UpdateExternalFilePathHash(var DocumentAttachment: Record "Document Attachment")
+    begin
+        if DocumentAttachment."Stored Externally" then
+            DocumentAttachment."External File Path Hash" := GetExternalFilePathHash(DocumentAttachment."External File Path")
+        else
+            DocumentAttachment."External File Path Hash" := '';
     end;
 
     local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"): Boolean
@@ -754,6 +808,18 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     #region Document Attachment Handling
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeInsertEvent, '', false, false)]
+    local procedure OnBeforeInsertDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
+    begin
+        UpdateExternalFilePathHash(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeModifyEvent, '', false, false)]
+    local procedure OnBeforeModifyDocumentAttachment(var Rec: Record "Document Attachment"; var xRec: Record "Document Attachment"; RunTrigger: Boolean)
+    begin
+        UpdateExternalFilePathHash(Rec);
+    end;
+
     /// <summary>
     /// Handles automatic upload of new document attachments to external storage upon insertion of the attachment record.
     /// </summary>
@@ -801,6 +867,9 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit;
 
         if not IsEligibleForExternalFileDeletionOnRecordDelete(Rec) then
+            exit;
+
+        if IsExternalFileShared(Rec) then
             exit;
 
         DeleteExternalFile(Rec."External File Path", Rec);

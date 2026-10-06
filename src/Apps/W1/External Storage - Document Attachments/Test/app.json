@@ -14,6 +14,12 @@
   "platform": "30.0.0.0",
   "dependencies": [
     {
+      "id": "d852d5d2-a39d-4179-baeb-f99a19e32510",
+      "name": "Application Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "5f2e93a0-6083-4718-b05a-7ac89be5644d",
       "name": "External Storage - Document Attachments",
       "publisher": "Microsoft",
