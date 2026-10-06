@@ -96,6 +96,20 @@ codeunit 1294 "OCR Service Mgt."
         ServiceUrlTxt: Label '\\Service URL: %1.', Comment = '%1 = The URL of the service, for example https://www.contoso.com/';
         NoCookieErr: Label 'The web request has no cookies.';
         SendRequestFailedTelemetryTxt: Label 'The HTTP request to the OCR service could not be sent.', Locked = true;
+        AuthenticationUrlTxt: Label '%1/authentication/rest/authenticate', Locked = true;
+        ServicePathUrlTxt: Label '%1/%2', Locked = true;
+        UserConfigurationPathTxt: Label 'accounts/rest/customers/%1/userconfiguration', Locked = true;
+        RequestUploadPathTxt: Label 'files/rest/requestupload?targetCount=%1', Locked = true;
+        UploadImagePathTxt: Label 'files/rest/image2?filename=%1&customerid=&batchexternalid=%2&buyerid=&documenttype=%3&sortingmethod=OneDocumentPerFile', Locked = true;
+        LearningDocumentPathTxt: Label 'documents/rest/%1/learningdocument', Locked = true;
+        OutputDocumentsPathTxt: Label 'documents/rest/customers/%1/outputdocuments', Locked = true;
+        BatchDocumentsPathTxt: Label 'documents/rest/customers/%1/batches/%2/documents?pageIndex=%3&pageSize=%4', Locked = true;
+        BatchesWithExternalIdPathTxt: Label 'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&externalId=%4', Locked = true;
+        BatchesPathTxt: Label 'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&excludeProcessed=1', Locked = true;
+        DocumentPathTxt: Label 'documents/rest/%1', Locked = true;
+        DocumentImagePathTxt: Label 'documents/rest/file/%1/image', Locked = true;
+        DocumentDownloadedPathTxt: Label 'documents/rest/%1/downloaded', Locked = true;
+        ExternalDocumentUrlTxt: Label '%1/documents/%2', Locked = true;
 
     procedure SetURLsToDefaultRSO(var OCRServiceSetup: Record "OCR Service Setup")
     begin
@@ -172,7 +186,7 @@ codeunit 1294 "OCR Service Mgt."
         ResponseString: Text;
     begin
         GetOcrServiceSetup(false);
-        InitializeRsoRequest(StrSubstNo('%1/authentication/rest/authenticate', OCRServiceSetup."Service URL"), MethodPostTok, ApplicationXmlTok, false, HttpRequestMessage);
+        InitializeRsoRequest(StrSubstNo(AuthenticationUrlTxt, OCRServiceSetup."Service URL"), MethodPostTok, ApplicationXmlTok, false, HttpRequestMessage);
         SetRsoRequestBody(HttpRequestMessage,
           SecretStrSubstNo(
             '<AuthenticationCredentials><UserName>%1</UserName><Password>%2</Password>' +
@@ -235,7 +249,7 @@ codeunit 1294 "OCR Service Mgt."
         GetOcrServiceSetup(false);
         OCRServiceSetup.TestField("Organization ID");
 
-        if not RsoGetRequest(StrSubstNo('accounts/rest/customers/%1/userconfiguration', OCRServiceSetup."Organization ID"), ResponseStr) then
+        if not RsoGetRequest(StrSubstNo(UserConfigurationPathTxt, OCRServiceSetup."Organization ID"), ResponseStr) then
             Session.LogMessage('00008KD', GettingUserConfigurationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
         XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
 
@@ -269,7 +283,7 @@ codeunit 1294 "OCR Service Mgt."
     begin
         GetOcrServiceSetup(true);
 
-        InitializeRsoRequest(StrSubstNo('%1/%2', OCRServiceSetup."Service URL", PathQuery), MethodGetTok, ApplicationXmlTok, true, HttpRequestMessage);
+        InitializeRsoRequest(StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", PathQuery), MethodGetTok, ApplicationXmlTok, true, HttpRequestMessage);
         if not TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent) then
             Error(GetLastErrorText());
         CopyResponseContent(HttpResponseMessage, true, ResponseStr);
@@ -307,7 +321,7 @@ codeunit 1294 "OCR Service Mgt."
     begin
         GetOcrServiceSetup(true);
 
-        InitializeRsoRequest(StrSubstNo('%1/%2', OCRServiceSetup."Service URL", PathQuery), RequestAction, ApplicationXmlTok, true, HttpRequestMessage);
+        InitializeRsoRequest(StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", PathQuery), RequestAction, ApplicationXmlTok, true, HttpRequestMessage);
         if (BodyText <> '') or (RequestAction <> MethodGetTok) then
             SetRsoRequestBody(HttpRequestMessage, BodyText);
         Result := TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
@@ -326,7 +340,7 @@ codeunit 1294 "OCR Service Mgt."
     begin
         GetOcrServiceSetup(true);
 
-        RequestUrl := StrSubstNo('%1/%2', OCRServiceSetup."Service URL", PathQuery);
+        RequestUrl := StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", PathQuery);
         InitializeRsoRequest(RequestUrl, RequestAction, ApplicationXmlTok, true, HttpRequestMessage);
         if (RequestBody <> '') or (RequestAction <> MethodGetTok) then
             SetRsoRequestBody(HttpRequestMessage, RequestBody);
@@ -570,7 +584,7 @@ codeunit 1294 "OCR Service Mgt."
         end;
 
         // Initialize upload
-        if not RsoGetRequest(StrSubstNo('files/rest/requestupload?targetCount=%1', NumberOfUploads), ResponseStr) then begin
+        if not RsoGetRequest(StrSubstNo(RequestUploadPathTxt, NumberOfUploads), ResponseStr) then begin
             Session.LogMessage('00008KE', InitializingUploadFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             LogActivityFailed(OCRServiceSetup.RecordId, InitiateUploadMsg, '');
             exit(false); // in case error text is empty
@@ -595,9 +609,9 @@ codeunit 1294 "OCR Service Mgt."
     begin
         GetOcrServiceSetup(true);
         APIPart := StrSubstNo(
-            'files/rest/image2?filename=%1&customerid=&batchexternalid=%2&buyerid=&documenttype=%3&sortingmethod=OneDocumentPerFile',
+            UploadImagePathTxt,
             URLEncode(FileName), ExternalReference, Template);
-        HttpRequestURL := StrSubstNo('%1/%2', OCRServiceSetup."Service URL", APIPart);
+        HttpRequestURL := StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", APIPart);
         if UploadFile(TempBlob, HttpRequestURL, '*/*', 'application/octet-stream', LoggingRecordId) then begin
             Session.LogMessage('000089H', OCRServiceUserSuccessfullyUploadedDocumentTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             exit(true)
@@ -613,8 +627,8 @@ codeunit 1294 "OCR Service Mgt."
         APIPart: Text;
     begin
         GetOcrServiceSetup(true);
-        APIPart := StrSubstNo('documents/rest/%1/learningdocument', DocumentId);
-        HttpRequestURL := StrSubstNo('%1/%2', OCRServiceSetup."Service URL", APIPart);
+        APIPart := StrSubstNo(LearningDocumentPathTxt, DocumentId);
+        HttpRequestURL := StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", APIPart);
         if UploadFile(TempBlob, HttpRequestURL, '', '', LoggingRecordId) then begin
             Session.LogMessage('000089J', OCRServiceUserSuccessfullyUploadedLearningDocumentTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             exit(true)
@@ -860,7 +874,7 @@ codeunit 1294 "OCR Service Mgt."
     begin
         GetOcrServiceSetup(true);
 
-        if not RsoGetRequest(StrSubstNo('documents/rest/customers/%1/outputdocuments', OCRServiceSetup."Customer ID"), ResponseStr) then
+        if not RsoGetRequest(StrSubstNo(OutputDocumentsPathTxt, OCRServiceSetup."Customer ID"), ResponseStr) then
             Session.LogMessage('00008KK', GettingDocumentsForCustomerFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
 
         XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
@@ -997,7 +1011,7 @@ codeunit 1294 "OCR Service Mgt."
         PageSize := 200;
         CurrentPage := 0;
         Path := StrSubstNo(
-            'documents/rest/customers/%1/batches/%2/documents?pageIndex=%3&pageSize=%4', OCRServiceSetup."Customer ID",
+            BatchDocumentsPathTxt, OCRServiceSetup."Customer ID",
             BatchFilter, CurrentPage, PageSize);
         if not RsoGetRequest(Path, ResponseStr) then begin
             Session.LogMessage('00008KN', GettingBatchDocumentsFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
@@ -1019,11 +1033,11 @@ codeunit 1294 "OCR Service Mgt."
         CurrentPage := 0;
         if ExternalBatchFilter <> '' then
             Path := StrSubstNo(
-                'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&externalId=%4', OCRServiceSetup."Customer ID",
+                BatchesWithExternalIdPathTxt, OCRServiceSetup."Customer ID",
                 CurrentPage, PageSize, ExternalBatchFilter)
         else
             Path := StrSubstNo(
-                'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&excludeProcessed=1', OCRServiceSetup."Customer ID",
+                BatchesPathTxt, OCRServiceSetup."Customer ID",
                 CurrentPage, PageSize);
 
         if not RsoGetRequest(Path, ResponseStr) then begin
@@ -1113,7 +1127,7 @@ codeunit 1294 "OCR Service Mgt."
         if IsHandled then
             exit(Result);
 
-        if not RsoGetRequest(StrSubstNo('documents/rest/%1', DocId), ResponseStr) then begin
+        if not RsoGetRequest(StrSubstNo(DocumentPathTxt, DocId), ResponseStr) then begin
             Session.LogMessage('00008KP', OCRServiceUserFailedToDownloadDocumentTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             LogActivityFailedNoError(OCRServiceSetup.RecordId, StrSubstNo(DocumentNotDownloadedTxt, DocId, ''), '');
             exit(0);
@@ -1140,7 +1154,7 @@ codeunit 1294 "OCR Service Mgt."
             IncomingDocument.Init();
             IncomingDocument.CreateIncomingDocument(AttachmentName, '');
             IncomingDocumentAttachment.SetRange("External Document Reference");
-            if not RsoGetRequestBinary(StrSubstNo('documents/rest/file/%1/image', DocId), ImageInStr, ContentType) then begin
+            if not RsoGetRequestBinary(StrSubstNo(DocumentImagePathTxt, DocId), ImageInStr, ContentType) then begin
                 Session.LogMessage('00008KS', OCRServiceUserFailedToDownloadDocumentTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
                 LogActivityFailedNoError(OCRServiceSetup.RecordId, StrSubstNo(DocumentNotDownloadedTxt, DocId, TrackId), '');
                 exit(0);
@@ -1166,7 +1180,7 @@ codeunit 1294 "OCR Service Mgt."
         LogActivitySucceeded(IncomingDocument.RecordId, GetDocumentMsg, StrSubstNo(DocumentDownloadedTxt, DocId, TrackId));
 
         if not RsoPutRequest(
-             StrSubstNo('documents/rest/%1/downloaded', DocId),
+             StrSubstNo(DocumentDownloadedPathTxt, DocId),
              '<UploadDataCollection xmlns:i="http://www.w3.org/2001/XMLSchema-instance" />', ResponseStr)
         then begin
             Session.LogMessage('00008KU', RegisteringDownloadFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
@@ -1444,7 +1458,7 @@ codeunit 1294 "OCR Service Mgt."
                 exit('');
 
             DocumentID := GetDocumentId(IncomingDocumentAttachment."External Document Reference");
-            exit(StrSubstNo('%1/documents/%2', OCRServiceSetup."Sign-in URL", DocumentID));
+            exit(StrSubstNo(ExternalDocumentUrlTxt, OCRServiceSetup."Sign-in URL", DocumentID));
         end;
 
         if OCRServiceSetup.Enabled and (OCRServiceSetup."Sign-in URL" <> '') then

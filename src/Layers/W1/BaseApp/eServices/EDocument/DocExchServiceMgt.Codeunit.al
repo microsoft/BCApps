@@ -151,6 +151,23 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         ServiceUrlTxt: Label '\\Service URL: %1.', Comment = '%1 = The URL of the service, for example https://www.contoso.com/';
         ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
         SendRequestFailedTelemetryTxt: Label 'The HTTP request to the document exchange service could not be sent.', Locked = true;
+        PostSalesInvUrlTxt: Label '/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.invoice.ubl.1.0', Locked = true;
+        PostSalesCrMemoUrlTxt: Label '/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.creditnote.ubl.1.0', Locked = true;
+        DocumentMetadataUrlTxt: Label '/documents/%1/metadata', Locked = true;
+        DocumentFileUrlTxt: Label '/documentfiles/%1/file?directory=outbox', Locked = true;
+        DocumentFileDispatcherUrlTxt: Label '/documentfiles/%1/dispatcher?directory=outbox', Locked = true;
+        DocumentFileErrorsUrlTxt: Label '/documentfiles/%1/errors', Locked = true;
+        RetrieveDocsUrlTxt: Label '/documents?stag=inbox&withouttag=BusinessDelivered&limit=%1', Locked = true;
+        DocumentUrlTxt: Label '/documents/%1', Locked = true;
+        OriginalDocumentUrlTxt: Label '/documents/%1/original', Locked = true;
+        BusinessDeliveredTagUrlTxt: Label '/documents/%1/tags/BusinessDelivered', Locked = true;
+        ErrorXPathTxt: Label '//%1:Message', Locked = true;
+        StatusXPathTxt: Label '//%1:DeliveryState', Locked = true;
+        DocumentIdXPathTxt: Label './/%1:DocumentId', Locked = true;
+        DocumentTypeXPathTxt: Label './/%1:DocumentType', Locked = true;
+        DescriptionDocumentIdXPathTxt: Label './/%1:ID', Locked = true;
+        EmbeddedDocumentXPathTxt: Label '//%1:EmbeddedDocumentBinaryObject', Locked = true;
+        ExternalDocUrlTxt: Label 'https://%1.tradeshift.com/app/Tradeshift.Migration#::conversation/view/%2::', Locked = true;
 
 
     procedure IsSandbox(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Boolean
@@ -1640,53 +1657,53 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     procedure GetPostSalesInvURL(): Text
     begin
         exit(
-            GetFullURL(StrSubstNo('/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.invoice.ubl.1.0', GetGUID())));
+            GetFullURL(StrSubstNo(PostSalesInvUrlTxt, GetGUID())));
     end;
 
     procedure GetPostSalesCrMemoURL(): Text
     begin
         exit(
-            GetFullURL(StrSubstNo('/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.creditnote.ubl.1.0', GetGUID())));
+            GetFullURL(StrSubstNo(PostSalesCrMemoUrlTxt, GetGUID())));
     end;
 
     local procedure GetDocStatusURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents/%1/metadata', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(DocumentMetadataUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetPUTDocURL(FileName: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documentfiles/%1/file?directory=outbox', FileName)));
+        exit(GetFullURL(StrSubstNo(DocumentFileUrlTxt, FileName)));
     end;
 
     local procedure GetDispatchDocURL(FileName: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documentfiles/%1/dispatcher?directory=outbox', FileName)));
+        exit(GetFullURL(StrSubstNo(DocumentFileDispatcherUrlTxt, FileName)));
     end;
 
     local procedure GetDispatchErrorsURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documentfiles/%1/errors', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(DocumentFileErrorsUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetRetrieveDocsURL(): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents?stag=inbox&withouttag=BusinessDelivered&limit=%1', GetChunckSize())));
+        exit(GetFullURL(StrSubstNo(RetrieveDocsUrlTxt, GetChunckSize())));
     end;
 
     local procedure GetRetrieveDocIDURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents/%1', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(DocumentUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetRetrieveOriginalDocIDURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents/%1/original', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(OriginalDocumentUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetSetTagURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents/%1/tags/BusinessDelivered', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(BusinessDeliveredTagUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetGUID(): Text
@@ -1733,32 +1750,32 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
     local procedure GetErrorXPath(): Text
     begin
-        exit(StrSubstNo('//%1:Message', GetPrefix()));
+        exit(StrSubstNo(ErrorXPathTxt, GetPrefix()));
     end;
 
     local procedure GetStatusXPath(): Text
     begin
-        exit(StrSubstNo('//%1:DeliveryState', GetPrefix()));
+        exit(StrSubstNo(StatusXPathTxt, GetPrefix()));
     end;
 
     local procedure GetDocumentIDXPath(): Text
     begin
-        exit(StrSubstNo('.//%1:DocumentId', GetPrefix()));
+        exit(StrSubstNo(DocumentIdXPathTxt, GetPrefix()));
     end;
 
     local procedure GetDocumentTypeXPath(): Text
     begin
-        exit(StrSubstNo('.//%1:DocumentType', GetPrefix()));
+        exit(StrSubstNo(DocumentTypeXPathTxt, GetPrefix()));
     end;
 
     local procedure GetDocumentIDForDescriptionXPath(): Text
     begin
-        exit(StrSubstNo('.//%1:ID', GetPrefix()));
+        exit(StrSubstNo(DescriptionDocumentIdXPathTxt, GetPrefix()));
     end;
 
     local procedure GetEmbeddedDocXPath(): Text
     begin
-        exit(StrSubstNo('//%1:EmbeddedDocumentBinaryObject', GetPrefix()));
+        exit(StrSubstNo(EmbeddedDocumentXPathTxt, GetPrefix()));
     end;
 
     local procedure GetPrefix(): Text
@@ -1888,7 +1905,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         if StrPos(GetFullURL(''), SandboxTxt) > 0 then
             URLPart := SandboxTxt;
 
-        exit(StrSubstNo('https://%1.tradeshift.com/app/Tradeshift.Migration#::conversation/view/%2::', URLPart, DocID));
+        exit(StrSubstNo(ExternalDocUrlTxt, URLPart, DocID));
     end;
 
     procedure VerifyPrerequisites(ShowFailure: Boolean): Boolean
