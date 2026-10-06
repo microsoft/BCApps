@@ -8,7 +8,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
+#if not CLEAN28
 using Microsoft.Manufacturing.Setup;
+#endif
 using System.TestLibraries.Utilities;
 
 codeunit 144083 "UT IT Transfer Shipment"
