@@ -6,7 +6,9 @@
 namespace Microsoft.FixedAssets.Depreciation;
 
 #if CLEAN30
+#if not CLEANSCHEMA33
 using System.Upgrade;
+#endif
 #endif
 
 codeunit 13476 "Dep Diff FI Upgrade Tag"
@@ -16,11 +18,13 @@ codeunit 13476 "Dep Diff FI Upgrade Tag"
     InherentPermissions = X;
 
 #if CLEAN30
+#if not CLEANSCHEMA33
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure OnGetPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetUpgradeTag());
     end;
+#endif
 #endif
 
     procedure GetUpgradeTag(): Code[250]

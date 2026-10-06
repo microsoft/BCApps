@@ -1,4 +1,5 @@
 #if CLEAN30
+#if not CLEANSCHEMA33
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -50,4 +51,5 @@ codeunit 13475 "Upgrade Depreciation Diff. FI"
         DataTransfer.CopyFields();
     end;
 }
+#endif
 #endif
