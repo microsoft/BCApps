@@ -409,6 +409,13 @@ report 5808 "Item Age Composition - Value"
                         ToolTip = 'Specifies Period 3 on this report.';
                         Visible = false;
                     }
+                    field(RequestLocationFilter; LocationFilter)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Location Filter';
+                        ToolTip = 'Specifies the Location Filter applied to the report, so it can be shown in the report header.';
+                        Visible = false;
+                    }
                 }
             }
         }
@@ -429,6 +436,7 @@ report 5808 "Item Age Composition - Value"
         var
             NegPeriodLength: DateFormula;
         begin
+            LocationFilter := Item.GetFilter("Location Filter");
             PeriodStartDate[6] := DMY2Date(31, 12, 9999);
             Evaluate(NegPeriodLength, StrSubstNo('-%1', Format(PeriodLength)));
             for i := 1 to 3 do
@@ -497,6 +505,12 @@ report 5808 "Item Age Composition - Value"
         NegPeriodLength: DateFormula;
     begin
         ItemFilter := Item.GetFilters();
+        LocationFilter := Item.GetFilter("Location Filter");
+
+        if PeriodStartDate[5] = 0D then
+            PeriodStartDate[5] := CalcDate('<CM>', WorkDate());
+        if Format(PeriodLength) = '' then
+            Evaluate(PeriodLength, '<1M>');
 
         PeriodStartDate[6] := DMY2Date(31, 12, 9999);
         Evaluate(NegPeriodLength, StrSubstNo('-%1', Format(PeriodLength)));
@@ -508,6 +522,7 @@ report 5808 "Item Age Composition - Value"
     var
         PeriodLength: DateFormula;
         ItemFilter: Text;
+        LocationFilter: Text;
         InvtValue: array[6] of Decimal;
         InvtValueRTC: array[6] of Decimal;
         InvtQty: array[6] of Decimal;
