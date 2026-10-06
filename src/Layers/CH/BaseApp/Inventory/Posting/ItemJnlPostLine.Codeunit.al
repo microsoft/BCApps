@@ -6478,14 +6478,14 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
 #if not CLEAN27
-    internal procedure RunOnBeforeProdOrderLineModify(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
+    internal procedure RunOnBeforeProdOrderLineModify(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
     begin
         OnBeforeProdOrderLineModify(ProdOrderLine, ItemJournalLine, ItemLedgEntryNo);
     end;
 
     [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProdOrderLineModify(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
+    local procedure OnBeforeProdOrderLineModify(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
     begin
     end;
 #endif
@@ -6637,14 +6637,14 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
 #if not CLEAN27
-    internal procedure RunOnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
+    internal procedure RunOnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
     begin
         OnAfterInsertConsumpEntry(WarehouseJournalLine, ProdOrderComponent, QtyBase, PostWhseJnlLine, ItemJnlLine, ItemLedgEntryNo);
     end;
 
     [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
+    local procedure OnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
     begin
     end;
 #endif
