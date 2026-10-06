@@ -2913,6 +2913,44 @@ codeunit 139687 "Recurring Billing Docs Test"
             StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
     end;
 
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckIfBillingLinesAreDeletedOnCreateVendorInvoiceWithError()
+    var
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 652758] Billing lines must be removed when Vendor Subscription Contract invoice creation fails (e.g. no vendor on the contract)
+        Initialize();
+
+        ContractTestLibrary.DeleteAllContractRecords();
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+
+        // [GIVEN] The Vendor Subscription Contract has no vendor so the purchase document creation fails
+        VendorContract."Buy-from Vendor No." := '';
+        VendorContract."Pay-to Vendor No." := '';
+        VendorContract.Modify(false);
+        Commit(); // Persist the setup so only the billing lines created below are affected
+
+        // [WHEN] The billing proposal lines are created (same first step the Create Contract Invoice action performs)
+        BillingProposal.CreateBillingProposalForContract("Service Partner"::Vendor, VendorContract."No.", '', VendorContract.GetFilter("Billing Rhythm Filter"), WorkDate(), WorkDate());
+
+        // [THEN] The billing proposal created billing lines for the contract
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", '');
+        BillingLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        Assert.RecordIsNotEmpty(BillingLine);
+
+        // [WHEN] The contract invoice creation fails
+        asserterror BillingProposal.CreateBillingDocument("Service Partner"::Vendor, VendorContract."No.", WorkDate(), WorkDate(), false, false);
+
+        // [THEN] No Billing lines remain for the Vendor Subscription Contract
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", '');
+        BillingLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        Assert.RecordIsEmpty(BillingLine);
+    end;
+
     #endregion Tests
 
     #region Procedures
