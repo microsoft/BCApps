@@ -135,6 +135,9 @@ codeunit 139205 "FS Integration Test Library"
         FSArchivedServiceOrdersJob.UpdateWorkOrderService(SalesLineArchive, FSWorkOrderService);
     end;
 
+    /// <summary>
+    /// Clears the synchronization candidates and synchronization counters captured by this test library.
+    /// </summary>
     procedure ClearSynchronizationCandidates()
     begin
         Clear(SynchronizationCandidates);
@@ -142,11 +145,21 @@ codeunit 139205 "FS Integration Test Library"
         UnchangedServiceOrders := 0;
     end;
 
+    /// <summary>
+    /// Checks whether a record was selected for synchronization.
+    /// </summary>
+    /// <param name="CandidateRecordId">The record ID to check.</param>
+    /// <returns>True when the record was selected for synchronization; otherwise, false.</returns>
     procedure WasSelectedForSynchronization(CandidateRecordId: RecordId): Boolean
     begin
         exit(SynchronizationCandidates.Contains(CandidateRecordId));
     end;
 
+    /// <summary>
+    /// Gets the number of synchronization candidates for a table.
+    /// </summary>
+    /// <param name="TableId">The table ID for which to count synchronization candidates.</param>
+    /// <returns>The number of captured synchronization candidates for the table.</returns>
     procedure GetSynchronizationCandidateCount(TableId: Integer) CandidateCount: Integer
     var
         CandidateRecordId: RecordId;
@@ -156,11 +169,19 @@ codeunit 139205 "FS Integration Test Library"
                 CandidateCount += 1;
     end;
 
+    /// <summary>
+    /// Gets the number of captured synchronization requests that contained no records.
+    /// </summary>
+    /// <returns>The number of empty synchronization requests.</returns>
     procedure GetEmptySynchronizationRequestCount(): Integer
     begin
         exit(EmptySynchronizationRequests);
     end;
 
+    /// <summary>
+    /// Gets the number of unchanged service orders observed during synchronization.
+    /// </summary>
+    /// <returns>The number of unchanged service orders.</returns>
     procedure GetUnchangedServiceOrderCount(): Integer
     begin
         exit(UnchangedServiceOrders);

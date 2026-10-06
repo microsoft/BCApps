@@ -1279,13 +1279,12 @@ codeunit 6610 "FS Int. Table Subscriber"
         IntegrationTableMapping: Record "Integration Table Mapping";
         NoMappingErr: Label 'There is no integration table mapping for %1.', Comment = '%1 = table name';
     begin
-        if IntegrationRecordRef.IsEmpty() then
-            exit;
-
         if not IntegrationTableMapping.FindMapping(TableNo, IntegrationRecordRef.Number()) then
             Error(NoMappingErr, IntegrationRecordRef.Name());
 
+#pragma warning disable AA0214
         ApplyMappingFilter(IntegrationRecordRef, IntegrationTableMapping.GetIntegrationTableFilter());
+#pragma warning restore AA0214
     end;
 
     local procedure ApplyMappingFilter(var RecordsToSynchRecordRef: RecordRef; MappingFilter: Text)
@@ -1296,6 +1295,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         PreviousFilterGroup: Integer;
         FieldIndex: Integer;
         FieldFilter: Text;
+        CombinedFilterTok: Label '(%1)&(%2)', Locked = true;
     begin
         // Keep mapping filters separate so they cannot replace the parent or candidate scope.
         MappingRecordRef.Open(RecordsToSynchRecordRef.Number());
@@ -1308,7 +1308,7 @@ codeunit 6610 "FS Int. Table Subscriber"
             if FieldFilter <> '' then begin
                 CandidateFieldRef := RecordsToSynchRecordRef.Field(MappingFieldRef.Number());
                 if CandidateFieldRef.GetFilter() <> '' then
-                    FieldFilter := StrSubstNo('(%1)&(%2)', CandidateFieldRef.GetFilter(), FieldFilter);
+                    FieldFilter := StrSubstNo(CombinedFilterTok, CandidateFieldRef.GetFilter(), FieldFilter);
                 CandidateFieldRef.SetFilter(FieldFilter);
             end;
         end;
@@ -1351,7 +1351,9 @@ codeunit 6610 "FS Int. Table Subscriber"
         if not ServiceItemLine.IsEmpty() then begin
             ServiceItemLineRecordRef.GetTable(ServiceItemLine);
             if IntegrationTableMapping.FindMappingForTable(Database::"Service Item Line") then
+#pragma warning disable AA0214
                 ApplyMappingFilter(ServiceItemLineRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
             if not ServiceItemLineRecordRef.IsEmpty() then
                 CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceItemLineRecordRef, false, false);
         end;
@@ -1412,7 +1414,9 @@ codeunit 6610 "FS Int. Table Subscriber"
         if not IntegrationTableMapping.FindFirst() then
             Error(SynchronizeEmptySetErr);
 
+#pragma warning disable AA0214
         ApplyMappingFilter(RecordsToSynchRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
         RecordsToSynchRecordRef.Ascending(false);
         if not RecordsToSynchRecordRef.FindSet() then
             exit;
@@ -2149,7 +2153,9 @@ codeunit 6610 "FS Int. Table Subscriber"
             ServiceHeaderToSync.SetRange("Document Type", ServiceHeaderToSync."Document Type"::Order);
             ServiceHeaderToSync.SetRange("No.", ServiceOrderNo);
             ServiceOrderRecordRef.GetTable(ServiceHeaderToSync);
+#pragma warning disable AA0214
             ApplyMappingFilter(ServiceOrderRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
             if not ServiceOrderRecordRef.IsEmpty() then
                 CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceOrderRecordRef, false, false);
         end;
