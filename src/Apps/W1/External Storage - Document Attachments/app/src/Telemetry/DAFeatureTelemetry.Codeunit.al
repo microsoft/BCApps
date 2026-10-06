@@ -90,6 +90,30 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUsage('0000RNX', ExternalStorageTok, 'Root Folder Configured');
     end;
 
+    internal procedure LogInternalCleanup(Entry: Record "DA Internal Cleanup Entry")
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('Category', ExternalStorageCategoryLbl);
+        Dimensions.Add('Operation', 'InternalCleanup');
+        Dimensions.Add('Status', Format(Entry.Status));
+        Dimensions.Add('Origin', Format(Entry.Origin));
+        Dimensions.Add('Outcome', Entry.Outcome);
+        Dimensions.Add('Connector', Format(Entry.Connector.AsInteger()));
+        Dimensions.Add('Attempt', Format(Entry."Attempt Count"));
+        Dimensions.Add('RetrievedBytes', Format(Entry."Retrieved Bytes"));
+        FeatureTelemetry.LogUsage('0000T82A', ExternalStorageTok, 'Internal Cleanup Outcome', Dimensions);
+    end;
+
+    internal procedure LogInternalCleanupBatch(ProcessedCount: Integer)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('Category', ExternalStorageCategoryLbl);
+        Dimensions.Add('Attempted', Format(ProcessedCount));
+        FeatureTelemetry.LogUsage('0000T82B', ExternalStorageTok, 'Internal Cleanup Batch', Dimensions);
+    end;
+
     local procedure GetTelemetryDimensions(DocumentAttachment: Record "Document Attachment"; Operation: Text; var Dimensions: Dictionary of [Text, Text])
     var
         TableName: Text;

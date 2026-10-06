@@ -32,6 +32,7 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector.ResetLastDeletedPath();
         TestFileStorageConnector.ResetFileExistsCallCount();
         TestFileStorageConnector.SetFailOnGetFile(false);
+        TestFileStorageConnector.ResetReadback();
     end;
 
     procedure GetAccounts(var FileAccount: Record "File Account")
@@ -149,5 +150,47 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector: Codeunit "Test File Storage Connector";
     begin
         TestFileStorageConnector.SetFailOnGetFile(FailOnGetFile);
+    end;
+
+    procedure ConfigureReadback(Content: Text)
+    var
+        Connector: Codeunit "Test File Storage Connector";
+    begin
+        Connector.ConfigureReadback(Content);
+    end;
+
+    procedure EnableDestinationContext(Enabled: Boolean)
+    var
+        Connector: Codeunit "Test File Storage Connector";
+    begin
+        Connector.EnableContext(Enabled);
+    end;
+
+    procedure GetReadbackCallCount(): Integer
+    var
+        Connector: Codeunit "Test File Storage Connector";
+    begin
+        exit(Connector.GetReadbackCallCount());
+    end;
+
+    procedure GetCreateFileCallCount(): Integer
+    var
+        Connector: Codeunit "Test File Storage Connector";
+    begin
+        exit(Connector.GetCreateFileCallCount());
+    end;
+
+    procedure GetLastReadAccountId(): Guid
+    var
+        Connector: Codeunit "Test File Storage Connector";
+    begin
+        exit(Connector.GetLastReadAccountId());
+    end;
+
+    procedure GetLastReadPath(): Text
+    var
+        Connector: Codeunit "Test File Storage Connector";
+    begin
+        exit(Connector.GetLastReadPath());
     end;
 }

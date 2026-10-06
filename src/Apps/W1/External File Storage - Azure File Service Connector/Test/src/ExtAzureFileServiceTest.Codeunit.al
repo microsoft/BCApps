@@ -15,6 +15,38 @@ codeunit 144571 "Ext. Azure File Service Test"
     TestPermissions = Disabled;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DestinationContextTracksShareAndAccountEdits()
+    var
+        Account: Record "Ext. File Share Account";
+        Provider: Interface "External File Storage Context";
+        Connector: Codeunit "Ext. File Share Connector Impl";
+        OriginalDescriptor: Text;
+        Descriptor: Text;
+        OriginalGeneration: BigInteger;
+        Generation: BigInteger;
+    begin
+        Account.Id := CreateGuid();
+        Account."Storage Account Name" := 'testaccount';
+        Account."File Share Name" := 'original';
+        Account.Insert();
+        Provider := Connector;
+        Assert.IsTrue(Provider.GetDestinationContext(Account.Id, false, OriginalDescriptor, OriginalGeneration), 'Metadata context needs no credentials');
+        Account."File Share Name" := 'changed';
+        Account.Modify();
+        Assert.IsTrue(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Changed context must be available');
+        Assert.AreNotEqual(OriginalDescriptor, Descriptor, 'Share must affect identity');
+        Account."File Share Name" := 'original';
+        Account.Modify();
+        Assert.IsTrue(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Restored context must be available');
+        Assert.AreEqual(OriginalDescriptor, Descriptor, 'Stable identity must return to the original destination');
+        Assert.AreNotEqual(OriginalGeneration, Generation, 'Generation must catch change-away-and-back');
+        Account.Disabled := true;
+        Account.Modify();
+        Assert.IsFalse(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Disabled account cannot authorize cleanup');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('AccountRegisterPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]

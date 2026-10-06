@@ -23,6 +23,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
     var
         CannotRetrieveExternalFileErr: Label 'The file %1 could not be retrieved from external storage. Verify that the file exists and that the external file storage account is configured and accessible.', Comment = '%1 = File name';
+        UploadBindingChangedErr: Label 'The upload succeeded, but its source or destination binding could not be established. Internal content and the external reference have been retained.';
+        UploadAttachmentMissingErr: Label 'The attachment no longer exists after upload. The external file has not been automatically deleted.';
+        UploadAttachmentChangedErr: Label 'The attachment changed during upload. Its current internal content and external tracking have not been overwritten; the uploaded file has not been automatically deleted.';
+        MigratedBindingErr: Label 'The external path was migrated. The original internal source binding cannot be inferred from remote-source migration; internal content has been retained.';
 
     #region File Scenario Interface Implementation
     /// <summary>
@@ -137,18 +141,33 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure UploadToExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
         TempFileAccount: Record "File Account";
+        SourceMedia: Record "Tenant Media";
+        Upload: Record "DA Internal Cleanup Entry";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
         TempBlob: Codeunit "Temp Blob";
         FileScenario: Enum "File Scenario";
         InStream: InStream;
         OutStream: OutStream;
         FileName: Text[2048];
+        FingerprintAfterUpload: Text[64];
+        GenerationAfterUpload: BigInteger;
+        ContextCaptured: Boolean;
+        ExistingAttachment: Record "Document Attachment";
+        AttachmentVersion: BigInteger;
     begin
         // Check if feature is enabled
         if not IsFeatureEnabled() then
             exit(false);
+
+        if DocumentAttachment.IsTemporary() then
+            exit(false);
+        if not ExistingAttachment.GetBySystemId(DocumentAttachment.SystemId) then
+            exit(false);
+        AttachmentVersion := ExistingAttachment.SystemRowVersion;
+        DocumentAttachment := ExistingAttachment;
 
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
@@ -157,6 +176,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Check if document is already uploaded
         if DocumentAttachment."External File Path" <> '' then
             exit(false);
+
+        if not SourceMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then
+            exit(false);
+        Upload."Source Media ID" := SourceMedia.ID;
+        Upload."Source Media Version" := SourceMedia.SystemRowVersion;
 
         // Telemetry logging for feature usage
         DAFeatureTelemetry.LogFeatureUsed();
@@ -174,14 +198,38 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
+        Upload."Account ID" := TempFileAccount."Account Id";
+        Upload.Connector := TempFileAccount.Connector;
+        ClearLastError();
+        ContextCaptured := ExternalFileStorage.GetDestinationContext(TempFileAccount, false, Upload."Destination Fingerprint", Upload."Account Generation");
+        if not ContextCaptured then
+            Upload."Last Error" := CopyStr(GetLastErrorText(true), 1, MaxStrLen(Upload."Last Error"));
+
         // Create the file with connector using the File Account framework
-        ExternalFileStorage.Initialize(FileScenario);
+        ExternalFileStorage.Initialize(TempFileAccount);
         if ExternalFileStorage.CreateFile(FileName, InStream) then begin
+            if ExistingAttachment.GetBySystemId(DocumentAttachment.SystemId) then begin
+                if ExistingAttachment.SystemRowVersion <> AttachmentVersion then
+                    Error(UploadAttachmentChangedErr);
+                DocumentAttachment := ExistingAttachment;
+            end else
+                Error(UploadAttachmentMissingErr);
             DocumentAttachment."Stored Externally" := true;
             DocumentAttachment."External Upload Date" := CurrentDateTime();
             DocumentAttachment."External File Path" := FileName;
             DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
             DocumentAttachment.Modify();
+            if ContextCaptured then
+                if ExternalFileStorage.GetDestinationContext(TempFileAccount, false, FingerprintAfterUpload, GenerationAfterUpload) then
+                    if SourceMedia.Get(Upload."Source Media ID") then
+                        Upload."Provenance Valid" :=
+                            (FingerprintAfterUpload = Upload."Destination Fingerprint") and
+                            (GenerationAfterUpload = Upload."Account Generation") and
+                            (SourceMedia.SystemRowVersion = Upload."Source Media Version") and
+                            TempBlob.HasValue();
+            if not Upload."Provenance Valid" and (Upload."Last Error" = '') then
+                Upload."Last Error" := UploadBindingChangedErr;
+            CleanupManagement.StoreUpload(DocumentAttachment, Upload);
             DAFeatureTelemetry.LogFileUploaded(DocumentAttachment);
             exit(true);
         end;
@@ -246,6 +294,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
         FileScenario: Enum "File Scenario";
         InStream: InStream;
         ExternalFilePath, FileName : Text;
@@ -275,6 +324,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         DocumentAttachment.ImportAttachment(InStream, FileName);
         DocumentAttachment."Stored Internally" := true;
         DocumentAttachment.Modify();
+        CleanupManagement.CancelCleanup(DocumentAttachment.SystemId);
 
         exit(true);
     end;
@@ -397,47 +447,15 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     /// <summary>
-    /// Deletes a document attachment from internal storage.
+    /// Requests independent verification before detaching this attachment's internal media reference.
     /// </summary>
     /// <param name="DocumentAttachment">The document attachment record to delete from internal storage.</param>
-    /// <returns>True if deletion was successful, false otherwise.</returns>
+    /// <returns>True if a cleanup request was accepted, not if content was deleted.</returns>
     procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
-        TenantMedia: Record "Tenant Media";
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
     begin
-        // Validate input parameters
-        if not DocumentAttachment."Document Reference ID".HasValue() then
-            exit(false);
-
-        // Check if file is uploaded externally before deleting internally
-        if not DocumentAttachment."Stored Externally" then
-            exit(false);
-
-        if not TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then
-            exit(false);
-
-        // Attachments copied onto other documents share this Tenant Media row, so it may only be
-        // deleted once this attachment is its last owner. Deleting it earlier destroys the content
-        // of every attachment copied from this one.
-        if not IsDocumentReferenceShared(DocumentAttachment) then
-            TenantMedia.Delete();
-
-        // Mark Document Attachment as Not Stored Internally
-        DocumentAttachment.MarkAsDeletedInternally();
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Checks whether more than one document attachment references the same media content.
-    /// </summary>
-    /// <param name="DocumentAttachment">The document attachment whose media reference is checked.</param>
-    /// <returns>True if another document attachment references the same media, false otherwise.</returns>
-    local procedure IsDocumentReferenceShared(var DocumentAttachment: Record "Document Attachment"): Boolean
-    var
-        OtherDocumentAttachment: Record "Document Attachment";
-    begin
-        OtherDocumentAttachment.SetRange("Document Reference ID", DocumentAttachment."Document Reference ID");
-        exit(OtherDocumentAttachment.Count() > 1);
+        exit(CleanupManagement.RequestCleanup(DocumentAttachment, Enum::"DA Internal Cleanup Origin"::"Delete from Internal"));
     end;
 
     /// <summary>
@@ -672,14 +690,18 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure MigrateFileToCurrentEnvironment(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
         TempFileAccount: Record "File Account";
+        PreviousUpload: Record "DA Internal Cleanup Entry";
+        Upload: Record "DA Internal Cleanup Entry";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
         TempBlob: Codeunit "Temp Blob";
         FileScenario: Enum "File Scenario";
         InStream: InStream;
         OutStream: OutStream;
         OldFilePath: Text;
         NewFilePath: Text[2048];
+        ContextCaptured: Boolean;
     begin
         if not DocumentAttachment."Stored Externally" then
             exit(false);
@@ -692,7 +714,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
-        ExternalFileStorage.Initialize(FileScenario);
+        ExternalFileStorage.Initialize(TempFileAccount);
 
         // Download file from old location
         OldFilePath := DocumentAttachment."External File Path";
@@ -707,6 +729,17 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Generate new file path in current company folder
         NewFilePath := GetFilePathWithRootFolder(DocumentAttachment);
 
+        if PreviousUpload.Get(DocumentAttachment.SystemId) then begin
+            Upload."Source Media ID" := PreviousUpload."Source Media ID";
+            Upload."Source Media Version" := PreviousUpload."Source Media Version";
+        end;
+        Upload."Account ID" := TempFileAccount."Account Id";
+        Upload.Connector := TempFileAccount.Connector;
+        ClearLastError();
+        ContextCaptured := ExternalFileStorage.GetDestinationContext(TempFileAccount, false, Upload."Destination Fingerprint", Upload."Account Generation");
+        if not ContextCaptured then
+            Upload."Last Error" := CopyStr(GetLastErrorText(true), 1, MaxStrLen(Upload."Last Error"));
+
         // Upload to new location
         if not ExternalFileStorage.CreateFile(NewFilePath, InStream) then
             exit(false);
@@ -716,6 +749,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
         DocumentAttachment."External Upload Date" := CurrentDateTime();
         DocumentAttachment.Modify();
+        // Remote-source migration cannot re-establish the original internal source binding.
+        Upload."Provenance Valid" := false;
+        Upload."Last Error" := MigratedBindingErr;
+        CleanupManagement.StoreUpload(DocumentAttachment, Upload);
 
         exit(true);
     end;
@@ -764,6 +801,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
     begin
         // Exit early if trigger is not running
         if not RunTrigger then
@@ -785,7 +823,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageImpl.UploadToExternalStorage(Rec) then
             exit;
 
-        ExternalStorageImpl.DeleteFromInternalStorage(Rec);
+        if ExternalStorageSetup."Automatic Verified Cleanup" then
+            CleanupManagement.RequestCleanup(Rec, Enum::"DA Internal Cleanup Origin"::Automatic);
     end;
 
     /// <summary>
@@ -795,10 +834,15 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="RunTrigger">Indicates if the trigger should run.</param>
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterDeleteEvent, '', true, true)]
     local procedure OnAfterDeleteDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
+    var
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
     begin
         // Exit early if trigger is not running
         if not RunTrigger then
             exit;
+
+        if not Rec.IsTemporary() then
+            CleanupManagement.CancelCleanup(Rec.SystemId);
 
         if not IsEligibleForExternalFileDeletionOnRecordDelete(Rec) then
             exit;

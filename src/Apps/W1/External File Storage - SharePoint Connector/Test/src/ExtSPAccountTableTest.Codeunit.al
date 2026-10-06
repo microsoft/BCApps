@@ -18,6 +18,63 @@ codeunit 144583 "Ext. SP Account Table Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DestinationContextBindsNamespaceAndGeneration()
+    var
+        Account: Record "Ext. SharePoint Account";
+        FileAccount: Record "File Account" temporary;
+        Storage: Codeunit "External File Storage";
+        Fingerprint: Text[64];
+        ChangedFingerprint: Text[64];
+        Generation: BigInteger;
+        ChangedGeneration: BigInteger;
+    begin
+        Account.Id := CreateGuid();
+        Account."SharePoint Url" := 'https://example.sharepoint.com/sites/test';
+        Account."Base Relative Folder Path" := '/sites/test/Shared Documents';
+        Account.Insert();
+        FileAccount."Account Id" := Account.Id;
+        FileAccount.Connector := Enum::"Ext. File Storage Connector"::SharePoint;
+        Assert.IsTrue(Storage.GetDestinationContext(FileAccount, false, Fingerprint, Generation), 'Context should be metadata-only and need no authentication');
+        Account."Base Relative Folder Path" := '/sites/test/Changed';
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(FileAccount, false, ChangedFingerprint, ChangedGeneration), 'Changed context should be readable');
+        Assert.AreNotEqual(Fingerprint, ChangedFingerprint, 'Base path must affect stable destination identity');
+        Account."Base Relative Folder Path" := '/sites/test/Shared Documents';
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(FileAccount, false, ChangedFingerprint, ChangedGeneration), 'Restored context should be readable');
+        Assert.AreEqual(Fingerprint, ChangedFingerprint, 'Restored destination has the same stable identity');
+        Assert.AreNotEqual(Generation, ChangedGeneration, 'Change-away-and-back must change the generation');
+        Account."Use legacy REST API" := true;
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(FileAccount, false, ChangedFingerprint, ChangedGeneration), 'REST context should be readable');
+        Assert.AreNotEqual(Fingerprint, ChangedFingerprint, 'API/base-path interpretation must affect identity');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DestinationDescriptorExcludesCredentialsAndBlocksDisabledAccount()
+    var
+        Account: Record "Ext. SharePoint Account";
+        Provider: Interface "External File Storage Context";
+        Connector: Codeunit "Ext. SharePoint Connector Impl";
+        Descriptor: Text;
+        Generation: BigInteger;
+    begin
+        Account.Id := CreateGuid();
+        Account."SharePoint Url" := 'https://example.sharepoint.com/sites/test';
+        Account.Insert();
+        Account.SetClientSecret(SecretStrSubstNo('test-credential-must-not-be-described'));
+        Account.Modify();
+        Provider := Connector;
+        Assert.IsTrue(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Account should provide a descriptor');
+        Assert.IsFalse(Descriptor.Contains('test-credential-must-not-be-described'), 'Descriptor must not expose credentials');
+        Account.Disabled := true;
+        Account.Modify();
+        Assert.IsFalse(Provider.GetDestinationContext(Account.Id, false, Descriptor, Generation), 'Disabled account must not authorize cleanup');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestDefaultAuthTypeIsClientSecret()
     var
         Account: Record "Ext. SharePoint Account";

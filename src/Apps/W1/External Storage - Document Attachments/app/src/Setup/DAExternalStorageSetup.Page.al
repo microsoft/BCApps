@@ -58,6 +58,9 @@ page 8750 "DA External Storage Setup"
             {
                 Caption = 'Upload and Delete Policy';
                 field("Delete from External Storage"; Rec."Delete from External Storage") { }
+                field("Automatic Verified Cleanup"; Rec."Automatic Verified Cleanup") { }
+                field("Cleanup Batch Size"; Rec."Cleanup Batch Size") { }
+                field("Cleanup Run Minutes"; Rec."Cleanup Run Minutes") { }
             }
         }
     }
@@ -87,6 +90,20 @@ page 8750 "DA External Storage Setup"
                     Report.Run(Report::"DA External Storage Migration");
                 end;
             }
+            action(ScheduleInternalCleanup)
+            {
+                Caption = 'Schedule Cleanup Worker';
+                Image = Job;
+                ToolTip = 'Schedule the worker for existing cleanup requests. It verifies files independently and does not upload attachments or infer cleanup intent for legacy records.';
+
+                trigger OnAction()
+                var
+                    CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
+                begin
+                    CleanupManagement.ScheduleCleanup(Rec);
+                    Rec.Modify();
+                end;
+            }
         }
         area(Navigation)
         {
@@ -96,6 +113,13 @@ page 8750 "DA External Storage Setup"
                 Image = Document;
                 ToolTip = 'Open the document attachment list with information about the external storage.';
                 RunObject = page "Document Attachment - External";
+            }
+            action(InternalCleanupRequests)
+            {
+                Caption = 'Internal Cleanup Requests';
+                Image = Log;
+                ToolTip = 'View and manage pending, failed, and blocked internal cleanup requests.';
+                RunObject = page "DA Internal Cleanup Entries";
             }
         }
         area(Promoted)

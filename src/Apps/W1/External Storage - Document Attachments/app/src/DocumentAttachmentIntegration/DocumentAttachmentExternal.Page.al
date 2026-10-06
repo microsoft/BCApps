@@ -20,6 +20,8 @@ page 8751 "Document Attachment - External"
     ApplicationArea = All;
     Editable = false;
     Extensible = false;
+    Permissions = tabledata "DA Internal Cleanup Entry" = r,
+                  tabledata "DA External Storage Setup" = rm;
 
     layout
     {
@@ -75,6 +77,16 @@ page 8751 "Document Attachment - External"
                 }
                 field("External File Path"; Rec."External File Path")
                 {
+                }
+                field(InternalCleanupStatus; CleanupStatusText)
+                {
+                    Caption = 'Internal Cleanup Status';
+                    ToolTip = 'Shows whether internal cleanup has been requested, completed, or blocked. Upload success is not proof of retrievability.';
+                }
+                field(InternalCleanupError; CleanupErrorText)
+                {
+                    Caption = 'Internal Cleanup Diagnostic';
+                    ToolTip = 'Shows the latest reason why internal content was retained.';
                 }
             }
         }
@@ -213,13 +225,15 @@ page 8751 "Document Attachment - External"
             {
                 Enabled = Rec."Stored Externally" and Rec."Stored Internally";
                 Caption = 'Delete from Internal';
-                ToolTip = 'Delete the selected file(s) from Internal storage.';
+                ToolTip = 'Request independent background verification before detaching the selected internal attachment references. Internal content remains until verification and current-state checks succeed.';
                 Image = Delete;
 
                 trigger OnAction()
                 var
                     DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+                    CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
+                    CleanupSetup: Record "DA External Storage Setup";
                     SuccessCount: Integer;
                     FailedCount: Integer;
                 begin
@@ -239,6 +253,12 @@ page 8751 "Document Attachment - External"
                                 FailedCount += 1;
                         until DocumentAttachment.Next() = 0;
 
+                    Commit();
+                    if SuccessCount > 0 then begin
+                        CleanupSetup.Get();
+                        CleanupManagement.ScheduleCleanup(CleanupSetup);
+                        CleanupSetup.Modify();
+                    end;
                     if SuccessCount + FailedCount > 0 then
                         Message(FilesDeletedIntStorageMsg, SuccessCount, FailedCount);
                 end;
@@ -253,6 +273,13 @@ page 8751 "Document Attachment - External"
                 Image = Setup;
                 RunObject = page "DA External Storage Setup";
             }
+            action(InternalCleanupRequests)
+            {
+                Caption = 'Internal Cleanup Requests';
+                ToolTip = 'View cleanup requests, retry times, and diagnostics without accessing external storage.';
+                Image = Log;
+                RunObject = page "DA Internal Cleanup Entries";
+            }
         }
         area(Promoted)
         {
@@ -266,21 +293,33 @@ page 8751 "Document Attachment - External"
 
     var
         DeleteFilesFromExternalStorageQst: Label 'Are you sure you want to delete the selected file(s) from external storage?';
-        DeleteFilesFromIntStorageQst: Label 'Are you sure you want to delete the selected file(s) from internal storage?';
+        DeleteFilesFromIntStorageQst: Label 'Request background verification and internal cleanup for the selected files? Internal references will only be detached after nonempty readback and current-state checks. Physical database-space reclamation may be delayed.';
         FilesCopiedMsg: Label '%1 file(s) copied successfully to internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesDeletedExternalStorageMsg: Label '%1 file(s) deleted successfully from external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
-        FilesDeletedIntStorageMsg: Label '%1 file(s) deleted successfully from internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        FilesDeletedIntStorageMsg: Label '%1 internal cleanup request(s) accepted. %2 failed or were blocked. Internal content is retained until independent verification succeeds.', Comment = '%1 = Accepted request count, %2 = Failed count';
         FilesDownloadedMsg: Label '%1 file(s) downloaded successfully. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesUploadedMsg: Label '%1 file(s) uploaded successfully to external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         ExternalStorageStatsTxt: Label '%1% (%2/%3) files are uploaded to external storage', Comment = '%1 = Percentage, %2 = External count, %3 = Total count';
         UploadActionEnabled: Boolean;
         ExternalStorageStatsText: Text;
+        CleanupStatusText: Text[80];
+        CleanupErrorText: Text[2048];
+        UnknownCleanupLbl: Label 'Unknown / No Upload Provenance';
 
     trigger OnAfterGetRecord()
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
+        CleanupEntry: Record "DA Internal Cleanup Entry";
     begin
         UploadActionEnabled := (not Rec."Stored Externally") and ExternalStorageSetup.Get() and ExternalStorageSetup.Enabled;
+        Clear(CleanupStatusText);
+        Clear(CleanupErrorText);
+        if CleanupEntry.Get(Rec.SystemId) then begin
+            CleanupStatusText := CopyStr(Format(CleanupEntry.Status), 1, MaxStrLen(CleanupStatusText));
+            CleanupErrorText := CleanupEntry."Last Error";
+        end else
+            if Rec."Stored Internally" and Rec."Stored Externally" then
+                CleanupStatusText := UnknownCleanupLbl;
     end;
 
     trigger OnOpenPage()

@@ -4,14 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExternalStorage.DocumentAttachments;
 
-/// <summary>
-/// Permission set for External Storage functionality.
-/// Grants necessary permissions to use external storage features.
-/// </summary>
-permissionset 8751 "DA Ext. Stor. Admin"
+enum 8751 "DA Internal Cleanup Origin"
 {
-    Assignable = true;
-    Caption = 'DA - External Storage Admin';
-    Permissions = tabledata "DA External Storage Setup" = rimd,
-                  tabledata "DA Internal Cleanup Entry" = r;
+    Access = Internal;
+    Extensible = false;
+
+    value(0; Copy) { Caption = 'Copy'; }
+    value(1; Automatic) { Caption = 'Automatic'; }
+    value(2; Move) { Caption = 'Move'; }
+    value(3; "Delete from Internal") { Caption = 'Delete from Internal'; }
 }

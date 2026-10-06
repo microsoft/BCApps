@@ -65,11 +65,15 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
     /// Clears all external storage related fields.
     /// </summary>
     internal procedure MarkAsNotUploadedToExternal()
+    var
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
     begin
         "Stored Externally" := false;
         "External Upload Date" := 0DT;
         "External File Path" := '';
         Modify();
+        if not IsTemporary() then
+            CleanupManagement.CancelCleanup(SystemId);
     end;
 
     /// <summary>

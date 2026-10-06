@@ -15,7 +15,7 @@ The External Storage extension provides seamless integration between Microsoft D
 
 ### **Flexible Deletion Policies**
 - **Delete from External Storage**: Optionally delete files from external storage when attachments are removed from BC
-- **Automatic Cleanup**: Scheduled job queue can automatically delete expired files based on retention policy
+- **Verified Internal Cleanup**: A separate job queue verifies external retrievability before detaching an attachment's internal media reference
 
 ### **Customizable Root Folder**
 - Configure a custom root folder path for all attachments
@@ -64,6 +64,28 @@ The External Storage extension provides seamless integration between Microsoft D
 
 #### Upload and Delete Policy
 - **Delete from External Storage**: When enabled, files are deleted from external storage when the attachment is removed from Business Central
+- **Automatic Verified Internal Cleanup**: Off by default, including after upgrade. When explicitly enabled, new automatic uploads request background cleanup. Existing both-storage attachments are not backfilled.
+- **Cleanup Batch Size / Cleanup Run Budget**: Finite limits on records and elapsed work between files. These do not bound an individual connector's transfer duration or buffered response size.
+
+### Verified Internal Cleanup
+
+An upload first leaves both the internal content and external reference intact. **Move to External** and **Delete from Internal** request a separate background operation; they do not synchronously remove internal content. Manual **Upload to External** and **Copy to External** never create cleanup intent.
+
+The **Internal Cleanup Requests** page shows requests, attempts, retry times, and blocked diagnostics. The worker uses the account and exact path recorded at upload, consumes a complete nonempty readback, then rechecks the attachment, source media, account configuration, company/environment ownership, cancellation and attempt lease before detaching this attachment's reference. Downloads are not added to attachment insertion or ledger posting.
+
+Failures and inconclusive validation preserve internal media and external tracking. Retrieval failures retry at bounded intervals, with a maximum of five attempts; blocked or exhausted requests require an explicit retry. Retry does not adopt a different destination or invent missing upload provenance. Cancelling a request retains both copies.
+
+Storage accounts require the optional metadata-only **External File Storage Context** capability for cleanup. Account ID alone is insufficient: the binding includes a secret-free destination fingerprint and a persistent configuration generation. Any account edit, including changing away and back or rotating credentials, invalidates the original cleanup binding. Unsupported connectors continue to support copy/download but block internal cleanup.
+
+Legacy both-storage rows without recorded upload provenance remain untouched. Existing external-only attachments continue to use their existing retrieval behavior; this feature cannot restore previously lost internal content.
+
+Remote-source company/environment migration invalidates cleanup intent and cannot infer that the original internal source matches the migrated object. Both-storage migrated attachments remain blocked rather than silently adopting a new binding.
+
+Use **Schedule Cleanup Worker** to provision a worker for saved requests when necessary. Existing On Hold/Error jobs are not silently restarted; a job queue administrator must resume them. With automatic cleanup disabled, a temporary recurring worker drains manual requests and retries, then retires when no manual work remains.
+
+Cleanup releases only this attachment's media reference. It does not explicitly delete Tenant Media or invoke/schedule global media cleanup. **Physical database-space reclamation may be delayed until independently operated detached-media cleanup.** Platform runtime verification of reference detachment with remaining shared owners is required before release.
+
+Successful readback establishes point-in-time retrievability, not immutable-byte or semantic document integrity. SharePoint can transform Office/.msg bytes and length, so source SHA256/length equality is not required. This is not a backup policy or protection against later remote deletion, replacement, configuration loss or outages.
 
 
 ## Usage
@@ -122,19 +144,19 @@ From **Document Attachment - External** page:
 - **Download from External Storage**: Download file for viewing
 - **Download to Internal Storage**: Restore file to internal storage
 - **Delete from External Storage**: Remove file from external storage
-- **Delete from Internal Storage**: Remove file from internal storage only
+- **Delete from Internal Storage**: Request verified background detachment of the internal attachment reference
 
 #### Bulk Operations
 From **External Storage Synchronize** report:
 - **To External Storage**: Upload multiple files to external storage
 - **From External Storage**: Download multiple files from external storage
-- **Delete Expired Files**: Clean up files based on retention policy
+- **Move to External**: Copy externally and request independent verified internal cleanup
 
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality
 - Document preview, download, and management work seamlessly
 - Files deleted internally are automatically retrieved from external storage when accessed
-- No change to end-user experience
+- Internal cleanup is asynchronous and can remain blocked while both copies are retained
 - Cross-environment and cross-company access is handled automatically
 
 ## Important Notes
