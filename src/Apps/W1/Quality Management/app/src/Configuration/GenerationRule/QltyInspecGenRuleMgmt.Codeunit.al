@@ -220,30 +220,36 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                 TemporaryInspectionMatchRecordRef.Reset();
                 TemporaryInspectionMatchRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
                 if TemporaryInspectionMatchRecordRef.FindFirst() then
-                    if (QltyInspectionGenRule."Item Filter" <> '') and (OptionalItem."No." <> '') then begin
-                        Clear(SearchItem);
-                        SearchItem := OptionalItem;
-                        SearchItem.SetRecFilter();
-                        SearchItem.FilterGroup(20);
-                        SearchItem.SetView(QltyInspectionGenRule."Item Filter");
-                        if SearchItem.Count() > 0 then
-                            if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
-                                TempQltyInspectionGenRule := QltyInspectionGenRule;
-                                Found := TempQltyInspectionGenRule.Insert();
-                            end;
-
-                        OptionalItem.FilterGroup(0);
-                        SearchItem.FilterGroup(0);
-                    end else
-                        if (OptionalItem."No." <> '') and (QltyInspectionGenRule."Item Attribute Filter" <> '') then begin
-                            if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
-                                TempQltyInspectionGenRule := QltyInspectionGenRule;
-                                Found := TempQltyInspectionGenRule.Insert();
-                            end;
-                        end else begin
+                    if OptionalItem."No." = '' then begin
+                        if (QltyInspectionGenRule."Item Filter" = '') and (QltyInspectionGenRule."Item Attribute Filter" = '') then begin
                             TempQltyInspectionGenRule := QltyInspectionGenRule;
                             Found := TempQltyInspectionGenRule.Insert();
                         end;
+                    end else
+                        if QltyInspectionGenRule."Item Filter" <> '' then begin
+                            Clear(SearchItem);
+                            SearchItem := OptionalItem;
+                            SearchItem.SetRecFilter();
+                            SearchItem.FilterGroup(20);
+                            SearchItem.SetView(QltyInspectionGenRule."Item Filter");
+                            if SearchItem.Count() > 0 then
+                                if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
+                                    TempQltyInspectionGenRule := QltyInspectionGenRule;
+                                    Found := TempQltyInspectionGenRule.Insert();
+                                end;
+
+                            OptionalItem.FilterGroup(0);
+                            SearchItem.FilterGroup(0);
+                        end else
+                            if QltyInspectionGenRule."Item Attribute Filter" <> '' then begin
+                                if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
+                                    TempQltyInspectionGenRule := QltyInspectionGenRule;
+                                    Found := TempQltyInspectionGenRule.Insert();
+                                end;
+                            end else begin
+                                TempQltyInspectionGenRule := QltyInspectionGenRule;
+                                Found := TempQltyInspectionGenRule.Insert();
+                            end;
             until (QltyInspectionGenRule.Next() = 0) or (Found);
 
         if not Found then begin

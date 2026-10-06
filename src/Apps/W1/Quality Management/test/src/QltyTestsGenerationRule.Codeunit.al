@@ -616,6 +616,35 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    procedure DemoPurchase_NonItemLineSelectsReceive()
+    var
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
+        PurchaseLineRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.3] [Quality Management]
+        // [SCENARIO] An item-filtered demo rule does not match a purchase line without an item.
+        Initialize();
+
+        // [GIVEN] The real demo rules and a non-item purchase line.
+        SeedDemoGenerationRules();
+        PurchaseLine."Document Type" := PurchaseLine."Document Type"::Order;
+        PurchaseLine.Type := PurchaseLine.Type::"G/L Account";
+        PurchaseLineRecordRef.GetTable(PurchaseLine);
+
+        // [WHEN] A purchase generation rule is resolved without an item.
+        LibraryAssert.IsTrue(
+            QltyInspectionUtility.FindMatchingGenerationRule(false, true, PurchaseLineRecordRef, Item, '', TempQltyInspectionGenRule),
+            'The generic purchase generation rule must match a non-item line.');
+
+        // [THEN] The item-filtered BEANS rule is skipped in favor of RECEIVE.
+        LibraryAssert.AreEqual(CreateQMInspTemplateHdr.Receive(), TempQltyInspectionGenRule."Template Code", 'A non-item purchase line must select the generic RECEIVE rule.');
+        PurchaseLineRecordRef.Close();
+    end;
+
+    [Test]
     procedure DemoBeansRule_HasPurchaseScopeAndPriority()
     var
         BeansQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -698,6 +727,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
     local procedure SeedDemoGenerationRules()
     begin
+        Commit();
         Codeunit.Run(Codeunit::"Create QM Insp. Template Hdr");
         Codeunit.Run(Codeunit::"Create QM Generation Rule");
     end;
