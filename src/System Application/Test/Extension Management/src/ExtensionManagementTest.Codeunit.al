@@ -5,6 +5,7 @@
 
 namespace System.Test.Apps;
 
+using System.Security.AccessControl;
 using System.Environment.Configuration;
 using System.Apps;
 using System.Media;
@@ -28,6 +29,7 @@ codeunit 133100 "Extension Management Test"
 
     var
         ExtensionManagement: Codeunit "Extension Management";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         MainAppId: Guid;
@@ -40,12 +42,51 @@ codeunit 133100 "Extension Management Test"
         ExtensionNotInstalledErr: Label 'Extension should be installed.';
         PackageIdExistsErr: Label 'The returned extension pakage does not exist';
         NullPackageIdErr: Label 'There should not be an extension corresponding to the returned package ID';
+        NotSufficientPermissionErr: Label 'You do not have the required permissions to install the selected app. Contact your Partner or system administrator to install the app or assign you permissions.';
         PackageIdExtensionVersionErr: Label 'The package Id does not poin to the correct extension version';
 
     local procedure SetNavAppIds()
     begin
         MainAppId := '9d939f81-be24-481f-9352-830c0346c171';
         DependingAppId := 'c4123d81-a537-4062-bdd4-7b9882bcc319';
+    end;
+
+    local procedure CreateUserWithPermissionSet(RoleId: Code[20]; Company: Text): Guid
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateGuid();
+
+        AggregatePermissionSet.SetRange("Role ID", RoleId);
+        AggregatePermissionSet.FindFirst();
+
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId;
+        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
+        AccessControl."Company Name" := CopyStr(Company, 1, MaxStrLen(AccessControl."Company Name"));
+        AccessControl.Scope := AggregatePermissionSet.Scope;
+        AccessControl."App ID" := AggregatePermissionSet."App ID";
+        AccessControl.Insert();
+
+        exit(UserSecurityId);
+    end;
+
+    local procedure CreateSuperUser(): Guid
+    var
+        AccessControl: Record "Access Control";
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateGuid();
+
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId;
+        AccessControl."Role ID" := 'SUPER';
+        AccessControl.Scope := AccessControl.Scope::System;
+        AccessControl.Insert();
+
+        exit(UserSecurityId);
     end;
 
     local procedure InitializeExtensions()
@@ -56,6 +97,69 @@ codeunit 133100 "Extension Management Test"
             ExtensionManagement.UninstallExtension(NAVAppInstalledApp."Package ID", false);
         if NAVAppInstalledApp.Get(DependingAppId) then
             ExtensionManagement.UninstallExtension(NAVAppInstalledApp."Package ID", false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure NonAdminCannotManageExtensions()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateUserWithPermissionSet('Ext. Mgt. Nonadmin', '');
+
+        Assert.IsFalse(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'A non-admin permission set must not grant extension management permission.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure NonAdminCannotPassExtensionPermissionCheck()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateUserWithPermissionSet('Ext. Mgt. Nonadmin', '');
+
+        asserterror ExtensionInstallationImpl.CheckPermissions(UserSecurityId);
+
+        Assert.ExpectedError(NotSufficientPermissionErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ExtensionManagementAdminCanManageExtensions()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateUserWithPermissionSet('Exten. Mgt. - Admin', '');
+
+        Assert.IsTrue(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'Exten. Mgt. - Admin must grant extension management permission.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure SuperCanManageExtensions()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateSuperUser();
+
+        Assert.IsTrue(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'SUPER must grant extension management permission.');
+    end;
+
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CompanyScopedExtensionManagementAdminCannotManageExtensions()
+    var
+        UserSecurityId: Guid;
+    begin
+        UserSecurityId := CreateUserWithPermissionSet('Exten. Mgt. - Admin', CompanyName());
+
+        Assert.IsFalse(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'Company-scoped Exten. Mgt. - Admin must not grant tenant-wide extension management permission.');
+    end;
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Extension Installation Impl", OnCanManageExtensions, '', false, false)]
+    local procedure AuthorizeTestSession(var Result: Boolean)
+    begin
+        Result := true;
     end;
 
     [Test]
@@ -571,4 +675,3 @@ codeunit 133100 "Extension Management Test"
         Reply := true;
     end;
 }
-
