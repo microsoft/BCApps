@@ -7,6 +7,7 @@ namespace Microsoft.Sales.SalesFR;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Setup;
+using Microsoft.CRM.Team;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
@@ -39,11 +40,13 @@ codeunit 148005 "Marketing Contacts"
     var
         Customer: Record Customer;
         Contact: Record Contact;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
     begin
         // [SCENARIO 467032] Customer has SIREN No. when created from Contact
         Initialize();
 
         // [GIVEN] Contact created with SIREN No.
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
         LibraryMarketing.CreateCompanyContact(Contact);
         Contact.Validate("SIREN No. FR", CopyStr(LibraryUtility.GenerateRandomNumericText(9), 1, MaxStrLen(Contact."SIREN No. FR")));
         Contact.Modify(true);
