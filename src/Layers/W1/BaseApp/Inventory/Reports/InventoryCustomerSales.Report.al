@@ -22,14 +22,6 @@ report 713 "Inventory - Customer Sales"
         dataitem(ReportHeader; "Integer")
         {
             DataItemTableView = sorting(Number) where(Number = const(0));
-#if not CLEAN27
-            column(CompanyName; COMPANYPROPERTY.DisplayName())
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
 #if not CLEAN28
             column(PeriodText; PeriodText)
             {
@@ -129,10 +121,8 @@ report 713 "Inventory - Customer Sales"
                         AddReportLine(ValueEntryBuf);
 
                     IncrLineAmounts(ValueEntryBuf, "Item Ledger Entry");
-
                     if IsLastEntry() then
                         AddReportLine(ValueEntryBuf);
-
                     if not ReportHasData then
                         ReportHasData := true;
                 end;
@@ -230,7 +220,6 @@ report 713 "Inventory - Customer Sales"
             begin
                 if not ReportHasData then
                     CurrReport.Break();
-
                 if TotalsSalesAmtActual <> 0 then
                     TotalsProfitPct := TotalsProfit / TotalsSalesAmtActual * 100;
             end;
@@ -316,18 +305,6 @@ report 713 "Inventory - Customer Sales"
             ObsoleteTag = '30.0';
         }
 #endif
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Inventory Customer Sales RDLC (Obsolete)';
-            Type = RDLC;
-            LayoutFile = '.\Inventory\Reports\InventoryCustomerSales.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Built in layout for the Inventory Customer Sales RDLC (Obsolete) report.';
-        }
-#endif
         layout(WordBody)
         {
             Type = Word;
@@ -360,18 +337,6 @@ report 713 "Inventory - Customer Sales"
         RunOnLbl = 'Run on';
         ReportNameLbl = 'Report name';
         DocumentationLbl = 'Documentation';
-#if not CLEAN27
-        ReportTitle = 'Inventory - Customer Sales';
-        Page = 'Page';
-        CustomerNo = 'Customer No.';
-        Name = 'Name';
-        InvoicedQty = 'Invoiced Quantity';
-        Amount = 'Amount';
-        DiscountAmt = 'Discount Amount';
-        Profit = 'Profit';
-        ProfitPct = 'Profit %';
-        Total = 'Total';
-#endif
     }
 
     trigger OnPreReport()
@@ -435,7 +400,6 @@ report 713 "Inventory - Customer Sales"
         CurrItemLedgerEntry.CalcFields("Sales Amount (Actual)", "Cost Amount (Actual)", "Cost Amount (Non-Invtbl.)");
         Profit := CurrItemLedgerEntry."Sales Amount (Actual)" + CurrItemLedgerEntry."Cost Amount (Actual)" + CurrItemLedgerEntry."Cost Amount (Non-Invtbl.)";
         DiscountAmount := CalcDiscountAmount(CurrItemLedgerEntry."Entry No.");
-
         if ValueEntryBuf2."Item No." = '' then begin
             ValueEntryBuf2.Init();
             ValueEntryBuf2."Item No." := CurrItemLedgerEntry."Item No.";
