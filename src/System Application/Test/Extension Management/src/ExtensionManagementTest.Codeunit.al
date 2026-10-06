@@ -5,9 +5,7 @@
 
 namespace System.Test.Apps;
 
-
 using System.Security.AccessControl;
-
 using System.Environment.Configuration;
 using System.Apps;
 using System.Media;
@@ -31,6 +29,7 @@ codeunit 133100 "Extension Management Test"
 
     var
         ExtensionManagement: Codeunit "Extension Management";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         MainAppId: Guid;
@@ -157,7 +156,6 @@ codeunit 133100 "Extension Management Test"
 
         Assert.IsFalse(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'Company-scoped Exten. Mgt. - Admin must not grant tenant-wide extension management permission.');
     end;
-    [Test]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Extension Installation Impl", OnCanManageExtensions, '', false, false)]
     local procedure AuthorizeTestSession(var Result: Boolean)
     begin
