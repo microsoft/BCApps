@@ -226,6 +226,7 @@ report 708 "Inventory Order Details"
         InventoryOrderDetailsPrint = 'Inventory Order Details (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
         InvOrderDetailsAnalysis = 'Inv. Order Details (Analysis)', MaxLength = 31, Comment = 'Excel worksheet name.';
         PostingDateFilterLabel = 'Posting Date Filter:';
+        TotalLabel = 'Total';
         // About the report labels
         AboutTheReportLabel = 'About the report', MaxLength = 31, Comment = 'Excel worksheet name.';
         EnvironmentLabel = 'Environment';

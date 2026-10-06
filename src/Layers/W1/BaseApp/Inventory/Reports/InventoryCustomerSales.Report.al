@@ -329,6 +329,7 @@ report 713 "Inventory - Customer Sales"
         ProfitLbl = 'Profit';
         ProfitPctLbl = 'Profit %';
         PeriodLbl = 'Period';
+        TotalLbl = 'Total';
         // About the report labels
         AboutTheReportLbl = 'About the report', MaxLength = 31, Comment = 'Excel worksheet name.';
         EnvironmentLbl = 'Environment';
