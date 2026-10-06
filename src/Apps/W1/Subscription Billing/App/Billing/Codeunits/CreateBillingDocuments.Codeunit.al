@@ -647,6 +647,10 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Document Date", DocumentDate);
         SalesHeader.Validate("Currency Code");
         SalesHeader.Validate("External Document No.");
+        if SalesHeader."Payment Terms Code" <> OldSalesHeader."Payment Terms Code" then begin
+            SalesHeader."Payment Terms Code" := OldSalesHeader."Payment Terms Code";
+            SalesHeader.Validate("Payment Terms Code", CustomerContract."Payment Terms Code");
+        end;
         SalesHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         SalesHeader."Posting Description" := CustomerContractLbl + ' ' + CustomerContract."No.";
@@ -693,6 +697,8 @@ codeunit 8060 "Create Billing Documents"
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
         PurchaseHeader.Validate("Document Date", DocumentDate);
         PurchaseHeader.Validate("Currency Code");
+        if PurchaseHeader."Payment Terms Code" <> OldPurchaseHeader."Payment Terms Code" then
+            PurchaseHeader.Validate("Payment Terms Code", VendorContract."Payment Terms Code");
         PurchaseHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(PurchaseHeader."Language Code");
         PurchaseHeader."Posting Description" := VendorContractLbl + ' ' + VendorContract."No.";
@@ -910,11 +916,13 @@ codeunit 8060 "Create Billing Documents"
         PartnerBillingLine: Record "Billing Line";
     begin
         PartnerBillingLine.CopyFilters(BillingLine);
+        PartnerBillingLine.FilterGroup(2);
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Customer);
         CustomerBillingLinesFound := not PartnerBillingLine.IsEmpty();
 
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Vendor);
         VendorBillingLinesFound := not PartnerBillingLine.IsEmpty();
+        PartnerBillingLine.FilterGroup(0);
 
         if (CustomerBillingLinesFound and VendorBillingLinesFound) then begin
             DisplayOrLogUnspecificError(OnlyOneServicePartnerErr);
