@@ -42,6 +42,8 @@ codeunit 132970 "SharePoint Client Test"
             SharePointTestLibrary.GetLastRequestUri().Contains(
                 '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/$value/'),
             'The decodedurl endpoint should preserve the decoded server-relative path');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
     end;
 
     [Test]
@@ -61,6 +63,47 @@ codeunit 132970 "SharePoint Client Test"
             SharePointTestLibrary.GetLastRequestUri().Contains(
                 '/GetFileByServerRelativePath(decodedurl=''' + ServerRelativePath + ''')/'),
             'The decodedurl endpoint should preserve the decoded server-relative path');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
+    end;
+
+    [Test]
+    procedure TestDecodedPathFileAndFolderOperationsEscapeHashAndPercent()
+    var
+        TempSharePointFile: Record "SharePoint File" temporary;
+        TempSharePointFolder: Record "SharePoint Folder" temporary;
+        FileInStream: InStream;
+        FolderPath: Text;
+    begin
+        // [SCENARIO] Decoded-path APIs encode legal # and % characters without changing URL-based APIs.
+        Initialize();
+        FolderPath := '/sites/Test/Shared Documents/Year #50%';
+        InitDummyFile(FileInStream);
+
+        Assert.IsTrue(
+            SharePointClient.AddFileToFolderByServerRelativePath(
+                FolderPath, 'Invoice #50%.pdf', FileInStream, TempSharePointFile, false),
+            'Decoded-path upload should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        TempSharePointFile.DeleteAll();
+        Assert.IsTrue(SharePointClient.GetFolderFilesByServerRelativePath(FolderPath, TempSharePointFile), 'Decoded-path file listing should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        Assert.IsTrue(SharePointClient.GetSubFoldersByServerRelativePath(FolderPath, TempSharePointFolder), 'Decoded-path folder listing should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        Assert.IsTrue(SharePointClient.FolderExistsByServerRelativePath(FolderPath), 'Decoded-path folder existence check should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        TempSharePointFolder.DeleteAll();
+        Assert.IsTrue(
+            SharePointClient.CreateFolderByServerRelativePath(FolderPath + '/New #50%', TempSharePointFolder),
+            'Decoded-path folder creation should succeed');
+        AssertRawRequestEscapesHashAndPercent();
+
+        Assert.IsTrue(SharePointClient.DeleteFolderByServerRelativePath(FolderPath), 'Decoded-path folder deletion should succeed');
+        AssertRawRequestEscapesHashAndPercent();
     end;
 
     [Test]
@@ -598,6 +641,12 @@ codeunit 132970 "SharePoint Client Test"
         TempBlob.CreateOutStream(FileOutStream);
         FileOutStream.WriteText('Dummy test file content');
         TempBlob.CreateInStream(FileInStream);
+    end;
+
+    local procedure AssertRawRequestEscapesHashAndPercent()
+    begin
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%23'), 'The raw URI should encode # as %23');
+        Assert.IsTrue(SharePointTestLibrary.GetLastRawRequestUri().Contains('%25'), 'The raw URI should encode % as %25');
     end;
 }
 #pragma warning restore AA0217

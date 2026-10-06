@@ -86,10 +86,26 @@ codeunit 9110 "SharePoint Uri Builder"
         SetMethod(Method, Parameters);
     end;
 
-    procedure SetMethodWithNamedTextParameter(Method: Text; ParameterName: Text; ParameterValue: Text)
+    internal procedure SetMethodWithNamedTextParameter(Method: Text; ParameterName: Text; ParameterValue: Text)
     begin
         ParameterValue := ParameterValue.Replace('''', '''''');
         Uri += StrSubstNo(SetMethodNamedTextTxt, EscapeDataString(Method), EscapeDataString(ParameterName), EscapeDataString(ParameterValue));
+    end;
+
+    internal procedure SetMethodWithNamedTextAndBooleanParameters(Method: Text; TextParameterName: Text; TextParameterValue: Text; BooleanParameterName: Text; BooleanParameterValue: Boolean)
+    var
+        BooleanParameterText: Text;
+        SetMethodNamedTextBooleanTxt: Label '/%1(%2=''%3'',%4=%5)', Comment = '%1 - method name, %2 - text parameter name, %3 - text parameter value, %4 - Boolean parameter name, %5 - Boolean parameter value', Locked = true;
+    begin
+        TextParameterValue := TextParameterValue.Replace('''', '''''');
+        if BooleanParameterValue then
+            BooleanParameterText := 'true'
+        else
+            BooleanParameterText := 'false';
+
+        Uri += StrSubstNo(
+            SetMethodNamedTextBooleanTxt, EscapeDataString(Method), EscapeDataString(TextParameterName),
+            EscapeDataString(TextParameterValue), EscapeDataString(BooleanParameterName), BooleanParameterText);
     end;
 
     procedure SetMethod(Method: Text; Parameters: Dictionary of [Text, Text])

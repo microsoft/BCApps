@@ -255,6 +255,17 @@ codeunit 9100 "SharePoint Client"
     end;
 
     /// <summary>
+    /// Lists subfolders addressed by a decoded server-relative path.
+    /// </summary>
+    /// <param name="ServerRelativePath">Decoded server-relative path of the parent folder.</param>
+    /// <param name="SharePointFolder">Collection of the result.</param>
+    /// <returns>True if the operation was successful; otherwise, false.</returns>
+    procedure GetSubFoldersByServerRelativePath(ServerRelativePath: Text; var SharePointFolder: Record "SharePoint Folder"): Boolean
+    begin
+        exit(SharePointClientImpl.GetSubFoldersByServerRelativePath(ServerRelativePath, SharePointFolder));
+    end;
+
+    /// <summary>
     /// Lists all files in the given folder.
     /// </summary>
     /// <raises>ProcessSharePointFileMetadata</raises>
@@ -277,6 +288,17 @@ codeunit 9100 "SharePoint Client"
     procedure GetFolderFilesByServerRelativeUrl(ServerRelativeUrl: Text; var SharePointFile: Record "SharePoint File" temporary; ListAllFields: Boolean): Boolean
     begin
         exit(SharePointClientImpl.GetFolderFilesByServerRelativeUrl(ServerRelativeUrl, SharePointFile, ListAllFields));
+    end;
+
+    /// <summary>
+    /// Lists files addressed by a decoded server-relative folder path.
+    /// </summary>
+    /// <param name="ServerRelativePath">Decoded server-relative path of the parent folder.</param>
+    /// <param name="SharePointFile">Collection of the result.</param>
+    /// <returns>True if the operation was successful; otherwise, false.</returns>
+    procedure GetFolderFilesByServerRelativePath(ServerRelativePath: Text; var SharePointFile: Record "SharePoint File" temporary): Boolean
+    begin
+        exit(SharePointClientImpl.GetFolderFilesByServerRelativePath(ServerRelativePath, SharePointFile, false));
     end;
 
     /// <summary>
@@ -427,6 +449,17 @@ codeunit 9100 "SharePoint Client"
     end;
 
     /// <summary>
+    /// Creates a folder addressed by a decoded server-relative path.
+    /// </summary>
+    /// <param name="ServerRelativePath">Decoded server-relative path of the folder to create.</param>
+    /// <param name="SharePointFolder">Collection containing the created folder.</param>
+    /// <returns>True if the operation was successful; otherwise, false.</returns>
+    procedure CreateFolderByServerRelativePath(ServerRelativePath: Text; var SharePointFolder: Record "SharePoint Folder"): Boolean
+    begin
+        exit(SharePointClientImpl.CreateFolderByServerRelativePath(ServerRelativePath, SharePointFolder));
+    end;
+
+    /// <summary>
     /// Checks if a folder exists.
     /// </summary>
     /// <param name="ServerRelativeUrl">URL of the folder to check.</param>
@@ -434,6 +467,16 @@ codeunit 9100 "SharePoint Client"
     procedure FolderExistsByServerRelativeUrl(ServerRelativeUrl: Text): Boolean
     begin
         exit(SharePointClientImpl.FolderExistsByServerRelativeUrl(ServerRelativeUrl));
+    end;
+
+    /// <summary>
+    /// Checks whether a folder addressed by a decoded server-relative path exists.
+    /// </summary>
+    /// <param name="ServerRelativePath">Decoded server-relative path of the folder.</param>
+    /// <returns>True if the folder exists; otherwise, false.</returns>
+    procedure FolderExistsByServerRelativePath(ServerRelativePath: Text): Boolean
+    begin
+        exit(SharePointClientImpl.FolderExistsByServerRelativePath(ServerRelativePath));
     end;
 
     /// <summary>
@@ -454,6 +497,16 @@ codeunit 9100 "SharePoint Client"
     procedure DeleteFolderByServerRelativeUrl(ServerRelativeUrl: Text): Boolean
     begin
         exit(SharePointClientImpl.DeleteFolderByServerRelativeUrl(ServerRelativeUrl));
+    end;
+
+    /// <summary>
+    /// Deletes a folder addressed by a decoded server-relative path.
+    /// </summary>
+    /// <param name="ServerRelativePath">Decoded server-relative path of the folder to delete.</param>
+    /// <returns>True if the operation was successful; otherwise, false.</returns>
+    procedure DeleteFolderByServerRelativePath(ServerRelativePath: Text): Boolean
+    begin
+        exit(SharePointClientImpl.DeleteFolderByServerRelativePath(ServerRelativePath));
     end;
 
     /// <summary>
@@ -496,6 +549,20 @@ codeunit 9100 "SharePoint Client"
     procedure AddFileToFolder(ServerRelativeUrl: Text; FileName: Text; var FileInStream: InStream; var SharePointFile: Record "SharePoint File" temporary): Boolean
     begin
         exit(SharePointClientImpl.AddFileToFolder(ServerRelativeUrl, FileName, FileInStream, SharePointFile, false));
+    end;
+
+    /// <summary>
+    /// Adds a file to a folder addressed by a decoded server-relative path.
+    /// </summary>
+    /// <param name="ServerRelativePath">Decoded server-relative path of the parent folder.</param>
+    /// <param name="FileName">Decoded file name to use on SharePoint.</param>
+    /// <param name="FileInStream">File stream to upload.</param>
+    /// <param name="SharePointFile">Collection containing the created file.</param>
+    /// <param name="ListAllFields">Include metadata in the result.</param>
+    /// <returns>True if the operation was successful; otherwise, false.</returns>
+    procedure AddFileToFolderByServerRelativePath(ServerRelativePath: Text; FileName: Text; var FileInStream: InStream; var SharePointFile: Record "SharePoint File" temporary; ListAllFields: Boolean): Boolean
+    begin
+        exit(SharePointClientImpl.AddFileToFolderByServerRelativePath(ServerRelativePath, FileName, FileInStream, SharePointFile, ListAllFields));
     end;
 
     /// <summary>
