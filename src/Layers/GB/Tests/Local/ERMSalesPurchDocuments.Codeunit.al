@@ -218,104 +218,6 @@ codeunit 144038 "ERM Sales Purch Documents"
         // Verify: Verification done in Handler.
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ConfirmHandlerTRUE')]
-    [Scope('OnPrem')]
-    procedure ChangeDocumentVatBusPostingGroupForDocumentWithReverseChargeItem()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        PurchaseLine: Record "Purchase Line";
-        Item: Record Item;
-    begin
-        // [SCENARIO 381636] Change "VAT Bus. Posting Group" in Purchase Header to Posting Group with "Reverse Charge VAT"
-        Initialize();
-
-        // [GIVEN] Found VAT Posting Setup with "Reverse Charge VAT"
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
-        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
-        VATPostingSetup.Modify(true);
-
-        // [GIVEN] Edited "Purchases & Payables Setup"
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Reverse Charge VAT Posting Gr.", VATPostingSetup."VAT Bus. Posting Group");
-        PurchasesPayablesSetup.Validate("Domestic Vendors", VATPostingSetup."VAT Bus. Posting Group");
-        PurchasesPayablesSetup.Modify(true);
-
-        // [GIVEN] Created Purchase Order using VAT Posting Setup
-        LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
-
-        // [GIVEN] Set "Reverse Charge Applies" to true for created Item
-        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
-        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine.FindFirst();
-        Item.Get(PurchaseLine."No.");
-        Item.Validate("Reverse Charge Applies", true);
-        Item.Modify(true);
-
-        // [WHEN] Change "VAT Bus. Posting Group" in Purchase Header to value from VAT Posting Setup
-        PurchaseHeader.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        PurchaseHeader.Modify(true);
-
-        // [THEN] "VAT Bus. Posting Group" is changed without error
-        PurchaseHeader.TestField("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandlerTRUE')]
-    [Scope('OnPrem')]
-    procedure RunPostingPreviewForDocumentWithReverseChargeItem()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        PurchaseLine: Record "Purchase Line";
-        Item: Record Item;
-        GLPostingPreview: TestPage "G/L Posting Preview";
-    begin
-        // [FEATURE] [Reverse Charge]
-        // [SCENARIO 380707] Run Posting Preview for document with "Reverse Charge Item" and validated "Reverse Charge VAT Posting Gr." in Purchase Setup
-        Initialize();
-
-        // [GIVEN] Created VAT Posting Setup with "Reverse Charge VAT"
-        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT", 20);
-        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
-        VATPostingSetup.Modify(true);
-
-        // [GIVEN] Edited "Purchases & Payables Setup". Set "Reverse Charge VAT Posting Gr." and "Domestic Vendors" to value from VAT Posting Setup.
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Reverse Charge VAT Posting Gr.", VATPostingSetup."VAT Bus. Posting Group");
-        PurchasesPayablesSetup.Validate("Domestic Vendors", VATPostingSetup."VAT Bus. Posting Group");
-        PurchasesPayablesSetup.Modify(true);
-
-        // [GIVEN] Created Purchase Order using VAT Posting Setup
-        LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
-
-        // [GIVEN] Edited "Reverse Charge Applies" to True in Item
-        FindPurchaseLine(PurchaseLine, PurchaseHeader."Document Type", PurchaseHeader."No.");
-        Item.Get(PurchaseLine."No.");
-        Item.Validate("Reverse Charge Applies", true);
-        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        Item.Modify(true);
-
-        PurchaseHeader.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        PurchaseHeader.Modify(true);
-        Commit();
-
-        // [WHEN] Run "Preview Posing" for created order
-        GLPostingPreview.Trap();
-        asserterror LibraryPurchase.PreviewPostPurchaseDocument(PurchaseHeader);
-
-        // [THEN] No errors occured - preview mode error only
-        // [THEN] Status is equal to "Open" in Purchase Header
-        Assert.ExpectedError('');
-        PurchaseHeader.TestField(Status, PurchaseHeader.Status::Open);
-        GLPostingPreview.Close();
-    end;
-#endif
-
     [Test]
     procedure SalesInvoiceShouldNotPostWithIncorrectDeferralScheduleValues()
     var
@@ -626,16 +528,6 @@ codeunit 144038 "ERM Sales Purch Documents"
     end;
 
 #if not CLEAN27
-    local procedure UpdatePurchasesPayablesSetup(DomesticVendors: Code[20])
-    var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-    begin
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Domestic Vendors", DomesticVendors);
-        PurchasesPayablesSetup.Validate("Reverse Charge VAT Posting Gr.", PurchasesPayablesSetup."Domestic Vendors");
-        PurchasesPayablesSetup.Modify(true);
-    end;
-
     local procedure UpdateSalesReceivableSetup(DomesticCustomers: Code[20])
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";

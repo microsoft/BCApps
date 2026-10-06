@@ -24,60 +24,6 @@ codeunit 144024 "UT REP VATREP"
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
-#if not CLEAN27
-        ManualVATDifferenceCap: Label 'Manual_VAT_Difference';
-        VATEntryAmountCap: Label 'VAT_Entry_Amount';
-
-    [Test]
-    [HandlerFunctions('PurchaseDocumentTestRequestPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnPreDataItemPurchaseDocumentTestForOrder()
-    var
-        PurchaseLine: Record "Purchase Line";
-    begin
-        // Purpose of this test is to validate OnPreDataItem Trigger of Report 402 Purchase Document - Test for Purchase Order.
-        CreateAndVerifyPurchaseDocumentTest(PurchaseLine."Document Type"::Order);
-    end;
-
-    [Test]
-    [HandlerFunctions('PurchaseDocumentTestRequestPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnPreDataItemPurchaseDocumentTestForInvoice()
-    var
-        PurchaseLine: Record "Purchase Line";
-    begin
-        // Purpose of this test is to validate OnPreDataItem Trigger of Report 402 Purchase Document - Test for Purchase Invoice.
-        CreateAndVerifyPurchaseDocumentTest(PurchaseLine."Document Type"::Invoice);
-    end;
-
-    local procedure CreateAndVerifyPurchaseDocumentTest(DocumentType: Enum "Purchase Document Type")
-    var
-        PurchaseLine: Record "Purchase Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-    begin
-        // Setup.
-        Initialize();
-        FindReverseChargeVATPostingSetup(VATPostingSetup);
-        UpdateThresholdAppliesOnGLSetup();
-        UpdateDomesticVendorsOnPurchasesPayablesSetup(VATPostingSetup."VAT Bus. Posting Group");
-        CreatePurchaseDocument(PurchaseLine, VATPostingSetup, DocumentType);
-        LibraryVariableStorage.Enqueue(PurchaseLine."Document No.");  // Enqueue value for PurchaseDocumentTestRequestPageHandler.
-
-        // Exercise.
-        REPORT.Run(REPORT::"Purchase Document - Test");  // Open PurchaseDocumentTestRequestPageHandler.
-
-        // Verify.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('Purchase_Line___VAT_Identifier_', VATPostingSetup."VAT Identifier");
-        LibraryReportDataset.AssertElementWithValueExists('Purchase_Line__Quantity', PurchaseLine.Quantity);
-        LibraryReportDataset.AssertElementWithValueExists('Purchase_Line___Direct_Unit_Cost_', PurchaseLine."Direct Unit Cost");
-        LibraryReportDataset.AssertElementWithValueExists(
-          'Purchase_Line___Line_Amount_', Round(PurchaseLine.Quantity * PurchaseLine."Direct Unit Cost"));
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchaseQuoteRequestPageHandler')]
     [Scope('OnPrem')]
@@ -466,18 +412,6 @@ codeunit 144024 "UT REP VATREP"
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup."Domestic Customers" := DomesticCustomers;
         SalesReceivablesSetup.Modify();
-    end;
-
-    local procedure UpdateDomesticVendorsOnPurchasesPayablesSetup(DomesticVendors: Code[20])
-    var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-    begin
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup."Domestic Vendors" := DomesticVendors;
-        PurchasesPayablesSetup."Reverse Charge VAT Posting Gr." := PurchasesPayablesSetup."Domestic Vendors";
-        PurchasesPayablesSetup."Posting Date Check on Posting" := true;
-        PurchasesPayablesSetup."Default Posting Date" := PurchasesPayablesSetup."Default Posting Date"::"No Date";
-        PurchasesPayablesSetup.Modify();
     end;
 
     local procedure UpdateThresholdAppliesOnGLSetup()
