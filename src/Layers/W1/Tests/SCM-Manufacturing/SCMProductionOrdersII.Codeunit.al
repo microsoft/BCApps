@@ -8176,6 +8176,89 @@ codeunit 137072 "SCM Production Orders II"
     end;
 
     [Test]
+    procedure RefreshProductionOrderWithSmallComponentBaseQuantity()
+    var
+        ComponentItem: Record Item;
+        ParentItem: Record Item;
+        ComponentItemUnitOfMeasure: Record "Item Unit of Measure";
+        ParentItemUnitOfMeasure: Record "Item Unit of Measure";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        ComponentBaseUnitOfMeasure: Record "Unit of Measure";
+        ComponentUnitOfMeasure: Record "Unit of Measure";
+        ParentBaseUnitOfMeasure: Record "Unit of Measure";
+        ParentUnitOfMeasure: Record "Unit of Measure";
+        ComponentQtyPer: Decimal;
+        ComponentQtyPerUOM: Decimal;
+        ExpectedBaseQuantity: Decimal;
+        ExpectedBaseQuantityPer: Decimal;
+        ExpectedQuantity: Decimal;
+        ExpectedQuantityPer: Decimal;
+        ItemRoundingPrecision: Decimal;
+        ParentQtyPerUOM: Decimal;
+        ProductionOrderQty: Decimal;
+    begin
+        // [SCENARIO 651340] A production order can be refreshed when a component quantity per has a base quantity below the rounding precision.
+        Initialize();
+        GetScenario651340TestValues(
+            ParentQtyPerUOM, ProductionOrderQty, ItemRoundingPrecision, ComponentQtyPerUOM, ComponentQtyPer);
+        ExpectedQuantityPer := ComponentQtyPer / ParentQtyPerUOM;
+        ExpectedBaseQuantityPer := ExpectedQuantityPer * ComponentQtyPerUOM;
+        ExpectedQuantity := Round(ExpectedQuantityPer * ProductionOrderQty);
+        ExpectedBaseQuantity := ExpectedQuantity * ComponentQtyPerUOM;
+
+        // [GIVEN] A parent item with base and alternate units of measure and a small rounding precision.
+        LibraryInventory.CreateUnitOfMeasureCode(ParentBaseUnitOfMeasure);
+        LibraryInventory.CreateUnitOfMeasureCode(ParentUnitOfMeasure);
+        LibraryInventory.CreateItem(ParentItem);
+        LibraryInventory.CreateItemUnitOfMeasure(ParentItemUnitOfMeasure, ParentItem."No.", ParentBaseUnitOfMeasure.Code, 1);
+        LibraryInventory.CreateItemUnitOfMeasure(
+            ParentItemUnitOfMeasure, ParentItem."No.", ParentUnitOfMeasure.Code, ParentQtyPerUOM);
+        ParentItem.Validate("Base Unit of Measure", ParentBaseUnitOfMeasure.Code);
+        ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::"Prod. Order");
+        ParentItem.Validate("Lot Size", ProductionOrderQty);
+        ParentItem.Validate("Rounding Precision", ItemRoundingPrecision);
+        ParentItem.Modify(true);
+
+        // [GIVEN] A component item whose alternate unit of measure is a fraction of its base unit of measure.
+        LibraryInventory.CreateUnitOfMeasureCode(ComponentBaseUnitOfMeasure);
+        LibraryInventory.CreateUnitOfMeasureCode(ComponentUnitOfMeasure);
+        LibraryInventory.CreateItem(ComponentItem);
+        LibraryInventory.CreateItemUnitOfMeasure(ComponentItemUnitOfMeasure, ComponentItem."No.", ComponentBaseUnitOfMeasure.Code, 1);
+        LibraryInventory.CreateItemUnitOfMeasure(
+            ComponentItemUnitOfMeasure, ComponentItem."No.", ComponentUnitOfMeasure.Code, ComponentQtyPerUOM);
+        ComponentItem.Validate("Base Unit of Measure", ComponentBaseUnitOfMeasure.Code);
+        ComponentItem.Validate("Replenishment System", ComponentItem."Replenishment System"::Purchase);
+        ComponentItem.Validate("Rounding Precision", ItemRoundingPrecision);
+        ComponentItem.Modify(true);
+
+        // [GIVEN] A production BOM in the parent's alternate unit of measure requiring a fractional component quantity.
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, ParentUnitOfMeasure.Code);
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", ComponentQtyPer);
+        ProductionBOMLine.Validate("Unit of Measure Code", ComponentUnitOfMeasure.Code);
+        ProductionBOMLine.Modify(true);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        ParentItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ParentItem.Modify(true);
+
+        // [WHEN] A firm planned production order is refreshed.
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, ProductionOrder.Status::"Firm Planned", ParentItem."No.", ProductionOrderQty, '', '');
+
+        // [THEN] The component keeps its fractional base quantity per and calculates a nonzero expected base quantity.
+        FindProductionOrderComponent(ProdOrderComponent, ProductionOrder."No.");
+        ProdOrderComponent.TestField("Quantity per", ExpectedQuantityPer);
+        ProdOrderComponent.TestField(Quantity, ExpectedQuantityPer);
+        ProdOrderComponent.TestField("Quantity (Base)", ExpectedBaseQuantityPer);
+        ProdOrderComponent.TestField("Expected Quantity", ExpectedQuantity);
+        ProdOrderComponent.TestField("Expected Qty. (Base)", ExpectedBaseQuantity);
+    end;
+
+    [Test]
     procedure InvtReservationSplitStaysCorrectAfterRepeatedReplanWithSameComponentOnOneProdOrderLine()
     var
         CompItem: Record Item;
@@ -10767,6 +10850,20 @@ codeunit 137072 "SCM Production Orders II"
         LibraryVariableStorage.Enqueue(PostingProductionJournalQst);
         LibraryVariableStorage.Enqueue(PostingProductionJournalTxt);
         ProductionJournal.Post.Invoke();
+    end;
+
+    local procedure GetScenario651340TestValues(
+       var ParentQtyPerUOM: Decimal;
+       var ProductionOrderQty: Decimal;
+       var ItemRoundingPrecision: Decimal;
+       var ComponentQtyPerUOM: Decimal;
+       var ComponentQtyPer: Decimal)
+    begin
+        ParentQtyPerUOM := 100;
+        ProductionOrderQty := 668;
+        ItemRoundingPrecision := 0.00001;
+        ComponentQtyPerUOM := 0.001;
+        ComponentQtyPer := 0.216;
     end;
 
     [ModalPageHandler]
