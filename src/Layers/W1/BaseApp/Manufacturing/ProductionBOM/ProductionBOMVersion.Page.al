@@ -41,6 +41,12 @@ page 99000809 "Production BOM Version"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
+                    StyleExpr = StatusStyleTxt;
+
+                    trigger OnValidate()
+                    begin
+                        SetStatusStyle();
+                    end;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
@@ -159,6 +165,21 @@ page 99000809 "Production BOM Version"
         }
     }
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetStatusStyle();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        SetStatusStyle();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        SetStatusStyle();
+    end;
+
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         ConfirmManagement: Codeunit "Confirm Management";
@@ -187,5 +208,18 @@ page 99000809 "Production BOM Version"
     var
         CopyFromProductionBOMQst: Label 'Copy from Production BOM?';
         CertifyQst: Label 'The %1 has not been certified. Are you sure you want to exit?', Comment = '%1 = page caption (Production BOM)';
+        StatusStyleTxt: Text;
+
+    local procedure SetStatusStyle()
+    begin
+        case Rec.Status of
+            Rec.Status::Certified:
+                StatusStyleTxt := 'Strong';
+            Rec.Status::New, Rec.Status::"Under Development":
+                StatusStyleTxt := 'Favorable';
+            else
+                StatusStyleTxt := '';
+        end;
+    end;
 }
 

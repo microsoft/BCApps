@@ -40,6 +40,7 @@ page 99000808 "Routing Version List"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
+                    StyleExpr = StatusStyleTxt;
                 }
             }
         }
@@ -61,5 +62,25 @@ page 99000808 "Routing Version List"
     actions
     {
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        SetStatusStyle();
+    end;
+
+    var
+        StatusStyleTxt: Text;
+
+    local procedure SetStatusStyle()
+    begin
+        case Rec.Status of
+            Rec.Status::Certified:
+                StatusStyleTxt := 'Strong';
+            Rec.Status::New, Rec.Status::"Under Development":
+                StatusStyleTxt := 'Favorable';
+            else
+                StatusStyleTxt := '';
+        end;
+    end;
 }
 

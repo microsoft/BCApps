@@ -43,10 +43,12 @@ page 99000786 "Production BOM"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
+                    StyleExpr = StatusStyleTxt;
 
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
+                        SetStatusStyle();
                     end;
                 }
                 field("Search Name"; Rec."Search Name")
@@ -265,9 +267,20 @@ page 99000786 "Production BOM"
         }
     }
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetStatusStyle();
+    end;
+
     trigger OnAfterGetRecord()
     begin
         RefreshActiveVersionCode();
+        SetStatusStyle();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        SetStatusStyle();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -298,6 +311,19 @@ page 99000786 "Production BOM"
 
     var
         ActiveVersionCode: Code[20];
+        StatusStyleTxt: Text;
+
+    local procedure SetStatusStyle()
+    begin
+        case Rec.Status of
+            Rec.Status::Certified:
+                StatusStyleTxt := 'Strong';
+            Rec.Status::New, Rec.Status::"Under Development":
+                StatusStyleTxt := 'Favorable';
+            else
+                StatusStyleTxt := '';
+        end;
+    end;
 
     local procedure RefreshActiveVersionCode()
     var
