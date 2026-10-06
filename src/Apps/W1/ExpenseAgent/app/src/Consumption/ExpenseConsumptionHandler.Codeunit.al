@@ -16,8 +16,6 @@ codeunit 6969 "Expense Consumption Handler"
         CopilotFeatureTrial: Codeunit "Copilot Feature Trial";
         ExpenseAgentFeatureTrialIdTok: Label 'ExpenseAgentTrial', Locked = true;
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4. Trial available: %5.', Locked = true;
-        TrialNotificationMsg: Label 'You can try out Expense Agent for free! %1 free expenses remaining in this environment.', Comment = '%1 = Number of free expenses remaining';
-        TrialNotificationIdTok: Label '728c5228-9fb2-4edb-9f4e-16d04b42c0fe', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
 
     internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
@@ -111,22 +109,10 @@ codeunit 6969 "Expense Consumption Handler"
 
     internal procedure GetRemainingFeatureTrialQuota(): Integer
     begin
+        if not CopilotFeatureTrial.IsTrialStarted(ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent") then
+            exit(TrialQuota());
+
         exit(CopilotFeatureTrial.GetQuotaRemaining(ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent"));
-    end;
-
-    internal procedure ShowTrialNotification()
-    var
-        TrialNotification: Notification;
-        ExpensesRemaining: Integer;
-    begin
-        ExpensesRemaining := GetRemainingFeatureTrialQuota();
-        // if ExpensesRemaining <= 0 then
-        //     exit;
-
-        TrialNotification.Id := TrialNotificationIdTok;
-        TrialNotification.Message(StrSubstNo(TrialNotificationMsg, ExpensesRemaining));
-        TrialNotification.Scope := NotificationScope::LocalScope;
-        TrialNotification.Send();
     end;
 
     local procedure TrialAvailable(): Boolean

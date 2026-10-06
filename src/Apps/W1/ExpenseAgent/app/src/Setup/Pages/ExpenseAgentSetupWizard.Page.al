@@ -36,6 +36,20 @@ page 6991 "Expense Agent Setup Wizard"
                 ApplicationArea = All;
                 UpdatePropagation = Both;
             }
+
+            group(Trial)
+            {
+                Caption = 'Try out Expense Agent for free';
+                InstructionalText = 'After you set up and activate the Expense Agent, you can try it out for free. This trial is shared across all expense users and companies in this environment.';
+                Visible = TrialExpensesRemaining > 0;
+
+                field(RemainingExpenses; TrialExpensesText)
+                {
+                    ShowCaption = false;
+                    Editable = false;
+                    ToolTip = 'Specifies the number of free Expenses left in the trial.';
+                }
+            }
             group(AccessAndSubmission)
             {
                 Caption = 'Access and submission';
@@ -924,7 +938,6 @@ page 6991 "Expense Agent Setup Wizard"
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         EAHttpClient: Codeunit "EA Http Client";
-        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         AgentUserSecurityID: Guid;
     begin
         if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
@@ -945,8 +958,8 @@ page 6991 "Expense Agent Setup Wizard"
         UpdateAgentSetupBuffer();
 
         InitialState := TempAgentSetupBuffer.State;
+        InitializeRemainingTrial();
         UpdateControls();
-        ExpenseConsumptionHandler.ShowTrialNotification();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -992,6 +1005,7 @@ page 6991 "Expense Agent Setup Wizard"
     var
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
+        TrialExpensesRemaining: Integer;
         InitialState: Option;
         EnableMailboxChanged: Boolean;
         IsConfigUpdated: Boolean;
@@ -1012,6 +1026,7 @@ page 6991 "Expense Agent Setup Wizard"
         ExpenseDashboardUrl: Text;
         PartialDayRuleSummary: Text;
         MealReductionsSummary: Text;
+        TrialExpensesText: Text;
         PartialDayRuleEnabled: Boolean;
         UseCanaryEndpoint: Boolean;
         CanaryToggleVisible: Boolean;
@@ -1027,6 +1042,7 @@ page 6991 "Expense Agent Setup Wizard"
         RulesLinkTxt: Label 'Preview the default management rules that will be added';
         RulesAppliedLinkTxt: Label 'View management rules including new defaults';
         ExpensePoliciesLinkTxt: Label 'View expense policies';
+        TrialExpensesRemainingTxt: Label 'Your can still try out %1 expenses with Expense Agent.', Comment = '%1 = the number of free expenses remaining';
         NoSeriesLinkTxt: Label 'Preview the default number series that will be added';
         NoSeriesAppliedLinkTxt: Label 'View number series including new defaults';
         MileageRateSetupLinkTxt: Label 'Configure mileage rates by vehicle type';
@@ -1129,6 +1145,14 @@ page 6991 "Expense Agent Setup Wizard"
             ApplyExpLocations := false;
         if not ManagementRulesLocked then
             IncludeManagementRules := false;
+    end;
+
+    local procedure InitializeRemainingTrial()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+    begin
+        TrialExpensesRemaining := ExpenseConsumptionHandler.GetRemainingFeatureTrialQuota();
+        TrialExpensesText := StrSubstNo(TrialExpensesRemainingTxt, TrialExpensesRemaining);
     end;
 
     local procedure IsNoSeriesDataEmpty(): Boolean

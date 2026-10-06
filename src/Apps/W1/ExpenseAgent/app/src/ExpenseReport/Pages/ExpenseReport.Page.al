@@ -711,11 +711,9 @@ page 6910 "Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
-        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
-
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
             ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
             if not ExpenseUser."Unlimited Approval" then begin
@@ -727,7 +725,6 @@ page 6910 "Expense Report"
         SetDocNoVisible();
         UpdateControls();
         SetControlVisibility();
-        ExpenseConsumptionHandler.ShowTrialNotification();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -855,7 +852,6 @@ page 6910 "Expense Report"
         ExpenseReportLine.SetRange("Document No.", Rec."No.");
         if ExpenseReportLine.IsEmpty() then
             ExpenseReportApprovalMgt.NoExpenseLinesToProcess(ActionType);
-
         case ActionType of
             ActionType::Approve:
                 Rec.PerformManualApproved(Rec."Approver Expense User No.");
@@ -898,13 +894,11 @@ page 6910 "Expense Report"
     begin
         ExpenseReportPost.PostExpenseReport(Rec);
         DocumentIsPosted := (not ExpenseReportHeader.Get(Rec."No."));
-
         case Navigate of
             Enum::"Navigate After Posting"::"Posted Document":
                 begin
                     if InstructionMgt.IsEnabled(InstructionMgt.ShowPostedConfirmationMessageCode()) then
                         ShowPostedConfirmationMessage();
-
                     if DocumentIsPosted then
                         CurrPage.Close();
                 end;
