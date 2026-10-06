@@ -120,7 +120,9 @@ codeunit 5291 "Mapping Helper SAF-T"
         repeat
             FieldRef := RecRef.Field(TempNameValueBuffer.ID);
             if Format(FieldRef.Value()) <> '' then
+#pragma warning disable AL0719
                 if SourceCode.Get(FieldRef.Value()) then begin
+#pragma warning restore AL0719
                     SourceCodeSAFT := CopyStr(TempNameValueBuffer.Name, 1, MaxStrLen(SourceCode."Source Code SAF-T"));
                     SourceCode."Source Code SAF-T" := SourceCodeSAFT;
                     if SourceCode.Modify() then;
