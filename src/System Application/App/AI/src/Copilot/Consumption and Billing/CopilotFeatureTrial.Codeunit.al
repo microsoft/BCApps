@@ -17,12 +17,28 @@ codeunit 7755 "Copilot Feature Trial"
         CopilotFeatureTrialImpl: Codeunit "Copilot Feature Trial Impl.";
 
     /// <summary>
+    /// Checks whether a feature trial has started.
+    /// </summary>
+    /// <param name="TrialId">The trial identifier.</param>
+    /// <param name="CopilotCapability">The Copilot capability covered by the trial.</param>
+    /// <returns>True if the feature trial has started; otherwise, false.</returns>
+    /// <remarks>The calling module must have registered the Copilot capability. The trial identifier must not be blank.</remarks>
+    [Scope('OnPrem')]
+    procedure IsTrialStarted(TrialId: Text; CopilotCapability: Enum "Copilot Capability"): Boolean
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(CopilotFeatureTrialImpl.IsTrialStarted(TrialId, CopilotCapability, CallerModuleInfo));
+    end;
+
+    /// <summary>
     /// Gets the quota remaining for a feature trial.
     /// </summary>
     /// <param name="TrialId">The trial identifier.</param>
     /// <param name="CopilotCapability">The Copilot capability covered by the trial.</param>
     /// <returns>The quota remaining for the feature trial.</returns>
-    /// <remarks>The calling module must have registered the Copilot capability. The trial identifier must not be blank.</remarks>
+    /// <remarks>The calling module must have registered the Copilot capability. The trial identifier must not be blank. Call IsTrialStarted before this method because it returns 0 if the trial has not started.</remarks>
     [Scope('OnPrem')]
     procedure GetQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"): Integer
     var

@@ -331,6 +331,12 @@ codeunit 132683 "Copilot Test"
         // [THEN] An error is thrown
         LibraryAssert.ExpectedError(TrialIdMustBeSpecifiedErr);
 
+        // [WHEN] Whether the feature trial has started is retrieved
+        asserterror CopilotFeatureTrial.IsTrialStarted(' ', Enum::"Copilot Capability"::"Text Capability");
+
+        // [THEN] An error is thrown
+        LibraryAssert.ExpectedError(TrialIdMustBeSpecifiedErr);
+
         // [WHEN] Whether the feature trial has quota remaining is retrieved
         asserterror CopilotFeatureTrial.HasQuotaRemaining(' ', Enum::"Copilot Capability"::"Text Capability");
 

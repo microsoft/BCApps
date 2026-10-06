@@ -711,6 +711,7 @@ page 6910 "Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
@@ -726,6 +727,7 @@ page 6910 "Expense Report"
         SetDocNoVisible();
         UpdateControls();
         SetControlVisibility();
+        ExpenseConsumptionHandler.ShowTrialNotification();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)

@@ -21,6 +21,19 @@ codeunit 7754 "Copilot Feature Trial Impl."
         FeatureTrialQuotaLimitsTelemetryMsg: Label 'Paid production quota limit: %1. Paid sandbox quota limit: %2. Unpaid production quota limit: %3. Unpaid sandbox quota limit: %4.', Locked = true;
         FeatureTrialQuotaReportedTelemetryMsg: Label 'Feature trial quota report completed. The run was within quota: %1.', Locked = true;
 
+    internal procedure IsTrialStarted(TrialId: Text; CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        AIFeatureTrialInfo: DotNet ALAIFeatureTrialInfo;
+    begin
+        CheckCapabilityOwnership(CopilotCapability, CallerModuleInfo);
+        if TrialId.Trim() = '' then
+            Error(TrialIdMustBeSpecifiedErr);
+        AIFeatureTrialInfo := ALCopilotFunctions.GetFeatureTrialQuotaRemaining(TrialId, CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability));
+        LogFeatureTrialQuotaRetrieved(AIFeatureTrialInfo);
+        exit(AIFeatureTrialInfo.IsSetup());
+    end;
+
     internal procedure GetQuotaRemaining(TrialId: Text; CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Integer
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
@@ -53,7 +66,7 @@ codeunit 7754 "Copilot Feature Trial Impl."
             '0000VVK',
             StrSubstNo(FeatureTrialQuotaRetrievedTelemetryMsg, AIFeatureTrialInfo.IsSetup(), AIFeatureTrialInfo.QuotaLimit(), AIFeatureTrialInfo.QuotaConsumed(), CalculateQuotaRemaining(AIFeatureTrialInfo), AIFeatureTrialInfo.ExpiresAt(), AIFeatureTrialInfo.IsExpired(), AIFeatureTrialInfo.HasQuotaRemaining()) +
             StrSubstNo(FeatureTrialQuotaLimitsTelemetryMsg, AIFeatureTrialInfo.PaidProductionQuotaLimit(), AIFeatureTrialInfo.PaidSandboxQuotaLimit(), AIFeatureTrialInfo.UnpaidProductionQuotaLimit(), AIFeatureTrialInfo.UnpaidSandboxQuotaLimit()),
-            Verbosity::Verbose,
+            Verbosity::Normal,
             DataClassification::SystemMetadata,
             TelemetryScope::ExtensionPublisher,
             'Category',
