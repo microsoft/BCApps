@@ -2033,6 +2033,7 @@ codeunit 148004 "Test Verifactu Export"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure ExportServiceInvoiceUsesPostedRecipient()
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -2068,6 +2069,7 @@ codeunit 148004 "Test Verifactu Export"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure ExportServiceCreditMemoUsesPostedRecipient()
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -2827,5 +2829,11 @@ codeunit 148004 "Test Verifactu Export"
             Position := StrPos(SourceText, SearchText);
         end;
         exit(Count);
+    end;
+
+    [ConfirmHandler]
+    local procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }
