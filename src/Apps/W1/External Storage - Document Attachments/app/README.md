@@ -81,6 +81,10 @@ Legacy both-storage rows without recorded upload provenance remain untouched. Ex
 
 Remote-source company/environment migration invalidates cleanup intent and cannot infer that the original internal source matches the migrated object. Both-storage migrated attachments remain blocked rather than silently adopting a new binding.
 
+Deliberately resetting an external reference cancels pending cleanup and invalidates the old upload provenance in the same local transaction. Reapplying old flags/path cannot reactivate that provenance. Ordinary Copy to Internal preserves both references while cancelling the pending cleanup request; it is not reference retirement.
+
+When integrating the separate retention-only guard, explicit **local** external-reference retirement is permitted only after a current permanent attachment is locked and both `Stored Internally = true` and actual nonempty internal media content are confirmed. Move to Internal restores first, then retires local external tracking while leaving remote bytes as safety copies; content-missing/external-only rows remain blocked. Retirement makes no remote request or deletion. That consumer owns the content guard; cleanup-provenance invalidation does not itself establish that retirement is safe.
+
 Use **Schedule Cleanup Worker** to provision a worker for saved requests when necessary. Existing On Hold/Error jobs are not silently restarted; a job queue administrator must resume them. With automatic cleanup disabled, a temporary recurring worker drains manual requests and retries, then retires when no manual work remains.
 
 Cleanup releases only this attachment's media reference. It does not explicitly delete Tenant Media or invoke/schedule global media cleanup. **Physical database-space reclamation may be delayed until independently operated detached-media cleanup.** Platform runtime verification of reference detachment with remaining shared owners is required before release.

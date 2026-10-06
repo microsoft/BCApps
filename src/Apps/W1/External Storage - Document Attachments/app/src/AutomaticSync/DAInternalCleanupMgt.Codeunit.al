@@ -107,6 +107,16 @@ codeunit 8759 "DA Internal Cleanup Mgt."
     end;
 
     procedure CancelCleanup(AttachmentSystemId: Guid)
+    begin
+        CancelEntry(AttachmentSystemId, false);
+    end;
+
+    procedure InvalidateProvenance(AttachmentSystemId: Guid)
+    begin
+        CancelEntry(AttachmentSystemId, true);
+    end;
+
+    local procedure CancelEntry(AttachmentSystemId: Guid; InvalidateUpload: Boolean)
     var
         Entry: Record "DA Internal Cleanup Entry";
         Telemetry: Codeunit "DA Feature Telemetry";
@@ -116,6 +126,10 @@ codeunit 8759 "DA Internal Cleanup Mgt."
             exit;
         Entry.Status := Entry.Status::Cancelled;
         Entry.Outcome := 'Cancelled';
+        if InvalidateUpload then begin
+            Entry."Provenance Valid" := false;
+            Entry.Outcome := 'ProvenanceInvalidated';
+        end;
         Clear(Entry."Lease Token");
         Clear(Entry."Lease Expires At");
         Entry.Modify();

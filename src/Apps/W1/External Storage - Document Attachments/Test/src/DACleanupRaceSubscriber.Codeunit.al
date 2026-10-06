@@ -68,6 +68,8 @@ codeunit 136822 "DA Cleanup Race Subscriber"
                     Setup."Automatic Verified Cleanup" := false;
                     Setup.Modify();
                 end;
+            Mutation::RetireReference:
+                Attachment.MarkAsNotUploadedToExternal();
         end;
     end;
 

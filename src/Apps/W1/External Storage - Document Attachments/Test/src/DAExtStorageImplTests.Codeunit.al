@@ -1155,6 +1155,92 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Entry.Get(Attachment.SystemId);
         Assert.AreEqual(Entry.Status::Cancelled, Entry.Status, 'Restore must cancel prior destructive intent');
         Assert.IsTrue(Attachment."Stored Internally", 'Restore must retain internal content');
+        Assert.IsTrue(Attachment."Stored Externally", 'Ordinary Copy to Internal must preserve the external reference');
+        Assert.IsTrue(Entry."Provenance Valid", 'Ordinary cancellation must not retire the recorded upload');
+        Assert.IsTrue(IsNullGuid(Entry."Lease Token"), 'Restore must revoke the active cleanup lease');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ExternalReferenceResetInvalidatesPendingCleanup()
+    var
+        Attachment: Record "Document Attachment";
+        Entry: Record "DA Internal Cleanup Entry";
+        MediaId: Guid;
+    begin
+        PrepareCleanup(Attachment);
+        MediaId := Attachment."Document Reference ID".MediaId();
+        AssertMediaContentExists(MediaId);
+        Attachment.MarkAsNotUploadedToExternal();
+        Entry.Get(Attachment.SystemId);
+        Assert.AreEqual(Entry.Status::Cancelled, Entry.Status, 'Reference reset must cancel pending cleanup');
+        Assert.IsFalse(Entry."Provenance Valid", 'Retired upload provenance must not remain valid');
+        Assert.IsTrue(IsNullGuid(Entry."Lease Token"), 'Reference reset must revoke the attempt lease');
+        Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'Local metadata reset must not fetch external content');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Local metadata reset must not delete external content');
+        RunCleanup();
+        RefreshAttachment(Attachment);
+        Assert.IsTrue(Attachment."Stored Internally", 'A cancelled worker must not undo restored internal storage');
+        Assert.AreEqual(MediaId, Attachment."Document Reference ID".MediaId(), 'Local reset must retain the internal reference');
+        Assert.IsFalse(Attachment."Stored Externally", 'Explicit reset must retire local external tracking');
+        Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'Cancelled work must not perform a later readback');
+        AssertMediaContentExists(MediaId);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure RetiredProvenanceCannotBeReactivatedByStaleMetadata()
+    var
+        Attachment: Record "Document Attachment";
+        Entry: Record "DA Internal Cleanup Entry";
+        Impl: Codeunit "DA External Storage Impl.";
+        OldPath: Text[2048];
+        OldUploadDate: DateTime;
+    begin
+        PrepareCleanup(Attachment);
+        OldPath := Attachment."External File Path";
+        OldUploadDate := Attachment."External Upload Date";
+        Attachment.MarkAsNotUploadedToExternal();
+        Attachment."Stored Externally" := true;
+        Attachment."External File Path" := OldPath;
+        Attachment."External Upload Date" := OldUploadDate;
+        Attachment.Modify();
+        Assert.IsFalse(Impl.DeleteFromInternalStorage(Attachment), 'Reapplying stale flags must not adopt retired upload provenance');
+        Entry.Get(Attachment.SystemId);
+        Assert.IsFalse(Entry."Provenance Valid", 'Only a new established upload may create valid provenance');
+        Assert.IsTrue(Attachment."Stored Internally", 'Stale metadata must not remove internal content');
+        Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'Retired provenance must be rejected without a transfer');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Rejection must not delete external content');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure RetirementAfterReadbackRevokesCleanupReceipt()
+    var
+        Attachment: Record "Document Attachment";
+        Entry: Record "DA Internal Cleanup Entry";
+        Subscriber: Codeunit "DA Cleanup Race Subscriber";
+        MediaId: Guid;
+    begin
+        PrepareCleanup(Attachment);
+        MediaId := Attachment."Document Reference ID".MediaId();
+        AssertMediaContentExists(MediaId);
+        Subscriber.SetMutation(Enum::"DA Cleanup Test Mutation"::RetireReference);
+        BindSubscription(Subscriber);
+        RunCleanup();
+        UnbindSubscription(Subscriber);
+        RefreshAttachment(Attachment);
+        Entry.Get(Attachment.SystemId);
+        Assert.AreEqual(Entry.Status::Cancelled, Entry.Status, 'Retirement must defeat the in-flight cleanup receipt');
+        Assert.IsFalse(Entry."Provenance Valid", 'Retired upload provenance must remain invalid');
+        Assert.IsTrue(Attachment."Stored Internally", 'The finalizer must not undo local restoration or retirement');
+        Assert.IsFalse(Attachment."Stored Externally", 'Explicit local retirement must remain committed');
+        Assert.AreEqual(MediaId, Attachment."Document Reference ID".MediaId(), 'The in-flight worker must not detach internal media');
+        Assert.AreEqual(1, FileConnectorMock.GetReadbackCallCount(), 'Only the preceding worker readback should occur');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Retirement must not invoke remote deletion');
+        AssertMediaContentExists(MediaId);
     end;
 
     [Test]

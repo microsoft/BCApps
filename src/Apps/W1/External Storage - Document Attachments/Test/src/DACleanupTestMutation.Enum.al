@@ -15,4 +15,5 @@ enum 136820 "DA Cleanup Test Mutation"
     value(4; Media) { }
     value(5; Lease) { }
     value(6; Policy) { }
+    value(7; RetireReference) { }
 }

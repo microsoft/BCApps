@@ -73,7 +73,7 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
         "External File Path" := '';
         Modify();
         if not IsTemporary() then
-            CleanupManagement.CancelCleanup(SystemId);
+            CleanupManagement.InvalidateProvenance(SystemId);
     end;
 
     /// <summary>
