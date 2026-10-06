@@ -5,6 +5,8 @@
 
 namespace System.Apps;
 
+using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 using System.Environment.Configuration;
 
@@ -179,11 +181,55 @@ codeunit 2500 "Extension Installation Impl"
             Error(NotSufficientPermissionErr);
     end;
 
+    procedure CheckPermissions(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanManageExtensions(UserSecurityIdToCheck) then
+            Error(NotSufficientPermissionErr);
+    end;
+
     procedure CanManageExtensions(): Boolean
     var
-        ApplicationObjectMetadata: Record "Application Object Metadata";
+        UserPermissions: Codeunit "User Permissions";
+        Result: Boolean;
     begin
-        exit(ApplicationObjectMetadata.ReadPermission());
+        OnCanManageExtensions(Result);
+        if Result then
+            exit(true);
+
+        if UserPermissions.IsSuper(UserSecurityId()) then
+            exit(true);
+
+        exit(CanManageExtensions(UserSecurityId()));
+    end;
+
+    procedure CanManageExtensions(UserSecurityIdToCheck: Guid): Boolean
+    var
+        AccessControl: Record "Access Control";
+        UserPermissions: Codeunit "User Permissions";
+        CurrentModuleInfo: ModuleInfo;
+        ExtensionManagementAdminTok: Label 'Exten. Mgt. - Admin', Locked = true;
+        SuperTok: Label 'SUPER', Locked = true;
+        NullGuid: Guid;
+    begin
+        if UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityIdToCheck, '', SuperTok, AccessControl.Scope::System, NullGuid)
+        then
+            exit(true);
+
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        exit(UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityIdToCheck, '', ExtensionManagementAdminTok, AccessControl.Scope::System, CurrentModuleInfo.Id()));
+    end;
+
+    /// <summary>
+    /// Allows tests to authorize the current test session without modifying platform user records.
+    /// </summary>
+    /// <remarks>
+    /// This event is for testing only and must not be used in production.
+    /// </remarks>
+    [InternalEvent(false)]
+    local procedure OnCanManageExtensions(var Result: Boolean)
+    begin
     end;
 
     procedure UninstallExtension(PackageID: Guid; IsUIEnabled: Boolean): Boolean
@@ -377,4 +423,3 @@ codeunit 2500 "Extension Installation Impl"
         exit(ExtensionDetails.Editable());
     end;
 }
-
