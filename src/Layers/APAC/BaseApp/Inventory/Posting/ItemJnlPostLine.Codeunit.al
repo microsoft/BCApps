@@ -6493,7 +6493,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-<<<<<<< HEAD
 #if not CLEAN27
     internal procedure RunOnBeforeProdOrderCompModify(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ItemJournalLine: Record "Item Journal Line")
     begin
@@ -6508,20 +6507,18 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
 #if not CLEAN27
-    internal procedure RunOnBeforeProdOrderLineModify(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
+    internal procedure RunOnBeforeProdOrderLineModify(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
     begin
         OnBeforeProdOrderLineModify(ProdOrderLine, ItemJournalLine, ItemLedgEntryNo);
     end;
 
     [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProdOrderLineModify(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
+    local procedure OnBeforeProdOrderLineModify(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
     begin
     end;
 #endif
 
-=======
->>>>>>> 3f135fd55af4959ce460cc90b1f05d4e48a14564
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRoundAmtValueEntry(var ValueEntry: Record "Value Entry"; Currency: Record Currency; Item: Record Item; var IsHandled: Boolean)
     begin
@@ -6655,7 +6652,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-<<<<<<< HEAD
 #if not CLEAN27
     internal procedure RunOnAfterUpdateProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ReTrack: Boolean; var ItemJournalLine: Record "Item Journal Line")
     begin
@@ -6670,14 +6666,14 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
 #if not CLEAN27
-    internal procedure RunOnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
+    internal procedure RunOnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
     begin
         OnAfterInsertConsumpEntry(WarehouseJournalLine, ProdOrderComponent, QtyBase, PostWhseJnlLine, ItemJnlLine, ItemLedgEntryNo);
     end;
 
     [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
+    local procedure OnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
     begin
     end;
 #endif
@@ -6695,8 +6691,6 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 #endif
 
-=======
->>>>>>> 3f135fd55af4959ce460cc90b1f05d4e48a14564
     [IntegrationEvent(false, false)]
     local procedure OnApplyItemLedgEntryOnAfterCalcAppliedQty(OldItemLedgEntry: Record "Item Ledger Entry"; ItemLedgEntry: Record "Item Ledger Entry"; var AppliedQty: Decimal)
     begin

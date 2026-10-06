@@ -181,14 +181,8 @@ table 339 "Item Application Entry"
 
     var
         TempVisitedItemApplicationEntry: Record "Item Application Entry" temporary;
-<<<<<<< HEAD
         TempItemLedgerEntryInChainNo: Record "BigInteger" temporary;
-#if not CLEAN27
         SearchedItemLedgerEntry: Record "Item Ledger Entry";
-#endif
-=======
-        TempItemLedgerEntryInChainNo: Record "Integer" temporary;
->>>>>>> 3f135fd55af4959ce460cc90b1f05d4e48a14564
         TrackChain: Boolean;
         MaxValuationDate: Date;
         CheckCyclicalLoopDepth: Integer;
