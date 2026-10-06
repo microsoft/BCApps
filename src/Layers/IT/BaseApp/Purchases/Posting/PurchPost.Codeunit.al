@@ -9553,6 +9553,20 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN28
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", 'OnAfterPostItemJnlLineCopyProdOrder', '', false, false)]
+    local procedure HandleOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+    begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
+        ItemJnlLine."Subcontr. Purch. Order No." := PurchLine."Document No.";
+        ItemJnlLine."Subcontr. Purch. Order Line" := PurchLine."Line No.";
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineItemCharges(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
     begin
