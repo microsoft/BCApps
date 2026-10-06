@@ -19,20 +19,25 @@ codeunit 8755 "DA Ext. Storage Sync Worker"
         FailureReason: Text;
         TelemetryErrorText: Text;
         TelemetryErrorCallStack: Text;
-        ExternalFilePath: Text[2048];
-        Step: Option Upload,Download,DeleteInternal,DeleteExternal,DeleteOrphanedFile;
+        Step: Option Upload,Download,DeleteInternal,DeleteExternal;
         WorkerNotInitializedErr: Label 'The External Storage synchronization worker can only be run by the External Storage Sync report.';
         SyncStepFailedTelemetryErr: Label 'The attachment synchronization step failed.', Locked = true;
 
     trigger OnRun()
+    var
+        InitializationErrorInfo: ErrorInfo;
     begin
         Clear(Result);
         Clear(FailureReason);
         Clear(TelemetryErrorText);
         Clear(TelemetryErrorCallStack);
 
-        if not StepInitialized then
-            Error(WorkerNotInitializedErr);
+        if not StepInitialized then begin
+            InitializationErrorInfo.Message := WorkerNotInitializedErr;
+            InitializationErrorInfo.ErrorType := ErrorType::Internal;
+            InitializationErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            Error(InitializationErrorInfo);
+        end;
 
         case Step of
             Step::Upload:
@@ -43,23 +48,16 @@ codeunit 8755 "DA Ext. Storage Sync Worker"
                 Result := DAExternalStorageImpl.DeleteFromInternalStorage(Rec, FailureReason);
             Step::DeleteExternal:
                 Result := DAExternalStorageImpl.DeleteFromExternalStorage(Rec, FailureReason);
-            Step::DeleteOrphanedFile:
-                Result := DAExternalStorageImpl.DeleteExternalFileByPath(ExternalFilePath, FailureReason);
         end;
 
         if not Result then
             CaptureFailureTelemetry(DAExternalStorageImpl.CanLogLastFailureReasonToTelemetry());
     end;
 
-    internal procedure SetStep(NewStep: Option Upload,Download,DeleteInternal,DeleteExternal,DeleteOrphanedFile)
+    internal procedure SetStep(NewStep: Option Upload,Download,DeleteInternal,DeleteExternal)
     begin
         Step := NewStep;
         StepInitialized := true;
-    end;
-
-    internal procedure SetExternalFilePath(NewExternalFilePath: Text[2048])
-    begin
-        ExternalFilePath := NewExternalFilePath;
     end;
 
     internal procedure GetResult(): Boolean

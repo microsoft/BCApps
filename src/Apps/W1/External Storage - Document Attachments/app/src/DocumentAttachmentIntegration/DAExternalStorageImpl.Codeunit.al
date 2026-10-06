@@ -444,17 +444,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         exit(true);
     end;
 
-    /// <summary>
-    /// Deletes one external file by path without changing a document attachment record.
-    /// </summary>
-    /// <param name="ExternalFilePath">The external file path to delete.</param>
-    /// <param name="FailureReason">Set to the reason the deletion failed; empty on success.</param>
-    /// <returns>True if deletion was successful, false otherwise.</returns>
-    internal procedure DeleteExternalFileByPath(ExternalFilePath: Text; var FailureReason: Text): Boolean
+    local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"; var FailureReason: Text): Boolean
     var
         TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
         FileScenario: Enum "File Scenario";
     begin
         FailureReason := '';
@@ -470,16 +465,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalFileStorage.Initialize(FileScenario);
         if not ExternalFileStorage.DeleteFile(ExternalFilePath) then
             exit(FailWithLastError(FailureReason));
-
-        exit(true);
-    end;
-
-    local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"; var FailureReason: Text): Boolean
-    var
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-    begin
-        if not DeleteExternalFileByPath(ExternalFilePath, FailureReason) then
-            exit(false);
 
         DAFeatureTelemetry.LogFileDeleted(DocumentAttachmentForTelemetry);
         exit(true);

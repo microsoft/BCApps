@@ -31,6 +31,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         ExpectedSyncSummary: Text;
         SyncToInternalStorage: Boolean;
         MoveAttachments: Boolean;
+        SyncMaxRecordsToProcess: Integer;
         CannotRetrieveExternalFileErr: Label 'could not be retrieved from external storage', Locked = true;
         DialogErrorCodeTok: Label 'Dialog', Locked = true;
         FeatureDisabledErr: Label 'External storage is not enabled.', Locked = true;
@@ -257,6 +258,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         FileConnectorMock.SetStoreFileContent(true);
 
         VerifyFileNameRoundTrip('Invoice Nov25 (final)_100%+v1', 'pdf');
+        VerifyFileNameRoundTrip('Invoice #1 literal%2F (final)', 'pdf');
     end;
 
     [Test]
@@ -553,7 +555,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler')]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure SyncInBackgroundRegistersEveryFailure()
     var
         MissingContentAttachment: Record "Document Attachment";
@@ -580,6 +582,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [WHEN] The report runs as it does from the job queue (no message, page, or error handler is expected)
         Commit();
         DAExternalStorageSync.SetHideDialog(true);
+        DAExternalStorageSync.UseRequestPage(false);
         DAExternalStorageSync.Run();
 
         // [THEN] A single register records both failures
@@ -597,7 +600,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler')]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure SyncInBackgroundRegistersHardFailureAndContinues()
     var
         FailedAttachment: Record "Document Attachment";
@@ -621,6 +624,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         Commit();
         DAExternalStorageSync.SetHideDialog(true);
+        DAExternalStorageSync.UseRequestPage(false);
         DAExternalStorageSync.Run();
         UnbindSubscription(HardErrorSubscriber);
 
@@ -632,9 +636,10 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         RefreshAttachment(FailedAttachment);
         Assert.IsFalse(FailedAttachment."Stored Externally", 'The failed attachment state should be rolled back');
-        FailedExternalFilePath := FileConnectorMock.GetLastDeletedPath();
-        Assert.AreNotEqual('', FailedExternalFilePath, 'The orphaned external file should be deleted after the failed upload');
-        Assert.IsFalse(ExternalFileExists(FailedExternalFilePath), 'The failed attachment external file should not remain in external storage');
+        Assert.IsTrue(FailedAttachment."Document Reference ID".HasValue(), 'The failed upload must retain the internal content');
+        Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'A failed upload must not delete through a mutable storage account');
+        FailedExternalFilePath := GetRetainedUploadPath(ErrorMessageRegister.ID, FailedAttachment);
+        Assert.IsTrue(ExternalFileExists(FailedExternalFilePath), 'The uncertain external file should be retained');
         RefreshAttachment(SuccessfulAttachment);
         Assert.IsTrue(SuccessfulAttachment."Stored Externally", 'Other attachments should still be processed');
         Assert.AreNotEqual(FailedExternalFilePath, SuccessfulAttachment."External File Path", 'The successful attachment should use a different external file');
@@ -652,7 +657,45 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         asserterror Codeunit.Run(Codeunit::"DA Ext. Storage Sync Worker", DocumentAttachment);
 
-        Assert.ExpectedError(WorkerNotInitializedErr);
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.IsTrue(GetLastErrorText(true).Contains(WorkerNotInitializedErr), 'The developer invariant should be retained in system-metadata diagnostics');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,StorageSyncRequestPageHandler,SyncSummaryMessageHandler')]
+    procedure SyncRespectsLimitAndResumesWithoutReupload()
+    var
+        FirstAttachment: Record "Document Attachment";
+        SecondAttachment: Record "Document Attachment";
+        OriginalExternalFilePath: Text;
+    begin
+        // [SCENARIO] A capped run persists its upload, and the next run processes only the remaining attachment.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+        CreateNamedDocumentAttachment(FirstAttachment, 'First attachment', 'pdf');
+        CreateNamedDocumentAttachment(SecondAttachment, 'Second attachment', 'pdf');
+        SyncMaxRecordsToProcess := 1;
+        ExpectedSyncSummary := 'Processed 1 attachments successfully. 0 failed.';
+
+        Commit();
+        Report.Run(Report::"DA External Storage Sync");
+
+        RefreshAttachment(FirstAttachment);
+        RefreshAttachment(SecondAttachment);
+        Assert.AreNotEqual(FirstAttachment."Stored Externally", SecondAttachment."Stored Externally", 'Exactly one upload should be committed within the record limit');
+        if not FirstAttachment."Stored Externally" then
+            FirstAttachment := SecondAttachment;
+        OriginalExternalFilePath := FirstAttachment."External File Path";
+
+        Report.Run(Report::"DA External Storage Sync");
+
+        RefreshAttachment(FirstAttachment);
+        RefreshAttachment(SecondAttachment);
+        Assert.AreEqual(0, CountAttachmentsPendingUpload(), 'The next run should process the remaining attachment');
+        Assert.AreEqual(OriginalExternalFilePath, FirstAttachment."External File Path", 'A completed upload must not be repeated');
+        Assert.IsTrue(ExternalFileExists(OriginalExternalFilePath), 'The first external file should be preserved');
     end;
 
     #endregion
@@ -1478,6 +1521,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Clear(ExpectedSyncSummary);
         Clear(SyncToInternalStorage);
         Clear(MoveAttachments);
+        Clear(SyncMaxRecordsToProcess);
 
         // Clean up test data
         DocumentAttachment.DeleteAll();
@@ -1696,6 +1740,33 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.IsTrue(ErrorMessage."Message".Contains(Reason), 'The registered failure should include the specific reason');
     end;
 
+    local procedure GetRetainedUploadPath(RegisterID: Guid; DocumentAttachment: Record "Document Attachment"): Text
+    var
+        ErrorMessage: Record "Error Message";
+        PathStart: Integer;
+        PathEnd: Integer;
+        PathPrefixTok: Label 'The external file at ', Locked = true;
+        PathSuffixTok: Label ' was retained because the attachment update failed.', Locked = true;
+    begin
+        ErrorMessage.SetRange("Register ID", RegisterID);
+        ErrorMessage.SetRange("Record ID", DocumentAttachment.RecordId());
+        ErrorMessage.FindFirst();
+        PathStart := StrPos(ErrorMessage."Message", PathPrefixTok);
+        PathEnd := StrPos(ErrorMessage."Message", PathSuffixTok);
+        Assert.IsTrue(PathStart > 0, 'The registered failure should explain retention and identify the created path');
+        Assert.IsTrue(PathEnd > PathStart, 'The retained path should be recorded for recovery');
+        PathStart += StrLen(PathPrefixTok);
+        exit(CopyStr(ErrorMessage."Message", PathStart, PathEnd - PathStart));
+    end;
+
+    local procedure CountAttachmentsPendingUpload(): Integer
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.SetRange("Stored Externally", false);
+        exit(DocumentAttachment.Count());
+    end;
+
     [ConfirmHandler]
     procedure ConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
     begin
@@ -1713,7 +1784,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
             StorageSync.OperationField.SetValue('Move')
         else
             StorageSync.OperationField.SetValue('Copy');
-        StorageSync.MaxRecordsToProcessField.SetValue(0);
+        StorageSync.MaxRecordsToProcessField.SetValue(SyncMaxRecordsToProcess);
         StorageSync.OK().Invoke();
     end;
 

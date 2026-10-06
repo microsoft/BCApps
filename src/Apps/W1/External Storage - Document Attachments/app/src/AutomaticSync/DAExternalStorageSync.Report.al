@@ -77,7 +77,6 @@ report 8752 "DA External Storage Sync"
                         begin
                             SyncSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::Upload, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                             if SyncSuccess and (Operation = Operation::Move) then begin
-                                Commit(); // Persist the external copy before trying to remove the internal source.
                                 GetPersistedDocumentAttachment(DocumentAttachment, StepDocumentAttachment);
                                 DeleteSuccess := RunSyncWorker(StepDocumentAttachment, SyncWorkerStep::DeleteInternal, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                                 if not DeleteSuccess then begin
@@ -90,7 +89,6 @@ report 8752 "DA External Storage Sync"
                         begin
                             SyncSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::Download, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                             if SyncSuccess and (Operation = Operation::Move) then begin
-                                Commit(); // Persist the internal copy before trying to remove the external source.
                                 GetPersistedDocumentAttachment(DocumentAttachment, StepDocumentAttachment);
                                 DeleteSuccess := RunSyncWorker(StepDocumentAttachment, SyncWorkerStep::DeleteExternal, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                                 if not DeleteSuccess then begin
@@ -104,13 +102,11 @@ report 8752 "DA External Storage Sync"
                 if not SyncSuccess then begin
                     GetPersistedDocumentAttachment(DocumentAttachment, FailureDocumentAttachment);
                     if SyncDirection = SyncDirection::"To External Storage" then begin
-                        CompensateOrphanedUpload(FailureDocumentAttachment, CreatedExternalFilePath, FailureReason);
+                        DescribeRetainedUpload(FailureDocumentAttachment, CreatedExternalFilePath, FailureReason);
                         LogFailure(FailureDocumentAttachment, StrSubstNo(CopyFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'Upload')
                     end else
                         LogFailure(FailureDocumentAttachment, StrSubstNo(CopyFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'Download');
                 end;
-
-                Commit(); // Commit after each record to avoid lost in communication error with external storage service
 
                 if (MaxRecordsToProcess > 0) and (ProcessedCount >= MaxRecordsToProcess) then
                     CurrReport.Break();
@@ -186,13 +182,13 @@ report 8752 "DA External Storage Sync"
         TotalCount: Integer;
         SyncDirection: Option "To External Storage","To Internal Storage";
         Operation: Option Copy,Move;
-        SyncWorkerStep: Option Upload,Download,DeleteInternal,DeleteExternal,DeleteOrphanedFile;
+        SyncWorkerStep: Option Upload,Download,DeleteInternal,DeleteExternal;
         ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
         AttachmentFailedErr: Label 'Attachment %1: %2', Comment = '%1 = Original attachment filename, %2 = Failure reason';
         CopyFailedErr: Label 'The attachment could not be copied. %1', Comment = '%1 = Failure reason';
         SourceCleanupFailedErr: Label 'The attachment was copied, but could not be removed from the source storage. %1', Comment = '%1 = Failure reason';
-        OrphanedFileCleanupFailedErr: Label 'The file that was copied to external storage could not be removed.';
+        OrphanedFileRetainedErr: Label 'The external file at %1 was retained because the attachment update failed. Verify the storage account and file before recovering or removing it.', Comment = '%1 = Created external file path';
         FailuresRegisteredTxt: Label 'External Storage Synchronization: %1 of %2 attachments failed.', Comment = '%1 = Number of failed attachments, %2 = Number of processed attachments';
         SyncStepFailedErr: Label 'The attachment synchronization step failed.';
         SyncStepFailedTelemetryErr: Label 'The attachment synchronization step failed.', Locked = true;
@@ -203,15 +199,15 @@ report 8752 "DA External Storage Sync"
     end;
 
     /// <summary>
-    /// Runs the report as it would run in a background session, without dialogs, messages or pages.
+    /// Suppresses progress dialogs, summary messages and error pages. The caller controls whether to show the request page.
     /// </summary>
-    /// <param name="NewHideDialog">True to suppress all user interface.</param>
+    /// <param name="NewHideDialog">True to suppress progress dialogs, summary messages and error pages.</param>
     internal procedure SetHideDialog(NewHideDialog: Boolean)
     begin
         HideDialog := NewHideDialog;
     end;
 
-    local procedure RunSyncWorker(var TargetDocumentAttachment: Record "Document Attachment"; Step: Option Upload,Download,DeleteInternal,DeleteExternal,DeleteOrphanedFile; var FailureReason: Text; var TelemetryErrorText: Text; var TelemetryErrorCallStack: Text; var CreatedExternalFilePath: Text[2048]): Boolean
+    local procedure RunSyncWorker(var TargetDocumentAttachment: Record "Document Attachment"; Step: Option Upload,Download,DeleteInternal,DeleteExternal; var FailureReason: Text; var TelemetryErrorText: Text; var TelemetryErrorCallStack: Text; var CreatedExternalFilePath: Text[2048]): Boolean
     var
         DAExtStorageSyncWorker: Codeunit "DA Ext. Storage Sync Worker";
     begin
@@ -223,6 +219,7 @@ report 8752 "DA External Storage Sync"
         ClearLastError();
 
         DAExtStorageSyncWorker.SetStep(Step);
+        // The Boolean Run commits successful writes and rolls back runtime failures before the next step.
         if DAExtStorageSyncWorker.Run(TargetDocumentAttachment) then begin
             FailureReason := DAExtStorageSyncWorker.GetFailureReason();
             TelemetryErrorText := DAExtStorageSyncWorker.GetTelemetryErrorText();
@@ -242,22 +239,7 @@ report 8752 "DA External Storage Sync"
         exit(false);
     end;
 
-    local procedure RunDeleteOrphanedFileWorker(var TargetDocumentAttachment: Record "Document Attachment"; ExternalFilePath: Text[2048]): Boolean
-    var
-        DAExtStorageSyncWorker: Codeunit "DA Ext. Storage Sync Worker";
-    begin
-        Clear(DAExtStorageSyncWorker);
-        ClearLastError();
-
-        DAExtStorageSyncWorker.SetStep(SyncWorkerStep::DeleteOrphanedFile);
-        DAExtStorageSyncWorker.SetExternalFilePath(ExternalFilePath);
-        if DAExtStorageSyncWorker.Run(TargetDocumentAttachment) then
-            exit(DAExtStorageSyncWorker.GetResult());
-
-        exit(false);
-    end;
-
-    local procedure CompensateOrphanedUpload(var PersistedDocumentAttachment: Record "Document Attachment"; CreatedExternalFilePath: Text[2048]; var FailureReason: Text)
+    local procedure DescribeRetainedUpload(PersistedDocumentAttachment: Record "Document Attachment"; CreatedExternalFilePath: Text[2048]; var FailureReason: Text)
     begin
         if CreatedExternalFilePath = '' then
             exit;
@@ -265,13 +247,10 @@ report 8752 "DA External Storage Sync"
         if PersistedDocumentAttachment."External File Path" = CreatedExternalFilePath then
             exit;
 
-        if RunDeleteOrphanedFileWorker(PersistedDocumentAttachment, CreatedExternalFilePath) then
-            exit;
-
         if FailureReason = '' then
-            FailureReason := OrphanedFileCleanupFailedErr
+            FailureReason := StrSubstNo(OrphanedFileRetainedErr, CreatedExternalFilePath)
         else
-            FailureReason += ' ' + OrphanedFileCleanupFailedErr;
+            FailureReason += ' ' + StrSubstNo(OrphanedFileRetainedErr, CreatedExternalFilePath);
     end;
 
     local procedure LogFailure(FailedDocumentAttachment: Record "Document Attachment"; FailureMessage: Text; TelemetryErrorText: Text; TelemetryErrorCallStack: Text; FailureOperation: Text)
