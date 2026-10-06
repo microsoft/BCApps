@@ -297,7 +297,7 @@ codeunit 134907 "ERM Invoice and Reminder"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('SuggestLinesReportHandler')]
+    [HandlerFunctions('SuggestLinesWithDefaultFiltersReportHandler')]
     procedure IssueReminderForMultipleInvoicesWithDifferentReminderLevels()
     var
         ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry";
@@ -880,7 +880,7 @@ codeunit 134907 "ERM Invoice and Reminder"
     end;
 
     [Test]
-    [HandlerFunctions('SuggestLinesReportHandler,IssueRemindersPrintRequestPageHandler')]
+    [HandlerFunctions('SuggestLinesWithDefaultFiltersReportHandler,IssueRemindersPrintRequestPageHandler')]
     [Scope('OnPrem')]
     procedure IssueMultipleRemindersWithPrintUsesSingleBatch()
     var
@@ -1131,7 +1131,6 @@ codeunit 134907 "ERM Invoice and Reminder"
         ReminderHeader.Modify(true);
 
         Commit();
-        LibraryVariableStorage.Enqueue('');
         Report.RunModal(Report::"Suggest Reminder Lines", true, false, ReminderHeader);
 
         ReminderHeader.SetRecFilter();
@@ -1476,6 +1475,12 @@ codeunit 134907 "ERM Invoice and Reminder"
     procedure SuggestLinesReportHandler(var SuggestReminderLines: TestRequestPage "Suggest Reminder Lines")
     begin
         SuggestReminderLines.CustLedgEntry2.SetFilter("Due Date", LibraryVariableStorage.DequeueText());
+        SuggestReminderLines.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure SuggestLinesWithDefaultFiltersReportHandler(var SuggestReminderLines: TestRequestPage "Suggest Reminder Lines")
+    begin
         SuggestReminderLines.OK().Invoke();
     end;
 
