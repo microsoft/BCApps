@@ -95,7 +95,6 @@ codeunit 4582 "SOA Retrieve Emails"
         end;
 
         AddEmailInboxToSOAEmails(SOASetup, EmailInbox);
-        UpdateSOAEarliestSyncAt(SOASetup, EmailInbox.Count());
         Commit();
 
         SOAEmail.SetRange(Processed, false);
@@ -116,17 +115,6 @@ codeunit 4582 "SOA Retrieve Emails"
             end;
         until SOAEmail.Next() = 0;
         Commit();
-    end;
-
-    local procedure UpdateSOAEarliestSyncAt(var SOASetup: Record "SOA Setup"; EmailsProcessed: Integer)
-    begin
-        SOASetup.Get(SOASetup.ID);
-        // Only move the earliest sync time forward if we processed fewer emails than the limit
-        // This ensures we'll re-query and get any we missed
-        if EmailsProcessed < SOAMailSetup.GetMaxNoOfEmails() then
-            SOASetup."Earliest Sync At" := CurrentDateTime();
-
-        SOASetup.Modify();
     end;
 
     local procedure AddEmailToAgentTask(SOASetup: Record "SOA Setup"; var SOAEmail: Record "SOA Email")
@@ -190,7 +178,7 @@ codeunit 4582 "SOA Retrieve Emails"
 
         AgentMessageBuilder.Initialize(EmailInbox."Sender Address", MessageText)
             .SetMessageExternalID(EmailInbox."External Message Id")
-            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox, true))
+            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox."Sender Address", true))
             .SetIgnoreAttachment(not SOASetup."Analyze Attachments");
 
         AgentTaskBuilder.Initialize(SOASetup."User Security ID", AgentTaskTitle)
@@ -369,7 +357,7 @@ codeunit 4582 "SOA Retrieve Emails"
 
         AgentTaskMessageBuilder.Initialize(EmailInbox."Sender Address", MessageText)
             .SetMessageExternalID(EmailInbox."External Message Id")
-            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox, false))
+            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox."Sender Address", false))
             .SetIgnoreAttachment(not SOASetup."Analyze Attachments")
             .SetAgentTask(AgentTaskRecord);
 

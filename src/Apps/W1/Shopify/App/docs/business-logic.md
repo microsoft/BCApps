@@ -157,9 +157,9 @@ The `IDocumentSource` interface determines which Shopify document (return or ref
 
 Refund lines carry a `"Restock Type"` that affects inventory: Return means items go back to stock, Cancel means they were never shipped, NoRestock is purely financial. Lines with non-restock types are mapped to G/L accounts (`"Refund Acc. non-restock Items"`) instead of item lines on the credit memo.
 
-For return-with-exchange cases, order import fetches exchange line items from the order's returns and flags the matching Shopify order lines as exchange items. Sales document creation excludes those order lines from the original invoice. Refund import then fetches the refund's return exchange lines and creates synthetic negative-quantity refund lines, so the credit memo offsets the exchange item without adding a balancing refund-account line.
+For return-with-exchange cases, order import fetches exchange line items from the order's returns and flags the matching Shopify order lines as exchange items. Because Shopify adds the exchange line to an order that BC may already have processed, those exchange lines are also excluded from the processed-order conflict check, so a legitimate exchange no longer raises a spurious "already processed / edition received" error on the order. Sales document creation excludes the flagged order lines from the original invoice. Refund import then fetches the refund's return exchange lines and creates synthetic negative-quantity refund lines, so the credit memo offsets the exchange item without adding a balancing refund-account line. When the kept exchange item is more expensive than the returned item, Shopify floors the refund at 0 (the customer pays the difference), so the returned (+qty) and exchange (-qty) item lines net to a negative credit-memo total; that net is left to stand -- no balancing refund-account line is added to force the total back up to the floored refund amount.
 
-*Updated: 2026-07-29 -- Refund-with-exchange handling now uses exchange GraphQL queries*
+*Updated: 2026-08-14 -- Exchange lines excluded from processed-order conflict detection; no balancing line for more-expensive exchange items*
 
 ## Inventory synchronization
 

@@ -562,65 +562,7 @@ codeunit 144076 "ERM Payment Discount"
         // TearDown.
         RollBackGeneralLedgerSetup(GeneralLedgerSetup."Payment Discount Type", GeneralLedgerSetup."Discount Calculation");
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ConfirmHandler,ServiceStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure PaymentDiscountOnServiceInvoiceStatistics()
-    var
-        Customer: Record Customer;
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        ServiceHeader: Record "Service Header";
-    begin
-        // Test to verify Payment Discount Amount on Service Statistics Page.
 
-        // Setup: Create Customer,Update General Ledger Setup,Create Service Invoice and open Service Invoice page.
-        Initialize();
-        LibrarySales.CreateCustomer(Customer);
-        GeneralLedgerSetup.Get();
-        UpdateGeneralLedgerSetup(
-          GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines",
-          GeneralLedgerSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.");
-        CreateServiceDocumentAndCalculatePmtDiscount(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
-
-        // Exercise.
-        OpenServiceInvoiceStatistics(ServiceHeader."No.");
-
-        // Verify: Verification done in ServiceStatisticsModalPageHandler.
-
-        // TearDown.
-        RollBackGeneralLedgerSetup(GeneralLedgerSetup."Payment Discount Type", GeneralLedgerSetup."Discount Calculation");
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandler,ServiceStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure PaymentDiscountOnServiceCreditMemoStatistics()
-    var
-        Customer: Record Customer;
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        ServiceHeader: Record "Service Header";
-    begin
-        // Test to verify Payment Discount Amount on Service Credit Memo Statistics Page.
-
-        // Setup: Create Customer,Update General Ledger Setup,Create Service Credit Memo and open Service Credit Memo page.
-        Initialize();
-        LibrarySales.CreateCustomer(Customer);
-        GeneralLedgerSetup.Get();
-        UpdateGeneralLedgerSetup(
-          GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines",
-          GeneralLedgerSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.");
-        CreateServiceDocumentAndCalculatePmtDiscount(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo", Customer."No.");
-
-        // Exercise.
-        OpenServiceCreditMemoStatistics(ServiceHeader."No.");
-
-        // Verify: Verification done in ServiceStatisticsModalPageHandler.
-
-        // TearDown.
-        RollBackGeneralLedgerSetup(GeneralLedgerSetup."Payment Discount Type", GeneralLedgerSetup."Discount Calculation");
-    end;
-#endif
     [Test]
     [HandlerFunctions('ConfirmHandler,ServiceStatisticsPageHandler')]
     [Scope('OnPrem')]
@@ -1150,40 +1092,14 @@ codeunit 144076 "ERM Payment Discount"
         SalesOrder.CalculateInvoiceDiscount.Invoke();
         SalesOrder.Close();
     end;
-#if not CLEAN27
-    local procedure OpenServiceCreditMemoStatistics(No: Code[20])
-    var
-        ServiceCreditMemo: TestPage "Service Credit Memo";
-    begin
-        ServiceCreditMemo.OpenEdit();
-        ServiceCreditMemo.FILTER.SetFilter("No.", No);
-        ServiceCreditMemo."Calculate Inv. and Pmt. Disc.".Invoke();
-        ServiceCreditMemo.Statistics.Invoke();  // Opens ServiceStatisticsModalPageHandler.
-        ServiceCreditMemo.Close();
-    end;
 
-    local procedure OpenServiceInvoiceStatistics(No: Code[20])
-    var
-        ServiceInvoice: TestPage "Service Invoice";
-    begin
-        ServiceInvoice.OpenEdit();
-        ServiceInvoice.FILTER.SetFilter("No.", No);
-        ServiceInvoice."Calculate Invoice Discount".Invoke();
-        ServiceInvoice.Statistics.Invoke();  // Opens ServiceStatisticsModalPageHandler.
-        ServiceInvoice.Close();
-    end;
-#endif
     local procedure OpenServiceCreditMemoStatisticsNM(No: Code[20])
     var
         ServiceCreditMemo: TestPage "Service Credit Memo";
     begin
         ServiceCreditMemo.OpenEdit();
         ServiceCreditMemo.FILTER.SetFilter("No.", No);
-#if not CLEAN27
-        ServiceCreditMemo."Calculate Inv. and Pmt. Disc.".Invoke();
-#else
         ServiceCreditMemo."Calculate Invoice Discount".Invoke();
-#endif
         ServiceCreditMemo.ServiceStatistics.Invoke();  // Opens ServiceStatisticsModalPageHandler.
         ServiceCreditMemo.Close();
     end;
@@ -1314,20 +1230,6 @@ codeunit 144076 "ERM Payment Discount"
         Assert.AreEqual(ExpectedPmtDiscGivenAmount, PmtDiscGivenAmount, '');
     end;
 
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceStatisticsModalPageHandler(var ServiceStatistics: TestPage "Service Statistics")
-    var
-        PmtDiscGivenAmount: Decimal;
-        ExpectedPmtDiscGivenAmount: Decimal;
-    begin
-        ExpectedPmtDiscGivenAmount := Round(LibraryVariableStorage.DequeueDecimal());
-        PmtDiscGivenAmount := ServiceStatistics.PmtDiscGivenAmount.AsDecimal();
-        ServiceStatistics.OK().Invoke();
-        Assert.AreEqual(ExpectedPmtDiscGivenAmount, PmtDiscGivenAmount, '');
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure ServiceStatisticsPageHandler(var ServiceStatistics: TestPage "Service Statistics")

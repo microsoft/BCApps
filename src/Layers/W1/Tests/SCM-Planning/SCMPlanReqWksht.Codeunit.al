@@ -34,6 +34,7 @@
         LibraryERM: Codeunit "Library - ERM";
         AvailabilityMgt: Codeunit AvailabilityManagement;
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         isInitialized: Boolean;
         RequisitionLineMustNotExistTxt: Label 'Requisition Line must not exist for Item %1.', Comment = '%1 = Item No.';
         ShipmentDateMessageTxt: Label 'Shipment Date';
@@ -5665,6 +5666,130 @@
         Assert.AreEqual(ExpectedQty, PlanningComponent."Expected Quantity", 'Expected Quantity should be rounded up by Qty. Rounding Precision');
     end;
 
+    [Test]
+    procedure CurrentPriceWhenUsingOldDate()
+    var
+        Item: Record Item;
+        ItemVendor: Record "Item Vendor";
+        PriceListLine: Record "Price List Line";
+        RequisitionLine: Record "Requisition Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Rush orders should not get an old price
+        // [FEATURE] [Requisition Line] [Purchase Price Calculation]
+        Initialize();
+
+        // [GIVEN] New pricing enabled
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+
+        // [GIVEN] Default price calculation is 'V16'
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Item with vendor.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        UpdateItemVendorNo(Item, Vendor."No.");
+
+        // [GIVEN] Item Vendor with Lead Time Calculation
+        LibraryInventory.CreateItemVendor(ItemVendor, Vendor."No.", Item."No.");
+        Evaluate(ItemVendor."Lead Time Calculation", '<1W>');
+        ItemVendor.Modify();
+
+        // [GIVEN] Price List Line for the item and vendor using an old date range.
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, PriceListLine."Price List Code",
+            "Price Source Type"::Vendor, Vendor."No.", "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 20, 2));
+        PriceListLine.Status := PriceListLine.Status::Active;
+        PriceListLine.Validate("Ending Date", WorkDate() - 1);
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Price List Line for the item and vendor using a new date range.
+        PriceListLine.Init();
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, PriceListLine."Price List Code",
+            "Price Source Type"::Vendor, Vendor."No.", "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(30, 60, 2));
+        PriceListLine.Status := PriceListLine.Status::Active;
+        PriceListLine.Validate("Starting Date", WorkDate());
+        PriceListLine.Modify(true);
+
+        // [GIVEN] A requisition line for the item and vendor
+        CreateRequisitionLine(RequisitionLine);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandIntInRange(1, 10));
+        RequisitionLine.Modify(true);
+
+        // [WHEN] Setting ending date to workdate, requiring the item to be ordered in the past according to the lead time
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+
+        // [THEN] The price should still be current and not pick the price when the order should have been placed.
+        Assert.AreEqual(PriceListLine."Direct Unit Cost", RequisitionLine."Direct Unit Cost", 'Price Calculation did not pick new price');
+
+        // [THEN] Order date should be later than starting date.
+        Assert.AreEqual(RequisitionLine."Order Date", WorkDate(), 'Order Date is not set to current date');
+        Assert.IsTrue(RequisitionLine."Starting Date" < RequisitionLine."Order Date", 'Starting Date is not earlier than Order Date');
+    end;
+
+    [Test]
+    [HandlerFunctions('CarryOutProdOrderToReqWkshRequestPageHandler')]
+    procedure CopyingProdOrderFromPlanningWkshToReqWkshFromRequestPage()
+    var
+        Item: Record Item;
+        PlanningWkshName: Record "Requisition Wksh. Name";
+        ProductionOrder: Record "Production Order";
+        ReqLineInPlanWksh: Record "Requisition Line";
+        ReqLineInReqWksh: Record "Requisition Line";
+        ReqWkshName: Record "Requisition Wksh. Name";
+        PlanningWorksheet: TestPage "Planning Worksheet";
+    begin
+        // [SCENARIO 649803] A production planning line can be copied to a selected requisition worksheet from the Planning Worksheet request page.
+        Initialize();
+        LibraryApplicationArea.EnablePremiumSetup();
+
+        // [GIVEN] An accepted production line in the planning worksheet and a destination requisition worksheet.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Modify(true);
+        LibraryPlanning.SelectRequisitionWkshName(PlanningWkshName, PlanningWkshName."Template Type"::Planning);
+        LibraryPlanning.CreateRequisitionLine(ReqLineInPlanWksh, PlanningWkshName."Worksheet Template Name", PlanningWkshName.Name);
+        ReqLineInPlanWksh.Validate(Type, ReqLineInPlanWksh.Type::Item);
+        ReqLineInPlanWksh.Validate("No.", Item."No.");
+        ReqLineInPlanWksh.Validate("Action Message", ReqLineInPlanWksh."Action Message"::New);
+        ReqLineInPlanWksh.Validate("Accept Action Message", true);
+        ReqLineInPlanWksh.Validate("Replenishment System", ReqLineInPlanWksh."Replenishment System"::"Prod. Order");
+        ReqLineInPlanWksh.Validate("Ref. Order Type", ReqLineInPlanWksh."Ref. Order Type"::"Prod. Order");
+        ReqLineInPlanWksh.Validate(Quantity, LibraryRandom.RandInt(10));
+        ReqLineInPlanWksh.Validate("Due Date", WorkDate());
+        ReqLineInPlanWksh.Modify(true);
+        LibraryPlanning.SelectRequisitionWkshName(ReqWkshName, ReqWkshName."Template Type"::"Req.");
+
+        // [WHEN] Production Order is set to Copy to Req. Wksh and the destination is selected on the request page.
+        LibraryVariableStorage.Enqueue(ReqWkshName."Worksheet Template Name");
+        LibraryVariableStorage.Enqueue(ReqWkshName.Name);
+        Commit();
+        OpenPlanningWorksheetPage(PlanningWorksheet, PlanningWkshName.Name);
+        PlanningWorksheet.CarryOutActionMessage.Invoke();
+
+        // [THEN] The accepted production planning line and its planning data are copied to the destination.
+        ReqLineInReqWksh.SetRange("Worksheet Template Name", ReqWkshName."Worksheet Template Name");
+        ReqLineInReqWksh.SetRange("Journal Batch Name", ReqWkshName.Name);
+        ReqLineInReqWksh.SetRange("No.", Item."No.");
+        ReqLineInReqWksh.FindFirst();
+
+        ReqLineInReqWksh.TestField(Quantity, ReqLineInPlanWksh.Quantity);
+        ReqLineInReqWksh.TestField("Due Date", ReqLineInPlanWksh."Due Date");
+        ReqLineInReqWksh.TestField("Replenishment System", ReqLineInReqWksh."Replenishment System"::"Prod. Order");
+
+        // [THEN] No production order is created.
+        ProductionOrder.SetRange("Source No.", Item."No.");
+        Assert.RecordIsEmpty(ProductionOrder);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         AllProfile: Record "All Profile";
@@ -7747,6 +7872,20 @@ ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name
     procedure PurchaseOrderPageHandler(var PurchaseOrder: TestPage "Purchase Order")
     begin
         PurchaseOrder.Close();
+    end;
+
+    [RequestPageHandler]
+    procedure CarryOutProdOrderToReqWkshRequestPageHandler(var CarryOutActionMsgPlan: TestRequestPage "Carry Out Action Msg. - Plan.")
+    begin
+        CarryOutActionMsgPlan.ProductionOrder.SetValue(Enum::"Planning Create Prod. Order"::"Copy to Req. Wksh");
+        Assert.IsTrue(CarryOutActionMsgPlan.ProdTemp.Visible(), 'Planning worksheet template must be visible for production copy.');
+        Assert.IsTrue(CarryOutActionMsgPlan.ProdTemp.Enabled(), 'Planning worksheet template must be enabled for production copy.');
+        Assert.IsTrue(CarryOutActionMsgPlan.ProdName.Visible(), 'Planning worksheet name must be visible for production copy.');
+        Assert.IsTrue(CarryOutActionMsgPlan.ProdName.Enabled(), 'Planning worksheet name must be enabled for production copy.');
+        CarryOutActionMsgPlan.ProdTemp.SetValue(LibraryVariableStorage.DequeueText());
+        CarryOutActionMsgPlan.ProdName.SetValue(LibraryVariableStorage.DequeueText());
+        CarryOutActionMsgPlan.OK().Invoke();
+        Commit();
     end;
 
 }
