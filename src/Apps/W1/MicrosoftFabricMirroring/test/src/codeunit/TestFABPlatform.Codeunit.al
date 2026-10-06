@@ -1246,6 +1246,58 @@ codeunit 140012 "Test FAB Platform"
         VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '100');
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ResetTableSucceedsAfterRunningSyncFinished()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        SucceededRunId: Guid;
+        RunningSummaryRunId: Guid;
+    begin
+        //[SCENARIO] A reset that would have been blocked by a running synchronization succeeds once that run has finished
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A successful run of the table
+        SucceededRunId := CreateExportDetail('CRONUS', Database::"Tenant Fabric Setup", "Fabric Setup State"::Succeeded, CurrentDateTime() - 3600000, '100');
+        //[GIVEN] An export run that was in progress has since finished
+        RunningSummaryRunId := CreateRunningExportSummary();
+        FinishExportSummary(RunningSummaryRunId);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected reset notification
+        ExpectedMessages.Add(StrSubstNo(TableResetMsg, Database::"Tenant Fabric Setup"));
+
+        //[WHEN] The table is reset
+        FabricPlatformMgt.ResetTable(Database::"Tenant Fabric Setup");
+
+        //[THEN] The End Watermark is cleared and the reset notification was shown
+        VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
+        VerifyNoPendingMessages();
+    end;
+
+    local procedure CreateRunningExportSummary() RunId: Guid
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+    begin
+        RunId := CreateGuid();
+        TenantFabricExportSummary.Init();
+        TenantFabricExportSummary."Run ID" := RunId;
+        TenantFabricExportSummary.Type := TenantFabricExportSummary.Type::Export;
+        TenantFabricExportSummary.State := TenantFabricExportSummary.State::Running;
+        TenantFabricExportSummary."Start Time" := CurrentDateTime();
+        TenantFabricExportSummary.Insert(false);
+    end;
+
+    local procedure FinishExportSummary(RunId: Guid)
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+    begin
+        TenantFabricExportSummary.Get(RunId);
+        TenantFabricExportSummary.State := TenantFabricExportSummary.State::Succeeded;
+        TenantFabricExportSummary.Modify(false);
+    end;
+
     local procedure CreateExportDetail(CompanyName: Text[30]; TableId: Integer; RunState: Enum "Fabric Setup State"; StartTime: DateTime; EndWatermark: Text[30]) RunId: Guid
     var
         TenantFabricExportDetails: Record "Tenant Fabric Export Details";

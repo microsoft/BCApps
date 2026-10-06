@@ -372,7 +372,7 @@ codeunit 48520 "Fabric Platform Mgt"
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         IsHandled: Boolean;
     begin
-        if IsSyncAlreadyRunning() then begin
+        if LockAndCheckSyncRunning() then begin
             if GuiAllowed() then
                 Message(SyncAlreadyRunningMsg);
             exit;
@@ -393,10 +393,12 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(StartRequestedMsg);
     end;
 
-    local procedure IsSyncAlreadyRunning(): Boolean
+    local procedure LockAndCheckSyncRunning(): Boolean
     var
         TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
     begin
+        // Held until the caller's transaction ends, so Start and Reset cannot interleave their check and act.
+        TenantFabricExportSummary.LockTable();
         TenantFabricExportSummary.SetRange(Type, TenantFabricExportSummary.Type::Export);
         TenantFabricExportSummary.SetRange(State, TenantFabricExportSummary.State::Running);
         exit(not TenantFabricExportSummary.IsEmpty());
@@ -448,7 +450,7 @@ codeunit 48520 "Fabric Platform Mgt"
         ResetCompanies: List of [Text];
         ResetBlockedErrorInfo: ErrorInfo;
     begin
-        if IsSyncAlreadyRunning() then begin
+        if LockAndCheckSyncRunning() then begin
             ResetBlockedErrorInfo := ErrorInfo.Create(ResetBlockedWhileRunningErr);
             ResetBlockedErrorInfo.AddAction(StopSynchronizationLbl, Codeunit::"Fabric Platform Mgt", 'StopExportFromErrorAction');
             Error(ResetBlockedErrorInfo);
