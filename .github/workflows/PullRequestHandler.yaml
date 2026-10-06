@@ -219,7 +219,7 @@ jobs:
   
       - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
   
-      - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@main
+      - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@86b514fe9f23257cee6b643a361bfab7b9ca92a9
   
       - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@main
   
