@@ -5,6 +5,8 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
@@ -18,6 +20,7 @@ using System.Environment.Configuration;
 codeunit 149956 "IT Subc. Migration Tests"
 {
     Subtype = Test;
+    EventSubscriberInstance = Manual;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
 
@@ -36,6 +39,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         Initialized: Boolean;
         PurchaseReceiptNo: Code[20];
         PurchaseReceiptLineNo: Integer;
+        GuardedProductionBOMNo: Code[20];
         OpenWIPPurchaseOrdersExistErr: Label 'There are still open purchase orders with WIP Items. All purchase orders with WIP Items must be completed before disabling Legacy Subcontracting.';
         SubcontractingLocationsBlockedErr: Label 'Migration can''t start because one or more subcontracting locations are invalid.';
         UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
@@ -656,7 +660,579 @@ codeunit 149956 "IT Subc. Migration Tests"
             'MigrateProdOrderComponents should copy "Original Location" to "Subc. Original Location Code".');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure RunMigration_MapsLegacyProcurementToComponentSupplyMethods()
+    var
+        ConsignmentProductionBOMLine: Record "Production BOM Line";
+        TransferProductionBOMLine: Record "Production BOM Line";
+        ConsignmentProdOrderComponent: Record "Prod. Order Component";
+        TransferProdOrderComponent: Record "Prod. Order Component";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649440] Migration maps legacy subcontractor procurement to component supply methods
+        Initialize();
+
+        // [GIVEN] Linked BOM and production order components for vendors with subcontractor procurement enabled and disabled
+        CreateComponentSupplyMethodMigrationScenario(ConsignmentProductionBOMLine, ConsignmentProdOrderComponent, true);
+        CreateComponentSupplyMethodMigrationScenario(TransferProductionBOMLine, TransferProdOrderComponent, false);
+
+        // [WHEN] The legacy subcontracting data is migrated
+        ITSubcMigration.RunMigration();
+
+        // [THEN] Procurement-enabled components use consignment at vendor
+        ConsignmentProductionBOMLine.Get(
+            ConsignmentProductionBOMLine."Production BOM No.",
+            ConsignmentProductionBOMLine."Version Code",
+            ConsignmentProductionBOMLine."Line No.");
+        Assert.AreEqual(
+            "Component Supply Method"::"Consignment at Vendor",
+            ConsignmentProductionBOMLine."Component Supply Method",
+            'Procurement-enabled BOM component must migrate to Consignment at Vendor.');
+        ConsignmentProdOrderComponent.Get(
+            ConsignmentProdOrderComponent.Status,
+            ConsignmentProdOrderComponent."Prod. Order No.",
+            ConsignmentProdOrderComponent."Prod. Order Line No.",
+            ConsignmentProdOrderComponent."Line No.");
+        Assert.AreEqual(
+            "Component Supply Method"::"Consignment at Vendor",
+            ConsignmentProdOrderComponent."Component Supply Method",
+            'Procurement-enabled production order component must migrate to Consignment at Vendor.');
+
+        // [THEN] Procurement-disabled inventory components use transfer to vendor
+        TransferProductionBOMLine.Get(
+            TransferProductionBOMLine."Production BOM No.",
+            TransferProductionBOMLine."Version Code",
+            TransferProductionBOMLine."Line No.");
+        Assert.AreEqual(
+            "Component Supply Method"::"Transfer to Vendor",
+            TransferProductionBOMLine."Component Supply Method",
+            'Procurement-disabled BOM component must migrate to Transfer to Vendor.');
+        TransferProdOrderComponent.Get(
+            TransferProdOrderComponent.Status,
+            TransferProdOrderComponent."Prod. Order No.",
+            TransferProdOrderComponent."Prod. Order Line No.",
+            TransferProdOrderComponent."Line No.");
+        Assert.AreEqual(
+            "Component Supply Method"::"Transfer to Vendor",
+            TransferProdOrderComponent."Component Supply Method",
+            'Procurement-disabled production order component must migrate to Transfer to Vendor.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MigrateProductionBOMLines_SkipsAlreadyMigratedComponents()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+        ITSubcMigrationTests: Codeunit "IT Subc. Migration Tests";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649440] Already migrated BOM components do not resolve versions or routing again.
+        Initialize();
+
+        // [GIVEN] A linked BOM component already has a supply method.
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        ProductionBOMLine."Component Supply Method" := "Component Supply Method"::"Vendor-Supplied";
+        ProductionBOMLine.Modify(false);
+        ITSubcMigrationTests.SetGuardedProductionBOMNo(ProductionBOMLine."Production BOM No.");
+        BindSubscription(ITSubcMigrationTests);
+
+        // [WHEN] The BOM supply methods are migrated.
+        ITSubcMigration.MigrateProductionBOMLines();
+
+        // [THEN] Its method is preserved without performing version resolution.
+        UnbindSubscription(ITSubcMigrationTests);
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Vendor-Supplied", ProductionBOMLine."Component Supply Method",
+            'An existing component supply method must be preserved.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StartDisableLegacySubcontracting_VerifiesMigratedSupplyMethods()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649440] Supply method changes preserve the record-count verification and are idempotent.
+        Initialize();
+
+        // [GIVEN] Linked BOM and production order components with blank supply methods.
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+
+        // [WHEN] The full migration including verification is run twice.
+        ITSubcMigration.StartDisableLegacySubcontracting(false);
+        ITSubcMigration.StartDisableLegacySubcontracting(false);
+
+        // [THEN] Verification succeeds and both components retain their migrated method.
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.",
+            ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Consignment at Vendor", ProductionBOMLine."Component Supply Method",
+            'The full migration must preserve the migrated BOM method on repeat.');
+        Assert.AreEqual("Component Supply Method"::"Consignment at Vendor", ProdOrderComponent."Component Supply Method",
+            'The full migration must preserve the migrated order component method on repeat.');
+    end;
+
     // *** 15. Prod. Order Routing Lines ***
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveNonInventoryWithProcurement()
+    begin
+        VerifyNonInventorySupplyMethods(true, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveNonInventoryWithoutProcurement()
+    begin
+        VerifyNonInventorySupplyMethods(false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveServiceWithProcurement()
+    begin
+        VerifyNonInventorySupplyMethods(true, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveMixedInternalOperations()
+    begin
+        VerifyDuplicateRoutingLink(0, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveMixedMissingVendorOperations()
+    begin
+        VerifyDuplicateRoutingLink(1, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveConflictingOperations()
+    begin
+        VerifyDuplicateRoutingLink(2, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_MapConsistentDuplicateOperations()
+    begin
+        VerifyDuplicateRoutingLink(3, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveMixedMachineCenterOperations()
+    begin
+        VerifyDuplicateRoutingLink(4, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_ResolveInheritedSKURouting()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        StockkeepingUnit."Item No." := OutputItem."No.";
+        StockkeepingUnit."Production BOM No." := ProductionBOMLine."Production BOM No.";
+        StockkeepingUnit.Insert(false);
+
+        MigrateAndAssertSupplyMethods(ProductionBOMLine, ProdOrderComponent, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveInheritedBOMWithConflictingSKU()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        StockkeepingUnit."Item No." := OutputItem."No.";
+        StockkeepingUnit."Routing No." := CreateAlternateRouting(ProductionBOMLine, false);
+        StockkeepingUnit.Insert(false);
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveConflictingFamilyRouting()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        Family."No." := LibraryUtility.GenerateGUID();
+        Family."Routing No." := CreateAlternateRouting(ProductionBOMLine, false);
+        Family.Insert(false);
+        FamilyLine."Family No." := Family."No.";
+        FamilyLine."Line No." := 10000;
+        FamilyLine."Item No." := OutputItem."No.";
+        FamilyLine.Quantity := 1;
+        FamilyLine.Insert(false);
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_ResolveFamilyOnlyRouting()
+    begin
+        VerifyFamilyOnlyRouting(false, false, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_ResolveFamilyOnlyInheritedSKU()
+    begin
+        VerifyFamilyOnlyRouting(true, false, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveInvalidItemRoutingWithFamily()
+    begin
+        VerifyFamilyOnlyRouting(false, true, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveAbsentRoutingUsage()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        OutputItem."Routing No." := '';
+        OutputItem.Modify(false);
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_RefreshItemRoutingCacheBetweenPasses()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        Location: Record Location;
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+        Index: Integer;
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        for Index := 1 to 2 do begin
+            LibraryWarehouse.CreateLocation(Location);
+            LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, Location.Code, OutputItem."No.", '');
+            StockkeepingUnit.Validate("Production BOM No.", ProductionBOMLine."Production BOM No.");
+            StockkeepingUnit.Validate("Routing No.", '');
+            StockkeepingUnit.Modify(true);
+        end;
+        OutputItem."Production BOM No." := '';
+        OutputItem.Modify(false);
+
+        ITSubcMigration.MigrateProductionBOMLines();
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Consignment at Vendor", ProductionBOMLine."Component Supply Method",
+            'Multiple SKUs must share the inherited item routing.');
+
+        ProductionBOMLine."Component Supply Method" := "Component Supply Method"::Empty;
+        ProductionBOMLine.Modify(false);
+        OutputItem."Routing No." := CreateAlternateRouting(ProductionBOMLine, false);
+        OutputItem.Modify(false);
+        StockkeepingUnit.SetRange("Item No.", OutputItem."No.");
+        StockkeepingUnit.ModifyAll("Routing No.", '');
+        ITSubcMigration.MigrateProductionBOMLines();
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Transfer to Vendor", ProductionBOMLine."Component Supply Method",
+            'A new migration pass must not reuse the previous item routing.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_RefreshFamilyRoutingCacheBetweenPasses()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        LibraryManufacturing.CreateFamily(Family);
+        Family.Validate("Routing No.", OutputItem."Routing No.");
+        Family.Modify(true);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", OutputItem."No.", 1);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", OutputItem."No.", 2);
+        OutputItem."Routing No." := '';
+        OutputItem.Modify(false);
+
+        ITSubcMigration.MigrateProductionBOMLines();
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Consignment at Vendor", ProductionBOMLine."Component Supply Method",
+            'Repeated family lines must resolve consistently.');
+
+        ProductionBOMLine."Component Supply Method" := "Component Supply Method"::Empty;
+        ProductionBOMLine.Modify(false);
+        Family.Validate("Routing No.", CreateAlternateRouting(ProductionBOMLine, false));
+        Family.Modify(true);
+        ITSubcMigration.MigrateProductionBOMLines();
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Transfer to Vendor", ProductionBOMLine."Component Supply Method",
+            'A new migration pass must not reuse the previous family routing.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_ResolveNestedBOM()
+    begin
+        VerifyNestedBOMUsage(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveConflictingNestedUsage()
+    begin
+        VerifyNestedBOMUsage(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_MapFutureBOMVersion()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        CreateFutureBOMVersion(ProductionBOMLine);
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveFutureRoutingConflict()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        CreateFutureRoutingVersion(ProductionBOMLine, OutputItem."Routing No.");
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_RespectBOMAndRoutingVersionIntervals()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        FutureBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        FutureBOMLine := ProductionBOMLine;
+        CreateFutureBOMVersion(FutureBOMLine);
+        CreateFutureRoutingVersion(ProductionBOMLine, OutputItem."Routing No.");
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::"Consignment at Vendor");
+        MigrateAndAssertBOM(FutureBOMLine, "Component Supply Method"::"Transfer to Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_RespectComponentStartingDate()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        ProductionBOMLine."Starting Date" := CalcDate('<1M>', WorkDate());
+        ProductionBOMLine.Modify(false);
+        CreateFutureRoutingVersion(ProductionBOMLine, OutputItem."Routing No.");
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::"Transfer to Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_ResolveFamilyOrderRoutingReference()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+        ProdOrderLine."Routing Reference No." := 0;
+        ProdOrderLine.Modify(false);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.Delete(false);
+        ProdOrderRoutingLine."Routing Reference No." := 0;
+        ProdOrderRoutingLine.Insert(false);
+
+        MigrateAndAssertSupplyMethods(ProductionBOMLine, ProdOrderComponent, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_IgnoreOtherOrderRouting()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine."Routing No." := LibraryUtility.GenerateGUID();
+        ProdOrderRoutingLine."No." := LibraryUtility.GenerateGUID();
+        ProdOrderRoutingLine.Insert(false);
+
+        MigrateAndAssertSupplyMethods(ProductionBOMLine, ProdOrderComponent, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_RespectComponentEndingDate()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        ProductionBOMLine."Ending Date" := CalcDate('<1M>', WorkDate()) - 1;
+        ProductionBOMLine.Modify(false);
+        CreateFutureRoutingVersion(ProductionBOMLine, OutputItem."Routing No.");
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveUncertifiedBOMVersion()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionBOMVersion: Record "Production BOM Version";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        CreateFutureBOMVersion(ProductionBOMLine);
+        ProductionBOMVersion.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code");
+        ProductionBOMVersion.Status := ProductionBOMVersion.Status::"Under Development";
+        ProductionBOMVersion.Modify(false);
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveCyclicBOMUsage()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        CycleLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        CycleLine."Production BOM No." := ProductionBOMLine."Production BOM No.";
+        CycleLine."Line No." := ProductionBOMLine."Line No." + 10000;
+        CycleLine.Type := CycleLine.Type::"Production BOM";
+        CycleLine."No." := ProductionBOMLine."Production BOM No.";
+        CycleLine.Quantity := 1;
+        CycleLine.Insert(false);
+
+        MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::Empty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveExistingOrderMethod()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        ProdOrderComponent."Component Supply Method" := "Component Supply Method"::"Vendor-Supplied";
+        ProdOrderComponent.Modify(false);
+
+        ITSubcMigration.MigrateProdOrderComponentSupplyMethods();
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.",
+            ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Assert.AreEqual("Component Supply Method"::"Vendor-Supplied", ProdOrderComponent."Component Supply Method",
+            'An explicit order component method must not be overwritten.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SupplyMethods_PreserveBlankRoutingLinks()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        ProductionBOMLine."Routing Link Code" := '';
+        ProductionBOMLine.Modify(false);
+        ProdOrderComponent."Routing Link Code" := '';
+        ProdOrderComponent.Modify(false);
+
+        MigrateAndAssertSupplyMethods(ProductionBOMLine, ProdOrderComponent, "Component Supply Method"::Empty);
+    end;
 
     [Test]
     [Scope('OnPrem')]
@@ -1251,6 +1827,302 @@ codeunit 149956 "IT Subc. Migration Tests"
         ProdOrderRoutingLine."Operation No." := '10';
         ProdOrderRoutingLine."Next Operation No." := NextOperationNo;
         ProdOrderRoutingLine.Insert(false);
+    end;
+
+    local procedure CreateComponentSupplyMethodMigrationScenario(
+        var ProductionBOMLine: Record "Production BOM Line";
+        var ProdOrderComponent: Record "Prod. Order Component";
+        SubcontractorProcurement: Boolean)
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLink: Record "Routing Link";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ComponentItem: Record Item;
+        OutputItem: Record Item;
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        Location: Record Location;
+    begin
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subcontracting Location Code" := Location.Code;
+        Vendor."Subcontractor Procurement" := SubcontractorProcurement;
+        Vendor.Modify(false);
+
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter."Subcontractor No." := Vendor."No.";
+        WorkCenter.Modify(false);
+
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine."Routing Link Code" := RoutingLink.Code;
+        RoutingLine.Modify(false);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        LibraryInventory.CreateItem(ComponentItem);
+        LibraryInventory.CreateItem(OutputItem);
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, OutputItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", 1);
+        ProductionBOMLine."Routing Link Code" := RoutingLink.Code;
+        ProductionBOMLine."Component Supply Method" := "Component Supply Method"::Empty;
+        ProductionBOMLine.Modify(false);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+
+        OutputItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        OutputItem.Validate("Routing No.", RoutingHeader."No.");
+        OutputItem.Modify(true);
+
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, OutputItem."No.", 1);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindFirst();
+#pragma warning disable AL0432
+        ProdOrderComponent."Original Location" := Location.Code;
+#pragma warning restore AL0432
+        ProdOrderComponent."Component Supply Method" := "Component Supply Method"::Empty;
+        ProdOrderComponent.Modify(false);
+    end;
+
+    procedure SetGuardedProductionBOMNo(ProductionBOMNo: Code[20])
+    begin
+        GuardedProductionBOMNo := ProductionBOMNo;
+    end;
+
+    local procedure VerifyNonInventorySupplyMethods(Procurement: Boolean; ServiceItem: Boolean)
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ComponentItem: Record Item;
+    begin
+        // [SCENARIO 649440] Automatic legacy mapping preserves noninventory components.
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, Procurement);
+        ComponentItem.Get(ProductionBOMLine."No.");
+        if ServiceItem then
+            ComponentItem.Type := ComponentItem.Type::Service
+        else
+            ComponentItem.Type := ComponentItem.Type::"Non-Inventory";
+        ComponentItem.Modify(false);
+
+        MigrateAndAssertSupplyMethods(ProductionBOMLine, ProdOrderComponent, "Component Supply Method"::Empty);
+    end;
+
+    local procedure FindBOMOutputItem(ProductionBOMLine: Record "Production BOM Line"; var OutputItem: Record Item)
+    begin
+        OutputItem.SetRange("Production BOM No.", ProductionBOMLine."Production BOM No.");
+        OutputItem.FindFirst();
+    end;
+
+    local procedure CreateAlternateRouting(ProductionBOMLine: Record "Production BOM Line"; Procurement: Boolean): Code[20]
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+        Vendor: Record Vendor;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subcontractor Procurement" := Procurement;
+        Vendor.Modify(false);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter."Subcontractor No." := Vendor."No.";
+        WorkCenter.Modify(false);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine."Routing Link Code" := ProductionBOMLine."Routing Link Code";
+        RoutingLine.Modify(false);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        exit(RoutingHeader."No.");
+    end;
+
+    local procedure VerifyFamilyOnlyRouting(WithSKU: Boolean; InvalidItemRouting: Boolean; ExpectedMethod: Enum "Component Supply Method")
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OutputItem: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+        Location: Record Location;
+    begin
+        // [SCENARIO 649440] Family routing does not require an item routing; an invalid explicit routing remains ambiguous.
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        LibraryManufacturing.CreateFamily(Family);
+        Family.Validate("Routing No.", OutputItem."Routing No.");
+        Family.Modify(true);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", OutputItem."No.", 1);
+        OutputItem."Routing No." := '';
+        if InvalidItemRouting then
+            OutputItem."Routing No." := LibraryUtility.GenerateGUID();
+        OutputItem.Modify(false);
+        if WithSKU then begin
+            LibraryWarehouse.CreateLocation(Location);
+            LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, Location.Code, OutputItem."No.", '');
+            StockkeepingUnit.Validate("Production BOM No.", '');
+            StockkeepingUnit.Validate("Routing No.", '');
+            StockkeepingUnit.Modify(true);
+        end;
+
+        MigrateAndAssertBOM(ProductionBOMLine, ExpectedMethod);
+    end;
+
+    local procedure VerifyNestedBOMUsage(ConflictingParent: Boolean)
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ParentBOMHeader: Record "Production BOM Header";
+        ParentBOMLine: Record "Production BOM Line";
+        OutputItem: Record Item;
+        ParentItem: Record Item;
+    begin
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        FindBOMOutputItem(ProductionBOMLine, OutputItem);
+        LibraryInventory.CreateItem(ParentItem);
+        LibraryManufacturing.CreateProductionBOMHeader(ParentBOMHeader, OutputItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(ParentBOMHeader, ParentBOMLine, '',
+            ParentBOMLine.Type::"Production BOM", ProductionBOMLine."Production BOM No.", 1);
+        ParentBOMHeader.Validate(Status, ParentBOMHeader.Status::Certified);
+        ParentBOMHeader.Modify(true);
+        ParentItem."Production BOM No." := ParentBOMHeader."No.";
+        ParentItem."Routing No." := OutputItem."Routing No.";
+        if ConflictingParent then
+            ParentItem."Routing No." := CreateAlternateRouting(ProductionBOMLine, false)
+        else begin
+            OutputItem."Production BOM No." := '';
+            OutputItem.Modify(false);
+        end;
+        ParentItem.Modify(false);
+
+        if ConflictingParent then
+            MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::Empty)
+        else
+            MigrateAndAssertBOM(ProductionBOMLine, "Component Supply Method"::"Consignment at Vendor");
+    end;
+
+    local procedure CreateFutureBOMVersion(var ProductionBOMLine: Record "Production BOM Line")
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMVersion: Record "Production BOM Version";
+    begin
+        ProductionBOMHeader.Get(ProductionBOMLine."Production BOM No.");
+        ProductionBOMVersion."Production BOM No." := ProductionBOMLine."Production BOM No.";
+        ProductionBOMVersion."Version Code" := 'FUTURE';
+        ProductionBOMVersion."Starting Date" := CalcDate('<1M>', WorkDate());
+        ProductionBOMVersion."Unit of Measure Code" := ProductionBOMHeader."Unit of Measure Code";
+        ProductionBOMVersion.Status := ProductionBOMVersion.Status::Certified;
+        ProductionBOMVersion.Insert(false);
+        ProductionBOMLine."Version Code" := ProductionBOMVersion."Version Code";
+        ProductionBOMLine.Insert(false);
+    end;
+
+    local procedure CreateFutureRoutingVersion(ProductionBOMLine: Record "Production BOM Line"; RoutingNo: Code[20])
+    var
+        RoutingVersion: Record "Routing Version";
+        RoutingLine: Record "Routing Line";
+    begin
+        RoutingLine.SetRange("Routing No.", CreateAlternateRouting(ProductionBOMLine, false));
+        RoutingLine.FindFirst();
+        RoutingVersion."Routing No." := RoutingNo;
+        RoutingVersion."Version Code" := 'FUTURE';
+        RoutingVersion."Starting Date" := CalcDate('<1M>', WorkDate());
+        RoutingVersion.Status := RoutingVersion.Status::Certified;
+        RoutingVersion.Insert(false);
+        RoutingLine."Routing No." := RoutingNo;
+        RoutingLine."Version Code" := RoutingVersion."Version Code";
+        RoutingLine.Insert(false);
+    end;
+
+    local procedure MigrateAndAssertBOM(var ProductionBOMLine: Record "Production BOM Line"; ExpectedMethod: Enum "Component Supply Method")
+    var
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        ITSubcMigration.MigrateProductionBOMLines();
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        Assert.AreEqual(ExpectedMethod, ProductionBOMLine."Component Supply Method", 'BOM method must reflect every effective usage.');
+    end;
+
+    local procedure VerifyDuplicateRoutingLink(OperationKind: Integer; ExpectedMethod: Enum "Component Supply Method")
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 649440] Every operation sharing a link must have the same resolved meaning.
+        Initialize();
+        CreateComponentSupplyMethodMigrationScenario(ProductionBOMLine, ProdOrderComponent, true);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ProdOrderRoutingLine.FindFirst();
+        RoutingLine.SetRange("Routing Link Code", ProductionBOMLine."Routing Link Code");
+        RoutingLine.FindFirst();
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        case OperationKind of
+            1:
+                WorkCenter."Subcontractor No." := LibraryUtility.GenerateGUID();
+            2, 3:
+                begin
+                    LibraryPurchase.CreateVendor(Vendor);
+                    Vendor."Subcontractor Procurement" := OperationKind = 3;
+                    Vendor.Modify(false);
+                    WorkCenter."Subcontractor No." := Vendor."No.";
+                end;
+        end;
+        WorkCenter.Modify(false);
+        RoutingLine."Operation No." := '20';
+        RoutingLine."No." := WorkCenter."No.";
+        ProdOrderRoutingLine."Operation No." := '20';
+        ProdOrderRoutingLine."No." := WorkCenter."No.";
+        if OperationKind = 4 then begin
+            RoutingLine.Type := RoutingLine.Type::"Machine Center";
+            ProdOrderRoutingLine.Type := ProdOrderRoutingLine.Type::"Machine Center";
+        end;
+        RoutingLine.Insert(false);
+        ProdOrderRoutingLine.Insert(false);
+
+        MigrateAndAssertSupplyMethods(ProductionBOMLine, ProdOrderComponent, ExpectedMethod);
+    end;
+
+    local procedure MigrateAndAssertSupplyMethods(var ProductionBOMLine: Record "Production BOM Line"; var ProdOrderComponent: Record "Prod. Order Component"; ExpectedMethod: Enum "Component Supply Method")
+    var
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        ITSubcMigration.MigrateProductionBOMLines();
+        ITSubcMigration.MigrateProdOrderComponentSupplyMethods();
+        ProductionBOMLine.Get(ProductionBOMLine."Production BOM No.", ProductionBOMLine."Version Code", ProductionBOMLine."Line No.");
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.",
+            ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Assert.AreEqual(ExpectedMethod, ProductionBOMLine."Component Supply Method", 'BOM migration must preserve eligibility and ambiguity rules.');
+        Assert.AreEqual(ExpectedMethod, ProdOrderComponent."Component Supply Method", 'Order migration must preserve eligibility and ambiguity rules.');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::VersionManagement, 'OnBeforeGetBOMVersion', '', false, false)]
+    local procedure RejectAlreadyMigratedBOMLookup(BOMHeaderNo: Code[20])
+    var
+        AlreadyMigratedBOMLookupErr: Label 'Already migrated BOM components must not resolve their BOM version.', Locked = true;
+    begin
+        if BOMHeaderNo = GuardedProductionBOMNo then
+            Error(AlreadyMigratedBOMLookupErr);
     end;
 
     local procedure AssertLegacySubcontractingFlag(ExpectedValue: Boolean)
