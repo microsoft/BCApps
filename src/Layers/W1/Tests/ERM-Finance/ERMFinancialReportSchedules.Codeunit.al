@@ -240,6 +240,8 @@ codeunit 135005 "ERM Financial Report Schedules"
         NewUserId: Code[50];
         UserEmail: Text[100];
         ExpectedSubject: Text;
+        DefaultSubjectFormatLbl: Label 'Financial Report: %1', Locked = true;
+        DescriptionFormatLbl: Label '%1 - %2', Locked = true;
     begin
         // [SCENARIO] When the schedule has no custom Email Subject, the export email falls back to the default subject.
         Initialize();
@@ -269,7 +271,7 @@ codeunit 135005 "ERM Financial Report Schedules"
 
         // [THEN] The email uses the default subject built from the report and schedule descriptions, not a custom one
         FinancialReport.Get(FinancialReportSchedule."Financial Report Name");
-        ExpectedSubject := StrSubstNo('Financial Report: %1', StrSubstNo('%1 - %2',
+        ExpectedSubject := StrSubstNo(DefaultSubjectFormatLbl, StrSubstNo(DescriptionFormatLbl,
             FinancialReport.Description = '' ? Format(FinancialReport.Name) : FinancialReport.Description,
             FinancialReportSchedule.Description = '' ? Format(FinancialReportSchedule.Code) : FinancialReportSchedule.Description));
         EmailMessage.Get(ConnectorMock.GetEmailMessageID());
