@@ -534,6 +534,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         Item: Record Item;
         ItemLedgerEntry: Record "Item Ledger Entry";
+        TempOutputItemLedgerEntry: Record "Item Ledger Entry" temporary;
         ProductionOrder: Record "Production Order";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         InvoiceHeader: Record "Purchase Header";
@@ -575,10 +576,13 @@ codeunit 149927 "Subc. Get Receipt Lines"
         InvoiceLine.FindFirst();
         VerifyInvoiceLotApplication(InvoiceLine, ProductionOrder, LotNo1, LotQuantity1);
         VerifyInvoiceLotApplication(InvoiceLine, ProductionOrder, LotNo2, LotQuantity2);
+        CopyOutputItemLedgerEntries(TempOutputItemLedgerEntry, Item."No.", ProductionOrder."No.");
         PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
 
         PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
         Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The tracked subcontracting receipt must be fully invoiced.');
+        VerifyOutputInvoicedQuantitiesUnchanged(TempOutputItemLedgerEntry);
+        VerifyCapacityLedgerEntriesFullyInvoiced(ProductionOrder."No.", PurchRcptLine."Work Center No.");
 
         ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
         ValueEntry.SetRange("Document No.", PostedInvoiceNo);
@@ -653,6 +657,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         Item: Record Item;
         ItemLedgerEntry: Record "Item Ledger Entry";
+        TempOutputItemLedgerEntry: Record "Item Ledger Entry" temporary;
         ProductionOrder: Record "Production Order";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         InvoiceHeader: Record "Purchase Header";
@@ -684,10 +689,13 @@ codeunit 149927 "Subc. Get Receipt Lines"
         InvoiceLine.FindFirst();
         VerifyInvoiceSerialApplication(InvoiceLine, ProductionOrder, 'REV-SN1');
         VerifyInvoiceSerialApplication(InvoiceLine, ProductionOrder, 'REV-SN2');
+        CopyOutputItemLedgerEntries(TempOutputItemLedgerEntry, Item."No.", ProductionOrder."No.");
         PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
 
         PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
         Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The tracked subcontracting receipt must be fully invoiced.');
+        VerifyOutputInvoicedQuantitiesUnchanged(TempOutputItemLedgerEntry);
+        VerifyCapacityLedgerEntriesFullyInvoiced(ProductionOrder."No.", PurchRcptLine."Work Center No.");
 
         ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
         ValueEntry.SetRange("Document No.", PostedInvoiceNo);
@@ -768,6 +776,53 @@ codeunit 149927 "Subc. Get Receipt Lines"
         Assert.AreEqual(
             ItemLedgerEntry."Entry No.", TrackingSpecification."Item Ledger Entry No.",
             'The invoice lot tracking specification must preserve the exact output application.');
+    end;
+
+    local procedure CopyOutputItemLedgerEntries(
+        var TempOutputItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        ItemNo: Code[20];
+        ProductionOrderNo: Code[20])
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrderNo);
+        ItemLedgerEntry.FindSet();
+        repeat
+            TempOutputItemLedgerEntry := ItemLedgerEntry;
+            TempOutputItemLedgerEntry.Insert();
+        until ItemLedgerEntry.Next() = 0;
+    end;
+
+    local procedure VerifyOutputInvoicedQuantitiesUnchanged(var TempOutputItemLedgerEntry: Record "Item Ledger Entry" temporary)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        TempOutputItemLedgerEntry.FindSet();
+        repeat
+            ItemLedgerEntry.Get(TempOutputItemLedgerEntry."Entry No.");
+            Assert.AreEqual(
+                TempOutputItemLedgerEntry."Invoiced Quantity", ItemLedgerEntry."Invoiced Quantity",
+                'Posting the separate invoice must not change the production output invoiced quantity.');
+        until TempOutputItemLedgerEntry.Next() = 0;
+    end;
+
+    local procedure VerifyCapacityLedgerEntriesFullyInvoiced(ProductionOrderNo: Code[20]; WorkCenterNo: Code[20])
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrderNo);
+        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenterNo);
+        CapacityLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual(
+                CapacityLedgerEntry."Output Quantity", CapacityLedgerEntry."Invoiced Quantity",
+                'The subcontracting capacity entry must be fully invoiced.');
+            Assert.IsTrue(
+                CapacityLedgerEntry."Completely Invoiced",
+                'The subcontracting capacity entry must be marked as completely invoiced.');
+        until CapacityLedgerEntry.Next() = 0;
     end;
 
     local procedure CreatePostedSeparateSubcontractingInvoice(var PostedInvoiceHeader: Record "Purch. Inv. Header")
