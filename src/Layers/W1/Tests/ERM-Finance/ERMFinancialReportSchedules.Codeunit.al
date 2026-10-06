@@ -232,12 +232,14 @@ codeunit 135005 "ERM Financial Report Schedules"
         AccScheduleName: Record "Acc. Schedule Name";
         TempEmailAccount: Record "Email Account";
         FinancialReportSchedule: Record "Financial Report Schedule";
+        FinancialReport: Record "Financial Report";
         User: Record User;
         EmailMessage: Codeunit "Email Message";
         EmailScenario: Codeunit "Email Scenario";
         FinancialReportExportJob: Codeunit "Financial Report Export Job";
         NewUserId: Code[50];
         UserEmail: Text[100];
+        ExpectedSubject: Text;
     begin
         // [SCENARIO] When the schedule has no custom Email Subject, the export email falls back to the default subject.
         Initialize();
@@ -265,11 +267,13 @@ codeunit 135005 "ERM Financial Report Schedules"
         // [WHEN] The financial report schedule export job is run
         FinancialReportExportJob.Run();
 
-        // [THEN] The email uses the default subject (prefixed 'Financial Report:'), not a custom one
+        // [THEN] The email uses the default subject built from the report and schedule descriptions, not a custom one
+        FinancialReport.Get(FinancialReportSchedule."Financial Report Name");
+        ExpectedSubject := StrSubstNo('Financial Report: %1', StrSubstNo('%1 - %2',
+            FinancialReport.Description = '' ? Format(FinancialReport.Name) : FinancialReport.Description,
+            FinancialReportSchedule.Description = '' ? Format(FinancialReportSchedule.Code) : FinancialReportSchedule.Description));
         EmailMessage.Get(ConnectorMock.GetEmailMessageID());
-        Assert.AreEqual(
-            1, StrPos(EmailMessage.GetSubject(), 'Financial Report:'),
-            'The default email subject should be used when Email Subject is blank.');
+        Assert.AreEqual(ExpectedSubject, EmailMessage.GetSubject(), 'The default email subject should be used when Email Subject is blank.');
     end;
 
     [Test]
