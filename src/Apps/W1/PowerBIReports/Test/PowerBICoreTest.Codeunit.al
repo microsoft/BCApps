@@ -6,8 +6,10 @@ namespace Microsoft.Finance.PowerBIReports.Test;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.PowerBIReports;
+using Microsoft.Foundation.Company;
 using Microsoft.PowerBIReports;
 using Microsoft.PowerBIReports.Test;
+using System.Environment;
 using System.TestLibraries.Security.AccessControl;
 
 
@@ -509,6 +511,49 @@ codeunit 139875 "PowerBI Core Test"
 
         // [THEN] A filter text of format "%1..%2" should be created 
         Assert.AreEqual('', ActualFilterTxt, 'The expected & actual filter text did not match.');
+    end;
+
+    [Test]
+    procedure AssistedSetupShowsDeploymentChoiceForNonEvaluationCompany()
+    var
+        Company: Record Company;
+        CompanyInformation: Record "Company Information";
+        PBISetup: Record "PowerBI Reports Setup";
+        PowerBIAssistedSetup: TestPage "PowerBI Assisted Setup";
+        WorkspaceId: Guid;
+    begin
+        // [SCENARIO] A non-evaluation company can choose out-of-the-box report deployment and its target workspace
+        AssignAdminPermissionSet();
+        RecreatePBISetup();
+
+        PBISetup.Get();
+        PBISetup."Calendar Range" := PBISetup."Calendar Range"::Calendar;
+        PBISetup."Time Zone" := 'UTC';
+        PBISetup.Modify();
+
+        Company.Get(CompanyName());
+        Company."Evaluation Company" := false;
+        Company.Modify();
+
+        WorkspaceId := CreateGuid();
+        CompanyInformation.Get();
+        CompanyInformation."Power BI Workspace Id" := WorkspaceId;
+        CompanyInformation."Power BI Workspace Name" := 'HQ Workspace';
+        CompanyInformation.Modify();
+
+        // [WHEN] The user advances to the report setup choice
+        PowerBIAssistedSetup.OpenEdit();
+        PowerBIAssistedSetup.Next.Invoke();
+        PowerBIAssistedSetup.Next.Invoke();
+        PowerBIAssistedSetup.Next.Invoke();
+        PowerBIAssistedSetup.Next.Invoke();
+
+        // [THEN] The report choice is not skipped and the configured deployment workspace is shown
+        Assert.IsTrue(PowerBIAssistedSetup.ReportSetupChoice.Visible(), 'The report setup choice should be available in non-evaluation companies.');
+        Assert.IsTrue(PowerBIAssistedSetup.PowerBIWorkspace.Visible(), 'The deployment workspace should be available in non-evaluation companies.');
+        Assert.AreEqual('HQ Workspace', PowerBIAssistedSetup.PowerBIWorkspace.Value(), 'The configured deployment workspace should be shown.');
+
+        PowerBIAssistedSetup.Close();
     end;
 
     local procedure RecreatePBISetup()

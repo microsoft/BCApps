@@ -116,6 +116,7 @@ codeunit 137072 "SCM Production Orders II"
         CalcMethod: Option "No Levels","One level","All levels";
         IncorrectValueErr: Label 'Incorrect value of %1.%2.', Comment = '%1: Table name, %2: Field name.';
         ExpectedQuantityErr: Label 'Expected Quantity is wrong.';
+        ReversingOutputQuantityErr: Label 'Reversing output quantity must be one alternate unit.';
         ActualTimeUsedErr: Label 'Actual time used on "Production Order Statistics" Page was incorrect. Should be equal to sum of "Setup Time", "Run Time" and "Stop Time".';
         ConfirmStatusFinishTxt: Label 'has not been finished:\\  * Some output is still missing.\\ Do you still want to finish the order?';
         TimeShiftedOnParentLineMsg: Label 'The production starting date-time of the end item has been moved forward because a subassembly is taking longer than planned.';
@@ -147,6 +148,7 @@ codeunit 137072 "SCM Production Orders II"
         PostingReverseEntriesQst: Label 'To reverse these entries, correcting entries will be posted.\Do you want to reverse the entries?';
         QtyMustBeEqualErr: Label 'Quantity must be equal after reverse production entry';
         ReservedQtyErr: Label 'Reserved Qty. (Base) on component line %1 is incorrect.', Comment = '%1 = Prod. Order Component Line No.';
+        InvtReservedQtyErr: Label 'Quantity reserved from inventory on component line %1 is incorrect.', Comment = '%1 = Prod. Order Component Line No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -8305,6 +8307,157 @@ codeunit 137072 "SCM Production Orders II"
         Assert.RecordIsEmpty(ItemJournalLine);
     end;
 
+    [Test]
+    procedure InvtReservationSplitStaysCorrectAfterRepeatedReplanWithSameComponentOnOneProdOrderLine()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        StdComponentLineNo: Integer;
+        FixedComponentLineNo: Integer;
+        ProdOrderQty: Decimal;
+        StdQtyPer: Decimal;
+        FixedQty: Decimal;
+        UpdatedStdQtyPer: Decimal;
+        UpdatedFixedQty: Decimal;
+        SecondStdQtyPer: Decimal;
+        SecondFixedQty: Decimal;
+    begin
+        // [FEATURE] [Planning] [Reservation] [Calculation Formula]
+        // [SCENARIO 643972] Quantities reserved from posted inventory stay matched to their original prod. order
+        // [SCENARIO 643972] component lines over repeated planning cycles when the same component is on one prod.
+        // [SCENARIO 643972] order line twice with different calculation formulas and the demand keeps growing.
+        Initialize();
+        ProdOrderQty := LibraryRandom.RandIntInRange(5, 20);
+        StdQtyPer := LibraryRandom.RandIntInRange(5, 10);
+        FixedQty := LibraryRandom.RandIntInRange(2, 5);
+        UpdatedStdQtyPer := StdQtyPer + LibraryRandom.RandIntInRange(5, 10);
+        UpdatedFixedQty := FixedQty + LibraryRandom.RandIntInRange(2, 5);
+        SecondStdQtyPer := UpdatedStdQtyPer + LibraryRandom.RandIntInRange(5, 10);
+        SecondFixedQty := UpdatedFixedQty + LibraryRandom.RandIntInRange(2, 5);
+
+        // [GIVEN] Production item "P" and component item "C" replenished by a prod. order, reordering policy = Order.
+        LibraryInventory.CreateItem(ProdItem);
+        CreateOrderPolicyProductionItem(CompItem);
+
+        // [GIVEN] Released production order for "P" with a single prod. order line that carries component "C" twice:
+        // [GIVEN]  line 1 standard "Quantity per" = StdQtyPer; line 2 Fixed Quantity = FixedQty.
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, ProdItem."No.", ProdOrderQty);
+        CreateProdOrderLineWithTwoSameItemComponents(
+          ProductionOrder, ProdItem."No.", CompItem."No.", StdQtyPer, FixedQty, StdComponentLineNo, FixedComponentLineNo);
+
+        // [GIVEN] On-hand inventory of "C" is posted that exactly covers the initial demand of both component lines.
+        CreateAndPostItemJournalLine(CompItem."No.", StdQtyPer * ProdOrderQty + FixedQty, '', '', false);
+
+        // [GIVEN] Bind the posted inventory to the two component lines with Order-to-Order reservations.
+        ReserveProdOrderComponentFromInventory(ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ");
+        ReserveProdOrderComponentFromInventory(ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity");
+
+        // [GIVEN] Regenerative planning keeps the initial inventory reservations without creating replenishment.
+        CalcRegenPlanForSingleItem(CompItem."No.");
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", StdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
+
+        // [WHEN] Only the standard component line grows and regenerative planning runs again.
+        UpdateProdOrderComponentQty(ProductionOrder, StdComponentLineNo, UpdatedStdQtyPer);
+        CalcRegenPlanForSingleItem(CompItem."No.");
+
+        // [THEN] The fully reserved fixed line keeps its inventory reservation while the standard line is topped up.
+        VerifyRequisitionLine(
+          CompItem."No.", "Action Message Type"::New, (UpdatedStdQtyPer - StdQtyPer) * ProdOrderQty, '');
+        VerifyProdOrderComponentReservedQty(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", UpdatedStdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQty(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", StdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
+
+        // [WHEN] The fixed component line grows too and regenerative planning runs again.
+        UpdateProdOrderComponentQty(ProductionOrder, FixedComponentLineNo, UpdatedFixedQty);
+        CalcRegenPlanForSingleItem(CompItem."No.");
+
+        // [THEN] The inventory reserved by the first planning cycle is untouched: the posted inventory is not pooled
+        // [THEN]  by the parent prod. order line and re-split across the two component lines.
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", StdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
+
+        // [WHEN] The demand on both component lines grows a second time and regenerative planning runs once more.
+        UpdateProdOrderComponentQty(ProductionOrder, StdComponentLineNo, SecondStdQtyPer);
+        UpdateProdOrderComponentQty(ProductionOrder, FixedComponentLineNo, SecondFixedQty);
+        CalcRegenPlanForSingleItem(CompItem."No.");
+
+        // [THEN] The inventory split still holds after the repeated planning cycle.
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", StdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQtyFromInventory(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseLotTrackedProductionOutputPostedInNonBaseUnitOfMeasure()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        UnitOfMeasure: Record "Unit of Measure";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        LotNo: Code[50];
+        QtyPerUnitOfMeasure: Decimal;
+    begin
+        // [SCENARIO 651623] Production output with lot tracking can be reversed when posted in a non-base unit of measure.
+        Initialize();
+        QtyPerUnitOfMeasure := 900;
+
+        // [GIVEN] A lot-tracked production item with an alternate unit of measure representing 900 base units.
+        CreateItemWithItemTrackingCode(Item, CreateItemTrackingCode());
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QtyPerUnitOfMeasure);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Modify(true);
+
+        // [GIVEN] A released production order for one alternate unit.
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", 1, '', '');
+        FindProductionOrderLine(ProdOrderLine, Item."No.");
+        ProdOrderLine.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        ProdOrderLine.Modify(true);
+
+        // [GIVEN] The output is posted with lot tracking in the alternate unit of measure.
+        CreateAndPostOutputJournalWithItemTracking(ProductionOrder."No.", true, 1);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField(Quantity, QtyPerUnitOfMeasure);
+        ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+        ItemLedgerEntry.TestField("Lot No.");
+        LotNo := ItemLedgerEntry."Lot No.";
+
+        // [WHEN] The production output entry is reversed.
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [THEN] A reversing output entry is posted for one alternate unit with the same lot tracking.
+        ItemLedgerEntry.SetRange("Entry No.");
+        ItemLedgerEntry.FindLast();
+        ItemLedgerEntry.TestField(Quantity, -QtyPerUnitOfMeasure);
+        ItemLedgerEntry.TestField("Unit of Measure Code", UnitOfMeasure.Code);
+        ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+        ItemLedgerEntry.TestField("Lot No.", LotNo);
+        Assert.AreEqual(
+            -1, ItemLedgerEntry.Quantity / ItemLedgerEntry."Qty. per Unit of Measure",
+            ReversingOutputQuantityErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -8665,6 +8818,55 @@ codeunit 137072 "SCM Production Orders II"
         Assert.AreEqual(
           ExpectedReservedQty, ProdOrderComponent."Reserved Qty. (Base)",
           StrSubstNo(ReservedQtyErr, ProdOrderComponent."Line No."));
+    end;
+
+    local procedure ReserveProdOrderComponentFromInventory(ProductionOrderNo: Code[20]; ItemNo: Code[20]; CalcFormula: Enum "Quantity Calculation Formula")
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        TrackingSpecification: Record "Tracking Specification";
+        ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
+    begin
+        ProdOrderComponent.SetRange("Calculation Formula", CalcFormula);
+        FindProdOrderComponentByOrderNoAndItem(ProdOrderComponent, ProductionOrderNo, ItemNo);
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Location Code", ProdOrderComponent."Location Code");
+        ItemLedgerEntry.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindFirst();
+
+        TrackingSpecification.InitTrackingSpecification(
+          Database::"Item Ledger Entry", 0, '', '', 0, ItemLedgerEntry."Entry No.",
+          ItemLedgerEntry."Variant Code", ItemLedgerEntry."Location Code", 1);
+        ProdOrderCompReserve.BindToTracking(
+          ProdOrderComponent, TrackingSpecification, ItemLedgerEntry.Description, ItemLedgerEntry."Posting Date",
+          ProdOrderComponent."Remaining Quantity", ProdOrderComponent."Remaining Qty. (Base)");
+    end;
+
+    local procedure VerifyProdOrderComponentReservedQtyFromInventory(ProductionOrderNo: Code[20]; ItemNo: Code[20]; CalcFormula: Enum "Quantity Calculation Formula"; ExpectedReservedQty: Decimal)
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        DemandReservationEntry: Record "Reservation Entry";
+        SupplyReservationEntry: Record "Reservation Entry";
+        ReservedFromInventoryQty: Decimal;
+    begin
+        ProdOrderComponent.SetRange("Calculation Formula", CalcFormula);
+        FindProdOrderComponentByOrderNoAndItem(ProdOrderComponent, ProductionOrderNo, ItemNo);
+
+        // Only entries whose supply side is an item ledger entry count - supply coming from a planned or firm planned
+        // replenishment order holds no inventory and is free to be re-planned on every cycle.
+        ProdOrderComponent.SetReservationFilters(DemandReservationEntry);
+        DemandReservationEntry.SetRange("Reservation Status", DemandReservationEntry."Reservation Status"::Reservation);
+        if DemandReservationEntry.FindSet() then
+            repeat
+                if SupplyReservationEntry.Get(DemandReservationEntry."Entry No.", true) then
+                    if SupplyReservationEntry."Source Type" = Database::"Item Ledger Entry" then
+                        ReservedFromInventoryQty -= DemandReservationEntry."Quantity (Base)"; // demand quantities are negative
+            until DemandReservationEntry.Next() = 0;
+
+        Assert.AreEqual(
+          ExpectedReservedQty, ReservedFromInventoryQty,
+          StrSubstNo(InvtReservedQtyErr, ProdOrderComponent."Line No."));
     end;
 
     local procedure CreateProductionItemWithRoutingNo(var Item: Record Item; RoutingNo: Code[20])
@@ -11163,4 +11365,3 @@ codeunit 137072 "SCM Production Orders II"
     end;
 
 }
-
