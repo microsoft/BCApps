@@ -272,7 +272,7 @@ report 20502 "Subc. Create SubCReturnOrder"
 
         Commit(); // Used for following call of Transfer Pages
 
-        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder("Purchase Line", true, true);
+        SubcPurchFactboxMgmt.ShowTransferOrdersFromPurchaseOrder("Purchase Header", true);
     end;
 
     local procedure TransferLineAlreadyExists(PurchaseLine: Record "Purchase Line"): Boolean

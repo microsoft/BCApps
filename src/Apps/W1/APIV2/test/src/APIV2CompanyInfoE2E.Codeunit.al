@@ -5,6 +5,8 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    // Tests set up data that must be committed so the web service session can read and lock Company Information.
+    RequiredTestIsolation = Disabled;
 
     trigger OnRun()
     begin
@@ -59,6 +61,8 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         EnvironmentInformation: Codeunit "Environment Information";
         CompanyDescription: Text;
         EnvironmentDescription: Text;
+        OriginalCompanyDescription: Text;
+        OriginalEnvironmentDescription: Text;
         Response: Text;
         TargetURL: Text;
     begin
@@ -67,6 +71,8 @@ codeunit 139806 "APIV2 - Company Info. E2E"
 
         // [GIVEN] The company and environment have multiline descriptions.
         CompanyInformation.Get();
+        OriginalCompanyDescription := CompanyInformation.GetCompanyDescription();
+        OriginalEnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
         CompanyDescription := CreateMultilineDescription('Company');
         EnvironmentDescription := CreateMultilineDescription('Environment');
         CompanyInformation.SetCompanyDescription(CompanyDescription);
@@ -76,6 +82,12 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         // [WHEN] The user calls GET for the given Company Information.
         TargetURL := LibraryGraphMgt.CreateTargetURL(CompanyInformation.SystemId, Page::"APIV2 - Company Information", ServiceNameTxt);
         LibraryGraphMgt.GetFromWebService(Response, TargetURL);
+
+        // Restore the original descriptions, as test isolation is disabled.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(OriginalCompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(OriginalEnvironmentDescription);
+        Commit();
 
         // [THEN] The response contains the complete descriptions.
         VerifyPropertyInJSON(Response, 'companyDescription', CompanyDescription);
