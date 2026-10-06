@@ -126,16 +126,16 @@ report 12154 "Subcontract. Transfer Shipment"
                     column(OutputNo; OutputNo)
                     {
                     }
-                    column(PageCaption; StrSubstNo(Text1130002, ''))
+                    column(PageCaption; StrSubstNo(PageLbl, ''))
                     {
                     }
-                    column(NoOfCopies; NoOfCopies)
+                    column(NoOfCopies; NoOfCopiesToPrint)
                     {
                     }
-                    column(ShowInternalInfo; ShowInternalInfo)
+                    column(ShowInternalInfo; ShowInternalInformation)
                     {
                     }
-                    column(ShowDescr2; ShowDescr2)
+                    column(ShowDescr2; ShowDescription2)
                     {
                     }
                     column(Text1130001_Control1130557; Text1130001Lbl)
@@ -282,15 +282,17 @@ report 12154 "Subcontract. Transfer Shipment"
                             DimSetEntry.SetRange("Dimension Set ID", "Transfer Shipment Header"."Dimension Set ID");
                             DimSetEntry.FindSet();
                             repeat
-                                OldDimText := DimText;
+                                OldDimText := CopyStr(DimText, 1, MaxStrLen(OldDimText));
                                 if DimText = '' then
-                                    DimText := StrSubstNo(
-                                        '%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")
+                                    DimText := CopyStr(
+                                        StrSubstNo('%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code"),
+                                        1, MaxStrLen(DimText))
                                 else
-                                    DimText :=
-                                      StrSubstNo(
-                                        '%1; %2 - %3', DimText,
-                                        DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code");
+                                    DimText := CopyStr(
+                                        StrSubstNo(
+                                            '%1; %2 - %3', DimText,
+                                            DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code"),
+                                        1, MaxStrLen(DimText));
                                 if StrLen(DimText) > MaxStrLen(OldDimText) then begin
                                     DimText := OldDimText;
                                     Continue := true;
@@ -301,7 +303,7 @@ report 12154 "Subcontract. Transfer Shipment"
 
                         trigger OnPreDataItem()
                         begin
-                            if not ShowInternalInfo then
+                            if not ShowInternalInformation then
                                 CurrReport.Break();
                         end;
                     }
@@ -382,15 +384,17 @@ report 12154 "Subcontract. Transfer Shipment"
                                 DimSetEntry.SetRange("Dimension Set ID", "Transfer Shipment Line"."Dimension Set ID");
                                 DimSetEntry.FindSet();
                                 repeat
-                                    OldDimText := DimText;
+                                    OldDimText := CopyStr(DimText, 1, MaxStrLen(OldDimText));
                                     if DimText = '' then
-                                        DimText := StrSubstNo(
-                                            '%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")
+                                        DimText := CopyStr(
+                                            StrSubstNo('%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code"),
+                                            1, MaxStrLen(DimText))
                                     else
-                                        DimText :=
-                                          StrSubstNo(
-                                            '%1; %2 - %3', DimText,
-                                            DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code");
+                                        DimText := CopyStr(
+                                            StrSubstNo(
+                                                '%1; %2 - %3', DimText,
+                                                DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code"),
+                                            1, MaxStrLen(DimText));
                                     if StrLen(DimText) > MaxStrLen(OldDimText) then begin
                                         DimText := OldDimText;
                                         Continue := true;
@@ -401,7 +405,7 @@ report 12154 "Subcontract. Transfer Shipment"
 
                             trigger OnPreDataItem()
                             begin
-                                if not ShowInternalInfo then
+                                if not ShowInternalInformation then
                                     CurrReport.Break();
                             end;
                         }
@@ -420,13 +424,13 @@ report 12154 "Subcontract. Transfer Shipment"
 
                 trigger OnAfterGetRecord()
                 begin
-                    CopyText := Text1130004;
+                    CopyText := OriginalLbl;
                     if Number = 2 then
-                        CopyText := Text1130005;
+                        CopyText := AgentCopyLbl;
                     if Number = 3 then
-                        CopyText := Text1130006;
+                        CopyText := CarriageConsignerCopyLbl;
                     if Number > 3 then
-                        CopyText := Text1130000;
+                        CopyText := CopyLbl;
 
                     if Number > 1 then
                         OutputNo += 1;
@@ -434,7 +438,7 @@ report 12154 "Subcontract. Transfer Shipment"
 
                 trigger OnPreDataItem()
                 begin
-                    NoOfLoops := 1 + Abs(NoOfCopies);
+                    NoOfLoops := 1 + Abs(NoOfCopiesToPrint);
                     CopyText := '';
                     SetRange(Number, 1, NoOfLoops);
 
@@ -511,19 +515,19 @@ report 12154 "Subcontract. Transfer Shipment"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(NoOfCopies; NoOfCopies)
+                    field(NoOfCopiesField; NoOfCopiesToPrint)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'No. of Copies';
                         ToolTip = 'Specifies the number of copies.';
                     }
-                    field(ShowInternalInfo; ShowInternalInfo)
+                    field(ShowInternalInfoField; ShowInternalInformation)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show Internal Information';
                         ToolTip = 'Specifies if you want to see internal information.';
                     }
-                    field(ShowDescr2; ShowDescr2)
+                    field(ShowDescr2Field; ShowDescription2)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Print Description 2';
@@ -543,8 +547,6 @@ report 12154 "Subcontract. Transfer Shipment"
     }
 
     var
-        Text1130000: Label 'COPY';
-        Text1130002: Label 'Page %1';
         CompanyInfo: Record "Company Information";
         ShipmentMethod: Record "Shipment Method";
         ShippingAgent: Record "Shipping Agent";
@@ -558,17 +560,19 @@ report 12154 "Subcontract. Transfer Shipment"
         DimText: Text[120];
         OldDimText: Text[75];
         MoreLines: Boolean;
-        NoOfCopies: Integer;
+        NoOfCopiesToPrint: Integer;
         NoOfLoops: Integer;
         Length: Integer;
         i: Integer;
-        ShowInternalInfo: Boolean;
-        ShowDescr2: Boolean;
+        ShowInternalInformation: Boolean;
+        ShowDescription2: Boolean;
         Continue: Boolean;
-        Text1130004: Label 'ORIGINAL';
-        Text1130005: Label 'AGENT COPY';
-        Text1130006: Label 'CARRIAGE CONSIGNER COPY';
         OutputNo: Integer;
+        AgentCopyLbl: Label 'AGENT COPY';
+        CarriageConsignerCopyLbl: Label 'CARRIAGE CONSIGNER COPY';
+        CopyLbl: Label 'COPY';
+        OriginalLbl: Label 'ORIGINAL';
+        PageLbl: Label 'Page %1', Comment = '%1 = page number';
         Text1130001Lbl: Label 'Transfer Shipment ';
         Transfer_Shipment_Header___No__CaptionLbl: Label 'Shipment No.';
         Transfer_Shipment_Header___Posting_Date_CaptionLbl: Label 'Date';
