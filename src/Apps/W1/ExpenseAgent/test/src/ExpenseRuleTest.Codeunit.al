@@ -8551,6 +8551,9 @@ codeunit 148301 "Expense Rule Test"
         LibraryExpense.CreateExpenseItemization(ZeroRateItemization, Expense, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 0, 1);
         LibraryExpense.CreateExpenseItemization(NonzeroRateItemization, Expense, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 10, 1);
 
+        // [GIVEN] Save the itemizations so the expected errors do not roll back their setup.
+        Commit();
+
         // [WHEN] Save the zero-rate itemization with a blank subcategory.
         ZeroRateItemization."Expense Subcategory Code" := '';
         asserterror ZeroRateItemization.Modify(true);
@@ -8562,8 +8565,9 @@ codeunit 148301 "Expense Rule Test"
         Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The zero-rate itemization daily rate must remain unchanged.');
 
         // [WHEN] Save the zero-rate itemization with a valid replacement subcategory.
-        ZeroRateItemization.Validate("Expense Subcategory Code", ExpenseSubCategory2.Code);
+        ZeroRateItemization."Expense Subcategory Code" := ExpenseSubCategory2.Code;
         ZeroRateItemization.Modify(true);
+        Commit();
         ZeroRateItemization.Get(ZeroRateItemization."Expense No.", ZeroRateItemization."Line No.");
 
         // [THEN] The valid replacement is persisted and the daily rate is unchanged.
@@ -8581,7 +8585,7 @@ codeunit 148301 "Expense Rule Test"
         Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The nonzero-rate itemization daily rate must remain unchanged.');
 
         // [WHEN] Save the nonzero-rate itemization with a valid replacement subcategory.
-        NonzeroRateItemization.Validate("Expense Subcategory Code", ExpenseSubCategory2.Code);
+        NonzeroRateItemization."Expense Subcategory Code" := ExpenseSubCategory2.Code;
         NonzeroRateItemization.Modify(true);
         NonzeroRateItemization.Get(NonzeroRateItemization."Expense No.", NonzeroRateItemization."Line No.");
 
@@ -8619,6 +8623,9 @@ codeunit 148301 "Expense Rule Test"
         LibraryExpense.CreateExpenseReportLineItemization(ZeroRateItemization, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 0, 1);
         LibraryExpense.CreateExpenseReportLineItemization(NonzeroRateItemization, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 10, 1);
 
+        // [GIVEN] Save the itemizations so the expected errors do not roll back their setup.
+        Commit();
+
         // [WHEN] Save the zero-rate report itemization with a blank subcategory.
         ZeroRateItemization."Expense Subcategory Code" := '';
         asserterror ZeroRateItemization.Modify(true);
@@ -8630,8 +8637,9 @@ codeunit 148301 "Expense Rule Test"
         Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The zero-rate report itemization daily rate must remain unchanged.');
 
         // [WHEN] Save the zero-rate report itemization with a valid replacement subcategory.
-        ZeroRateItemization.Validate("Expense Subcategory Code", ExpenseSubCategory2.Code);
+        ZeroRateItemization."Expense Subcategory Code" := ExpenseSubCategory2.Code;
         ZeroRateItemization.Modify(true);
+        Commit();
         ZeroRateItemization.Get(ZeroRateItemization."Expense Report No.", ZeroRateItemization."Expense Report Line No.", ZeroRateItemization."Line No.");
 
         // [THEN] The valid replacement is persisted and the daily rate is unchanged.
@@ -8649,7 +8657,7 @@ codeunit 148301 "Expense Rule Test"
         Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The nonzero-rate report itemization daily rate must remain unchanged.');
 
         // [WHEN] Save the nonzero-rate report itemization with a valid replacement subcategory.
-        NonzeroRateItemization.Validate("Expense Subcategory Code", ExpenseSubCategory2.Code);
+        NonzeroRateItemization."Expense Subcategory Code" := ExpenseSubCategory2.Code;
         NonzeroRateItemization.Modify(true);
         NonzeroRateItemization.Get(NonzeroRateItemization."Expense Report No.", NonzeroRateItemization."Expense Report Line No.", NonzeroRateItemization."Line No.");
 
