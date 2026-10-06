@@ -11,6 +11,28 @@ PR project discovery is disabled for this experiment branch to avoid a full-coun
 build. Dispatch the existing registered `CICD.yaml` with this branch as its ref.
 Do not dispatch a second pair without new authorization.
 
+## Authorized preparation correction
+
+The initial pair, run `37493608127`, never created a container or ran AL tests.
+It incorrectly selected Windows PowerShell 5.1 while original W1 job
+`112207627851` used `pwsh` 7. `Get-PlatformVersions` therefore failed parsing an
+HTTP response because the Internet Explorer engine was unavailable. This is an
+experiment preparation/configuration bug, **not a network failure or SQL result**.
+The failed pair remains inconclusive and its logs/artifacts are retained.
+
+One replacement pair is explicitly authorized after correcting the job shell
+**and all AL-Go composite action shell inputs** to `pwsh`. `Invoke-AlGoAction`
+invokes its supplied scriptblock in that shell; it does not select the shell.
+A preflight records and requires PowerShell 7 before package preparation.
+Checkout includes the unchanged PR2 ancestor through the two diagnostic commits.
+No PlatformHelper, vendor action, parsing workaround or shell policy is changed.
+
+The failed preparation consumed 13m16s (control) plus 14m23s (fresh), totaling
+27m39s of runner time. The replacement remains capped at 120 minutes per arm
+(240 additional runner-minutes; 267m39s cumulative worst-case including the failed
+preparation). Record actual old/new preparation time separately. No further
+dispatch or failed-job rerun is authorized after the replacement.
+
 Both arms use the exact same PR2 app/test archive IDs and SHA256 digests,
 BCH `6.1.19-preview2811389`, NST `30.0.55665.0`, W1 application artifact
 `30.0.55683.0`, image digest, original license provisioning, auth files,

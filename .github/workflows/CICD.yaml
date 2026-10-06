@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 120
     defaults:
       run:
-        shell: powershell
+        shell: pwsh
     env:
       ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
       ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
@@ -31,7 +31,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           lfs: true
-          fetch-depth: 2
+          fetch-depth: 3
+
+      - name: Verify baseline PowerShell 7 host
+        run: |
+          if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -ne 7) {
+            throw 'The pinned baseline executes on PowerShell 7; this pilot must use the same shell.'
+          }
+          $output = Join-Path $env:GITHUB_WORKSPACE 'sql-reset-pilot-output'
+          New-Item -ItemType Directory $output -Force | Out-Null
+          @{
+            edition = $PSVersionTable.PSEdition
+            version = $PSVersionTable.PSVersion.ToString()
+            executable = (Get-Process -Id $PID).Path
+            utc = [DateTime]::UtcNow.ToString('o')
+          } | ConvertTo-Json | Tee-Object -FilePath (Join-Path $output 'shell-preflight.json')
 
       - name: Validate provenance and download exact compiled PR2 packages
         id: packages
@@ -43,7 +57,7 @@ jobs:
       - name: Read pinned W1 Integration settings
         uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
-          shell: powershell
+          shell: pwsh
           project: build/projects/Test Apps W1
           buildMode: IntegrationTests
 
@@ -51,7 +65,7 @@ jobs:
         id: secrets
         uses: microsoft/AL-Go/Actions/ReadSecrets@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
-          shell: powershell
+          shell: pwsh
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: 'licenseFileUrl,gitHubPackagesContext,applicationInsightsConnectionString,appDependencySecrets'
 
@@ -60,7 +74,7 @@ jobs:
         env:
           Secrets: '${{ steps.secrets.outputs.Secrets }}'
         with:
-          shell: powershell
+          shell: pwsh
           project: build/projects/Test Apps W1
           buildMode: IntegrationTests
           artifact: https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/30.0.55683.0/w1
