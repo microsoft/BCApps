@@ -169,7 +169,6 @@ codeunit 20508 "Subc. Price Management"
         end;
 
         RecRef.SetTable(Item);
-        Item.Get(Item."No.");
         CalculationDate := SubcSessionState.GetDate('OnAfterSetProperties');
         if CalculationDate = 0D then
             CalculationDate := WorkDate();

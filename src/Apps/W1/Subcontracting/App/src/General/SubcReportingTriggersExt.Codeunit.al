@@ -30,10 +30,10 @@ codeunit 20512 "Subc. Reporting Triggers Ext"
         if WorkCenter."Subcontractor No." = '' then
             exit;
 
-        Item.Get(ItemNo);
-        LotSize := Item."Lot Size";
-        if LotSize = 0 then
-            LotSize := 1;
+        LotSize := 1;
+        if Item.Get(ItemNo) then
+            if Item."Lot Size" <> 0 then
+                LotSize := Item."Lot Size";
 
         SubcontractorPrice."Vendor No." := WorkCenter."Subcontractor No.";
         SubcontractorPrice."Item No." := ItemNo;
