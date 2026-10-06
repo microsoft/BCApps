@@ -34,6 +34,9 @@ page 7415 "Excise Tax Type Card"
                 {
                     ToolTip = 'Specifies whether this tax type is active and available for use.';
                 }
+                field("Bonded Location Treatment"; Rec."Bonded Location Treatment")
+                {
+                }
             }
             group(Reporting)
             {
@@ -63,7 +66,7 @@ page 7415 "Excise Tax Type Card"
                 Caption = 'Excise Duty Rates';
                 ToolTip = 'Configure excise duty rates for specific items and fixed assets.';
                 Image = Setup;
-                RunObject = Page "Excise Tax Item/FA Rates";
+                RunObject = Page "Excise Tax Rates";
                 RunPageLink = "Excise Tax Type Code" = field(Code);
             }
         }

@@ -128,6 +128,12 @@ table 84 "Acc. Schedule Name"
             FieldClass = FlowField;
             ToolTip = 'Specifies the status code is a blocked status.';
         }
+        field(8; "Preview Column Def."; Code[10])
+        {
+            Caption = 'Column Definition (for Preview)';
+            TableRelation = "Column Layout Name";
+            ToolTip = 'Specifies the column layout used when previewing this row definition.';
+        }
         field(10700; Standardized; Boolean)
         {
             Caption = 'Standardized';
@@ -180,10 +186,14 @@ table 84 "Acc. Schedule Name"
     begin
         AccSchedLine.SetRange("Schedule Name", Name);
         AccSchedLine.DeleteAll();
+
+        ColumnLayoutName.SetRange("Preview Row Def.", Name);
+        ColumnLayoutName.ModifyAll("Preview Row Def.", '');
     end;
 
     var
         AccSchedLine: Record "Acc. Schedule Line";
+        ColumnLayoutName: Record "Column Layout Name";
         AccSchedPrefixTxt: Label 'ROW.DEF.', MaxLength = 10, Comment = 'Part of the name for the confguration package, stands for Row Definition';
         TwoPosTxt: Label '%1%2', Locked = true;
         PackageNameTxt: Label 'Row Definition - %1', MaxLength = 40, Comment = '%1 - Rows definition name';
@@ -346,6 +356,8 @@ table 84 "Acc. Schedule Name"
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
+        TempClearedConfigPackageRecord: Record "Config. Package Record" temporary;
+        TempClearedConfigPackageData: Record "Config. Package Data" temporary;
         ConfigPackageMgt: Codeunit "Config. Package Management";
         NewName: Code[10];
     begin
@@ -356,9 +368,86 @@ table 84 "Acc. Schedule Name"
         if NewName = '' then
             Error(PackageImportErr);
 
+        ClearNonExistingStatusInPackage(PackageCode, TempClearedConfigPackageRecord, TempClearedConfigPackageData);
+
         ConfigPackageTable.SetRange("Package Code", PackageCode);
         ConfigPackageMgt.ApplyPackage(ConfigPackage, ConfigPackageTable, false);
+
+        RestoreClearedStatusInPackage(TempClearedConfigPackageRecord, TempClearedConfigPackageData);
         LogImportExportTelemetry(NewName, 'imported');
+    end;
+
+    local procedure ClearNonExistingStatusInPackage(PackageCode: Code[20]; var TempClearedConfigPackageRecord: Record "Config. Package Record" temporary; var TempClearedConfigPackageData: Record "Config. Package Data" temporary)
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        FinancialReportStatus: Record "Financial Report Status";
+        StatusConfigPackageData: Record "Config. Package Data";
+    begin
+        StatusConfigPackageData.SetRange("Package Code", PackageCode);
+        StatusConfigPackageData.SetRange("Table ID", Database::"Acc. Schedule Name");
+        StatusConfigPackageData.SetRange("Field ID", AccScheduleName.FieldNo(Status));
+        StatusConfigPackageData.SetFilter(Value, '<>%1', '');
+        if StatusConfigPackageData.FindSet() then
+            repeat
+                if not FinancialReportStatus.Get(CopyStr(StatusConfigPackageData.Value, 1, MaxStrLen(FinancialReportStatus.Code))) then begin
+                    BufferPackageRecord(
+                        PackageCode, StatusConfigPackageData."No.", TempClearedConfigPackageRecord, TempClearedConfigPackageData);
+                    StatusConfigPackageData.Value := '';
+                    StatusConfigPackageData.Modify();
+                end;
+            until StatusConfigPackageData.Next() = 0;
+    end;
+
+    local procedure BufferPackageRecord(PackageCode: Code[20]; RecordNo: Integer; var TempClearedConfigPackageRecord: Record "Config. Package Record" temporary; var TempClearedConfigPackageData: Record "Config. Package Data" temporary)
+    var
+        ConfigPackageRecord: Record "Config. Package Record";
+        ConfigPackageData: Record "Config. Package Data";
+    begin
+        if ConfigPackageRecord.Get(PackageCode, Database::"Acc. Schedule Name", RecordNo) then begin
+            TempClearedConfigPackageRecord := ConfigPackageRecord;
+            TempClearedConfigPackageRecord.Insert();
+        end;
+
+        ConfigPackageData.SetRange("Package Code", PackageCode);
+        ConfigPackageData.SetRange("Table ID", Database::"Acc. Schedule Name");
+        ConfigPackageData.SetRange("No.", RecordNo);
+        if ConfigPackageData.FindSet() then
+            repeat
+                TempClearedConfigPackageData := ConfigPackageData;
+                TempClearedConfigPackageData.Insert();
+            until ConfigPackageData.Next() = 0;
+    end;
+
+    local procedure RestoreClearedStatusInPackage(var TempClearedConfigPackageRecord: Record "Config. Package Record" temporary; var TempClearedConfigPackageData: Record "Config. Package Data" temporary)
+    var
+        ConfigPackageRecord: Record "Config. Package Record";
+        ConfigPackageData: Record "Config. Package Data";
+    begin
+        // ApplyPackage deletes the records it applied, so the buffered record has to be re-created before its data
+        if TempClearedConfigPackageRecord.FindSet() then
+            repeat
+                if not ConfigPackageRecord.Get(
+                        TempClearedConfigPackageRecord."Package Code", TempClearedConfigPackageRecord."Table ID",
+                        TempClearedConfigPackageRecord."No.")
+                then begin
+                    ConfigPackageRecord := TempClearedConfigPackageRecord;
+                    ConfigPackageRecord.Insert();
+                end;
+            until TempClearedConfigPackageRecord.Next() = 0;
+
+        if TempClearedConfigPackageData.FindSet() then
+            repeat
+                if ConfigPackageData.Get(
+                        TempClearedConfigPackageData."Package Code", TempClearedConfigPackageData."Table ID",
+                        TempClearedConfigPackageData."No.", TempClearedConfigPackageData."Field ID")
+                then begin
+                    ConfigPackageData.Value := TempClearedConfigPackageData.Value;
+                    ConfigPackageData.Modify();
+                end else begin
+                    ConfigPackageData := TempClearedConfigPackageData;
+                    ConfigPackageData.Insert();
+                end;
+            until TempClearedConfigPackageData.Next() = 0;
     end;
 
     local procedure GetPackageAccSchedName(PackageCode: Code[20]) NewName: Code[10]

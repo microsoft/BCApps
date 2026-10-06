@@ -223,7 +223,7 @@ report 110 "Customer - Labels"
                     {
                         ApplicationArea = Suite;
                         Caption = 'Format';
-                        OptionCaption = '36 x 70 mm (3 columns),37 x 70 mm (3 columns),36 x 105 mm (2 columns),37 x 105 mm (2 columns)';
+                        OptionCaption = '36 x 70 mm (3 columns),37 x 70 mm (3 columns),36 x 105 mm (2 columns),37 x 105 mm (2 columns),48 x 105 mm (2 columns - Bar Code)';
                         ToolTip = 'Specifies the format of the label.';
                     }
                 }

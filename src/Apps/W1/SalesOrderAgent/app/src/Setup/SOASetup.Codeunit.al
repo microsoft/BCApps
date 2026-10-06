@@ -1156,6 +1156,18 @@ codeunit 4400 "SOA Setup"
         exit(false);
     end;
 
+    internal procedure IsImageAttachmentContentType(FileMIMEType: Text): Boolean
+    begin
+        // The platform derives the content type from the file extension and maps image extensions to
+        // non-standard 'application/<extension>' values, so both those and the standard image types are recognized.
+        if LowerCase(FileMIMEType) in
+            ['image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+             'application/jpeg', 'application/jpg', 'application/png', 'application/gif'] then
+            exit(true);
+
+        exit(false);
+    end;
+
     [TryFunction]
     internal procedure DocumentExceedsPageCountThreshold(DocInStream: Instream; var Exceeds: Boolean)
     var
@@ -1216,11 +1228,11 @@ codeunit 4400 "SOA Setup"
         SOACustomerInterventionSuggestionCodeLbl: Label 'SOA-CUSTOMER-ADDED', Locked = true;
         SOACustomerInterventionSuggestionSummaryLbl: Label 'I have added the customer', MaxLength = 100;
         SOACustomerInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the customer information. Rerun the customer information check', Locked = true, MaxLength = 1024;
-        SOACustomerInterventionSuggestionInstructionsLbl: Label 'I have updated the customer information. Rerun the customer information check and proceed further.', Locked = true, MaxLength = 1024;
+        SOACustomerInterventionSuggestionInstructionsLbl: Label 'I have updated the customer information. Navigate to the customer list page, search for the customer again, and then proceed.', Locked = true, MaxLength = 1024;
         SOAContactInterventionSuggestionCodeLbl: Label 'SOA-CONTACT-ADDED', Locked = true;
         SOAContactInterventionSuggestionSummaryLbl: Label 'I have added the contact', MaxLength = 100;
         SOAContactInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the contact information. Rerun the contact information check', Locked = true, MaxLength = 1024;
-        SOAContactInterventionSuggestionInstructionsLbl: Label 'I have updated the contact information. Rerun the contact information check on the contact list page and proceed further.', Locked = true, MaxLength = 1024;
+        SOAContactInterventionSuggestionInstructionsLbl: Label 'I have updated the contact information. Navigate to the contact list page and search for the contact again. If the contact is found, proceed with it, and only search the customer list if the contact is still not found.', Locked = true, MaxLength = 1024;
         NewEmailsSinceDeactivationLbl: Label 'New e-mails (%1) have arrived since %2 but haven''t been processed yet. Should Sales Order Agent also process these?', Comment = '%1 - Number of emails, %2 - Date and time of deactivation.';
         SOAAttemptedConnectionFailedErr: Label 'The agent can''t be activated because the connection to the selected Microsoft 365 mailbox failed. Ask your Microsoft 365 administrator to check if the user configuring the agent has permission to access the mailbox.';
         SOAAttemptedConnectionHttpRequestFailedErr: Label 'The agent can''t be activated because its settings don''t allow Http Requests. Ask your administrator to update this setting and try again.';

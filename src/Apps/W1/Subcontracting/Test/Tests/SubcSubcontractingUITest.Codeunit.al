@@ -85,11 +85,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         SubcCompTransferLeadTime: DateFormula;
         SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
+        SubcontractingBatchName: Code[10];
+        SubcontractingTemplateName: Code[10];
         ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
         CreateProdOrderInfoLine: Boolean;
         SubcDefaultCompLocation: Enum "Components at Location";
-        SubcontractingBatchName: Code[10];
-        SubcontractingTemplateName: Code[10];
     begin
         // [SCENARIO 642233] The setup wizard displays the installed company defaults and the next configuration links.
         Initialize();
@@ -211,6 +211,28 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [THEN] Default Component Location Source is available for later maintenance
         Assert.IsFalse(PageControl.IsEmpty(), StrSubstNo(ControlNotExistMsg, ManufacturingSetup.FieldCaption("Subc. Default Comp. Location")));
+    end;
+
+    [Test]
+    procedure ProdOrderCompLinesExposeTransferQuantities()
+    var
+        PageControl: Record "Page Control Field";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [SCENARIO 650391] Prod. Order Comp. Lines exposes subcontracting transfer quantities.
+        Initialize();
+
+        // [WHEN] Controls on Prod. Order Comp. Lines are inspected
+        // [THEN] Transfer quantities are available with the requested default visibility
+        AssertPageControlExists(
+            Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
+            ProdOrderComponent.FieldNo("Subc. Qty.on TransOrder (Base)"), 'Subc. Qty.on TransOrder (Base)');
+        AssertPageControlIsInitiallyHidden(
+            PageControl, Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
+            ProdOrderComponent.FieldNo("Subc. Qty. in Transit (Base)"), 'Qty. in Transit (Base)');
+        AssertPageControlExists(
+            Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
+            ProdOrderComponent.FieldNo("Subc. Qty. transf. to Subcontr"), 'Subc. Qty. transf. to Subcontractor');
     end;
 
     [Test]

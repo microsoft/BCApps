@@ -22,6 +22,8 @@ codeunit 134897 "ERM Source Currency"
         SourceCurrencyAmountShouldBeZeroErr: Label 'The Source Currency Amount should be 0', Locked = true;
         SourceCurrencyAmountShouldMatchEnteredAmountErr: Label 'Source Currency Amount should match manually entered amount', Locked = true;
         PayablesSCYAmountErr: Label 'Source Currency Amount on payables G/L entry should match the FCY invoice amount', Locked = true;
+        SourceCurrencyVATAmountNotZeroErr: Label 'Source Currency VAT Amount should not be zero', Locked = true;
+        SourceCurrencyReceivablesNotZeroErr: Label 'Source Currency Amount on receivables should not be zero', Locked = true;
 
     [Test]
     procedure GenJournalPurchaseNormalVATLCY()
@@ -1930,6 +1932,107 @@ codeunit 134897 "ERM Source Currency"
         Assert.AreEqual(-InvoiceAmount, GLEntry."Source Currency Amount", PayablesSCYAmountErr);
     end;
 
+    [Test]
+    procedure SalesInvoiceFCYLineDiscountDeferralNoDiscountPosting()
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        Currency: Record Currency;
+        DeferralCode: Code[10];
+        PostedInvoiceNo: Code[20];
+        VATAmount: Decimal;
+        OldDiscountPosting: Integer;
+    begin
+        // [SCENARIO 640453] Source Currency VAT Amount is not zero on G/L Entry when posting sales invoice with Line Discount, Deferral Code, and Discount Posting = No Discounts
+        Initialize();
+
+        // [GIVEN] Sales Setup with Discount Posting = "No Discounts"
+        OldDiscountPosting := SetSalesDiscountPosting(0); // 0 = "No Discounts"
+
+        // [GIVEN] Currency "C" with exchange rate, Deferral Template "DT" with 3 periods
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), 1, 0.8);
+        DeferralCode := CreateDeferralCode(3);
+
+        // [GIVEN] Customer "C" with 25% VAT
+        CreateCustomerWithVATSetup(CustomerPostingGroup, GeneralPostingSetup, VATPostingSetup, 25);
+
+        // [GIVEN] Sales Invoice "SI" with Line Discount and Deferral
+        CreateSalesInvoiceWithLineDiscountAndDeferral(SalesHeader, CustomerPostingGroup.Code, GeneralPostingSetup, VATPostingSetup, Currency.Code, DeferralCode, 100, 1);
+        VATAmount := SalesHeader."Amount Including VAT" - SalesHeader.Amount;
+
+        // [WHEN] Post Sales Invoice "SI"
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Source Currency VAT Amount on VAT G/L Entry is not zero and equals calculated VAT amount
+        // [THEN] Source Currency Code on all G/L Entries equals Currency Code
+        // [THEN] Source Currency Amounts on all G/L Entries balance to 0
+        VerifySalesInvoiceSourceCurrencyAmounts(PostedInvoiceNo, Currency.Code, VATAmount, VATPostingSetup, CustomerPostingGroup);
+
+        // Cleanup
+        SetSalesDiscountPosting(OldDiscountPosting);
+    end;
+
+    [Test]
+    procedure PurchaseInvoiceReverseChargeVATFCYWithRoundingDifference()
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        VendorNo: Code[20];
+        PostedPurchaseInvoiceNo: Code[20];
+        ExpectedVATAmount: Decimal;
+    begin
+        // [SCENARIO 647818] Reverse charge VAT G/L entries preserve source currency amounts when LCY rounding differs.
+        Initialize();
+
+        // [GIVEN] A vendor and posting setup with 8.1% reverse charge VAT.
+        VendorNo := CreateVendorWithNewPostingGroups(
+            VendorPostingGroup, GeneralPostingSetup, VATPostingSetup,
+            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+        VATPostingSetup.Validate("VAT %", LibraryRandom.RandDecInDecimalRange(8.1, 8.1, 2));
+        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] A purchase invoice for 1,788.27 in a foreign currency with an exchange rate of 1:0.81709.
+        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
+        CreatePurchaseInvoiceWithRoundingDifference(PurchaseHeader, VendorNo, GLAccount."No.");
+        ExpectedVATAmount := Round(PurchaseHeader.Amount * VATPostingSetup."VAT %" / 100, 0.01, '=');
+
+        // [WHEN] The purchase invoice is posted.
+        PostedPurchaseInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The originating entry preserves the source VAT amount despite the LCY rounding difference.
+        GLEntry.SetRange("Document No.", PostedPurchaseInvoiceNo);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.FindFirst();
+        Assert.AreEqual(
+            ExpectedVATAmount, GLEntry."Source Currency VAT Amount",
+            StrSubstNo(VATAmountIncorrectErr, PurchaseHeader.Amount, VATPostingSetup."VAT %"));
+
+        // [THEN] The reverse charge entries use the original source VAT amount.
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Purchase VAT Account");
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(
+            ExpectedVATAmount, GLEntry."Source Currency Amount",
+            StrSubstNo(VATAmountIncorrectErr, PurchaseHeader.Amount, VATPostingSetup."VAT %"));
+
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup.GetRevChargeAccount(false));
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(
+            -ExpectedVATAmount, GLEntry."Source Currency Amount",
+            StrSubstNo(VATAmountIncorrectErr, PurchaseHeader.Amount, VATPostingSetup."VAT %"));
+
+        GLEntry.SetRange("G/L Account No.");
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", TotalSCYAmountNotZeroErr);
+    end;
+
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
     var
         PurchaseLine: Record "Purchase Line";
@@ -2053,6 +2156,65 @@ codeunit 134897 "ERM Source Currency"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Type, No, LibraryRandom.RandDec(10, 2));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));  // Use Random Unit Price between 1 and 100.
         SalesLine.Modify(true);
+    end;
+
+    [Test]
+    procedure SalesInvoiceLCYWithPaymentMethodBalAccountPosting()
+    var
+        Customer: Record Customer;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GLEntry: Record "G/L Entry";
+        PaymentMethod: Record "Payment Method";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ExpectedSourceCurrencyAmount: Decimal;
+        PostedDocumentNo: Code[20];
+    begin
+        // [SCENARIO] An LCY sales invoice with a payment method balancing account can be previewed when source currency consistency is enabled.
+
+        Initialize();
+
+        // [FEATURE] [AI test]
+        // [GIVEN] Source currency consistency and extended posting preview are enabled.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] A payment method with a G/L balancing account and payment terms without a payment discount.
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod.Validate("Bal. Account Type", PaymentMethod."Bal. Account Type"::"G/L Account");
+        PaymentMethod.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        PaymentMethod.Modify(true);
+
+        // [GIVEN] A customer whose payment method and payment terms flow to a new LCY sales invoice.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Method Code", PaymentMethod.Code);
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.TestField("Currency Code", '');
+        SalesHeader.TestField("Payment Method Code", PaymentMethod.Code);
+
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+
+        SalesHeader.CalcFields("Amount Including VAT");
+        ExpectedSourceCurrencyAmount := SalesHeader."Amount Including VAT";
+
+        // [WHEN] Posting the salesinvoice.
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The posting completes without a source currency consistency error.
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("G/L Account No.", PaymentMethod."Bal. Account No.");
+        GLEntry.FindFirst();
+        GLEntry.TestField("Document Type", GLEntry."Document Type"::Payment);
+
+        GLEntry.TestField(Amount, ExpectedSourceCurrencyAmount);
+        GLEntry.TestField("Source Currency Code", '');
+        GLEntry.TestField("Source Currency Amount", ExpectedSourceCurrencyAmount);
     end;
 
     local procedure Initialize()
@@ -2207,4 +2369,111 @@ codeunit 134897 "ERM Source Currency"
         end;
     end;
 
+    local procedure SetSalesDiscountPosting(DiscountPostingOption: Integer): Integer
+    var
+        SalesSetup: Record "Sales & Receivables Setup";
+        OldDiscountPosting: Integer;
+    begin
+        SalesSetup.Get();
+        OldDiscountPosting := SalesSetup."Discount Posting";
+        SalesSetup."Discount Posting" := DiscountPostingOption;
+        SalesSetup.Modify();
+        exit(OldDiscountPosting);
+    end;
+
+    local procedure CreateDeferralCode(NoOfPeriods: Integer): Code[10]
+    var
+        DeferralTemplate: Record "Deferral Template";
+    begin
+        CreateDeferralTemplate(DeferralTemplate);
+        DeferralTemplate."No. of Periods" := NoOfPeriods;
+        DeferralTemplate.Modify();
+        exit(DeferralTemplate."Deferral Code");
+    end;
+
+    local procedure CreateCustomerWithVATSetup(var CustomerPostingGroup: Record "Customer Posting Group"; var GeneralPostingSetup: Record "General Posting Setup"; var VATPostingSetup: Record "VAT Posting Setup"; VATPercent: Decimal)
+    begin
+        CreateCustomerWithNewPostingGroups(CustomerPostingGroup, GeneralPostingSetup, VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", VATPercent);
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateSalesInvoiceWithLineDiscountAndDeferral(var SalesHeader: Record "Sales Header"; CustomerPostingGroupCode: Code[20]; GeneralPostingSetup: Record "General Posting Setup"; VATPostingSetup: Record "VAT Posting Setup"; CurrencyCode: Code[10]; DeferralCode: Code[10]; UnitPrice: Decimal; LineDiscountPct: Decimal)
+    var
+        Customer: Record Customer;
+        SalesLine: Record "Sales Line";
+        GLAccount: Record "G/L Account";
+    begin
+        Customer.SetRange("Customer Posting Group", CustomerPostingGroupCode);
+        Customer.FindFirst();
+
+        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Sale, GeneralPostingSetup, VATPostingSetup);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Currency Code", CurrencyCode);
+        SalesHeader.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Validate("Line Discount %", LineDiscountPct);
+        SalesLine.Validate("Deferral Code", DeferralCode);
+        SalesLine.Modify(true);
+
+        SalesHeader.CalcFields(Amount, "Amount Including VAT");
+    end;
+
+    local procedure VerifySalesInvoiceSourceCurrencyAmounts(DocumentNo: Code[20]; CurrencyCode: Code[10]; VATAmount: Decimal; VATPostingSetup: Record "VAT Posting Setup"; CustomerPostingGroup: Record "Customer Posting Group")
+    var
+        GLEntry: Record "G/L Entry";
+        SCYBalance: Decimal;
+    begin
+        GetGLEntries(GLEntry, DocumentNo, GLEntry."Document Type"::Invoice);
+
+        repeat
+            Assert.AreEqual(CurrencyCode, GLEntry."Source Currency Code", SourceCurrencyCodeErr);
+
+            case GLEntry."G/L Account No." of
+                VATPostingSetup."Sales VAT Account":
+                    begin
+                        Assert.AreNotEqual(0, GLEntry."Source Currency Amount", SourceCurrencyVATAmountNotZeroErr);
+                        Assert.AreEqual(-VATAmount, GLEntry."Source Currency Amount", StrSubstNo(VATAmountIncorrectErr, VATAmount, VATPostingSetup."VAT %"));
+                        if GLEntry."Gen. Posting Type" = GLEntry."Gen. Posting Type"::Sale then
+                            Assert.AreEqual(-VATAmount, GLEntry."Source Currency VAT Amount", StrSubstNo(VATAmountIncorrectErr, VATAmount, VATPostingSetup."VAT %"));
+                    end;
+                CustomerPostingGroup."Receivables Account":
+                    Assert.AreNotEqual(0, GLEntry."Source Currency Amount", SourceCurrencyReceivablesNotZeroErr);
+            end;
+            SCYBalance += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+
+        Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
+    end;
+
+    local procedure CreatePurchaseInvoiceWithRoundingDifference(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20])
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        PurchaseLine: Record "Purchase Line";
+        CurrencyCode: Code[10];
+    begin
+        CreatePurchaseHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        CurrencyCode := CreateCurrency();
+        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
+        CurrencyExchangeRate.FindLast();
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 0.81709);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 0.81709);
+        CurrencyExchangeRate.Modify(true);
+        PurchaseHeader.Validate("Currency Code", CurrencyCode);
+        PurchaseHeader.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+        PurchaseLine.Validate("Direct Unit Cost", 1788.27);
+        PurchaseLine.Modify(true);
+
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
+        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        PurchaseHeader.Modify();
+    end;
 }

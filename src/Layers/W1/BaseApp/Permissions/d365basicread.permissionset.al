@@ -193,7 +193,6 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Direct Trans. Line" = R,
                   tabledata Drive = R,
                   tabledata "Event Subscription" = R,
-                  tabledata "Extension Execution Info" = R,
                   tabledata "Feature Key" = R,
                   tabledata Field = R,
                   tabledata File = R,
@@ -459,9 +458,7 @@ permissionset 209 "D365 Basic - Read"
 #endif
                   tabledata "Exchange Object" = R,
                   tabledata "Exchange Service Setup" = R,
-#if not CLEAN28
                   tabledata "Exchange Sync" = R,
-#endif
                   tabledata "Experience Tier Buffer" = R,
                   tabledata "Experience Tier Setup" = R,
                   tabledata "Extended Text Header" = R,

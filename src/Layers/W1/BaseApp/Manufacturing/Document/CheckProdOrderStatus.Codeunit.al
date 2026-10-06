@@ -46,17 +46,14 @@ codeunit 99000777 "Check Prod. Order Status"
 
     procedure CheckReceiptOrderStatus(var SalesLine: Record "Sales Line")
     var
-#if not CLEAN27
-        AddonIntegrManagement: Codeunit Microsoft.Inventory.AddOnIntegrManagement;
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeCheckReceiptOrderStatus(SalesLine, IsHandled);
-#if not CLEAN27
-        AddonIntegrManagement.RunOnBeforeCheckReceiptOrderStatus(SalesLine, IsHandled);
-#endif
         if IsHandled then
+            exit;
+
+        if SalesLine.GetSuspendedStatusCheck() then
             exit;
 
         if SalesLine."Document Type" <> SalesLine."Document Type"::Order then
