@@ -232,17 +232,6 @@ report 1001 "Inventory Valuation"
                 AutoFormatType = 1;
             }
 
-            trigger OnPreDataItem()
-            begin
-                if StartDate > 00000101D then
-                    SetRange("Opening Bal. Date Filter", 0D, CalcDate('<-1D>', StartDate));
-                SetRange("Inv. Val. Period Date Filter", StartDate, EndDate);
-                SetRange("Closing Bal. Date Filter", 0D, EndDate);
-                SetAutoCalcFields("Assembly BOM", "Opening Bal. ILE Qty.", "Opening Bal. Inv. Qty.", "Opening Bal. Cost Amt. Act.", "Opening Bal. Cost Amt. Exp.", "Increases ILE Qty.",
-                    "Increases Inv. Qty.", "Increases Cost Amt. Act.", "Increases Cost Amt. Exp.", "Decreases ILE Qty.", "Decreases Inv. Qty.", "Decreases Cost Amt. Act.",
-                    "Decreases Cost Amt. Exp.", "Cost Posted To G/L", "Exp. Cost Posted To G/L");
-            end;
-
             trigger OnAfterGetRecord()
             var
                 SkipItem: Boolean;
@@ -500,12 +489,24 @@ report 1001 "Inventory Valuation"
 
     procedure CalculateItem(var Item: Record Item)
     var
+        ValueEntry2: Record "Value Entry";
         IsHandled: Boolean;
         HasEntriesWithinDateRange: Boolean;
         IsZeroLine: Boolean;
     begin
         if EndDate = 0D then
             EndDate := DMY2Date(31, 12, 9999);
+
+        if StartDate > 00000101D then
+            Item.SetRange("Opening Bal. Date Filter", 0D, CalcDate('<-1D>', StartDate))
+        else
+            Item.SetRange("Opening Bal. Date Filter");
+        Item.SetRange("Inv. Val. Period Date Filter", StartDate, EndDate);
+        Item.SetRange("Closing Bal. Date Filter", 0D, EndDate);
+        OnCalculateItemOnAfterSetFlowFilters(Item);
+        Item.SetAutoCalcFields("Assembly BOM", "Opening Bal. ILE Qty.", "Opening Bal. Inv. Qty.", "Opening Bal. Cost Amt. Act.", "Opening Bal. Cost Amt. Exp.", "Increases ILE Qty.",
+            "Increases Inv. Qty.", "Increases Cost Amt. Act.", "Increases Cost Amt. Exp.", "Decreases ILE Qty.", "Decreases Inv. Qty.", "Decreases Cost Amt. Act.",
+            "Decreases Cost Amt. Exp.", "Cost Posted To G/L", "Exp. Cost Posted To G/L");
 
         StartingInvoicedValue := 0;
         StartingExpectedValue := 0;
@@ -532,6 +533,8 @@ report 1001 "Inventory Valuation"
         ValueEntry.SetFilter("Global Dimension 1 Code", Item.GetFilter("Global Dimension 1 Filter"));
         ValueEntry.SetFilter("Global Dimension 2 Code", Item.GetFilter("Global Dimension 2 Filter"));
         OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(ValueEntry, Item);
+        OnCalculateItemOnAfterSetValueEntryFiltersV2(ValueEntry, Item);
+        ValueEntry2.Copy(ValueEntry);
 
         ValueEntry.SetRange("Posting Date", 0D, EndDate);
         IsEmptyLine := ValueEntry.IsEmpty();
@@ -542,8 +545,11 @@ report 1001 "Inventory Valuation"
         ValueEntry.SetRange("Posting Date");
 
         if not IsEmptyLine then begin
+            Item.CalcFields("Opening Bal. ILE Qty.", "Opening Bal. Inv. Qty.", "Opening Bal. Cost Amt. Act.", "Opening Bal. Cost Amt. Exp.");
+            Item.CalcFields("Increases ILE Qty.", "Increases Inv. Qty.", "Increases Cost Amt. Act.", "Increases Cost Amt. Exp.");
+            Item.CalcFields("Cost Posted To G/L", "Exp. Cost Posted To G/L");
             IsEmptyLine := true;
-            if StartDate > 0D then begin
+            if StartDate > 00000101D then begin
                 StartingInvoicedValue += Item."Opening Bal. Cost Amt. Act.";
                 StartingInvoicedQty += Item."Opening Bal. Inv. Qty.";
                 StartingExpectedValue += Item."Opening Bal. Cost Amt. Exp.";
@@ -561,6 +567,7 @@ report 1001 "Inventory Valuation"
                 IncreaseExpectedQty += Item."Increases ILE Qty.";
 
                 OnCalculateItemOnBeforeAssignDecreaseAmounts(ValueEntry, Item);
+                Item.CalcFields("Decreases ILE Qty.", "Decreases Inv. Qty.", "Decreases Cost Amt. Act.", "Decreases Cost Amt. Exp.");
                 DecreaseInvoicedValue += Item."Decreases Cost Amt. Act." * -1;
                 DecreaseInvoicedQty += Item."Decreases Inv. Qty." * -1;
                 DecreaseExpectedValue += Item."Decreases Cost Amt. Exp." * -1;
@@ -592,6 +599,8 @@ report 1001 "Inventory Valuation"
             IncreaseExpectedValue += IncreaseInvoicedValue;
             DecreaseExpectedValue += DecreaseInvoicedValue;
 
+            OnCalculateItemOnAfterCalculateAmountsV2(ValueEntry2, Item, HasEntriesWithinDateRange, IsEmptyLine, StartingInvoicedValue, StartingInvoicedQty, StartingExpectedValue, StartingExpectedQty, IncreaseInvoicedValue, IncreaseInvoicedQty, IncreaseExpectedValue, IncreaseExpectedQty, DecreaseInvoicedValue, DecreaseInvoicedQty, DecreaseExpectedValue, DecreaseExpectedQty, InvCostPostedToGL, ExpCostPostedToGL);
+
             EndingInvoicedQty := StartingInvoicedQty + IncreaseInvoicedQty - DecreaseInvoicedQty;
             EndingInvoicedValue := StartingInvoicedValue + IncreaseInvoicedValue - DecreaseInvoicedValue;
             EndingExpectedQty := StartingExpectedQty + IncreaseExpectedQty - DecreaseExpectedQty;
@@ -607,6 +616,15 @@ report 1001 "Inventory Valuation"
                 IncreaseExpectedNotInvoicedQty := IncreaseExpectedQty - IncreaseInvoicedQty;
                 DecreaseExpectedNotInvoicedQty := DecreaseExpectedQty - DecreaseInvoicedQty;
                 EndingExpectedNotInvoicedQty := EndingExpectedQty - EndingInvoicedQty;
+            end else begin
+                StartingExpectedNotInvoicedValue := 0;
+                IncreaseExpectedNotInvoicedValue := 0;
+                DecreaseExpectedNotInvoicedValue := 0;
+                EndingExpectedNotInvoicedValue := 0;
+                StartingExpectedNotInvoicedQty := 0;
+                IncreaseExpectedNotInvoicedQty := 0;
+                DecreaseExpectedNotInvoicedQty := 0;
+                EndingExpectedNotInvoicedQty := 0;
             end;
 
             CostPostedToGL := ExpCostPostedToGL + InvCostPostedToGL;
@@ -718,12 +736,29 @@ report 1001 "Inventory Valuation"
     end;
 
     [IntegrationEvent(true, false)]
+    [Obsolete('Use OnCalculateItemOnAfterSetValueEntryFiltersV2 to customize entry filters and OnCalculateItemOnAfterCalculateAmountsV2 to customize calculated totals and line state.', '29.0')]
     local procedure OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
     begin
     end;
 
     [IntegrationEvent(true, false)]
+    [Obsolete('Use OnCalculateItemOnAfterCalculateAmountsV2 to customize calculated totals.', '29.0')]
     local procedure OnCalculateItemOnBeforeAssignDecreaseAmounts(var ValueEntry: Record "Value Entry"; Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnCalculateItemOnAfterSetFlowFilters(var Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnCalculateItemOnAfterSetValueEntryFiltersV2(var ValueEntry: Record "Value Entry"; Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnCalculateItemOnAfterCalculateAmountsV2(var ValueEntry: Record "Value Entry"; Item: Record Item; var HasEntriesWithinDateRange: Boolean; var IsEmptyLine: Boolean; var StartingInvoicedValue: Decimal; var StartingInvoicedQty: Decimal; var StartingExpectedValue: Decimal; var StartingExpectedQty: Decimal; var IncreaseInvoicedValue: Decimal; var IncreaseInvoicedQty: Decimal; var IncreaseExpectedValue: Decimal; var IncreaseExpectedQty: Decimal; var DecreaseInvoicedValue: Decimal; var DecreaseInvoicedQty: Decimal; var DecreaseExpectedValue: Decimal; var DecreaseExpectedQty: Decimal; var InvCostPostedToGL: Decimal; var ExpCostPostedToGL: Decimal)
     begin
     end;
 
