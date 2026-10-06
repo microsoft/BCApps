@@ -525,7 +525,7 @@ table 6121 "E-Document"
         exit(EDocumentLog.FindLast());
     end;
 
-    internal procedure OpenEDocument(EDocumentRecordId: RecordId)
+    procedure OpenEDocument(EDocumentRecordId: RecordId)
     var
         EDocument: Record "E-Document";
         EDocumentPage: Page "E-Document";
