@@ -5,7 +5,6 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Setup;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Account;
 
@@ -78,7 +77,6 @@ codeunit 148354 EACorpCardSetupTests
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::EACorpCardSetupTests);
         CorpCardTestLib.InitializeCorpCardData();
-
         if IsInitialized then
             exit;
 
