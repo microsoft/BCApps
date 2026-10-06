@@ -261,6 +261,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
     var
         InterimApprover: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        AssignedInterimApproverNo: Code[20];
     begin
         ExpenseAgentSetup.GetRecordOnce();
         if not ExpenseAgentSetup."Enable Agent" then
@@ -272,15 +273,6 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if NewApproverExpenseUserNo = '' then
             Error(InterimApproverRequiredErr);
 
-        if NewApproverExpenseUserNo = ExpenseReportHeader."Expense User No." then
-            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Expense User No."), ExpenseReportHeader."Expense User No.");
-
-        if NewApproverExpenseUserNo = ExpenseReportHeader."Final Approver No." then
-            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Final Approver No."), ExpenseReportHeader."Final Approver No.");
-
-        if (ExpenseReportHeader."Alternate Approver No." <> '') and (NewApproverExpenseUserNo = ExpenseReportHeader."Alternate Approver No.") then
-            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Alternate Approver No."), ExpenseReportHeader."Alternate Approver No.");
-
         if (ActorExpenseUserNo <> '') and (ActorExpenseUserNo <> ExpenseReportHeader."Expense User No.") then
             Error(InterimApproverActorErr, ExpenseReportHeader."Expense User No.");
 
@@ -290,6 +282,21 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if not InterimApprover."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > InterimApprover."Approval Limit (LCY)") then
             Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", InterimApprover.FieldCaption("Approval Limit (LCY)"), InterimApprover."No.");
 
+        AssignedInterimApproverNo := GetActiveAlternateApproverNo(NewApproverExpenseUserNo, WorkDate());
+        if AssignedInterimApproverNo = '' then
+            AssignedInterimApproverNo := NewApproverExpenseUserNo;
+
+        if AssignedInterimApproverNo = ExpenseReportHeader."Expense User No." then
+            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Expense User No."), ExpenseReportHeader."Expense User No.");
+
+        if AssignedInterimApproverNo = ExpenseReportHeader."Final Approver No." then
+            Error(InterimApproverConflictErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader.FieldCaption("Final Approver No."), ExpenseReportHeader."Final Approver No.");
+
+        if AssignedInterimApproverNo <> NewApproverExpenseUserNo then begin
+            InterimApprover.Get(AssignedInterimApproverNo);
+            CheckApproverPermissions(InterimApprover);
+        end;
+
         SetInterimApproverInExpenseReport(ExpenseReportHeader, InterimApprover);
         LogInterimApproverAssigned(ExpenseReportHeader, InterimApprover, ActorExpenseUserNo);
     end;
@@ -297,6 +304,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
     procedure AssignAlternateApprover(var ExpenseReportHeader: Record "Expense Report Header"; NewApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
     var
         AlternateApprover: Record "Expense User";
+        ActorRole: Enum "Expense Activity Actor Role";
     begin
         if ExpenseReportHeader.Status <> ExpenseReportHeader.Status::"Pending Approval" then
             Error(AlternateApproverStatusErr, Format(ExpenseReportHeader.Status::"Pending Approval"));
@@ -320,7 +328,15 @@ codeunit 6901 "Expense Report Approval Mgmt"
         AlternateApprover.Get(NewApproverExpenseUserNo);
         ValidateAlternateApprover(ExpenseReportHeader, AlternateApprover);
         SetAlternateApproverInExpenseReport(ExpenseReportHeader, AlternateApprover);
-        LogAlternateApproverAssigned(ExpenseReportHeader, AlternateApprover, ActorExpenseUserNo);
+        if ActorExpenseUserNo <> '' then
+            ActorRole := Enum::"Expense Activity Actor Role"::Submitter
+        else
+            if ExpenseReportHeader."Expense User No." = GetExpenseUserNo() then
+                ActorRole := Enum::"Expense Activity Actor Role"::Submitter
+            else
+                ActorRole := Enum::"Expense Activity Actor Role"::Administrator;
+
+        LogAlternateApproverAssigned(ExpenseReportHeader, AlternateApprover, ActorExpenseUserNo, ActorRole);
     end;
 
     procedure AssignAlternateApprover(var ExpenseReportHeader: Record "Expense Report Header"; ActorExpenseUserNo: Code[20])
@@ -338,12 +354,11 @@ codeunit 6901 "Expense Report Approval Mgmt"
     var
         InterimApprover: Record "Expense User";
     begin
-        ExpenseReportHeader."Alternate Approver No." := AlternateApprover."No.";
-
         if TryGetEligibleInterimApprover(ExpenseReportHeader, InterimApprover) then begin
             ExpenseReportHeader."Approver Expense User No." := InterimApprover."No.";
             ExpenseReportHeader."Approver Expense User ID" := InterimApprover."User Id For Approvals";
         end else begin
+            ExpenseReportHeader."Final Approver No." := AlternateApprover."No.";
             ExpenseReportHeader."Approver Expense User No." := AlternateApprover."No.";
             ExpenseReportHeader."Approver Expense User ID" := AlternateApprover."User Id For Approvals";
         end;
@@ -351,7 +366,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseReportHeader.Modify(true);
     end;
 
-    local procedure LogAlternateApproverAssigned(ExpenseReportHeader: Record "Expense Report Header"; AlternateApprover: Record "Expense User"; ActorExpenseUserNo: Code[20])
+    local procedure LogAlternateApproverAssigned(ExpenseReportHeader: Record "Expense Report Header"; AlternateApprover: Record "Expense User"; ActorExpenseUserNo: Code[20]; ActorRole: Enum "Expense Activity Actor Role")
     var
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
         LogComment: Text;
@@ -361,14 +376,14 @@ codeunit 6901 "Expense Report Approval Mgmt"
             LogExpenseReportEvent(
                 ExpenseReportHeader,
                 Enum::"Expense Activity Event Type"::AlternateApproverAssigned,
-                Enum::"Expense Activity Actor Role"::Submitter,
+                ActorRole,
                 ActorExpenseUserNo,
                 LogComment)
         else
             ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
                 ExpenseReportHeader,
                 Enum::"Expense Activity Event Type"::AlternateApproverAssigned,
-                Enum::"Expense Activity Actor Role"::Submitter,
+                ActorRole,
                 LogComment);
     end;
 
@@ -467,8 +482,6 @@ codeunit 6901 "Expense Report Approval Mgmt"
         InterimApprover: Record "Expense User";
         AlternateApproverExpenseUserNo: Code[20];
     begin
-        ExpenseReportHeader."Alternate Approver No." := '';
-
         AlternateApproverExpenseUserNo := GetActiveAlternateApproverNo(ExpenseReportHeader."Final Approver No.", WorkDate());
         if AlternateApproverExpenseUserNo = '' then
             exit;
@@ -479,16 +492,16 @@ codeunit 6901 "Expense Report Approval Mgmt"
         AlternateApprover.Get(AlternateApproverExpenseUserNo);
         ValidateAlternateApprover(ExpenseReportHeader, AlternateApprover);
 
-        ExpenseReportHeader."Alternate Approver No." := AlternateApprover."No.";
         if TryGetEligibleInterimApprover(ExpenseReportHeader, InterimApprover) then begin
             ExpenseReportHeader."Approver Expense User No." := InterimApprover."No.";
             ExpenseReportHeader."Approver Expense User ID" := InterimApprover."User Id For Approvals";
         end else begin
+            ExpenseReportHeader."Final Approver No." := AlternateApprover."No.";
             ExpenseReportHeader."Approver Expense User No." := AlternateApprover."No.";
             ExpenseReportHeader."Approver Expense User ID" := AlternateApprover."User Id For Approvals";
         end;
 
-        LogAlternateApproverAssigned(ExpenseReportHeader, AlternateApprover, '');
+        LogAlternateApproverAssigned(ExpenseReportHeader, AlternateApprover, '', Enum::"Expense Activity Actor Role"::Administrator);
     end;
 
     local procedure GetActiveAlternateApproverNo(PrimaryApproverNo: Code[20]; ReferenceDate: Date): Code[20]
@@ -528,25 +541,14 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
     local procedure RouteToFinalApprover(var ExpenseReportHeader: Record "Expense Report Header"; InterimApproverExpenseUserNo: Code[20])
     var
-        AlternateApprover: Record "Expense User";
         FinalApprover: Record "Expense User";
     begin
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Interim Approved";
 
-        if (ExpenseReportHeader."Alternate Approver No." <> '') and
-           (not IsSameAsInterimApprover(ExpenseReportHeader, ExpenseReportHeader."Alternate Approver No.")) and
-           AlternateApprover.Get(ExpenseReportHeader."Alternate Approver No.")
-        then begin
-            ValidateAlternateApprover(ExpenseReportHeader, AlternateApprover);
-            ExpenseReportHeader."Approver Expense User No." := AlternateApprover."No.";
-            ExpenseReportHeader."Approver Expense User ID" := AlternateApprover."User Id For Approvals";
-        end else begin
-            FinalApprover.Get(ExpenseReportHeader."Final Approver No.");
-            CheckApproverPermissions(FinalApprover);
-            ExpenseReportHeader."Approver Expense User No." := FinalApprover."No.";
-            ExpenseReportHeader."Approver Expense User ID" := FinalApprover."User Id For Approvals";
-        end;
-
+        FinalApprover.Get(ExpenseReportHeader."Final Approver No.");
+        CheckApproverPermissions(FinalApprover);
+        ExpenseReportHeader."Approver Expense User No." := FinalApprover."No.";
+        ExpenseReportHeader."Approver Expense User ID" := FinalApprover."User Id For Approvals";
         ExpenseReportHeader.Modify(true);
         LogInterimApproved(ExpenseReportHeader, InterimApproverExpenseUserNo);
     end;
@@ -561,7 +563,6 @@ codeunit 6901 "Expense Report Approval Mgmt"
             Error(AlternateApproverInterimConflictErr);
 
         CheckApproverPermissions(AlternateApprover);
-        CheckApproverApprovalLimit(ExpenseReportHeader, AlternateApprover."No.");
     end;
 
     local procedure IsSameAsInterimApprover(ExpenseReportHeader: Record "Expense Report Header"; AlternateApproverNo: Code[20]): Boolean

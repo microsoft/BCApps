@@ -71,7 +71,6 @@ table 6906 "Expense Report Header"
                     Rec.Validate("Spend Request No.", '');
                     Rec."Final Approver No." := GetFinalApproverNo(Rec."Expense User No.");
                     Rec."Interim Approver No." := '';
-                    Rec."Alternate Approver No." := '';
                 end;
 
                 Rec.CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
@@ -544,22 +543,6 @@ table 6906 "Expense Report Header"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Expense User".Name where("No." = field("Interim Approver No.")));
-        }
-        field(72; "Alternate Approver No."; Code[20])
-        {
-            Caption = 'Alternate Approver No.';
-            ToolTip = 'Specifies the alternate approver currently assigned to this expense report.';
-            DataClassification = EndUserIdentifiableInformation;
-            Editable = false;
-            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
-        }
-        field(73; "Alternate Approver Name"; Text[100])
-        {
-            Caption = 'Alternate Approver Name';
-            ToolTip = 'Specifies the alternate approver currently assigned to this expense report.';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = lookup("Expense User".Name where("No." = field("Alternate Approver No.")));
         }
         field(100; "Spend Request No."; Code[20])
         {

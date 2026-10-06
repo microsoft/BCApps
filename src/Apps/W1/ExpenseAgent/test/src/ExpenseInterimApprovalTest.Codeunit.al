@@ -43,6 +43,8 @@ codeunit 148346 "Expense Interim Approval Test"
         NoActiveAlternateApproverForDateErr: Label 'No active alternate approver is configured for final approver %1 on %2.', Comment = '%1 = final approver no., %2 = reference date';
         ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
         ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
+        AlternateApproverDateRangeErr: Label '%1 cannot be after %2.', Comment = '%1 = Effective Start Date field caption, %2 = Effective End Date field caption';
+        AlternateApproverOverlappingCoverageErr: Label 'Overlapping alternate coverage exists for primary approver %1.', Comment = '%1 = Primary approver number';
         ApproverRequiredErr: Label 'Expense report %1 exceeds the %2 for approver %3. Configure the approver in Expense Approval Setup.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         ApproverApprovalLimitErr: Label 'Expense report %1 exceeds the %2 for approver %3.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
@@ -312,20 +314,22 @@ codeunit 148346 "Expense Interim Approval Test"
         CreateAlternateApproverCoverage(
             FinalApprover."No.",
             AlternateApprover."No.",
-            CalcDate('<-1D>', WorkDate()),
-            CalcDate('<+1D>', WorkDate()));
+            WorkDate(),
+            WorkDate());
         SetCurrentUser(Submitter);
         CreateAndReleaseExpenseReportWithAmount(Submitter, ExpenseReportHeader, 100);
 
         // [WHEN] The submitter submits the report for approval.
         ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Submitter."No.");
 
-        // [THEN] The report remains pending, final approver is preserved, and active approver is switched to the alternate.
-        VerifyApprovalRouting(ExpenseReportHeader, AlternateApprover, FinalApprover);
-        ExpenseReportHeader.TestField("Alternate Approver No.", AlternateApprover."No.");
+        // [THEN] The report remains pending and the alternate becomes the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, AlternateApprover, AlternateApprover);
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverAssigned);
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
+        ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Administrator);
+        ExpenseActivityLogEntry.TestField("Actor Table ID", Database::User);
         WorkDate(OriginalWorkDate);
     end;
 
@@ -361,9 +365,8 @@ codeunit 148346 "Expense Interim Approval Test"
         // [WHEN] The submitter submits the report for approval.
         ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Submitter."No.");
 
-        // [THEN] The report routes to the final approver and no alternate approver is stored.
+        // [THEN] The report routes to the final approver because alternate coverage is inactive.
         VerifyApprovalRouting(ExpenseReportHeader, FinalApprover, FinalApprover);
-        ExpenseReportHeader.TestField("Alternate Approver No.", '');
         WorkDate(OriginalWorkDate);
     end;
 
@@ -394,7 +397,6 @@ codeunit 148346 "Expense Interim Approval Test"
         // [THEN] The expected validation error is raised and routing remains unchanged.
         Assert.ExpectedError(StrSubstNo(NoActiveAlternateApproverForDateErr, FinalApprover."No.", WorkDate()));
         VerifyApprovalRouting(ExpenseReportHeader, FinalApprover, FinalApprover);
-        ExpenseReportHeader.TestField("Alternate Approver No.", '');
         WorkDate(OriginalWorkDate);
     end;
 
@@ -434,8 +436,53 @@ codeunit 148346 "Expense Interim Approval Test"
 
         // [THEN] The assignment is rejected and the current approver remains unchanged.
         Assert.ExpectedError(AlternateApproverActorErr);
-        VerifyApprovalRouting(ExpenseReportHeader, AlternateApprover, FinalApprover);
-        ExpenseReportHeader.TestField("Alternate Approver No.", AlternateApprover."No.");
+        VerifyApprovalRouting(ExpenseReportHeader, FinalApprover, FinalApprover);
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ApprovalAdministratorCanAssignAlternateApprover()
+    var
+        Submitter: Record "Expense User";
+        AlternateApprover: Record "Expense User";
+        Administrator: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        OriginalWorkDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626975] An approval administrator can assign alternate coverage for another submitter's report.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] A pending report with active alternate coverage and an unrelated unlimited approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateApproverExpenseUser(AlternateApprover);
+        CreateAlternateApproverCoverage(
+            FinalApprover."No.",
+            AlternateApprover."No.",
+            WorkDate(),
+            WorkDate());
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        CreateApproverExpenseUser(Administrator);
+        SetCurrentUser(Administrator);
+
+        // [WHEN] The approval administrator assigns the active alternate.
+        ExpenseReportHeader.AssignAlternateApprover('');
+
+        // [THEN] The alternate is active and the event identifies an administrator actor.
+        VerifyApprovalRouting(ExpenseReportHeader, AlternateApprover, AlternateApprover);
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverAssigned);
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
+        ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Administrator);
+        ExpenseActivityLogEntry.TestField("Actor Table ID", Database::User);
         WorkDate(OriginalWorkDate);
     end;
 
@@ -448,6 +495,7 @@ codeunit 148346 "Expense Interim Approval Test"
         FinalApprover: Record "Expense User";
         AlternateApprover: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         OriginalWorkDate: Date;
     begin
         // [FEATURE] [AI test 0.4]
@@ -472,10 +520,112 @@ codeunit 148346 "Expense Interim Approval Test"
         // [WHEN] Assign Alternate Approver is invoked.
         ExpenseReportHeader.AssignAlternateApprover('');
 
-        // [THEN] Alternate approver is stored, but routing remains with the interim approver.
+        // [THEN] Routing remains with the interim approver.
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
-        ExpenseReportHeader.TestField("Alternate Approver No.", AlternateApprover."No.");
         VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, FinalApprover);
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverAssigned);
+        ExpenseActivityLogEntry.FindFirst();
+        ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Submitter);
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    procedure InvalidAlternateCoverageEditsAreRejected()
+    var
+        PrimaryApprover: Record "Expense User";
+        FirstAlternateApprover: Record "Expense User";
+        SecondAlternateApprover: Record "Expense User";
+        FirstCoverage: Record "Expense Alternate Approver";
+        SecondCoverage: Record "Expense Alternate Approver";
+        OriginalWorkDate: Date;
+        FirstCoverageEndDate: Date;
+        SecondCoverageStartDate: Date;
+        SecondCoverageEndDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626975] Invalid date ranges and overlapping edits are rejected.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] One valid coverage range and a second non-overlapping range for the same primary approver.
+        CreateApproverExpenseUser(PrimaryApprover);
+        CreateApproverExpenseUser(FirstAlternateApprover);
+        CreateApproverExpenseUser(SecondAlternateApprover);
+        FirstCoverageEndDate := CalcDate('<+1D>', WorkDate());
+        SecondCoverageStartDate := CalcDate('<+2D>', WorkDate());
+        SecondCoverageEndDate := CalcDate('<+3D>', WorkDate());
+        CreateAlternateApproverCoverage(
+            PrimaryApprover."No.",
+            FirstAlternateApprover."No.",
+            WorkDate(),
+            FirstCoverageEndDate);
+        CreateAlternateApproverCoverage(
+            PrimaryApprover."No.",
+            SecondAlternateApprover."No.",
+            SecondCoverageStartDate,
+            SecondCoverageEndDate);
+
+        // [WHEN] The first coverage end is moved before its start.
+        FirstCoverage.Get(PrimaryApprover."No.", FirstAlternateApprover."No.", WorkDate());
+        asserterror FirstCoverage.Validate("Effective End Date", CalcDate('<-1D>', WorkDate()));
+
+        // [THEN] The inverted date range is rejected.
+        Assert.ExpectedError(StrSubstNo(AlternateApproverDateRangeErr, FirstCoverage.FieldCaption("Effective Start Date"), FirstCoverage.FieldCaption("Effective End Date")));
+
+        // [WHEN] The second coverage is edited to overlap the first.
+        SecondCoverage.Get(PrimaryApprover."No.", SecondAlternateApprover."No.", SecondCoverageStartDate);
+        SecondCoverage.Validate("Effective Start Date", FirstCoverageEndDate);
+        asserterror SecondCoverage.Modify(true);
+
+        // [THEN] The overlapping edit is rejected and the original date range remains unchanged.
+        Assert.ExpectedError(StrSubstNo(AlternateApproverOverlappingCoverageErr, PrimaryApprover."No."));
+        SecondCoverage.Get(PrimaryApprover."No.", SecondAlternateApprover."No.", SecondCoverageStartDate);
+        SecondCoverage.TestField("Effective Start Date", SecondCoverageStartDate);
+        SecondCoverage.TestField("Effective End Date", SecondCoverageEndDate);
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure InterimAlternateCanCompleteInterimStage()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        InterimAlternate: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalWorkDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626975] An active alternate assigned for the interim approver can complete the interim stage.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] A pending report with active alternate coverage for the selected interim approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateApproverExpenseUser(InterimAlternate);
+        CreateAlternateApproverCoverage(
+            InterimApprover."No.",
+            InterimAlternate."No.",
+            WorkDate(),
+            WorkDate());
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+
+        // [WHEN] The submitter assigns the interim approver and the interim alternate approves.
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        VerifyInterimApprover(ExpenseReportHeader, InterimAlternate."No.");
+        VerifyActiveApprover(ExpenseReportHeader, InterimAlternate);
+        ExpenseReportHeader.PerformManualApproved(InterimAlternate."No.", true);
+
+        // [THEN] The report advances to the final approver, who can complete approval.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+        VerifyActiveApprover(ExpenseReportHeader, FinalApprover);
+        ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
         WorkDate(OriginalWorkDate);
     end;
 
