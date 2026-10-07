@@ -5,10 +5,10 @@
 
 namespace Microsoft.DemoData.FixedAsset;
 
+#if not CLEAN30
 using Microsoft.DemoData.Finance;
 using Microsoft.FixedAssets.FixedAsset;
 
-#if not CLEAN30
 codeunit 13445 "Create FA Posting Grp. FI"
 {
     ObsoleteReason = 'Use the Depreciation Differences FI Demo Data app to generate depreciation difference setup data.';
