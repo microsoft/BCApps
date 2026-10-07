@@ -7,7 +7,7 @@
   "cacheImageName": "",
   "UsePsSession": true,
   "usePsSessionForBc28": true,
-  "gitHubRunner": "windows-latest",
+  "gitHubRunner": "ubuntu-latest",
   "githubRunnerShell": "pwsh",
   "artifact": "bcinsider/Sandbox/30.0.55808.0//latest",
   "country": "base",
