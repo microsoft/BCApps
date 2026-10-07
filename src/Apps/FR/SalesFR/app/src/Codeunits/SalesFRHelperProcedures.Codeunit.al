@@ -5,6 +5,7 @@
 namespace Microsoft.Sales.SalesFR;
 
 using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
 using Microsoft.Sales.Customer;
 
 codeunit 10807 "Sales FR Helper Procedures"
@@ -22,6 +23,12 @@ codeunit 10807 "Sales FR Helper Procedures"
         DataTransfer.AddFieldValue(SourceFieldNo, TargetFieldNo);
         DataTransfer.UpdateAuditFields := false;
         DataTransfer.CopyFields();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Contact, 'OnCreateCustomerFromTemplateOnBeforeCustomerInsert', '', false, false)]
+    local procedure InitializeCustomerSIRENNoFromContact(var Cust: Record Customer; CustomerTemplate: Code[20]; var Contact: Record Contact)
+    begin
+        Cust."SIREN No. FR" := Contact."SIREN No. FR";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustVendBank-Update", 'OnAfterUpdateCustomer', '', false, false)]
