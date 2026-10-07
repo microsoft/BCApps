@@ -23,9 +23,19 @@ if ($platformVersion) {
 }
 
 if ($env:BC_SQL_PILOT_ARM) {
-    & (Join-Path $PSScriptRoot 'SqlResetPilot\ContainerPreflight.ps1') -Parameters $parameters
+    $preflight = if ($env:BC_SQL_TENANT_COUNT) { 'TenantContainerPreflight.ps1' } else { 'ContainerPreflight.ps1' }
+    & (Join-Path $PSScriptRoot "SqlResetPilot\$preflight") -Parameters $parameters
 }
 New-BcContainer @parameters
+if ($env:BC_SQL_TENANT_COUNT) {
+    $limits = docker inspect $parameters.ContainerName --format '{{json .HostConfig}}' | ConvertFrom-Json
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot observe actual owned container resource limits.' }
+    @{ utc = [DateTime]::UtcNow.ToString('o'); memoryBytes = $limits.Memory
+        nanoCpus = $limits.NanoCpus; cpuCount = $limits.CpuCount; cpuPercent = $limits.CpuPercent
+        isolation = $limits.Isolation; requestedMemory = '16G' } |
+        ConvertTo-Json | Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT 'resource-limits.json')
+    if ($limits.Memory -ne 17179869184) { throw 'Actual container memory differs from the unchanged 16G limit.' }
+}
 if ($env:BC_SQL_PILOT_ARM) {
     $runtime = Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -scriptblock {
         $commands = @('Get-NAVTenant', 'Dismount-NAVTenant', 'Mount-NAVTenant', 'Test-NAVDatabase', 'Copy-NAVDatabase', 'Remove-NAVDatabase')

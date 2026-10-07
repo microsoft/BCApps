@@ -1,9 +1,30 @@
 Set-StrictMode -Version 2
+Import-Module (Join-Path $PSScriptRoot 'TenantCount.psm1')
 $script:pilot = $null
 
 function Initialize-SqlResetPilot {
-    param([string]$ContainerName, [array]$TenantInfo, [string]$Arm, [string]$RunId, [string]$OutputDirectory)
+    param([string]$ContainerName, [array]$TenantInfo, [string]$Arm, [string]$RunId, [string]$OutputDirectory,
+        [int]$TenantCount = 0)
     if ($Arm -notin @('control', 'fresh') -or $RunId -notmatch '^\d{1,20}$') { throw 'Invalid pilot identity.' }
+    if ($TenantCount) {
+        if (-not (Test-SqlTenantExperiment) -or $TenantCount -ne [int]$env:BC_SQL_TENANT_COUNT -or
+            $ContainerName -ne (Get-SqlTenantContainerName) -or $Arm -ne 'control' -or
+            $RunId -ne $env:GITHUB_RUN_ID) { throw 'Default-worker reset requires the exact diagnostic identity.' }
+        $expected = if ($TenantCount -eq 1) { @('default') } else { @('default', 'tenant2') }
+        if ($TenantInfo.Count -ne $TenantCount -or @($TenantInfo.Id | Sort-Object -Unique).Count -ne $TenantCount -or
+            @($TenantInfo | Where-Object { $_.Id -notin $expected -or $_.DatabaseName -ne $_.Id }).Count -gt 0) {
+            throw 'Unexpected diagnostic worker mapping.'
+        }
+        $workers = @{}
+        foreach ($info in $TenantInfo) {
+            $workers[$info.Id] = @{ Info = $info; Generation = 0; Owned = @($info.Id); Used = @($info.Id) }
+        }
+        $script:pilot = @{
+            Container = $ContainerName; Arm = $Arm; RunId = $RunId; Workers = $workers
+            OutputDirectory = $OutputDirectory; TenantCount = $TenantCount; TemplateIdentity = $null
+        }
+        return
+    }
     if ($TenantInfo.Count -ne 4 -or @($TenantInfo.Id | Sort-Object -Unique).Count -ne 4) {
         throw 'Pilot requires exactly default and three distinct workers.'
     }
@@ -17,7 +38,7 @@ function Initialize-SqlResetPilot {
     if ($source.Count -ne 1 -or $source[0].DatabaseName -ne 'default') { throw 'Unexpected protected source mapping.' }
     $script:pilot = @{
         Container = $ContainerName; Arm = $Arm; RunId = $RunId; Workers = $workers
-        OutputDirectory = $OutputDirectory
+        OutputDirectory = $OutputDirectory; TenantCount = 0; TemplateIdentity = $null
     }
 }
 
@@ -26,6 +47,17 @@ function Get-SqlResetPlan {
     if (-not $script:pilot -or $ContainerName -ne $script:pilot.Container -or
         -not $script:pilot.Workers.ContainsKey($Tenant)) { throw 'Unowned container or tenant.' }
     $worker = $script:pilot.Workers[$Tenant]
+    if ($script:pilot.TenantCount) {
+        if (-not (Test-SqlTenantExperiment) -or $DatabaseName -ne $Tenant -or
+            $TemplateDatabaseName -ne 'default-test-template' -or -not $script:pilot.TemplateIdentity) {
+            throw 'Detached read-only template required before any diagnostic worker reset.'
+        }
+        return [PSCustomObject]@{
+            Tenant = $Tenant; Previous = $DatabaseName; Destination = $DatabaseName
+            Template = $TemplateDatabaseName; Generation = $worker.Generation + 1
+            TemplateIdentity = $script:pilot.TemplateIdentity; TenantCount = $script:pilot.TenantCount
+        }
+    }
     if ($DatabaseName -ne $worker.Info.DatabaseName -or $DatabaseName -notin $worker.Owned -or
         $TemplateDatabaseName -notin @('default', 'default-test-template') -or
         $DatabaseName -in @('default', 'default-test-template', 'app') -or
@@ -47,6 +79,33 @@ function Complete-SqlResetPlan {
     $worker.Generation = $Plan.Generation
     $worker.Owned = @($worker.Owned | Where-Object { $_ -ne $Plan.Previous }) + @($Plan.Destination)
     $worker.Used += $Plan.Destination
+}
+
+function Protect-SqlPilotTemplate {
+    param([string]$ContainerName, [string]$TemplateDatabaseName)
+    if (-not $script:pilot -or -not $script:pilot.TenantCount -or
+        $ContainerName -ne $script:pilot.Container -or $TemplateDatabaseName -ne 'default-test-template' -or
+        $script:pilot.TemplateIdentity -or -not (Test-SqlTenantExperiment)) { throw 'Unsafe template protection request.' }
+    $identity = Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock {
+        if (@(Get-NAVTenant -ServerInstance $ServerInstance | Where-Object DatabaseName -eq 'default-test-template').Count) {
+            throw 'Template must remain detached.'
+        }
+        $connection = New-Object System.Data.SqlClient.SqlConnection 'Server=.\SQLEXPRESS;Database=master;Integrated Security=True;TrustServerCertificate=True'
+        try {
+            $connection.Open()
+            $command = $connection.CreateCommand()
+            $command.CommandTimeout = 60
+            $command.CommandText = 'ALTER DATABASE [default-test-template] SET READ_ONLY WITH NO_WAIT; SELECT CONVERT(nvarchar(36),service_broker_guid) FROM sys.databases WHERE name = ''default-test-template'' AND is_read_only = 1'
+            $identity = [string]$command.ExecuteScalar()
+            if (-not $identity) { throw 'Read-only detached template identity missing.' }
+            $identity
+        } finally { $connection.Dispose() }
+    }
+    if ([string]$identity -notmatch '^[0-9a-fA-F-]{36}$') { throw 'Invalid frozen template identity.' }
+    $script:pilot.TemplateIdentity = [string]$identity
+    @{ utc = [DateTime]::UtcNow.ToString('o'); database = $TemplateDatabaseName; detached = $true
+        readOnly = $true; serviceBrokerGuid = $identity; frozenBeforeDiscovery = $true } |
+        ConvertTo-Json | Set-Content (Join-Path $script:pilot.OutputDirectory 'template.json')
 }
 
 function Invoke-SqlPilotReset {
@@ -80,6 +139,25 @@ function Invoke-SqlPilotReset {
                     @{ name = [string]$reader[0]; databaseId = [int]$reader[1]; created = [string]$reader[2]; serviceBrokerGuid = [string]$reader[3] }
                 } finally { $connection.Dispose() }
             }
+            $detached = $plan.PSObject.Properties['TenantCount'] -and $plan.TenantCount -gt 0
+            function Assert-DetachedTemplate {
+                if ($plan.Template -ne 'default-test-template' -or $plan.Destination -notin @('default', 'tenant2') -or
+                    $plan.Destination -eq $plan.Template -or
+                    @(Get-NAVTenant -ServerInstance $ServerInstance | Where-Object DatabaseName -eq $plan.Template).Count) {
+                    throw 'Unsafe detached-template reset.'
+                }
+                $connection = New-Object System.Data.SqlClient.SqlConnection 'Server=.\SQLEXPRESS;Database=master;Integrated Security=True;TrustServerCertificate=True'
+                try {
+                    $connection.Open()
+                    $command = $connection.CreateCommand()
+                    $command.CommandText = 'SELECT CONVERT(nvarchar(36),service_broker_guid) FROM sys.databases WHERE name = ''default-test-template'' AND is_read_only = 1'
+                    if ([string]$command.ExecuteScalar() -ne $plan.TemplateIdentity) { throw 'Frozen template identity/read-only state changed.' }
+                } finally { $connection.Dispose() }
+            }
+            if ($detached) {
+                if (@(Get-NAVTenant -ServerInstance $ServerInstance).Count -ne $plan.TenantCount) { throw 'Mounted tenant count changed.' }
+                Assert-DetachedTemplate
+            }
             $before = Read-PilotIdentity $plan.Previous
             $started = [DateTime]::UtcNow.ToString('o')
             Dismount-NAVTenant -ServerInstance $ServerInstance -Tenant $plan.Tenant -Force | Out-Null
@@ -87,6 +165,17 @@ function Invoke-SqlPilotReset {
                 Remove-NAVDatabase -DatabaseName $plan.Previous | Out-Null
             }
             Copy-NAVDatabase -SourceDatabaseName $plan.Template -DestinationDatabaseName $plan.Destination -DatabaseServer '.' | Out-Null
+            if ($detached) {
+                Assert-DetachedTemplate
+                # RESTORE inherits READ_ONLY from the immutable source; only the owned worker becomes writable.
+                $connection = New-Object System.Data.SqlClient.SqlConnection 'Server=.\SQLEXPRESS;Database=master;Integrated Security=True;TrustServerCertificate=True'
+                try {
+                    $connection.Open()
+                    $command = $connection.CreateCommand()
+                    $command.CommandText = "ALTER DATABASE [$($plan.Destination)] SET READ_WRITE WITH NO_WAIT"
+                    $null = $command.ExecuteNonQuery()
+                } finally { $connection.Dispose() }
+            }
             Mount-NAVTenant -ServerInstance $ServerInstance -Id $plan.Tenant -DatabaseServer '.' `
                 -DatabaseName $plan.Destination -OverwriteTenantIdInDatabase -Force | Out-Null
             while ((Get-NAVTenant -ServerInstance $ServerInstance -Tenant $plan.Tenant).State -eq 'Mounting') {
@@ -99,6 +188,7 @@ function Invoke-SqlPilotReset {
             }
             @{
                 startedUtc = $started; completedUtc = [DateTime]::UtcNow.ToString('o')
+                elapsedMilliseconds = $stopwatch.ElapsedMilliseconds
                 before = $before; after = (Read-PilotIdentity $plan.Destination)
                 databaseServer = [string]$mounted.DatabaseServer; state = [string]$mounted.State
                 detailedState = [string]$mounted.DetailedState; forceRefresh = $false
@@ -198,4 +288,4 @@ function Invoke-SqlPilotCompaniesProbe {
     }
 }
 
-Export-ModuleMember -Function Initialize-SqlResetPilot, Get-SqlResetPlan, Complete-SqlResetPlan, Invoke-SqlPilotReset, Select-SqlPilotPrefix, Invoke-SqlPilotCompaniesProbe
+Export-ModuleMember -Function Initialize-SqlResetPilot, Get-SqlResetPlan, Complete-SqlResetPlan, Invoke-SqlPilotReset, Select-SqlPilotPrefix, Invoke-SqlPilotCompaniesProbe, Protect-SqlPilotTemplate

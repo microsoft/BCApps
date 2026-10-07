@@ -1,3 +1,85 @@
+# SQL API tenant-count exploratory diagnostic — AB#646383 — DO NOT MERGE
+
+## Current branch: 20 additional originals, not part of the 300
+
+Explicit authorization: 2026-10-07T21:53:58Z. Dispatch `CICD.yaml` with no inputs on
+`features/646383-sql-api-tenant-count-comparison`: **2 mounted-tenant counts ×
+W1/DE × 5 indices = 20** additional original trials. Canonical identities are
+`t1/W1/1` through `t2/DE/5`. This exploratory sample is not reliability proof.
+No additional four-tenant arm, warmup, companies probe, SQL retry, AL/auth edits,
+or new disabled tests. Complete successful coverage remains **253 cases, 19
+existing skips, 21 codeunits**, including `CapabilitiesProjectsEnabledViaAPI`.
+Failures stop later codeunit batches exactly as before; incomplete trials cannot pass.
+
+Both counts use **all mounted tenants as workers**: one/default, or two/default
+and tenant2. The NST remains multitenant even with one mounted tenant, with its
+separate application database. A detached `default-test-template` is copied and
+made SQL READ_ONLY **before discovery executes any OnRun triggers on default**.
+Discovery always restores default in `finally`. Each codeunit receives a fresh
+worker database restored from that same template, including default. No database
+is copied onto itself. The template is never mounted, overwritten or removed;
+only deletion of the entire owned disposable container removes it.
+Every reset checks local mounted mapping, exact tenant count, template GUID and
+READ_ONLY state. Restore inherits READ_ONLY, so only the whitelisted worker
+destination is made READ_WRITE before Mount-NAVTenant. There is no retry/fallback.
+The existing command sequence and runtime command-capability proof are retained;
+one-tenant/default restore additionally requires the exact diagnostic gate.
+
+Reference control: run **37634358042**, SHA
+`0227094059f2f26f3fcb1b7f85a3285c17e78b8e`, control arm only. That branch/run is
+untouched. It has four mounts but **three workers**, reserves default, and
+discovers on a secondary before freezing the template. Differences in template
+preparation, resource instrumentation, worker layout and **later execution
+temporal bias** mean this is not a perfectly controlled 1/2/4-worker comparison.
+
+### Serialization and package provenance
+
+One workflow, one 20-cell matrix, fail-fast false, max-parallel six. Literal
+repository-wide workflow concurrency group `sql-api-646383-300-trial-comparison`
+is shared with the original 300 and its replacements; cancel-in-progress false.
+The entire new run waits until that group is released, never adding containers
+while the original uses six. **Only one pending run is supported by the existing
+group policy: do not submit another comparison/replacement while this run is
+pending, because GitHub can replace the pending run.** Runner-loss orphans still
+require ownership-aware audit; scheduler limits alone cannot prove their removal.
+The historical DE replay 37630750803 completed successfully and is separate.
+
+Unchanged pins below apply. Package bytes come from the original 300's preserved
+14-day W1 snapshot **11487493885** and DE snapshot **11486874993**, not rebuilt
+artifacts. Planning verifies exact IDs/names/run/SHA/digests/expiry; each trial
+verifies transport hash, inner ZIP hashes and original source metadata. Expiry
+fails closed. Per-trial settings change only the requested tenant count; memory
+remains **16G**, and actual Docker limits plus mounted worker counts are recorded.
+
+### Stability and performance accounting
+
+Keep raw first-attempt failure evidence, worker logs, event logs, nested results,
+`final-counts.json` and `final-junit.xml`. No failure is tolerated or retried.
+Report test failures, setup/reset failures, confirmed communication-invalid runs,
+cancellations and incomplete coverage separately. No replacements are dispatched
+by this workflow.
+
+`performance.json` separates setup, execution including discovery/template/reset,
+summed completed reset durations, per-case XML durations and monotonic cell total.
+The cell total starts before checkout and ends after cleanup, excludes queue and
+artifact-upload time; use GitHub job timestamps for complete job duration.
+Codeunit elapsed time includes worker startup and result collection. The API
+target's XML time measures the AL test case, **not isolated HTTP latency**.
+
+The same read-only sampler in both arms records host CPU/free RAM/virtual memory/
+paging, NST and SQL process cumulative CPU/working sets, and local SQL wait/I/O
+counters about every 30 seconds during execution. No shared server modifications
+or counter resets. Use deltas, account for recreated database IDs/counter resets,
+and do not attribute all host activity to this container. Unsupported/failed
+measurements are explicit in `resource-status.json` and `performance.json`;
+measurement failure never becomes a success-shaped zero. Sampler cleanup runs
+in finally and artifact/owned-container cleanup steps use always().
+
+## Historical parent protocol (applies to the original branch only)
+
+The sections below describe the untouched 300-trial parent, its pins and retry
+classifier. Its dispatch commands **do not apply to this tenant-count branch**.
+
 # SQL API 300-trial diagnostic — AB#646383 — DO NOT MERGE
 
 Explicit user authorization: 2026-10-07. One manual `CICD.yaml` dispatch on

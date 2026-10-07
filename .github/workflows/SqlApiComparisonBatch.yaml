@@ -1,4 +1,4 @@
-name: 'SQL API comparison batch - DO NOT MERGE'
+name: 'SQL API tenant-count trials - DO NOT MERGE'
 
 on:
   workflow_call:
@@ -27,8 +27,8 @@ permissions:
 
 jobs:
   Pilot:
-    name: Trial ${{ matrix.experiment }}/${{ matrix.country }}/${{ matrix.trial }}
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-300-trial-comparison' && github.run_attempt == 1
+    name: Trial t${{ matrix.tenantCount }}/${{ matrix.country }}/${{ matrix.trial }}
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-tenant-count-comparison' && github.run_attempt == 1
     strategy:
       fail-fast: false
       max-parallel: 6
@@ -42,7 +42,8 @@ jobs:
       ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
       ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
       BC_SQL_PILOT_ARM: control
-      BC_SQL_API_EXPERIMENT: ${{ matrix.experiment }}
+      BC_SQL_API_EXPERIMENT: control
+      BC_SQL_TENANT_COUNT: ${{ matrix.tenantCount }}
       BC_SQL_PILOT_COUNTRY: ${{ matrix.country }}
       BC_SQL_PILOT_TRIAL: ${{ matrix.trial }}
       BC_SQL_COMPARISON_REPLACEMENT: ${{ inputs.replacement }}
@@ -50,6 +51,10 @@ jobs:
       BC_SQL_COMPARISON_PACKAGE_RUN: ${{ inputs.packageRun }}
       BuildMode: IntegrationTests
     steps:
+      - name: Start monotonic cell clock before checkout
+        run: |
+          "BC_SQL_CELL_STARTED_UTC=$([DateTime]::UtcNow.ToString('o'))" | Add-Content $env:GITHUB_ENV
+          "BC_SQL_CELL_STARTED_TICKS=$([Diagnostics.Stopwatch]::GetTimestamp())" | Add-Content $env:GITHUB_ENV
       - name: Checkout experiment
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -69,19 +74,20 @@ jobs:
             executable = (Get-Process -Id $PID).Path
             utc = [DateTime]::UtcNow.ToString('o')
           } | ConvertTo-Json | Tee-Object -FilePath (Join-Path $output 'shell-preflight.json')
+          & .\build\scripts\SqlResetPilot\TenantMeasurements.ps1 -Phase Start
 
       - name: Validate provenance and download exact compiled PR2 packages
         id: packages
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          & .\build\scripts\SqlResetPilot\Prepare.ps1
+          & .\build\scripts\SqlResetPilot\TenantPrepare.ps1
 
       - name: Read pinned country Integration settings
         uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
           shell: pwsh
-          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}
+          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}
           buildMode: IntegrationTests
 
       - name: Read normal disposable CI license and package secrets
@@ -98,7 +104,7 @@ jobs:
           Secrets: '${{ steps.secrets.outputs.Secrets }}'
         with:
           shell: pwsh
-          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}
+          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}
           buildMode: IntegrationTests
           artifact: ${{ steps.packages.outputs.artifact }}
           installAppsJson: ${{ steps.packages.outputs.apps }}
@@ -107,22 +113,27 @@ jobs:
       - name: Export diagnostics and tear down only owned disposable container
         if: always()
         run: |
-          & .\build\scripts\SqlResetPilot\Finalize.ps1
+          & .\build\scripts\SqlResetPilot\TenantFinalize.ps1
+
+      - name: Record setup execution reset API-case and total performance
+        if: always()
+        run: |
+          & .\build\scripts\SqlResetPilot\TenantMeasurements.ps1 -Phase Finish
 
       - name: Preserve raw outcomes (including failures)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: sql-api-comparison-${{ matrix.experiment }}-${{ matrix.country }}-${{ matrix.trial }}-${{ github.run_id }}
+          name: sql-api-tenant-t${{ matrix.tenantCount }}-${{ matrix.country }}-${{ matrix.trial }}-${{ github.run_id }}
           retention-days: 14
           include-hidden-files: true
           if-no-files-found: error
           path: |
             sql-reset-pilot-output/**
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/TestResults*.xml
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/ContainerEventLog.evtx
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/BuildOutput.txt
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.xml
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.log
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.evtx
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/BuildOutput.txt
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}/TestResults*.xml
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}/ContainerEventLog.evtx
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}/BuildOutput.txt
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}/.buildartifacts/**/*.xml
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}/.buildartifacts/**/*.log
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}/.buildartifacts/**/*.evtx
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}t${{ matrix.tenantCount }}/.buildartifacts/**/BuildOutput.txt

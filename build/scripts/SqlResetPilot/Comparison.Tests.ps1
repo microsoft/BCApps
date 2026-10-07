@@ -50,10 +50,18 @@ Describe 'Exact balanced 300-cell comparison manifest' {
     It 'preserves original probe implementation and compiled source byte-for-byte' {
         $root = Resolve-Path (Join-Path $PSScriptRoot '..\..\..')
         $diff = git -C $root diff fcc1776c6b165199dd66e4227675b1cc31da7a8f -- `
-            build/scripts/SqlResetPilot/Lifecycle.psm1 build/scripts/SqlResetPilot/CompaniesProbe.Tests.ps1 `
+            build/scripts/SqlResetPilot/CompaniesProbe.Tests.ps1 `
             build/scripts/RunTestsInBcContainer.ps1 .github/AL-Go-Settings.json build/projects src
         $LASTEXITCODE | Should -Be 0
         $diff | Should -BeNullOrEmpty
+        $original = (git -C $root show fcc1776c6b165199dd66e4227675b1cc31da7a8f:build/scripts/SqlResetPilot/Lifecycle.psm1) -join "`n"
+        $current = Get-Content (Join-Path $PSScriptRoot 'Lifecycle.psm1') -Raw
+        $tokens = $null; $errors = $null
+        $oldAst = [System.Management.Automation.Language.Parser]::ParseInput($original, [ref]$tokens, [ref]$errors)
+        $newAst = [System.Management.Automation.Language.Parser]::ParseInput($current, [ref]$tokens, [ref]$errors)
+        $findProbe = { param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Invoke-SqlPilotCompaniesProbe' }
+        $newAst.Find($findProbe, $true).Extent.Text.Replace("`r`n","`n") |
+            Should -BeExactly $oldAst.Find($findProbe, $true).Extent.Text.Replace("`r`n","`n")
     }
     It 'keeps exact immutable artifact pairs consistent with runtime preparation' {
         $prepare = Get-Content (Join-Path $PSScriptRoot 'Prepare.ps1') -Raw

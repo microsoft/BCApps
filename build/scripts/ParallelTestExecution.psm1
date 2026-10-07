@@ -14,6 +14,8 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 Import-Module (Join-Path $PSScriptRoot 'SqlApiTestRetry.psm1' -Resolve)
+Import-Module (Join-Path $PSScriptRoot 'SqlResetPilot\TenantCount.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SqlResetPilot\TenantResources.psm1')
 if ($env:BC_SQL_PILOT_ARM) {
     Import-Module (Join-Path $PSScriptRoot 'SqlResetPilot\Lifecycle.psm1')
 }
@@ -52,6 +54,7 @@ function Get-DisabledTestsForApp {
 }
 
 function Test-SqlApiExperiment {
+    if (Test-SqlTenantExperiment) { return $true }
     return ($env:GITHUB_REPOSITORY -eq 'microsoft/BCApps' -and
         $env:GITHUB_REF -eq 'refs/heads/features/646383-sql-api-300-trial-comparison' -and
         $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch' -and $env:GITHUB_RUN_ATTEMPT -eq '1' -and
@@ -222,7 +225,7 @@ function Get-CachedTestRunResult {
         [string]$ContainerName
     )
 
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+    $tempDir = if (Test-SqlTenantExperiment) { $env:BC_SQL_PILOT_OUTPUT } elseif ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
     $stateFile = Join-Path $tempDir "parallelTests_$ContainerName.json"
     if (-not (Test-Path $stateFile)) { return $null }
 
@@ -409,6 +412,7 @@ function New-BcTestTenantTemplate {
         for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             try {
                 if (Test-NAVDatabase -DatabaseName $templateDatabaseName) {
+                    if ($sqlPilot) { throw 'Pilot template must never be overwritten.' }
                     Remove-NAVDatabase -DatabaseName $templateDatabaseName | Out-Null
                 }
 
@@ -683,6 +687,11 @@ function Receive-TestJobResult {
 
     if ($Entry.PSObject.Properties['SqlRetryContext'] -and $Entry.SqlRetryContext) {
         $context = $Entry.SqlRetryContext
+        if ((Test-SqlTenantExperiment) -and $context.PSObject.Properties['StartedTicks']) {
+            Write-SqlTenantTiming -Phase "codeunit-$($context.CodeunitId)-$($context.Tenant)" `
+                -StartedTicks $context.StartedTicks -StartedUtc $context.StartedUtc.ToString('o') `
+                -Completed ($outcome -eq 'Passed')
+        }
         if (-not (Test-SqlApiExperimentSelection -Context $context -Experiment $env:BC_SQL_API_EXPERIMENT)) {
             $outcome = 'Failed'
             $sqlRetryEvidence = $null
@@ -846,6 +855,7 @@ function Start-RequiredDisabledDispatch {
             ContainerName = $Parameters.containerName; Tenant = $TenantInfo.Id
             CodeunitId = $WorkItem.CodeunitId; TestCount = $WorkItem.TestCount
             StartedUtc = [datetime]::UtcNow; ResultFiles = $files; FinalResultFiles = $finalFiles
+            StartedTicks = [Diagnostics.Stopwatch]::GetTimestamp()
             Attempt = $attempt; OutputDirectory = $env:BC_SQL_PILOT_OUTPUT
         }
     }
@@ -1475,6 +1485,35 @@ function Remove-RerunResultFile {
 #>
 function Invoke-ParallelTestExecution {
     param(
+        [Parameter(Mandatory=$true)][Hashtable]$parameters,
+        [Parameter(Mandatory=$true)][string]$scriptPath,
+        [Parameter(Mandatory=$true)][string]$testType,
+        [Parameter(Mandatory=$true)][string[]]$appNamesToTest
+    )
+    if ($env:BC_SQL_TENANT_COUNT -and -not (Test-SqlTenantExperiment)) {
+        throw 'Tenant-count diagnostic cannot run outside its exact manual gate.'
+    }
+    if (-not (Test-SqlTenantExperiment)) { return Invoke-ParallelTestExecutionCore @PSBoundParameters }
+    $cached = Get-CachedTestRunResult -ContainerName $parameters.containerName
+    if ($null -ne $cached) { return $cached }
+    $clock = [Diagnostics.Stopwatch]::GetTimestamp()
+    $utc = [DateTime]::UtcNow.ToString('o')
+    $sampler = $null
+    $completed = $false
+    try {
+        Assert-SqlTenantContainer -ContainerName $parameters.containerName
+        $sampler = Start-SqlTenantSampler -ContainerName $parameters.containerName -Directory $env:BC_SQL_PILOT_OUTPUT
+        $passed = Invoke-ParallelTestExecutionCore @PSBoundParameters
+        $completed = $true
+        return $passed
+    } finally {
+        Write-SqlTenantTiming -Phase 'execution-including-discovery-template-resets' -StartedTicks $clock -StartedUtc $utc -Completed $completed
+        Stop-SqlTenantSampler -Job $sampler -ContainerName $parameters.containerName -Directory $env:BC_SQL_PILOT_OUTPUT
+    }
+}
+
+function Invoke-ParallelTestExecutionCore {
+    param(
         [Parameter(Mandatory=$true)]
         [Hashtable]$parameters,
         [Parameter(Mandatory=$true)]
@@ -1485,10 +1524,17 @@ function Invoke-ParallelTestExecution {
         [string[]]$appNamesToTest
     )
 
+    if (Test-SqlTenantExperiment) {
+        if ($parameters.tenant -ne 'default' -or $testType -ne 'IntegrationTest' -or
+            (Get-ALGoSetting -Key 'enableCleanTestCodeunitExecution') -ne $true) {
+            throw 'Tenant-count execution requires the clean IntegrationTest lane and default discovery source.'
+        }
+    }
+
     # GitHub Actions provides a per-job temp directory ($RUNNER_TEMP) that is cleaned up between
     # jobs, so a stale state file from a previous run cannot corrupt the current run. Fall back
     # to the local temp directory outside of CI.
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+    $tempDir = if (Test-SqlTenantExperiment) { $env:BC_SQL_PILOT_OUTPUT } elseif ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
     $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
 
     # Short-circuit ONLY when a previous call ran to completion (wait+merge done). The
@@ -1508,7 +1554,8 @@ function Invoke-ParallelTestExecution {
     $tenantInfo = @(Get-AvailableBcTenantInfo -containerName $parameters.containerName)
     if ($env:BC_SQL_PILOT_ARM) {
         Initialize-SqlResetPilot -ContainerName $parameters.containerName -TenantInfo $tenantInfo `
-            -Arm $env:BC_SQL_PILOT_ARM -RunId $env:GITHUB_RUN_ID -OutputDirectory $env:BC_SQL_PILOT_OUTPUT
+            -Arm $env:BC_SQL_PILOT_ARM -RunId $env:GITHUB_RUN_ID -OutputDirectory $env:BC_SQL_PILOT_OUTPUT `
+            -TenantCount $(if (Test-SqlTenantExperiment) { [int]$env:BC_SQL_TENANT_COUNT } else { 0 })
     }
     $tenants = @($tenantInfo | ForEach-Object { $_.Id })
     Write-Host "Available tenants: $($tenants -join ', ')"
@@ -1526,6 +1573,13 @@ function Invoke-ParallelTestExecution {
         $tenantInfo |
             Where-Object { $_.Id -ne $parameters.tenant }
     )
+    $templateDatabaseName = ''
+    if (Test-SqlTenantExperiment) {
+        if ($parameters.tenant -ne 'default') { throw 'Tenant-count discovery source must be default.' }
+        $cleanTenantInfo = @($tenantInfo | Sort-Object Id)
+        $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceDatabaseName 'default'
+        Protect-SqlPilotTemplate -ContainerName $parameters.containerName -TemplateDatabaseName $templateDatabaseName
+    }
     # Enable only with the AL authentication uptake; infrastructure alone must not add test lanes.
     $cleanCodeunitExecution = (Get-ALGoSetting -Key 'enableCleanTestCodeunitExecution') -eq $true
     $cleanTenantAppNames = @()
@@ -1533,7 +1587,7 @@ function Invoke-ParallelTestExecution {
     if ($cleanCodeunitExecution) {
         $cleanTenantAppNames = $appNamesToTest
     }
-    if ($cleanCodeunitExecution -and $testType -ne 'Legacy' -and $tenantInfo.Count -gt 1) {
+    if ($cleanCodeunitExecution -and $testType -ne 'Legacy' -and ($tenantInfo.Count -gt 1 -or (Test-SqlTenantExperiment))) {
         $sourceTenantInfo = @($tenantInfo | Where-Object { $_.Id -eq $parameters.tenant })
         if ($sourceTenantInfo.Count -ne 1 -or [string]::IsNullOrWhiteSpace($sourceTenantInfo[0].DatabaseName)) {
             throw "Could not determine the database name for source tenant '$($parameters.tenant)'."
@@ -1546,8 +1600,8 @@ function Invoke-ParallelTestExecution {
             throw "Discovery requires non-empty, unique tenant IDs and database names."
         }
 
-        # Discovery executes OnRun triggers. Keep the primary fixture untouched and restore
-        # the discovery worker before any template copy or test dispatch can observe its writes.
+        # Discovery executes OnRun triggers. Restore its worker from the protected source;
+        # the tenant-count diagnostic already froze its detached template before discovery.
         $discoveryTenant = $cleanTenantInfo[0]
         $discoveryParameters = $parameters.Clone()
         $discoveryParameters["tenant"] = $discoveryTenant.Id
@@ -1558,8 +1612,9 @@ function Invoke-ParallelTestExecution {
             )
         }
         finally {
+            $discoveryRestoreSource = if (Test-SqlTenantExperiment) { $templateDatabaseName } else { $sourceTenantInfo[0].DatabaseName }
             Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $discoveryTenant.Id `
-                -TenantDatabaseName $discoveryTenant.DatabaseName -TemplateDatabaseName $sourceTenantInfo[0].DatabaseName
+                -TenantDatabaseName $discoveryTenant.DatabaseName -TemplateDatabaseName $discoveryRestoreSource
         }
     } elseif ($cleanCodeunitExecution) {
         $requiredDisabledWorkItems = @(
@@ -1572,7 +1627,6 @@ function Invoke-ParallelTestExecution {
         $requiredDisabledWorkItems | ConvertTo-Json -Depth 5 |
             Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT 'ordered-prefix.json') -Encoding UTF8
     }
-    $templateDatabaseName = ""
     try {
         if ($requiredDisabledWorkItems.Count -gt 0) {
             if ($cleanTenantInfo.Count -eq 0) {
@@ -1583,7 +1637,9 @@ function Invoke-ParallelTestExecution {
             if (-not $sourceTenantInfo -or [string]::IsNullOrEmpty($sourceTenantInfo.DatabaseName)) {
                 throw "Could not determine the database name for source tenant '$($parameters.tenant)'."
             }
-            $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceDatabaseName $sourceTenantInfo.DatabaseName
+            if (-not $templateDatabaseName) {
+                $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceDatabaseName $sourceTenantInfo.DatabaseName
+            }
         }
 
     # dispatched=true marks "we started the foreach" - lets concurrent reads notice an in-flight
@@ -1622,6 +1678,9 @@ function Invoke-ParallelTestExecution {
         Merge-TenantTestResults -parameters $parameters -tenants $tenants -workItems $requiredDisabledWorkItems -rerunSuffixes @()
         if ((Test-SqlApiExperiment) -and (Test-Path $parameters.JUnitResultFileName)) {
             [xml]$finalXml = Get-Content $parameters.JUnitResultFileName -Raw
+            if (Test-SqlTenantExperiment) {
+                Copy-Item $parameters.JUnitResultFileName (Join-Path $env:BC_SQL_PILOT_OUTPUT 'final-junit.xml')
+            }
             $finalCases = @($finalXml.SelectNodes('/testsuites/testsuite/testcase'))
             $skippedCount = @($finalCases | Where-Object { $_.SelectSingleNode('skipped') }).Count
             $completeCohort = $finalCases.Count -eq 253 -and $skippedCount -eq 19 -and
