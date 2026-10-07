@@ -407,7 +407,6 @@ page 344 Navigate
                         OnBeforePrint(Rec, SearchBasedOn, TempRecordBuffer, ItemTrackingFilters, DocNoFilter, PostingDateFilter, IsHandled);
                         if IsHandled then
                             exit;
-
                         if ItemTrackingSearch() then begin
                             Clear(ItemTrackingNavigate);
                             ItemTrackingNavigate.TransferDocEntries(Rec);
@@ -660,6 +659,8 @@ page 344 Navigate
         PurchaseQuoteTxt: Label 'Purchase Quote';
         PurchaseOrderTxt: Label 'Purchase Order';
         PurchaseInvoiceTxt: Label 'Purchase Invoice';
+        PurchaseReturnOrderTxt: Label 'Purchase Return Order';
+        PurchaseCreditMemoTxt: Label 'Purchase Credit Memo';
         SalesReturnOrderTxt: Label 'Sales Return Order';
         SalesCreditMemoTxt: Label 'Sales Credit Memo';
         PostedGenJournalLineTxt: Label 'Posted Gen. Journal Line';
@@ -690,6 +691,10 @@ page 344 Navigate
         POPurchaseHeader: Record "Purchase Header";
         [SecurityFiltering(SecurityFilter::Filtered)]
         PIPurchaseHeader: Record "Purchase Header";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        PROPurchaseHeader: Record "Purchase Header";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        PCMPurchaseHeader: Record "Purchase Header";
         [SecurityFiltering(SecurityFilter::Filtered)]
         PurchRcptHeader: Record "Purch. Rcpt. Header";
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -743,6 +748,8 @@ page 344 Navigate
                     FindUnpostedPurchaseDocs(PQPurchaseHeader."Document Type"::Quote, PurchaseQuoteTxt, PQPurchaseHeader);
                     FindUnpostedPurchaseDocs(POPurchaseHeader."Document Type"::Order, PurchaseOrderTxt, POPurchaseHeader);
                     FindUnpostedPurchaseDocs(PIPurchaseHeader."Document Type"::Invoice, PurchaseInvoiceTxt, PIPurchaseHeader);
+                    FindUnpostedPurchaseDocs(PROPurchaseHeader."Document Type"::"Return Order", PurchaseReturnOrderTxt, PROPurchaseHeader);
+                    FindUnpostedPurchaseDocs(PCMPurchaseHeader."Document Type"::"Credit Memo", PurchaseCreditMemoTxt, PCMPurchaseHeader);
 
                     VendLedgEntry2.SetCurrentKey("External Document No.");
                     VendLedgEntry2.SetFilter("External Document No.", ExtDocNo);
@@ -813,7 +820,6 @@ page 344 Navigate
         end;
 
         OnAfterNavigateFindExtRecords(Rec, ContactType, ContactNo, ExtDocNo, FoundRecords);
-
         if not FoundRecords then begin
             SetSource(0D, '', '', 0, '');
             Message(Text001);
@@ -835,7 +841,6 @@ page 344 Navigate
         OnBeforeFindRecordsProcedure(Rec, HideDialog, IsHandled);
         if IsHandled then
             exit;
-
         if (DocNoFilter = '') and (ExtDocNo = '') and (PostingDateFilter = '') then
             exit;
         if not HideDialog then
@@ -849,6 +854,8 @@ page 344 Navigate
         FindUnpostedPurchaseDocs(PQPurchaseHeader."Document Type"::Quote, PurchaseQuoteTxt, PQPurchaseHeader);
         FindUnpostedPurchaseDocs(POPurchaseHeader."Document Type"::Order, PurchaseOrderTxt, POPurchaseHeader);
         FindUnpostedPurchaseDocs(PIPurchaseHeader."Document Type"::Invoice, PurchaseInvoiceTxt, PIPurchaseHeader);
+        FindUnpostedPurchaseDocs(PROPurchaseHeader."Document Type"::"Return Order", PurchaseReturnOrderTxt, PROPurchaseHeader);
+        FindUnpostedPurchaseDocs(PCMPurchaseHeader."Document Type"::"Credit Memo", PurchaseCreditMemoTxt, PCMPurchaseHeader);
         FindUnpostedSalesDocs(SQSalesHeader."Document Type"::Quote, SalesQuoteTxt, SQSalesHeader);
         FindUnpostedSalesDocs(SOSalesHeader."Document Type"::Order, SalesOrderTxt, SOSalesHeader);
         FindUnpostedSalesDocs(SISalesHeader."Document Type"::Invoice, SalesInvoiceTxt, SISalesHeader);
@@ -882,10 +889,8 @@ page 344 Navigate
         end;
 
         OnAfterFindRecords(Rec, DocNoFilter, PostingDateFilter);
-
         if UpdateForm then
             UpdateFormAfterFindRecords();
-
         if not HideDialog then
             Window.Close();
     end;
@@ -1629,7 +1634,6 @@ page 344 Navigate
         OnBeforeShowRecords(Rec, DocNoFilter, PostingDateFilter, ItemTrackingSearch(), ContactNo, ExtDocNo, IsHandled);
         if IsHandled then
             exit;
-
         if ItemTrackingSearch() then
             ItemTrackingNavigateMgt.Show(Rec."Table ID")
         else
@@ -1790,7 +1794,6 @@ page 344 Navigate
         PageManagement: Codeunit "Page Management";
     begin
         Rec.TestField("Table ID", Database::"Purchase Header");
-
         case Rec."Document Type" of
             Rec."Document Type"::Quote:
                 if Rec."No. of Records" = 1 then
@@ -1807,6 +1810,16 @@ page 344 Navigate
                     PageManagement.PageRun(PIPurchaseHeader)
                 else
                     PageManagement.PageRunList(PIPurchaseHeader);
+            Rec."Document Type"::"Return Order":
+                if Rec."No. of Records" = 1 then
+                    PageManagement.PageRun(PROPurchaseHeader)
+                else
+                    PageManagement.PageRunList(PROPurchaseHeader);
+            Rec."Document Type"::"Credit Memo":
+                if Rec."No. of Records" = 1 then
+                    PageManagement.PageRun(PCMPurchaseHeader)
+                else
+                    PageManagement.PageRunList(PCMPurchaseHeader);
         end;
     end;
 
@@ -1815,7 +1828,6 @@ page 344 Navigate
         PageManagement: Codeunit "Page Management";
     begin
         Rec.TestField("Table ID", Database::"Sales Header");
-
         case Rec."Document Type" of
             Rec."Document Type"::Quote:
                 if Rec."No. of Records" = 1 then
@@ -1898,7 +1910,6 @@ page 344 Navigate
                     DateFilter := DateFilter + '|' + Format(AddDate)
                 else
                     TooLongFilter();
-
         if DocumentNoFilter = '' then
             DocumentNoFilter := AddDocNo
         else
@@ -1917,7 +1928,6 @@ page 344 Navigate
             SearchBasedOn := SearchBasedOn::"Business Contact";
         if (SerialNoFilter <> '') or (LotNoFilter <> '') then
             SearchBasedOn := SearchBasedOn::"Item Reference";
-
         case SearchBasedOn of
             SearchBasedOn::Document:
                 FindRecords();
@@ -1985,10 +1995,14 @@ page 344 Navigate
             if ContactNo <> '' then
                 PurchaseHeader.SetFilter("Sell-to Customer No.", ContactNo);
             if ExtDocNo <> '' then
-                if PurchDocType = PurchDocType::Order then
-                    PurchaseHeader.SetFilter("Vendor Order No.", ExtDocNo)
-                else
-                    PurchaseHeader.SetFilter("Vendor Invoice No.", ExtDocNo);
+                case PurchDocType of
+                    PurchDocType::Order:
+                        PurchaseHeader.SetFilter("Vendor Order No.", ExtDocNo);
+                    PurchDocType::"Return Order", PurchDocType::"Credit Memo":
+                        PurchaseHeader.SetFilter("Vendor Cr. Memo No.", ExtDocNo);
+                    else
+                        PurchaseHeader.SetFilter("Vendor Invoice No.", ExtDocNo);
+                end;
             if PostingDateFilter <> '' then
                 PurchaseHeader.SetFilter("Posting Date", PostingDateFilter);
             PurchaseHeader.SetRange("Document Type", PurchDocType);
@@ -2208,7 +2222,6 @@ page 344 Navigate
         ClearInfo();
         ClearContactInfo();
         ClearTrackingInfo();
-
         case SearchBasedOn of
             SearchBasedOn::Document:
                 DocumentVisible := true;
