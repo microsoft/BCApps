@@ -1364,6 +1364,33 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure UnmatchedInboundOrderResponseLeavesFailedEDocument()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        ErrorMessage: Record "Error Message";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        // [SCENARIO] An inbound Order Response whose OrderReference matches no outgoing E-Document is not discarded silently.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [WHEN] The Order Response is imported
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        Assert.IsFalse(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-orderresponse-unmatched.xml', TempEDocImportParameters), 'The import should fail for an unmatched order response.');
+
+        // [THEN] The inbound E-Document is kept in an error state
+        Assert.IsTrue(EDocument.Get(EDocument."Entry No"), 'The inbound e-document should be kept for inspection.');
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'The e-document should be in error status.');
+        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have errors.');
+
+        // [THEN] The error explains that no outgoing e-document matches the order reference
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('UNKNOWN-ORDER-999', ErrorMessage."Message");
+    end;
+
+    [Test]
     procedure RejectOrderActionReachableOnInboundSalesOrderDraft()
     var
         EDocument: Record "E-Document";
