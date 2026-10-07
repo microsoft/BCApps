@@ -5,15 +5,16 @@
 
 namespace System.Test.Apps;
 
-using System.Environment.Configuration;
 using System.Apps;
+using System.Environment.Configuration;
 using System.Media;
 using System.Security.AccessControl;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 133100 "Extension Management Test"
 {
+    EventSubscriberInstance = Manual;
 
     // For the purpose of this test, two sample extensions are pre-published.
     // The condition for the tests to pass is that one of the extensions is holding a dependency on the other one, and they are both 1st Party Extensions, version 1.0.
@@ -29,6 +30,7 @@ codeunit 133100 "Extension Management Test"
 
     var
         ExtensionManagement: Codeunit "Extension Management";
+        ExtensionManagementTest: Codeunit "Extension Management Test";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
@@ -93,6 +95,8 @@ codeunit 133100 "Extension Management Test"
     var
         NAVAppInstalledApp: Record "NAV App Installed App";
     begin
+        BindSubscription(ExtensionManagementTest);
+
         if NAVAppInstalledApp.Get(MainAppId) then
             ExtensionManagement.UninstallExtension(NAVAppInstalledApp."Package ID", false);
         if NAVAppInstalledApp.Get(DependingAppId) then
