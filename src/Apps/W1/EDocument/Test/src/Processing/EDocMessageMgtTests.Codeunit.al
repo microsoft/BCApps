@@ -428,7 +428,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         // [SCENARIO] A failed payment occurrence is retained and processed by the dispatcher retry
         Initialize(Customer);
 
-        // [GIVEN] A persisted payment occurrence whose localization processing fails
+        // [GIVEN] A payment occurrence that failed during localization processing
         CreatePaymentOccurrenceScenario(EDocument, DetailedCustLedgEntry);
         EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -438,8 +438,10 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         EDocPaymentOccurrenceMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
         UnbindSubscription(EDocImplState);
         EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
-        Assert.AreEqual(EDocPaymentOccurrence.Status::Error, EDocPaymentOccurrence.Status, 'Failed processing must leave the occurrence in Error.');
+        Assert.AreEqual(EDocPaymentOccurrence.Status::"Retry Pending", EDocPaymentOccurrence.Status, 'Failed processing must schedule the occurrence for retry.');
         Assert.AreEqual(1, EDocPaymentOccurrence."Retry Count", 'Failed processing must increment the retry count.');
+        Assert.IsTrue(EDocPaymentOccurrence."Next Attempt At" > EDocPaymentOccurrence."Last Attempt At", 'Failed processing must schedule a future retry.');
+        Assert.AreNotEqual('', EDocPaymentOccurrence."Last Error", 'Failed processing must retain the processing error.');
         EDocPaymentOccurrence."Next Attempt At" := 0DT;
         EDocPaymentOccurrence.Modify();
 
@@ -450,6 +452,186 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
         Assert.AreEqual(EDocPaymentOccurrence.Status::Processed, EDocPaymentOccurrence.Status, 'A successful retry must mark the occurrence Processed.');
         Assert.AreEqual('', EDocPaymentOccurrence."Last Error", 'A successful retry must clear the previous error.');
+    end;
+
+    [Test]
+    procedure PaymentOccurrenceStopsAutomaticRetriesAfterFiveFailures()
+    var
+        Customer: Record Customer;
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrenceDispatcher: Codeunit "E-Doc. Payment Occ. Dispatcher";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A payment occurrence requiring action stops retrying automatically after five failures
+        Initialize(Customer);
+
+        // [GIVEN] A payment occurrence that has failed four times
+        CreatePaymentOccurrenceScenario(EDocument, DetailedCustLedgEntry);
+        EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.FindFirst();
+        EDocPaymentOccurrence."Retry Count" := 4;
+        EDocPaymentOccurrence.Modify();
+        EDocImplState.SetThrowPaymentOccurrenceProcessingError();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] Processing the occurrence fails for the fifth time
+        EDocPaymentOccurrenceMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
+
+        UnbindSubscription(EDocImplState);
+
+        // [THEN] The occurrence requires user action and has no automatic retry
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Error, EDocPaymentOccurrence.Status, 'The fifth failure must require user action.');
+        Assert.AreEqual(5, EDocPaymentOccurrence."Retry Count", 'The fifth failure must be retained.');
+        Assert.AreEqual(0DT, EDocPaymentOccurrence."Next Attempt At", 'An action-required occurrence must not have an automatic retry time.');
+        Assert.AreNotEqual('', EDocPaymentOccurrence."Last Error", 'The fifth failure must retain the processing error.');
+
+        // [WHEN] The recurrent dispatcher runs
+        EDocPaymentOccurrenceDispatcher.Run();
+
+        // [THEN] The action-required occurrence is not processed again
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Error, EDocPaymentOccurrence.Status, 'The dispatcher must not process action-required occurrences.');
+        Assert.AreEqual(5, EDocPaymentOccurrence."Retry Count", 'The dispatcher must not increment the retry count of an action-required occurrence.');
+    end;
+
+    [Test]
+    procedure ManualPaymentOccurrenceRetrySucceedsWithoutResettingHistory()
+    var
+        Customer: Record Customer;
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A corrected action-required occurrence can be retried manually
+        Initialize(Customer);
+
+        // [GIVEN] An action-required payment occurrence with five failed attempts
+        CreatePaymentOccurrenceScenario(EDocument, DetailedCustLedgEntry);
+        EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.FindFirst();
+        EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
+        EDocPaymentOccurrence."Retry Count" := 5;
+        EDocPaymentOccurrence."Last Error" := 'Previous error';
+        EDocPaymentOccurrence.Modify();
+
+        // [WHEN] The occurrence is retried manually after the processing issue is corrected
+        EDocPaymentOccurrenceMgt.RetryPaymentOccurrence(EDocPaymentOccurrence."Entry No.");
+
+        // [THEN] The occurrence is processed without resetting its failure history
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Processed, EDocPaymentOccurrence.Status, 'The corrected occurrence must be processed.');
+        Assert.AreEqual(5, EDocPaymentOccurrence."Retry Count", 'Successful processing must retain the failure history.');
+        Assert.AreEqual('', EDocPaymentOccurrence."Last Error", 'Successful processing must clear the previous error.');
+        Assert.AreEqual(0DT, EDocPaymentOccurrence."Next Attempt At", 'Successful processing must clear the next attempt time.');
+    end;
+
+    [Test]
+    procedure FailedManualPaymentOccurrenceRetryRemainsActionRequired()
+    var
+        Customer: Record Customer;
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A failed manual retry does not restart automatic retries
+        Initialize(Customer);
+
+        // [GIVEN] An action-required payment occurrence whose processing issue persists
+        CreatePaymentOccurrenceScenario(EDocument, DetailedCustLedgEntry);
+        EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.FindFirst();
+        EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
+        EDocPaymentOccurrence."Retry Count" := 5;
+        EDocPaymentOccurrence.Modify();
+        EDocImplState.SetThrowPaymentOccurrenceProcessingError();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] The occurrence is retried manually
+        EDocPaymentOccurrenceMgt.RetryPaymentOccurrence(EDocPaymentOccurrence."Entry No.");
+
+        UnbindSubscription(EDocImplState);
+
+        // [THEN] The occurrence still requires user action and has no automatic retry
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Error, EDocPaymentOccurrence.Status, 'A failed manual retry must still require user action.');
+        Assert.AreEqual(6, EDocPaymentOccurrence."Retry Count", 'A failed manual retry must be included in failure history.');
+        Assert.AreEqual(0DT, EDocPaymentOccurrence."Next Attempt At", 'A failed manual retry must not schedule automatic processing.');
+        Assert.AreNotEqual('', EDocPaymentOccurrence."Last Error", 'A failed manual retry must retain the processing error.');
+    end;
+
+    [Test]
+    procedure PaymentOccurrenceDispatcherHonorsBatchLimit()
+    var
+        Customer: Record Customer;
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocPaymentOccurrenceDispatcher: Codeunit "E-Doc. Payment Occ. Dispatcher";
+        Index: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] One dispatcher invocation processes at most one hundred payment occurrences
+        Initialize(Customer);
+
+        // [GIVEN] One hundred and one pending payment occurrences
+        for Index := 1 to 101 do begin
+            EDocPaymentOccurrence.Init();
+            EDocPaymentOccurrence."Source Occurrence ID" := CreateGuid();
+            EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Pending;
+            EDocPaymentOccurrence.Insert();
+        end;
+
+        // [WHEN] The recurrent dispatcher runs once
+        EDocPaymentOccurrenceDispatcher.Run();
+
+        // [THEN] One hundred occurrences are processed and one remains pending
+        EDocPaymentOccurrence.SetRange(Status, EDocPaymentOccurrence.Status::Processed);
+        Assert.RecordCount(EDocPaymentOccurrence, 100);
+        EDocPaymentOccurrence.SetRange(Status, EDocPaymentOccurrence.Status::Pending);
+        Assert.RecordCount(EDocPaymentOccurrence, 1);
+    end;
+
+    [Test]
+    procedure ActivePaymentOccurrenceLeasePreventsConcurrentProcessing()
+    var
+        Customer: Record Customer;
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+        LeaseExpiresAt: DateTime;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] An active processing lease prevents duplicate payment occurrence processing
+        Initialize(Customer);
+
+        // [GIVEN] A payment occurrence with an active processing lease
+        CreatePaymentOccurrenceScenario(EDocument, DetailedCustLedgEntry);
+        EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.FindFirst();
+        LeaseExpiresAt := CurrentDateTime() + 1800000;
+        EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Processing;
+        EDocPaymentOccurrence."Next Attempt At" := LeaseExpiresAt;
+        EDocPaymentOccurrence.Modify();
+
+        // [WHEN] The occurrence is selected for processing again
+        EDocPaymentOccurrenceMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
+
+        // [THEN] The active processing lease is preserved
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Processing, EDocPaymentOccurrence.Status, 'An active lease must retain the processing state.');
+        Assert.AreEqual(LeaseExpiresAt, EDocPaymentOccurrence."Next Attempt At", 'An active lease must not be changed.');
+        Assert.AreEqual(0, EDocPaymentOccurrence."Retry Count", 'An active lease must prevent another processing attempt.');
     end;
 
     local procedure Initialize(var Customer: Record Customer)

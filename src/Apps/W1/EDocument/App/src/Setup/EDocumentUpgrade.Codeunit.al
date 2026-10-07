@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument.IO;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.Processing.Import;
 #endif
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Purchases.Setup;
 using System.Upgrade;
 
@@ -30,6 +31,7 @@ codeunit 6168 "E-Document Upgrade"
         UpgradeEnableVATOptionsForPurchEDoc();
         EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
         UpgradeSupportedTypeDirection();
+        UpgradePaymentOccurrenceRetryStatus();
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -71,6 +73,7 @@ codeunit 6168 "E-Document Upgrade"
         PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
         PerCompanyUpgradeTags.Add(GetUpgradeSupportedTypeDirectionTag());
+        PerCompanyUpgradeTags.Add(GetPaymentOccurrenceRetryStatusUpgradeTag());
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
@@ -158,6 +161,27 @@ codeunit 6168 "E-Document Upgrade"
     internal procedure GetUpgradeSupportedTypeDirectionTag(): Code[250]
     begin
         exit('MS-EDoc-SupportedTypeDirection-20260824');
+    end;
+
+    local procedure UpgradePaymentOccurrenceRetryStatus()
+    var
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetPaymentOccurrenceRetryStatusUpgradeTag()) then
+            exit;
+
+        EDocPaymentOccurrence.SetRange(Status, EDocPaymentOccurrence.Status::Error);
+        EDocPaymentOccurrence.SetFilter("Retry Count", '<%1', 5);
+        if not EDocPaymentOccurrence.IsEmpty() then
+            EDocPaymentOccurrence.ModifyAll(Status, EDocPaymentOccurrence.Status::"Retry Pending");
+
+        UpgradeTag.SetUpgradeTag(GetPaymentOccurrenceRetryStatusUpgradeTag());
+    end;
+
+    internal procedure GetPaymentOccurrenceRetryStatusUpgradeTag(): Code[250]
+    begin
+        exit('MS-EDoc-PaymentOccurrenceRetryStatus-20261007');
     end;
 
     local procedure IsFallbackSecondaryType(EDocumentType: Enum "E-Document Type"): Boolean

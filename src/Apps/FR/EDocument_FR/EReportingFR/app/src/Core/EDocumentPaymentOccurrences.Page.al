@@ -108,13 +108,16 @@ page 10970 "E-Document Payment Occurrences"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Retry Now';
-                Enabled = Rec.Status = Rec.Status::Error;
+                Enabled = RetryEnabled;
                 Image = Refresh;
+                Scope = Repeater;
                 ToolTip = 'Retry processing the selected payment occurrence immediately.';
 
                 trigger OnAction()
+                var
+                    EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
                 begin
-                    Codeunit.Run(Codeunit::"E-Doc. Payment Occurrence Mgt.", Rec);
+                    EDocPaymentOccurrenceMgt.RetryPaymentOccurrence(Rec."Entry No.");
                     CurrPage.Update(false);
                 end;
             }
@@ -133,6 +136,11 @@ page 10970 "E-Document Payment Occurrences"
         StatusStyle := GetStatusStyle();
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        RetryEnabled := Rec.Status in [Rec.Status::Error, Rec.Status::"Retry Pending"];
+    end;
+
     local procedure GetStatusStyle(): Text
     begin
         case Rec.Status of
@@ -140,7 +148,8 @@ page 10970 "E-Document Payment Occurrences"
                 exit('Favorable');
             Rec.Status::Error:
                 exit('Unfavorable');
-            Rec.Status::Processing:
+            Rec.Status::Processing,
+            Rec.Status::"Retry Pending":
                 exit('Attention');
             else
                 exit('Ambiguous');
@@ -148,5 +157,6 @@ page 10970 "E-Document Payment Occurrences"
     end;
 
     var
+        RetryEnabled: Boolean;
         StatusStyle: Text;
 }
