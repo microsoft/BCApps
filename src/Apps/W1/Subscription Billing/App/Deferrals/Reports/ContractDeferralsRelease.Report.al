@@ -323,33 +323,41 @@ report 8051 "Contract Deferrals Release"
     end;
 
     internal procedure PostTempGenJnlLineBufferForCustomerDeferrals()
-    var
-        CustomerContractDeferral: Record "Cust. Sub. Contract Deferral";
-        Currency: Record Currency;
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
         TempGenJournalLine.Reset();
         TempGenJournalLine.SetCurrentKey("Document No.", "Subscription Contract No.", "Gen. Bus. Posting Group", "Gen. Prod. Posting Group");
         if TempGenJournalLine.FindSet() then
             repeat
                 CustomerDeferralsMngmt.SetDeferralNo(TempGenJournalLine."Deferral Line No.");
-                CustomerContractDeferral.Get(TempGenJournalLine."Deferral Line No.");
-                if (CustomerContractDeferral."Currency Code" <> '') and
-                   (CustomerContractDeferral."Document Type" = CustomerContractDeferral."Document Type"::Invoice) then begin
-                    SalesInvoiceHeader.Get(CustomerContractDeferral."Document No.");
-                    Currency.Get(CustomerContractDeferral."Currency Code");
-                    TempGenJournalLine."Source Currency Code" := CustomerContractDeferral."Currency Code";
-                    TempGenJournalLine."Source Currency Amount" :=
-                        Round(
-                            CurrencyExchangeRate.ExchangeAmtLCYToFCY(
-                                CustomerContractDeferral."Document Posting Date", CustomerContractDeferral."Currency Code", TempGenJournalLine.Amount, SalesInvoiceHeader."Currency Factor"),
-                            Currency."Amount Rounding Precision");
-                end;
+                SetCustomerSourceCurrency(TempGenJournalLine);
                 PostGenJnlLine(TempGenJournalLine, PostingDate, SourceCodeSetup."Sub. Contr. Deferrals Release");
             until TempGenJournalLine.Next() = 0;
         ResetTempGenJournalLine();
         CustomerDeferralsMngmt.SetDeferralNo(0);
+    end;
+
+    local procedure SetCustomerSourceCurrency(var InputTempGenJournalLine: Record "Gen. Journal Line" temporary)
+    var
+        CustomerContractDeferral: Record "Cust. Sub. Contract Deferral";
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        InputTempGenJournalLine."Source Currency Code" := '';
+        InputTempGenJournalLine."Source Currency Amount" := 0;
+        CustomerContractDeferral.Get(InputTempGenJournalLine."Deferral Line No.");
+        if (CustomerContractDeferral."Currency Code" = '') or
+           (CustomerContractDeferral."Document Type" <> CustomerContractDeferral."Document Type"::Invoice) then
+            exit;
+
+        SalesInvoiceHeader.Get(CustomerContractDeferral."Document No.");
+        Currency.Get(CustomerContractDeferral."Currency Code");
+        InputTempGenJournalLine."Source Currency Code" := CustomerContractDeferral."Currency Code";
+        InputTempGenJournalLine."Source Currency Amount" :=
+            Round(
+                CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                    CustomerContractDeferral."Document Posting Date", CustomerContractDeferral."Currency Code", InputTempGenJournalLine.Amount, SalesInvoiceHeader."Currency Factor"),
+                Currency."Amount Rounding Precision");
     end;
 
     internal procedure PostTempGenJnlLineBufferForVendorDeferrals()
