@@ -94,6 +94,8 @@ codeunit 133100 "Extension Management Test"
     var
         NAVAppInstalledApp: Record "NAV App Installed App";
     begin
+        BindSubscription(ExtensionMgtTestLibrary);
+
         if NAVAppInstalledApp.Get(MainAppId) then
             ExtensionManagement.UninstallExtension(NAVAppInstalledApp."Package ID", false);
         if NAVAppInstalledApp.Get(DependingAppId) then
