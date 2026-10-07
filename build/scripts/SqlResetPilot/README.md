@@ -1,4 +1,73 @@
-# SQL API 300-trial diagnostic — AB#646383 — DO NOT MERGE
+# Per-worker remount warmup diagnostic — AB#646383 — DO NOT MERGE
+
+**Prepared only: do not dispatch until the parent verifies safe scheduling.**
+The original300 and pending tenant-count20 retain their original commits and runs.
+This branch uses the same repository concurrency group, max six cells, and
+`cancel-in-progress: false`. GitHub can replace a pending group member when another
+is queued: the scheduling input is an acknowledgement, NOT an automatic lease.
+
+## Current paired protocol
+
+Twenty exploratory originals: five W1 and five DE cells each for `control` and
+`workerwarmup`. Alternating country/arm order keeps pairs nearby; actual runner
+placement is not guaranteed. Both arms use the original four mounted tenants,
+three secondary clean workers, reserved pristine default, exact source/runtime/
+package pins documented below, and the full21-CU/253-case/19-existing-skip cohort.
+There are no added disabled tests, SQL retries, first-app warmup, companies probes,
+AL/auth changes, rebuilt packages, or changes to the original discovery lifecycle.
+The immutable14-day package snapshots from run37634358042 are reused and verified
+at plan and cell execution; expiry fails closed without substitution.
+
+### Actual operation, not an empty test-app dispatch
+
+After **every** pristine worker remount, candidate cells run exactly:
+
+* Installed app **System Application Test**, resolved installed AppId.
+* CU **135070 "Uri Test"**, method **GetHostTest** only.
+* Runner **130450 "Test Runner - Isol. Codeunit"**, `TestIsolation=Codeunit`,
+  suite `WWARMUP`. No category filter: the pinned test has no TestType or
+  RequiredTestIsolation annotation. The explicit runner supplies isolation.
+* A new bounded180-second child process/client context, existing credential and
+  `My Company`, one attempt, no tolerance, redirects or external request.
+* Exactly one JUnit case `135070 Uri Test.GetHostTest`, successful and unskipped.
+  Empty/wrong/extra cases, missing results, client cancellation, errors, timeout,
+  or already-used remount evidence abort the trial before cohort dispatch.
+
+Pinned source `src/System Application/Test/URI/src/UriTest.Codeunit.al` parses
+the literal `http://microsoft.com/test` and asserts the host is `microsoft.com`.
+`src/System Application/App/URI/src/Uri.Codeunit.al` delegates Init/GetHost to
+the in-memory `System.Uri` constructor/property; it does **not** fetch that URL.
+`Library Assert.AreEqual` compares variants. The test body has no business-record
+mutation, setup, OnRun, or network call. The existing test framework writes its
+suite/result bookkeeping and resets session/test-library state; this is not a
+claim of zero database activity. Codeunit isolation protects the test transaction.
+This studies company/test-runner session warmup, **not** a claim to execute the
+failing OData/help-metadata call chain or to fix SQL pooling.
+
+The discovery worker is restored and warmed once before template freeze. Each
+clean batch then finishes **all restores**, **all warmups**, and only then
+dispatches full cohort codeunits. Thus a complete candidate has22 independently
+validated warmups (one post-discovery restore plus21 pre-CU restores), outside
+cohort XML. The paired control records the same receipts but performs no warmup.
+Dispatch consumes an exact tenant/generation/next-CU receipt once; stale/missing
+receipts cannot authorize execution. Original stop-after-failed-batch behavior
+and all first-attempt SQL evidence remain intact.
+
+### Evidence and timing
+
+`worker-warmup/<tenant>-g<generation>-cu<nextCU>/` contains raw isolated worker
+logs, exact warmup XML and UTC/monotonic overhead receipts. CU0 denotes discovery.
+Reset timing, original reset identities, dispatch receipts, full cohort attempt
+logs/XML/events, final counts and always-run cleanup remain separate.
+`worker-performance.json` separates pre-checkout total, setup before discovery,
+execution, each reset, each warmup (including child process startup/verification),
+and cohort dispatch/case timing. Missing measurements are explicit gaps; incomplete
+cohort/22-remount coverage cannot pass. Total excludes queue/upload. XML duration
+is not isolated API latency. Timing/instrumentation is identical in both arms.
+Five trials per country/arm are exploratory, not a reliability proof; runtime
+operation results remain unverified until the authorized CI execution.
+
+## Historical original300 protocol (reference only; not this branch's schedule)
 
 Explicit user authorization: 2026-10-07. One manual `CICD.yaml` dispatch on
 `features/646383-sql-api-300-trial-comparison` with `mode=originals` schedules

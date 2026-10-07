@@ -14,6 +14,7 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 Import-Module (Join-Path $PSScriptRoot 'SqlApiTestRetry.psm1' -Resolve)
+Import-Module (Join-Path $PSScriptRoot 'SqlResetPilot\WorkerWarmup.psm1' -Resolve)
 if ($env:BC_SQL_PILOT_ARM) {
     Import-Module (Join-Path $PSScriptRoot 'SqlResetPilot\Lifecycle.psm1')
 }
@@ -52,6 +53,7 @@ function Get-DisabledTestsForApp {
 }
 
 function Test-SqlApiExperiment {
+    if (Test-WorkerWarmupExperiment) { return $true }
     return ($env:GITHUB_REPOSITORY -eq 'microsoft/BCApps' -and
         $env:GITHUB_REF -eq 'refs/heads/features/646383-sql-api-300-trial-comparison' -and
         $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch' -and $env:GITHUB_RUN_ATTEMPT -eq '1' -and
@@ -59,6 +61,7 @@ function Test-SqlApiExperiment {
 }
 
 function Test-SqlApiWarmupEnabled {
+    if (Test-WorkerWarmupExperiment) { return $false }
     return ($env:BC_SQL_PILOT_ARM -and
         (-not (Test-SqlApiExperiment) -or $env:BC_SQL_API_EXPERIMENT -ne 'control'))
 }
@@ -457,8 +460,19 @@ function Reset-BcTestTenant {
     )
 
     if ($env:BC_SQL_PILOT_ARM) {
-        Invoke-SqlPilotReset -ContainerName $ContainerName -Tenant $Tenant -DatabaseName $TenantDatabaseName `
-            -TemplateDatabaseName $TemplateDatabaseName
+        $resetWatch = [Diagnostics.Stopwatch]::StartNew()
+        $resetPassed = $false
+        try {
+            Invoke-SqlPilotReset -ContainerName $ContainerName -Tenant $Tenant -DatabaseName $TenantDatabaseName `
+                -TemplateDatabaseName $TemplateDatabaseName
+            $resetPassed = $true
+        } finally {
+            if (Test-WorkerWarmupExperiment) {
+                @{ tenant = $Tenant; template = $TemplateDatabaseName; passed = $resetPassed
+                    elapsedMilliseconds = $resetWatch.Elapsed.TotalMilliseconds; completedUtc = [datetime]::UtcNow.ToString('o') } |
+                    ConvertTo-Json -Compress | Add-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT 'worker-reset-timing.jsonl')
+            }
+        }
         return
     }
 
@@ -796,6 +810,9 @@ function Start-RequiredDisabledDispatch {
         [string]$Verb = "Dispatching"
     )
 
+    if (Test-WorkerWarmupExperiment) {
+        Assert-WorkerWarmupReady -Tenant $TenantInfo.Id -CodeunitId $WorkItem.CodeunitId
+    }
     Write-Host "$Verb RequiredTestIsolation=Disabled codeunit $($WorkItem.CodeunitId) '$($WorkItem.CodeunitName)' from '$($WorkItem.AppName)' on tenant '$($TenantInfo.Id)'"
 
     $codeunitParameters = $Parameters.Clone()
@@ -941,6 +958,11 @@ function Invoke-RequiredDisabledTestExecution {
         foreach ($dispatch in $batch) {
             Reset-BcTestTenant -ContainerName $Parameters.containerName -Tenant $dispatch.TenantInfo.Id `
                 -TenantDatabaseName $dispatch.TenantInfo.DatabaseName -TemplateDatabaseName $TemplateDatabaseName
+        }
+        if (Test-WorkerWarmupExperiment) {
+            foreach ($dispatch in $batch) {
+                Invoke-WorkerRemountWarmup -Tenant $dispatch.TenantInfo.Id -NextCodeunitId $dispatch.WorkItem.CodeunitId
+            }
         }
         if (Test-SqlApiWarmupEnabled) {
             foreach ($dispatch in $batch) {
@@ -1521,6 +1543,12 @@ function Invoke-ParallelTestExecution {
     Get-BcContainerAppInfo -containerName $parameters.containerName -tenant $parameters.tenant -tenantSpecificProperties |
         Where-Object { $_.IsInstalled } |
         ForEach-Object { $appIdByName[$_.Name] = $_.AppId }
+    if (Test-WorkerWarmupExperiment) {
+        if ($testType -ne 'IntegrationTest' -or (Get-ALGoSetting -Key 'enableCleanTestCodeunitExecution') -ne $true) {
+            throw 'Worker comparison requires the original clean IntegrationTest lane.'
+        }
+        Initialize-WorkerWarmup -Parameters $parameters -AppIdByName $appIdByName
+    }
 
     $cleanTenantInfo = @(
         $tenantInfo |
@@ -1560,6 +1588,9 @@ function Invoke-ParallelTestExecution {
         finally {
             Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $discoveryTenant.Id `
                 -TenantDatabaseName $discoveryTenant.DatabaseName -TemplateDatabaseName $sourceTenantInfo[0].DatabaseName
+            if (Test-WorkerWarmupExperiment) {
+                Invoke-WorkerRemountWarmup -Tenant $discoveryTenant.Id -NextCodeunitId 0
+            }
         }
     } elseif ($cleanCodeunitExecution) {
         $requiredDisabledWorkItems = @(
@@ -1630,6 +1661,7 @@ function Invoke-ParallelTestExecution {
                 $_.SelectSingleNode('failure | error') -or $_.GetAttribute('result') -eq 'Fail'
             }).Count
             if (-not $completeCohort -or $failedCount -gt 0) { $state.hasFailures = $true }
+            if ((Test-WorkerWarmupExperiment) -and -not (Test-WorkerWarmupComplete)) { $state.hasFailures = $true }
             $attempts = @(Get-ChildItem (Join-Path $env:BC_SQL_PILOT_OUTPUT 'test-attempts') -Filter outcome.json -Recurse -File |
                 ForEach-Object { Get-Content $_.FullName -Raw | ConvertFrom-Json })
             @{

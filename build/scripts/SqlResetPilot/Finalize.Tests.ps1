@@ -4,6 +4,14 @@ function global:Remove-BcContainer { param($containerName) throw 'Live container
 
 Describe 'SQL pilot final cleanup ownership' {
     BeforeEach {
+        $script:savedGate = @{}
+        foreach ($key in @('GITHUB_REPOSITORY','GITHUB_REF','GITHUB_EVENT_NAME','GITHUB_RUN_ATTEMPT')) {
+            $script:savedGate[$key] = [Environment]::GetEnvironmentVariable($key)
+        }
+        $env:GITHUB_REPOSITORY = 'microsoft/BCApps'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-warmup-comparison'
+        $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
+        $env:GITHUB_RUN_ATTEMPT = '1'
         $script:oldWorkspace = $env:GITHUB_WORKSPACE
         $script:oldRun = $env:GITHUB_RUN_ID
         $script:oldArm = $env:BC_SQL_PILOT_ARM
@@ -16,11 +24,11 @@ Describe 'SQL pilot final cleanup ownership' {
         $env:BC_SQL_PILOT_ARM = 'control'
         $env:BC_SQL_PILOT_COUNTRY = 'DE'
         $env:BC_SQL_PILOT_TRIAL = '2'
-        $env:BC_SQL_API_EXPERIMENT = 'retry'
+        $env:BC_SQL_API_EXPERIMENT = 'workerwarmup'
         $env:BcContainerHelperPath = Join-Path $PSScriptRoot 'BcContainerHelper.ps1'
         Mock Import-Module {}
         Mock Test-Path { $true }
-        Mock Get-Content { '{"runId":"123","arm":"control","country":"DE","trial":"2","experiment":"retry","container":"bcbuildprojectsTestAppsDETrial2retry123"}' }
+        Mock Get-Content { '{"runId":"123","arm":"control","country":"DE","trial":"2","experiment":"workerwarmup","container":"bcbuildprojectsTestAppsDETrial2workerwarmup123"}' }
         Mock Get-ChildItem {}
         Mock New-Item {}
         Mock Copy-Item {}
@@ -31,6 +39,7 @@ Describe 'SQL pilot final cleanup ownership' {
         Mock Remove-BcContainer { $global:sqlPilotTestContainerExists = $false }
     }
     AfterEach {
+        foreach ($key in $script:savedGate.Keys) { [Environment]::SetEnvironmentVariable($key, $script:savedGate[$key]) }
         $env:GITHUB_WORKSPACE = $script:oldWorkspace
         $env:GITHUB_RUN_ID = $script:oldRun
         $env:BC_SQL_PILOT_ARM = $script:oldArm
@@ -43,7 +52,7 @@ Describe 'SQL pilot final cleanup ownership' {
     It 'exports before disposing only the registered container' {
         & (Join-Path $PSScriptRoot 'Finalize.ps1')
         Should -Invoke Get-BcContainerEventLog -Times 1 -Exactly -Scope It
-        Should -Invoke Remove-BcContainer -Times 1 -Exactly -Scope It -ParameterFilter { $containerName -eq 'bcbuildprojectsTestAppsDETrial2retry123' }
+        Should -Invoke Remove-BcContainer -Times 1 -Exactly -Scope It -ParameterFilter { $containerName -eq 'bcbuildprojectsTestAppsDETrial2workerwarmup123' }
     }
     It 'still tears down if exporting fails and keeps that failure visible' {
         Mock Get-BcContainerEventLog { throw 'event export failed' }
@@ -54,7 +63,7 @@ Describe 'SQL pilot final cleanup ownership' {
         Mock Get-ChildItem { [PSCustomObject]@{ FullName = 'TestResults.xml' } }
         & (Join-Path $PSScriptRoot 'Finalize.ps1')
         Should -Invoke Get-ChildItem -Times 1 -Exactly -Scope It -ParameterFilter {
-            $Path -like '*Test Apps DE Trial2retry\.buildartifacts' -and $Filter -eq 'TestResults*.xml' -and $File
+            $Path -like '*Test Apps DE Trial2workerwarmup\.buildartifacts' -and $Filter -eq 'TestResults*.xml' -and $File
         }
         Should -Invoke Copy-Item -Times 1 -Exactly -Scope It -ParameterFilter {
             $Destination -like '*clean-results\buildartifacts'

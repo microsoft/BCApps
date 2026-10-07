@@ -10,8 +10,8 @@ Describe 'Experiment country and trial container ownership' {
             $script:saved[$name] = [Environment]::GetEnvironmentVariable($name)
         }
         $env:GITHUB_REPOSITORY = 'microsoft/BCApps'
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-300-trial-comparison'
-        $env:BC_SQL_API_EXPERIMENT = 'retry'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-warmup-comparison'
+        $env:BC_SQL_API_EXPERIMENT = 'workerwarmup'
         $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
         $env:GITHUB_RUN_ATTEMPT = '1'
         $env:GITHUB_RUN_ID = '123'
@@ -24,7 +24,8 @@ Describe 'Experiment country and trial container ownership' {
             companyName = 'My Company'; enableCleanTestCodeunitExecution = $true; enableTaskScheduler = $false
         } | ConvertTo-Json
         $script:parameters = @{
-            ContainerName = 'bcbuildprojectsTestAppsDETrial2retry123'
+            ContainerName = 'bcbuildprojectsTestAppsDETrial2workerwarmup123'
+            memoryLimit = '16G'; multitenant = $true
             platformArtifactUrl = 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/30.0.55665.0/platform'
         }
         Mock Get-Module { { '6.1.19-preview2811389' } } -ParameterFilter { $Name -eq 'BcContainerHelper' }
@@ -38,8 +39,8 @@ Describe 'Experiment country and trial container ownership' {
         $record = Get-Content (Join-Path $TestDrive 'container-ownership.json') -Raw | ConvertFrom-Json
         $record.country | Should -Be 'DE'
         $record.trial | Should -Be '2'
-        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial2retry123'
-        $record.experiment | Should -Be 'retry'
+        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial2workerwarmup123'
+        $record.experiment | Should -Be 'workerwarmup'
         $script:parameters.useGenericImage | Should -Be 'mcr.microsoft.com/businesscentral@sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492'
     }
     It 'refuses a preexisting container rather than replacing it' {
@@ -70,22 +71,29 @@ Describe 'Experiment country and trial container ownership' {
         $env:Settings = $settings | ConvertTo-Json
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw '*settings differ*'
     }
-    It 'allows trial 50 but never trial 51 even with matching container names' {
-        $env:BC_SQL_PILOT_TRIAL = '50'
-        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial50retry123'
+    It 'allows trial 5 but never trial 6 even with matching container names' {
+        $env:BC_SQL_PILOT_TRIAL = '5'
+        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial5workerwarmup123'
         & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters
-        $env:BC_SQL_PILOT_TRIAL = '51'
-        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial51retry123'
+        $env:BC_SQL_PILOT_TRIAL = '6'
+        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial6workerwarmup123'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
     }
     It 'rejects obsolete exclusion arms and other branches or events' {
         $env:BC_SQL_API_EXPERIMENT = 'A'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
-        $env:BC_SQL_API_EXPERIMENT = 'retry'
+        $env:BC_SQL_API_EXPERIMENT = 'workerwarmup'
         $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-two-arm-experiment'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-300-trial-comparison'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-warmup-comparison'
         $env:GITHUB_EVENT_NAME = 'pull_request'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
+    }
+    It 'rejects altered memory and multitenant configuration' {
+        $script:parameters.memoryLimit = '32G'
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw '*16G*'
+        $script:parameters.memoryLimit = '16G'
+        $script:parameters.multitenant = $false
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw '*16G*'
     }
 }

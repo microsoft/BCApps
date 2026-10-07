@@ -1,4 +1,4 @@
-name: 'SQL API comparison batch - DO NOT MERGE'
+name: 'SQL API worker remount warmup batch - DO NOT MERGE'
 
 on:
   workflow_call:
@@ -28,7 +28,7 @@ permissions:
 jobs:
   Pilot:
     name: Trial ${{ matrix.experiment }}/${{ matrix.country }}/${{ matrix.trial }}
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-300-trial-comparison' && github.run_attempt == 1
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-worker-warmup-comparison' && github.run_attempt == 1
     strategy:
       fail-fast: false
       max-parallel: 6
@@ -50,6 +50,11 @@ jobs:
       BC_SQL_COMPARISON_PACKAGE_RUN: ${{ inputs.packageRun }}
       BuildMode: IntegrationTests
     steps:
+      - name: Start monotonic cell clock before checkout
+        run: |
+          "WORKER_CELL_STARTED_UTC=$([datetime]::UtcNow.ToString('o'))" | Add-Content $env:GITHUB_ENV
+          "WORKER_CELL_STARTED_TICKS=$([Diagnostics.Stopwatch]::GetTimestamp())" | Add-Content $env:GITHUB_ENV
+          "WORKER_CELL_FREQUENCY=$([Diagnostics.Stopwatch]::Frequency)" | Add-Content $env:GITHUB_ENV
       - name: Checkout experiment
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -109,11 +114,15 @@ jobs:
         run: |
           & .\build\scripts\SqlResetPilot\Finalize.ps1
 
+      - name: Preserve setup reset warmup and test timing separately
+        if: always()
+        run: .\build\scripts\SqlResetPilot\WorkerMeasurements.ps1
+
       - name: Preserve raw outcomes (including failures)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: sql-api-comparison-${{ matrix.experiment }}-${{ matrix.country }}-${{ matrix.trial }}-${{ github.run_id }}
+          name: sql-api-worker-warmup-${{ matrix.experiment }}-${{ matrix.country }}-${{ matrix.trial }}-${{ github.run_id }}
           retention-days: 14
           include-hidden-files: true
           if-no-files-found: error

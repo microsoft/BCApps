@@ -1,4 +1,10 @@
 $ErrorActionPreference = 'Stop'
+if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
+    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-worker-warmup-comparison' -or
+    $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
+    $env:BC_SQL_PILOT_ARM -ne 'control' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
+    throw 'Cleanup requires exact manual worker comparison identity.'
+}
 $output = Join-Path $env:GITHUB_WORKSPACE 'sql-reset-pilot-output'
 $ownershipPath = Join-Path $output 'container-ownership.json'
 if (-not (Test-Path $ownershipPath)) {
@@ -7,8 +13,8 @@ if (-not (Test-Path $ownershipPath)) {
 }
 $ownership = Get-Content $ownershipPath -Raw | ConvertFrom-Json
 if ($ownership.runId -ne $env:GITHUB_RUN_ID -or $ownership.arm -ne $env:BC_SQL_PILOT_ARM -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'warmup', 'retry') -or $ownership.experiment -ne $env:BC_SQL_API_EXPERIMENT -or
-    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^(?:[1-9]|[1-4][0-9]|50)$' -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'workerwarmup') -or $ownership.experiment -ne $env:BC_SQL_API_EXPERIMENT -or
+    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or
     $ownership.country -ne $env:BC_SQL_PILOT_COUNTRY -or $ownership.trial -ne $env:BC_SQL_PILOT_TRIAL -or
     $ownership.container -ne "bcbuildprojectsTestApps$($env:BC_SQL_PILOT_COUNTRY)Trial$($env:BC_SQL_PILOT_TRIAL)$($env:BC_SQL_API_EXPERIMENT)$($env:GITHUB_RUN_ID)") {
     throw 'Cleanup ownership mismatch.'

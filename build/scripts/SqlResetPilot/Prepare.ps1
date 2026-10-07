@@ -1,11 +1,11 @@
 $ErrorActionPreference = 'Stop'
 $base = 'c4953dceffe02a017adad34973e1955017bf5d20'
 if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
-    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-300-trial-comparison' -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'warmup', 'retry') -or
+    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-worker-warmup-comparison' -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'workerwarmup') -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
     $env:BC_SQL_PILOT_ARM -ne 'control' -or $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or
-    $env:BC_SQL_PILOT_TRIAL -notmatch '^(?:[1-9]|[1-4][0-9]|50)$' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
+    $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
     throw 'This diagnostic is restricted to its explicitly dispatched disposable CI branch, attempt one.'
 }
 git merge-base --is-ancestor $base HEAD
@@ -26,12 +26,15 @@ New-Item -ItemType Directory $output -Force | Out-Null
 @{ phase = 'package-preflight'; arm = $env:BC_SQL_PILOT_ARM; run = $env:GITHUB_RUN_ID; utc = [DateTime]::UtcNow.ToString('o') } |
     ConvertTo-Json | Set-Content (Join-Path $output 'start.json') -Encoding UTF8
 Import-Module (Join-Path $PSScriptRoot 'Comparison.psm1') -Force
-$replacement = $env:BC_SQL_COMPARISON_REPLACEMENT | ConvertFrom-Json
-$expectedSnapshotRun = if ($replacement) { [string]$replacement.runId } else { $env:GITHUB_RUN_ID }
+$replacement = $null
+if ($env:BC_SQL_COMPARISON_REPLACEMENT -and $env:BC_SQL_COMPARISON_REPLACEMENT -ne 'null') { throw 'This protocol prepares originals only.' }
+$expectedSnapshotRun = '37634358042'
+$expectedSnapshotArtifact = if ($env:BC_SQL_PILOT_COUNTRY -eq 'W1') { '11487493885' } else { '11486874993' }
+if ($env:BC_SQL_COMPARISON_PACKAGE_ARTIFACT -ne $expectedSnapshotArtifact) { throw 'Unexpected preserved country snapshot ID.' }
 if ($env:BC_SQL_COMPARISON_PACKAGE_RUN -ne $expectedSnapshotRun) { throw 'Snapshot source run differs from original/replacement provenance.' }
 $snapshotDirectory = Join-Path $env:GITHUB_WORKSPACE 'sql-api-package-snapshot'
 $snapshotProof = @(Save-SqlComparisonSnapshot -ArtifactId $env:BC_SQL_COMPARISON_PACKAGE_ARTIFACT `
-    -RunId $expectedSnapshotRun -HeadSha $env:GITHUB_SHA -Country $env:BC_SQL_PILOT_COUNTRY -Directory $snapshotDirectory)
+    -RunId $expectedSnapshotRun -HeadSha '0227094059f2f26f3fcb1b7f85a3285c17e78b8e' -Country $env:BC_SQL_PILOT_COUNTRY -Directory $snapshotDirectory)
 $snapshotProof | ConvertTo-Json -Depth 12 | Set-Content (Join-Path $output 'original-artifact-proof.json')
 $artifacts = @(
     @{ Kind = 'apps'; Id = 11374170356; Digest = '683343673e6efeb7699734b250d2ee5004d2d83fe08e57f324c4c645c09612db' },
@@ -68,17 +71,18 @@ foreach ($artifact in $artifacts) {
 }
 @{
     experimentHead = $env:GITHUB_SHA; run = $env:GITHUB_RUN_ID; arm = $env:BC_SQL_PILOT_ARM
-    experiment = $env:BC_SQL_API_EXPERIMENT; sharedBaseline = 'fbd7ec46c636ee5f9d940cb81e5abbc1df90f055'
-    probeAndWarmupBaseline = 'fcc1776c6b165199dd66e4227675b1cc31da7a8f'
+    experiment = $env:BC_SQL_API_EXPERIMENT; sharedBaseline = '0227094059f2f26f3fcb1b7f85a3285c17e78b8e'
+    warmupSource = $base; historicalWarmupReference = 'fcc1776c6b165199dd66e4227675b1cc31da7a8f'
     trialIdentity = "$($env:BC_SQL_API_EXPERIMENT)/$($env:BC_SQL_PILOT_COUNTRY)/$($env:BC_SQL_PILOT_TRIAL)"
     replacementOf = $replacement
     packageSnapshot = @{ runId = $expectedSnapshotRun; artifactId = $env:BC_SQL_COMPARISON_PACKAGE_ARTIFACT }
     country = $env:BC_SQL_PILOT_COUNTRY; trial = $env:BC_SQL_PILOT_TRIAL; project = $trialProject
-    warmup = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { 'original-first-app-before-clean-lane' })
-    companiesProbe = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { 'per-restored-worker-single-attempt' })
-    companiesProbeMaximumAttempts = 1; companiesProbeTimeoutSeconds = 60; companiesProbeRetryDelaySeconds = 0
+    warmup = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { '135070 Uri Test.GetHostTest after every worker remount, runner 130450 Codeunit isolation' })
+    firstAppWarmup = $false; companiesProbe = 'none'
+    companiesProbeMaximumAttempts = 0
     additionalDisabledTests = @()
-    warmupRetries = 0; maximumEvidenceGatedRetriesPerCodeunit = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'retry') { 1 } else { 0 })
+    warmupRetries = 0; maximumEvidenceGatedRetriesPerCodeunit = 0
+    expectedCohortCases = 253; expectedExistingSkips = 19; mountedTenants = 4; cleanWorkers = 3
     genericTestRetries = 0; schedulerRetries = 0; ciRetries = 0
     budgetMinutes = 120; startedUtc = [DateTime]::UtcNow.ToString('o')
     artifacts = $manifest

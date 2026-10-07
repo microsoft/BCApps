@@ -1,11 +1,11 @@
 param([hashtable]$Parameters)
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
-    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-300-trial-comparison' -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'warmup', 'retry') -or
+    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-worker-warmup-comparison' -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'workerwarmup') -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
     $env:BC_SQL_PILOT_ARM -ne 'control' -or -not $env:BC_SQL_PILOT_OUTPUT -or
-    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^(?:[1-9]|[1-4][0-9]|50)$' -or
+    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or
     $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
     throw 'Refusing SQL pilot outside its disposable manually dispatched CI job.'
 }
@@ -13,6 +13,7 @@ $expectedName = "bcbuildprojectsTestApps$($env:BC_SQL_PILOT_COUNTRY)Trial$($env:
 if ($Parameters.ContainerName -ne $expectedName -or (Test-BcContainer -containerName $expectedName)) {
     throw 'Pilot container name is unexpected or already exists. No replacement is authorized.'
 }
+if ($Parameters.memoryLimit -ne '16G' -or -not $Parameters.multitenant) { throw 'Original 16G multitenant container configuration is required.' }
 $module = Get-Module BcContainerHelper -ErrorAction Stop
 $helperVersion = & $module { $bcContainerHelperVersion }
 if ($helperVersion -ne '6.1.19-preview2811389') { throw "Wrong BCH version: $helperVersion" }
