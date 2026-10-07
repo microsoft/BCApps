@@ -294,7 +294,9 @@
 
         LibrarySales.CreateCustomer(Customer);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
-        LibraryInventory.CreateItem(Item);
+        SalesHeader.Validate("VAT Bus. Posting Group", '');
+        SalesHeader.Modify(true);
+        LibraryInventory.CreateItemWithoutVAT(Item);
 
         LibrarySales.CreateSalesLine(ZeroPriceSalesLine, SalesHeader, ZeroPriceSalesLine.Type::Item, Item."No.", 1);
         ZeroPriceSalesLine.Validate("Unit Price", 0);
@@ -303,7 +305,7 @@
         PricedSalesLine.Validate("Unit Price", 100);
         PricedSalesLine.Modify(true);
 
-        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryInventory.CreateItemChargeWithoutVAT(ItemCharge);
         LibrarySales.CreateSalesLine(
             ItemChargeSalesLine, SalesHeader, ItemChargeSalesLine.Type::"Charge (Item)", ItemCharge."No.", 1);
         ItemChargeSalesLine.Validate("Unit Price", 100);
