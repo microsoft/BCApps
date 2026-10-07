@@ -74,7 +74,6 @@ table 1236 "JSON Buffer"
         SystemDoubleTxt: Label 'System.Double', Locked = true;
         SystemInt64Txt: Label 'System.Int64', Locked = true;
         SystemStringTxt: Label 'System.String', Locked = true;
-        StrictJSONScalarPatternTxt: Label '^(?:"(?:\\["\\/bfnrt]|\\u[0-9A-Fa-f]{4}|[^"\\\x00-\x1F])*"|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?|true|false|null)$', Locked = true;
 
 #if not CLEAN30
     [Obsolete('Use ReadFromBlobStrict for standard JSON. Json.NET-only syntax is not supported by the strict parser.', '30.0')]
@@ -152,7 +151,7 @@ table 1236 "JSON Buffer"
         if JSONText.Trim() = '' then
             exit;
 
-        if ContainsJSONComment(JSONText) or ContainsUnquotedPropertyName(JSONText) then
+        if not IsStrictJSONDocument(JSONText) then
             Error(InvalidJSONErr);
 
         if not TryReadJSONToken(JSONText, JSONToken) then
@@ -181,8 +180,6 @@ table 1236 "JSON Buffer"
                     JSONToken := JSONArray.AsToken();
                 end;
             else begin
-                if not IsStrictJSONScalar(JSONText) then
-                    exit(false);
                 if not JSONValue.ReadFrom(JSONText) then
                     exit(false);
                 JSONToken := JSONValue.AsToken();
@@ -191,11 +188,218 @@ table 1236 "JSON Buffer"
         exit(true);
     end;
 
-    local procedure IsStrictJSONScalar(JSONText: Text): Boolean
+    // Validates the complete document against the RFC 8259 grammar, because the native parser accepts nonstandard syntax.
+    local procedure IsStrictJSONDocument(var JSONText: Text): Boolean
     var
-        Regex: Codeunit Regex;
+        Position: Integer;
     begin
-        exit(Regex.IsMatch(JSONText.Trim(), StrictJSONScalarPatternTxt));
+        Position := 1;
+        SkipJSONWhitespace(JSONText, Position);
+        if not ScanJSONValue(JSONText, Position) then
+            exit(false);
+        SkipJSONWhitespace(JSONText, Position);
+        exit(Position > StrLen(JSONText));
+    end;
+
+    local procedure ScanJSONValue(var JSONText: Text; var Position: Integer): Boolean
+    begin
+        if Position > StrLen(JSONText) then
+            exit(false);
+
+        case JSONText[Position] of
+            '{':
+                exit(ScanJSONObject(JSONText, Position));
+            '[':
+                exit(ScanJSONArray(JSONText, Position));
+            '"':
+                exit(ScanJSONString(JSONText, Position));
+            't':
+                exit(ScanJSONLiteral(JSONText, Position, 'true'));
+            'f':
+                exit(ScanJSONLiteral(JSONText, Position, 'false'));
+            'n':
+                exit(ScanJSONLiteral(JSONText, Position, 'null'));
+            '-', '0' .. '9':
+                exit(ScanJSONNumber(JSONText, Position));
+        end;
+        exit(false);
+    end;
+
+    local procedure ScanJSONObject(var JSONText: Text; var Position: Integer): Boolean
+    begin
+        Position += 1;
+        SkipJSONWhitespace(JSONText, Position);
+        if IsJSONCharacter(JSONText, Position, '}') then begin
+            Position += 1;
+            exit(true);
+        end;
+
+        repeat
+            if not IsJSONCharacter(JSONText, Position, '"') then
+                exit(false);
+            if not ScanJSONString(JSONText, Position) then
+                exit(false);
+            SkipJSONWhitespace(JSONText, Position);
+            if not IsJSONCharacter(JSONText, Position, ':') then
+                exit(false);
+            Position += 1;
+            SkipJSONWhitespace(JSONText, Position);
+            if not ScanJSONValue(JSONText, Position) then
+                exit(false);
+            SkipJSONWhitespace(JSONText, Position);
+            if IsJSONCharacter(JSONText, Position, '}') then begin
+                Position += 1;
+                exit(true);
+            end;
+            if not IsJSONCharacter(JSONText, Position, ',') then
+                exit(false);
+            Position += 1;
+            SkipJSONWhitespace(JSONText, Position);
+        until false;
+    end;
+
+    local procedure ScanJSONArray(var JSONText: Text; var Position: Integer): Boolean
+    begin
+        Position += 1;
+        SkipJSONWhitespace(JSONText, Position);
+        if IsJSONCharacter(JSONText, Position, ']') then begin
+            Position += 1;
+            exit(true);
+        end;
+
+        repeat
+            if not ScanJSONValue(JSONText, Position) then
+                exit(false);
+            SkipJSONWhitespace(JSONText, Position);
+            if IsJSONCharacter(JSONText, Position, ']') then begin
+                Position += 1;
+                exit(true);
+            end;
+            if not IsJSONCharacter(JSONText, Position, ',') then
+                exit(false);
+            Position += 1;
+            SkipJSONWhitespace(JSONText, Position);
+        until false;
+    end;
+
+    local procedure ScanJSONString(var JSONText: Text; var Position: Integer): Boolean
+    var
+        CharacterCode: Integer;
+        HexDigitIndex: Integer;
+    begin
+        Position += 1;
+        while Position <= StrLen(JSONText) do begin
+            CharacterCode := JSONText[Position];
+            case true of
+                CharacterCode = 34: // "
+                    begin
+                        Position += 1;
+                        exit(true);
+                    end;
+                CharacterCode < 32:
+                    exit(false);
+                CharacterCode = 92: // \
+                    begin
+                        Position += 1;
+                        if Position > StrLen(JSONText) then
+                            exit(false);
+                        if IsJSONCharacter(JSONText, Position, 'u') then begin
+                            for HexDigitIndex := 1 to 4 do begin
+                                Position += 1;
+                                if not IsJSONHexDigit(JSONText, Position) then
+                                    exit(false);
+                            end;
+                        end else
+                            if StrPos('"\/bfnrt', CopyStr(JSONText, Position, 1)) = 0 then
+                                exit(false);
+                    end;
+            end;
+            Position += 1;
+        end;
+        exit(false);
+    end;
+
+    local procedure ScanJSONNumber(var JSONText: Text; var Position: Integer): Boolean
+    begin
+        if IsJSONCharacter(JSONText, Position, '-') then
+            Position += 1;
+
+        if IsJSONCharacter(JSONText, Position, '0') then
+            Position += 1
+        else
+            if not ScanJSONDigits(JSONText, Position) then
+                exit(false);
+
+        if IsJSONCharacter(JSONText, Position, '.') then begin
+            Position += 1;
+            if not ScanJSONDigits(JSONText, Position) then
+                exit(false);
+        end;
+
+        if IsJSONCharacter(JSONText, Position, 'e') or IsJSONCharacter(JSONText, Position, 'E') then begin
+            Position += 1;
+            if IsJSONCharacter(JSONText, Position, '+') or IsJSONCharacter(JSONText, Position, '-') then
+                Position += 1;
+            if not ScanJSONDigits(JSONText, Position) then
+                exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    local procedure ScanJSONDigits(var JSONText: Text; var Position: Integer): Boolean
+    var
+        StartPosition: Integer;
+    begin
+        StartPosition := Position;
+        while IsJSONDigit(JSONText, Position) do
+            Position += 1;
+        exit(Position > StartPosition);
+    end;
+
+    local procedure ScanJSONLiteral(var JSONText: Text; var Position: Integer; Literal: Text): Boolean
+    begin
+        if CopyStr(JSONText, Position, StrLen(Literal)) <> Literal then
+            exit(false);
+        Position += StrLen(Literal);
+        exit(true);
+    end;
+
+    local procedure SkipJSONWhitespace(var JSONText: Text; var Position: Integer)
+    begin
+        while IsJSONWhitespace(JSONText, Position) do
+            Position += 1;
+    end;
+
+    local procedure IsJSONWhitespace(var JSONText: Text; Position: Integer): Boolean
+    var
+        CharacterCode: Integer;
+    begin
+        if Position > StrLen(JSONText) then
+            exit(false);
+        CharacterCode := JSONText[Position];
+        exit(CharacterCode in [9, 10, 13, 32]);
+    end;
+
+    local procedure IsJSONCharacter(var JSONText: Text; Position: Integer; ExpectedCharacter: Char): Boolean
+    begin
+        if Position > StrLen(JSONText) then
+            exit(false);
+        exit(JSONText[Position] = ExpectedCharacter);
+    end;
+
+    local procedure IsJSONDigit(var JSONText: Text; Position: Integer): Boolean
+    begin
+        if Position > StrLen(JSONText) then
+            exit(false);
+        exit(JSONText[Position] in ['0' .. '9']);
+    end;
+
+    local procedure IsJSONHexDigit(var JSONText: Text; Position: Integer): Boolean
+    begin
+        if Position > StrLen(JSONText) then
+            exit(false);
+        exit(JSONText[Position] in ['0' .. '9', 'a' .. 'f', 'A' .. 'F']);
     end;
 
     local procedure ReadJSONToken(JSONToken: JsonToken; TokenDepth: Integer)
@@ -329,91 +533,6 @@ table 1236 "JSON Buffer"
 
         TimeZoneText := CopyStr(ValueText, 20);
         exit(TimeZoneText.Contains('+') or TimeZoneText.Contains('-'));
-    end;
-
-    local procedure ContainsJSONComment(JSONText: Text): Boolean
-    var
-        Character: Text[1];
-        NextCharacter: Text[1];
-        CharacterIndex: Integer;
-        EscapedCharacter: Boolean;
-        InString: Boolean;
-    begin
-        for CharacterIndex := 1 to StrLen(JSONText) do begin
-            Character := CopyStr(JSONText, CharacterIndex, 1);
-            if InString then
-                if EscapedCharacter then
-                    EscapedCharacter := false
-                else
-                    case Character of
-                        '\':
-                            EscapedCharacter := true;
-                        '"':
-                            InString := false;
-                    end
-            else
-                case Character of
-                    '"':
-                        InString := true;
-                    '/':
-                        begin
-                            NextCharacter := CopyStr(JSONText, CharacterIndex + 1, 1);
-                            if (NextCharacter = '/') or (NextCharacter = '*') then
-                                exit(true);
-                        end;
-                end;
-        end;
-    end;
-
-    local procedure ContainsUnquotedPropertyName(JSONText: Text): Boolean
-    var
-        Character: Text[1];
-        ContainerStack: Text;
-        CurrentContainer: Text[1];
-        PreviousCharacter: Text[1];
-        CharacterIndex: Integer;
-        EscapedCharacter: Boolean;
-        InString: Boolean;
-    begin
-        for CharacterIndex := 1 to StrLen(JSONText) do begin
-            Character := CopyStr(JSONText, CharacterIndex, 1);
-            if InString then begin
-                if EscapedCharacter then
-                    EscapedCharacter := false
-                else
-                    case Character of
-                        '\':
-                            EscapedCharacter := true;
-                        '"':
-                            InString := false;
-                    end;
-                continue;
-            end;
-
-            if Character.Trim() = '' then
-                continue;
-
-            Clear(CurrentContainer);
-            if ContainerStack <> '' then
-                CurrentContainer := CopyStr(ContainerStack, StrLen(ContainerStack), 1);
-            if CurrentContainer = '{' then
-                if (PreviousCharacter = '{') or (PreviousCharacter = ',') then
-                    if not (Character in ['"', '}']) then
-                        exit(true);
-
-            case Character of
-                '"':
-                    InString := true;
-                '{',
-                '[':
-                    ContainerStack += Character;
-                '}',
-                ']':
-                    if ContainerStack <> '' then
-                        ContainerStack := DelStr(ContainerStack, StrLen(ContainerStack), 1);
-            end;
-            PreviousCharacter := Character;
-        end;
     end;
 
     procedure FindArray(var TempJSONBuffer: Record "JSON Buffer" temporary; ArrayName: Text): Boolean

@@ -102,6 +102,44 @@ codeunit 134627 "Graph Collect Mgt Item UT"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestConversionUOMToJSONWithMissingGlobalUOM()
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        UnitOfMeasure: Record "Unit of Measure";
+        GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
+        JsonObject: JsonObject;
+        ConversionJsonObject: JsonObject;
+        ConversionJsonToken: JsonToken;
+        ConversionRate: Decimal;
+        ItemUOMJSON: Text;
+    begin
+        // [FEATURE] [Unit of Measure]
+        // [SCENARIO] The conversion is serialized when the global UOM is missing but the item UOM conversion still exists
+        // Setup
+        CreateTestItem(Item);
+        SetSaleUnitOfMeasureDifferentThanBase(Item, UnitOfMeasure);
+        Item.Modify(true);
+        UnitOfMeasure.Delete();
+        ItemUnitOfMeasure.Get(Item."No.", Item."Sales Unit of Measure");
+
+        // Execute
+        ItemUOMJSON := GraphCollectionMgtItem.ItemUnitOfMeasureToJSON(Item, Item."Sales Unit of Measure");
+
+        // Verify
+        Assert.IsTrue(JsonObject.ReadFrom(ItemUOMJSON), 'The UOM JSON must be a valid JSON object');
+        Assert.IsFalse(JsonObject.Contains(GraphCollectionMgtItem.UOMComplexTypeUnitCode()), 'The missing global UOM must not be serialized');
+        Assert.IsTrue(JsonObject.Get(GraphCollectionMgtItem.UOMConversionComplexTypeName(), ConversionJsonToken), 'The UOM conversion must be serialized');
+        ConversionJsonObject := ConversionJsonToken.AsObject();
+        Assert.AreEqual(
+          Item."Base Unit of Measure",
+          ConversionJsonObject.GetText(GraphCollectionMgtItem.UOMConversionComplexTypeToUnitOfMeasure()), 'ToUnitOfMeasure is not as expected');
+        Evaluate(ConversionRate, ConversionJsonObject.GetText(GraphCollectionMgtItem.UOMConversionComplexTypeFromToConversionRate()), 9);
+        Assert.AreEqual(ItemUnitOfMeasure."Qty. per Unit of Measure", ConversionRate, 'ConversionRate is not as expected');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestBlankUOMCodeGeneratesBlankJSON()
     var
         Item: Record Item;

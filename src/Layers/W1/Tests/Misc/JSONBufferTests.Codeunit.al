@@ -419,6 +419,50 @@ codeunit 139210 "JSON Buffer Tests"
         AssertStrictReadFails('undefined');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure RejectNestedNonstandardJSON()
+    begin
+        // [SCENARIO] The strict parser validates the complete document grammar, not only root scalars
+        LibraryLowerPermissions.SetO365Basic();
+
+        AssertStrictReadFails('[010]');
+        AssertStrictReadFails('{"n":01}');
+        AssertStrictReadFails('[1.]');
+        AssertStrictReadFails('[.5]');
+        AssertStrictReadFails('[+1]');
+        AssertStrictReadFails('[1e]');
+        AssertStrictReadFails('[NaN]');
+        AssertStrictReadFails('[Infinity]');
+        AssertStrictReadFails('{"n":''text''}');
+        AssertStrictReadFails('{''n'':"text"}');
+        AssertStrictReadFails('{"n":1,}');
+        AssertStrictReadFails('[1,]');
+        AssertStrictReadFails('[1,,2]');
+        AssertStrictReadFails('{"n" 1}');
+        AssertStrictReadFails('{"n":"\x"}');
+        AssertStrictReadFails('{"n":"\u12G4"}');
+        AssertStrictReadFails('{"n":tru}');
+        AssertStrictReadFails('{"n":1}x');
+        AssertStrictReadFails('{"n":[1}');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReadStandardJSONGrammar()
+    var
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+        PropertyValue: Text;
+    begin
+        // [SCENARIO] The strict parser accepts standard whitespace, escapes and number forms
+        LibraryLowerPermissions.SetO365Basic();
+
+        TempJSONBuffer.ReadFromTextStrict(' { "text" : "a\"\\\/\b\f\n\r\t\u00e9" , "numbers" : [ 0 , -0.5 , 1E+2 , 2e-1 ] } ');
+
+        Assert.IsTrue(TempJSONBuffer.GetPropertyValue(PropertyValue, 'text'), 'The text property was not found');
+        Assert.AreEqual(4, CountTokenType(TempJSONBuffer, TempJSONBuffer."Token type"::Integer) + CountTokenType(TempJSONBuffer, TempJSONBuffer."Token type"::Decimal), 'Not all numbers were read');
+    end;
+
 #if not CLEAN30
     [Test]
     [Scope('OnPrem')]

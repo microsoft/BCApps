@@ -115,7 +115,9 @@ codeunit 5470 "Graph Collection Mgt - Item"
         if not ItemUnitOfMeasure.Get(Item."No.", UnitOfMeasureCode) then
             exit(UnitOfMeasureJSON);
 
-        JsonObject.ReadFrom(UnitOfMeasureJSON);
+        // The global Unit of Measure can be missing while the item-specific conversion still exists.
+        if UnitOfMeasureJSON <> '' then
+            JsonObject.ReadFrom(UnitOfMeasureJSON);
 
         ItemUOMConversionJObject.Add(UOMConversionComplexTypeToUnitOfMeasure(), Item."Base Unit of Measure");
         ItemUOMConversionJObject.Add(UOMConversionComplexTypeFromToConversionRate(), ItemUnitOfMeasure."Qty. per Unit of Measure");
