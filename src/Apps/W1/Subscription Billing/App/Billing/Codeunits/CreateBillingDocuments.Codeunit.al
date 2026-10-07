@@ -360,6 +360,7 @@ codeunit 8060 "Create Billing Documents"
     var
         UsageDataBilling: Record "Usage Data Billing";
         ServiceCommitment: Record "Subscription Line";
+        LineAmount: Decimal;
         UnitPrice: Decimal;
     begin
         if not ServiceCommitment.Get(BillingLine."Subscription Line Entry No.") then
@@ -381,9 +382,14 @@ codeunit 8060 "Create Billing Documents"
 
         UsageDataBilling.SetRange(Quantity);
         UsageDataBilling.CalcSums(Amount);
-        if SalesLine.Quantity <> 0 then
-            UnitPrice := UsageDataBilling.Amount / SalesLine.Quantity
-        else
+        LineAmount := UsageDataBilling.Amount;
+        if SalesLine."Document Type" = SalesLine."Document Type"::"Credit Memo" then
+            LineAmount := -LineAmount;
+        if SalesLine.Quantity <> 0 then begin
+            if (LineAmount < 0) <> (SalesLine.Quantity < 0) then
+                SalesLine.Validate(Quantity, -SalesLine.Quantity);
+            UnitPrice := LineAmount / SalesLine.Quantity;
+        end else
             UnitPrice := UsageDataBilling."Unit Price";
         if SalesHeader."Prices Including VAT" then
             UnitPrice := ToVATInclusiveUnitPrice(UnitPrice, SalesLine."VAT %", SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT", SalesLine."Currency Code");
@@ -480,6 +486,7 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling: Record "Usage Data Billing";
         ServiceCommitment: Record "Subscription Line";
         DirectUnitCost: Decimal;
+        LineAmount: Decimal;
     begin
         if not ServiceCommitment.Get(BillingLine."Subscription Line Entry No.") then
             exit;
@@ -500,9 +507,14 @@ codeunit 8060 "Create Billing Documents"
 
         UsageDataBilling.SetRange(Quantity);
         UsageDataBilling.CalcSums("Cost Amount");
-        if PurchLine.Quantity <> 0 then
-            DirectUnitCost := UsageDataBilling."Cost Amount" / PurchLine.Quantity
-        else
+        LineAmount := UsageDataBilling."Cost Amount";
+        if PurchLine."Document Type" = PurchLine."Document Type"::"Credit Memo" then
+            LineAmount := -LineAmount;
+        if PurchLine.Quantity <> 0 then begin
+            if (LineAmount < 0) <> (PurchLine.Quantity < 0) then
+                PurchLine.Validate(Quantity, -PurchLine.Quantity);
+            DirectUnitCost := LineAmount / PurchLine.Quantity;
+        end else
             DirectUnitCost := 0;
         if PurchaseHeader."Prices Including VAT" then
             DirectUnitCost := ToVATInclusiveUnitPrice(DirectUnitCost, PurchLine."VAT %", PurchLine."VAT Calculation Type" = PurchLine."VAT Calculation Type"::"Full VAT", PurchLine."Currency Code");

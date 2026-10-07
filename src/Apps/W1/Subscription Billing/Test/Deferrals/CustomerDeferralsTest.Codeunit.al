@@ -59,6 +59,8 @@ codeunit 139912 "Customer Deferrals Test"
         LastMonthDefBaseAmount: Decimal;
         MonthlyDefBaseAmount: Decimal;
         CustomerDeferralsCount: Integer;
+        NegativeQtyContractLineNo: Integer;
+        PositiveQtyContractLineNo: Integer;
         PrevGLEntry: Integer;
         TotalNumberOfMonths: Integer;
         IsInitialized: Boolean;
@@ -82,6 +84,12 @@ codeunit 139912 "Customer Deferrals Test"
         DeferralsMissingLineGLAccountErr: Label 'Every deferral entry must carry the G/L account from the contract line.';
         ReleasedAmountNotPostedToLineGLAccountErr: Label 'Releasing the contract deferrals must post to the G/L account selected on the contract line.';
         RevenueNotPostedToLineGLAccountErr: Label 'The revenue must be posted directly to the G/L account selected on the contract line when no contract deferrals are created.';
+        ContractAccountAmountMismatchErr: Label 'The released deferrals must post the revenue of each line with its own sign to the contract account.';
+        DeferralAccountNotClearedErr: Label 'The contract deferral account must net to zero once all deferrals are released.';
+        DeferralsNotOffsetErr: Label 'The credit memo deferrals must offset the invoice deferrals of the same contract line.';
+        NegativeLineDeferralSignErr: Label 'The deferrals of the negative-quantity line must be positive.';
+        PositiveLineDeferralSignErr: Label 'The deferrals of the positive line must be negative.';
+        UnexpectedDocumentTypeErr: Label 'Unexpected type of the created billing document.';
     #region Tests
 
     [Test]
@@ -339,6 +347,124 @@ codeunit 139912 "Customer Deferrals Test"
         SalesInvoiceLine.FindLast();
         CustomerContractDeferral.SetRange("Subscription Contract Line No.", SalesInvoiceLine."Subscription Contract Line No.");
         Assert.RecordIsEmpty(CustomerContractDeferral);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure DeferralsFollowLineSignOnCreditMemoWithNegativeQuantityLine()
+    var
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        // [SCENARIO] A contract credit memo created because the negative-quantity line outweighs the positive line creates deferrals with the sign of each line, and releasing them posts matching G/L entries
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] Customer contract with a positive line and a negative-quantity line with a higher Calculation Base Amount
+        CreateCustomerContractWithPositiveAndNegativeQuantityLines(2);
+
+        // [WHEN] The contract billing document is created and posted
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+        Assert.AreEqual(SalesHeader."Document Type"::"Credit Memo", SalesHeader."Document Type", UnexpectedDocumentTypeErr);
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The positive line has negative deferrals and the negative-quantity line has positive deferrals
+        VerifyCustomerDeferralSignsPerContractLine(PostedDocumentNo);
+
+        // [WHEN] All deferrals of the credit memo are released
+        ReleaseCustomerContractDeferralsOfDocument(PostedDocumentNo);
+
+        // [THEN] The deferral account is cleared and the contract account carries the revenue of both lines with their sign
+        SalesCrMemoLine.SetRange("Document No.", PostedDocumentNo);
+        SalesCrMemoLine.CalcSums(Amount);
+        VerifyCustomerDeferralGLEntries(PostedDocumentNo, SalesCrMemoLine.Amount);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure DeferralsFollowLineSignOnInvoiceWithNegativeQuantityLine()
+    begin
+        // [SCENARIO] A contract invoice with a positive and a negative-quantity line creates deferrals with the sign of each line, and releasing them posts matching G/L entries
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] Customer contract with a positive line and a negative-quantity line with a lower Calculation Base Amount
+        CreateCustomerContractWithPositiveAndNegativeQuantityLines(0.5);
+
+        // [WHEN] The contract invoice is created and posted
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+        Assert.AreEqual(SalesHeader."Document Type"::Invoice, SalesHeader."Document Type", UnexpectedDocumentTypeErr);
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The positive line has negative deferrals and the negative-quantity line has positive deferrals
+        VerifyCustomerDeferralSignsPerContractLine(PostedDocumentNo);
+
+        // [WHEN] All deferrals of the invoice are released
+        ReleaseCustomerContractDeferralsOfDocument(PostedDocumentNo);
+
+        // [THEN] The deferral account is cleared and the contract account carries the revenue of both lines with their sign
+        SalesInvoiceLine.SetRange("Document No.", PostedDocumentNo);
+        SalesInvoiceLine.CalcSums(Amount);
+        VerifyCustomerDeferralGLEntries(PostedDocumentNo, -SalesInvoiceLine.Amount);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure DeferralsOfCopiedCreditMemoOffsetInvoiceWithNegativeQuantityLine()
+    begin
+        // [SCENARIO] A credit memo copied from a posted contract invoice with a negative-quantity line, posted without a link to the invoice, creates deferrals that offset the invoice deferrals line by line
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] Posted contract invoice for a positive line and a negative-quantity line
+        CreateCustomerContractWithPositiveAndNegativeQuantityLines(0.5);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        PostSalesDocumentAndGetSalesInvoice();
+
+        // [WHEN] A credit memo copied from the posted invoice is posted without Applies-to Doc. No.
+        CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
+        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::" ";
+        SalesCrMemoHeader."Applies-to Doc. No." := '';
+        SalesCrMemoHeader.Modify(false);
+        ClearCorrectionDocumentNoFromBillingLines(SalesCrMemoHeader."No.");
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        CorrectedDocumentNo := LibrarySales.PostSalesDocument(SalesCrMemoHeader, true, true);
+
+        // [THEN] Invoice and credit memo deferrals net to zero for each contract line
+        VerifyCustomerDeferralsOffsetPerContractLine(PostedDocumentNo, CorrectedDocumentNo);
+
+        // [WHEN] All deferrals of both documents are released
+        ReleaseCustomerContractDeferralsOfDocument(PostedDocumentNo + '|' + CorrectedDocumentNo);
+
+        // [THEN] Both the deferral account and the contract account net to zero for the two documents
+        VerifyCustomerDeferralGLEntries(PostedDocumentNo + '|' + CorrectedDocumentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure DeferralsOfCorrectiveCreditMemoOffsetInvoiceWithNegativeQuantityLine()
+    begin
+        // [SCENARIO] A corrective credit memo for a posted contract invoice with a negative-quantity line reverses the invoice deferrals line by line
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] Posted contract invoice for a positive line and a negative-quantity line
+        CreateCustomerContractWithPositiveAndNegativeQuantityLines(0.5);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        PostSalesDocumentAndGetSalesInvoice();
+
+        // [WHEN] The corrective credit memo is posted
+        ContractTestLibrary.ResetPostingNoSeriesDateUsage();
+        PostSalesCreditMemo();
+
+        // [THEN] Invoice and credit memo deferrals net to zero for each contract line
+        VerifyCustomerDeferralsOffsetPerContractLine(PostedDocumentNo, CorrectedDocumentNo);
+
+        // [THEN] Both the deferral account and the contract account net to zero for the two documents
+        VerifyCustomerDeferralGLEntries(PostedDocumentNo + '|' + CorrectedDocumentNo, 0);
     end;
 
     [Test]
@@ -1349,6 +1475,39 @@ codeunit 139912 "Customer Deferrals Test"
         end;
     end;
 
+    local procedure CreateCustomerContractWithPositiveAndNegativeQuantityLines(NegativeLineCalculationBaseFactor: Decimal)
+    var
+        NegativeQtyServiceObject: Record "Subscription Header";
+        SubscriptionLine: Record "Subscription Line";
+        TempSubscriptionLine: Record "Subscription Line" temporary;
+        CalculationBaseAmount: Decimal;
+    begin
+        CreateCustomerContractWithDeferrals('<2M-CM>', true);
+        SubscriptionLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        SubscriptionLine.SetRange(Partner, SubscriptionLine.Partner::Customer);
+        SubscriptionLine.FindFirst();
+        CalculationBaseAmount := SubscriptionLine."Calculation Base Amount";
+        PositiveQtyContractLineNo := SubscriptionLine."Subscription Contract Line No.";
+
+        ContractTestLibrary.CreateServiceObjectForItem(NegativeQtyServiceObject, Item."No.");
+        // Quantity validation rejects negative values; such subscriptions exist from contract extensions made before the Extend Contract page enforced it
+        NegativeQtyServiceObject.Quantity := -1;
+        NegativeQtyServiceObject.SetHideValidationDialog(true);
+        NegativeQtyServiceObject.Validate("End-User Customer No.", Customer."No.");
+        NegativeQtyServiceObject.Modify(false);
+        NegativeQtyServiceObject.InsertServiceCommitmentsFromServCommPackage(CalcDate('<2M-CM>', WorkDate()), ServiceCommitmentPackage);
+
+        SubscriptionLine.SetRange("Subscription Header No.", NegativeQtyServiceObject."No.");
+        SubscriptionLine.FindFirst();
+        SubscriptionLine.Validate("Calculation Base Amount", Round(CalculationBaseAmount * NegativeLineCalculationBaseFactor, GLSetup."Amount Rounding Precision"));
+        SubscriptionLine.Modify(false);
+
+        ContractTestLibrary.FillTempServiceCommitment(TempSubscriptionLine, NegativeQtyServiceObject, CustomerContract);
+        CustomerContract.CreateCustomerContractLinesFromServiceCommitments(TempSubscriptionLine);
+        SubscriptionLine.Get(SubscriptionLine."Entry No.");
+        NegativeQtyContractLineNo := SubscriptionLine."Subscription Contract Line No.";
+    end;
+
     local procedure CreateSalesDocumentsFromCustomerContractWODeferrals()
     var
         SubscriptionLine: Record "Subscription Line";
@@ -1496,6 +1655,19 @@ codeunit 139912 "Customer Deferrals Test"
         SalesInvoiceHeader.Get(PostedDocumentNo);
     end;
 
+    local procedure ReleaseCustomerContractDeferralsOfDocument(DocumentNoFilter: Text)
+    var
+        DocumentDeferral: Record "Cust. Sub. Contract Deferral";
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+    begin
+        DocumentDeferral.SetFilter("Document No.", DocumentNoFilter);
+        DocumentDeferral.SetCurrentKey("Posting Date");
+        DocumentDeferral.FindLast();
+        PostingDate := DocumentDeferral."Posting Date";
+        Commit(); // close transaction before report is called
+        ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
+    end;
+
     local procedure SetPostingAllowTo(PostingTo: Date)
     begin
         if UserSetup.Get(UserId) then begin
@@ -1543,6 +1715,55 @@ codeunit 139912 "Customer Deferrals Test"
     begin
         DeferralsToTest.TestField("Release Posting Date", DocumentPostingDate);
         DeferralsToTest.TestField(Released, true);
+    end;
+
+    local procedure VerifyCustomerDeferralGLEntries(DocumentNoFilter: Text; ExpectedContractAccountAmount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
+        GLEntry.SetFilter("Document No.", DocumentNoFilter);
+        GLEntry.SetRange("G/L Account No.", GeneralPostingSetup."Cust. Sub. Contr. Def Account");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, DeferralAccountNotClearedErr);
+        GLEntry.SetRange("G/L Account No.", GeneralPostingSetup."Cust. Sub. Contract Account");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(ExpectedContractAccountAmount, GLEntry.Amount, ContractAccountAmountMismatchErr);
+    end;
+
+    local procedure VerifyCustomerDeferralSignsPerContractLine(DocumentNo: Code[20])
+    var
+        DocumentDeferral: Record "Cust. Sub. Contract Deferral";
+    begin
+        DocumentDeferral.SetRange("Document No.", DocumentNo);
+        DocumentDeferral.SetRange("Subscription Contract Line No.", PositiveQtyContractLineNo);
+        Assert.RecordIsNotEmpty(DocumentDeferral);
+        DocumentDeferral.SetFilter(Amount, '>=0');
+        Assert.IsTrue(DocumentDeferral.IsEmpty(), PositiveLineDeferralSignErr);
+
+        DocumentDeferral.SetRange(Amount);
+        DocumentDeferral.SetRange("Subscription Contract Line No.", NegativeQtyContractLineNo);
+        Assert.RecordIsNotEmpty(DocumentDeferral);
+        DocumentDeferral.SetFilter(Amount, '<=0');
+        Assert.IsTrue(DocumentDeferral.IsEmpty(), NegativeLineDeferralSignErr);
+    end;
+
+    local procedure VerifyCustomerDeferralsOffsetForContractLine(InvoiceNo: Code[20]; CreditMemoNo: Code[20]; ContractLineNo: Integer)
+    var
+        DocumentDeferral: Record "Cust. Sub. Contract Deferral";
+    begin
+        DocumentDeferral.SetRange("Subscription Contract Line No.", ContractLineNo);
+        DocumentDeferral.SetRange("Document No.", CreditMemoNo);
+        Assert.RecordIsNotEmpty(DocumentDeferral);
+        DocumentDeferral.SetFilter("Document No.", '%1|%2', InvoiceNo, CreditMemoNo);
+        DocumentDeferral.CalcSums(Amount);
+        Assert.AreEqual(0, DocumentDeferral.Amount, DeferralsNotOffsetErr);
+    end;
+
+    local procedure VerifyCustomerDeferralsOffsetPerContractLine(InvoiceNo: Code[20]; CreditMemoNo: Code[20])
+    begin
+        VerifyCustomerDeferralsOffsetForContractLine(InvoiceNo, CreditMemoNo, PositiveQtyContractLineNo);
+        VerifyCustomerDeferralsOffsetForContractLine(InvoiceNo, CreditMemoNo, NegativeQtyContractLineNo);
     end;
 
     #endregion Procedures

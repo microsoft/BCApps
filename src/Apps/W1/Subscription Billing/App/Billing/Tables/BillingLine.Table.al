@@ -492,15 +492,9 @@ table 8061 "Billing Line"
 
     internal procedure GetSign(IsCreditMemo: Boolean): Integer
     begin
-        if Rec.Discount then begin
-            if IsCreditMemo then
-                exit(1);
-            exit(-1);
-        end else begin
-            if IsCreditMemo then
-                exit(-1);
+        if Rec.Discount = IsCreditMemo then
             exit(1);
-        end;
+        exit(-1);
     end;
 
     internal procedure GetCorrectionDocumentNo(ServicePartner: Enum "Service Partner"; DocumentNo: Code[20]): Code[20]

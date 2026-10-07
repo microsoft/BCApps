@@ -430,7 +430,8 @@ codeunit 148152 "Extend Contract Test"
         asserterror ExtendContract.Quantity.SetValue(-LibraryRandom.RandDecInRange(1, 100, 2));
 
         // [THEN] An error is raised and the negative value is rejected
-        Assert.ExpectedError('-');
+        Assert.ExpectedError('The value must be greater than or equal to 0.');
+        Assert.ExpectedErrorCode('TestValidation');
         ExtendContract.Close();
     end;
 
@@ -456,7 +457,13 @@ codeunit 148152 "Extend Contract Test"
         ExtendContract.CustomerContractNo.SetValue(CustomerContract."No.");
         ExtendContract.ItemNo.SetValue(Item."No.");
 
-        // [WHEN] A non-negative Quantity is entered
+        // [WHEN] A Quantity of 0 is entered
+        ExtendContract.Quantity.SetValue(0);
+
+        // [THEN] The value is accepted
+        ExtendContract.Quantity.AssertEquals(0);
+
+        // [WHEN] A positive Quantity is entered
         Qty := LibraryRandom.RandDecInRange(1, 100, 2);
         ExtendContract.Quantity.SetValue(Qty);
 
