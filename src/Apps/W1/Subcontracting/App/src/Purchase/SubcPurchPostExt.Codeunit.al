@@ -37,6 +37,12 @@ codeunit 20535 "Subc. Purch. Post Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purch. Rcpt. Line", OnBeforeInsertInvLineFromRcptLine, '', false, false)]
     local procedure BlockTrackedSubcontractingReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var PurchLine: Record "Purchase Line"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
         if not PurchRcptLineIsLastOperation(PurchRcptLine) then
@@ -280,6 +286,12 @@ codeunit 20535 "Subc. Purch. Post Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeGetPurchRcptLineFromTrackingOrUpdateItemEntryRelation, '', false, false)]
     local procedure UseSubcontractingOutputApplicationForTrackedReceipt(var PurchRcptLine: Record "Purch. Rcpt. Line"; var TrackingSpecification: Record "Tracking Specification"; var ItemEntryRelation: Record "Item Entry Relation"; var IsHandled: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not PurchRcptLineHasProdOrder(PurchRcptLine) or not ItemIsTracked(PurchRcptLine."No.") then
             exit;
         if not PurchRcptLineIsLastOperation(PurchRcptLine) then
@@ -341,6 +353,12 @@ codeunit 20535 "Subc. Purch. Post Ext"
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if IsHandled then
             exit;
         if ValueEntry."Entry Type" <> ValueEntry."Entry Type"::"Direct Cost" then
@@ -365,6 +383,12 @@ codeunit 20535 "Subc. Purch. Post Ext"
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not ItemLedgerEntry.Get(ItemJournalLine."Item Shpt. Entry No.") then
             exit;
         if not SetTrackedSubcontractingCapacityEntryFilters(CapacityLedgerEntry, ItemLedgerEntry, ItemJournalLine) then
