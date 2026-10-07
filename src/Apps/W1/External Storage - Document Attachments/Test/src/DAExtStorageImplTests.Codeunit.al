@@ -101,8 +101,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure RetireUploadedExternalReferenceKeepsInternalContent()
     var
         DocumentAttachment: Record "Document Attachment";
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         OriginalDocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Result: Boolean;
     begin
         // [SCENARIO] Verified local retirement removes only external metadata and keeps both local and remote bytes.
@@ -404,7 +404,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [WHEN] The Document Attachment row is deleted (fires OnAfterDeleteEvent)
         DocumentAttachment.Delete(true);
 
-        Assert.IsFalse(DocumentAttachment.Find(), 'The attachment row must still be deleted');
+        Assert.IsTrue(DocumentAttachment.IsEmpty(), 'The attachment row must still be deleted');
         Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Lone external files must also be retained');
     end;
 
@@ -1145,9 +1145,9 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         CopiedDocumentAttachment: Record "Document Attachment";
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         OriginalDocumentAttachment: Record "Document Attachment";
         OriginalCopiedDocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         ExternalFilePath: Text;
     begin
         // [SCENARIO] Explicit deletion keeps both shared references and the external file.
@@ -1227,8 +1227,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure ForeignExternalReferenceKeepsMetadata()
     var
         DocumentAttachment: Record "Document Attachment";
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         OriginalDocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
         // [SCENARIO] Explicit foreign deletion retains both file and reference metadata.
         Initialize();
@@ -1252,8 +1252,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         CopiedDocumentAttachment: Record "Document Attachment";
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         OriginalDocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
         // [SCENARIO] Failed retrieval is not permission to delete a shared file.
         Initialize();
