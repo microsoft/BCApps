@@ -13,12 +13,12 @@ using Microsoft.Purchases.Setup;
 #if not CLEAN30
 using System.Environment.Configuration;
 #endif
-using System.TestLibraries.Utilities;
 #if CLEAN30
 #if not CLEANSCHEMA33
 using System.TestLibraries.Upgrade;
 #endif
 #endif
+using System.TestLibraries.Utilities;
 using System.Upgrade;
 
 codeunit 148163 "Depr. Diff. Calculation FI"
