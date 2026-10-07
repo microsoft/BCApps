@@ -18,7 +18,7 @@
     and normalized to "W1" internally, which is the identifier used in
     groups.json and projects.json.
 .PARAMETER Validate
-    Validates that all country settings are up to date without making changes.
+    Validates that all country settings are up to date, including path casing, without making changes.
     Returns $true if all settings are correct, $false if updates are needed.
     Use this in CI/PR validation workflows.
 .PARAMETER WhatIf
@@ -213,8 +213,8 @@ function Update-CountrySettings {
     $newTestFolders = $apps.TestFolders
 
     # Check if changes are needed
-    $appFoldersChanged = (Compare-Object $currentAppFolders $newAppFolders -SyncWindow 0) -ne $null
-    $testFoldersChanged = (Compare-Object $currentTestFolders $newTestFolders -SyncWindow 0) -ne $null
+    $appFoldersChanged = (Compare-Object $currentAppFolders $newAppFolders -SyncWindow 0 -CaseSensitive) -ne $null
+    $testFoldersChanged = (Compare-Object $currentTestFolders $newTestFolders -SyncWindow 0 -CaseSensitive) -ne $null
 
     if (-not $appFoldersChanged -and -not $testFoldersChanged) {
         Write-Host "  No changes needed for $Country" -ForegroundColor Green
@@ -229,8 +229,8 @@ function Update-CountrySettings {
     $showDetails = $Validate -or ($WhatIfPreference -eq $true) -or ($VerbosePreference -eq 'Continue')
 
     if ($appFoldersChanged) {
-        $added = $newAppFolders | Where-Object { $currentAppFolders -notcontains $_ }
-        $removed = $currentAppFolders | Where-Object { $newAppFolders -notcontains $_ }
+        $added = $newAppFolders | Where-Object { $currentAppFolders -cnotcontains $_ }
+        $removed = $currentAppFolders | Where-Object { $newAppFolders -cnotcontains $_ }
         if ($added) {
             Write-Host "  AppFolders to add: $($added.Count)" -ForegroundColor Yellow
             if ($showDetails) {
@@ -246,8 +246,8 @@ function Update-CountrySettings {
     }
 
     if ($testFoldersChanged) {
-        $added = $newTestFolders | Where-Object { $currentTestFolders -notcontains $_ }
-        $removed = $currentTestFolders | Where-Object { $newTestFolders -notcontains $_ }
+        $added = $newTestFolders | Where-Object { $currentTestFolders -cnotcontains $_ }
+        $removed = $currentTestFolders | Where-Object { $newTestFolders -cnotcontains $_ }
         if ($added) {
             Write-Host "  TestFolders to add: $($added.Count)" -ForegroundColor Yellow
             if ($showDetails) {

@@ -3066,7 +3066,7 @@
       "owningteam": "\\AI Business Solutions\\Finance"
     },
     "OnPrem Permissions": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\Onprem Permissions\\app",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\OnPrem Permissions\\app",
       "dvdFolder": "Applications\\Onprem Permissions\\Source",
       "hasTranslations": true,
       "installOnEnvironmentUpdate": true,
@@ -3077,7 +3077,7 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "OnPrem Permissions Tests": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\Onprem Permissions\\test",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\OnPrem Permissions\\test",
       "dvdFolder": "Applications\\Onprem Permissions\\Test",
       "hasTranslations": true,
       "supportedCountries": "All",
@@ -3605,7 +3605,7 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "External Storage - Document Attachments": {
-      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\External Storage - Document Attachments\\App",
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\External Storage - Document Attachments\\app",
       "dvdFolder": "Applications\\External Storage - Document Attachments\\Source",
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
@@ -5812,7 +5812,7 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "PEPPOL BE": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\BE\\PEPPOLBE\\App",
+      "projectPath": "$env:INETROOT\\App\\Apps\\BE\\PeppolBE\\App",
       "dvdFolder": "Applications\\PEPPOL\\Source",
       "hasTranslations": true,
       "installOnEnvironmentUpdate": true,
@@ -6324,7 +6324,7 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "E-Document Connector - Continia": {
-      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\EDocumentConnectors\\Continia\\app",
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\EDocumentConnectors\\Continia\\App",
       "dvdFolder": "Applications\\EDocumentConnectors\\Continia\\Source",
       "hasTranslations": true,
       "supportedCountries": "All",
@@ -6334,7 +6334,7 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "E-Document Connector - Continia Tests": {
-      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\EDocumentConnectors\\Continia\\test",
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\EDocumentConnectors\\Continia\\Test",
       "dvdFolder": "Applications\\EDocumentConnectors\\Continia\\Test",
       "supportedCountries": "All",
       "isTest": true,
@@ -6354,7 +6354,7 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "E-Document Connector - ForNAV Tests": {
-      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\EDocumentConnectors\\ForNav\\Test",
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\EDocumentConnectors\\ForNAV\\Test",
       "dvdFolder": "Applications\\EDocumentConnectors\\ForNav\\Test",
       "supportedCountries": "All",
       "isTest": true,
@@ -6957,7 +6957,7 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "Withholding Tax Tests": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\WithholdingTax\\test",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\WithholdingTax\\Test",
       "supportedCountries": [
         "AT",
         "BE",
