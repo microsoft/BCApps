@@ -108,6 +108,98 @@ codeunit 18131 "GST On Purchase Tests"
 
     [Test]
     [HandlerFunctions('TaxRatePageHandler')]
+    procedure UpdateQtyToInvoiceAfterPartialReceiptForImportPurchaseOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GSTGroupType: Enum "GST Group Type";
+        GSTVendorType: Enum "GST Vendor Type";
+        DocumentType: Enum "Purchase Document Type";
+        LineType: Enum "Purchase Line Type";
+        QtyToReceive: Decimal;
+    begin
+        // [SCENARIO] Qty. to Invoice is limited to the received quantity when an import purchase order is initialized.
+
+        // [GIVEN] An import purchase order with custom duty is partially received.
+        InitializeShareStep(true, false, false);
+        CreateGSTSetup(GSTVendorType::Import, GSTGroupType::Goods, false, true);
+        SetupCustomDutyComponent();
+        Storage.Set(NoOfLineLbl, '1');
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, LineType::Item, DocumentType::Order);
+        QtyToReceive := PurchaseLine.Quantity / 2;
+        PurchaseLine.Validate("Qty. to Receive", QtyToReceive);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Quantities are initialized for the remaining purchase order.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.InitQtyToReceive2();
+
+        // [THEN] Only the received quantity is selected for invoicing and GST calculation.
+        LibraryAssert.AreEqual(
+            PurchaseLine."Qty. Rcd. Not Invoiced",
+            PurchaseLine."Qty. to Invoice",
+            'Qty. to Invoice must equal Qty. Rcd. Not Invoiced.');
+        LibraryAssert.AreEqual(
+            PurchaseLine."Qty. Rcd. Not Invoiced (Base)",
+            PurchaseLine."Qty. to Invoice (Base)",
+            'Qty. to Invoice (Base) must equal Qty. Rcd. Not Invoiced (Base).');
+    end;
+
+    [Test]
+    [HandlerFunctions('TaxRatePageHandler,ConfirmationHandler')]
+    procedure UpdateQtyToInvoiceAfterUndoReceiptForImportPurchaseOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        GSTGroupType: Enum "GST Group Type";
+        GSTVendorType: Enum "GST Vendor Type";
+        DocumentType: Enum "Purchase Document Type";
+        LineType: Enum "Purchase Line Type";
+        QtyToReceive: Decimal;
+    begin
+        // [SCENARIO] Qty. to Invoice is updated after undoing the latest receipt of an import purchase order.
+
+        // [GIVEN] An import purchase order with custom duty is received in two postings.
+        InitializeShareStep(true, false, false);
+        CreateGSTSetup(GSTVendorType::Import, GSTGroupType::Goods, false, true);
+        SetupCustomDutyComponent();
+        Storage.Set(NoOfLineLbl, '1');
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, LineType::Item, DocumentType::Order);
+        QtyToReceive := PurchaseLine.Quantity / 2;
+        PurchaseLine.Validate("Qty. to Receive", QtyToReceive);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", PurchaseLine."Outstanding Quantity");
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseLine."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.SetRange(Correction, false);
+        PurchRcptLine.FindLast();
+
+        // [WHEN] The latest purchase receipt is undone.
+        LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
+
+        // [THEN] Only the quantity from the remaining receipt is selected for invoicing and GST calculation.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        LibraryAssert.AreEqual(
+            PurchaseLine."Qty. Rcd. Not Invoiced",
+            PurchaseLine."Qty. to Invoice",
+            'Qty. to Invoice must equal Qty. Rcd. Not Invoiced after undoing a receipt.');
+        LibraryAssert.AreEqual(
+            PurchaseLine."Qty. Rcd. Not Invoiced (Base)",
+            PurchaseLine."Qty. to Invoice (Base)",
+            'Qty. to Invoice (Base) must equal Qty. Rcd. Not Invoiced (Base) after undoing a receipt.');
+    end;
+
+    [Test]
+    [HandlerFunctions('TaxRatePageHandler')]
     procedure PostFromIntraStatePurchInvServicesForRegVendorWithAdvPayment()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1769,6 +1861,20 @@ codeunit 18131 "GST On Purchase Tests"
         PostedPurchInvoice.CancelInvoice.Invoke();
     end;
 
+    local procedure SetupCustomDutyComponent()
+    var
+        GSTSetup: Record "GST Setup";
+        TaxComponent: Record "Tax Component";
+        CustomDutyComponentLbl: Label 'Custom Duty', Locked = true;
+    begin
+        GSTSetup.Get();
+        GSTSetup.TestField("GST Tax Type");
+        LibraryGST.CreateGSTComponent(TaxComponent, CustomDutyComponentLbl);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Custom Duty Component Code", TaxComponent.Name);
+        GeneralLedgerSetup.Modify(true);
+    end;
+
     local procedure InitializeShareStep(InputCreditAvailment: Boolean; Exempted: Boolean; LineDiscount: Boolean)
     begin
         StorageBoolean.Set(InputCreditAvailmentLbl, InputCreditAvailment);
@@ -2077,38 +2183,38 @@ codeunit 18131 "GST On Purchase Tests"
                     LibraryERM.CreateBankAccount(BankAccount);
                     Storage.Set(AccountNoLbl, BankAccount."No.");
                     Storage.Set(AccountTypeLbl, Format(AccountType::"Bank Account"));
-                    CreateVoucherAccountSetup(Type, LocationCode);
+                    //CreateVoucherAccountSetup(Type, LocationCode);
                 end;
             Type::"Contra Voucher", Type::"Cash Receipt Voucher":
                 begin
                     LibraryERM.CreateGLAccount(GLAccount);
                     Storage.Set(AccountNoLbl, GLAccount."No.");
                     Storage.Set(AccountTypeLbl, Format(AccountType::"G/L Account"));
-                    CreateVoucherAccountSetup(Type, LocationCode);
+                    // CreateVoucherAccountSetup(Type, LocationCode);
                 end;
         end;
     end;
 
-    local procedure CreateVoucherAccountSetup(SubType: Enum "Gen. Journal Template Type"; LocationCode: Code[10])
-    var
-        TaxBaseTestPublishers: Codeunit "Tax Base Test Publishers";
-        TransactionDirection: Option " ",Debit,Credit,Both;
-        AccountNo: Code[20];
-    begin
-        AccountNo := CopyStr(Storage.Get(AccountNoLbl), 1, MaxStrLen(AccountNo));
-        case SubType of
-            SubType::"Bank Payment Voucher", SubType::"Cash Payment Voucher", SubType::"Contra Voucher":
-                begin
-                    TaxBaseTestPublishers.InsertJournalVoucherPostingSetupWithLocationCode(SubType, LocationCode, TransactionDirection::Credit);
-                    TaxBaseTestPublishers.InsertVoucherCreditAccountNoWithLocationCode(SubType, LocationCode, AccountNo);
-                end;
-            SubType::"Cash Receipt Voucher", SubType::"Bank Receipt Voucher", SubType::"Journal Voucher":
-                begin
-                    TaxBaseTestPublishers.InsertJournalVoucherPostingSetupWithLocationCode(SubType, LocationCode, TransactionDirection::Debit);
-                    TaxBaseTestPublishers.InsertVoucherDebitAccountNoWithLocationCode(SubType, LocationCode, AccountNo);
-                end;
-        end;
-    end;
+    // local procedure CreateVoucherAccountSetup(SubType: Enum "Gen. Journal Template Type"; LocationCode: Code[10])
+    // var
+    //     TaxBaseTestPublishers: Codeunit "Tax Base Test Publishers";
+    //     TransactionDirection: Option " ",Debit,Credit,Both;
+    //     AccountNo: Code[20];
+    // begin
+    //     AccountNo := CopyStr(Storage.Get(AccountNoLbl), 1, MaxStrLen(AccountNo));
+    //     case SubType of
+    //         SubType::"Bank Payment Voucher", SubType::"Cash Payment Voucher", SubType::"Contra Voucher":
+    //             begin
+    //                 TaxBaseTestPublishers.InsertJournalVoucherPostingSetupWithLocationCode(SubType, LocationCode, TransactionDirection::Credit);
+    //                 TaxBaseTestPublishers.InsertVoucherCreditAccountNoWithLocationCode(SubType, LocationCode, AccountNo);
+    //             end;
+    //         SubType::"Cash Receipt Voucher", SubType::"Bank Receipt Voucher", SubType::"Journal Voucher":
+    //             begin
+    //                 TaxBaseTestPublishers.InsertJournalVoucherPostingSetupWithLocationCode(SubType, LocationCode, TransactionDirection::Debit);
+    //                 TaxBaseTestPublishers.InsertVoucherDebitAccountNoWithLocationCode(SubType, LocationCode, AccountNo);
+    //             end;
+    //     end;
+    // end;
 
     local procedure CreateAndPostPurchaseDocument(
         var PurchaseHeader: Record "Purchase Header";
