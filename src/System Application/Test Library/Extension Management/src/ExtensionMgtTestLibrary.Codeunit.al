@@ -9,8 +9,6 @@ using System.Apps;
 
 codeunit 135109 "Extension Mgt. Test Library"
 {
-    EventSubscriberInstance = Manual;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Extension Installation Impl", OnCanManageExtensions, '', false, false)]
     local procedure AuthorizeTestSession(var Result: Boolean)
     begin
