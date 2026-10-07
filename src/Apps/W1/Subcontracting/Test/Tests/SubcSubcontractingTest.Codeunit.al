@@ -3096,6 +3096,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [GIVEN] A posted ordinary transfer shipment
         CreateAndPostOrdinaryTransferShipment(TransferShipmentHeader);
+        Commit();
 
         // [WHEN] The standard transfer shipment report is run
         TransferShipmentHeader.SetRecFilter();

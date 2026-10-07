@@ -1747,16 +1747,26 @@ Fields!SubcPurchaseOrderNo.Value)</Hidden>
               </Style>
             </Textbox>
             <Textbox Name="SubcontractingDetails">
-              <CanGrow>true</CanGrow>
+              <CanGrow>false</CanGrow>
               <KeepTogether>true</KeepTogether>
               <Paragraphs>
                 <Paragraph>
                   <TextRuns>
                     <TextRun>
-                      <Value>=IIf(Code.GetData(23) = "", "", Code.GetData(24) + " " + Code.GetData(23) + vbCrLf + Code.GetData(35) + " " + Code.GetData(36))</Value>
+                      <Value>=IIf(Code.GetData(23) = "", "", Code.GetData(24) + " " + Code.GetData(23) + vbCrLf +
+Code.GetData(25) + " " + Code.GetData(26) + vbCrLf +
+Code.GetData(27) +
+IIf(Code.GetData(28) = "", "", ", " + Code.GetData(28)) +
+IIf(Code.GetData(29) = "", "", ", " + Code.GetData(29)) +
+IIf(Code.GetData(30) = "", "", " " + Code.GetData(30)) +
+IIf(Code.GetData(31) = "", "", ", " + Code.GetData(31)) +
+IIf(Code.GetData(32) = "", "", ", " + Code.GetData(32)) +
+IIf(Code.GetData(33) = "", "", ", " + Code.GetData(33)) +
+IIf(Code.GetData(34) = "", "", ", " + Code.GetData(34)) + vbCrLf +
+Code.GetData(35) + " " + Code.GetData(36))</Value>
                       <Style>
                         <FontFamily>Segoe UI</FontFamily>
-                        <FontSize>8pt</FontSize>
+                        <FontSize>7pt</FontSize>
                       </Style>
                     </TextRun>
                   </TextRuns>
@@ -1765,9 +1775,9 @@ Fields!SubcPurchaseOrderNo.Value)</Hidden>
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>95pt</Top>
-              <Height>26pt</Height>
-              <Width>6.6cm</Width>
+              <Top>94pt</Top>
+              <Height>42.5pt</Height>
+              <Width>11.5cm</Width>
               <ZIndex>28</ZIndex>
               <Visibility>
                 <Hidden>=IIf(Code.GetData(23) = "", True, False)</Hidden>
@@ -1881,14 +1891,32 @@ Fields!SubcPurchaseOrderNo.Value)</Hidden>
     </ReportSection>
   </ReportSections>
   <ReportParameters>
-    <ReportParameter Name="InTransitCode_TransShptHeaderCaption">
+    <ReportParameter Name="PostingDateCaption">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>InTransitCode_TransShptHeaderCaption</Value>
+          <Value>PostingDateCaption</Value>
         </Values>
       </DefaultValue>
-      <Prompt>InTransitCode_TransShptHeaderCaption</Prompt>
+      <Prompt>PostingDateCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ShptMethodCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ShptMethodCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ShptMethodCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InTransit_TransShptHeaderCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InTransit_TransShptHeaderCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InTransit_TransShptHeaderCaption</Prompt>
     </ReportParameter>
     <ReportParameter Name="ItemNo_TransShptLineCaption">
       <DataType>String</DataType>
@@ -1930,31 +1958,41 @@ Fields!SubcPurchaseOrderNo.Value)</Hidden>
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>5</NumberOfRows>
+      <NumberOfRows>7</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>0</RowIndex>
-          <ParameterName>InTransitCode_TransShptHeaderCaption</ParameterName>
+          <ParameterName>PostingDateCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>1</RowIndex>
-          <ParameterName>ItemNo_TransShptLineCaption</ParameterName>
+          <ParameterName>ShptMethodCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>2</RowIndex>
-          <ParameterName>Desc_TransShptLineCaption</ParameterName>
+          <ParameterName>InTransit_TransShptHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>3</RowIndex>
-          <ParameterName>Qty_TransShptLineCaption</ParameterName>
+          <ParameterName>ItemNo_TransShptLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>4</RowIndex>
+          <ParameterName>Desc_TransShptLineCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>5</RowIndex>
+          <ParameterName>Qty_TransShptLineCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>6</RowIndex>
           <ParameterName>UOM_TransShptLineCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
