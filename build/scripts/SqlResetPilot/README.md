@@ -39,11 +39,14 @@ PowerShell 7, four tenants, original password-file authentication and company
    Failure, a transient queue, a skipped warmup or an incomplete job stops the trial.
 4. For each of seven clean batches, restore all three workers under their
    original `tenant2/3/4` database names, then probe all three, then dispatch.
-5. Each probe makes **one external host HTTP GET** to
+5. Each probe makes **up to three external host HTTP GET attempts** to
    `/BC/api/v2.0/companies?tenant=tenantN`, using the actual server instance,
    port/IP and existing container credential. Basic auth is sent preemptively.
-   No redirects or HTTP retries; timeout is 60 seconds. A non-200 response,
-   invalid JSON or missing expected company stops the trial before dispatch.
+   Each attempt has 20-second connection and read timeouts; eligible attempts are separated by two
+   seconds. Only HTTP 500/502/503/504 and transport connection/timeout failures
+   may retry. Authentication failures, other HTTP statuses (including all 4xx),
+   invalid JSON and missing expected company are terminal. Redirects and hidden
+   HTTP-client retries remain disabled. Exhaustion stops the trial before dispatch.
 6. Test failures drain the current three-worker batch and stop later batches.
    No test, transient, warmup or restore retries are enabled. Existing bounded
    mount-state polling and ordinary scheduler waits are unchanged.
@@ -67,7 +70,12 @@ registered name before removing only that owned disposable container.
 Artifacts preserve provenance, shell/runtime identity, worklist, SQL reset
 timeline, warmup outcome/results, worker output, prefix JUnit and EVTX.
 `companies-probes.jsonl` records sanitized URI, tenant, generation, HTTP status,
-UTC start/end, duration and safe client/server correlation IDs. No password,
+UTC start/end, duration and safe client/server correlation IDs **for every attempt**.
+Separate outcome records distinguish `first-try-success`, `recovered` and `failed`,
+and record actual attempt/retry counts. Report this treatment as **companies-probe
+retry allowed**, not blanket no retries; warmup, AL tests, scheduler and CI still
+have zero retries. The earlier run `37608087700` used the previous no-probe-retry
+commit and cannot acquire this change in flight. No password,
 authorization header, response body or raw HTTP exception is added to logs.
 Runner loss or cancellation can prevent final export/cleanup and is inconclusive.
 

@@ -63,7 +63,9 @@ foreach ($artifact in $artifacts) {
 @{
     experimentHead = $env:GITHUB_SHA; run = $env:GITHUB_RUN_ID; arm = $env:BC_SQL_PILOT_ARM
     country = $env:BC_SQL_PILOT_COUNTRY; trial = $env:BC_SQL_PILOT_TRIAL; project = $trialProject
-    warmup = 'original-first-app-before-clean-lane'; companiesProbe = 'once-per-restored-worker'; retries = 0
+    warmup = 'original-first-app-before-clean-lane'; companiesProbe = 'per-restored-worker-readiness-retries'
+    companiesProbeMaximumAttempts = 3; companiesProbeTimeoutSeconds = 20; companiesProbeRetryDelaySeconds = 2
+    warmupRetries = 0; testRetries = 0; schedulerRetries = 0; ciRetries = 0
     budgetMinutes = 120; startedUtc = [DateTime]::UtcNow.ToString('o')
     artifacts = $manifest
 } | ConvertTo-Json -Depth 8 | Set-Content (Join-Path $output 'provenance.json') -Encoding UTF8
