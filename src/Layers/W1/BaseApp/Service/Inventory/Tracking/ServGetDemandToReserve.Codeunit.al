@@ -223,12 +223,4 @@ codeunit 6485 "Serv. Get Demand To Reserve"
     local procedure OnSyncServiceOrderLinesOnBeforeInsertReservationWkshLine(var ReservationWkshLine: Record "Reservation Wksh. Line"; var TempServiceLine: Record "Service Line" temporary; var DoInsertReservationWkshLine: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetDemandOnBeforeSetTempServiceLine(var ServiceLine: Record "Service Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 }
