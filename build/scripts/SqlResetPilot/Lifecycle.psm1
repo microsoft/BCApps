@@ -150,13 +150,14 @@ function Invoke-SqlPilotCompaniesProbe {
         $script:pilot.Workers[$Tenant].Generation -lt 1) {
         throw 'Companies probe requires an owned, freshly restored worker.'
     }
+    $maximumAttempts = if ($env:BC_SQL_API_EXPERIMENT -in @('A', 'B')) { 1 } else { 3 }
     $trace = Join-Path $script:pilot.OutputDirectory 'companies-probes.jsonl'
     $observation = @{
         tenant = $Tenant; generation = $script:pilot.Workers[$Tenant].Generation
         startedUtc = [DateTime]::UtcNow.ToString('o'); status = $null; passed = $false
         clientRequestId = [guid]::NewGuid().ToString(); serverRequestId = $null
         uri = $null; retries = 0; attempts = 0; recordType = 'outcome'
-        outcome = 'failed'; recovered = $false; maximumAttempts = 3
+        outcome = 'failed'; recovered = $false; maximumAttempts = $maximumAttempts
     }
     $clock = [Diagnostics.Stopwatch]::StartNew()
     try {
@@ -173,7 +174,7 @@ function Invoke-SqlPilotCompaniesProbe {
         $uri = [UriBuilder]::new($scheme, $ip, [int]$config.ODataServicesPort,
             "$($config.ServerInstance)/api/v2.0/companies", "?tenant=$Tenant").Uri.AbsoluteUri
         $observation.uri = $uri
-        for ($attemptNumber = 1; $attemptNumber -le 3; $attemptNumber++) {
+        for ($attemptNumber = 1; $attemptNumber -le $maximumAttempts; $attemptNumber++) {
             $attempt = @{
                 recordType = 'attempt'; probeId = $observation.clientRequestId
                 tenant = $Tenant; generation = $observation.generation; uri = $uri
@@ -243,7 +244,7 @@ function Invoke-SqlPilotCompaniesProbe {
                 $observation.outcome = if ($observation.recovered) { 'recovered' } else { 'first-try-success' }
                 break
             }
-            if (-not $attempt.retryable -or $attemptNumber -eq 3) { break }
+            if (-not $attempt.retryable -or $attemptNumber -eq $maximumAttempts) { break }
             Start-Sleep -Seconds 2
         }
         if (-not $observation.passed) { throw 'Companies probe exhausted eligible attempts or encountered a permanent failure.' }

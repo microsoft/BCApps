@@ -13,6 +13,7 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
     }
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
+Import-Module (Join-Path $PSScriptRoot 'SqlApiTestRetry.psm1' -Resolve)
 if ($env:BC_SQL_PILOT_ARM) {
     Import-Module (Join-Path $PSScriptRoot 'SqlResetPilot\Lifecycle.psm1')
 }
@@ -47,7 +48,24 @@ function Get-DisabledTestsForApp {
         }
     }
 
+    if ((Test-SqlApiExperiment) -and $env:BC_SQL_API_EXPERIMENT -eq 'A') {
+        $disabledTests += [PSCustomObject]@{ codeunitId = 148318; method = 'CapabilitiesProjectsEnabledViaAPI' }
+    }
     return @($disabledTests)
+}
+
+function Test-SqlApiExperiment {
+    return ($env:GITHUB_REPOSITORY -eq 'microsoft/BCApps' -and
+        $env:GITHUB_REF -eq 'refs/heads/features/646383-sql-api-two-arm-experiment' -and
+        $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch' -and $env:GITHUB_RUN_ATTEMPT -eq '1' -and
+        $env:BC_SQL_PILOT_ARM -eq 'control' -and $env:BC_SQL_API_EXPERIMENT -in @('A', 'B'))
+}
+
+function Get-TestJobResultFileName {
+    param([string]$Path, [string]$Suffix)
+    $dir = [System.IO.Path]::GetDirectoryName($Path)
+    if (-not $dir) { $dir = '.' }
+    Join-Path $dir "$([System.IO.Path]::GetFileNameWithoutExtension($Path))-$Suffix$([System.IO.Path]::GetExtension($Path))"
 }
 
 function Get-ParametersForCommand {
@@ -646,14 +664,57 @@ function Receive-TestJobResult {
     $output = $sb.ToString()
 
     $outcome = 'Passed'
+    $sqlRetryEvidence = $null
     if ($Job.State -eq 'Failed' -or $Job.State -eq 'Stopped') {
         if (-not $env:BC_SQL_PILOT_ARM -and (Test-TransientTestFailure $output) -and -not $Retried.ContainsKey($Entry.appName)) {
             $outcome = 'Transient'
         } else {
             $outcome = 'Failed'
+            if ($Job.State -eq 'Failed' -and -not $Retried.ContainsKey($Entry.appName) -and
+                $Entry.PSObject.Properties['SqlRetryContext'] -and $Entry.SqlRetryContext -and
+                $env:BC_SQL_API_EXPERIMENT -eq 'B' -and (Test-SqlApiExperiment)) {
+                $sqlRetryEvidence = Get-SqlApiTestRetryEvidence -Context $Entry.SqlRetryContext
+                if ($sqlRetryEvidence) { $outcome = 'SqlPoolRetry' }
+            }
         }
     }
 
+    if ($Entry.PSObject.Properties['SqlRetryContext'] -and $Entry.SqlRetryContext) {
+        $context = $Entry.SqlRetryContext
+        if (-not (Test-SqlApiExperimentSelection -Context $context -Experiment $env:BC_SQL_API_EXPERIMENT)) {
+            $outcome = 'Failed'
+            $sqlRetryEvidence = $null
+        }
+        if ($Entry.SqlRetryExpectedTests.Count -gt 0 -and $outcome -eq 'Passed') {
+            if (-not (Test-SqlApiRetryResult -Context $context -ExpectedTests $Entry.SqlRetryExpectedTests)) {
+                $outcome = 'Failed'
+            }
+        }
+        $attemptDirectory = Join-Path $env:BC_SQL_PILOT_OUTPUT "test-attempts\$($context.Tenant)-$($context.CodeunitId)-$($context.Attempt)"
+        New-Item -ItemType Directory -Path $attemptDirectory -Force -ErrorAction Stop | Out-Null
+        foreach ($key in $context.ResultFiles.Keys) {
+            $path = $context.ResultFiles[$key]
+            if (Test-Path -LiteralPath $path) {
+                Copy-Item -LiteralPath $path -Destination (Join-Path $attemptDirectory $key) -ErrorAction Stop
+            }
+        }
+        @{
+            codeunitId = $context.CodeunitId; tenant = $context.Tenant; attempt = $context.Attempt
+            outcome = $outcome; jobState = [string]$Job.State; startedUtc = $context.StartedUtc.ToString('o')
+            completedUtc = [datetime]::UtcNow.ToString('o'); experiment = $env:BC_SQL_API_EXPERIMENT
+            retryEligible = [bool]$sqlRetryEvidence; expectedCases = $context.TestCount
+        } | ConvertTo-Json | Set-Content (Join-Path $attemptDirectory 'outcome.json') -ErrorAction Stop
+        if ($context.Attempt -eq 2 -and $outcome -eq 'Passed') {
+            foreach ($key in $context.ResultFiles.Keys) {
+                $first = Join-Path $env:BC_SQL_PILOT_OUTPUT "test-attempts\$($context.Tenant)-$($context.CodeunitId)-1\$key"
+                if (-not (Test-Path $first) -or -not (Test-Path $context.ResultFiles[$key])) {
+                    throw 'Cannot merge retry without both original and retry result files.'
+                }
+                Merge-TestResultFiles -targetFile $context.FinalResultFiles[$key] `
+                    -sourceFiles @($first, $context.ResultFiles[$key])
+            }
+        }
+    }
     if ($env:BC_SQL_PILOT_ARM) {
         $output | Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT "worker-$($Job.Id).log") -Encoding UTF8
     }
@@ -664,6 +725,7 @@ function Receive-TestJobResult {
         AppName  = $Entry.appName
         Tenant   = $Entry.tenant
         JobState = $Job.State
+        SqlRetryEvidence = $sqlRetryEvidence
     }
 }
 
@@ -755,13 +817,44 @@ function Start-RequiredDisabledDispatch {
         }
     }
 
+    $sqlRetryContext = $null
+    $sqlRetryExpectedTests = @()
+    $fileSuffix = $TenantInfo.Id
+    if (Test-SqlApiExperiment) {
+        if (-not $Parameters.JUnitResultFileName) { throw 'Two-arm experiment requires JUnit evidence.' }
+        $attempt = 1
+        $finalFiles = @{}
+        if ($State.sqlRetryEvidence.ContainsKey($WorkItem.Key)) {
+            $attempt = 2
+            $fileSuffix = "$($TenantInfo.Id)-sqlretry-$($WorkItem.CodeunitId)"
+            $sqlRetryExpectedTests = @($State.sqlRetryEvidence[$WorkItem.Key].TestCases)
+            # BCH ReRun selects only failing methods. This experiment retries the entire codeunit.
+            $codeunitParameters.Remove('ReRun') | Out-Null
+        }
+        $files = @{}
+        foreach ($key in $appendKeys.Keys) {
+            if ($Parameters.ContainsKey($key) -and $Parameters[$key]) {
+                $files[$key] = Get-TestJobResultFileName $Parameters[$key] $fileSuffix
+                $finalFiles[$key] = Get-TestJobResultFileName $Parameters[$key] $TenantInfo.Id
+                if ($attempt -eq 2 -and (Test-Path $files[$key])) { throw 'Retry result file already exists.' }
+            }
+        }
+        $sqlRetryContext = [PSCustomObject]@{
+            ContainerName = $Parameters.containerName; Tenant = $TenantInfo.Id
+            CodeunitId = $WorkItem.CodeunitId; TestCount = $WorkItem.TestCount
+            StartedUtc = [datetime]::UtcNow; ResultFiles = $files; FinalResultFiles = $finalFiles
+            Attempt = $attempt; OutputDirectory = $env:BC_SQL_PILOT_OUTPUT
+        }
+    }
     $job = Start-TestJob -parameters $codeunitParameters -tenant $TenantInfo.Id -scriptPath $ScriptPath `
-        -testType $TestType -skipAutomaticDisabledPass
+        -testType $TestType -skipAutomaticDisabledPass -fileSuffix $fileSuffix
     $State.jobs = @($State.jobs) + @(
         [PSCustomObject]@{
             jobId = $job.Id
             tenant = $TenantInfo.Id
             appName = $WorkItem.Key
+            SqlRetryContext = $sqlRetryContext
+            SqlRetryExpectedTests = $sqlRetryExpectedTests
         }
     )
     Start-Sleep -Seconds 1
@@ -798,6 +891,7 @@ function Invoke-RequiredDisabledTestExecution {
         transient = @()
         retried = @{}
         retryTenant = @{}
+        sqlRetryEvidence = @{}
     }
     $pending = @($WorkItems)
 
@@ -857,7 +951,7 @@ function Invoke-RequiredDisabledTestExecution {
                 -ScriptPath $ScriptPath -TestType $TestType -State $state -Verb $dispatch.Verb
         }
         $null = Wait-ForAllTestJobs -state $state
-        if ($env:BC_SQL_PILOT_ARM -and ($state.hasFailures -or $state.transient.Count -gt 0)) {
+        if ($env:BC_SQL_PILOT_ARM -and $state.hasFailures) {
             $state.hasFailures = $true
             break
         }
@@ -885,6 +979,16 @@ function Register-TestJobOutcome {
         $State
     )
 
+    if ($Result.Outcome -eq 'SqlPoolRetry') {
+        if (-not (Test-SqlApiExperiment) -or $env:BC_SQL_API_EXPERIMENT -ne 'B' -or
+            -not $Result.SqlRetryEvidence -or $State.retried.ContainsKey($Result.AppName)) {
+            $State.hasFailures = $true
+            return
+        }
+        $State.sqlRetryEvidence[$Result.AppName] = $Result.SqlRetryEvidence
+        $State.transient = @($State.transient) + @([PSCustomObject]@{ Key = $Result.AppName; Tenant = $Result.Tenant })
+        return
+    }
     if ($env:BC_SQL_PILOT_ARM -and $Result.Outcome -in @('Failed', 'Transient')) {
         $State.hasFailures = $true
         return
@@ -1104,6 +1208,9 @@ function Wait-ForAllTestJobs {
 
             $result = Receive-TestJobResult -Entry $entry -Job $pendingJob -Retried $state.retried
             Register-TestJobOutcome -Result $result -State $state
+        } elseif (Test-SqlApiExperiment) {
+            $state.hasFailures = $true
+            Write-Host "::warning::Expected experiment worker job $($entry.jobId) is missing; failing closed."
         }
     }
     # All jobs in $state.jobs have been received and removed; clear the list so any later
@@ -1510,6 +1617,19 @@ function Invoke-ParallelTestExecution {
 
     if ($env:BC_SQL_PILOT_ARM) {
         Merge-TenantTestResults -parameters $parameters -tenants $tenants -workItems $requiredDisabledWorkItems -rerunSuffixes @()
+        if ((Test-SqlApiExperiment) -and (Test-Path $parameters.JUnitResultFileName)) {
+            [xml]$finalXml = Get-Content $parameters.JUnitResultFileName -Raw
+            $finalCases = @($finalXml.SelectNodes('/testsuites/testsuite/testcase'))
+            @{
+                total = $finalCases.Count
+                failed = @($finalCases | Where-Object { $_.SelectSingleNode('failure | error') }).Count
+                skipped = @($finalCases | Where-Object { $_.SelectSingleNode('skipped') }).Count
+                passed = @($finalCases | Where-Object { -not $_.SelectSingleNode('failure | error | skipped') }).Count
+                suites = $finalXml.SelectNodes('/testsuites/testsuite').Count
+                experiment = $env:BC_SQL_API_EXPERIMENT
+                firstAttemptsAndRetries = 'See test-attempts; final XML replaces only validated recovered CUs.'
+            } | ConvertTo-Json | Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT 'final-counts.json')
+        }
         $state.finalResult = -not $state.hasFailures
         $state.completed = $true
         $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force

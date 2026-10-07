@@ -44,6 +44,18 @@ Describe 'External authenticated companies probe' {
         }
         Should -Invoke Start-Sleep -ModuleName Lifecycle -Times 0
     }
+    It 'uses exactly one attempt in experiment arm <Arm> even for HTTP500' -ForEach @(
+        @{ Arm = 'A' }, @{ Arm = 'B' }
+    ) {
+        $old = $env:BC_SQL_API_EXPERIMENT
+        try {
+            $env:BC_SQL_API_EXPERIMENT = $Arm
+            Mock Invoke-WebRequest -ModuleName Lifecycle { @{ StatusCode = 500; Headers = @{}; Content = '' } }
+            { Invoke-SqlPilotCompaniesProbe 'owned' 'tenant2' $script:credential 'My Company' } | Should -Throw '*after 1 attempt*'
+            Should -Invoke Invoke-WebRequest -ModuleName Lifecycle -Times 1 -Exactly
+            Should -Invoke Start-Sleep -ModuleName Lifecycle -Times 0
+        } finally { $env:BC_SQL_API_EXPERIMENT = $old }
+    }
     It 'bounds transient HTTP <Code> to three attempts and records each failure safely' -ForEach @(
         @{ Code = 500 }, @{ Code = 502 }, @{ Code = 503 }, @{ Code = 504 }
     ) {

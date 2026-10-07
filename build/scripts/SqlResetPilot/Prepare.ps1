@@ -1,7 +1,8 @@
 $ErrorActionPreference = 'Stop'
 $base = 'c4953dceffe02a017adad34973e1955017bf5d20'
 if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
-    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-warmup-experiment' -or
+    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-two-arm-experiment' -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('A', 'B') -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
     $env:BC_SQL_PILOT_ARM -ne 'control' -or $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or
     $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
@@ -13,7 +14,7 @@ git diff --exit-code $base HEAD -- src
 if ($LASTEXITCODE -ne 0) { throw 'AL/package source differs from the pinned compiled PR2 source.' }
 
 $project = "build\projects\Test Apps $($env:BC_SQL_PILOT_COUNTRY)"
-$trialProject = "$project Trial$($env:BC_SQL_PILOT_TRIAL)"
+$trialProject = "$project Trial$($env:BC_SQL_PILOT_TRIAL)$($env:BC_SQL_API_EXPERIMENT)"
 if (Test-Path $trialProject) { throw 'Trial project must not already exist.' }
 # AL-Go derives its container name from the project path. Preserve wrapper depth and country settings.
 Copy-Item $project $trialProject -Recurse
@@ -62,10 +63,13 @@ foreach ($artifact in $artifacts) {
 }
 @{
     experimentHead = $env:GITHUB_SHA; run = $env:GITHUB_RUN_ID; arm = $env:BC_SQL_PILOT_ARM
+    experiment = $env:BC_SQL_API_EXPERIMENT; baseline = '8a7ebc7d665c0a812c2b3b4902c63df570959954'
     country = $env:BC_SQL_PILOT_COUNTRY; trial = $env:BC_SQL_PILOT_TRIAL; project = $trialProject
-    warmup = 'original-first-app-before-clean-lane'; companiesProbe = 'per-restored-worker-readiness-retries'
-    companiesProbeMaximumAttempts = 3; companiesProbeTimeoutSeconds = 20; companiesProbeRetryDelaySeconds = 2
-    warmupRetries = 0; testRetries = 0; schedulerRetries = 0; ciRetries = 0
+    warmup = 'original-first-app-before-clean-lane'; companiesProbe = 'per-restored-worker-single-attempt'
+    companiesProbeMaximumAttempts = 1; companiesProbeTimeoutSeconds = 20; companiesProbeRetryDelaySeconds = 0
+    additionalDisabledTest = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'A') { '148318.CapabilitiesProjectsEnabledViaAPI' } else { $null })
+    warmupRetries = 0; maximumEvidenceGatedRetriesPerCodeunit = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'B') { 1 } else { 0 })
+    genericTestRetries = 0; schedulerRetries = 0; ciRetries = 0
     budgetMinutes = 120; startedUtc = [DateTime]::UtcNow.ToString('o')
     artifacts = $manifest
 } | ConvertTo-Json -Depth 8 | Set-Content (Join-Path $output 'provenance.json') -Encoding UTF8

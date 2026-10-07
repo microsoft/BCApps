@@ -1,93 +1,99 @@
-# API warmup experiment — diagnostic only, do not merge
+# SQL API two-arm diagnostic — AB#646383 — DO NOT MERGE
 
-One manual `CICD.yaml` dispatch on `features/646383-sql-api-warmup-experiment`
-runs **W1 and DE, five independent trials each**. Maximum parallelism is five;
-each trial is capped at 120 minutes (1,200 runner-minutes total maximum).
-Only attempt one is allowed. No automatic rerun, replacement dispatch, PR,
-merge queue, local/shared NST operation, or fresh-database-name treatment.
+One manual `CICD.yaml` dispatch on `features/646383-sql-api-two-arm-experiment`
+runs **A/B × W1/DE × five trials = 20 independent disposable containers**.
+Maximum parallelism is **five globally**, timeout 120 minutes per cell (2,400
+runner-minutes maximum). Exact branch and run-attempt-one guards reject reruns.
+The exact experiment PR head is excluded from automatic PR Initialization;
+there is no full-country pipeline, job retry, replacement run, or local NST work.
 
-## Fixed baseline
+## Shared immutable baseline
 
-The branch starts from SQL reset pilot `d7dd4dddcd49da397ee42de1677d1b7d44622149`.
-AL source remains exactly PR2 `c4953dceffe02a017adad34973e1955017bf5d20`.
-Both countries consume their own unchanged compiled packages from run
-`37372848860`; this does not claim country package binaries are identical.
-`Prepare.ps1` verifies the source ancestry/diff, artifact run/head/digests,
-downloaded archive SHA256 and per-package hashes. Missing or expired artifacts
-fail closed; there is no moving-build fallback.
+Both arms start at warmup head `8a7ebc7d665c0a812c2b3b4902c63df570959954`.
+AL/package source remains **c4953dceffe02a017adad34973e1955017bf5d20**.
+`Prepare.ps1` verifies ancestry, no source diff, exact source run **37372848860**,
+artifact metadata/digests, ZIP SHA256 and package hashes. Missing/expired
+artifacts fail closed; there is no rebuild or moving-package fallback.
 
 | Country | App artifact | Test artifact |
 | --- | --- | --- |
 | W1 | 11374170356 | 11374145359 |
 | DE | 11376415128 | 11375174896 |
 
-The pinned runtime is NST **30.0.55665.0**, application **30.0.55683.0**,
-BCH **6.1.19-preview2811389**, AL-Go
-`91b96c2b294be6f823277dafe6f03350abfb9d23`, and generic image
-`sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492`.
-The image matches the pilot; historic source logs did not record its digest.
-PowerShell 7, four tenants, original password-file authentication and company
-`My Company` are retained.
+NST **30.0.55665.0**, application **30.0.55683.0**, BCH
+**6.1.19-preview2811389**, AL-Go `91b96c2b294be6f823277dafe6f03350abfb9d23`,
+generic image `sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492`,
+PowerShell 7, four tenants, existing password-file authentication and `My Company`
+are unchanged. No auth/provider changes or AL assertion changes.
 
-## Experiment order and failure policy
+Both arms freeze the pristine template before ordinary first-app warmup, then
+restore each clean batch under the original tenant database names, probe every
+restored worker, and only then dispatch. Companies probes use **one attempt**,
+20-second connect/read timeouts, no hidden HTTP retries or redirects. This
+disables the optional three-attempt readiness behavior added after the original
+warmup run `37608087700` at `fcc1776c6b165199dd66e4227675b1cc31da7a8f`.
+The newer baseline's nested `.buildartifacts` collection is retained.
 
-1. Original discovery runs on a worker, which is then restored from default.
-2. The immutable pristine template is frozen **before** app warmup fixtures.
-3. The original `Invoke-WarmupDispatch` runs the ordinary first test app alone
-   on default, with the original `SkipAutomaticDisabledPass` behavior.
-   Results live under `sql-reset-pilot-output/warmup`, outside prefix coverage.
-   Failure, a transient queue, a skipped warmup or an incomplete job stops the trial.
-4. For each of seven clean batches, restore all three workers under their
-   original `tenant2/3/4` database names, then probe all three, then dispatch.
-5. Each probe makes **up to three external host HTTP GET attempts** to
-   `/BC/api/v2.0/companies?tenant=tenantN`, using the actual server instance,
-   port/IP and existing container credential. Basic auth is sent preemptively.
-   Each attempt has 20-second connection and read timeouts; eligible attempts are separated by two
-   seconds. Only HTTP 500/502/503/504 and transport connection/timeout failures
-   may retry. Authentication failures, other HTTP statuses (including all 4xx),
-   invalid JSON and missing expected company are terminal. Redirects and hidden
-   HTTP-client retries remain disabled. Exhaustion stops the trial before dispatch.
-6. Test failures drain the current three-worker batch and stop later batches.
-   No test, transient, warmup or restore retries are enabled. Existing bounded
-   mount-state polling and ordinary scheduler waits are unchanged.
+## Treatments
 
-The cohort remains the same ordered **21-codeunit prefix**, ending with Expense
-Users (148315), Capabilities (148318), and Activity Log (148343). The previous W1
-control yielded **253 cases: 234 passed, 19 skipped**, across 20 codeunits with
-cases. This is a quick cohort, **not all API paths or the full suite**. Warmup
-counts must be reported separately. Discovery-order drift fails closed for both
-countries; a DE-specific prefix requires evidence from the original DE baseline,
-must include all three Expense codeunits, and must be recorded in full.
+**A — exclude one method:** the existing `Get-DisabledTestsForApp` runner config
+adds only `{codeunitId:148318, method:CapabilitiesProjectsEnabledViaAPI}`.
+No source or package is edited; the whole Capabilities codeunit stays selected.
+All existing baseline disabled tests remain unchanged. No test retries.
 
-## Isolation, evidence and interpretation
+**B — all baseline-enabled tests remain enabled:** no additional disabled entry.
+At most **one whole-codeunit retry**, and only after every failed JUnit case has:
 
-At runtime only, the selected project descriptor is copied to
-`build/projects/Test Apps <country> Trial<trial>` at the same directory depth.
-AL-Go derives a unique container name:
-`bcbuildprojectsTestApps<country>Trial<trial><run>`.
-Country settings and wrapper targets stay unchanged. Preflight refuses an
-existing container; final cleanup checks country, trial, run, arm and exact
-registered name before removing only that owned disposable container.
+* The observed GET HTTP500/null-reference response and a valid CorrelationId.
+* An NST Application event 701 from `MicrosoftDynamicsNavServer$...`, obtained
+  from this container during this dispatch's UTC time window.
+* Matching `ClientSessionId`, `RootException: NullReferenceException`, and frames
+  `NavSqlConnectionScope.AcquireSqlConnectionFromPool`,
+  `MetadataProvider.GetRelativeHelpUrl`, and `PageDataProvider.GetNavRecordDataAsync`.
 
-Artifacts preserve provenance, shell/runtime identity, worklist, SQL reset
-timeline, warmup outcome/results, worker output, prefix JUnit and EVTX.
-Finalization collects project-root `TestResults*.xml` into `clean-results/project-root`
-and `.buildartifacts/TestResults*.xml` into `clean-results/buildartifacts`, preserving
-both without overwrites. Warmup results remain separately labeled under `warmup`.
-`companies-probes.jsonl` records sanitized URI, tenant, generation, HTTP status,
-UTC start/end, duration and safe client/server correlation IDs **for every attempt**.
-Separate outcome records distinguish `first-try-success`, `recovered` and `failed`,
-and record actual attempt/retry counts. Report this treatment as **companies-probe
-retry allowed**, not blanket no retries; warmup, AL tests, scheduler and CI still
-have zero retries. The earlier run `37608087700` used the previous no-probe-retry
-commit and cannot acquire this change in flight. No password,
-authorization header, response body or raw HTTP exception is added to logs.
-Runner loss or cancellation can prevent final export/cleanup and is inconclusive.
+Generic HTTP500, generic NRE, real/mixed assertions, stale/unmatched events,
+partial XML, stopped jobs, missing evidence or persistence errors never qualify.
+No automatic polling/wait for evidence. This conservative additional observed
+metadata-stack requirement can reject other SQL-pool shapes.
 
-This experiment combines two warmup interventions; it cannot distinguish their
-individual effects. A pass/non-reproduction is not proof of a production fix or
-SQL-name reuse safety. Report every trial, including preflight/probe failures,
-timeouts and missing evidence. Do not launch another matrix without authorization.
+The entire current batch drains before a retry. The retry uses the same worker
+after another pristine-template restore and fresh single-attempt companies probe.
+`ReRun` is explicitly removed: BCH must run **every method**, not just failures.
+Retry files use a unique suffix. Recovery requires the exact original test names,
+count and skip states with no failures/errors. Only verified recovery replaces
+that CU in the final merged result; original and retry files remain separately
+preserved. A failed/incomplete retry stays failed and cannot retry again.
+Any unrelated terminal batch failure stops later batches (including queued retries).
 
-Local validation requires Pester 5+ (validated with 6.1.0), not an NST:
-`Invoke-Pester .\build\scripts\SqlResetPilot`
+## Cohort and interpretation
+
+The exact ordered 21-CU prefix remains:
+139700,139702,139703,139706,139725,139726,139732,139739,139742,139745,
+139802,139803,139806,139826,139832,139854,139972,139780,148315,148318,148343.
+Order drift fails closed. This is not the full API suite.
+Previous complete W1 coverage was 253 cases (234 passing, 19 skipped).
+A should turn only the target method into an additional skip; B retains baseline
+coverage. Actual counts and any missing/incomplete coverage must be reported per
+trial; do not count recovered first failures as first-attempt passes.
+
+Containers derive from `Test Apps <country> Trial<trial><A|B>` at unchanged
+descriptor depth. Preflight refuses existing containers; cleanup verifies
+country/trial/experiment/run/exact name before deleting only the owned container.
+
+Artifacts preserve provenance, pins, ordered worklist, SQL reset timeline,
+single-attempt probe records, worker logs, EVTX, separately labeled warmup,
+project-root and nested final XML, plus:
+* `test-attempts/<tenant>-<CU>-1/`: original result snapshot and outcome.
+* `test-attempts/<tenant>-<CU>-2/`: retry result snapshot and outcome.
+* `SqlApiRetryEvidence/`: original CU XML and correlated NST events.
+
+Per-CU snapshots may include previously completed suites on that worker; count
+only the outcome's CU when aggregating first attempts. Final merged XML contains
+one result per CU, with recovery replacing rather than duplicating cases.
+Runner loss/cancellation can prevent final export and is **inconclusive**.
+Passes are non-reproductions, not proof of a production fix or SQL-name reuse safety.
+
+Local validation uses Pester 5+ and PSScriptAnalyzer, with all live container
+operations mocked. Tests: `build\scripts\SqlResetPilot`,
+`build\scripts\tests\SqlApiTestRetry.Test.ps1`, and
+`build\scripts\tests\ParallelTestExecution.Test.ps1`.
