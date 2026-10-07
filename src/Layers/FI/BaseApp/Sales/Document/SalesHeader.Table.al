@@ -9670,7 +9670,6 @@ table 36 "Sales Header"
     procedure UpdateSalesOrderLineIfExist()
     var
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
-        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         IsHandled: Boolean;
     begin
@@ -9682,10 +9681,6 @@ table 36 "Sales Header"
         IsHandled := false;
         OnBeforeUpdateSalesOrderLineIfExist(Rec, IsHandled);
         if IsHandled then
-            exit;
-
-        SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Restore Order Qty. on Return" then
             exit;
 
         CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");

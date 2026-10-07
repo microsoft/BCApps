@@ -839,24 +839,30 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
         UndoPostingManagement: Codeunit "Undo Posting Management";
+        RestoreOrderQuantity: Boolean;
     begin
         PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order Qty. on Return" then
-            exit;
+        RestoreOrderQuantity := PurchasesPayablesSetup."Restore Order Qty. on Return";
 
         PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
         PurchInvLine.SetRange("Prepayment Line", false);
         if PurchInvLine.FindSet() then
             repeat
-                TempItemLedgerEntry.Reset();
-                TempItemLedgerEntry.DeleteAll();
-                PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
                 if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchInvLine."Order No.", PurchInvLine."Order Line No.") then begin
-                    UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchInvLine.Quantity, PurchInvLine."Quantity (Base)");
-                    UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine);
-                    UpdateReverseItemChargeAssignment(PurchaseLine, PurchInvLine.Quantity);
-                    TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
-                    UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchaseLine."Expected Receipt Date", true);
+                    if RestoreOrderQuantity then begin
+                        TempItemLedgerEntry.Reset();
+                        TempItemLedgerEntry.DeleteAll();
+                        PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+                        UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchInvLine.Quantity, PurchInvLine."Quantity (Base)");
+                    end;
+
+                    UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine, RestoreOrderQuantity);
+
+                    if RestoreOrderQuantity then begin
+                        UpdateReverseItemChargeAssignment(PurchaseLine, PurchInvLine.Quantity);
+                        TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
+                        UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchaseLine."Expected Receipt Date", true);
+                    end;
                 end;
             until PurchInvLine.Next() = 0;
     end;
@@ -921,10 +927,10 @@ codeunit 1313 "Correct Posted Purch. Invoice"
     internal procedure UpdatePurchaseOrderLineIfExist(PurchaseCreditMemoNo: Code[20])
     var
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        RestoreOrderQuantity: Boolean;
     begin
         PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order Qty. on Return" then
-            exit;
+        RestoreOrderQuantity := PurchasesPayablesSetup."Restore Order Qty. on Return";
 
         PurchCrMemoLine.SetLoadFields("Document No.", "No.", Quantity);
         PurchCrMemoLine.SetRange("Document No.", PurchaseCreditMemoNo);
@@ -932,20 +938,20 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchCrMemoLine.SetFilter(Quantity, '<>%1', 0);
         if PurchCrMemoLine.FindSet() then
             repeat
-                GetPurchInvLineAndUpdatePurchaseOrderLines(PurchCrMemoLine);
+                GetPurchInvLineAndUpdatePurchaseOrderLines(PurchCrMemoLine, RestoreOrderQuantity);
             until PurchCrMemoLine.Next() = 0;
     end;
 
-    local procedure GetPurchInvLineAndUpdatePurchaseOrderLines(PurchCrMemoLine: Record "Purch. Cr. Memo Line")
+    local procedure GetPurchInvLineAndUpdatePurchaseOrderLines(PurchCrMemoLine: Record "Purch. Cr. Memo Line"; RestoreOrderQuantity: Boolean)
     var
         PurchInvLine: Record "Purch. Inv. Line";
     begin
         PurchCrMemoLine.GetPurchaseInvoiceLine(PurchInvLine);
         if PurchInvLine."Line No." <> 0 then
-            UpdatePurchaseOrderLinesFromCreditMemo(PurchInvLine, PurchCrMemoLine);
+            UpdatePurchaseOrderLinesFromCreditMemo(PurchInvLine, PurchCrMemoLine, RestoreOrderQuantity);
     end;
 
-    local procedure UpdatePurchaseOrderLinesFromCreditMemo(PurchInvLine: Record "Purch. Inv. Line"; PurchCrMemoLine: Record "Purch. Cr. Memo Line")
+    local procedure UpdatePurchaseOrderLinesFromCreditMemo(PurchInvLine: Record "Purch. Inv. Line"; PurchCrMemoLine: Record "Purch. Cr. Memo Line"; RestoreOrderQuantity: Boolean)
     var
         PurchaseLine: Record "Purchase Line";
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
@@ -954,22 +960,26 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         if not PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchInvLine."Order No.", PurchInvLine."Order Line No.") then
             exit;
 
-        if PurchInvLine.Type = PurchInvLine.Type::Item then
-            PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+        if RestoreOrderQuantity then begin
+            if PurchInvLine.Type = PurchInvLine.Type::Item then
+                PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
 
-        UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchCrMemoLine.Quantity, PurchCrMemoLine."Quantity (Base)");
-        UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine);
-
-        if PurchInvLine.Type = PurchInvLine.Type::Item then begin
-            if PurchaseLine."Qty. to Receive" = 0 then
-                UpdateWhseRequest(Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Location Code");
-
-            TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
-            UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchInvLine."Posting Date", true);
+            UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchCrMemoLine.Quantity, PurchCrMemoLine."Quantity (Base)");
         end;
+
+        UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine, RestoreOrderQuantity);
+
+        if RestoreOrderQuantity then
+            if PurchInvLine.Type = PurchInvLine.Type::Item then begin
+                if PurchaseLine."Qty. to Receive" = 0 then
+                    UpdateWhseRequest(Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Location Code");
+
+                TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
+                UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchInvLine."Posting Date", true);
+            end;
     end;
 
-    local procedure UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine: Record "Purch. Inv. Line")
+    local procedure UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine: Record "Purch. Inv. Line"; RestoreOrderQuantity: Boolean)
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1000,12 +1010,13 @@ codeunit 1313 "Correct Posted Purch. Invoice"
                     PurchInvLine.Quantity * (PurchaseLine."Prepmt. Line Amount" / PurchaseLine.Quantity),
                     Currency."Amount Rounding Precision"));
 
-        PurchaseLine.Validate(
-            "Prepmt Amt to Deduct",
-            PurchaseLine."Prepmt Amt to Deduct" +
-                Round(
-                    PurchInvLine.Quantity * (PurchaseLine."Prepmt. Line Amount" / PurchaseLine.Quantity),
-                    Currency."Amount Rounding Precision"));
+        if RestoreOrderQuantity then
+            PurchaseLine.Validate(
+                "Prepmt Amt to Deduct",
+                PurchaseLine."Prepmt Amt to Deduct" +
+                    Round(
+                        PurchInvLine.Quantity * (PurchaseLine."Prepmt. Line Amount" / PurchaseLine.Quantity),
+                        Currency."Amount Rounding Precision"));
 
         PurchaseLine.Modify(true);
     end;

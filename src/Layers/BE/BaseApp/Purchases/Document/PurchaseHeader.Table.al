@@ -7845,7 +7845,6 @@ table 38 "Purchase Header"
     procedure UpdatePurchaseOrderLineIfExist()
     var
         PurchaseCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         IsHandled: Boolean;
     begin
@@ -7857,10 +7856,6 @@ table 38 "Purchase Header"
         IsHandled := false;
         OnBeforeUpdatePurchaseOrderLineIfExist(Rec, IsHandled);
         if IsHandled then
-            exit;
-
-        PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order Qty. on Return" then
             exit;
 
         CorrectPostedPurchInvoice.UpdatePurchaseOrderLineIfExist(PurchaseCrMemoHeader."No.");

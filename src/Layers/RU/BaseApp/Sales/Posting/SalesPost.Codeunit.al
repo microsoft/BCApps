@@ -9669,10 +9669,6 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        SalesSetup.GetRecordOnce();
-        if not SalesSetup."Restore Order Qty. on Return" then
-            exit;
-
         SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");
         SalesCreditMemoHeader.SetRange("Return Order No.", DocumentNo);
         if SalesCreditMemoHeader.FindFirst() then

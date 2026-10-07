@@ -18,6 +18,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryERM: Codeunit "Library - ERM";
         LibraryJob: Codeunit "Library - Job";
+        LibraryJournals: Codeunit "Library - Journals";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
@@ -1221,6 +1222,89 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         Assert.AreEqual(Quantity, PurchaseLine."Qty. to Invoice", QuantityMustBeRestoredErr);
     end;
 
+    [Test]
+    procedure CancelInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        PrepaidPurchaseLine: Record "Purchase Line";
+        PurchaseCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseInvoiceHeader: Record "Purch. Inv. Header";
+        PurchasePrepaymentInvoiceHeader: Record "Purch. Inv. Header";
+        RemainingPurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PrepaymentCreditMemoNo: Code[20];
+        PrepaymentInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 649626] Cancelling an invoice reconciles its prepayment when order quantity restoration is disabled.
+        Initialize();
+
+        // [GIVEN] A Purchase Order with a paid 50% prepayment on the line that will be posted.
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup."Purch. Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup.Modify(true);
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 20));
+        SetupPrepmtGLAccountPostingGroups(GeneralPostingSetup, VATPostingSetup);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Prepayment %", 50);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PrepaidPurchaseLine, PurchaseHeader, PrepaidPurchaseLine.Type::Item, Item."No.", 1);
+        PrepaidPurchaseLine.Validate("Direct Unit Cost", 100);
+        PrepaidPurchaseLine.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(RemainingPurchaseLine, PurchaseHeader, RemainingPurchaseLine.Type::Item, Item."No.", 1);
+        RemainingPurchaseLine.Validate("Direct Unit Cost", 100);
+        RemainingPurchaseLine.Validate("Prepayment %", 0);
+        RemainingPurchaseLine.Validate("Qty. to Receive", 0);
+        RemainingPurchaseLine.Validate("Qty. to Invoice", 0);
+        RemainingPurchaseLine.Modify(true);
+
+        PrepaymentInvoiceNo := LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+        PurchasePrepaymentInvoiceHeader.Get(PrepaymentInvoiceNo);
+        PurchasePrepaymentInvoiceHeader.CalcFields("Amount Including VAT");
+        PostPaymentToInvoice(
+            "Gen. Journal Account Type"::Vendor, Vendor."No.", PrepaymentInvoiceNo,
+            PurchasePrepaymentInvoiceHeader."Amount Including VAT");
+
+        // [GIVEN] The prepaid line is received and invoiced, and quantity restoration is disabled.
+        PurchaseInvoiceHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [WHEN] The posted invoice is cancelled.
+        CorrectPostedPurchInvoice.CancelPostedInvoice(PurchaseInvoiceHeader);
+
+        // [THEN] The order quantities remain posted, but its deducted prepayment is released.
+        PrepaidPurchaseLine.Find();
+        PrepaidPurchaseLine.TestField("Quantity Received", 1);
+        PrepaidPurchaseLine.TestField("Quantity Invoiced", 1);
+        PrepaidPurchaseLine.TestField("Qty. to Receive", 0);
+        PrepaidPurchaseLine.TestField("Qty. to Invoice", 0);
+        PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", 0);
+
+        // [THEN] The released prepayment can be credited from the original order.
+        PurchaseHeader.Find();
+        PrepaymentCreditMemoNo := LibraryPurchase.PostPurchasePrepaymentCreditMemo(PurchaseHeader);
+        PurchaseCrMemoHeader.Get(PrepaymentCreditMemoNo);
+        PurchaseCrMemoHeader.CalcFields("Amount Including VAT");
+        PurchaseCrMemoHeader.TestField("Amount Including VAT", PurchasePrepaymentInvoiceHeader."Amount Including VAT");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1255,6 +1339,18 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         PurchasesPayablesSetup.Get();
         PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure PostPaymentToInvoice(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DocumentNo: Code[20]; Amount: Decimal)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, GenJournalLine."Document Type"::Payment, AccountType, AccountNo, Amount);
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", DocumentNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
     local procedure SetGlobalNoSeriesInSetups()

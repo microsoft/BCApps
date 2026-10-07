@@ -1033,10 +1033,10 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesInvoiceLine: Record "Sales Invoice Line";
         TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
+        RestoreOrderQuantity: Boolean;
     begin
         SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Restore Order Qty. on Return" then
-            exit;
+        RestoreOrderQuantity := SalesReceivablesSetup."Restore Order Qty. on Return";
 
         SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
@@ -1047,14 +1047,14 @@ codeunit 1303 "Correct Posted Sales Invoice"
                 Clear(SalesInvoiceLine);
                 SalesCrMemoLine.GetSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine);
                 if SalesInvoiceLine."Line No." <> 0 then begin
-                    UpdateSalesOrderLinesFromCreditMemo(SalesInvoiceLine, SalesCrMemoLine);
+                    UpdateSalesOrderLinesFromCreditMemo(SalesInvoiceLine, SalesCrMemoLine, RestoreOrderQuantity);
                     TempUsedSalesInvoiceLine := SalesInvoiceLine;
                     if TempUsedSalesInvoiceLine.Insert() then;
                 end;
             until SalesCrMemoLine.Next() = 0;
     end;
 
-    local procedure UpdateSalesOrderLinesFromCreditMemo(SalesInvoiceLine: Record "Sales Invoice Line"; SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    local procedure UpdateSalesOrderLinesFromCreditMemo(SalesInvoiceLine: Record "Sales Invoice Line"; SalesCrMemoLine: Record "Sales Cr.Memo Line"; RestoreOrderQuantity: Boolean)
     var
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         SalesLine: Record "Sales Line";
@@ -1069,19 +1069,23 @@ codeunit 1303 "Correct Posted Sales Invoice"
         if not SalesLine.Get(SalesLine."Document Type"::Order, SalesInvoiceLine."Order No.", SalesInvoiceLine."Order Line No.") then
             exit;
 
-        if SalesLine.Type = SalesLine.Type::Item then
-            SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+        if RestoreOrderQuantity then begin
+            if SalesLine.Type = SalesLine.Type::Item then
+                SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
 
-        UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesCrMemoLine.Quantity, SalesCrMemoLine."Quantity (Base)");
-        UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
-
-        if SalesLine.Type = SalesLine.Type::Item then begin
-            if SalesLine."Qty. to Ship" = 0 then
-                UpdateWhseRequest(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Location Code");
-
-            TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
-            UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, SalesInvoiceLine."Shipment Date", true);
+            UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesCrMemoLine.Quantity, SalesCrMemoLine."Quantity (Base)");
         end;
+
+        UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine, RestoreOrderQuantity);
+
+        if RestoreOrderQuantity then
+            if SalesLine.Type = SalesLine.Type::Item then begin
+                if SalesLine."Qty. to Ship" = 0 then
+                    UpdateWhseRequest(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Location Code");
+
+                TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
+                UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, SalesInvoiceLine."Shipment Date", true);
+            end;
     end;
 
     local procedure ResetIncomingDocumentForCancelledInvoice(SalesInvoiceHeaderNo: Code[20])
@@ -1132,6 +1136,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesInvoiceLine: Record "Sales Invoice Line";
         UndoPostingManagement: Codeunit "Undo Posting Management";
         IsHandled: Boolean;
+        RestoreOrderQuantity: Boolean;
     begin
         IsHandled := false;
         OnBeforeUpdateSalesOrderLinesFromCancelledInvoice(SalesInvoiceHeaderNo, IsHandled);
@@ -1139,22 +1144,27 @@ codeunit 1303 "Correct Posted Sales Invoice"
             exit;
 
         SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Restore Order Qty. on Return" then
-            exit;
+        RestoreOrderQuantity := SalesReceivablesSetup."Restore Order Qty. on Return";
 
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeaderNo);
         if SalesInvoiceLine.FindSet() then
             repeat
-                TempItemLedgerEntry.Reset();
-                TempItemLedgerEntry.DeleteAll();
-                SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
                 if SalesLine.Get(SalesLine."Document Type"::Order, SalesInvoiceLine."Order No.", SalesInvoiceLine."Order Line No.") then begin
-                    UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesInvoiceLine.Quantity, SalesInvoiceLine."Quantity (Base)");
-                    UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
-                    if SalesLine."Qty. to Ship" = 0 then
-                        UpdateWhseRequest(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Location Code");
-                    TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
-                    UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, SalesInvoiceLine."Shipment Date", true);
+                    if RestoreOrderQuantity then begin
+                        TempItemLedgerEntry.Reset();
+                        TempItemLedgerEntry.DeleteAll();
+                        SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+                        UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesInvoiceLine.Quantity, SalesInvoiceLine."Quantity (Base)");
+                    end;
+
+                    UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine, RestoreOrderQuantity);
+
+                    if RestoreOrderQuantity then begin
+                        if SalesLine."Qty. to Ship" = 0 then
+                            UpdateWhseRequest(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Location Code");
+                        TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
+                        UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, SalesInvoiceLine."Shipment Date", true);
+                    end;
                 end;
             until SalesInvoiceLine.Next() = 0;
     end;
@@ -1235,7 +1245,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         OnAfterSetDefaultCancelReasonCode(SalesHeader);
     end;
 
-    local procedure UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine: Record "Sales Invoice Line")
+    local procedure UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine: Record "Sales Invoice Line"; RestoreOrderQuantity: Boolean)
     var
         CurrExchRate: Record "Currency Exchange Rate";
         SalesHeader: Record "Sales Header";
@@ -1310,12 +1320,13 @@ codeunit 1303 "Correct Posted Sales Invoice"
                     SalesInvoiceLine.Quantity * (SalesLine."Prepmt. Line Amount" / SalesLine.Quantity),
                     Currency."Amount Rounding Precision"));
 
-        SalesLine.Validate(
-            "Prepmt Amt to Deduct",
-            SalesLine."Prepmt Amt to Deduct" +
-                Round(
-                    SalesInvoiceLine.Quantity * (SalesLine."Prepmt. Line Amount" / SalesLine.Quantity),
-                    Currency."Amount Rounding Precision"));
+        if RestoreOrderQuantity then
+            SalesLine.Validate(
+                "Prepmt Amt to Deduct",
+                SalesLine."Prepmt Amt to Deduct" +
+                    Round(
+                        SalesInvoiceLine.Quantity * (SalesLine."Prepmt. Line Amount" / SalesLine.Quantity),
+                        Currency."Amount Rounding Precision"));
 
         SalesLine.Modify(true);
     end;

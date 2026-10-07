@@ -25,6 +25,7 @@ codeunit 137019 "SCM Correct Invoice"
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryJob: Codeunit "Library - Job";
+        LibraryJournals: Codeunit "Library - Journals";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         ItemTrackingMode: Option "Assign Lot","Verify Lot";
         IsInitialized: Boolean;
@@ -1442,6 +1443,86 @@ codeunit 137019 "SCM Correct Invoice"
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
     end;
 
+    [Test]
+    procedure CancelInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        PrepaidSalesLine: Record "Sales Line";
+        RemainingSalesLine: Record "Sales Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesPrepaymentInvoiceHeader: Record "Sales Invoice Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        PrepaymentCreditMemoNo: Code[20];
+        PrepaymentInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 649626] Cancelling an invoice reconciles its prepayment when order quantity restoration is disabled.
+        Initialize();
+
+        // [GIVEN] A Sales Order with a paid 50% prepayment on the line that will be posted.
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 20));
+        SetupSalesPrepmtGLAccountPostingGroups(GeneralPostingSetup, VATPostingSetup);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Prepayment %", 50);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(PrepaidSalesLine, SalesHeader, PrepaidSalesLine.Type::Item, Item."No.", 1);
+        PrepaidSalesLine.Validate("Unit Price", 100);
+        PrepaidSalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(RemainingSalesLine, SalesHeader, RemainingSalesLine.Type::Item, Item."No.", 1);
+        RemainingSalesLine.Validate("Unit Price", 100);
+        RemainingSalesLine.Validate("Prepayment %", 0);
+        RemainingSalesLine.Validate("Qty. to Ship", 0);
+        RemainingSalesLine.Validate("Qty. to Invoice", 0);
+        RemainingSalesLine.Modify(true);
+
+        PrepaymentInvoiceNo := LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        SalesPrepaymentInvoiceHeader.Get(PrepaymentInvoiceNo);
+        SalesPrepaymentInvoiceHeader.CalcFields("Amount Including VAT");
+        LibrarySales.CreatePaymentAndApplytoInvoice(
+            GenJournalLine, Customer."No.", PrepaymentInvoiceNo, -SalesPrepaymentInvoiceHeader."Amount Including VAT");
+
+        // [GIVEN] The prepaid line is shipped and invoiced, and quantity restoration is disabled.
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [WHEN] The posted invoice is cancelled.
+        CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
+
+        // [THEN] The order quantities remain posted, but its deducted prepayment is released.
+        PrepaidSalesLine.Find();
+        PrepaidSalesLine.TestField("Quantity Shipped", 1);
+        PrepaidSalesLine.TestField("Quantity Invoiced", 1);
+        PrepaidSalesLine.TestField("Qty. to Ship", 0);
+        PrepaidSalesLine.TestField("Qty. to Invoice", 0);
+        PrepaidSalesLine.TestField("Prepmt Amt Deducted", 0);
+
+        // [THEN] The released prepayment can be credited from the original order.
+        SalesHeader.Find();
+        PrepaymentCreditMemoNo := LibrarySales.PostSalesPrepaymentCreditMemo(SalesHeader);
+        SalesCrMemoHeader.Get(PrepaymentCreditMemoNo);
+        SalesCrMemoHeader.CalcFields("Amount Including VAT");
+        SalesCrMemoHeader.TestField("Amount Including VAT", SalesPrepaymentInvoiceHeader."Amount Including VAT");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1476,6 +1557,18 @@ codeunit 137019 "SCM Correct Invoice"
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         SalesReceivablesSetup.Modify(true);
+    end;
+
+    local procedure SetupSalesPrepmtGLAccountPostingGroups(GeneralPostingSetup: Record "General Posting Setup"; VATPostingSetup: Record "VAT Posting Setup")
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.Get(GeneralPostingSetup."Sales Prepayments Account");
+        GLAccount.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        GLAccount.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        GLAccount.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
     end;
 
     local procedure SetGlobalNoSeriesInSetups()
