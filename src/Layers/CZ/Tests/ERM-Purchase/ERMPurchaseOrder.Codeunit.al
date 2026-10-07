@@ -2128,7 +2128,6 @@
 
         // [THEN] "Qty. to Receive " in Purchase Order Line is "X"
         Assert.AreEqual(Qty, PurchaseLine4."Qty. to Receive", StrSubstNo(QtyToReceiveUpdateErr, Qty));
-
     end;
 
     [Test]
@@ -9381,6 +9380,63 @@
         PurchInvHeader.TestField("Order No.", '');
     end;
 
+    [Test]
+    [HandlerFunctions('NavigatePageHandler')]
+    procedure UnpostedPurchaseReturnOrderNavigate()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: Page Navigate;
+    begin
+        // [SCENARI 651758] Verify that Find Entries finds unposted Purchase Return Orders and Purchase Credit Memos.
+
+        // [GIVEN] Create an unposted Purchase Return Order with one item line.
+        Initialize();
+        InitGlobalVariables();
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, CreateVendor(), PurchaseHeader."Document Type"::"Return Order");
+
+        PurchaseLine.Validate(Quantity, 1);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Search for the Purchase Return Order in Find Entries.
+        PostingDate2 := PurchaseHeader."Posting Date";
+        DocumentNo2 := PurchaseHeader."No.";
+
+        Navigate.SetDoc(PostingDate2, DocumentNo2);
+        Navigate.Run();
+
+        // [THEN] Verify that the unposted Purchase Return Order is found.
+        VerifyNavigateRecords(TempDocumentEntry2, DATABASE::"Purchase Header", 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('NavigatePageHandler')]
+    procedure UnpostedPurchaseCreditMemoNavigate()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: Page Navigate;
+    begin
+        // [SCENARIO 651758] Verify that Find Entries finds unposted Purchase Return Orders and Purchase Credit Memos.
+        // [GIVEN] Create an unposted Purchase Credit Memo with one item line.
+        Initialize();
+        InitGlobalVariables();
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, CreateVendor(), PurchaseHeader."Document Type"::"Credit Memo");
+
+        PurchaseLine.Validate(Quantity, 1);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Search for the Purchase Credit Memo in Find Entries.
+        PostingDate2 := PurchaseHeader."Posting Date";
+        DocumentNo2 := PurchaseHeader."No.";
+
+        Navigate.SetDoc(PostingDate2, DocumentNo2);
+        Navigate.Run();
+
+        // [THEN] Verify that the unposted Purchase Credit Memo is found.
+        VerifyNavigateRecords(TempDocumentEntry2, DATABASE::"Purchase Header", 1);
+    end;
+
     local procedure Initialize()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -11306,7 +11362,6 @@
     begin
         LibraryPurchase.CreatePurchHeader(
           PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
-
         for i := 1 to 3 do
             CreatePurchaseLineWithDirectUnitCost(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), 10, 10);
 
@@ -12173,7 +12228,6 @@
         ReturnShipmentLine.SetRange("No.", PurchaseLine."No.");
         ReturnShipmentLine.FindLast();
         ReturnShipmentLine.TestField(Quantity, -1 * PurchaseLine."Return Qty. to Ship");
-
     end;
 
     local procedure SetupMyNotificationsForPostingSetup()
@@ -12637,7 +12691,6 @@
         DocumentAttachment.Init();
         CreateTempBLOBWithImageOfType(TempBlob, 'jpeg');
         DocumentAttachment.SaveAttachment(RecRef, 'test.jpeg', TempBlob);
-
         if FlowPurchase then
             DocumentAttachment."Document Flow Purchase" := true;
         if FlowSales then
@@ -12766,7 +12819,6 @@
         DefaultDimension: Record "Default Dimension";
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-
         if DimensionCode = '' then
             exit;
         LibraryDimension.CreateDimensionValue(DimensionValue, DimensionCode);
@@ -12960,7 +13012,6 @@
     begin
         LibraryVariableStorage.Dequeue(DequedVar);
         IsSetup := DequedVar;
-
         if IsSetup then begin
             LibraryVariableStorage.Dequeue(DequedVar);
             QuantityToAssign := DequedVar;
@@ -13121,7 +13172,6 @@
         FieldVisibilityArray[30] := MatrixForm.Field30.Visible();
         FieldVisibilityArray[31] := MatrixForm.Field31.Visible();
         FieldVisibilityArray[32] := MatrixForm.Field32.Visible();
-
         for Index := 1 to Count do
             Assert.AreEqual(true, FieldVisibilityArray[Index], StrSubstNo(ColumnWrongVisibilityErr, Index));
     end;
