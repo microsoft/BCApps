@@ -3825,12 +3825,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                   -VATAmount, -VATAmountAddCurr, false,
                                   VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax");
                                 if NonDedVATAmount <> 0 then begin
-                                    VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax");
                                     NonDedVATAccountNo := VATPostingSetup.GetPurchAccount(false);
                                     if EntryType = EntryType::"Payment Discount (VAT Excl.)" then
                                         NonDedVATAccountNo := GetPaymentDiscountVATExclNonDedVATAccountNo(VATEntry2, NonDedVATAmount);
                                     InitGLEntryVAT(GenJnlLine, NonDedVATAccountNo, '',
-                                    NonDedVATAmount, NonDedVATAmountAddCurr, false);
+                                    NonDedVATAmount, NonDedVATAmountAddCurr, false
+                                    VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax");
                                     InitGLEntryVAT(GenJnlLine, VATPostingSetup.GetRevChargeAccount(false), '',
                                     -NonDedVATAmount, -NonDedVATAmountAddCurr, false,
                                     VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax");
@@ -11295,12 +11295,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(SalesReceivablesSetup."Appln. between Currencies" = SalesReceivablesSetup."Appln. between Currencies"::All);
     end;
 
-    local procedure GetPaymentDiscountVATExclNonDedVATAccountNo(VatEntry2: Record "VAT Entry"; NonDedVATAmount: Decimal): Code[20]
+    local procedure GetPaymentDiscountVATExclNonDedVATAccountNo(VATEntry2: Record "VAT Entry"; NonDedVATAmount: Decimal): Code[20]
     var
         GeneralPostingSetup: Record "General Posting Setup";
     begin
         GeneralPostingSetup.SetLoadFields("Purch. Pmt. Disc. Debit Acc.", "Purch. Pmt. Disc. Credit Acc.");
-        GeneralPostingSetup.Get(VatEntry2."Gen. Bus. Posting Group", VatEntry2."Gen. Prod. Posting Group");
+        GeneralPostingSetup.Get(VATEntry2."Gen. Bus. Posting Group", VATEntry2."Gen. Prod. Posting Group");
         exit(GeneralPostingSetup.GetPurchPmtDiscountAccount(NonDedVATAmount > 0));
     end;
 
