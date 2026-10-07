@@ -1920,6 +1920,7 @@ codeunit 139031 "Change Log"
         ChangeLogSetupField: Record "Change Log Setup (Field)";
         FieldMonitoringSetup: Record "Field Monitoring Setup";
         ChangeLogSetupFieldListPage: TestPage "Change Log Setup (Field) List";
+        TableMonitoredErr: Label 'You cannot change the change log field settings for table %1 because it is configured for field monitoring. Use the Monitored Fields Worksheet page to manage its monitored fields.', Comment = '%1 = Table number';
     begin
         // [SCENARIO 648216] The change log field page cannot change a monitored table, even when monitoring is paused.
         Initialize();
@@ -1940,7 +1941,7 @@ codeunit 139031 "Change Log"
         OpenChangeLogSetupFieldList(ChangeLogSetupFieldListPage, GlobalTableNo, GlobalExtraFieldNo[3]);
 
         asserterror ChangeLogSetupFieldListPage."Log Insertion".SetValue(false);
-        Assert.ExpectedTestFieldError(ChangeLogSetupTable.FieldCaption("Monitor Sensitive Field"), Format(false));
+        Assert.ExpectedError(StrSubstNo(TableMonitoredErr, GlobalTableNo));
         ChangeLogSetupFieldListPage.Close();
 
         ChangeLogSetupTable.Get(GlobalTableNo);

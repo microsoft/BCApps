@@ -140,6 +140,7 @@ page 594 "Change Log Setup (Field) List"
     var
         ChangeLogSetupField: Record "Change Log Setup (Field)";
         CannotChangeColumnErr: Label 'You cannot change this column.';
+        TableMonitoredErr: Label 'You cannot change the change log field settings for table %1 because it is configured for field monitoring. Use the Monitored Fields Worksheet page to manage its monitored fields.', Comment = '%1 = Table number';
         LogIns: Boolean;
         LogMod: Boolean;
         LogDel: Boolean;
@@ -176,7 +177,8 @@ page 594 "Change Log Setup (Field) List"
         GetRec();
         TransToRec();
         ChangeLogSetupTable.Get(ChangeLogSetupField."Table No.");
-        ChangeLogSetupTable.TestField("Monitor Sensitive Field", false);
+        if ChangeLogSetupTable."Monitor Sensitive Field" then
+            Error(TableMonitoredErr, ChangeLogSetupTable."Table No.");
         if ChangeLogSetupField."Monitor Sensitive Field" then begin
             ChangeLogSetupField.Validate("Monitor Sensitive Field", false);
             ChangeLogSetupField.Validate(Notify, false);
