@@ -62,5 +62,5 @@ codeunit 4592 "SOA Events"
         SetupSalesOrderAgentTitleTxt: Label 'Set up Sales Order Agent';
         SetupSalesOrderAgentShortTitleTxt: Label 'Set up Sales Order Agent', MaxLength = 50;
         SetupSalesOrderAgentDescriptionTxt: Label 'Set up Sales Order Agent to automate the process of capturing sales orders.';
-        SetupSalesOrderAgentHelpTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2346050', Locked = true;
+        SetupSalesOrderAgentHelpTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2382318', Locked = true;
 }

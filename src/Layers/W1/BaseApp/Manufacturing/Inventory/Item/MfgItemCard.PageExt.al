@@ -54,13 +54,6 @@ pageextension 99000750 "Mfg. Item Card" extends "Item Card"
                     ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies how consumption of the item (component) is calculated and handled in production processes. Manual: Enter and post consumption in the consumption journal manually. Forward: Automatically posts consumption according to the production order component lines when the first operation starts. Backward: Automatically calculates and posts consumption according to the production order component lines when the production order is finished. Pick + Forward / Pick + Backward: Variations with warehousing.';
                 }
-                field("Overhead Rate"; Rec."Overhead Rate")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Enabled = IsInventoriable;
-                    Importance = Additional;
-                    ToolTip = 'Specifies the item''s indirect cost as an absolute amount.';
-                }
                 field("Scrap %"; Rec."Scrap %")
                 {
                     ApplicationArea = Manufacturing;
