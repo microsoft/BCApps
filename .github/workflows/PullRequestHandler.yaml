@@ -35,7 +35,7 @@ jobs:
 
   Initialization:
     needs: [ PregateCheck ]
-    if: (!failure() && !cancelled()) && github.head_ref != 'features/646383-sql-api-warmup-experiment' && github.head_ref != 'features/646383-sql-api-two-arm-experiment' && github.head_ref != 'features/646383-sql-api-300-trial-comparison' && github.head_ref != 'features/646383-sql-api-worker-warmup-comparison'
+    if: (!failure() && !cancelled()) && github.head_ref != 'features/646383-sql-api-warmup-experiment' && github.head_ref != 'features/646383-sql-api-two-arm-experiment' && github.head_ref != 'features/646383-sql-api-300-trial-comparison' && github.head_ref != 'features/646383-sql-api-worker-warmup-comparison' && github.head_ref != 'features/646383-sql-api-worker-readiness-comparison'
     runs-on: [ windows-latest ]
     outputs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}

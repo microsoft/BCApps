@@ -1,5 +1,5 @@
 name: 'SQL API worker remount warmup - DO NOT MERGE'
-run-name: SQL API worker remount warmup - 20 original trials
+run-name: SQL API worker remount warmup and NAV-inspired readiness - 30 original trials
 
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   Plan:
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-worker-warmup-comparison' && github.run_attempt == 1 && inputs.schedulingApproval == 'parent-verified-safe-scheduling'
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-worker-readiness-comparison' && github.run_attempt == 1 && inputs.schedulingApproval == 'parent-verified-safe-scheduling'
     runs-on: windows-latest
     timeout-minutes: 10
     outputs:

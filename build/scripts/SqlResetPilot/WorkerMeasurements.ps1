@@ -38,12 +38,14 @@ $attempts = @(Get-ChildItem (Join-Path $output 'test-attempts') -Filter outcome.
         total = 'Monotonic pre-checkout through post-cleanup; excludes queue/upload'
         setup = 'Monotonic pre-checkout through inventory, before clean discovery'
         execution = 'UTC discovery through full-cohort outcome; includes template, resets, warmups and tests'
-        reset = 'Monotonic per-remount host wall time; discovery restore separately identified by template=default'
-        warmup = 'Monotonic per-remount operation including isolated process/startup/result verification; control only records receipt'
+        reset = 'Monotonic per-remount host wall time including serial postmount pacing; pacing also recorded separately, not additive'
+        warmup = 'Monotonic app warmup, optional companies probe and pretest wait; individual phases and serial postmount pacing retained separately'
         codeunit = 'Original test-attempts startedUtc/completedUtc; includes worker dispatch and collection'
         case = 'Original cohort JUnit time; warmup case time retained separately, not isolated HTTP latency'
     }
     resets = $resets; remountOperations = $warmups; codeunitAttempts = $attempts
+    postMountOperations = @(Get-ChildItem $output -Filter 'worker-postmount-*.json' -File |
+        ForEach-Object { Get-Content $_.FullName -Raw | ConvertFrom-Json })
     successfulWarmupCount = @($warmups | Where-Object { $_.passed -and $_.executed }).Count
     expectedWarmupCountIfFullCandidate = 22
 } | ConvertTo-Json -Depth 14 | Set-Content (Join-Path $output 'worker-performance.json')

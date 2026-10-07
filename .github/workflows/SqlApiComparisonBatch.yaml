@@ -28,7 +28,7 @@ permissions:
 jobs:
   Pilot:
     name: Trial ${{ matrix.experiment }}/${{ matrix.country }}/${{ matrix.trial }}
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-worker-warmup-comparison' && github.run_attempt == 1
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-worker-readiness-comparison' && github.run_attempt == 1
     strategy:
       fail-fast: false
       max-parallel: 6

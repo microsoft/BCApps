@@ -10,7 +10,7 @@ Describe 'Experiment country and trial container ownership' {
             $script:saved[$name] = [Environment]::GetEnvironmentVariable($name)
         }
         $env:GITHUB_REPOSITORY = 'microsoft/BCApps'
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-warmup-comparison'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-readiness-comparison'
         $env:BC_SQL_API_EXPERIMENT = 'workerwarmup'
         $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
         $env:GITHUB_RUN_ATTEMPT = '1'
@@ -85,7 +85,7 @@ Describe 'Experiment country and trial container ownership' {
         $env:BC_SQL_API_EXPERIMENT = 'workerwarmup'
         $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-two-arm-experiment'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-warmup-comparison'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-readiness-comparison'
         $env:GITHUB_EVENT_NAME = 'pull_request'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
     }

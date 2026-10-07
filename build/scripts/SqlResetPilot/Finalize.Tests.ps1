@@ -9,7 +9,7 @@ Describe 'SQL pilot final cleanup ownership' {
             $script:savedGate[$key] = [Environment]::GetEnvironmentVariable($key)
         }
         $env:GITHUB_REPOSITORY = 'microsoft/BCApps'
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-warmup-comparison'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-worker-readiness-comparison'
         $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
         $env:GITHUB_RUN_ATTEMPT = '1'
         $script:oldWorkspace = $env:GITHUB_WORKSPACE

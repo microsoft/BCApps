@@ -172,13 +172,40 @@ Describe 'Exact manual three-arm comparison isolation' {
             $path = Join-Path $TestDrive 'selection.xml'
             $context = [PSCustomObject]@{ CodeunitId = 148318; ResultFiles = @{ JUnitResultFileName = $path } }
             '<testsuites><testsuite name="148318 Capabilities"><testcase name="CapabilitiesProjectsEnabledViaAPI"><skipped/></testcase></testsuite></testsuites>' | Set-Content $path
-            foreach ($arm in @('control', 'warmup', 'retry')) {
+            foreach ($arm in @('control', 'warmup', 'retry', 'workerwarmup', 'navreadiness')) {
                 Test-SqlApiExperimentSelection $context $arm | Should -BeFalse
             }
             '<testsuites><testsuite name="148318 Capabilities"><testcase name="CapabilitiesProjectsEnabledViaAPI"/></testsuite></testsuites>' | Set-Content $path
-            foreach ($arm in @('control', 'warmup', 'retry')) {
+            foreach ($arm in @('control', 'warmup', 'retry', 'workerwarmup', 'navreadiness')) {
                 Test-SqlApiExperimentSelection $context $arm | Should -BeTrue
             }
+        }
+        It 'collects original results through the real selection validator for <Arm> codeunit <Codeunit>' -ForEach @(
+            @{ Arm = 'workerwarmup'; Codeunit = 139700 }
+            @{ Arm = 'workerwarmup'; Codeunit = 148318 }
+            @{ Arm = 'navreadiness'; Codeunit = 139700 }
+            @{ Arm = 'navreadiness'; Codeunit = 148318 }
+        ) {
+            $env:BC_SQL_API_EXPERIMENT = $Arm
+            Mock Receive-Job {} -RemoveParameterType Job
+            Mock Remove-Job {} -RemoveParameterType Job
+            $path = Join-Path $TestDrive "selection-$Arm-$Codeunit.xml"
+            "<testsuites><testsuite name='$Codeunit Tests'><testcase name='CapabilitiesProjectsEnabledViaAPI'/></testsuite></testsuites>" |
+                Set-Content $path
+            $context = [PSCustomObject]@{
+                CodeunitId = $Codeunit; Tenant = 'tenant2'; StartedUtc = [datetime]::UtcNow
+                TestCount = 1; Attempt = 1; ResultFiles = @{ JUnitResultFileName = $path }
+            }
+            $entry = [PSCustomObject]@{
+                appName = "Test App::$Codeunit"; tenant = 'tenant2'
+                SqlRetryContext = $context; SqlRetryExpectedTests = @()
+            }
+            (Receive-TestJobResult $entry @{ Id = 91; State = 'Completed' } @{}).Outcome | Should -Be 'Passed'
+            $saved = Join-Path $TestDrive "test-attempts\tenant2-$Codeunit-1"
+            Test-Path (Join-Path $saved 'JUnitResultFileName') | Should -BeTrue
+            $outcome = Get-Content (Join-Path $saved 'outcome.json') -Raw | ConvertFrom-Json
+            $outcome.experiment | Should -Be $Arm
+            $outcome.retryEligible | Should -BeFalse
         }
       }
     }

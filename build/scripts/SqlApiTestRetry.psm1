@@ -181,7 +181,7 @@ function Test-SqlApiRetryResult {
 }
 
 function Test-SqlApiExperimentSelection {
-    param($Context, [ValidateSet('control', 'warmup', 'retry')][string]$Experiment)
+    param($Context, [ValidateSet('control', 'warmup', 'retry', 'workerwarmup', 'navreadiness')][string]$Experiment)
     if ([string]$Context.CodeunitId -ne '148318') { return $true }
     try {
         $suite = Get-SqlApiRetrySuite -Context $Context
