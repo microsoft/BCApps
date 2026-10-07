@@ -577,10 +577,9 @@ codeunit 148346 "Expense Interim Approval Test"
 
         // [WHEN] The second coverage is edited to overlap the first.
         SecondCoverage.Get(PrimaryApprover."No.", SecondAlternateApprover."No.", SecondCoverageStartDate);
-        SecondCoverage.Validate("Effective Start Date", FirstCoverageEndDate);
-        asserterror SecondCoverage.Modify(true);
+        asserterror SecondCoverage.Rename(PrimaryApprover."No.", SecondAlternateApprover."No.", FirstCoverageEndDate);
 
-        // [THEN] The overlapping edit is rejected and the original date range remains unchanged.
+        // [THEN] The overlapping key rename is rejected and the original date range remains unchanged.
         Assert.ExpectedError(StrSubstNo(AlternateApproverOverlappingCoverageErr, PrimaryApprover."No."));
         SecondCoverage.Get(PrimaryApprover."No.", SecondAlternateApprover."No.", SecondCoverageStartDate);
         SecondCoverage.TestField("Effective Start Date", SecondCoverageStartDate);
