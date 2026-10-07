@@ -500,7 +500,7 @@ codeunit 148346 "Expense Interim Approval Test"
         OriginalWorkDate: Date;
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 626975] Assigning an alternate approver does not override an already assigned eligible interim approver.
+        // [SCENARIO 626975] Assigning an alternate keeps the interim as active approver and replaces the final approver.
         Initialize();
         OriginalWorkDate := WorkDate();
         WorkDate(Today());
@@ -521,9 +521,10 @@ codeunit 148346 "Expense Interim Approval Test"
         // [WHEN] Assign Alternate Approver is invoked.
         ExpenseReportHeader.AssignAlternateApprover('');
 
-        // [THEN] Routing remains with the interim approver.
+        // [THEN] The interim remains active and the alternate becomes the final approver.
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
-        VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, FinalApprover);
+        VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, AlternateApprover);
+        ExpenseReportHeader.TestField("Alternate Approver No.", AlternateApprover."No.");
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverAssigned);
         ExpenseActivityLogEntry.FindFirst();
@@ -1658,17 +1659,14 @@ codeunit 148346 "Expense Interim Approval Test"
     procedure ProcessingReportAssignsAlternatesToFilteredAndAllPendingReports()
     var
         SubmitterOne: Record "Expense User";
-        InterimApproverOne: Record "Expense User";
-        FinalApproverOne: Record "Expense User";
-        InterimAlternateOne: Record "Expense User";
-        FinalAlternateOne: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        InterimAlternate: Record "Expense User";
+        FinalAlternate: Record "Expense User";
         ExpenseReportOne: Record "Expense Report Header";
         SubmitterTwo: Record "Expense User";
-        InterimApproverTwo: Record "Expense User";
-        FinalApproverTwo: Record "Expense User";
-        InterimAlternateTwo: Record "Expense User";
-        FinalAlternateTwo: Record "Expense User";
         ExpenseReportTwo: Record "Expense Report Header";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ReportFilter: Record "Expense Report Header";
         AssignExpenseReportAlternates: Report "Delegate Expense Approval Req";
@@ -1682,21 +1680,18 @@ codeunit 148346 "Expense Interim Approval Test"
 
         // [GIVEN] Two pending reports with active alternate coverage for both approvers.
         EnableAgent(true);
-        CreateInterimApprovalSetup(SubmitterOne, InterimApproverOne, FinalApproverOne);
+        CreateInterimApprovalSetup(SubmitterOne, InterimApprover, FinalApprover);
         CreateSubmittedExpenseReport(SubmitterOne, ExpenseReportOne);
-        ExpenseReportOne.AssignInterimApprover(InterimApproverOne."No.", SubmitterOne."No.");
-        CreateApproverExpenseUser(InterimAlternateOne);
-        CreateApproverExpenseUser(FinalAlternateOne);
-        CreateAlternateApproverCoverage(InterimApproverOne."No.", InterimAlternateOne."No.", WorkDate(), WorkDate());
-        CreateAlternateApproverCoverage(FinalApproverOne."No.", FinalAlternateOne."No.", WorkDate(), WorkDate());
-
-        CreateInterimApprovalSetup(SubmitterTwo, InterimApproverTwo, FinalApproverTwo);
+        ExpenseReportOne.AssignInterimApprover(InterimApprover."No.", SubmitterOne."No.");
+        CreateSubmitterExpenseUser(SubmitterTwo);
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, SubmitterTwo."No.", FinalApprover."No.");
         CreateSubmittedExpenseReport(SubmitterTwo, ExpenseReportTwo);
-        ExpenseReportTwo.AssignInterimApprover(InterimApproverTwo."No.", SubmitterTwo."No.");
-        CreateApproverExpenseUser(InterimAlternateTwo);
-        CreateApproverExpenseUser(FinalAlternateTwo);
-        CreateAlternateApproverCoverage(InterimApproverTwo."No.", InterimAlternateTwo."No.", WorkDate(), WorkDate());
-        CreateAlternateApproverCoverage(FinalApproverTwo."No.", FinalAlternateTwo."No.", WorkDate(), WorkDate());
+        ExpenseReportTwo.AssignInterimApprover(InterimApprover."No.", SubmitterTwo."No.");
+
+        CreateApproverExpenseUser(InterimAlternate);
+        CreateApproverExpenseUser(FinalAlternate);
+        CreateAlternateApproverCoverage(InterimApprover."No.", InterimAlternate."No.", WorkDate(), WorkDate());
+        CreateAlternateApproverCoverage(FinalApprover."No.", FinalAlternate."No.", WorkDate(), WorkDate());
 
         // [WHEN] The processing report runs with a filter for the first report only.
         ReportFilter.SetRange("No.", ExpenseReportOne."No.");
@@ -1705,9 +1700,9 @@ codeunit 148346 "Expense Interim Approval Test"
         AssignExpenseReportAlternates.RunModal();
 
         // [THEN] Only the filtered report is routed through its interim and final alternates.
-        VerifyInterimApprover(ExpenseReportOne, InterimAlternateOne."No.");
-        VerifyApprovalRouting(ExpenseReportOne, InterimAlternateOne, FinalAlternateOne);
-        ExpenseReportOne.TestField("Alternate Approver No.", FinalAlternateOne."No.");
+        VerifyInterimApprover(ExpenseReportOne, InterimAlternate."No.");
+        VerifyApprovalRouting(ExpenseReportOne, InterimAlternate, FinalAlternate);
+        ExpenseReportOne.TestField("Alternate Approver No.", FinalAlternate."No.");
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportOne.SystemId);
         ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::InterimApproverAssigned);
         ExpenseActivityLogEntry.FindLast();
@@ -1715,8 +1710,8 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverAssigned);
         ExpenseActivityLogEntry.FindLast();
         ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Administrator);
-        VerifyInterimApprover(ExpenseReportTwo, InterimApproverTwo."No.");
-        VerifyApprovalRouting(ExpenseReportTwo, InterimApproverTwo, FinalApproverTwo);
+        VerifyInterimApprover(ExpenseReportTwo, InterimApprover."No.");
+        VerifyApprovalRouting(ExpenseReportTwo, InterimApprover, FinalApprover);
 
         // [WHEN] The report runs again with no report-number filter.
         Clear(AssignExpenseReportAlternates);
@@ -1724,9 +1719,9 @@ codeunit 148346 "Expense Interim Approval Test"
         AssignExpenseReportAlternates.RunModal();
 
         // [THEN] The remaining eligible pending report is also routed through both alternates.
-        VerifyInterimApprover(ExpenseReportTwo, InterimAlternateTwo."No.");
-        VerifyApprovalRouting(ExpenseReportTwo, InterimAlternateTwo, FinalAlternateTwo);
-        ExpenseReportTwo.TestField("Alternate Approver No.", FinalAlternateTwo."No.");
+        VerifyInterimApprover(ExpenseReportTwo, InterimAlternate."No.");
+        VerifyApprovalRouting(ExpenseReportTwo, InterimAlternate, FinalAlternate);
+        ExpenseReportTwo.TestField("Alternate Approver No.", FinalAlternate."No.");
         WorkDate(OriginalWorkDate);
     end;
 
