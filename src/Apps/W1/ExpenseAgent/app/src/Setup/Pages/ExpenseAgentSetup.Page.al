@@ -560,7 +560,7 @@ page 6996 "Expense Agent Setup"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create corp card CSV sample scenario';
                     Image = Import;
-                    ToolTip = 'Imports the 60 sample CSV transactions, creates and posts their expense reports, and creates and posts the settlement between CORPCARD and a bank account that uses the LCY posting group.';
+                    ToolTip = 'Imports the 60 sample CSV transactions, creates and posts their expense reports, and creates and posts the settlement between CORPCARD and a local-currency bank account with a configured posting group.';
 
                     trigger OnAction()
                     var

@@ -100,5 +100,7 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Provider");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Trans");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Trans Detail");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Settlement");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Settlement Line");
     end;
 }

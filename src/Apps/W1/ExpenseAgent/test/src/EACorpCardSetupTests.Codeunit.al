@@ -84,8 +84,6 @@ codeunit 148354 EACorpCardSetupTests
         Initialize();
 
         LibraryERM.CreateBankAccount(PaymentBankAccount);
-        PaymentBankAccount.Validate("Bank Acc. Posting Group", LcyBankAccountPostingGroupTok);
-        PaymentBankAccount.Modify(true);
 
         CreateCorpCardSetup.CreateCsvSampleScenario(PaymentBankAccount."No.");
 
@@ -177,6 +175,5 @@ codeunit 148354 EACorpCardSetupTests
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         CorpCardCsvSampleSettlementFilterTok: Label 'CSV-SAMPLE-SETTLEMENT-*', Locked = true;
         CorpCardAccountTok: Label 'CORPCARD', Locked = true;
-        LcyBankAccountPostingGroupTok: Label 'LCY', Locked = true;
         AirlineExpenseCategoryCodeTok: Label 'AIRLINE', Locked = true;
 }

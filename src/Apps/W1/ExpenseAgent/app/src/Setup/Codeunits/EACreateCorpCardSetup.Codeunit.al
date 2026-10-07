@@ -657,8 +657,9 @@ codeunit 7442 "EA Create Corp Card Setup"
             CorpCardBankAccount, CorpCardBankAccountTok, CorpCardBankAccountNameLbl,
             CorpCardBankAccountNoTok, '');
         PaymentBankAccount.Get(PaymentBankAccountNo);
-        PaymentBankAccount.TestField("Bank Acc. Posting Group", LcyBankAccountPostingGroupTok);
+        PaymentBankAccount.TestField("Bank Acc. Posting Group");
         PaymentBankAccount.TestField("Currency Code", '');
+        ValidateBankAccountPostingGroup(PaymentBankAccount);
 
         CorpCardProvider.Validate("Corp Card Bank Account No.", CorpCardBankAccount."No.");
         CorpCardProvider.Validate("Payment Bank Account No.", PaymentBankAccount."No.");
@@ -672,7 +673,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         NoSeries: Record "No. Series";
         IsModified: Boolean;
     begin
-        BankAccountPostingGroup.Get(LcyBankAccountPostingGroupTok);
+        BankAccountPostingGroup.Get(CorpCardBankAccountPostingGroupTok);
         BankAccountPostingGroup.TestField("G/L Account No.");
 
         if not BankAccount.Get(BankAccountNo) then begin
@@ -712,14 +713,29 @@ codeunit 7442 "EA Create Corp Card Setup"
     local procedure FindLcyPaymentBankAccount(): Code[20]
     var
         BankAccount: Record "Bank Account";
+        BankAccountPostingGroup: Record "Bank Account Posting Group";
     begin
         BankAccount.SetFilter("No.", '<>%1', CorpCardBankAccountTok);
-        BankAccount.SetRange("Bank Acc. Posting Group", LcyBankAccountPostingGroupTok);
+        BankAccount.SetFilter("Bank Acc. Posting Group", '<>%1', '');
         BankAccount.SetRange("Currency Code", '');
-        if BankAccount.FindFirst() then
-            exit(BankAccount."No.");
+        BankAccount.SetRange(Blocked, false);
+        if BankAccount.FindSet() then
+            repeat
+                if BankAccountPostingGroup.Get(BankAccount."Bank Acc. Posting Group") and
+                   (BankAccountPostingGroup."G/L Account No." <> '')
+                then
+                    exit(BankAccount."No.");
+            until BankAccount.Next() = 0;
 
         Error(NoLcyPaymentBankAccountErr);
+    end;
+
+    local procedure ValidateBankAccountPostingGroup(BankAccount: Record "Bank Account")
+    var
+        BankAccountPostingGroup: Record "Bank Account Posting Group";
+    begin
+        BankAccountPostingGroup.Get(BankAccount."Bank Acc. Posting Group");
+        BankAccountPostingGroup.TestField("G/L Account No.");
     end;
 
     local procedure CreateAndPostCsvSampleExpenseReports(CorpCardStatement: Record "EA Corp Card Statement")
@@ -1323,7 +1339,6 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardBankAccountPostingGroupTok: Label 'CORPCARD', MaxLength = 20, Locked = true;
         CorpCardGLAccountTok: Label 'CORPCARD', MaxLength = 20, Locked = true;
         CorpCardGLAccountNameLbl: Label 'Corporate Card Settlement Account', MaxLength = 100;
-        LcyBankAccountPostingGroupTok: Label 'LCY', MaxLength = 20, Locked = true;
         PaymentReconciliationNoSeriesTok: Label 'PREC', Locked = true;
         SepaCamtImportFormatTok: Label 'SEPA CAMT', Locked = true;
         CsvSampleImportCountErr: Label 'The CSV sample import must create %1 transactions, but it created %2.', Comment = '%1 = expected transaction count, %2 = actual transaction count';
@@ -1332,6 +1347,6 @@ codeunit 7442 "EA Create Corp Card Setup"
         CsvSampleStatementNoTransactionsErr: Label 'CSV sample statement entry %1 has no transactions.', Comment = '%1 = statement entry number';
         NoCsvSampleExpensesErr: Label 'No CSV sample expenses were found for expense user %1.', Comment = '%1 = expense user number';
         BankAccountCurrencyMismatchErr: Label 'Bank account %1 uses currency %2, but the CSV sample statement uses currency %3.', Comment = '%1 = bank account number, %2 = bank account currency code, %3 = statement currency code';
-        NoLcyPaymentBankAccountErr: Label 'No local-currency bank account with the LCY posting group was found for the CSV sample settlement.';
+        NoLcyPaymentBankAccountErr: Label 'No local-currency bank account with a configured posting group was found for the CSV sample settlement.';
         CorpCardBankLedgerEntryMissingErr: Label 'No corporate card bank account ledger entry was found for transaction %1.', Comment = '%1 = corporate card transaction entry number';
 }
