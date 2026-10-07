@@ -31,7 +31,8 @@ codeunit 133100 "Extension Management Test"
     var
         ExtensionManagement: Codeunit "Extension Management";
         ExtensionManagementTest: Codeunit "Extension Management Test";
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        ExtensionInstallationImplTest: Codeunit "Extension Installation Impl";
+        ExtensionManagementTestBound: Boolean;
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         MainAppId: Guid;
@@ -95,7 +96,10 @@ codeunit 133100 "Extension Management Test"
     var
         NAVAppInstalledApp: Record "NAV App Installed App";
     begin
-        BindSubscription(ExtensionManagementTest);
+        if not ExtensionManagementTestBound then begin
+            BindSubscription(ExtensionManagementTest);
+            ExtensionManagementTestBound := true;
+        end;
 
         if NAVAppInstalledApp.Get(MainAppId) then
             ExtensionManagement.UninstallExtension(NAVAppInstalledApp."Package ID", false);
@@ -111,7 +115,7 @@ codeunit 133100 "Extension Management Test"
     begin
         UserSecurityId := CreateUserWithPermissionSet('Ext. Mgt. Nonadmin', '');
 
-        Assert.IsFalse(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'A non-admin permission set must not grant extension management permission.');
+        Assert.IsFalse(ExtensionInstallationImplTest.CanManageExtensions(UserSecurityId), 'A non-admin permission set must not grant extension management permission.');
     end;
 
     [Test]
@@ -122,7 +126,7 @@ codeunit 133100 "Extension Management Test"
     begin
         UserSecurityId := CreateUserWithPermissionSet('Ext. Mgt. Nonadmin', '');
 
-        asserterror ExtensionInstallationImpl.CheckPermissions(UserSecurityId);
+        asserterror ExtensionInstallationImplTest.CheckPermissions(UserSecurityId);
 
         Assert.ExpectedError(NotSufficientPermissionErr);
     end;
@@ -135,7 +139,7 @@ codeunit 133100 "Extension Management Test"
     begin
         UserSecurityId := CreateUserWithPermissionSet('Exten. Mgt. - Admin', '');
 
-        Assert.IsTrue(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'Exten. Mgt. - Admin must grant extension management permission.');
+        Assert.IsTrue(ExtensionInstallationImplTest.CanManageExtensions(UserSecurityId), 'Exten. Mgt. - Admin must grant extension management permission.');
     end;
 
     [Test]
@@ -146,7 +150,7 @@ codeunit 133100 "Extension Management Test"
     begin
         UserSecurityId := CreateSuperUser();
 
-        Assert.IsTrue(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'SUPER must grant extension management permission.');
+        Assert.IsTrue(ExtensionInstallationImplTest.CanManageExtensions(UserSecurityId), 'SUPER must grant extension management permission.');
     end;
 
 
@@ -158,7 +162,7 @@ codeunit 133100 "Extension Management Test"
     begin
         UserSecurityId := CreateUserWithPermissionSet('Exten. Mgt. - Admin', CompanyName());
 
-        Assert.IsFalse(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId), 'Company-scoped Exten. Mgt. - Admin must not grant tenant-wide extension management permission.');
+        Assert.IsFalse(ExtensionInstallationImplTest.CanManageExtensions(UserSecurityId), 'Company-scoped Exten. Mgt. - Admin must not grant tenant-wide extension management permission.');
     end;
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Extension Installation Impl", OnCanManageExtensions, '', false, false)]
     local procedure AuthorizeTestSession(var Result: Boolean)
