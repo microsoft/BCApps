@@ -7,7 +7,7 @@ namespace System.Security.Authentication;
 
 controladdin OAuthAddIn
 {
-    Scripts = 'src\oauth\js\OAuthIntegration.js';
+    Scripts = 'src/oauth/js/OAuthIntegration.js';
 
     procedure StartAuthorization(url: Text);
     event AuthorizationCodeRetrieved(code: Text);

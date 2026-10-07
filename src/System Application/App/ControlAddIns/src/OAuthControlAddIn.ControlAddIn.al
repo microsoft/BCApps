@@ -12,8 +12,8 @@ controladdin OAuthControlAddIn
     HorizontalStretch = false;
     VerticalStretch = false;
 
-    Scripts = 'Resources\OAuthIntegration\js\OAuthIntegration.js';
-    StartupScript = 'Resources\OAuthIntegration\js\Startup.js';
+    Scripts = 'Resources/OAuthIntegration/js/OAuthIntegration.js';
+    StartupScript = 'Resources/OAuthIntegration/js/Startup.js';
 
     /// <summary>
     /// Starts the authorization process.

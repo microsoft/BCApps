@@ -12,7 +12,7 @@ controladdin SatisfactionSurveyAsync
     ObsoleteState = Pending;
     ObsoleteTag = '28.0';
 
-    Scripts = 'Resources\SatisfactionSurveyAsync\js\SATAsync.js';
+    Scripts = 'Resources/SatisfactionSurveyAsync/js/SATAsync.js';
     RequestedWidth = 0;
     RequestedHeight = 0;
     HorizontalStretch = false;
