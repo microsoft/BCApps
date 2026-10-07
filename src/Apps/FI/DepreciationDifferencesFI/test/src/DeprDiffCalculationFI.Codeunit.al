@@ -201,33 +201,27 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         DeprDifferenceSourceCode := CopyStr(LibraryUtility.GenerateRandomText(10), 1, MaxStrLen(DeprDifferenceSourceCode));
 
         LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
-#pragma warning disable AL0432
-        FAPostingGroup."Depr. Difference Acc." := DeprDifferenceAccount;
-        FAPostingGroup."Depr. Difference Bal. Acc." := DeprDifferenceBalAccount;
-#pragma warning restore AL0432
         FAPostingGroup."Deprec. Difference Account" := '';
         FAPostingGroup."Deprec. Difference Bal Acct" := '';
         FAPostingGroup.Modify(false);
+        SetLegacyFieldValue(FAPostingGroup.RecordId, 13400, DeprDifferenceAccount);
+        SetLegacyFieldValue(FAPostingGroup.RecordId, 13401, DeprDifferenceBalAccount);
 
         if FALedgerEntry.FindLast() then
             FALedgerEntryNo := FALedgerEntry."Entry No.";
         FALedgerEntry.Init();
         FALedgerEntry."Entry No." := FALedgerEntryNo + 1;
-#pragma warning disable AL0432
-        FALedgerEntry."Depr. Difference Posted" := true;
-#pragma warning restore AL0432
         FALedgerEntry."Depreciation Difference Posted" := false;
         FALedgerEntry.Insert(false);
+        SetLegacyFieldValue(FALedgerEntry.RecordId, 13400, true);
 
         if not SourceCodeSetup.Get() then begin
             SourceCodeSetup.Init();
             SourceCodeSetup.Insert(false);
         end;
-#pragma warning disable AL0432
-        SourceCodeSetup."Depr. Difference" := DeprDifferenceSourceCode;
-#pragma warning restore AL0432
         SourceCodeSetup."Depreciation Difference Code" := '';
         SourceCodeSetup.Modify(false);
+        SetLegacyFieldValue(SourceCodeSetup.RecordId, 13400, DeprDifferenceSourceCode);
 
         if UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()) then
             UpgradeTagLibrary.DeleteUpgradeTag(
@@ -261,6 +255,15 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         VerifyForcedUpgradeData(
             FAPostingGroup.Code, FALedgerEntry."Entry No.", ChangedDeprDifferenceAccount,
             ChangedDeprDifferenceBalAccount, ChangedDeprDifferenceSourceCode, false);
+    end;
+
+    local procedure SetLegacyFieldValue(RecordId: RecordId; FieldNo: Integer; FieldValue: Variant)
+    var
+        RecordRef: RecordRef;
+    begin
+        RecordRef.Get(RecordId);
+        RecordRef.Field(FieldNo).Value := FieldValue;
+        RecordRef.Modify(false);
     end;
 
     local procedure VerifyForcedUpgradeData(
