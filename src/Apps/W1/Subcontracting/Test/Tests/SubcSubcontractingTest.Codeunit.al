@@ -4513,7 +4513,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractorNo: Code[20];
         SubcontractPurchaseOrderNo: Code[20];
     begin
-        LibraryReportDataset.AssertElementWithValueExists('No_TransShptHeader', TransferShipmentHeader."No.");
+        LibraryReportDataset.AssertElementTagWithValueExists('No_TransShptHeader', TransferShipmentHeader."No.");
         SubcTransferShipmentData.GetHeaderData(
             TransferShipmentHeader, SubcontractorNo, SubcontractorName, SubcontractorAddressValue,
             SubcontractorAddress, SubcontractPurchaseOrderNo);
