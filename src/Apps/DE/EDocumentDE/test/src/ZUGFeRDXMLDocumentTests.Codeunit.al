@@ -1930,7 +1930,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
-        // [THEN] The empty ApplicableHeaderTradeDelivery is exported without ShipToTradeParty and ActualDeliverySupplyChainEvent, the rest of the document is
+        // [THEN] The empty ApplicableHeaderTradeDelivery is exported without ShipToTradeParty and ActualDeliverySupplyChainEvent; the header data is still exported
         Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, ApplicableHeaderTradeDeliveryTok), StrSubstNo(IncorrectValueErr, ApplicableHeaderTradeDeliveryTok));
         VerifyNodeDoesNotExist(TempXMLBuffer, ShipToTradePartyTok);
         VerifyNodeDoesNotExist(TempXMLBuffer, ApplicableHeaderTradeDeliveryTok + '/ram:ActualDeliverySupplyChainEvent');
@@ -2340,7 +2340,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [WHEN] Export ZUGFeRD Electronic Document
         ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] The empty ApplicableHeaderTradeDelivery is exported without ShipToTradeParty and ActualDeliverySupplyChainEvent, the rest of the document is
+        // [THEN] The empty ApplicableHeaderTradeDelivery is exported without ShipToTradeParty and ActualDeliverySupplyChainEvent; the header data is still exported
         Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, ApplicableHeaderTradeDeliveryTok), StrSubstNo(IncorrectValueErr, ApplicableHeaderTradeDeliveryTok));
         VerifyNodeDoesNotExist(TempXMLBuffer, ShipToTradePartyTok);
         VerifyNodeDoesNotExist(TempXMLBuffer, ApplicableHeaderTradeDeliveryTok + '/ram:ActualDeliverySupplyChainEvent');
