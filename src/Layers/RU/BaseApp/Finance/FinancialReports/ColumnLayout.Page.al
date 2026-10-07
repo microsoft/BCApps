@@ -487,9 +487,27 @@ page 489 "Column Layout"
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
+    var
+        PrecedingColumnLayout: Record "Column Layout";
     begin
-        Rec."Column Type" := xRec."Column Type";
-        Rec."Amount Type" := xRec."Amount Type";
+        if not GetPrecedingColumnLayout(BelowxRec, PrecedingColumnLayout) then
+            exit;
+        Rec."Column Type" := PrecedingColumnLayout."Column Type";
+        Rec."Amount Type" := PrecedingColumnLayout."Amount Type";
+    end;
+
+    local procedure GetPrecedingColumnLayout(BelowxRec: Boolean; var PrecedingColumnLayout: Record "Column Layout"): Boolean
+    begin
+        // A new column inherits its type settings from the column that precedes it in the list.
+        // When inserting below xRec, xRec is that preceding column; when inserting above xRec,
+        // the preceding column is the record immediately before xRec.
+        if xRec."Line No." = 0 then
+            exit(false);
+        PrecedingColumnLayout := xRec;
+        PrecedingColumnLayout.SetRange("Column Layout Name", xRec."Column Layout Name");
+        if BelowxRec then
+            exit(true);
+        exit(PrecedingColumnLayout.Next(-1) <> 0);
     end;
 
     var
