@@ -20,7 +20,7 @@ using System.Reflection;
 /// </summary>
 codeunit 10844 "Payment Data Migration FR"
 {
-    Access = Internal;
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
