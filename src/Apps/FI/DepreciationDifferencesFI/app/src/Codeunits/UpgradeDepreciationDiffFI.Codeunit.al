@@ -28,7 +28,7 @@ codeunit 13475 "Upgrade Depreciation Diff. FI"
         UpgradeDepreciationDifferencesFI();
     end;
 
-    local procedure UpgradeDepreciationDifferencesFI()
+    internal procedure UpgradeDepreciationDifferencesFI()
     begin
         if UpgradeTag.HasUpgradeTag(DepreciationDifferencesFIUpgradeTag.GetUpgradeTag()) then
             exit;

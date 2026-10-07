@@ -6,9 +6,7 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Setup;
-#if not CLEAN30
 using Microsoft.Foundation.AuditCodes;
-#endif
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
@@ -16,9 +14,12 @@ using Microsoft.Purchases.Setup;
 using System.Environment.Configuration;
 #endif
 using System.TestLibraries.Utilities;
-#if not CLEAN30
-using System.Upgrade;
+#if CLEAN30
+#if not CLEANSCHEMA33
+using System.TestLibraries.Upgrade;
 #endif
+#endif
+using System.Upgrade;
 
 codeunit 148163 "Depr. Diff. Calculation FI"
 {
@@ -173,7 +174,115 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         SourceCodeSetup.Get();
         SourceCodeSetup.TestField("Depreciation Difference Code", DeprDifferenceSourceCode);
     end;
+#else
+#if not CLEANSCHEMA33
+    [Test]
+    procedure ForcedUpgradeMigratesLegacyFieldsOnce()
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        FALedgerEntry: Record "FA Ledger Entry";
+        SourceCodeSetup: Record "Source Code Setup";
+        DepDiffFIUpgradeTag: Codeunit "Dep Diff FI Upgrade Tag";
+        UpgradeDepreciationDiffFI: Codeunit "Upgrade Depreciation Diff. FI";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+        DeprDifferenceAccount: Code[20];
+        DeprDifferenceBalAccount: Code[20];
+        DeprDifferenceSourceCode: Code[10];
+        ChangedDeprDifferenceAccount: Code[20];
+        ChangedDeprDifferenceBalAccount: Code[20];
+        ChangedDeprDifferenceSourceCode: Code[10];
+        FALedgerEntryNo: Integer;
+    begin
+        Initialize();
 
+        DeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
+        DeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
+        DeprDifferenceSourceCode := CopyStr(LibraryUtility.GenerateRandomText(10), 1, MaxStrLen(DeprDifferenceSourceCode));
+
+        LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
+#pragma warning disable AL0432
+        FAPostingGroup."Depr. Difference Acc." := DeprDifferenceAccount;
+        FAPostingGroup."Depr. Difference Bal. Acc." := DeprDifferenceBalAccount;
+#pragma warning restore AL0432
+        FAPostingGroup."Deprec. Difference Account" := '';
+        FAPostingGroup."Deprec. Difference Bal Acct" := '';
+        FAPostingGroup.Modify(false);
+
+        if FALedgerEntry.FindLast() then
+            FALedgerEntryNo := FALedgerEntry."Entry No.";
+        FALedgerEntry.Init();
+        FALedgerEntry."Entry No." := FALedgerEntryNo + 1;
+#pragma warning disable AL0432
+        FALedgerEntry."Depr. Difference Posted" := true;
+#pragma warning restore AL0432
+        FALedgerEntry."Depreciation Difference Posted" := false;
+        FALedgerEntry.Insert(false);
+
+        if not SourceCodeSetup.Get() then begin
+            SourceCodeSetup.Init();
+            SourceCodeSetup.Insert(false);
+        end;
+#pragma warning disable AL0432
+        SourceCodeSetup."Depr. Difference" := DeprDifferenceSourceCode;
+#pragma warning restore AL0432
+        SourceCodeSetup."Depreciation Difference Code" := '';
+        SourceCodeSetup.Modify(false);
+
+        if UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(
+                DepDiffFIUpgradeTag.GetUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+
+        UpgradeDepreciationDiffFI.UpgradeDepreciationDifferencesFI();
+
+        VerifyForcedUpgradeData(
+            FAPostingGroup.Code, FALedgerEntry."Entry No.", DeprDifferenceAccount, DeprDifferenceBalAccount,
+            DeprDifferenceSourceCode, true);
+        Assert.IsTrue(
+            UpgradeTag.HasUpgradeTag(DepDiffFIUpgradeTag.GetUpgradeTag()),
+            'The forced upgrade must register its per-company upgrade tag.');
+
+        ChangedDeprDifferenceAccount := LibraryERM.CreateGLAccountNo();
+        ChangedDeprDifferenceBalAccount := LibraryERM.CreateGLAccountNo();
+        ChangedDeprDifferenceSourceCode := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ChangedDeprDifferenceSourceCode));
+        FAPostingGroup.Get(FAPostingGroup.Code);
+        FAPostingGroup."Deprec. Difference Account" := ChangedDeprDifferenceAccount;
+        FAPostingGroup."Deprec. Difference Bal Acct" := ChangedDeprDifferenceBalAccount;
+        FAPostingGroup.Modify(false);
+        FALedgerEntry.Get(FALedgerEntry."Entry No.");
+        FALedgerEntry."Depreciation Difference Posted" := false;
+        FALedgerEntry.Modify(false);
+        SourceCodeSetup.Get();
+        SourceCodeSetup."Depreciation Difference Code" := ChangedDeprDifferenceSourceCode;
+        SourceCodeSetup.Modify(false);
+
+        UpgradeDepreciationDiffFI.UpgradeDepreciationDifferencesFI();
+
+        VerifyForcedUpgradeData(
+            FAPostingGroup.Code, FALedgerEntry."Entry No.", ChangedDeprDifferenceAccount,
+            ChangedDeprDifferenceBalAccount, ChangedDeprDifferenceSourceCode, false);
+    end;
+
+    local procedure VerifyForcedUpgradeData(
+        FAPostingGroupCode: Code[20]; FALedgerEntryNo: Integer; DeprDifferenceAccount: Code[20];
+        DeprDifferenceBalAccount: Code[20]; DeprDifferenceSourceCode: Code[10]; DepreciationDifferencePosted: Boolean)
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        FALedgerEntry: Record "FA Ledger Entry";
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        FAPostingGroup.Get(FAPostingGroupCode);
+        FAPostingGroup.TestField("Deprec. Difference Account", DeprDifferenceAccount);
+        FAPostingGroup.TestField("Deprec. Difference Bal Acct", DeprDifferenceBalAccount);
+        FALedgerEntry.Get(FALedgerEntryNo);
+        FALedgerEntry.TestField("Depreciation Difference Posted", DepreciationDifferencePosted);
+        SourceCodeSetup.Get();
+        SourceCodeSetup.TestField("Depreciation Difference Code", DeprDifferenceSourceCode);
+    end;
+#endif
+#endif
+
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure CannotRunReportWhenFeatureIsDisabled()
