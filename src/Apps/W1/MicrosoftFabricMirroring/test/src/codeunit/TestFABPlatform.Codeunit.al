@@ -1,6 +1,5 @@
 namespace Microsoft.FabricExport;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Fabric;
