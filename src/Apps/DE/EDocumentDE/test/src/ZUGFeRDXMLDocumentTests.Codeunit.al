@@ -82,6 +82,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
+        ShipToTradePartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty', Locked = true;
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -1018,6 +1019,84 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyShipToAddress();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ShipToAddress: Record "Ship-to Address";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 12458] Export posted sales invoice uses the Ship-to name and address, not the Sell-to address, for ShipToTradeParty
+        Initialize();
+
+        // [GIVEN] Ship-to Address whose name, address, post code, city and country differ from the Sell-to address
+        // [GIVEN] Create and post Sales Invoice with that Ship-to Code
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithShipToCode("Sales Document Type"::Invoice, ShipToAddress));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ShipToTradeParty contains the Ship-to name and address
+        VerifyShipToData(ShipToAddress, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyAlternateShipToAddress();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempShipToAddress: Record "Ship-to Address" temporary;
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 12458] Export posted sales invoice with a ship-to address entered on the document without a Ship-to Code uses that address for ShipToTradeParty
+        Initialize();
+
+        // [GIVEN] Sales Invoice without Ship-to Code, with a ship-to name and address entered on the document
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice);
+        InitShipToAddressValues(TempShipToAddress);
+        SetShipToAddress(SalesHeader, TempShipToAddress);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ShipToTradeParty contains the ship-to name and address entered on the document
+        VerifyShipToData(TempShipToAddress, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatOmitsBlankShipToNameAndLineTwo();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO 12458] Export posted sales invoice omits Name and LineTwo of ShipToTradeParty when Ship-to Name and Ship-to Address 2 are blank
+        Initialize();
+
+        // [GIVEN] Create and post Sales Invoice with blank Ship-to Name and Ship-to Address 2
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice);
+        SalesHeader."Ship-to Name" := '';
+        SalesHeader."Ship-to Address 2" := '';
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ShipToTradeParty has no Name and its address has no LineTwo
+        VerifyNodeDoesNotExist(TempXMLBuffer, ShipToTradePartyTok + '/ram:Name');
+        VerifyNodeDoesNotExist(TempXMLBuffer, ShipToTradePartyTok + '/ram:PostalTradeAddress/ram:LineTwo');
+
+        // [THEN] LineOne contains the Ship-to Address
+        Path := ShipToTradePartyTok + '/ram:PostalTradeAddress/ram:LineOne';
+        Assert.AreEqual(SalesInvoiceHeader."Ship-to Address", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
     #endregion
 
     #region SalesCreditMemo
@@ -1618,6 +1697,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
     end;
 
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyShipToAddress();
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ShipToAddress: Record "Ship-to Address";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 12458] Export posted sales cr. memo uses the Ship-to name and address, not the Sell-to address, for ShipToTradeParty
+        Initialize();
+
+        // [GIVEN] Ship-to Address whose name, address, post code, city and country differ from the Sell-to address
+        // [GIVEN] Create and post Sales Cr. Memo with that Ship-to Code
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithShipToCode("Sales Document Type"::"Credit Memo", ShipToAddress));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ShipToTradeParty contains the Ship-to name and address
+        VerifyShipToData(ShipToAddress, TempXMLBuffer);
+    end;
+
     #endregion
 
     #region ServiceInvoice
@@ -1960,6 +2060,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [THEN] ZUGFeRD Electronic Document is created with 2 invoice lines
         VerifyServiceInvoiceLine(ServiceInvoiceHeader, TempXMLBuffer);
     end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInZUGFeRDFormatVerifyShipToAddress();
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ShipToAddress: Record "Ship-to Address";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 12458] Export posted service invoice uses the Ship-to name and address, not the customer address, for ShipToTradeParty
+        Initialize();
+
+        // [GIVEN] Ship-to Address whose name, address, post code, city and country differ from the customer address
+        // [GIVEN] Create and post Service Invoice with that Ship-to Code
+        ServiceInvoiceHeader.Get(CreateAndPostServiceInvoiceWithShipToCode(ShipToAddress));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ShipToTradeParty contains the Ship-to name and address
+        VerifyShipToData(ShipToAddress, TempXMLBuffer);
+    end;
     #endregion
 
     #region ServiceCreditMemo
@@ -2236,6 +2357,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with 2 cr.memo lines
         VerifyServiceCrMemoLine(ServiceCrMemoHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedServiceCrMemoInZUGFeRDFormatVerifyShipToAddress();
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ShipToAddress: Record "Ship-to Address";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 12458] Export posted service cr. memo uses the Ship-to name and address, not the customer address, for ShipToTradeParty
+        Initialize();
+
+        // [GIVEN] Ship-to Address whose name, address, post code, city and country differ from the customer address
+        // [GIVEN] Create and post Service Cr. Memo with that Ship-to Code
+        ServiceCrMemoHeader.Get(CreateAndPostServiceCrMemoWithShipToCode(ShipToAddress));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ShipToTradeParty contains the Ship-to name and address
+        VerifyShipToData(ShipToAddress, TempXMLBuffer);
     end;
     #endregion
     #region InvoiceDiscount
@@ -4390,6 +4532,93 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesDocumentWithShipToCode(DocumentType: Enum "Sales Document Type"; var ShipToAddress: Record "Ship-to Address"): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := CreateCustomer();
+        CreateShipToAddressWithFullAddress(ShipToAddress, CustomerNo);
+        CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
+        SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        // Credit documents do not copy the address from the Ship-to Code
+        if SalesHeader.IsCreditDocType() then
+            SetShipToAddress(SalesHeader, ShipToAddress);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostServiceInvoiceWithShipToCode(var ShipToAddress: Record "Ship-to Address"): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := CreateCustomer();
+        CreateShipToAddressWithFullAddress(ShipToAddress, CustomerNo);
+        CreateServiceHeader(ServiceHeader, CustomerNo);
+        ServiceHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        ServiceHeader.Modify(true);
+        CreateServiceLine(ServiceHeader);
+        exit(PostServiceDocument(ServiceHeader));
+    end;
+
+    local procedure CreateAndPostServiceCrMemoWithShipToCode(var ShipToAddress: Record "Ship-to Address"): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := CreateCustomer();
+        CreateShipToAddressWithFullAddress(ShipToAddress, CustomerNo);
+        CreateServiceCrMemoHeader(ServiceHeader, CustomerNo);
+        ServiceHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        // Credit memos do not copy the address from the Ship-to Code
+        ServiceHeader.SetShipToAddress(
+            ShipToAddress.Name, '', ShipToAddress.Address, ShipToAddress."Address 2",
+            ShipToAddress.City, ShipToAddress."Post Code", '', ShipToAddress."Country/Region Code");
+        ServiceHeader.Modify(true);
+        CreateServiceLine(ServiceHeader);
+        exit(PostServiceCrMemoDocument(ServiceHeader));
+    end;
+
+    local procedure CreateShipToAddressWithFullAddress(var ShipToAddress: Record "Ship-to Address"; CustomerNo: Code[20])
+    begin
+        LibrarySales.CreateShipToAddress(ShipToAddress, CustomerNo);
+        InitShipToAddressValues(ShipToAddress);
+        ShipToAddress.Modify(true);
+    end;
+
+    local procedure InitShipToAddressValues(var ShipToAddress: Record "Ship-to Address")
+    var
+        PostCode: Record "Post Code";
+    begin
+        // Every value differs from the Sell-to values set by CreateSalesHeader and CreateServiceHeader
+        LibraryERM.CreatePostCode(PostCode);
+        ShipToAddress.Name := LibraryUtility.GenerateGUID();
+        ShipToAddress.Address := LibraryUtility.GenerateGUID();
+        ShipToAddress."Address 2" := LibraryUtility.GenerateGUID();
+        ShipToAddress."Post Code" := PostCode.Code;
+        ShipToAddress.City := PostCode.City;
+        ShipToAddress."Country/Region Code" := FindCountryRegionWithISOCodeOtherThan(CompanyInformation."Country/Region Code");
+    end;
+
+    local procedure SetShipToAddress(var SalesHeader: Record "Sales Header"; ShipToAddress: Record "Ship-to Address")
+    begin
+        SalesHeader.SetShipToAddress(
+            ShipToAddress.Name, '', ShipToAddress.Address, ShipToAddress."Address 2",
+            ShipToAddress.City, ShipToAddress."Post Code", '', ShipToAddress."Country/Region Code");
+    end;
+
+    local procedure FindCountryRegionWithISOCodeOtherThan(CountryRegionCode: Code[10]): Code[10]
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        CountryRegion.SetFilter(Code, '<>%1', CountryRegionCode);
+        CountryRegion.SetFilter("ISO Code", '<>%1', '');
+        CountryRegion.FindFirst();
+        exit(CountryRegion.Code);
+    end;
+
     local procedure CustomerGLN(): Code[13]
     begin
         exit('4313205158428');
@@ -4769,6 +4998,26 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     local procedure VerifyNodeDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
     begin
         Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, XPath), StrSubstNo(UnexpectedNodeErr, XPath));
+    end;
+
+    local procedure VerifyShipToData(ShipToAddress: Record "Ship-to Address"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        CountryRegion: Record "Country/Region";
+        Path: Text;
+    begin
+        Path := ShipToTradePartyTok + '/ram:Name';
+        Assert.AreEqual(ShipToAddress.Name, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := ShipToTradePartyTok + '/ram:PostalTradeAddress/ram:PostcodeCode';
+        Assert.AreEqual(ShipToAddress."Post Code", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := ShipToTradePartyTok + '/ram:PostalTradeAddress/ram:LineOne';
+        Assert.AreEqual(ShipToAddress.Address, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := ShipToTradePartyTok + '/ram:PostalTradeAddress/ram:LineTwo';
+        Assert.AreEqual(ShipToAddress."Address 2", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := ShipToTradePartyTok + '/ram:PostalTradeAddress/ram:CityName';
+        Assert.AreEqual(ShipToAddress.City, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        CountryRegion.Get(ShipToAddress."Country/Region Code");
+        Path := ShipToTradePartyTok + '/ram:PostalTradeAddress/ram:CountryID';
+        Assert.AreEqual(CountryRegion."ISO Code", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyHeaderData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
