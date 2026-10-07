@@ -2,7 +2,7 @@ param([hashtable]$Parameters)
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
     $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-worker-warmup-comparison' -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'workerwarmup') -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'workerwarmup', 'navreadiness') -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
     $env:BC_SQL_PILOT_ARM -ne 'control' -or -not $env:BC_SQL_PILOT_OUTPUT -or
     $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or

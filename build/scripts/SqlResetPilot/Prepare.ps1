@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 $base = 'c4953dceffe02a017adad34973e1955017bf5d20'
 if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
     $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-worker-warmup-comparison' -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'workerwarmup') -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'workerwarmup', 'navreadiness') -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
     $env:BC_SQL_PILOT_ARM -ne 'control' -or $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or
     $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
@@ -77,9 +77,14 @@ foreach ($artifact in $artifacts) {
     replacementOf = $replacement
     packageSnapshot = @{ runId = $expectedSnapshotRun; artifactId = $env:BC_SQL_COMPARISON_PACKAGE_ARTIFACT }
     country = $env:BC_SQL_PILOT_COUNTRY; trial = $env:BC_SQL_PILOT_TRIAL; project = $trialProject
-    warmup = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { '135070 Uri Test.GetHostTest after every worker remount, runner 130450 Codeunit isolation' })
-    firstAppWarmup = $false; companiesProbe = 'none'
-    companiesProbeMaximumAttempts = 0
+    warmup = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { 'Existing first-app Invoke-WarmupDispatch on each worker after every remount; System Application Test Library, original IntegrationTest runner parameters, empty tests allowed' })
+    emptyWarmupTestsAllowed = $true; warmupReadinessGuarantee = $false
+    extraDefaultWarmup = $false
+    companiesProbe = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'navreadiness') { 'per-restored-worker-single-attempt' } else { 'none' })
+    companiesProbeMaximumAttempts = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'navreadiness') { 1 } else { 0 })
+    companiesProbeTimeoutSeconds = 60; companiesProbeRetryDelaySeconds = 0
+    serialPostMountSeconds = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'navreadiness') { 30 } else { 0 })
+    preTestSeconds = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'navreadiness') { 30 } else { 0 })
     additionalDisabledTests = @()
     warmupRetries = 0; maximumEvidenceGatedRetriesPerCodeunit = 0
     expectedCohortCases = 253; expectedExistingSkips = 19; mountedTenants = 4; cleanWorkers = 3

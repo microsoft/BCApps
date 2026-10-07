@@ -466,6 +466,9 @@ function Reset-BcTestTenant {
             Invoke-SqlPilotReset -ContainerName $ContainerName -Tenant $Tenant -DatabaseName $TenantDatabaseName `
                 -TemplateDatabaseName $TemplateDatabaseName
             $resetPassed = $true
+            if (Test-WorkerWarmupExperiment) {
+                Invoke-WorkerPostMountDelay -Tenant $Tenant
+            }
         } finally {
             if (Test-WorkerWarmupExperiment) {
                 @{ tenant = $Tenant; template = $TemplateDatabaseName; passed = $resetPassed
@@ -1400,13 +1403,19 @@ function Invoke-WarmupDispatch {
 function Invoke-SqlPilotWarmup {
     param(
         [hashtable]$Parameters, [string[]]$AppNames, [hashtable]$AppIdByName,
-        [string[]]$Tenants, [string]$ScriptPath, [string]$TestType, [string[]]$CleanTenantAppNames
+        [string[]]$Tenants, [string]$ScriptPath, [string]$TestType, [string[]]$CleanTenantAppNames,
+        [string]$WarmupTenant = 'default', [string]$WarmupDirectory
     )
-    if ($Parameters.tenant -ne 'default' -or $Tenants[0] -ne 'default' -or
-        $AppNames.Count -le 1 -or -not $AppIdByName[$AppNames[0]]) {
-        throw 'Original first-app warmup cannot be guaranteed on the default tenant.'
+    if ($WarmupTenant -ne 'default' -and (-not (Test-WorkerWarmupExperiment) -or $WarmupTenant -notin @('tenant2', 'tenant3', 'tenant4'))) {
+        throw 'Only an owned worker experiment may move the existing first-app warmup.'
     }
-    $warmupDirectory = Join-Path $env:BC_SQL_PILOT_OUTPUT 'warmup'
+    $warmupTenants = @($WarmupTenant) + @($Tenants | Where-Object { $_ -ne $WarmupTenant })
+    if ($Parameters.tenant -ne 'default' -or $WarmupTenant -notin $Tenants -or
+        ($WarmupTenant -eq 'default' -and $Tenants[0] -ne 'default') -or
+        $AppNames.Count -le 1 -or -not $AppIdByName[$AppNames[0]]) {
+        throw 'Original first-app warmup cannot be guaranteed on the requested tenant.'
+    }
+    if (-not $WarmupDirectory) { $WarmupDirectory = Join-Path $env:BC_SQL_PILOT_OUTPUT 'warmup' }
     New-Item -ItemType Directory $warmupDirectory -Force | Out-Null
     $warmupParameters = $Parameters.Clone()
     foreach ($key in @('XUnitResultFileName', 'JUnitResultFileName')) {
@@ -1419,14 +1428,14 @@ function Invoke-SqlPilotWarmup {
         rerun = @(); rerunDone = @{}; rerunBudget = 0; tenantCount = $Tenants.Count
     }
     $observation = @{
-        phase = 'warmup'; app = $AppNames[0]; tenant = 'default'
+        phase = 'warmup'; app = $AppNames[0]; tenant = $WarmupTenant
         startedUtc = [DateTime]::UtcNow.ToString('o'); passed = $false; retries = 0
     }
     try {
         $remaining = @(Invoke-WarmupDispatch -Parameters $warmupParameters -Pending $AppNames -AppIdByName $AppIdByName `
-            -Tenants $Tenants -ScriptPath $ScriptPath -TestType $TestType -State $warmupState `
+            -Tenants $warmupTenants -ScriptPath $ScriptPath -TestType $TestType -State $warmupState `
             -CleanTenantAppNames $CleanTenantAppNames)
-        if ($remaining.Count -ne ($AppNames.Count - 1) -or $warmupState.hasFailures -or
+        if (($remaining -join "`0") -cne (($AppNames | Select-Object -Skip 1) -join "`0") -or $warmupState.hasFailures -or
             $warmupState.transient.Count -gt 0 -or $warmupState.rerun.Count -gt 0 -or $warmupState.jobs.Count -gt 0) {
             throw 'First-app warmup failed or did not complete; no retry or clean-lane dispatch is permitted.'
         }
@@ -1547,7 +1556,20 @@ function Invoke-ParallelTestExecution {
         if ($testType -ne 'IntegrationTest' -or (Get-ALGoSetting -Key 'enableCleanTestCodeunitExecution') -ne $true) {
             throw 'Worker comparison requires the original clean IntegrationTest lane.'
         }
-        Initialize-WorkerWarmup -Parameters $parameters -AppIdByName $appIdByName
+        Initialize-WorkerWarmup -Parameters $parameters -AppIdByName $appIdByName `
+            -AppNames $appNamesToTest -Tenants $tenants -ScriptPath $scriptPath -TestType $testType `
+            -WarmupAction {
+                param($context, $workerTenant, $directory)
+                Invoke-SqlPilotWarmup -Parameters $context.Parameters -AppNames $context.AppNames `
+                    -AppIdByName $context.AppIdByName -Tenants $context.Tenants -ScriptPath $context.ScriptPath `
+                    -TestType $context.TestType -CleanTenantAppNames $context.AppNames `
+                    -WarmupTenant $workerTenant -WarmupDirectory $directory *>&1 |
+                    Out-String | Set-Content (Join-Path $directory 'worker.log')
+            } -ProbeAction {
+                param($sourceParameters, $workerTenant)
+                Invoke-SqlPilotCompaniesProbe -ContainerName $sourceParameters.containerName -Tenant $workerTenant `
+                    -Credential $sourceParameters.credential -CompanyName $sourceParameters.companyName
+            }
     }
 
     $cleanTenantInfo = @(

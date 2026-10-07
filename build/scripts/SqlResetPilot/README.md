@@ -6,48 +6,76 @@ This branch uses the same repository concurrency group, max six cells, and
 `cancel-in-progress: false`. GitHub can replace a pending group member when another
 is queued: the scheduling input is an acknowledgement, NOT an automatic lease.
 
-## Current paired protocol
+## Current three-arm protocol
 
-Twenty exploratory originals: five W1 and five DE cells each for `control` and
-`workerwarmup`. Alternating country/arm order keeps pairs nearby; actual runner
-placement is not guaranteed. Both arms use the original four mounted tenants,
+Thirty exploratory originals: five W1 and five DE cells each for `control`,
+`workerwarmup` and `navreadiness`. The original twenty control/warmup identities
+are preserved. Alternating country/arm order keeps cells nearby; actual runner
+placement is not guaranteed. All arms use the original four mounted tenants,
 three secondary clean workers, reserved pristine default, exact source/runtime/
 package pins documented below, and the full21-CU/253-case/19-existing-skip cohort.
-There are no added disabled tests, SQL retries, first-app warmup, companies probes,
+There are no added disabled tests, SQL retries, or separate default first-app warmup,
 AL/auth changes, rebuilt packages, or changes to the original discovery lifecycle.
 The immutable14-day package snapshots from run37634358042 are reused and verified
 at plan and cell execution; expiry fails closed without substitution.
 
-### Actual operation, not an empty test-app dispatch
+### Superseding operation: existing first-app dispatch on every worker
 
-After **every** pristine worker remount, candidate cells run exactly:
+Per explicit user redirection, this replaces the previously prepared URI-method
+selection. After **every** pristine worker remount, candidate cells invoke the
+**same `Invoke-WarmupDispatch` mechanism** previously run on default:
 
-* Installed app **System Application Test**, resolved installed AppId.
-* CU **135070 "Uri Test"**, method **GetHostTest** only.
-* Runner **130450 "Test Runner - Isol. Codeunit"**, `TestIsolation=Codeunit`,
-  suite `WWARMUP`. No category filter: the pinned test has no TestType or
-  RequiredTestIsolation annotation. The explicit runner supplies isolation.
-* A new bounded180-second child process/client context, existing credential and
-  `My Company`, one attempt, no tolerance, redirects or external request.
-* Exactly one JUnit case `135070 Uri Test.GetHostTest`, successful and unskipped.
-  Empty/wrong/extra cases, missing results, client cancellation, errors, timeout,
-  or already-used remount evidence abort the trial before cohort dispatch.
+* Select the **original ordered first app**, `System Application Test Library`,
+  resolving its installed AppId. Unexpected ordering or a missing app fails closed.
+* Use the original `Start-TestAppDispatch` → `Start-TestJob` →
+  `RunTestsInBcContainer.ps1` IntegrationTest path with unchanged runner parameters,
+  credential, company and `SkipAutomaticDisabledPass` handling.
+* Target the remounted worker rather than default. Only tenant and evidence paths
+  change. A private app-queue copy prevents the consumed warmup app from removing
+  any real pending app or clean codeunit.
+* Await the original dispatcher once; failure, transient/rerun state or unfinished
+  work fails the trial without retries. Original job wait/cleanup and workflow
+  timeout apply; no new 180-second child-job wrapper is used.
+* **Empty `<testsuites/>` is allowed intentionally.** Success means the existing
+  app dispatch completed, not that any test methods ran. No new exact-method/XML
+  selection or business-data mutation checks are added.
 
-Pinned source `src/System Application/Test/URI/src/UriTest.Codeunit.al` parses
-the literal `http://microsoft.com/test` and asserts the host is `microsoft.com`.
-`src/System Application/App/URI/src/Uri.Codeunit.al` delegates Init/GetHost to
-the in-memory `System.Uri` constructor/property; it does **not** fetch that URL.
-`Library Assert.AreEqual` compares variants. The test body has no business-record
-mutation, setup, OnRun, or network call. The existing test framework writes its
-suite/result bookkeeping and resets session/test-library state; this is not a
-claim of zero database activity. Codeunit isolation protects the test transaction.
-This studies company/test-runner session warmup, **not** a claim to execute the
-failing OData/help-metadata call chain or to fix SQL pooling.
+This studies session/company-path warmup and may execute **zero test methods**.
+It gives **no readiness guarantee**, and is not proof of exercising the failing
+OData/help-metadata call chain or fixing SQL pooling.
+
+### NAV-inspired readiness adaptation (third arm only)
+
+After each pristine remount reaches Operational, `navreadiness` waits30seconds
+**inside the serial reset call, before another worker may be remounted**.
+After all batch resets and their waits, each worker executes the same app warmup
+above, performs one authenticated GET to its own `/api/v2.0/companies?tenant=...`
+(60-second timeout, zero retries, exactly one expected company), then waits30seconds.
+All worker preflights must finish before any real codeunit in that batch starts.
+The discovery restore follows the same phases. Thus a completed readiness trial
+has22 app dispatches,22 probes, and44 fixed30-second waits (at least22minutes of
+intentional overhead). Every phase records success/failure, UTC and monotonic time.
+Failure aborts the trial; no real CU dispatch, retry or success-shaped fallback is
+allowed after failed preflight.
+
+This is **not identical to NAV's Toolkit preflight**. NAV's source waits30seconds
+inside its shared creation lock, initializes a retry-capable tenant client session,
+opens/closes runner page149042, fetches Toolkit `logentries` and `testmethodlines`,
+then waits30seconds. Here serial reset pacing substitutes for that lock; existing
+app dispatch is **not proven to open/close page149042**, and companies GET substitutes
+for both Toolkit endpoints. No Toolkit, AL, auth or explicit session-retry changes
+are introduced. Existing runner/client behavior and5-second app-dispatch spacing
+are inherited unchanged by both warmup arms.
+
+This **compound treatment cannot separate waits, session warmup and GET effects**.
+Earlier companies200 responses were followed by a correlated SQL-pool failure,
+so these checks do not guarantee SQL readiness. Control has no warmup, probe or
+added wait; `workerwarmup` has only the existing app dispatch.
 
 The discovery worker is restored and warmed once before template freeze. Each
 clean batch then finishes **all restores**, **all warmups**, and only then
 dispatches full cohort codeunits. Thus a complete candidate has22 independently
-validated warmups (one post-discovery restore plus21 pre-CU restores), outside
+completed app dispatches (one post-discovery restore plus21 pre-CU restores), outside
 cohort XML. The paired control records the same receipts but performs no warmup.
 Dispatch consumes an exact tenant/generation/next-CU receipt once; stale/missing
 receipts cannot authorize execution. Original stop-after-failed-batch behavior
@@ -56,14 +84,19 @@ and all first-attempt SQL evidence remain intact.
 ### Evidence and timing
 
 `worker-warmup/<tenant>-g<generation>-cu<nextCU>/` contains raw isolated worker
-logs, exact warmup XML and UTC/monotonic overhead receipts. CU0 denotes discovery.
+logs, any emitted warmup XML and UTC/monotonic overhead receipts. Each receipt
+records selected app/AppId, tenant/reset/next-CU identity, attempt and outcome.
+CU0 denotes discovery.
 Reset timing, original reset identities, dispatch receipts, full cohort attempt
 logs/XML/events, final counts and always-run cleanup remain separate.
 `worker-performance.json` separates pre-checkout total, setup before discovery,
-execution, each reset, each warmup (including child process startup/verification),
+execution, each reset, each warmup (including original dispatch/startup/wait overhead),
 and cohort dispatch/case timing. Missing measurements are explicit gaps; incomplete
 cohort/22-remount coverage cannot pass. Total excludes queue/upload. XML duration
-is not isolated API latency. Timing/instrumentation is identical in both arms.
+is not isolated API latency. Timing/instrumentation is identical in all arms.
+Serial postmount pacing is included in reset wall time and is also reported
+separately: do not add it twice. `readinessPhaseTotalsByWorker` separates app,
+probe and both wait phases; `readinessFailures` identifies failed phases.
 Five trials per country/arm are exploratory, not a reliability proof; runtime
 operation results remain unverified until the authorized CI execution.
 

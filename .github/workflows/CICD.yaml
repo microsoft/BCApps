@@ -1,5 +1,5 @@
 name: 'SQL API worker remount warmup - DO NOT MERGE'
-run-name: SQL API worker remount warmup - 20 original trials
+run-name: SQL API worker remount warmup and NAV-inspired readiness - 30 original trials
 
 on:
   workflow_dispatch:
