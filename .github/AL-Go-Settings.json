@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/91b96c2b294be6f823277dafe6f03350abfb9d23/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
-  "bcContainerHelperVersion": "preview",
+  "bcContainerHelperVersion": "6.1.19-preview2811389",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": true,

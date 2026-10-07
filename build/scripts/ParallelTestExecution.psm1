@@ -13,6 +13,9 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
     }
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
+if ($env:BC_SQL_PILOT_ARM) {
+    Import-Module (Join-Path $PSScriptRoot 'SqlResetPilot\Lifecycle.psm1')
+}
 
 <#
 .SYNOPSIS
@@ -376,9 +379,12 @@ function New-BcTestTenantTemplate {
         [string]$SourceDatabaseName
     )
 
-    $result = @(Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock { Param($sourceDatabaseName)
+    $result = @(Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock { Param($sourceDatabaseName, $sqlPilot)
         $templateDatabaseName = "$sourceDatabaseName-test-template"
-        $maxAttempts = 3
+        if ($sqlPilot -and (Test-NAVDatabase -DatabaseName $templateDatabaseName)) {
+            throw 'Pilot template already exists; it must never be overwritten.'
+        }
+        $maxAttempts = if ($sqlPilot) { 1 } else { 3 }
         $retryDelaySeconds = 5
         for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             try {
@@ -398,7 +404,7 @@ function New-BcTestTenantTemplate {
             }
         }
         $templateDatabaseName
-    } -argumentList $SourceDatabaseName)
+    } -argumentList $SourceDatabaseName, ([bool]$env:BC_SQL_PILOT_ARM))
 
     if ($result.Count -eq 0) {
         throw "Creating the clean test tenant template returned no database name."
@@ -429,6 +435,12 @@ function Reset-BcTestTenant {
         [Parameter(Mandatory=$true)]
         [string]$TemplateDatabaseName
     )
+
+    if ($env:BC_SQL_PILOT_ARM) {
+        Invoke-SqlPilotReset -ContainerName $ContainerName -Tenant $Tenant -DatabaseName $TenantDatabaseName `
+            -TemplateDatabaseName $TemplateDatabaseName
+        return
+    }
 
     Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock {
         Param($tenant, $tenantDatabaseName, $templateDatabaseName)
@@ -635,13 +647,16 @@ function Receive-TestJobResult {
 
     $outcome = 'Passed'
     if ($Job.State -eq 'Failed' -or $Job.State -eq 'Stopped') {
-        if ((Test-TransientTestFailure $output) -and -not $Retried.ContainsKey($Entry.appName)) {
+        if (-not $env:BC_SQL_PILOT_ARM -and (Test-TransientTestFailure $output) -and -not $Retried.ContainsKey($Entry.appName)) {
             $outcome = 'Transient'
         } else {
             $outcome = 'Failed'
         }
     }
 
+    if ($env:BC_SQL_PILOT_ARM) {
+        $output | Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT "worker-$($Job.Id).log") -Encoding UTF8
+    }
     Remove-Job -Job $Job -Force
 
     return [PSCustomObject]@{
@@ -836,6 +851,9 @@ function Invoke-RequiredDisabledTestExecution {
                 -ScriptPath $ScriptPath -TestType $TestType -State $state -Verb $dispatch.Verb
         }
         $null = Wait-ForAllTestJobs -state $state
+        if ($env:BC_SQL_PILOT_ARM -and $state.hasFailures) {
+            break
+        }
     }
 
     return (-not $state.hasFailures)
@@ -1327,6 +1345,10 @@ function Invoke-ParallelTestExecution {
     }
 
     $tenantInfo = @(Get-AvailableBcTenantInfo -containerName $parameters.containerName)
+    if ($env:BC_SQL_PILOT_ARM) {
+        Initialize-SqlResetPilot -ContainerName $parameters.containerName -TenantInfo $tenantInfo `
+            -Arm $env:BC_SQL_PILOT_ARM -RunId $env:GITHUB_RUN_ID -OutputDirectory $env:BC_SQL_PILOT_OUTPUT
+    }
     $tenants = @($tenantInfo | ForEach-Object { $_.Id })
     Write-Host "Available tenants: $($tenants -join ', ')"
 
@@ -1384,6 +1406,11 @@ function Invoke-ParallelTestExecution {
                 -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
         )
     }
+    if ($env:BC_SQL_PILOT_ARM) {
+        $requiredDisabledWorkItems = @(Select-SqlPilotPrefix -WorkItems $requiredDisabledWorkItems)
+        $requiredDisabledWorkItems | ConvertTo-Json -Depth 5 |
+            Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT 'ordered-prefix.json') -Encoding UTF8
+    }
     $templateDatabaseName = ""
     try {
         if ($requiredDisabledWorkItems.Count -gt 0) {
@@ -1417,11 +1444,21 @@ function Invoke-ParallelTestExecution {
             }
         }
         finally {
-            foreach ($cleanTenant in $cleanTenantInfo) {
+            foreach ($cleanTenant in @($cleanTenantInfo | Where-Object { -not $env:BC_SQL_PILOT_ARM })) {
                 Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $cleanTenant.Id `
                     -TenantDatabaseName $cleanTenant.DatabaseName -TemplateDatabaseName $templateDatabaseName
             }
         }
+    }
+
+    if ($env:BC_SQL_PILOT_ARM) {
+        Merge-TenantTestResults -parameters $parameters -tenants $tenants -workItems $requiredDisabledWorkItems -rerunSuffixes @()
+        $state.finalResult = -not $state.hasFailures
+        $state.completed = $true
+        $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
+        @{ completedUtc = [DateTime]::UtcNow.ToString('o'); passed = $state.finalResult; selectedCodeunits = $requiredDisabledWorkItems.Count } |
+            ConvertTo-Json | Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT 'outcome.json') -Encoding UTF8
+        return $state.finalResult
     }
 
     # Single dispatch loop, FIFO. TestConfiguration.json lists the smallest app first (a cheap
@@ -1521,7 +1558,7 @@ function Invoke-ParallelTestExecution {
         return $allPassed
     }
     finally {
-        if ($templateDatabaseName) {
+        if ($templateDatabaseName -and -not $env:BC_SQL_PILOT_ARM) {
             Remove-BcTestTenantTemplate -ContainerName $parameters.containerName `
                 -TemplateDatabaseName $templateDatabaseName
         }
