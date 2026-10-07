@@ -10,15 +10,17 @@ Describe 'SQL pilot final cleanup ownership' {
         $script:oldHelper = $env:BcContainerHelperPath
         $script:oldCountry = $env:BC_SQL_PILOT_COUNTRY
         $script:oldTrial = $env:BC_SQL_PILOT_TRIAL
+        $script:oldExperiment = $env:BC_SQL_API_EXPERIMENT
         $env:GITHUB_WORKSPACE = $PSScriptRoot
         $env:GITHUB_RUN_ID = '123'
         $env:BC_SQL_PILOT_ARM = 'control'
         $env:BC_SQL_PILOT_COUNTRY = 'DE'
         $env:BC_SQL_PILOT_TRIAL = '2'
+        $env:BC_SQL_API_EXPERIMENT = 'B'
         $env:BcContainerHelperPath = Join-Path $PSScriptRoot 'BcContainerHelper.ps1'
         Mock Import-Module {}
         Mock Test-Path { $true }
-        Mock Get-Content { '{"runId":"123","arm":"control","country":"DE","trial":"2","container":"bcbuildprojectsTestAppsDETrial2123"}' }
+        Mock Get-Content { '{"runId":"123","arm":"control","country":"DE","trial":"2","experiment":"B","container":"bcbuildprojectsTestAppsDETrial2B123"}' }
         Mock Get-ChildItem {}
         Mock New-Item {}
         Mock Copy-Item {}
@@ -35,12 +37,13 @@ Describe 'SQL pilot final cleanup ownership' {
         $env:BcContainerHelperPath = $script:oldHelper
         $env:BC_SQL_PILOT_COUNTRY = $script:oldCountry
         $env:BC_SQL_PILOT_TRIAL = $script:oldTrial
+        $env:BC_SQL_API_EXPERIMENT = $script:oldExperiment
         Remove-Variable sqlPilotTestContainerExists -Scope Global
     }
     It 'exports before disposing only the registered container' {
         & (Join-Path $PSScriptRoot 'Finalize.ps1')
         Should -Invoke Get-BcContainerEventLog -Times 1 -Exactly -Scope It
-        Should -Invoke Remove-BcContainer -Times 1 -Exactly -Scope It -ParameterFilter { $containerName -eq 'bcbuildprojectsTestAppsDETrial2123' }
+        Should -Invoke Remove-BcContainer -Times 1 -Exactly -Scope It -ParameterFilter { $containerName -eq 'bcbuildprojectsTestAppsDETrial2B123' }
     }
     It 'still tears down if exporting fails and keeps that failure visible' {
         Mock Get-BcContainerEventLog { throw 'event export failed' }
@@ -51,7 +54,7 @@ Describe 'SQL pilot final cleanup ownership' {
         Mock Get-ChildItem { [PSCustomObject]@{ FullName = 'TestResults.xml' } }
         & (Join-Path $PSScriptRoot 'Finalize.ps1')
         Should -Invoke Get-ChildItem -Times 1 -Exactly -Scope It -ParameterFilter {
-            $Path -like '*Test Apps DE Trial2\.buildartifacts' -and $Filter -eq 'TestResults*.xml' -and $File
+            $Path -like '*Test Apps DE Trial2B\.buildartifacts' -and $Filter -eq 'TestResults*.xml' -and $File
         }
         Should -Invoke Copy-Item -Times 1 -Exactly -Scope It -ParameterFilter {
             $Destination -like '*clean-results\buildartifacts'

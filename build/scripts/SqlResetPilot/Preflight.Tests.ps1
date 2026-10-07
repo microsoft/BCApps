@@ -6,10 +6,11 @@ Describe 'Experiment country and trial container ownership' {
     BeforeEach {
         $script:saved = @{}
         foreach ($name in @('GITHUB_REF','GITHUB_EVENT_NAME','GITHUB_RUN_ATTEMPT','GITHUB_RUN_ID',
-            'BC_SQL_PILOT_ARM','BC_SQL_PILOT_COUNTRY','BC_SQL_PILOT_TRIAL','BC_SQL_PILOT_OUTPUT','Settings')) {
+            'BC_SQL_PILOT_ARM','BC_SQL_PILOT_COUNTRY','BC_SQL_PILOT_TRIAL','BC_SQL_PILOT_OUTPUT','BC_SQL_API_EXPERIMENT','Settings')) {
             $script:saved[$name] = [Environment]::GetEnvironmentVariable($name)
         }
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-warmup-experiment'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-two-arm-experiment'
+        $env:BC_SQL_API_EXPERIMENT = 'B'
         $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
         $env:GITHUB_RUN_ATTEMPT = '1'
         $env:GITHUB_RUN_ID = '123'
@@ -22,7 +23,7 @@ Describe 'Experiment country and trial container ownership' {
             companyName = 'My Company'; enableCleanTestCodeunitExecution = $true; enableTaskScheduler = $false
         } | ConvertTo-Json
         $script:parameters = @{
-            ContainerName = 'bcbuildprojectsTestAppsDETrial2123'
+            ContainerName = 'bcbuildprojectsTestAppsDETrial2B123'
             platformArtifactUrl = 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/30.0.55665.0/platform'
         }
         Mock Get-Module { { '6.1.19-preview2811389' } } -ParameterFilter { $Name -eq 'BcContainerHelper' }
@@ -36,7 +37,8 @@ Describe 'Experiment country and trial container ownership' {
         $record = Get-Content (Join-Path $TestDrive 'container-ownership.json') -Raw | ConvertFrom-Json
         $record.country | Should -Be 'DE'
         $record.trial | Should -Be '2'
-        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial2123'
+        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial2B123'
+        $record.experiment | Should -Be 'B'
         $script:parameters.useGenericImage | Should -Be 'mcr.microsoft.com/businesscentral@sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492'
     }
     It 'refuses a preexisting container rather than replacing it' {
