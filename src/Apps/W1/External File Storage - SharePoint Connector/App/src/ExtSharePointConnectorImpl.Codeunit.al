@@ -34,16 +34,16 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
             exit(false);
         if Account.Disabled then
             exit(false);
-        Descriptor.Add('version', 1);
+        Descriptor.Add('version', 2);
         Descriptor.Add('service', 'SharePoint');
         Descriptor.Add('site', Account."SharePoint Url");
         Descriptor.Add('basePath', Account."Base Relative Folder Path");
         Descriptor.Add('legacyRest', Account."Use legacy REST API");
+        Descriptor.Add('restBaseFolderPathFormat', Account."REST Base Folder Path Format".AsInteger());
         Descriptor.Add('authenticationType', Account."Authentication Type".AsInteger());
         Descriptor.Add('tenant', Format(Account."Tenant Id"));
         Descriptor.Add('client', Format(Account."Client Id"));
-        // Update this contract when a configurable URL/decoded base-path interpretation is introduced.
-        Descriptor.Add('pathInterpretation', 'SharePointCurrentPath-v1');
+        Descriptor.Add('pathInterpretation', 'SharePointResourcePath-v2');
         Descriptor.WriteTo(DestinationDescriptor);
         ChangeGeneration := Account.SystemRowVersion;
         exit(true);

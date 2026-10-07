@@ -75,6 +75,44 @@ codeunit 144583 "Ext. SP Account Table Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DestinationContextBindsRestPathFormatAndGeneration()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempFileAccount: Record "File Account" temporary;
+        Storage: Codeunit "External File Storage";
+        OriginalFingerprint: Text[64];
+        ChangedFingerprint: Text[64];
+        OriginalGeneration: BigInteger;
+        ChangedGeneration: BigInteger;
+    begin
+        Assert.AreEqual(0, Enum::"Ext. SharePoint Path Format"::URL.AsInteger(), 'The merged URL interpretation must remain value 0');
+        Assert.AreEqual(1, Enum::"Ext. SharePoint Path Format"::"Decoded Path".AsInteger(), 'The merged decoded interpretation must remain value 1');
+        Account.Id := CreateGuid();
+        Account."SharePoint Url" := 'https://example.sharepoint.com/sites/test';
+        Account."Base Relative Folder Path" := '/sites/test/Shared%20Documents';
+        Account."Use legacy REST API" := true;
+        Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::URL;
+        Account.Insert();
+        TempFileAccount."Account Id" := Account.Id;
+        TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::SharePoint;
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, OriginalFingerprint, OriginalGeneration), 'Metadata context must not require a SharePoint request');
+
+        Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::"Decoded Path";
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'Changed path-format context must be available');
+        Assert.AreEqual('/sites/test/Shared%20Documents', Account."Base Relative Folder Path", 'The base text must be unchanged during the interpretation test');
+        Assert.AreNotEqual(OriginalFingerprint, ChangedFingerprint, 'URL and decoded modes must bind different destinations for the same raw base text');
+        Assert.AreNotEqual(OriginalGeneration, ChangedGeneration, 'Changing path format must advance the account generation');
+
+        Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::URL;
+        Account.Modify();
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'Restored path-format context must be available');
+        Assert.AreEqual(OriginalFingerprint, ChangedFingerprint, 'Restoring the same interpretation must restore stable destination identity');
+        Assert.AreNotEqual(OriginalGeneration, ChangedGeneration, 'Changing format away and back must not restore old upload authority');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestDefaultRestBaseFolderPathFormatIsUrl()
     var
         Account: Record "Ext. SharePoint Account";
