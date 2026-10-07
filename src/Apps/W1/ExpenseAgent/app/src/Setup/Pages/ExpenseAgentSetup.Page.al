@@ -24,7 +24,7 @@ page 6996 "Expense Agent Setup"
         {
             group(General)
             {
-#if not CLEAN30
+#if not CLEAN29
                 field("Enable Agent"; Rec."Enable Agent")
                 {
                     Editable = false;
@@ -116,7 +116,7 @@ page 6996 "Expense Agent Setup"
                     Importance = Additional;
                 }
             }
-#if not CLEAN30
+#if not CLEAN29
             group(Communication)
             {
                 Caption = 'Communication';
@@ -237,7 +237,7 @@ page 6996 "Expense Agent Setup"
                 field("Use Rules"; Rec."Use Rules")
                 {
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field("Evaluate Policies"; Rec."Evaluate Policies")
                 {
                     ToolTip = 'Specifies whether the agent evaluates expenses against the configured policies. Rules are evaluated by code, while policies are evaluated by AI, so enabling this consumes additional AI credits.';
@@ -322,7 +322,7 @@ page 6996 "Expense Agent Setup"
                     end;
                 }
             }
-#if not CLEAN30
+#if not CLEAN29
             group(Projects)
             {
                 Caption = 'Projects';
@@ -427,7 +427,7 @@ page 6996 "Expense Agent Setup"
                         exit(true);
                     end;
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field("Only Shortest Route"; Rec."Only Shortest Route")
                 {
                     Visible = false;
@@ -581,11 +581,11 @@ page 6996 "Expense Agent Setup"
 
     var
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
-#if not CLEAN30
+#if not CLEAN29
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
 #endif
 
-#if not CLEAN30
+#if not CLEAN29
     local procedure ScheduleAllTasks()
     var
         EAAgentScheduler: Codeunit "EA Agent Scheduler";

@@ -310,7 +310,7 @@ page 6121 "E-Document"
                         end
                     end;
                 }
-#if not CLEAN30
+#if not CLEAN29
                 action(RejectOrder)
                 {
                     Caption = 'Reject Order';

@@ -142,7 +142,7 @@ codeunit 7768 "AOAI Deployments"
         exit(AOAIDeploymentsImpl.GetGPT53ChatPreview(CallerModuleInfo));
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT-5.5 chat.
     /// </summary>
