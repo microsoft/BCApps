@@ -44,7 +44,8 @@ codeunit 4582 "SOA Retrieve Emails"
         PageCountCallFailedTelemetryTxt: label 'Unable to calculate PDF Attachment''s page count.', Locked = true;
         MaxAttachmentsExceededTelemetryTxt: label 'Number of attachments exceeds maximum allowed.', Locked = true;
         AttachmentIgnoredTelemetryTxt: Label 'Attachment ignored: %1.', Comment = '%1 = Ignore reason', Locked = true;
-        IgnoredAttachmentPlaceholderTxt: Label 'The original attachment was not stored. Reason: %1. Original size in bytes: %2.', Comment = '%1 = Ignore reason, %2 = Size of the original attachment in bytes';
+        IgnoredAttachmentPlaceholderTxt: Label 'The original attachment %1 was not stored. Reason: %2. Original size in bytes: %3.', Comment = '%1 = Original file name, %2 = Ignore reason, %3 = Size of the original attachment in bytes';
+        IgnoredAttachmentFileSuffixTok: Label '.ignored.txt', Locked = true;
         ProcessedCategoryTok: Label 'Processed by Sales Order Agent', Locked = true;
 
     local procedure RetrieveEmails(var SOASetup: Record "SOA Setup")
@@ -224,8 +225,8 @@ codeunit 4582 "SOA Retrieve Emails"
                 if AttachmentSizeInBytes > SOASetup.GetMaxAttachmentSizeInBytes() then begin
                     Ignore := true;
                     IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsFileSize), 1, MaxStrLen(IgnoredReason));
-                    CreateIgnoredAttachmentPlaceholder(TempAgentTaskFile, InStream, IgnoredReason, AttachmentSizeInBytes);
-                    AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
+                    CreateIgnoredAttachmentPlaceholder(TempAgentTaskFile, InStream, EmailMessage.Attachments_GetName(), IgnoredReason, AttachmentSizeInBytes);
+                    AgentTaskMessageBuilder.AddAttachment(TempAgentTaskFile."File Name", TempAgentTaskFile."File MIME Type", InStream, Ignore, IgnoredReason);
                     LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
                 end else begin
                     EmailMessage.Attachments_GetContent(InStream);
@@ -300,15 +301,17 @@ codeunit 4582 "SOA Retrieve Emails"
         exit(false);
     end;
 
-    local procedure CreateIgnoredAttachmentPlaceholder(var TempAgentTaskFile: Record "Agent Task File" temporary; var PlaceholderInStream: InStream; IgnoredReason: Text[250]; AttachmentSizeInBytes: Integer)
+    local procedure CreateIgnoredAttachmentPlaceholder(var TempAgentTaskFile: Record "Agent Task File" temporary; var PlaceholderInStream: InStream; FileName: Text; IgnoredReason: Text[250]; AttachmentSizeInBytes: Integer)
     var
         PlaceholderOutStream: OutStream;
     begin
         // The attachment content is not stored, but the platform rejects an agent task file without content,
         // so a short note is stored instead of the original file.
         Clear(TempAgentTaskFile);
+        TempAgentTaskFile."File Name" := CopyStr(FileName, 1, MaxStrLen(TempAgentTaskFile."File Name") - StrLen(IgnoredAttachmentFileSuffixTok)) + IgnoredAttachmentFileSuffixTok;
+        TempAgentTaskFile."File MIME Type" := 'text/plain';
         TempAgentTaskFile.Content.CreateOutStream(PlaceholderOutStream, TextEncoding::UTF8);
-        PlaceholderOutStream.WriteText(StrSubstNo(IgnoredAttachmentPlaceholderTxt, IgnoredReason, AttachmentSizeInBytes));
+        PlaceholderOutStream.WriteText(StrSubstNo(IgnoredAttachmentPlaceholderTxt, FileName, IgnoredReason, AttachmentSizeInBytes));
         TempAgentTaskFile.Content.CreateInStream(PlaceholderInStream, TextEncoding::UTF8);
     end;
 
