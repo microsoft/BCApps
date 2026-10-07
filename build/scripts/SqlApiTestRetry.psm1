@@ -8,7 +8,8 @@
     metadata stack, within this dispatch's time window. Missing evidence fails closed.
     The scheduler permits only one retry, restores the tenant first, and reruns the entire
     codeunit. Original results and matching events are retained separately from final results.
-    The scheduler enables this only on the exact manual experiment branch, arm B, attempt one.
+    The scheduler enables retry only on the exact manual comparison branch, retry arm, attempt one.
+    All arms classify and preserve matching first-attempt evidence without authorizing other retries.
     SqlApiRetryEvidence JSON files under the diagnostic output are uploaded with raw outcomes,
     including on successful runs, so recovered failures remain visible without duplicating cases.
 #>
@@ -140,7 +141,7 @@ function Get-SqlApiTestRetryEvidence {
         $null = New-Item -ItemType Directory -Path $folder -Force -ErrorAction Stop
         $evidenceFile = Join-Path $folder "$($Context.Tenant)-$($Context.CodeunitId)-$([guid]::NewGuid().ToString('N')).json"
         $evidence | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $evidenceFile -Encoding utf8 -ErrorAction Stop
-        Write-Host "::warning::SQL API pool failure confirmed for codeunit $($Context.CodeunitId) on '$($Context.Tenant)'; requests: $($evidence.RequestIds -join ', '). Retrying once after a tenant reset. Original evidence: $evidenceFile"
+        Write-Host "::warning::SQL API pool failure confirmed for codeunit $($Context.CodeunitId) on '$($Context.Tenant)'; requests: $($evidence.RequestIds -join ', '). Original evidence: $evidenceFile. Only the retry arm may authorize a single clean retry."
         return $evidence
     } catch {
         Write-Host "::warning::SQL API retry evidence unavailable; preserving test failure: $($_.Exception.Message)"
@@ -180,7 +181,7 @@ function Test-SqlApiRetryResult {
 }
 
 function Test-SqlApiExperimentSelection {
-    param($Context, [ValidateSet('A', 'B')][string]$Experiment)
+    param($Context, [ValidateSet('control', 'warmup', 'retry')][string]$Experiment)
     if ([string]$Context.CodeunitId -ne '148318') { return $true }
     try {
         $suite = Get-SqlApiRetrySuite -Context $Context
@@ -188,8 +189,8 @@ function Test-SqlApiExperimentSelection {
             ($_.GetAttribute('name') -split '\.')[-1] -ceq 'CapabilitiesProjectsEnabledViaAPI'
         })
         if ($target.Count -ne 1) { throw 'Expected exactly one target method in Capabilities results.' }
-        if (($null -ne $target[0].SelectSingleNode('skipped')) -ne ($Experiment -eq 'A')) {
-            throw 'Target method skip status differs from the experiment arm.'
+        if ($null -ne $target[0].SelectSingleNode('skipped')) {
+            throw "Target method must remain enabled in $Experiment."
         }
         return $true
     } catch {

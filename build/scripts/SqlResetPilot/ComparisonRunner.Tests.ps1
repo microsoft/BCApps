@@ -5,7 +5,7 @@ try {
 } finally {
     $env:BC_SQL_PILOT_ARM = $discoveryArm
 }
-Describe 'Exact manual two-arm experiment isolation' {
+Describe 'Exact manual three-arm comparison isolation' {
     BeforeEach {
         $script:saved = @{}
         foreach ($key in @('GITHUB_REPOSITORY','GITHUB_REF','GITHUB_EVENT_NAME','GITHUB_RUN_ATTEMPT',
@@ -13,11 +13,11 @@ Describe 'Exact manual two-arm experiment isolation' {
             $script:saved[$key] = [Environment]::GetEnvironmentVariable($key)
         }
         $env:GITHUB_REPOSITORY = 'microsoft/BCApps'
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-two-arm-experiment'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-300-trial-comparison'
         $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
         $env:GITHUB_RUN_ATTEMPT = '1'
         $env:BC_SQL_PILOT_ARM = 'control'
-        $env:BC_SQL_API_EXPERIMENT = 'B'
+        $env:BC_SQL_API_EXPERIMENT = 'retry'
         $env:BC_SQL_PILOT_OUTPUT = $TestDrive
     }
     AfterEach {
@@ -42,14 +42,19 @@ Describe 'Exact manual two-arm experiment isolation' {
                 credential = [PSCredential]::Empty; companyName = 'My Company'
             }
         }
-        It 'adds exactly the one named method only in A and does not mutate baseline config' {
-            $env:BC_SQL_API_EXPERIMENT = 'A'
-            $disabled = @(Get-DisabledTestsForApp 'Test App')
-            $disabled.Count | Should -Be 1
-            $disabled[0].codeunitId | Should -Be 148318
-            $disabled[0].method | Should -BeExactly 'CapabilitiesProjectsEnabledViaAPI'
-            $env:BC_SQL_API_EXPERIMENT = 'B'
-            @(Get-DisabledTestsForApp 'Test App').Count | Should -Be 0
+        It 'never adds an exclusion in any arm' {
+            foreach ($arm in @('control', 'warmup', 'retry')) {
+                $env:BC_SQL_API_EXPERIMENT = $arm
+                @(Get-DisabledTestsForApp 'Test App').Count | Should -Be 0
+            }
+        }
+        It 'enables app and companies warmup only in the two warmup arms' {
+            $env:BC_SQL_API_EXPERIMENT = 'control'
+            Test-SqlApiWarmupEnabled | Should -BeFalse
+            foreach ($arm in @('warmup', 'retry')) {
+                $env:BC_SQL_API_EXPERIMENT = $arm
+                Test-SqlApiWarmupEnabled | Should -BeTrue
+            }
         }
         It 'cannot activate on <Kind>' -ForEach @(
             @{ Kind = 'PR'; Key = 'GITHUB_EVENT_NAME'; Value = 'pull_request' }
@@ -61,7 +66,7 @@ Describe 'Exact manual two-arm experiment isolation' {
             [Environment]::SetEnvironmentVariable($Key, $Value)
             Test-SqlApiExperiment | Should -BeFalse
         }
-        It 'queues only a confirmed B failure and never a generic transient' {
+        It 'queues only a confirmed retry-arm failure and never a generic transient' {
             $result = [PSCustomObject]@{ Outcome = 'SqlPoolRetry'; AppName = $script:item.Key; Tenant = 'tenant2'; SqlRetryEvidence = @{ TestCases = @('one') } }
             Register-TestJobOutcome $result $script:state
             $script:state.transient.Count | Should -Be 1
@@ -71,11 +76,25 @@ Describe 'Exact manual two-arm experiment isolation' {
             $script:state.transient.Count | Should -Be 1
             $script:state.hasFailures | Should -BeTrue
         }
-        It 'never queues SQL retry in A' {
-            $env:BC_SQL_API_EXPERIMENT = 'A'
-            Register-TestJobOutcome ([PSCustomObject]@{ Outcome = 'SqlPoolRetry' }) $script:state
-            $script:state.hasFailures | Should -BeTrue
-            $script:state.transient.Count | Should -Be 0
+        It 'never queues SQL retry in control or warmup' {
+            foreach ($arm in @('control', 'warmup')) {
+                $env:BC_SQL_API_EXPERIMENT = $arm
+                Register-TestJobOutcome ([PSCustomObject]@{ Outcome = 'SqlPoolRetry' }) $script:state
+                $script:state.hasFailures | Should -BeTrue
+                $script:state.transient.Count | Should -Be 0
+            }
+        }
+        It 'restores control workers but performs no companies probe' {
+            $env:BC_SQL_API_EXPERIMENT = 'control'
+            Mock Reset-BcTestTenant {}
+            Mock Invoke-SqlPilotCompaniesProbe { throw 'Control must never probe.' }
+            Mock Start-RequiredDisabledDispatch {}
+            Mock Wait-ForAllTestJobs {}
+            Invoke-RequiredDisabledTestExecution $script:parameters @($script:item) @($script:tenant) `
+                'default-test-template' 'runner.ps1' 'IntegrationTest' | Should -BeTrue
+            Should -Invoke Reset-BcTestTenant -Times 1 -Exactly
+            Should -Invoke Invoke-SqlPilotCompaniesProbe -Times 0
+            Should -Invoke Start-RequiredDisabledDispatch -Times 1 -Exactly
         }
         It 'retries the full CU without BCH ReRun and writes to a separate result file' {
             $script:state.sqlRetryEvidence[$script:item.Key] = @{ TestCases = @(@{ Name = 'one'; Skipped = $false }) }
@@ -149,15 +168,17 @@ Describe 'Exact manual two-arm experiment isolation' {
             }
             Should -Invoke Get-SqlApiTestRetryEvidence -Times 0
         }
-        It 'rejects silently reenabled A and inherited B exclusions in actual JUnit' {
+        It 'rejects inherited exclusions in actual JUnit in every arm' {
             $path = Join-Path $TestDrive 'selection.xml'
             $context = [PSCustomObject]@{ CodeunitId = 148318; ResultFiles = @{ JUnitResultFileName = $path } }
             '<testsuites><testsuite name="148318 Capabilities"><testcase name="CapabilitiesProjectsEnabledViaAPI"><skipped/></testcase></testsuite></testsuites>' | Set-Content $path
-            Test-SqlApiExperimentSelection $context 'A' | Should -BeTrue
-            Test-SqlApiExperimentSelection $context 'B' | Should -BeFalse
+            foreach ($arm in @('control', 'warmup', 'retry')) {
+                Test-SqlApiExperimentSelection $context $arm | Should -BeFalse
+            }
             '<testsuites><testsuite name="148318 Capabilities"><testcase name="CapabilitiesProjectsEnabledViaAPI"/></testsuite></testsuites>' | Set-Content $path
-            Test-SqlApiExperimentSelection $context 'A' | Should -BeFalse
-            Test-SqlApiExperimentSelection $context 'B' | Should -BeTrue
+            foreach ($arm in @('control', 'warmup', 'retry')) {
+                Test-SqlApiExperimentSelection $context $arm | Should -BeTrue
+            }
         }
       }
     }

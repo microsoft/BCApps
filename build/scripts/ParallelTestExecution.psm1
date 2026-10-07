@@ -48,17 +48,19 @@ function Get-DisabledTestsForApp {
         }
     }
 
-    if ((Test-SqlApiExperiment) -and $env:BC_SQL_API_EXPERIMENT -eq 'A') {
-        $disabledTests += [PSCustomObject]@{ codeunitId = 148318; method = 'CapabilitiesProjectsEnabledViaAPI' }
-    }
     return @($disabledTests)
 }
 
 function Test-SqlApiExperiment {
     return ($env:GITHUB_REPOSITORY -eq 'microsoft/BCApps' -and
-        $env:GITHUB_REF -eq 'refs/heads/features/646383-sql-api-two-arm-experiment' -and
+        $env:GITHUB_REF -eq 'refs/heads/features/646383-sql-api-300-trial-comparison' -and
         $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch' -and $env:GITHUB_RUN_ATTEMPT -eq '1' -and
-        $env:BC_SQL_PILOT_ARM -eq 'control' -and $env:BC_SQL_API_EXPERIMENT -in @('A', 'B'))
+        $env:BC_SQL_PILOT_ARM -eq 'control' -and $env:BC_SQL_API_EXPERIMENT -in @('control', 'warmup', 'retry'))
+}
+
+function Test-SqlApiWarmupEnabled {
+    return ($env:BC_SQL_PILOT_ARM -and
+        (-not (Test-SqlApiExperiment) -or $env:BC_SQL_API_EXPERIMENT -ne 'control'))
 }
 
 function Get-TestJobResultFileName {
@@ -672,9 +674,9 @@ function Receive-TestJobResult {
             $outcome = 'Failed'
             if ($Job.State -eq 'Failed' -and -not $Retried.ContainsKey($Entry.appName) -and
                 $Entry.PSObject.Properties['SqlRetryContext'] -and $Entry.SqlRetryContext -and
-                $env:BC_SQL_API_EXPERIMENT -eq 'B' -and (Test-SqlApiExperiment)) {
+                (Test-SqlApiExperiment)) {
                 $sqlRetryEvidence = Get-SqlApiTestRetryEvidence -Context $Entry.SqlRetryContext
-                if ($sqlRetryEvidence) { $outcome = 'SqlPoolRetry' }
+                if ($sqlRetryEvidence -and $env:BC_SQL_API_EXPERIMENT -eq 'retry') { $outcome = 'SqlPoolRetry' }
             }
         }
     }
@@ -702,7 +704,8 @@ function Receive-TestJobResult {
             codeunitId = $context.CodeunitId; tenant = $context.Tenant; attempt = $context.Attempt
             outcome = $outcome; jobState = [string]$Job.State; startedUtc = $context.StartedUtc.ToString('o')
             completedUtc = [datetime]::UtcNow.ToString('o'); experiment = $env:BC_SQL_API_EXPERIMENT
-            retryEligible = [bool]$sqlRetryEvidence; expectedCases = $context.TestCount
+            sqlPoolFailureConfirmed = [bool]$sqlRetryEvidence
+            retryEligible = ($outcome -eq 'SqlPoolRetry'); expectedCases = $context.TestCount
         } | ConvertTo-Json | Set-Content (Join-Path $attemptDirectory 'outcome.json') -ErrorAction Stop
         if ($context.Attempt -eq 2 -and $outcome -eq 'Passed') {
             foreach ($key in $context.ResultFiles.Keys) {
@@ -821,7 +824,7 @@ function Start-RequiredDisabledDispatch {
     $sqlRetryExpectedTests = @()
     $fileSuffix = $TenantInfo.Id
     if (Test-SqlApiExperiment) {
-        if (-not $Parameters.JUnitResultFileName) { throw 'Two-arm experiment requires JUnit evidence.' }
+        if (-not $Parameters.JUnitResultFileName) { throw 'Comparison requires JUnit evidence.' }
         $attempt = 1
         $finalFiles = @{}
         if ($State.sqlRetryEvidence.ContainsKey($WorkItem.Key)) {
@@ -939,7 +942,7 @@ function Invoke-RequiredDisabledTestExecution {
             Reset-BcTestTenant -ContainerName $Parameters.containerName -Tenant $dispatch.TenantInfo.Id `
                 -TenantDatabaseName $dispatch.TenantInfo.DatabaseName -TemplateDatabaseName $TemplateDatabaseName
         }
-        if ($env:BC_SQL_PILOT_ARM) {
+        if (Test-SqlApiWarmupEnabled) {
             foreach ($dispatch in $batch) {
                 Invoke-SqlPilotCompaniesProbe -ContainerName $Parameters.containerName -Tenant $dispatch.TenantInfo.Id `
                     -Credential $Parameters.credential -CompanyName $Parameters.companyName
@@ -980,7 +983,7 @@ function Register-TestJobOutcome {
     )
 
     if ($Result.Outcome -eq 'SqlPoolRetry') {
-        if (-not (Test-SqlApiExperiment) -or $env:BC_SQL_API_EXPERIMENT -ne 'B' -or
+        if (-not (Test-SqlApiExperiment) -or $env:BC_SQL_API_EXPERIMENT -ne 'retry' -or
             -not $Result.SqlRetryEvidence -or $State.retried.ContainsKey($Result.AppName)) {
             $State.hasFailures = $true
             return
@@ -1592,7 +1595,7 @@ function Invoke-ParallelTestExecution {
     }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
-    if ($env:BC_SQL_PILOT_ARM) {
+    if (Test-SqlApiWarmupEnabled) {
         if (-not $templateDatabaseName) { throw 'Pristine template must be frozen before warmup.' }
         Invoke-SqlPilotWarmup -Parameters $parameters -AppNames $appNamesToTest -AppIdByName $appIdByName `
             -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -CleanTenantAppNames $cleanTenantAppNames
@@ -1620,15 +1623,31 @@ function Invoke-ParallelTestExecution {
         if ((Test-SqlApiExperiment) -and (Test-Path $parameters.JUnitResultFileName)) {
             [xml]$finalXml = Get-Content $parameters.JUnitResultFileName -Raw
             $finalCases = @($finalXml.SelectNodes('/testsuites/testsuite/testcase'))
+            $skippedCount = @($finalCases | Where-Object { $_.SelectSingleNode('skipped') }).Count
+            $completeCohort = $finalCases.Count -eq 253 -and $skippedCount -eq 19 -and
+                $finalXml.SelectNodes('/testsuites/testsuite').Count -eq 21
+            $failedCount = @($finalCases | Where-Object {
+                $_.SelectSingleNode('failure | error') -or $_.GetAttribute('result') -eq 'Fail'
+            }).Count
+            if (-not $completeCohort -or $failedCount -gt 0) { $state.hasFailures = $true }
+            $attempts = @(Get-ChildItem (Join-Path $env:BC_SQL_PILOT_OUTPUT 'test-attempts') -Filter outcome.json -Recurse -File |
+                ForEach-Object { Get-Content $_.FullName -Raw | ConvertFrom-Json })
             @{
                 total = $finalCases.Count
-                failed = @($finalCases | Where-Object { $_.SelectSingleNode('failure | error') }).Count
-                skipped = @($finalCases | Where-Object { $_.SelectSingleNode('skipped') }).Count
+                failed = $failedCount
+                skipped = $skippedCount
                 passed = @($finalCases | Where-Object { -not $_.SelectSingleNode('failure | error | skipped') }).Count
                 suites = $finalXml.SelectNodes('/testsuites/testsuite').Count
                 experiment = $env:BC_SQL_API_EXPERIMENT
+                completeCohort = $completeCohort
+                firstAttemptSqlFailures = @($attempts | Where-Object { $_.attempt -eq 1 -and $_.sqlPoolFailureConfirmed }).Count
+                firstAttemptFailedCodeunits = @($attempts | Where-Object { $_.attempt -eq 1 -and $_.outcome -ne 'Passed' }).Count
+                retryRecoveries = @($attempts | Where-Object { $_.attempt -eq 2 -and $_.outcome -eq 'Passed' }).Count
+                failedRetries = @($attempts | Where-Object { $_.attempt -eq 2 -and $_.outcome -ne 'Passed' }).Count
                 firstAttemptsAndRetries = 'See test-attempts; final XML replaces only validated recovered CUs.'
             } | ConvertTo-Json | Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT 'final-counts.json')
+        } elseif (Test-SqlApiExperiment) {
+            $state.hasFailures = $true
         }
         $state.finalResult = -not $state.hasFailures
         $state.completed = $true

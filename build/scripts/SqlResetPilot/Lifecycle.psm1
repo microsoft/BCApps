@@ -123,18 +123,17 @@ function Select-SqlPilotPrefix {
     $ids = @(139700,139702,139703,139706,139725,139726,139732,139739,139742,139745,139802,139803,139806,139826,139832,139854,139972,139780,148315,148318,148343)
     if ($WorkItems.Count -lt $ids.Count) { throw 'Discovery returned an incomplete pilot prefix.' }
     for ($i = 0; $i -lt $ids.Count; $i++) {
-        if ([int]$WorkItems[$i].CodeunitId -ne $ids[$i]) { throw "Pinned 21-codeunit discovery order differs at position $i; do not reorder or reduce the cohort." }
+        if ([int]$WorkItems[$i].CodeunitId -ne $ids[$i]) { throw "Original W1 discovery order differs at position $i." }
     }
     @($WorkItems | Select-Object -First $ids.Count)
 }
 
 <#
 .SYNOPSIS
-    Probes companies from the host after an owned worker restore, with bounded readiness retries.
+    Makes one authenticated companies request from the host after an owned worker restore.
 .DESCRIPTION
     Uses the disposable container's existing password credential and private API endpoint.
-    Only transient HTTP and connection/timeout failures may retry, up to three attempts.
-    No redirects, response bodies, passwords or authorization headers are logged.
+    No retries, redirects, response bodies, passwords or authorization headers are logged.
 #>
 function Invoke-SqlPilotCompaniesProbe {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingAllowUnencryptedAuthentication', '',
@@ -150,14 +149,12 @@ function Invoke-SqlPilotCompaniesProbe {
         $script:pilot.Workers[$Tenant].Generation -lt 1) {
         throw 'Companies probe requires an owned, freshly restored worker.'
     }
-    $maximumAttempts = if ($env:BC_SQL_API_EXPERIMENT -in @('A', 'B')) { 1 } else { 3 }
     $trace = Join-Path $script:pilot.OutputDirectory 'companies-probes.jsonl'
     $observation = @{
         tenant = $Tenant; generation = $script:pilot.Workers[$Tenant].Generation
         startedUtc = [DateTime]::UtcNow.ToString('o'); status = $null; passed = $false
         clientRequestId = [guid]::NewGuid().ToString(); serverRequestId = $null
-        uri = $null; retries = 0; attempts = 0; recordType = 'outcome'
-        outcome = 'failed'; recovered = $false; maximumAttempts = $maximumAttempts
+        uri = $null; retries = 0
     }
     $clock = [Diagnostics.Stopwatch]::StartNew()
     try {
@@ -174,84 +171,26 @@ function Invoke-SqlPilotCompaniesProbe {
         $uri = [UriBuilder]::new($scheme, $ip, [int]$config.ODataServicesPort,
             "$($config.ServerInstance)/api/v2.0/companies", "?tenant=$Tenant").Uri.AbsoluteUri
         $observation.uri = $uri
-        for ($attemptNumber = 1; $attemptNumber -le $maximumAttempts; $attemptNumber++) {
-            $attempt = @{
-                recordType = 'attempt'; probeId = $observation.clientRequestId
-                tenant = $Tenant; generation = $observation.generation; uri = $uri
-                attempt = $attemptNumber; startedUtc = [DateTime]::UtcNow.ToString('o')
-                status = $null; passed = $false; retryable = $false
-                clientRequestId = [guid]::NewGuid().ToString(); serverRequestId = $null
-            }
-            $attemptClock = [Diagnostics.Stopwatch]::StartNew()
-            try {
-                $response = Invoke-WebRequest -Uri $uri -Method Get -Authentication Basic -Credential $Credential `
-                    -AllowUnencryptedAuthentication -SkipCertificateCheck -SkipHttpErrorCheck -MaximumRedirection 0 `
-                    -MaximumRetryCount 0 -TimeoutSec 20 -OperationTimeoutSeconds 20 -ErrorAction Stop `
-                    -Headers @{ Accept = 'application/json'; 'client-request-id' = $attempt.clientRequestId }
-                $attempt.status = [int]$response.StatusCode
-                foreach ($key in @('request-id', 'x-ms-request-id')) {
-                    $value = [string]($response.Headers[$key] | Select-Object -First 1)
-                    if ($value -match '^[a-zA-Z0-9._:-]{1,128}$') { $attempt.serverRequestId = $value; break }
-                }
-                if ($attempt.status -ne 200) {
-                    $attempt.errorCategory = 'HttpStatus'
-                    $attempt.retryable = $attempt.status -in @(500, 502, 503, 504)
-                } else {
-                    $body = $response.Content | ConvertFrom-Json -ErrorAction Stop
-                    if (-not $body.PSObject.Properties['value'] -or
-                        @($body.value | Where-Object { $_.name -eq $CompanyName -and $_.id }).Count -ne 1) {
-                        throw 'Companies probe did not return exactly one expected company.'
-                    }
-                    $attempt.passed = $true
-                }
-            } catch {
-                $attempt.errorType = $_.Exception.GetType().FullName
-                $attempt.errorCategory = 'PermanentFailure'
-                # Inspect types, never exception messages (which may contain authentication material).
-                if ($null -eq $attempt.status) {
-                    $exception = $_.Exception
-                    while ($null -ne $exception) {
-                        if ($exception -is [TimeoutException] -or
-                            $exception -is [OperationCanceledException] -or
-                            ($exception -is [Net.Http.HttpRequestException] -and
-                                $exception.PSObject.Properties['HttpRequestError'] -and
-                                $exception.HttpRequestError -in @('ConnectionError', 'NameResolutionError', 'ResponseEnded')) -or
-                            ($exception -is [Net.Sockets.SocketException] -and
-                                $exception.SocketErrorCode -in @('ConnectionRefused', 'ConnectionReset', 'ConnectionAborted',
-                                    'HostNotFound', 'HostUnreachable', 'NetworkDown', 'NetworkReset', 'NetworkUnreachable', 'TimedOut', 'TryAgain')) -or
-                            ($exception -is [Net.WebException] -and
-                                $exception.Status -in @('Timeout', 'ConnectFailure', 'ConnectionClosed', 'KeepAliveFailure',
-                                    'ReceiveFailure', 'SendFailure', 'NameResolutionFailure', 'ProxyNameResolutionFailure'))) {
-                            $attempt.retryable = $true
-                            $attempt.errorCategory = 'ConnectionOrTimeout'
-                            break
-                        }
-                        $exception = $exception.InnerException
-                    }
-                }
-            } finally {
-                $attempt.completedUtc = [DateTime]::UtcNow.ToString('o')
-                $attempt.elapsedMilliseconds = $attemptClock.ElapsedMilliseconds
-                $attempt | ConvertTo-Json -Compress | Add-Content $trace
-                $observation.attempts = $attemptNumber
-                $observation.retries = $attemptNumber - 1
-                $observation.status = $attempt.status
-                $observation.serverRequestId = $attempt.serverRequestId
-            }
-            if ($attempt.passed) {
-                $observation.passed = $true
-                $observation.recovered = $attemptNumber -gt 1
-                $observation.outcome = if ($observation.recovered) { 'recovered' } else { 'first-try-success' }
-                break
-            }
-            if (-not $attempt.retryable -or $attemptNumber -eq $maximumAttempts) { break }
-            Start-Sleep -Seconds 2
+        $response = Invoke-WebRequest -Uri $uri -Method Get -Authentication Basic -Credential $Credential `
+            -AllowUnencryptedAuthentication -SkipCertificateCheck -SkipHttpErrorCheck -MaximumRedirection 0 `
+            -MaximumRetryCount 0 -TimeoutSec 60 -ErrorAction Stop `
+            -Headers @{ Accept = 'application/json'; 'client-request-id' = $observation.clientRequestId }
+        $observation.status = [int]$response.StatusCode
+        foreach ($key in @('request-id', 'x-ms-request-id')) {
+            $value = [string]($response.Headers[$key] | Select-Object -First 1)
+            if ($value -match '^[a-zA-Z0-9._:-]{1,128}$') { $observation.serverRequestId = $value; break }
         }
-        if (-not $observation.passed) { throw 'Companies probe exhausted eligible attempts or encountered a permanent failure.' }
+        if ($response.StatusCode -ne 200) { throw 'Companies probe returned non-200 status.' }
+        $body = $response.Content | ConvertFrom-Json -ErrorAction Stop
+        if (-not $body.PSObject.Properties['value'] -or
+            @($body.value | Where-Object { $_.name -eq $CompanyName -and $_.id }).Count -ne 1) {
+            throw 'Companies probe did not return exactly one expected company.'
+        }
+        $observation.passed = $true
     } catch {
         $observation.errorType = $_.Exception.GetType().FullName
         # HTTP exception details can contain authentication material; never emit the original error.
-        throw "Companies probe failed for $Tenant after $($observation.attempts) attempt(s); see sanitized companies-probes.jsonl."
+        throw "Companies probe failed for $Tenant; see sanitized companies-probes.jsonl. No retry was attempted."
     } finally {
         $observation.completedUtc = [DateTime]::UtcNow.ToString('o')
         $observation.elapsedMilliseconds = $clock.ElapsedMilliseconds

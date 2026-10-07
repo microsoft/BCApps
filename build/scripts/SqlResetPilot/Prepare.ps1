@@ -1,11 +1,11 @@
 $ErrorActionPreference = 'Stop'
 $base = 'c4953dceffe02a017adad34973e1955017bf5d20'
 if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
-    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-two-arm-experiment' -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('A', 'B') -or
+    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-300-trial-comparison' -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'warmup', 'retry') -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
     $env:BC_SQL_PILOT_ARM -ne 'control' -or $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or
-    $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
+    $env:BC_SQL_PILOT_TRIAL -notmatch '^(?:[1-9]|[1-4][0-9]|50)$' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
     throw 'This diagnostic is restricted to its explicitly dispatched disposable CI branch, attempt one.'
 }
 git merge-base --is-ancestor $base HEAD
@@ -25,8 +25,14 @@ New-Item -ItemType Directory $output -Force | Out-Null
 "BC_SQL_PILOT_OUTPUT=$output" | Add-Content $env:GITHUB_ENV
 @{ phase = 'package-preflight'; arm = $env:BC_SQL_PILOT_ARM; run = $env:GITHUB_RUN_ID; utc = [DateTime]::UtcNow.ToString('o') } |
     ConvertTo-Json | Set-Content (Join-Path $output 'start.json') -Encoding UTF8
-$headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' }
-$api = 'https://api.github.com/repos/microsoft/BCApps'
+Import-Module (Join-Path $PSScriptRoot 'Comparison.psm1') -Force
+$replacement = $env:BC_SQL_COMPARISON_REPLACEMENT | ConvertFrom-Json
+$expectedSnapshotRun = if ($replacement) { [string]$replacement.runId } else { $env:GITHUB_RUN_ID }
+if ($env:BC_SQL_COMPARISON_PACKAGE_RUN -ne $expectedSnapshotRun) { throw 'Snapshot source run differs from original/replacement provenance.' }
+$snapshotDirectory = Join-Path $env:GITHUB_WORKSPACE 'sql-api-package-snapshot'
+$snapshotProof = @(Save-SqlComparisonSnapshot -ArtifactId $env:BC_SQL_COMPARISON_PACKAGE_ARTIFACT `
+    -RunId $expectedSnapshotRun -HeadSha $env:GITHUB_SHA -Country $env:BC_SQL_PILOT_COUNTRY -Directory $snapshotDirectory)
+$snapshotProof | ConvertTo-Json -Depth 12 | Set-Content (Join-Path $output 'original-artifact-proof.json')
 $artifacts = @(
     @{ Kind = 'apps'; Id = 11374170356; Digest = '683343673e6efeb7699734b250d2ee5004d2d83fe08e57f324c4c645c09612db' },
     @{ Kind = 'tests'; Id = 11374145359; Digest = 'f75ce06920437328e5d79a5512eddcc2425624bb696c339c108478c83554171d' }
@@ -39,15 +45,14 @@ if ($env:BC_SQL_PILOT_COUNTRY -eq 'DE') {
 }
 $manifest = @()
 foreach ($artifact in $artifacts) {
-    $metadata = Invoke-RestMethod "$api/actions/artifacts/$($artifact.Id)" -Headers $headers
+    $metadata = @($snapshotProof | Where-Object { $_.pin.id -eq [string]$artifact.Id })[0].metadata
     if ($metadata.expired -or $metadata.workflow_run.id -ne 37372848860 -or
         $metadata.workflow_run.head_sha -ne $base -or $metadata.digest -ne "sha256:$($artifact.Digest)") {
         throw 'Exact artifact provenance/digest check failed; no moving-build fallback is permitted.'
     }
     $destination = Join-Path $env:GITHUB_WORKSPACE "sql-reset-pilot-packages\$($artifact.Kind)"
     New-Item -ItemType Directory $destination -Force | Out-Null
-    $zip = "$destination.zip"
-    Invoke-WebRequest "$api/actions/artifacts/$($artifact.Id)/zip" -Headers $headers -OutFile $zip -UseBasicParsing
+    $zip = Join-Path $snapshotDirectory "$($artifact.Id).zip"
     if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $artifact.Digest) { throw 'Artifact archive hash mismatch.' }
     Expand-Archive $zip $destination
     $files = @(Get-ChildItem $destination -Filter '*.app' -Recurse -File | Sort-Object FullName)
@@ -63,12 +68,17 @@ foreach ($artifact in $artifacts) {
 }
 @{
     experimentHead = $env:GITHUB_SHA; run = $env:GITHUB_RUN_ID; arm = $env:BC_SQL_PILOT_ARM
-    experiment = $env:BC_SQL_API_EXPERIMENT; baseline = '8a7ebc7d665c0a812c2b3b4902c63df570959954'
+    experiment = $env:BC_SQL_API_EXPERIMENT; sharedBaseline = 'fbd7ec46c636ee5f9d940cb81e5abbc1df90f055'
+    probeAndWarmupBaseline = 'fcc1776c6b165199dd66e4227675b1cc31da7a8f'
+    trialIdentity = "$($env:BC_SQL_API_EXPERIMENT)/$($env:BC_SQL_PILOT_COUNTRY)/$($env:BC_SQL_PILOT_TRIAL)"
+    replacementOf = $replacement
+    packageSnapshot = @{ runId = $expectedSnapshotRun; artifactId = $env:BC_SQL_COMPARISON_PACKAGE_ARTIFACT }
     country = $env:BC_SQL_PILOT_COUNTRY; trial = $env:BC_SQL_PILOT_TRIAL; project = $trialProject
-    warmup = 'original-first-app-before-clean-lane'; companiesProbe = 'per-restored-worker-single-attempt'
-    companiesProbeMaximumAttempts = 1; companiesProbeTimeoutSeconds = 20; companiesProbeRetryDelaySeconds = 0
-    additionalDisabledTest = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'A') { '148318.CapabilitiesProjectsEnabledViaAPI' } else { $null })
-    warmupRetries = 0; maximumEvidenceGatedRetriesPerCodeunit = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'B') { 1 } else { 0 })
+    warmup = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { 'original-first-app-before-clean-lane' })
+    companiesProbe = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { 'per-restored-worker-single-attempt' })
+    companiesProbeMaximumAttempts = 1; companiesProbeTimeoutSeconds = 60; companiesProbeRetryDelaySeconds = 0
+    additionalDisabledTests = @()
+    warmupRetries = 0; maximumEvidenceGatedRetriesPerCodeunit = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'retry') { 1 } else { 0 })
     genericTestRetries = 0; schedulerRetries = 0; ciRetries = 0
     budgetMinutes = 120; startedUtc = [DateTime]::UtcNow.ToString('o')
     artifacts = $manifest

@@ -2,13 +2,13 @@ $ErrorActionPreference = 'Stop'
 $output = Join-Path $env:GITHUB_WORKSPACE 'sql-reset-pilot-output'
 $ownershipPath = Join-Path $output 'container-ownership.json'
 if (-not (Test-Path $ownershipPath)) {
-    Write-Host 'No owned container was registered; no container deletion is authorized.'
+    Write-Output 'No owned container was registered; no container deletion is authorized.'
     return
 }
 $ownership = Get-Content $ownershipPath -Raw | ConvertFrom-Json
 if ($ownership.runId -ne $env:GITHUB_RUN_ID -or $ownership.arm -ne $env:BC_SQL_PILOT_ARM -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('A', 'B') -or $ownership.experiment -ne $env:BC_SQL_API_EXPERIMENT -or
-    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'warmup', 'retry') -or $ownership.experiment -ne $env:BC_SQL_API_EXPERIMENT -or
+    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^(?:[1-9]|[1-4][0-9]|50)$' -or
     $ownership.country -ne $env:BC_SQL_PILOT_COUNTRY -or $ownership.trial -ne $env:BC_SQL_PILOT_TRIAL -or
     $ownership.container -ne "bcbuildprojectsTestApps$($env:BC_SQL_PILOT_COUNTRY)Trial$($env:BC_SQL_PILOT_TRIAL)$($env:BC_SQL_API_EXPERIMENT)$($env:GITHUB_RUN_ID)") {
     throw 'Cleanup ownership mismatch.'

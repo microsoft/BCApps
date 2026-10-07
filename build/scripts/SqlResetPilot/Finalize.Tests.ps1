@@ -16,11 +16,11 @@ Describe 'SQL pilot final cleanup ownership' {
         $env:BC_SQL_PILOT_ARM = 'control'
         $env:BC_SQL_PILOT_COUNTRY = 'DE'
         $env:BC_SQL_PILOT_TRIAL = '2'
-        $env:BC_SQL_API_EXPERIMENT = 'B'
+        $env:BC_SQL_API_EXPERIMENT = 'retry'
         $env:BcContainerHelperPath = Join-Path $PSScriptRoot 'BcContainerHelper.ps1'
         Mock Import-Module {}
         Mock Test-Path { $true }
-        Mock Get-Content { '{"runId":"123","arm":"control","country":"DE","trial":"2","experiment":"B","container":"bcbuildprojectsTestAppsDETrial2B123"}' }
+        Mock Get-Content { '{"runId":"123","arm":"control","country":"DE","trial":"2","experiment":"retry","container":"bcbuildprojectsTestAppsDETrial2retry123"}' }
         Mock Get-ChildItem {}
         Mock New-Item {}
         Mock Copy-Item {}
@@ -43,7 +43,7 @@ Describe 'SQL pilot final cleanup ownership' {
     It 'exports before disposing only the registered container' {
         & (Join-Path $PSScriptRoot 'Finalize.ps1')
         Should -Invoke Get-BcContainerEventLog -Times 1 -Exactly -Scope It
-        Should -Invoke Remove-BcContainer -Times 1 -Exactly -Scope It -ParameterFilter { $containerName -eq 'bcbuildprojectsTestAppsDETrial2B123' }
+        Should -Invoke Remove-BcContainer -Times 1 -Exactly -Scope It -ParameterFilter { $containerName -eq 'bcbuildprojectsTestAppsDETrial2retry123' }
     }
     It 'still tears down if exporting fails and keeps that failure visible' {
         Mock Get-BcContainerEventLog { throw 'event export failed' }
@@ -54,7 +54,7 @@ Describe 'SQL pilot final cleanup ownership' {
         Mock Get-ChildItem { [PSCustomObject]@{ FullName = 'TestResults.xml' } }
         & (Join-Path $PSScriptRoot 'Finalize.ps1')
         Should -Invoke Get-ChildItem -Times 1 -Exactly -Scope It -ParameterFilter {
-            $Path -like '*Test Apps DE Trial2B\.buildartifacts' -and $Filter -eq 'TestResults*.xml' -and $File
+            $Path -like '*Test Apps DE Trial2retry\.buildartifacts' -and $Filter -eq 'TestResults*.xml' -and $File
         }
         Should -Invoke Copy-Item -Times 1 -Exactly -Scope It -ParameterFilter {
             $Destination -like '*clean-results\buildartifacts'

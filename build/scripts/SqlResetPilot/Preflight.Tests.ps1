@@ -5,12 +5,13 @@ BeforeAll {
 Describe 'Experiment country and trial container ownership' {
     BeforeEach {
         $script:saved = @{}
-        foreach ($name in @('GITHUB_REF','GITHUB_EVENT_NAME','GITHUB_RUN_ATTEMPT','GITHUB_RUN_ID',
+        foreach ($name in @('GITHUB_REPOSITORY','GITHUB_REF','GITHUB_EVENT_NAME','GITHUB_RUN_ATTEMPT','GITHUB_RUN_ID',
             'BC_SQL_PILOT_ARM','BC_SQL_PILOT_COUNTRY','BC_SQL_PILOT_TRIAL','BC_SQL_PILOT_OUTPUT','BC_SQL_API_EXPERIMENT','Settings')) {
             $script:saved[$name] = [Environment]::GetEnvironmentVariable($name)
         }
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-two-arm-experiment'
-        $env:BC_SQL_API_EXPERIMENT = 'B'
+        $env:GITHUB_REPOSITORY = 'microsoft/BCApps'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-300-trial-comparison'
+        $env:BC_SQL_API_EXPERIMENT = 'retry'
         $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
         $env:GITHUB_RUN_ATTEMPT = '1'
         $env:GITHUB_RUN_ID = '123'
@@ -23,7 +24,7 @@ Describe 'Experiment country and trial container ownership' {
             companyName = 'My Company'; enableCleanTestCodeunitExecution = $true; enableTaskScheduler = $false
         } | ConvertTo-Json
         $script:parameters = @{
-            ContainerName = 'bcbuildprojectsTestAppsDETrial2B123'
+            ContainerName = 'bcbuildprojectsTestAppsDETrial2retry123'
             platformArtifactUrl = 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/30.0.55665.0/platform'
         }
         Mock Get-Module { { '6.1.19-preview2811389' } } -ParameterFilter { $Name -eq 'BcContainerHelper' }
@@ -37,8 +38,8 @@ Describe 'Experiment country and trial container ownership' {
         $record = Get-Content (Join-Path $TestDrive 'container-ownership.json') -Raw | ConvertFrom-Json
         $record.country | Should -Be 'DE'
         $record.trial | Should -Be '2'
-        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial2B123'
-        $record.experiment | Should -Be 'B'
+        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial2retry123'
+        $record.experiment | Should -Be 'retry'
         $script:parameters.useGenericImage | Should -Be 'mcr.microsoft.com/businesscentral@sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492'
     }
     It 'refuses a preexisting container rather than replacing it' {
@@ -68,5 +69,23 @@ Describe 'Experiment country and trial container ownership' {
         $settings.country = 'W1'
         $env:Settings = $settings | ConvertTo-Json
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw '*settings differ*'
+    }
+    It 'allows trial 50 but never trial 51 even with matching container names' {
+        $env:BC_SQL_PILOT_TRIAL = '50'
+        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial50retry123'
+        & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters
+        $env:BC_SQL_PILOT_TRIAL = '51'
+        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial51retry123'
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
+    }
+    It 'rejects obsolete exclusion arms and other branches or events' {
+        $env:BC_SQL_API_EXPERIMENT = 'A'
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
+        $env:BC_SQL_API_EXPERIMENT = 'retry'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-two-arm-experiment'
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-300-trial-comparison'
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
     }
 }

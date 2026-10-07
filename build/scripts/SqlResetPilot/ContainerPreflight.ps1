@@ -1,10 +1,11 @@
 param([hashtable]$Parameters)
 $ErrorActionPreference = 'Stop'
-if ($env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-two-arm-experiment' -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('A', 'B') -or
+if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
+    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-300-trial-comparison' -or
+    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'warmup', 'retry') -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
     $env:BC_SQL_PILOT_ARM -ne 'control' -or -not $env:BC_SQL_PILOT_OUTPUT -or
-    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or
+    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^(?:[1-9]|[1-4][0-9]|50)$' -or
     $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
     throw 'Refusing SQL pilot outside its disposable manually dispatched CI job.'
 }

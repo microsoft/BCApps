@@ -1,0 +1,128 @@
+name: 'SQL API comparison batch - DO NOT MERGE'
+
+on:
+  workflow_call:
+    inputs:
+      matrix:
+        required: true
+        type: string
+      replacement:
+        required: true
+        type: string
+      w1Package:
+        required: true
+        type: string
+      dePackage:
+        required: true
+        type: string
+      packageRun:
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+  packages: read
+
+jobs:
+  Pilot:
+    name: Trial ${{ matrix.experiment }}/${{ matrix.country }}/${{ matrix.trial }}
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-300-trial-comparison' && github.run_attempt == 1
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix: ${{ fromJSON(inputs.matrix) }}
+    runs-on: GitHub-BCAppsPL
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
+      ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
+      BC_SQL_PILOT_ARM: control
+      BC_SQL_API_EXPERIMENT: ${{ matrix.experiment }}
+      BC_SQL_PILOT_COUNTRY: ${{ matrix.country }}
+      BC_SQL_PILOT_TRIAL: ${{ matrix.trial }}
+      BC_SQL_COMPARISON_REPLACEMENT: ${{ inputs.replacement }}
+      BC_SQL_COMPARISON_PACKAGE_ARTIFACT: ${{ matrix.country == 'W1' && inputs.w1Package || inputs.dePackage }}
+      BC_SQL_COMPARISON_PACKAGE_RUN: ${{ inputs.packageRun }}
+      BuildMode: IntegrationTests
+    steps:
+      - name: Checkout experiment
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Verify baseline PowerShell 7 host
+        run: |
+          if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -ne 7) {
+            throw 'The pinned baseline executes on PowerShell 7; this pilot must use the same shell.'
+          }
+          $output = Join-Path $env:GITHUB_WORKSPACE 'sql-reset-pilot-output'
+          New-Item -ItemType Directory $output -Force | Out-Null
+          @{
+            edition = $PSVersionTable.PSEdition
+            version = $PSVersionTable.PSVersion.ToString()
+            executable = (Get-Process -Id $PID).Path
+            utc = [DateTime]::UtcNow.ToString('o')
+          } | ConvertTo-Json | Tee-Object -FilePath (Join-Path $output 'shell-preflight.json')
+
+      - name: Validate provenance and download exact compiled PR2 packages
+        id: packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          & .\build\scripts\SqlResetPilot\Prepare.ps1
+
+      - name: Read pinned country Integration settings
+        uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
+        with:
+          shell: pwsh
+          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}
+          buildMode: IntegrationTests
+
+      - name: Read normal disposable CI license and package secrets
+        id: secrets
+        uses: microsoft/AL-Go/Actions/ReadSecrets@91b96c2b294be6f823277dafe6f03350abfb9d23
+        with:
+          shell: pwsh
+          gitHubSecrets: ${{ toJson(secrets) }}
+          getSecrets: 'licenseFileUrl,gitHubPackagesContext,applicationInsightsConnectionString,appDependencySecrets'
+
+      - name: Execute original pipeline with bounded clean-test prefix
+        uses: microsoft/AL-Go/Actions/RunPipeline@91b96c2b294be6f823277dafe6f03350abfb9d23
+        env:
+          Secrets: '${{ steps.secrets.outputs.Secrets }}'
+        with:
+          shell: pwsh
+          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}
+          buildMode: IntegrationTests
+          artifact: ${{ steps.packages.outputs.artifact }}
+          installAppsJson: ${{ steps.packages.outputs.apps }}
+          installTestAppsJson: ${{ steps.packages.outputs.tests }}
+
+      - name: Export diagnostics and tear down only owned disposable container
+        if: always()
+        run: |
+          & .\build\scripts\SqlResetPilot\Finalize.ps1
+
+      - name: Preserve raw outcomes (including failures)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sql-api-comparison-${{ matrix.experiment }}-${{ matrix.country }}-${{ matrix.trial }}-${{ github.run_id }}
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            sql-reset-pilot-output/**
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/TestResults*.xml
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/ContainerEventLog.evtx
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/BuildOutput.txt
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.xml
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.log
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.evtx
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/BuildOutput.txt
