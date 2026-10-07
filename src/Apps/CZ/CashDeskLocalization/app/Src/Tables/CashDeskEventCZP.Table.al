@@ -86,7 +86,8 @@ table 11746 "Cash Desk Event CZP"
         field(12; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const(" ")) "Standard Text" else
+            TableRelation =
+            if ("Account Type" = const(" ")) "Standard Text" else
             if ("Account Type" = const("G/L Account")) "G/L Account" else
             if ("Account Type" = const(Customer)) Customer else
             if ("Account Type" = const(Vendor)) Vendor else
@@ -211,6 +212,12 @@ table 11746 "Cash Desk Event CZP"
                     if not ("Account Type" in ["Account Type"::"G/L Account", "Account Type"::Customer]) then
                         FieldError("Account Type");
             end;
+        }
+        field(105; "Amount Type"; Enum "Cash Document Amount Type CZP")
+        {
+            Caption = 'Amount Type';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the default value of the Amount Type field on the cash document line when this cash desk event is selected.';
         }
         field(116; "VAT Bus. Posting Group"; Code[20])
         {

@@ -18,23 +18,24 @@ table 31128 "EET Entry CZL"
     DataCaptionFields = "Receipt Serial No.", "Entry No.";
     DrillDownPageId = "EET Entries CZL";
     LookupPageId = "EET Entries CZL";
+    DataClassification = CustomerContent;
 
     fields
     {
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number of the EET entry.';
         }
         field(10; "Cash Register Type"; Enum "EET Cash Register Type CZL")
         {
             Caption = 'Cash Register Type';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the type of the cash register that the entry originates from.';
         }
         field(12; "Cash Register No."; Code[20])
         {
             Caption = 'Cash Register No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number of the record, such as a cash desk or a bank account, that the cash register is linked to.';
         }
         field(20; "Business Premises Code"; Code[10])
         {
@@ -42,33 +43,34 @@ table 31128 "EET Entry CZL"
             NotBlank = true;
             TableRelation = "EET Business Premises CZL";
             DataClassification = OrganizationIdentifiableInformation;
+            ToolTip = 'Specifies the code of the registrating unit in which the sale was made.';
         }
         field(25; "Cash Register Code"; Code[10])
         {
             Caption = 'Cash Register Code';
             NotBlank = true;
             TableRelation = "EET Cash Register CZL".Code where("Business Premises Code" = field("Business Premises Code"));
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the code of the cash register on which the sale was made.';
         }
         field(30; "Document No."; Code[20])
         {
             Caption = 'Document No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number of the document that the entry originates from.';
         }
         field(40; Description; Text[50])
         {
             Caption = 'Description';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies a description of the EET entry.';
         }
         field(50; "Applied Document Type"; Enum "EET Applied Document Type CZL")
         {
             Caption = 'Applied Document Type';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the type of the document that the sale is applied to.';
         }
         field(55; "Applied Document No."; Code[20])
         {
             Caption = 'Applied Document No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number of the document that the sale is applied to.';
         }
         field(60; "Created By"; Code[50])
         {
@@ -76,85 +78,83 @@ table 31128 "EET Entry CZL"
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
             ValidateTableRelation = false;
+            ToolTip = 'Specifies the ID of the user who created the entry.';
         }
         field(62; "Created At"; DateTime)
         {
             Caption = 'Created At';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the date and time when the entry was created. The value is sent to the EET service as the date and time of the sale.';
         }
         field(70; "Status"; Enum "EET Status CZL")
         {
             Caption = 'Status';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the state of the entry in the communication with the EET service. Entries that have not been successfully registered are sent again by the job queue entry.';
         }
         field(72; "Status Last Changed At"; DateTime)
         {
             Caption = 'Status Last Changed At';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the date and time of the last status change of the entry.';
         }
         field(75; "Message UUID"; Text[36])
         {
             Caption = 'Message UUID';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the UUID of the data message that was sent to the EET service. A new UUID is generated every time the entry is sent.';
         }
         field(76; "Taxpayer's Signature Code"; Blob)
         {
             Caption = 'Taxpayer''s Signature Code';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the taxpayer''s signature code (PKP). The code was used in the EET system version 1.0 and it is not used in version 2.0.';
         }
         field(77; "Taxpayer's Security Code"; Text[44])
         {
             Caption = 'Taxpayer''s Security Code';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the taxpayer''s security code (BKP). The code was used in the EET system version 1.0 and it is not used in version 2.0.';
         }
         field(78; "Fiscal Identification Code"; Text[39])
         {
             Caption = 'Fiscal Identification Code';
-            DataClassification = CustomerContent;
             Description = 'Fiscal Identification Code (FIK) is a unique code generated by the EET service for each receipt. It is used to identify the receipt in the EET system version 1.0.';
+            ToolTip = 'Specifies the fiscal identification code (FIK) that was assigned to the sale by the EET service. The code was used in the EET system version 1.0 and it is replaced by the acknowledgement code (POK) in version 2.0.';
         }
         field(79; "Acknowledgement Code"; Text[39])
         {
             Caption = 'Acknowledgement Code';
-            DataClassification = CustomerContent;
             Description = 'Acknowledgement Code (POK) is a unique code generated by the EET service for each receipt. It is used to identify the receipt in the EET system version 2.0.';
+            ToolTip = 'Specifies the acknowledgement code (POK) that the EET service returned as a confirmation that the sale was received and registered. The code is filled in after the entry is successfully sent. It is not filled in when the entry is only sent for verification, and a code received from the non-production environment is not valid.';
         }
         field(85; "Receipt Serial No."; Code[50])
         {
             Caption = 'Receipt Serial No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the serial number of the sale. The number is assigned from the number series of the cash register and sent to the EET service, which accepts at most 25 characters.';
         }
         field(90; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT registration number of the taxpayer. The field was used in the EET system version 1.0. The field is replaced by the Taxpayer ID field and it is no longer filled in.';
         }
         field(91; "Appointing VAT Reg. No."; Text[20])
         {
             Caption = 'Appointing VAT Reg. No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT registration number of the taxpayer who appointed you to report the sale. The field was used in the EET system version 1.0. The field is replaced by the Authorizing Taxpayer ID field and it is no longer sent to the EET service.';
         }
         field(92; "Taxpayer ID"; Code[20])
         {
             Caption = 'Taxpayer ID';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the registered identification number of the taxpayer whose sales are reported.';
         }
         field(93; "Authorizing Taxpayer ID"; Code[20])
         {
             Caption = 'Authorizing Taxpayer ID';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the registered identification number of the taxpayer who authorized you to report this sale. It is blank when you report your own sale.';
         }
         field(95; "Sales Regime"; Enum "EET Sales Regime CZL")
         {
             Caption = 'Sales Regime';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the sale was recorded in the regular or the simplified regime. The simplified regime does not exist in the EET system version 2.0, therefore the field is always set to Regular.';
         }
         field(100; "Multiple Taxpayer Auth."; Boolean)
         {
             Caption = 'Multiple Taxpayer Authorization';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies whether the sale is reported on behalf of multiple taxpayers.';
         }
         field(150; "Total Sales Amount"; Decimal)
@@ -162,14 +162,14 @@ table 31128 "EET Entry CZL"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Total Sales Amount';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the total amount of the sale that was actually received, in the local currency. The amount is negative for an entry that cancels another entry.';
         }
         field(155; "Amount Exempted From VAT"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount Exempted From VAT';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the part of the sale that is exempt from VAT. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(160; "VAT Base (Basic)"; Decimal)
         {
@@ -177,14 +177,14 @@ table 31128 "EET Entry CZL"
             AutoFormatExpression = '';
             Caption = 'VAT Base (Basic)';
             Editable = false;
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT base amount for the basic VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(161; "VAT Amount (Basic)"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'VAT Amount (Basic)';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT amount for the basic VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(164; "VAT Base (Reduced)"; Decimal)
         {
@@ -192,14 +192,14 @@ table 31128 "EET Entry CZL"
             AutoFormatExpression = '';
             Caption = 'VAT Base (Reduced)';
             Editable = false;
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT base amount for the reduced VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(165; "VAT Amount (Reduced)"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'VAT Amount (Reduced)';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT amount for the reduced VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(167; "VAT Base (Reduced 2)"; Decimal)
         {
@@ -207,67 +207,67 @@ table 31128 "EET Entry CZL"
             AutoFormatExpression = '';
             Caption = 'VAT Base (Reduced 2)';
             Editable = false;
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT base amount for the second reduced VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(168; "VAT Amount (Reduced 2)"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'VAT Amount (Reduced 2)';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT amount for the second reduced VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(170; "Amount - Art.89"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount - Art.89';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the amount of the sale in the special VAT scheme for travel services (section 89). The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(175; "Amount (Basic) - Art.90"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount (Basic) - Art.90';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the amount of the sale in the special VAT scheme for used goods (section 90) for the basic VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(177; "Amount (Reduced) - Art.90"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount (Reduced) - Art.90';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the amount of the sale in the special VAT scheme for used goods (section 90) for the reduced VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(179; "Amount (Reduced 2) - Art.90"; Decimal)
         {
             AutoFormatType = 1;
             Caption = 'Amount (Reduced 2) - Art.90';
             AutoFormatExpression = '';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the amount of the sale in the special VAT scheme for used goods (section 90) for the second reduced VAT rate. The VAT breakdown is informative only, it is not sent to the EET service in the system version 2.0.';
         }
         field(190; "Amt. For Subseq. Draw/Settle"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
-            Caption = 'Amt. For Subseq. Draw/Settle';
-            DataClassification = CustomerContent;
+            Caption = 'Amount for Subseq. Draw/Settle';
+            ToolTip = 'Specifies the amount of the payment that is intended for subsequent drawdown or settlement, for example when a voucher, a prepaid card or a chip is topped up.';
         }
         field(195; "Amt. Subseq. Drawn/Settled"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
-            Caption = 'Amt. Subseq. Drawn/Settled';
-            DataClassification = CustomerContent;
+            Caption = 'Amount Subseq. Drawn/Settled';
+            ToolTip = 'Specifies the amount of the payment that is a subsequent drawdown or settlement of an amount that was paid earlier, for example when a voucher or a prepaid card is used.';
         }
         field(200; "Canceled By Entry No."; Integer)
         {
             Caption = 'Canceled By Entry No.';
             TableRelation = "EET Entry CZL";
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number of the EET entry that cancels this entry. The cancellation entry has the opposite amounts and it is not linked to the original sale in the EET service.';
         }
         field(210; "Simple Registration"; Boolean)
         {
             Caption = 'Simple Registration';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the entry was created directly, without a source document, for example by the simple registration or as a cancellation of another entry.';
         }
     }
 
@@ -302,8 +302,6 @@ table 31128 "EET Entry CZL"
 
     procedure InitRecord()
     var
-        // CompanyInformation: Record "Company Information";
-        // EETServiceSetupCZL: Record "EET Service Setup CZL";
         NoSeries: Codeunit "No. Series";
         IsHandled: Boolean;
     begin
@@ -321,15 +319,6 @@ table 31128 "EET Entry CZL"
             TestReceiptSerialNoSeries();
             "Receipt Serial No." := NoSeries.GetNextNo(GetReceiptSerialNoSeriesCode(), Today());
         end;
-        // if "VAT Registration No." = '' then begin
-        //     CompanyInformation.Get();
-        //     "VAT Registration No." := CompanyInformation."VAT Registration No.";
-        // end;
-
-        // EETServiceSetupCZL.Get();
-        // if "Appointing VAT Reg. No." = '' then
-        //     "Appointing VAT Reg. No." := EETServiceSetupCZL."Appointing VAT Reg. No.";
-        // "Sales Regime" := EETServiceSetupCZL."Sales Regime";
         if "Taxpayer ID" = '' then
             "Taxpayer ID" := GetTaxpayerID();
         GetEETCashRegister();
@@ -438,7 +427,7 @@ table 31128 "EET Entry CZL"
         exit(EETBusinessPremisesCZL."Unit ID");
     end;
 
-    local procedure GetTaxpayerID() TaxpayerID: Code[20]
+    internal procedure GetTaxpayerID() TaxpayerID: Code[20]
     var
         CompanyInformation: Record "Company Information";
         EETBusinessPremisesCZL: Record "EET Business Premises CZL";
@@ -682,6 +671,7 @@ table 31128 "EET Entry CZL"
 
     procedure RoundAmounts()
     begin
+        "Total Sales Amount" := Round("Total Sales Amount");
         "Amount Exempted From VAT" := Round("Amount Exempted From VAT");
         "VAT Base (Basic)" := Round("VAT Base (Basic)");
         "VAT Amount (Basic)" := Round("VAT Amount (Basic)");
@@ -693,6 +683,8 @@ table 31128 "EET Entry CZL"
         "Amount (Basic) - Art.90" := Round("Amount (Basic) - Art.90");
         "Amount (Reduced) - Art.90" := Round("Amount (Reduced) - Art.90");
         "Amount (Reduced 2) - Art.90" := Round("Amount (Reduced 2) - Art.90");
+        "Amt. For Subseq. Draw/Settle" := Round("Amt. For Subseq. Draw/Settle");
+        "Amt. Subseq. Drawn/Settled" := Round("Amt. Subseq. Drawn/Settled");
     end;
 
     procedure CopyFromEETEntry(EETEntryCZL: Record "EET Entry CZL")

@@ -12,20 +12,19 @@ using System.Utilities;
 table 31125 "EET Service Setup CZL"
 {
     Caption = 'EET Service Setup';
+    DataClassification = CustomerContent;
 
     fields
     {
         field(1; "Primary Key"; Code[10])
         {
             Caption = 'Primary Key';
-            DataClassification = CustomerContent;
             AllowInCustomizations = Never;
         }
         field(2; "Service URL"; Text[250])
         {
             Caption = 'Service URL';
             ExtendedDatatype = URL;
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the address of the EET service that the data messages with the recorded sales are sent to.';
 
             trigger OnValidate()
@@ -51,13 +50,11 @@ table 31125 "EET Service Setup CZL"
         field(10; "Sales Regime"; Enum "EET Sales Regime CZL")
         {
             Caption = 'Sales Regime';
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the settings for the simplified scheme sales.';
+            ToolTip = 'Specifies whether the simplified regime of sales is used. The simplified regime does not exist in the EET system version 2.0, therefore the field is not used.';
         }
         field(11; "Limit Response Time"; Integer)
         {
             Caption = 'Limit Response Time';
-            DataClassification = CustomerContent;
             InitValue = 2000;
             MinValue = 2000;
             ToolTip = 'Specifies the time limit in milliseconds for a response from the EET service. If the limit is exceeded, the sale is not registered immediately and the data message is sent again later.';
@@ -65,14 +62,12 @@ table 31125 "EET Service Setup CZL"
         field(12; "Appointing VAT Reg. No."; Text[20])
         {
             Caption = 'Appointing VAT Reg. No.';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the VAT registration number of the taxpayer who appointed you to report sales. The field was used in the EET system version 1.0. The field is replaced by the Authorizing Taxpayer ID field and it is no longer sent to the EET service.';
         }
         field(15; Enabled; Boolean)
         {
             Caption = 'Enabled';
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies if the service is enabled.';
+            ToolTip = 'Specifies if the service is enabled. When the service is enabled, a job queue entry that sends the EET entries to the service is created. The setup cannot be changed while the service is enabled.';
 
             trigger OnValidate()
             var
@@ -95,25 +90,21 @@ table 31125 "EET Service Setup CZL"
         {
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
         }
         field(30; "Taxpayer ID"; Code[20])
         {
             Caption = 'Taxpayer ID';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the registered identification number of your own company. It is used by every registrating unit that does not specify its own taxpayer.';
         }
         field(35; "Authorizing Taxpayer ID"; Code[20])
         {
             Caption = 'Authorizing Taxpayer ID';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the registered identification number of the taxpayer authorizing you to report sales. Leave it blank to report your own sales. The value is only copied to new registrating units, it is not applied to existing ones.';
         }
         field(36; "Multiple Taxpayer Auth."; Boolean)
         {
             Caption = 'Multiple Taxpayer Authorization';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers. The value is only copied to new registrating units, it is not applied to existing ones.';
         }
     }

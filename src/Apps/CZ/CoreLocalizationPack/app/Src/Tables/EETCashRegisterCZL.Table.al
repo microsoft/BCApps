@@ -11,6 +11,7 @@ table 31127 "EET Cash Register CZL"
 {
     Caption = 'EET Cash Register';
     LookupPageId = "EET Cash Registers CZL";
+    DataClassification = CustomerContent;
 
     fields
     {
@@ -20,20 +21,18 @@ table 31127 "EET Cash Register CZL"
             NotBlank = true;
             TableRelation = "EET Business Premises CZL";
             DataClassification = OrganizationIdentifiableInformation;
-            ToolTip = 'Specifies the code of the registrating unit.';
+            ToolTip = 'Specifies the code of the registrating unit that the cash register belongs to.';
         }
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the code of the cash register.';
+            ToolTip = 'Specifies the code of the cash register. The code is sent to the EET service as the identification of the cash register.';
         }
         field(10; "Cash Register Type"; Enum "EET Cash Register Type CZL")
         {
             Caption = 'Cash Register Type';
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the type of the cash register.';
+            ToolTip = 'Specifies the type of the cash register, which determines the source of the cash register number and of the documents.';
 
             trigger OnValidate()
             begin
@@ -48,7 +47,6 @@ table 31127 "EET Cash Register CZL"
         field(12; "Cash Register No."; Code[20])
         {
             Caption = 'Cash Register No.';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the number of the record, such as a cash desk or a bank account, that the cash register is linked to.';
 
             trigger OnValidate()
@@ -70,33 +68,28 @@ table 31127 "EET Cash Register CZL"
         field(15; "Cash Register Name"; Text[100])
         {
             Caption = 'Cash Register Name';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the cash register.';
         }
         field(17; "Certificate Code"; Code[10])
         {
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the certificate used to sign the data messages of this cash register. Leave it blank to use the certificate from the registrating unit or from the EET service setup.';
         }
         field(20; "Receipt Serial Nos."; Code[20])
         {
             Caption = 'Receipt Serial Nos.';
             TableRelation = "No. Series";
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the number series for the receipt serial numbers.';
+            ToolTip = 'Specifies the number series that is used to assign serial numbers to the sales registered on this cash register. The EET service accepts serial numbers with at most 25 characters.';
         }
         field(35; "Authorizing Taxpayer ID"; Code[20])
         {
             Caption = 'Authorizing Taxpayer ID';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the registered identification number of the taxpayer authorizing you to report sales. Leave it blank to report your own sales. The value is used as it is, it is never taken from the registrating unit or from the service setup.';
         }
         field(36; "Multiple Taxpayer Auth."; Boolean)
         {
             Caption = 'Multiple Taxpayer Authorization';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers. The value is used as it is, it is never taken from the registrating unit or from the service setup.';
         }
     }

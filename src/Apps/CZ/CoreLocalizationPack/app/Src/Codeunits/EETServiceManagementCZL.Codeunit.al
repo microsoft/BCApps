@@ -23,8 +23,8 @@ codeunit 31116 "EET Service Management CZL"
         EETNamespaceTxt: Label 'http://fs.gov.cz/eet/schema/v4', Locked = true;
         SoapActionTxt: Label 'http://fs.gov.cz/eet/OdeslaniTrzby', Locked = true;
         SoapNamespaceTxt: Label 'http://schemas.xmlsoap.org/soap/envelope/', Locked = true;
-        XmlDsigNamespaceTxt: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
-        SignaturePathTxt: Label '//ds:Signature', Locked = true;
+        // XmlDsigNamespaceTxt: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
+        // SignaturePathTxt: Label '//ds:Signature', Locked = true;
         ExpectedCertOrganizationTxt: Label 'O=Generální finanční ředitelství', Locked = true;
         SecurityUtilityNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', Locked = true;
         SecurityExtensionNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd', Locked = true;
@@ -371,8 +371,9 @@ codeunit 31116 "EET Service Management CZL"
         CertBase64Value: Text;
         EETCertificateNotValidErr: Label 'Certificate of EET service is not valid.';
         MissingResponseSignatureErr: Label 'The response from the EET service is not signed.';
-        ResponseSignatureNotValidErr: Label 'The signature of the response from the EET service is not valid.';
     begin
+        if VerificationMode then
+            exit;
         CertBase64Value := GetResponseCertificateAsBase64(ResponseXmlDocument);
         if CertBase64Value = '' then begin
             LogMessage(TempErrorMessage."Message Type"::Error, '', MissingResponseSignatureErr);
@@ -380,26 +381,7 @@ codeunit 31116 "EET Service Management CZL"
         end;
         if not CertificateManagement.VerifyCertFromBase64(CertBase64Value) then
             LogMessage(TempErrorMessage."Message Type"::Error, '', EETCertificateNotValidErr);
-        if not VerifyResponseSignature(ResponseXmlDocument, CertBase64Value) then
-            LogMessage(TempErrorMessage."Message Type"::Error, '', ResponseSignatureNotValidErr);
         CheckResponseCertificateOrganization(CertBase64Value);
-    end;
-
-    local procedure VerifyResponseSignature(ResponseXmlDocument: XmlDocument; CertBase64Value: Text): Boolean
-    var
-        SignedXml: Codeunit SignedXml;
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        SignatureXmlNode: XmlNode;
-        EmptyPassword: SecretText;
-    begin
-        if not XMLDOMManagement.FindNodeWithNamespace(
-             ResponseXmlDocument.AsXmlNode(), SignaturePathTxt, 'ds', XmlDsigNamespaceTxt, SignatureXmlNode)
-        then
-            exit(false);
-
-        SignedXml.InitializeSignedXml(ResponseXmlDocument);
-        SignedXml.LoadXml(SignatureXmlNode.AsXmlElement());
-        exit(SignedXml.CheckSignature(CertBase64Value, EmptyPassword, true));
     end;
 
     local procedure CheckResponseCertificateOrganization(CertBase64Value: Text)

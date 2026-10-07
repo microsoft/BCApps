@@ -15,6 +15,7 @@ page 31148 "EET Entry Status Log CZL"
     PageType = List;
     SourceTable = "EET Entry Status Log CZL";
     SourceTableView = order(descending);
+    ApplicationArea = Basic, Suite;
 
     layout
     {
@@ -24,29 +25,19 @@ page 31148 "EET Entry Status Log CZL"
             {
                 field("Changed At"; Rec."Changed At")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date and time of the last status change for the EET entry.';
                 }
                 field(Status; Rec.Status)
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the current state of the EET entry.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field("EET Entry No."; Rec."EET Entry No.")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the related EET entry number.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry number that is assigned to the entry.';
                     Visible = false;
                 }
             }
@@ -55,7 +46,6 @@ page 31148 "EET Entry Status Log CZL"
         {
             part(ErrorMessagesPart; "Error Messages Part")
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Errors and Warnings';
                 ShowFilter = false;
             }

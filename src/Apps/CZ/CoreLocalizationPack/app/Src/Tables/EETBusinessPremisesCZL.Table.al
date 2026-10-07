@@ -11,6 +11,7 @@ table 31126 "EET Business Premises CZL"
 {
     Caption = 'EET Registrating Unit';
     LookupPageId = "EET Business Premises CZL";
+    DataClassification = OrganizationIdentifiableInformation;
 
     fields
     {
@@ -18,34 +19,29 @@ table 31126 "EET Business Premises CZL"
         {
             Caption = 'Code';
             NotBlank = true;
-            DataClassification = OrganizationIdentifiableInformation;
-            ToolTip = 'Specifies the code of the registrating unit.';
+            ToolTip = 'Specifies the code of the registrating unit. The code is used only in Business Central, the number that is sent to the EET service is specified in the Unit ID field.';
         }
         field(2; Description; Text[50])
         {
             Caption = 'Description';
-            DataClassification = OrganizationIdentifiableInformation;
             ToolTip = 'Specifies the description of the registrating unit.';
         }
         field(15; Identification; Code[6])
         {
             Caption = 'Identification';
             Numeric = true;
-            DataClassification = OrganizationIdentifiableInformation;
             ToolTip = 'Specifies the identification number of the registrating unit that was used in the EET system version 1.0. The field is replaced by the Unit ID field and it is no longer sent to the EET service.';
         }
         field(16; "Unit ID"; Code[20])
         {
             Caption = 'Unit ID';
             Numeric = true;
-            DataClassification = OrganizationIdentifiableInformation;
             ToolTip = 'Specifies the identification number of the registrating unit that is assigned by the tax authority and sent in the data message. The number must be in the range from 1 to 999999999.';
         }
         field(17; "Certificate Code"; Code[10])
         {
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
-            DataClassification = OrganizationIdentifiableInformation;
             ToolTip = 'Specifies the certificate used to sign the data messages of this registrating unit. Leave it blank to use the certificate from the EET service setup. The certificate must be issued to the taxpayer specified on this registrating unit.';
         }
         field(30; "Taxpayer ID"; Code[20])

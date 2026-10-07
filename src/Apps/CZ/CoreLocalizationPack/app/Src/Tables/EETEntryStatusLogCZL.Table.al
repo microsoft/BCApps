@@ -12,24 +12,25 @@ table 31129 "EET Entry Status Log CZL"
     Caption = 'EET Entry Status Log';
     DrillDownPageId = "EET Entry Status Log CZL";
     LookupPageId = "EET Entry Status Log CZL";
+    DataClassification = CustomerContent;
 
     fields
     {
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number of the status log entry.';
         }
         field(5; "EET Entry No."; Integer)
         {
             Caption = 'EET Entry No.';
             TableRelation = "EET Entry CZL";
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number of the EET entry that the status change belongs to.';
         }
         field(10; Description; Text[250])
         {
             Caption = 'Description';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the description of the status change, for example the response of the EET service. Select the field to display the related errors and warnings.';
 
             trigger OnLookup()
             begin
@@ -39,12 +40,12 @@ table 31129 "EET Entry Status Log CZL"
         field(20; Status; Enum "EET Status CZL")
         {
             Caption = 'Status';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the state of the EET entry that the entry was changed to.';
         }
         field(25; "Changed At"; DateTime)
         {
             Caption = 'Changed At';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the date and time when the status of the EET entry was changed.';
         }
     }
 

@@ -65,6 +65,9 @@ report 31121 "EET Confirmation CZL"
             column(FiscalIdentificationCode_EETEntry; "Fiscal Identification Code")
             {
             }
+            column(AcknowledgementCode_EETEntry; "Acknowledgement Code")
+            {
+            }
             column(CreationDatetime_EETEntry; "Created At")
             {
             }
@@ -90,8 +93,9 @@ report 31121 "EET Confirmation CZL"
         CashRegisterLbl = 'Cash Register:';
         ReceiptSerialNoLbl = 'Receipt Serial No.:';
         BKPLbl = 'BKP:';
-        FIKLbl = 'POK:';
+        FIKLbl = 'FIK:';
         PKPLbl = 'PKP:';
+        POKLbl = 'POK:';
         IssueDatetimeLbl = 'Issue Datetime:';
         TotalSalesAmountLbl = 'Total Sales Amount:';
         SalesRegimeLbl = 'EET regime:';

@@ -311,6 +311,11 @@ page 31161 "Cash Document Subform CZP"
                     ToolTip = 'Specifies that the value of Yes will automatically be filled when the row meets the conditions for a recorded sale.';
                     Visible = false;
                 }
+                field("Amount Type"; Rec."Amount Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field("Depreciation Book Code"; Rec."Depreciation Book Code")
                 {
                     ApplicationArea = FixedAssets;
@@ -601,7 +606,6 @@ page 31161 "Cash Document Subform CZP"
             TransferExtendedTextCZP.InsertCashDeskExtText(Rec);
         end;
         OnInsertExtendedTextOnAfterInsertCashDeskExtText(Rec);
-
         if TransferExtendedTextCZP.MakeUpdate() then
             CurrPage.Update(true);
     end;

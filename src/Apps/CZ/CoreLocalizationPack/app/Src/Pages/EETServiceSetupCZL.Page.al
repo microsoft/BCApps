@@ -10,7 +10,6 @@ using System.Utilities;
 #pragma implicitwith disable
 page 31142 "EET Service Setup CZL"
 {
-    ApplicationArea = Basic, Suite;
     Caption = 'EET Service Setup';
     DeleteAllowed = false;
     InsertAllowed = false;
@@ -18,6 +17,7 @@ page 31142 "EET Service Setup CZL"
     PageType = Card;
     ShowFilter = false;
     SourceTable = "EET Service Setup CZL";
+    ApplicationArea = Basic, Suite;
     UsageCategory = Administration;
 
     layout
@@ -53,7 +53,6 @@ page 31142 "EET Service Setup CZL"
                 field("Taxpayer ID"; Rec."Taxpayer ID")
                 {
                     Editable = EditableByNotEnabled;
-                    Importance = Additional;
                 }
                 field("Certificate Code"; Rec."Certificate Code")
                 {
@@ -66,12 +65,10 @@ page 31142 "EET Service Setup CZL"
                 field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")
                 {
                     Editable = EditableByNotEnabled;
-                    Importance = Additional;
                 }
                 field("Multiple Taxpayer Auth."; Rec."Multiple Taxpayer Auth.")
                 {
                     Editable = EditableByNotEnabled;
-                    Importance = Additional;
                 }
             }
             group(Status)
@@ -146,6 +143,14 @@ page 31142 "EET Service Setup CZL"
                 begin
                     Rec.ShowJobQueueEntry();
                 end;
+            }
+            action(SimpleRegistration)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Simple EET Registration';
+                Image = ReverseRegister;
+                RunObject = page "EET Simple Registration CZL";
+                ToolTip = 'Create simple EET entry.';
             }
         }
         area(Promoted)
