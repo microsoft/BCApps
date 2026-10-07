@@ -7,6 +7,7 @@ namespace Microsoft.Test.Integration.DynamicsFieldService;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
@@ -1776,12 +1777,13 @@ codeunit 139204 "FS Integration Test"
     local procedure SetUpServiceManagement()
     var
         ServiceMgtSetup: Record "Service Mgt. Setup";
-        ServiceInvoiceTemplate: Record "Service Invoice Template";
+        GenJournalTemplate: Record "Gen. Journal Template";
     begin
-        if not ServiceInvoiceTemplate.Get('DEFAULT') then begin
-            ServiceInvoiceTemplate.Init();
-            ServiceInvoiceTemplate.Name := 'DEFAULT';
-            ServiceInvoiceTemplate.Insert();
+        if not GenJournalTemplate.Get('DEFAULT') then begin
+            GenJournalTemplate.Init();
+            GenJournalTemplate.Name := 'DEFAULT';
+            GenJournalTemplate.Type := GenJournalTemplate.Type::Sales;
+            GenJournalTemplate.Insert();
         end;
 
         if not ServiceMgtSetup.Get() then begin
@@ -1789,7 +1791,7 @@ codeunit 139204 "FS Integration Test"
             ServiceMgtSetup.Insert();
         end;
 
-        ServiceMgtSetup."Serv. Invoice Template Name" := ServiceInvoiceTemplate.Name;
+        ServiceMgtSetup."Serv. Inv. Template Name" := GenJournalTemplate.Name;
         ServiceMgtSetup.Modify();
     end;
 
