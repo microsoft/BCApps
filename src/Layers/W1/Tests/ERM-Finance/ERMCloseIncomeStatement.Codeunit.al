@@ -31,6 +31,7 @@ codeunit 134228 "ERM Close Income Statement"
         ConfirmDeleteGLAccountQst: Label 'Note that accounting regulations may require that you save accounting data for a certain number of years. Are you sure you want to delete the G/L account?';
         CannotDeleteGLAccGLEntryFoundAfterDateErr: Label 'You cannot delete G/L account %1 because it has ledger entries posted after %2.';
         UnexpectedConfirmErr: Label 'Unexpected confirm handler: %1';
+        CloseIncomeDimensionAmountErr: Label 'Close Income Statement amount is incorrect for dimension value %1. Expected %2, actual %3.';
 
     [Test]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
@@ -572,6 +573,71 @@ codeunit 134228 "ERM Close Income Statement"
         Assert.RecordIsEmpty(GenJournalLine);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler,DimensionSelectionMultipleModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementWithDimensionsAndSourceCurrencies()
+    var
+        Currency: Record Currency;
+        DimensionValue: Record "Dimension Value";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        TempDimensionSetEntry: Record "Dimension Set Entry" temporary;
+        DocumentNo: Code[20];
+        GLAccountNo: Code[20];
+        BalanceGLAccountNo: Code[20];
+        PostingDate: Date;
+    begin
+        // [FEATURE] [Dimension] [Source Currency]
+        // [SCENARIO 649583] Close Income Statement splits entries by a selected global dimension when source currencies occur on different dates
+        Initialize();
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+
+        // [GIVEN] Two values for Global Dimension 1 and a source currency
+        CreateDimensionSet(TempDimensionSetEntry);
+        TempDimensionSetEntry.FindFirst();
+        LibraryDimension.CreateDimensionValue(DimensionValue, TempDimensionSetEntry."Dimension Code");
+        Currency.Get(CreateCurrency());
+
+        // [GIVEN] Entries with blank and foreign source currencies on different dates for the first dimension value
+        // [GIVEN] An entry for the second dimension value
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        BalanceGLAccountNo := CreateBalanceGLAccountNo();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+        CreateAndPostGenJnlLineWithDimensionAndCurrency(
+            GenJournalLine, GenJournalBatch, PostingDate, GLAccountNo, BalanceGLAccountNo,
+            LibraryRandom.RandDecInRange(100, 200, 2), '', TempDimensionSetEntry."Dimension Value Code");
+        CreateAndPostGenJnlLineWithDimensionAndCurrency(
+            GenJournalLine, GenJournalBatch, PostingDate + 1, GLAccountNo, BalanceGLAccountNo,
+            LibraryRandom.RandDecInRange(100, 200, 2), Currency.Code, TempDimensionSetEntry."Dimension Value Code");
+        CreateAndPostGenJnlLineWithDimensionAndCurrency(
+            GenJournalLine, GenJournalBatch, PostingDate + 2, GLAccountNo, BalanceGLAccountNo,
+            LibraryRandom.RandDecInRange(100, 200, 2), '', TempDimensionSetEntry."Dimension Value Code");
+        CreateAndPostGenJnlLineWithDimensionAndCurrency(
+            GenJournalLine, GenJournalBatch, PostingDate + 3, GLAccountNo, BalanceGLAccountNo,
+            LibraryRandom.RandDecInRange(100, 200, 2), '', DimensionValue.Code);
+        CreateAndPostGenJnlLineWithDimensionAndCurrency(
+            GenJournalLine, GenJournalBatch, PostingDate + 4, GLAccountNo, BalanceGLAccountNo,
+            LibraryRandom.RandDecInRange(100, 200, 2), Currency.Code, TempDimensionSetEntry."Dimension Value Code");
+
+        // [WHEN] Run Close Income Statement by Global Dimension 1
+        LibraryFiscalYear.CloseFiscalYear();
+        PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+        SelectDimForCloseIncomeStatement(TempDimensionSetEntry);
+        DocumentNo := LibraryUtility.GenerateGUID();
+        RunCloseIncomeStatement(
+            GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
+            PostToRetainedEarningsAcc::Balance, false, true, DocumentNo);
+
+        // [THEN] Closing lines contain the correct amount for both dimension values
+        VerifyCloseIncomeAmountByGlobalDim1(
+            GLAccountNo, TempDimensionSetEntry."Dimension Value Code", GenJournalBatch, DocumentNo);
+        VerifyCloseIncomeAmountByGlobalDim1(GLAccountNo, DimensionValue.Code, GenJournalBatch, DocumentNo);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -908,6 +974,40 @@ codeunit 134228 "ERM Close Income Statement"
     begin
         // Generate Dummy message. Required for executing the test case successfully in ES.
         Message(ExpectedMessageMsg);
+    end;
+
+    local procedure CreateAndPostGenJnlLineWithDimensionAndCurrency(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; PostingDate: Date; GLAccountNo: Code[20]; BalanceGLAccountNo: Code[20]; Amount: Decimal; CurrencyCode: Code[10]; GlobalDim1Code: Code[20])
+    begin
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account", GLAccountNo, GenJournalLine."Bal. Account Type"::"G/L Account",
+            BalanceGLAccountNo, Amount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Shortcut Dimension 1 Code", GlobalDim1Code);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure VerifyCloseIncomeAmountByGlobalDim1(GLAccountNo: Code[20]; GlobalDim1Code: Code[20]; GenJournalBatch: Record "Gen. Journal Batch"; CloseIncomeDocumentNo: Code[20])
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.SetRange("Global Dimension 1 Code", GlobalDim1Code);
+        GLEntry.CalcSums(Amount);
+
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.SetRange("Document No.", CloseIncomeDocumentNo);
+        GenJournalLine.SetRange("Account No.", GLAccountNo);
+        GenJournalLine.SetRange("Shortcut Dimension 1 Code", GlobalDim1Code);
+        GenJournalLine.CalcSums(Amount);
+
+        Assert.AreEqual(
+            -GLEntry.Amount, GenJournalLine.Amount,
+            StrSubstNo(CloseIncomeDimensionAmountErr, GlobalDim1Code, -GLEntry.Amount, GenJournalLine.Amount));
     end;
 
     [MessageHandler]
