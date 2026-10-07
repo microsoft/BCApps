@@ -14,6 +14,7 @@ page 20409 "Qlty. Test Lookup Values"
     PageType = List;
     SourceTable = "Qlty. Test Lookup Value";
     SourceTableView = sorting("Lookup Group Code", "Value");
+    AccessByPermission = tabledata "Qlty. Test Lookup Value" = R;
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 

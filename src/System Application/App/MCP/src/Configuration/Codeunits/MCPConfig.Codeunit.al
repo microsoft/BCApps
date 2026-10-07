@@ -118,6 +118,30 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Enables or disables the Data Query Tools feature for the specified configuration.
+    /// </summary>
+    /// <remarks>
+    /// Before enabling Data Query Tools, the caller must ensure that the administrator has acknowledged the applicable pricing and terms.
+    /// For more information, see https://go.microsoft.com/fwlink/?LinkId=2383165.
+    /// </remarks>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableDataQueryTools(ConfigId, Enable);
+    end;
+
+    /// <summary>
+    /// Enables or disables the API Tools feature for the specified configuration.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableAPITools(ConfigId, Enable);
+    end;
+
+    /// <summary>
     /// Finds warnings for the specified MCP configuration, such as missing objects or missing parent objects.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration to find warnings for.</param>
@@ -172,13 +196,24 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Creates a new API tool for the specified configuration and codeunit.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="CodeunitId">The ID of the codeunit.</param>
+    /// <returns>The SystemId (GUID) of the created tool.</returns>
+    procedure CreateCodeunitAPITool(ConfigId: Guid; CodeunitId: Integer): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAPICodeunitTool(ConfigId, CodeunitId));
+    end;
+
+    /// <summary>
     /// Retrieves the SystemId (GUID) of a tool by its configuration ID, object ID and object type.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="ObjectId">The ID of the API page or query.</param>
-    /// <param name="ObjectType">The object type (Page or Query).</param>
+    /// <param name="ObjectType">The object type (Page, Query or Codeunit).</param>
     /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
-    procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option Page,Query): Guid
+    procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option Page,Query,Codeunit): Guid
     begin
         exit(MCPConfigImplementation.GetAPIToolId(ConfigId, ObjectId, ObjectType));
     end;
@@ -249,14 +284,28 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Sets the actions permission for the specified tool. For API pages this controls bound actions;
+    /// for codeunit tools this controls whether the codeunit action can be invoked.
+    /// </summary>
+    /// <param name="ToolSystemId">The SystemId (GUID) of the tool.</param>
+    /// <param name="Allow">True to allow actions, false to disallow.</param>
+    procedure AllowActions(ToolSystemId: Guid; Allow: Boolean)
+    begin
+        MCPConfigImplementation.AllowActions(ToolSystemId, Allow);
+    end;
+
+#if not CLEAN29
+    /// <summary>
     /// Sets the bound actions permission for the specified tool.
     /// </summary>
     /// <param name="ToolSystemId">The SystemId (GUID) of the tool.</param>
     /// <param name="Allow">True to allow bound actions, false to disallow.</param>
+    [Obsolete('Renamed to AllowActions.', '29.0')]
     procedure AllowBoundActions(ToolSystemId: Guid; Allow: Boolean)
     begin
-        MCPConfigImplementation.AllowBoundActions(ToolSystemId, Allow);
+        MCPConfigImplementation.AllowActions(ToolSystemId, Allow);
     end;
+#endif
 
     /// <summary>
     /// Creates a new MCP Entra Application with the specified name, description, and client ID.
@@ -291,6 +340,10 @@ codeunit 8350 "MCP Config"
     /// <summary>
     /// Imports an MCP configuration and its tools from a JSON stream.
     /// </summary>
+    /// <remarks>
+    /// If the imported configuration enables Data Query Tools and a user interface is available, the administrator must acknowledge the applicable pricing and terms.
+    /// Data Query Tools remains disabled when a user interface is not available.
+    /// </remarks>
     /// <param name="InStream">The input stream containing the JSON configuration.</param>
     /// <param name="NewName">The name for the imported configuration.</param>
     /// <param name="NewDescription">The description for the imported configuration.</param>

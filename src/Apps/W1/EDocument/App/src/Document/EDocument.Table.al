@@ -9,12 +9,11 @@ using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
-#if not CLEAN27
 using Microsoft.Purchases.Document;
-#endif
 using Microsoft.Utilities;
 using System.Automation;
 using System.IO;
@@ -282,6 +281,10 @@ table 6121 "E-Document"
             Caption = 'Structured Data Process';
             ToolTip = 'Specifies the implementation to use for processing the draft received.';
         }
+        field(45; "Receiving Company Reg. No."; Text[20])
+        {
+            Caption = 'Receiving Company Registration No.';
+        }
         #endregion
 
         #region Clearance Model
@@ -316,16 +319,20 @@ table 6121 "E-Document"
         key(DueDate; "Due Date")
         {
         }
+        key(DocumentRecordLatest; "Document Record ID", "Entry No")
+        {
+        }
+        key(DocumentIdentity; "Document No.", "Posting Date", "Bill-to/Pay-to No.", "Document Type", "Entry No")
+        {
+        }
     }
 
     trigger OnDelete()
     begin
         if (Rec.Status = Rec.Status::Processed) then
             Error(this.DeleteProcessedNotAllowedErr);
-
         if (Rec."Document Record ID".TableNo <> 0) then
             Error(this.DeleteLinkedNotAllowedErr);
-
         if (not Rec.IsDuplicate(false)) then
             if not GuiAllowed() then
                 Error(DeleteUniqueNotAllowedErr)
@@ -361,7 +368,6 @@ table 6121 "E-Document"
         EDocument.SetFilter("Entry No", '<>%1', Rec."Entry No");
         if not EDocument.FindFirst() then
             exit(false);
-
         if ShowMessage and GuiAllowed() then
             Message(EDocumentExistsMsg, EDocument."Entry No");
         Telemetry.LogMessage('0000PHB', StrSubstNo(EDocumentExistsMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
@@ -409,6 +415,14 @@ table 6121 "E-Document"
         exit(EDocumentPurchaseHeader.Total);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"E-Document", 'd')]
+    internal procedure DeleteOrphanedImport()
+    begin
+        CleanupDocument();
+        Rec.Delete(false);
+        Commit();
+    end;
+
     procedure CleanupDocument()
     var
         DocumentAttachment: Record "Document Attachment";
@@ -416,15 +430,13 @@ table 6121 "E-Document"
         EDocumentIntegrationLog: Record "E-Document Integration Log";
         EDocumentLog: Record "E-Document Log";
         EDocImportedLine: Record "E-Doc. Imported Line";
+        EDocExternalReference: Record "E-Doc. External Reference";
+        EDocumentMessage: Record "E-Document Message";
         EDocumentServiceStatus: Record "E-Document Service Status";
-#if not CLEAN27
         PurchaseHeader: Record "Purchase Header";
-#endif
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         IProcessStructuredData: Interface IProcessStructuredData;
-#if not CLEAN27
         NullGuid: Guid;
-#endif
     begin
         EDocumentErrorHelper.ClearErrorMessages(Rec);
 
@@ -453,12 +465,17 @@ table 6121 "E-Document"
         if not EDocImportedLine.IsEmpty() then
             EDocImportedLine.DeleteAll(true);
 
-#if not CLEAN27
+        EDocumentMessage.SetRange("E-Document Entry No.", Rec."Entry No");
+        if not EDocumentMessage.IsEmpty() then
+            EDocumentMessage.DeleteAll(true);
+
+        EDocExternalReference.SetRange("E-Document Entry No.", Rec."Entry No");
+        if not EDocExternalReference.IsEmpty() then
+            EDocExternalReference.DeleteAll(true);
+
         // Version 1 processing cleanup
-        // Can be removed soon as version 1 is fully migrated to version 2
         PurchaseHeader.SetRange("E-Document Link", Rec.SystemId);
         PurchaseHeader.ModifyAll("E-Document Link", NullGuid, false);
-#endif
 
         // Version 2 processing cleanup
         IProcessStructuredData := Rec."Process Draft Impl.";
@@ -486,22 +503,168 @@ table 6121 "E-Document"
     procedure ViewSourceFile()
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentLog: Record "E-Document Log";
         IEDocFileFormat: Interface IEDocFileFormat;
     begin
-        EDocDataStorage.Get(Rec."Unstructured Data Entry No.");
-        IEDocFileFormat := EDocDataStorage."File Format";
-        IEDocFileFormat.PreviewContent(EDocDataStorage.Name, EDocDataStorage.GetTempBlob());
+        if Rec."Unstructured Data Entry No." <> 0 then begin
+            EDocDataStorage.Get(Rec."Unstructured Data Entry No.");
+            IEDocFileFormat := EDocDataStorage."File Format";
+            IEDocFileFormat.PreviewContent(EDocDataStorage.Name, EDocDataStorage.GetTempBlob());
+            exit;
+        end;
+        if not TryGetExportedFileLog(EDocumentLog) then
+            Error(NoSourceFileErr);
+        Message(PreviewNotSupportedMsg);
+    end;
+
+    internal procedure TryGetExportedFileLog(var EDocumentLog: Record "E-Document Log"): Boolean
+    begin
+        EDocumentLog.SetRange("E-Doc. Entry No", Rec."Entry No");
+        EDocumentLog.SetRange(Status, "E-Document Service Status"::Exported);
+        EDocumentLog.SetFilter("E-Doc. Data Storage Entry No.", '<>%1', 0);
+        exit(EDocumentLog.FindLast());
     end;
 
     internal procedure OpenEDocument(EDocumentRecordId: RecordId)
     var
         EDocument: Record "E-Document";
         EDocumentPage: Page "E-Document";
+        EDocumentsPage: Page "E-Documents";
     begin
+        if not EDocument.ReadPermission() then
+            exit;
         EDocument.SetRange("Document Record ID", EDocumentRecordId);
-        EDocument.FindFirst();
-        EDocumentPage.SetTableView(EDocument);
-        EDocumentPage.RunModal();
+        // A source record may relate to several e-documents (resend, correction, cancel-and-recreate).
+        case EDocument.Count() of
+            0:
+                exit;
+            1:
+                begin
+                    EDocument.FindFirst();
+                    EDocumentPage.SetTableView(EDocument);
+                    EDocumentPage.RunModal();
+                end;
+            else begin
+                EDocumentsPage.SetTableView(EDocument);
+                EDocumentsPage.RunModal();
+            end;
+        end;
+    end;
+
+    internal procedure HasEDocument(): Boolean
+    var
+        EDocument: Record "E-Document";
+    begin
+        if not EDocument.ReadPermission() then
+            exit(false);
+        exit(not EDocument.IsEmpty());
+    end;
+
+    internal procedure HasEDocument(EDocumentRecordId: RecordId): Boolean
+    var
+        EDocument: Record "E-Document";
+    begin
+        if not EDocument.ReadPermission() then
+            exit(false);
+        EDocument.SetRange("Document Record ID", EDocumentRecordId);
+        exit(not EDocument.IsEmpty());
+    end;
+
+    internal procedure GetLatestStatus(SourceRecordId: RecordId): Text
+    var
+        EDocument: Record "E-Document";
+    begin
+        if SourceRecordId.TableNo = 0 then
+            exit('');
+        if not EDocument.ReadPermission() then
+            exit('');
+        EDocument.SetRange("Document Record ID", SourceRecordId);
+        EDocument.SetLoadFields(Status);
+        if EDocument.FindLast() then
+            exit(Format(EDocument.Status));
+        exit('');
+    end;
+
+    internal procedure GetLatestStatus(DocumentNo: Code[20]; PostingDate: Date; PartnerNo: Code[20]; EDocumentDirection: Enum "E-Document Direction"; EDocumentType: Enum "E-Document Type"): Text
+    var
+        EDocument: Record "E-Document";
+    begin
+        if DocumentNo = '' then
+            exit('');
+        if not EDocument.ReadPermission() then
+            exit('');
+        this.SetDocumentIdentityFilters(EDocument, DocumentNo, PostingDate, PartnerNo, EDocumentDirection, EDocumentType);
+        EDocument.SetLoadFields(Status);
+        if EDocument.FindLast() then
+            exit(Format(EDocument.Status));
+        exit('');
+    end;
+
+    internal procedure HasEDocumentForDocument(DocumentNo: Code[20]; PostingDate: Date; PartnerNo: Code[20]; EDocumentDirection: Enum "E-Document Direction"; EDocumentType: Enum "E-Document Type"): Boolean
+    var
+        EDocument: Record "E-Document";
+    begin
+        if DocumentNo = '' then
+            exit(false);
+        if not EDocument.ReadPermission() then
+            exit(false);
+        EDocument.SetCurrentKey("Document No.", "Posting Date", "Bill-to/Pay-to No.", "Document Type", "Entry No");
+        this.SetDocumentIdentityFilters(EDocument, DocumentNo, PostingDate, PartnerNo, EDocumentDirection, EDocumentType);
+        exit(not EDocument.IsEmpty());
+    end;
+
+    internal procedure TryOpenEDocumentForDocument(DocumentNo: Code[20]; PostingDate: Date; PartnerNo: Code[20]; EDocumentDirection: Enum "E-Document Direction"; EDocumentType: Enum "E-Document Type"): Boolean
+    var
+        EDocument: Record "E-Document";
+        EDocumentPage: Page "E-Document";
+        EDocumentsPage: Page "E-Documents";
+        NoEDocumentForRecordMsg: Label 'No electronic document is linked to this record.';
+    begin
+        if DocumentNo = '' then begin
+            Message(NoEDocumentForRecordMsg);
+            exit(false);
+        end;
+        if not EDocument.ReadPermission() then
+            exit(false);
+
+        EDocument.SetCurrentKey("Document No.", "Posting Date", "Bill-to/Pay-to No.", "Document Type", "Entry No");
+        this.SetDocumentIdentityFilters(EDocument, DocumentNo, PostingDate, PartnerNo, EDocumentDirection, EDocumentType);
+        case EDocument.Count() of
+            0:
+                begin
+                    Message(NoEDocumentForRecordMsg);
+                    exit(false);
+                end;
+            1:
+                begin
+                    EDocument.FindFirst();
+                    EDocumentPage.SetTableView(EDocument);
+                    EDocumentPage.RunModal();
+                end;
+            else begin
+                EDocumentsPage.SetTableView(EDocument);
+                EDocumentsPage.RunModal();
+            end;
+        end;
+        exit(true);
+    end;
+
+    internal procedure SetDocumentIdentityFilters(var EDocument: Record "E-Document"; DocumentNo: Code[20]; PostingDate: Date; PartnerNo: Code[20]; EDocumentDirection: Enum "E-Document Direction"; EDocumentType: Enum "E-Document Type")
+    begin
+        EDocument.SetRange("Document No.", DocumentNo);
+        EDocument.SetRange(Direction, EDocumentDirection);
+        if EDocumentType <> EDocumentType::None then
+            EDocument.SetRange("Document Type", EDocumentType)
+        else
+            EDocument.SetRange("Document Type");
+        if PostingDate <> 0D then
+            EDocument.SetRange("Posting Date", PostingDate)
+        else
+            EDocument.SetRange("Posting Date");
+        if PartnerNo <> '' then
+            EDocument.SetRange("Bill-to/Pay-to No.", PartnerNo)
+        else
+            EDocument.SetRange("Bill-to/Pay-to No.");
     end;
 
     internal procedure ShowRecord()
@@ -546,10 +709,12 @@ table 6121 "E-Document"
     var
         Telemetry: Codeunit Telemetry;
         ToStringLbl: Label '%1,%2,%3,%4', Locked = true;
-        DeleteLinkedNotAllowedErr: Label 'The E-Document is linked to sales or purchase document and cannot be deleted.';
+        DeleteLinkedNotAllowedErr: Label 'The E-Document is linked to a source document and cannot be deleted.';
         DeleteProcessedNotAllowedErr: Label 'The E-Document has already been processed and cannot be deleted.';
         DeleteUniqueNotAllowedErr: Label 'Only duplicate E-Documents can be deleted without a confirmation in the user interface.';
         NoFileErr: label 'No previewable attachment exists for this %2.', Comment = '%1 - a table caption';
+        NoSourceFileErr: label 'There is no file to view for this electronic document.';
+        PreviewNotSupportedMsg: label 'This XML file cannot be viewed but can be downloaded from E-Document Logs.';
         DeleteConfirmQst: label 'Are you sure? You may not be able to retrieve this E-Document again.\\ Do you want to continue?';
         EDocumentExistsMsg: Label 'This E-Document is a duplicate of E-Document %1.', Comment = '%1 - E-Document No.';
 }

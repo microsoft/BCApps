@@ -11,8 +11,8 @@ page 37100 "Sales Demographics"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Demographics';
-    AboutTitle = 'About Sales Demographics';
+    Caption = 'Sales Demographics (Power BI)';
+    AboutTitle = 'About Sales Demographics (Power BI)';
     AboutText = 'The Sales Demographics report analyzes sales performance across different demographic segments, providing insights into customer behavior and preferences.';
 
     layout

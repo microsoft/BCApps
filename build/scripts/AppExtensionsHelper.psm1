@@ -26,7 +26,8 @@ function Update-VersionInAppJson {
 function GetSourceCodeFromArtifact() {
     param(
         [string] $AppName,
-        [string] $TempFolder
+        [string] $TempFolder,
+        [string] $CountryCode = "W1"
     )
     $sourceArchive = Get-ChildItem -Path $TempFolder -Recurse -Filter "$AppName.Source.zip" -ErrorAction SilentlyContinue
     $sourceCodeFolder = "$TempFolder/$($AppName -replace " ", "_")Source"
@@ -52,7 +53,7 @@ function GetSourceCodeFromArtifact() {
             throw
         }
 
-        $artifactVersion = $artifact -replace "/[^/]+$", "/w1"
+        $artifactVersion = $artifact -replace "/[^/]+$", "/$CountryCode"
 
         # Download the artifact that contains the source code for those apps
         Download-Artifacts -artifactUrl $artifactVersion -basePath $TempFolder -includePlatform | Out-Null

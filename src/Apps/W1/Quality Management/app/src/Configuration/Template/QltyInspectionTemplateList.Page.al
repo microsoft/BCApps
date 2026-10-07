@@ -20,6 +20,7 @@ page 20404 "Qlty. Inspection Template List"
     Editable = false;
     PageType = List;
     SourceTable = "Qlty. Inspection Template Hdr.";
+    AccessByPermission = tabledata "Qlty. Inspection Template Hdr." = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     AdditionalSearchTerms = 'Standard operating procedures';

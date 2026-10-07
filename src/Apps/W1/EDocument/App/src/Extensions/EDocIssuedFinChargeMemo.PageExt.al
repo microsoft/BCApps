@@ -1,13 +1,32 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 
 pageextension 6149 "E-Doc. Issued Fin. Charge Memo" extends "Issued Finance Charge Memo"
 {
+    layout
+    {
+        addlast(FactBoxes)
+        {
+            part(EDocStatusFactBox; "E-Doc. Status FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document';
+                ShowFilter = false;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Messages';
+                ShowFilter = false;
+            }
+        }
+    }
     actions
     {
         addafter("&Memo")
@@ -20,6 +39,7 @@ pageextension 6149 "E-Doc. Issued Fin. Charge Memo" extends "Issued Finance Char
                     Caption = 'Open';
                     Image = CopyDocument;
                     ToolTip = 'Opens the E-Document card page.';
+                    Enabled = EDocumentExists;
 
                     trigger OnAction()
                     var
@@ -41,7 +61,9 @@ pageextension 6149 "E-Doc. Issued Fin. Charge Memo" extends "Issued Finance Char
                         EDocumentProcessing: Codeunit "E-Document Processing";
                     begin
                         if EDocumentProcessing.CreateEDocumentFromPostedDocumentPage(Rec, Enum::"E-Document Type"::"Issued Finance Charge Memo") then
-                            Message(EDocumentCreatedMsg);
+                            Message(EDocumentCreatedMsg)
+                        else
+                            Message(EDocumentNotCreatedMsg);
                     end;
                 }
             }
@@ -51,12 +73,14 @@ pageextension 6149 "E-Doc. Issued Fin. Charge Memo" extends "Issued Finance Char
     var
         EDocumentExists: Boolean;
         EDocumentCreatedMsg: Label 'The e-document has been created.';
+        EDocumentNotCreatedMsg: Label 'The e-document could not be created.';
 
     trigger OnAfterGetRecord()
     var
         EDocument: Record "E-Document";
     begin
-        EDocument.SetRange("Document Record ID", Rec.RecordId());
-        EDocumentExists := not EDocument.IsEmpty();
+        EDocumentExists := EDocument.HasEDocument(Rec.RecordId());
+        CurrPage.EDocMessages.Page.SetSourceRecordId(Rec.RecordId());
+        CurrPage.EDocStatusFactBox.Page.SetDocumentRecordId(Rec.RecordId());
     end;
 }

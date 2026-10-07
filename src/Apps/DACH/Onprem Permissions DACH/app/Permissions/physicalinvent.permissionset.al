@@ -1,0 +1,1 @@
+#pragma warning disable AA0247

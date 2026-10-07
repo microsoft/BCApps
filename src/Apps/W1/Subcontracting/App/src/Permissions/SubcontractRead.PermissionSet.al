@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 99001502 "Subcontract. - Read"
+permissionset 20502 "Subcontract. - Read"
 {
     Caption = 'Subcontracting - Read';
     Access = Public;
@@ -13,6 +13,9 @@ permissionset 99001502 "Subcontract. - Read"
     IncludedPermissionSets = "Subcontract. - Objs";
 
     Permissions =
+        tabledata "Subc. Standard Task Comment" = R,
+        tabledata "Subc. Routing Comment Line" = R,
+        tabledata "Subc. Prod. Rtng. Comment" = R,
         tabledata "Subcontractor Price" = R,
         tabledata "Subcontractor WIP Ledger Entry" = R;
 }

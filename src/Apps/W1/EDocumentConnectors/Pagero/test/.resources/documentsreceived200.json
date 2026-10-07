@@ -1,0 +1,38 @@
+{
+    "items": [
+        {
+            "attachments": [],
+            "createTime": "2024-04-08T08:28:42.747Z",
+            "distribution": "Electronic",
+            "documentInfo": {
+                "amounts": {
+                    "currency": "XYZ",
+                    "netAmount": "649.40",
+                    "totalAmount": "779.28",
+                    "vatAmount": "129.88"
+                },
+                "direction": "Received",
+                "documentIdentifier": "10000",
+                "documentSubType": "Debit",
+                "documentType": "Invoice",
+                "issueDate": "2024-04-08"
+            },
+            "documentReferences": [],
+            "eventDetails": [],
+            "fileId": "9876543210",
+            "id": "2c1a2b30-0f4d-4b0e-91a1-8f37b53de0aa",
+            "isFetched": false,
+            "isSelfBilled": false,
+            "sendMode": "Test",
+            "validationErrors": {
+                "noOfErrors": 0
+            }
+        }
+    ],
+    "meta": {
+        "count": 1,
+        "limit": 10,
+        "offset": 0,
+        "total": 1
+    }
+}

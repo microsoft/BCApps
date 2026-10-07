@@ -1,0 +1,2331 @@
+codeunit 101015 "Create G/L Account"
+{
+
+    trigger OnRun()
+    begin
+        DemoDataSetup.Get();
+
+        InsertData('00-0000', XACC000000, 1, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('01-0000', XACC010000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('01-1000', XACC011000, 2, 0, 0, '01-1000..01-1999', 0, '', '', '', '', false, 0);
+        InsertData('01-1010', XACC011010, 0, 0, 0, '', 0, '', XFA, '', XFA20, false, 0);
+        InsertData('01-1020', XACC011020, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1030', XACC011030, 0, 0, 0, '', 0, '', XFA, '', XFA20, false, 0);
+        InsertData('01-1040', XACC011040, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1050', XACC011050, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1060', XACC011060, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1070', XACC011070, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1080', XACC011080, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1090', XACC011090, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1100', XACC011100, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1110', XACC011110, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2000', XACC012000, 2, 0, 0, '01-2000..01-2999', 0, '', '', '', '', false, 0);
+        InsertData('01-2010', XACC012010, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2020', XACC012020, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2030', XACC012030, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2040', XACC012040, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2050', XACC012050, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2060', XACC012060, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2070', XACC012070, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2080', XACC012080, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2090', XACC012090, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2100', XACC012100, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-4000', XACC014000, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-5000', XACC015000, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-9000', XACC019000, 0, 0, 0, '', 0, '', XFA, '', '', true, 0);
+        InsertData('01-9999', XACC019999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('02-0000', XACC020000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1000', XACC021000, 2, 0, 0, '02-1000..02-1999', 0, '', '', '', '', false, 0);
+        InsertData('02-1010', XACC021010, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1020', XACC021020, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1030', XACC021030, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1040', XACC021040, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1050', XACC021050, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1060', XACC021060, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1070', XACC021070, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1080', XACC021080, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1090', XACC021090, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2000', XACC022000, 2, 0, 0, '02-2000..02-2999', 0, '', '', '', '', false, 0);
+        InsertData('02-2010', XACC022010, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2020', XACC022020, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2030', XACC022030, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2040', XACC022040, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2050', XACC022050, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2060', XACC022060, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2070', XACC022070, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2080', XACC022080, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2090', XACC022090, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-4000', XACC024000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-5000', XACC025000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-6000', XACC026000, 2, 0, 0, '02-6000..02-6999', 0, '', '', '', '', false, 0);
+        InsertData('02-6100', XACC026100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-6200', XACC026200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-6300', XACC026300, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-9999', XACC029999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('03-0000', XACC030000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('03-1000', XACC031000, 0, 0, 0, '', 0, '', XPROFINVEST, '', XFA20, false, 0);
+        InsertData('03-2000', XACC032000, 0, 0, 0, '', 0, '', XPROFINVEST, '', XFA20, false, 0);
+        InsertData('03-3000', XACC033000, 0, 0, 0, '', 0, '', XPROFINVEST, '', XFA20, false, 0);
+        InsertData('03-9000', XACC039000, 0, 1, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('03-9999', XACC039999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('04-0000', XACC040000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('04-1000', XACC041000, 2, 0, 0, '04-1000..04-1999', 0, '', '', '', '', false, 0);
+        InsertData('04-1100', XACC041100, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-1200', XACC041200, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-1300', XACC041300, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-1400', XACC041400, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-1500', XACC041500, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-3000', XACC043000, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-4000', XACC044000, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-5000', XACC045000, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-9000', XACC049000, 0, 0, 0, '', 0, '', XINTASSETS, '', XINTASS20, false, 0);
+        InsertData('04-9999', XACC049999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('05-0000', XACC050000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1000', XACC051000, 2, 0, 0, '05-1000..05-1999', 0, '', '', '', '', false, 0);
+        InsertData('05-1100', XACC051100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1200', XACC051200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1300', XACC051300, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1400', XACC051400, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1500', XACC051500, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-9000', XACC059000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-9999', XACC059999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('07-0000', XACC070000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('07-1000', XACC071000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, true, 0);
+        InsertData('07-9999', XACC079999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('08-0000', XACC080000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('08-1000', XACC081000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-2000', XACC082000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-3000', XACC083000, 2, 0, 0, '08-3000..08-3999', 0, '', '', '', '', false, 0);
+        InsertData('08-3100', XACC083100, 0, 0, 0, '', 0, '', XASSETSOTH, '', XFACONT20, false, 0);
+        InsertData('08-3200', XACC083200, 0, 0, 0, '', 0, '', XASSETSOTH, '', XFAECON20, false, 0);
+        InsertData('08-3300', XACC083300, 0, 0, 0, '', 0, '', XASSETSACT, '', XSERV20, true, 0);
+        InsertData('08-3400', XACC083400, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('08-3500', XACC083500, 0, 0, 0, '', 0, '', XASSETSOTH, '', '', true, 0);
+        InsertData('08-4000', XACC084000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-4010', XACC084010, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-5000', XACC085000, 0, 0, 0, '', 0, '', XASSETSOTH, '', XINTASS20, false, 0);
+        InsertData('08-6000', XACC086000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('08-7000', XACC087000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA10, false, 0);
+        InsertData('08-8000', XACC088000, 0, 0, 0, '', 0, '', XASSETSOTH, '', XINTASS20, false, 0);
+        InsertData('08-9000', XACC089000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-9999', XACC089999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('09-0000', XACC090000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('09-1000', XACC091000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('09-1010', XACC091010, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('09-9999', XACC099999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('10-0000', XACC100000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0100', XACC100100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0200', XACC100200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0300', XACC100300, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0400', XACC100400, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0500', XACC100500, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0600', XACC100600, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0700', XACC100700, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0800', XACC100800, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-0900', XACC100900, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-1000', XACC101000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-1100', XACC101100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-2000', XACC102000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-2100', XACC102100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-3000', XACC103000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-3100', XACC103100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-9998', XACC109998, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('10-9999', XACC109999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('11-0000', XACC110000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('11-1000', XACC111000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('11-9999', XACC119999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('14-0000', XACC140000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('14-1000', XACC141000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('14-9999', XACC149999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('15-0000', XACC150000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('15-1000', XACC151000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('15-2000', XACC152000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('15-3000', XACC153000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('15-9999', XACC159999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('16-0000', XACC160000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('16-1000', XACC161000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('16-9999', XACC169999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('19-0000', XACC190000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-1000', XACC191000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-1100', XACC191100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-1200', XACC191200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-2000', XACC192000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-3000', XACC193000, 2, 0, 0, '19-3000..19-3399', 0, '', '', '', '', false, 0);
+        InsertData('19-3100', XACC193100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-3200', XACC193200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-3300', XACC193300, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-4000', XACC194000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-5000', XACC195000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-9999', XACC199999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('20-0000', XACC200000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('20-1000', XACC201000, 2, 0, 0, '20-1000..20-1999', 0, '', '', '', '', false, 0);
+        InsertData('20-1100', XACC201100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('20-1200', XACC201200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('20-1300', XACC201300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('20-1400', XACC201400, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('20-1500', XACC201500, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2000', XACC202000, 2, 0, 0, '20-2000..20-2999', 0, '', '', '', '', false, 0);
+        InsertData('20-2100', XACC202100, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2900', XACC202900, 2, 0, 0, '20-2900..20-9998', 0, '', '', '', '', true, 0);
+        InsertData('20-2910', XACC202910, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2920', XACC202920, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2930', XACC202930, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2940', XACC202940, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2941', XACC202941, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2942', XACC202942, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2951', XACC202951, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2952', XACC202952, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2980', XACC202980, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('20-2990', XACC202990, 0, 0, 0, '', 1, XEXP + '_20', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('20-2995', XACC202995, 0, 0, 0, '', 1, XEXP + '_20' + XN, XEXPENSES, XPURCHASE, XNOREFUND, true, 0);
+        InsertData('20-9999', XACC209999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('21-0000', XACC210000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('21-1000', XACC211000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('21-9999', XACC219999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('23-0000', XACC230000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('23-1000', XACC231000, 0, 0, 0, '', 1, XEXP + '_23', XEXPENSES, '', '', true, 0);
+        InsertData('23-9999', XACC239999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('25-0000', XACC250000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('25-1000', XACC251000, 0, 0, 0, '', 1, XEXP + '_25', XEXPENSES, '', '', true, 0);
+        InsertData('25-9999', XACC259999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('26-0000', XACC260000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('26-1000', XACC261000, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, '', XSERV20, true, 0);
+        InsertData('26-2000', XACC262000, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, '', '', true, 0);
+        InsertData('26-3000', XACC263000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-4000', XACC264000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-5000', XACC265000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-6000', XACC266000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-9000', XACC269000, 2, 0, 0, '26-9000..26-9998', 0, '', '', '', '', true, 0);
+        InsertData('26-9100', XACC269100, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9200', XACC269200, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9300', XACC269300, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9410', XACC269410, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9420', XACC269420, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9430', XACC269430, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9510', XACC269510, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9520', XACC269520, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9800', XACC269800, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-9900', XACC269900, 0, 0, 0, '', 1, XEXP + '_26', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9995', XACC269995, 0, 0, 0, '', 1, XEXP + '_26' + XN, XEXPENSES, XPURCHASE, XNOREFUND, true, 0);
+        InsertData('26-9999', XACC269999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('28-0000', XACC280000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('28-1000', XACC281000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('28-9999', XACC289999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('29-0000', XACC290000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('29-1000', XACC291000, 0, 0, 0, '', 1, XEXP + '_29', XEXPENSES, '', '', true, 0);
+        InsertData('29-9999', XACC299999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('40-0000', XACC400000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('40-1000', XACC401000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('40-9999', XACC409999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('41-0000', XACC410000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-1000', XACC411000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-2000', XACC412000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-3000', XACC413000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-4000', XACC414000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-9998', XACC419998, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-9999', XACC419999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('42-0000', XACC420000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('42-1000', XACC421000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('42-9999', XACC429999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('43-0000', XACC430000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('43-1000', XACC431000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('43-9998', XACC439998, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('43-3000', XACC433000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('43-9999', XACC439999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('44-0000', XACC440000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('44-1000', XACC441000, 2, 0, 0, '44-1000..44-1999', 0, '', '', '', '', false, 0);
+        InsertData('44-1100', XACC441100, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-1200', XACC441200, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2000', XACC442000, 2, 0, 0, '44-2000..44-2999', 0, '', '', '', '', false, 0);
+        InsertData('44-2100', XACC442100, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2200', XACC442200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('44-2300', XACC442300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('44-2400', XACC442400, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('44-2900', XACC442900, 2, 0, 0, '44-2900..44-2998', 0, '', '', '', '', true, 0);
+        InsertData('44-2910', XACC442910, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2920', XACC442920, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2930', XACC442930, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2940', XACC442940, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2941', XACC442941, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2942', XACC442942, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2951', XACC442951, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2952', XACC442952, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2961', XACC442961, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2962', XACC442962, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2980', XACC442980, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('44-2990', XACC442990, 0, 0, 0, '', 1, XEXP + '_44', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2995', XACC442995, 0, 0, 0, '', 1, XEXP + '_44' + XN, XEXPENSES, XPURCHASE, XNOREFUND, true, 0);
+        InsertData('44-9999', XACC449999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('45-0000', XACC450000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('45-1000', XACC451000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('45-9999', XACC459999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('46-0000', XACC460000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('46-1000', XACC461000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('46-9999', XACC469999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('50-0000', XACC500000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-1000', XACC501000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-1001', XACC501001, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-1002', XACC501002, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-1004', XACC501004, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-2000', XACC502000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-3000', XACC503000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-9999', XACC509999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('51-0000', XACC510000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('51-1001', XACC511001, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('51-1002', XACC511002, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('51-9999', XACC519999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('52-0000', XACC520000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-1000', XACC521000, 2, 0, 0, '52-1000..52-1999', 0, '', '', '', '', false, 0);
+        InsertData('52-1001', XACC521001, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-1002', XACC521002, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-2000', XACC522000, 2, 0, 0, '52-2000..52-2999', 0, '', '', '', '', false, 0);
+        InsertData('52-2001', XACC522001, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-2002', XACC522002, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-9999', XACC529999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('55-0000', XACC550000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('55-1000', XACC551000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('55-2000', XACC552000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('55-3010', XACC553010, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('55-3020', XACC553020, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('55-4000', XACC554000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('55-9999', XACC559999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('57-0000', XACC570000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('57-1000', XACC571000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('57-2000', XACC572000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('57-9999', XACC579999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('58-0000', XACC580000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('58-1000', XACC581000, 2, 0, 0, '58-1000..58-1999', 0, '', '', '', '', false, 0);
+        InsertData('58-1110', XACC581110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-1120', XACC581120, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('58-1210', XACC581210, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-1220', XACC581220, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-2000', XACC582000, 2, 0, 0, '58-2000..58-2999', 0, '', '', '', '', false, 0);
+        InsertData('58-2100', XACC582100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-2200', XACC582200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-3000', XACC583000, 2, 0, 0, '58-3000..58-3999', 0, '', '', '', '', false, 0);
+        InsertData('58-3100', XACC583100, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('58-3200', XACC583200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-4010', XACC584010, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-4020', XACC584020, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-5000', XACC585000, 2, 0, 0, '58-5000..58-5999', 0, '', '', '', '', false, 0);
+        InsertData('58-5100', XACC585100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-5200', XACC585200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-6000', XACC586000, 2, 0, 0, '58-6000..58-6999', 0, '', '', '', '', false, 0);
+        InsertData('58-6110', XACC586110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-6120', XACC586120, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-9999', XACC589999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('59-0000', XACC590000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('59-1000', XACC591000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('59-2000', XACC592000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('59-9999', XACC599999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('60-0000', XACC600000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('60-1000', XACC601000, 2, 0, 0, '60-1000..60-1999', 0, '', '', '', '', false, 2);
+        InsertData('60-1010', XACC601010, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-1020', XACC601020, 0, 0, 0, '', 2, '', '', '', '', false, 2);
+        InsertData('60-1110', XACC601110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-1120', XACC601120, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-1210', XACC601210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-1220', XACC601220, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-2000', XACC602000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-3000', XACC603000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('60-4000', XACC604000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-9000', XACC609000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('60-9999', XACC609999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('62-0000', XACC620000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('62-1000', XACC621000, 2, 0, 0, '62-1000..62-1999', 0, '', '', '', '', false, 1);
+        InsertData('62-1010', XACC621010, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-1020', XACC621020, 0, 0, 0, '', 2, '', '', XADVPAY, XADVPAY20, false, 1);
+        InsertData('62-1021', XACC621021, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-1110', XACC621110, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-1120', XACC621120, 0, 0, 0, '', 2, '', '', XADVPAY, XADVPAY20, false, 1);
+        InsertData('62-1210', XACC621210, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-1220', XACC621220, 0, 0, 0, '', 2, '', '', XADVPAY, XADVPAY20, false, 1);
+        InsertData('62-2000', XACC622000, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-3010', XACC623010, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-3020', XACC623020, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-9000', XACC629000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('62-9999', XACC629999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('63-0000', XACC630000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('63-1000', XACC631000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('63-9999', XACC639999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('66-0000', XACC660000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('66-1100', XACC661100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-1110', XACC661110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-1200', XACC661200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-1210', XACC661210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-2100', XACC662100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-2110', XACC662110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-2200', XACC662200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-2210', XACC662210, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('66-3000', XACC663000, 2, 0, 0, '66-3000..66-3999', 0, '', '', '', '', false, 0);
+        InsertData('66-3100', XACC663100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-3110', XACC663110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-3200', XACC663200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-3210', XACC663210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-4000', XACC664000, 2, 0, 0, '66-4000..66-4999', 0, '', '', '', '', false, 0);
+        InsertData('66-4100', XACC664100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-4110', XACC664110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-4200', XACC664200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-4210', XACC664210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-9999', XACC669999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('67-0000', XACC670000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('67-1100', XACC671100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-1110', XACC671110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-1200', XACC671200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-1210', XACC671210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-2100', XACC672100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-2110', XACC672110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-2200', XACC672200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-2210', XACC672210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-3000', XACC673000, 2, 0, 0, '67-3000..67-3999', 0, '', '', '', '', false, 0);
+        InsertData('67-3100', XACC673100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-3110', XACC673110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-3200', XACC673200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-3210', XACC673210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-4000', XACC674000, 2, 0, 0, '67-4000..67-4999', 0, '', '', '', '', false, 0);
+        InsertData('67-4100', XACC674100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-4110', XACC674110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-4200', XACC674200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-4210', XACC674210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-9999', XACC679999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('68-0000', XACC680000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('68-1000', XACC681000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-2000', XACC682000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-3000', XACC683000, 2, 0, 0, '68-3000..68-3999', 0, '', '', '', '', false, 0);
+        InsertData('68-3010', XACC683010, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-3020', XACC683020, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-3100', XACC683100, 2, 0, 0, '68-3100..68-3149', 0, '', '', '', '', false, 0);
+        InsertData('68-3110', XACC683110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-3120', XACC683120, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-3130', XACC683130, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-3140', XACC683140, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-3200', XACC683200, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-3300', XACC683300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4000', XACC684000, 2, 0, 0, '68-4000..68-4999', 0, '', '', '', '', false, 0);
+        InsertData('68-4100', XACC684100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-4200', XACC684200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4220', XACC684220, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('68-4230', XACC684230, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('68-4300', XACC684300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4310', XACC684310, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4400', XACC684400, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4410', XACC684410, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4420', XACC684420, 0, 0, 0, '', 0, '', XCUSTOMSVAT, '', XCUSTOMS20, true, 0);
+        InsertData('68-4430', XACC684430, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-4440', XACC684440, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-4500', XACC684500, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-4600', XACC684600, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-5000', XACC685000, 2, 0, 0, '68-5000..68-5999', 0, '', '', '', '', false, 2);
+        InsertData('68-5100', XACC685100, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-5200', XACC685200, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-6000', XACC686000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-7000', XACC687000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-8000', XACC688000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-9000', XACC689000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-9999', XACC689999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('69-0000', XACC690000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('69-1000', XACC691000, 2, 0, 0, '69-1000..69-1999', 0, '', '', '', '', false, 0);
+        InsertData('69-1100', XACC691100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-1200', XACC691200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-2000', XACC692000, 2, 0, 0, '69-2000..69-2999', 0, '', '', '', '', false, 0);
+        InsertData('69-2200', XACC692200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-2300', XACC692300, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-3000', XACC693000, 2, 0, 0, '69-3000..69-3999', 0, '', '', '', '', false, 0);
+        InsertData('69-3100', XACC693100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-3200', XACC693200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-9999', XACC699999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('70-0000', XACC700000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('70-1000', XACC701000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('70-1100', XACC701100, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('70-2000', XACC702000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('70-9999', XACC709999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('71-0000', XACC710000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('71-1000', XACC711000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('71-2001', XACC712001, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('71-2002', XACC712002, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('71-2003', XACC712003, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('71-9000', XACC719000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('71-9999', XACC719999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('73-0000', XACC730000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('73-1000', XACC731000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('73-2000', XACC732000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('73-9000', XACC739000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('73-9999', XACC739999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('75-0000', XACC750000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('75-1000', XACC751000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('75-2000', XACC752000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('75-9999', XACC759999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('76-0000', XACC760000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('76-1000', XACC761000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-2000', XACC762000, 2, 0, 0, '76-2000..76-2999', 0, '', '', '', '', false, 0);
+        InsertData('76-2100', XACC762100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-2200', XACC762200, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('76-3000', XACC763000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-4000', XACC764000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5000', XACC765000, 2, 0, 0, '76-5000..76-5999', 0, '', '', '', '', false, 0);
+        InsertData('76-5100', XACC765100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5110', XACC765110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5200', XACC765200, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('76-5210', XACC765210, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('76-5300', XACC765300, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5400', XACC765400, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5500', XACC765500, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5600', XACC765600, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5700', XACC765700, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5990', XACC765990, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('76-8000', XACC768000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('76-9000', XACC769000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('76-9999', XACC769999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('77-0000', XACC770000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('77-1000', XACC771000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('77-9999', XACC779999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('79-0000', XACC790000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('79-1000', XACC791000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('79-2000', XACC792000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('79-3000', XACC793000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('79-9999', XACC799999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('80-0000', XACC800000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('80-1000', XACC801000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('80-2000', XACC802000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('80-9999', XACC809999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('81-0000', XACC810000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('81-1000', XACC811000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('81-9999', XACC819999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('82-0000', XACC820000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('82-1100', XACC821100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('82-1200', XACC821200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('82-9999', XACC829999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('83-0000', XACC830000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('83-1000', XACC831000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('83-9999', XACC839999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('84-0000', XACC840000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('84-1000', XACC841000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('84-9999', XACC849999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('86-0000', XACC860000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('86-1000', XACC861000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('86-9999', XACC869999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('90-0000', XACC900000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-1000', XACC901000, 2, 0, 0, '90-1000..90-1999', 0, '', '', '', '', false, 0);
+        InsertData('90-1110', XACC901110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1120', XACC901120, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1130', XACC901130, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1140', XACC901140, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1210', XACC901210, 0, 0, 0, '', 2, XBUSINESS, XSERV20, XACC900000, XSERV20, true, 0);
+        InsertData('90-1230', XACC901230, 0, 0, 0, '', 2, XBUSINESS, XSERV0, '', XSERV0, true, 0);
+        InsertData('90-1240', XACC901240, 0, 0, 0, '', 2, XBUSINESS, XSERV, '', XSERVNOVAT, true, 0);
+        InsertData('90-1310', XACC901310, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1320', XACC901320, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1330', XACC901330, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1340', XACC901340, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2000', XACC902000, 2, 0, 0, '90-2000..90-2999', 0, '', '', '', '', false, 0);
+        InsertData('90-2110', XACC902110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2120', XACC902120, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2130', XACC902130, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2140', XACC902140, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2210', XACC902210, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2230', XACC902230, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2240', XACC902240, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2310', XACC902310, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2320', XACC902320, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2330', XACC902330, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2340', XACC902340, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-3000', XACC903000, 2, 0, 0, '90-3000..90-3999', 0, '', '', '', '', false, 0);
+        InsertData('90-3110', XACC903110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-3120', XACC903120, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-3210', XACC903210, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-3310', XACC903310, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-3320', XACC903320, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-4000', XACC904000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-5000', XACC905000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-6000', XACC906000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-7000', XACC907000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-9000', XACC909000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-9999', XACC909999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('91-0000', XACC910000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('91-1000', XACC911000, 2, 0, 0, '91-1000..91-1999', 0, '', '', '', '', false, 0);
+        InsertData('91-1100', XACC911100, 2, 0, 0, '91-1100..91-1199', 0, '', '', '', '', false, 0);
+        InsertData('91-1101', XACC911101, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1102', XACC911102, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1103', XACC911103, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1200', XACC911200, 2, 0, 0, '91-1200..91-1299', 0, '', '', '', '', false, 0);
+        InsertData('91-1201', XACC911201, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1202', XACC911202, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1300', XACC911300, 2, 0, 0, '91-1300..91-1399', 0, '', '', '', '', false, 0);
+        InsertData('91-1301', XACC911301, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1302', XACC911302, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1303', XACC911303, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1304', XACC911304, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1305', XACC911305, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1306', XACC911306, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1307', XACC911307, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1308', XACC911308, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1309', XACC911309, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1310', XACC911310, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1311', XACC911311, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1312', XACC911312, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1313', XACC911313, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1314', XACC911314, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1315', XACC911315, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1316', XACC911316, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1330', XACC911330, 0, 0, 0, '', 0, '', XMISCINCEXP, '', XSERV20, true, 0);
+        InsertData('91-1390', XACC911390, 0, 0, 0, '', 0, '', XMISCINCEXP, '', XSERV20, true, 0);
+        InsertData('91-2000', XACC912000, 2, 0, 0, '91-2000..91-2999', 0, '', '', '', '', false, 0);
+        InsertData('91-2100', XACC912100, 2, 0, 0, '91-2100..91-2199', 0, '', '', '', '', false, 0);
+        InsertData('91-2101', XACC912101, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2102', XACC912102, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2103', XACC912103, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2104', XACC912104, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2300', XACC912300, 2, 0, 0, '91-2300..91-2399', 0, '', '', '', '', false, 0);
+        InsertData('91-2301', XACC912301, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2302', XACC912302, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2303', XACC912303, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2304', XACC912304, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2305', XACC912305, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2306', XACC912306, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2307', XACC912307, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2308', XACC912308, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2309', XACC912309, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2310', XACC912310, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2311', XACC912311, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2312', XACC912312, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2313', XACC912313, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2314', XACC912314, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2315', XACC912315, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2316', XACC912316, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2317', XACC912317, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2318', XACC912318, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2319', XACC912319, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2320', XACC912320, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2321', XACC912321, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2322', XACC912322, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2330', XACC912330, 0, 0, 0, '', 1, XEXP + '_91', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('91-2331', XACC912331, 0, 0, 0, '', 1, XEXP + '_91', XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('91-2390', XACC912390, 0, 0, 0, '', 1, XEXP + '_91' + XN, XEXPENSES, XPURCHASE, XNOREFUND, true, 0);
+        InsertData('91-2391', XACC912391, 0, 0, 0, '', 1, XEXP + '_91' + XN, XEXPENSES, XPURCHASE, XNOREFUND, true, 0);
+        InsertData('91-2400', XACC912400, 2, 0, 0, '91-2400..91-2499', 0, '', '', '', '', true, 0);
+        InsertData('91-2410', XACC912410, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2420', XACC912420, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2430', XACC912430, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2440', XACC912440, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2450', XACC912450, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2490', XACC912490, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-9000', XACC919000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-9999', XACC919999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('94-0000', XACC940000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('94-1000', XACC941000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('94-9999', XACC949999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('96-0000', XACC960000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('96-1000', XACC961000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('96-1020', XACC961020, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('96-1040', XACC961040, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('96-1060', XACC961060, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('96-9999', XACC969999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('97-0000', XACC970000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('97-1000', XACC971000, 2, 0, 0, '97-1000..97-1999', 0, '', '', '', '', false, 0);
+        InsertData('97-1100', XACC971100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('97-1200', XACC971200, 0, 0, 0, '', 0, '', XFUTEXP, '', XFUTEXP20ST, true, 0);
+        InsertData('97-1300', XACC971300, 0, 0, 0, '', 0, '', XFUTEXP, '', XFUTEXP20ST, false, 0);
+        InsertData('97-2000', XACC972000, 2, 0, 0, '97-2000..97-2999', 0, '', '', '', '', false, 0);
+        InsertData('97-2200', XACC972200, 0, 0, 0, '', 0, '', XFUTEXP, '', XFUTEXP20ST, true, 0);
+        InsertData('97-2300', XACC972300, 0, 0, 0, '', 0, '', XFUTEXP, '', XFUTEXP20ST, true, 0);
+        InsertData('97-9999', XACC979999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('98-0000', XACC980000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('98-1000', XACC981000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('98-2000', XACC982000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('98-3000', XACC983000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('98-4000', XACC984000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('98-9999', XACC989999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('99-0000', XACC990000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-0100', XACC991000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0200', XACC992000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0300', XACC993000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0400', XACC994000, 2, 0, 0, '99-0400..99-0499', 0, '', '', '', '', true, 0);
+        InsertData('99-0410', XACC994100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0420', XACC994200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0425', XACC994250, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0430', XACC994300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0440', XACC994400, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0510', XACC995100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0520', XACC995200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0530', XACC999000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0999', XACC999999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('99-1000', XACC_0000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1001', XACC__1001, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-1002', XACC__1002, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-1009', XACC__1009, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+
+        InsertData('99-1010', XACC_0010, 0, 0, 0, '', 0, '', XFA, '', XFANOVAT, true, 0);
+        InsertData('99-1011', XACC_0011, 0, 0, 0, '', 0, '', XFA, '', XFANOVAT, false, 0);
+        InsertData('99-1020', XACC_0020, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1030', XACC_0030, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1040', XACC_0040, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1050', XACC_0050, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1060', XACC_0060, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-1070', XACC_0070, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1080', XACC_0080, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1090', XACC_0090, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1100', XACC_0100, 0, 0, 0, '', 0, '', XFA, '', XFANOVAT, false, 0);
+        InsertData('99-1110', XACC_0110, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1120', XACC_0120, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1130', XACC_0130, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1140', XACC_0140, 0, 0, 0, '', 0, '', XFA, '', XINTASNOVAT, false, 0);
+        InsertData('99-1150', XACC_0150, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1190', XACC_9900, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1999', XACC_9999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('99-5000', XACC_TAXACC, 1, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5010', XACC_PR_G_CU, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5020', XACC_PR_G_V, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5030', XACC_PR_L_CU, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5040', XACC_PR_L_V, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('99-5050', XACC_AD_G_CU, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5060', XACC_AD_G_V, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5070', XACC_AD_L_CU, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5080', XACC_AD_L_V, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5090', XACC_TAXACC_BAL, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+
+        InsertData('99-6010', XACC_TAXDEPR_1010, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6020', XACC_TAXDEPR_1020, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6030', XACC_TAXDEPR_1030, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6040', XACC_TAXDEPR_1040, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6050', XACC_TAXDEPR_1050, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6060', XACC_TAXDEPR_1060, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6070', XACC_TAXDEPR_1070, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6080', XACC_TAXDEPR_1080, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6090', XACC_TAXDEPR_1090, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6095', XACC_TAXDEPR_IA, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        GLAccIndent.Indent();
+    end;
+
+    var
+        DemoDataSetup: Record "Demo Data Setup";
+        Adjust: Codeunit "Make Adjustments";
+        GLAccIndent: Codeunit "G/L Account-Indent";
+        XFA: Label 'FA';
+        XPROFINVEST: Label 'PROFINVEST';
+        XINTASSETS: Label 'INTASSETS';
+        XASSETSFA: Label 'ASSETSFA';
+        XASSETSOTH: Label 'ASSETSOTH';
+        XASSETSACT: Label 'ASSETSACT';
+        XEXP: Label 'EXP';
+        XCUSTOMSVAT: Label 'CUSTOMSVAT';
+        XSERV20: Label 'SERV20', Comment = 'SERV20';
+        XSERV0: Label 'SERV0';
+        XGOODS20: Label 'GOODS20', Comment = 'GOODS20';
+        XFUTEXP: Label 'FUTEXP';
+        XADVPAY: Label 'ADVPAY';
+        XADVPAY20: Label 'ADVPAY20', Comment = 'ADVPAY20';
+        XFA20: Label 'FA20', Comment = 'FA20';
+        XINTASS20: Label 'INTASS20', Comment = 'INTASS20';
+        XFACONT20: Label 'FACONT20', Comment = 'FACONT20';
+        XFAECON20: Label 'FAECON20', Comment = 'FAECON20';
+        XFA10: Label 'FA10';
+        XCUSTOMS20: Label 'CUSTOMS20', Comment = 'CUSTOMS20';
+        XSERVNOVAT: Label 'SERVNOVAT';
+        XSERV: Label 'SERV';
+        XINTASNOVAT: Label 'INTASNOVAT';
+        XEXPENSES: Label 'EXPENSES';
+        XFANOVAT: Label 'FANOVAT';
+        XMISCINCEXP: Label 'MISCINCEXP';
+        XFUTEXP20ST: Label 'FUTEXP20ST', Comment = 'FUTEXP20ST';
+        XNOREFUND: Label 'NOREFUND';
+        XN: Label 'N';
+        XACC000000: Label 'CHART OF ACCOUNTS';
+        XACC010000: Label 'FIXED ASSETS';
+        XACC011000: Label 'FA in operation, incl.';
+        XACC011010: Label 'FA Buildings';
+        XACC011020: Label 'FA Constructions and transfer mechanisms';
+        XACC011030: Label 'FA  Machines and equipment';
+        XACC011040: Label 'FA Vehicles';
+        XACC011050: Label 'FA Manufacturing and household equipment';
+        XACC011060: Label 'FA Plough cattle';
+        XACC011070: Label 'FA Productive livestock';
+        XACC011080: Label 'FA Perennial plantations';
+        XACC011090: Label 'FA Other types';
+        XACC011100: Label 'FA Land and nature management objects';
+        XACC011110: Label 'FA Capital investments in land upgrade';
+        XACC012000: Label 'FA Leased, incl.';
+        XACC012010: Label 'FA Buildings';
+        XACC012020: Label 'FA Constructions';
+        XACC012030: Label 'FA  Machines and equipment';
+        XACC012040: Label 'FA Vehicles';
+        XACC012050: Label 'FA Manufacturing and household equipment';
+        XACC012060: Label 'FA Plough cattle';
+        XACC012070: Label 'FA Productive livestock';
+        XACC012080: Label 'FA Parennial plantations';
+        XACC012090: Label 'FA others being rented out';
+        XACC012100: Label 'FA land and estates';
+        XACC014000: Label 'FA being preserved';
+        XACC015000: Label 'FA being trust managed';
+        XACC019000: Label 'FA disposal';
+        XACC019999: Label 'FIXED ASSETS Total';
+        XACC020000: Label 'FA DEPRECIATION';
+        XACC021000: Label 'Depreciation of FAs in operation incl.';
+        XACC021010: Label 'Depr. Buildings';
+        XACC021020: Label 'Depr. Constructions and transfer mechanisms';
+        XACC021030: Label 'Depr.  Machines and equipment';
+        XACC021040: Label 'Depr. Vehicles';
+        XACC021050: Label 'Depr. Manufacturing and household equipment';
+        XACC021060: Label 'Depr. Plough cattle';
+        XACC021070: Label 'Depr. Productive livestock';
+        XACC021080: Label 'Depr. Perennial plantations';
+        XACC021090: Label 'Depr. other types';
+        XACC022000: Label 'Depreciation of leased FAs';
+        XACC022010: Label 'Depr. Buildings';
+        XACC022020: Label 'Depr. Constructions';
+        XACC022030: Label 'Depr. Machines and equipment';
+        XACC022040: Label 'Depr. Vehicles';
+        XACC022050: Label 'Depr. Manufacturing and household equipment';
+        XACC022060: Label 'Depr. Plough cattle';
+        XACC022070: Label 'Depr. Productive livestock';
+        XACC022080: Label 'Depr. Perennial plantations';
+        XACC022090: Label 'Depr. Other FAs being rented out';
+        XACC024000: Label 'Depr. of FAs in conservation';
+        XACC025000: Label 'Depr. of FAs being trust managed';
+        XACC026000: Label 'Depr. Lucr. investments in tangible assets';
+        XACC026100: Label 'Depr. Property for lease';
+        XACC026200: Label 'Depr. Property under rental agreement';
+        XACC026300: Label 'Depr. Other lucrative investments';
+        XACC029999: Label 'FA DEPRECIATION Total';
+        XACC030000: Label 'LUCRATIVE INVESTMENTS IN TANGIBLE ASSETS';
+        XACC031000: Label 'Property for lease';
+        XACC032000: Label 'Property under rental agreement';
+        XACC033000: Label 'Other lucrative investments';
+        XACC039000: Label 'Retirement of tangible assets on 03 acc.';
+        XACC039999: Label 'LUCRATIVE INVESTMENTS IN TANGIBLE ASSETS Total';
+        XACC040000: Label 'INTANGIBLE ASSETS';
+        XACC041000: Label 'IA Objects of intellectual property incl.';
+        XACC041100: Label 'IA IPR for inventions, manuf.patterns, models';
+        XACC041200: Label 'IA IPR for programs, databases';
+        XACC041300: Label 'IA IPR for integrated-circuit layout';
+        XACC041400: Label 'IA IPR for trademarks and service mark';
+        XACC041500: Label 'IA Selection patent';
+        XACC043000: Label 'IA Know-how';
+        XACC044000: Label 'IA Goodwill';
+        XACC045000: Label 'IA R&D';
+        XACC049000: Label 'IA Other';
+        XACC049999: Label 'INTANGIBLE ASSETS Total';
+        XACC050000: Label 'DEPRECIATION OF IA';
+        XACC051000: Label 'Depr. Objects of intellectual property incl.';
+        XACC051100: Label 'Depr. IPR for inventions, manuf.patterns, models';
+        XACC051200: Label 'Depr. IPR for programs, databases';
+        XACC051300: Label 'Depr. IPR for integrated-circuit layout';
+        XACC051400: Label 'Depr. IPR for trademarks and service mark';
+        XACC051500: Label 'Depr. Selection patent';
+        XACC059000: Label 'Depr. Other';
+        XACC059999: Label 'DEPRECIATON OF IA Total';
+        XACC070000: Label 'EQUIPMENT FOR INSTALLATION';
+        XACC071000: Label 'Equipment for installation';
+        XACC079999: Label 'EQUIPMENT FOR INSTALLATION Total';
+        XACC080000: Label 'INVESTMENTS IN NONCURRENT ASSESTS';
+        XACC081000: Label 'Land and estate acquisition';
+        XACC082000: Label 'Objects of nature management acquisition';
+        XACC083000: Label 'Constraction of fixed assets incl.';
+        XACC083100: Label 'Constraction using contract work';
+        XACC083200: Label 'Self-financing construction';
+        XACC083300: Label 'Expenses to be allocated';
+        XACC083400: Label 'Equipment transfered for assembling';
+        XACC083500: Label 'Keeping customer-developer service';
+        XACC084000: Label 'FA acquisition';
+        XACC084010: Label 'Acquisition of property(estate) for further lease';
+        XACC085000: Label 'Acquisition of intangible assets';
+        XACC086000: Label 'Transfering young animals into main herd';
+        XACC087000: Label 'Purchasing of mature animals';
+        XACC088000: Label 'Performing R&D';
+        XACC089000: Label 'Reconstruction of fixed assets';
+        XACC089999: Label 'INVESTMENTS IN NONCURRENT ASSESTS Total';
+        XACC090000: Label 'DEFERRED TAX ASSETS';
+        XACC091000: Label 'Deferred tax assets';
+        XACC091010: Label 'DTA for selling FAs with losses';
+        XACC099999: Label 'DEFERRED TAX ASSETS Total';
+        XACC100000: Label 'MATERIALS';
+        XACC100100: Label 'Raw materials';
+        XACC100200: Label 'Half-finished products, BOMs';
+        XACC100300: Label 'Fuel';
+        XACC100400: Label 'Package and packing materials';
+        XACC100500: Label 'Spare parts';
+        XACC100600: Label 'Other materials';
+        XACC100700: Label 'Materials for processing within contract work';
+        XACC100800: Label 'Building materials';
+        XACC100900: Label 'Inventory and household accessories';
+        XACC101000: Label 'Working clothes on stock';
+        XACC101100: Label 'Working clothes in operation';
+        XACC102000: Label 'Working gear on stock';
+        XACC102100: Label 'Working gear in operation';
+        XACC103000: Label 'Assets <2000 rub on stock';
+        XACC103100: Label 'Assets <2000 rub in operation';
+        XACC109998: Label 'Stock (temporary)';
+        XACC109999: Label 'MATERIALS Total';
+        XACC110000: Label 'ANIMALS IN GROUTH';
+        XACC111000: Label 'Animals in grouth';
+        XACC119999: Label 'ANIMALS IN GROUTH Total';
+        XACC140000: Label 'DEPRECIABLE ASSETS RESERVES';
+        XACC141000: Label 'Depreciable assets reserves';
+        XACC149999: Label 'DEPRECIABLE ASSETS RESERVES Total';
+        XACC150000: Label 'STORING AND PURCHASING OF INVENTORIES';
+        XACC151000: Label 'Storing and purchasing of materials';
+        XACC152000: Label 'Storing and purchasing of goods';
+        XACC153000: Label 'Storing and purchasing of other inventories';
+        XACC159999: Label 'STORING AND PURCHASING OF INVENTORIES Total';
+        XACC160000: Label 'COST VARIANCE OF MATERIALS';
+        XACC161000: Label 'Cost variance of materials';
+        XACC169999: Label 'COST VARIANCE OF MATERIALS Total';
+        XACC190000: Label 'VAT ON PURCHASED GOODS';
+        XACC191000: Label 'VAT on purchased fixed assets';
+        XACC191100: Label 'VAT on construction using contract work';
+        XACC191200: Label 'VAT on self-financing construction';
+        XACC192000: Label 'VAT on purchased intangible assets';
+        XACC193000: Label 'VAT on purchased inventories, services, goods incl';
+        XACC193100: Label 'VAT on purchased inventories';
+        XACC193200: Label 'VAT on jobs and services';
+        XACC193300: Label 'VAT on goods';
+        XACC194000: Label 'VAT of tax agent';
+        XACC195000: Label 'VAT in case of import into RF territory';
+        XACC199999: Label 'VAT ON PURCHASED GOODS Totals';
+        XACC200000: Label 'MAINLINE PRODUCTION';
+        XACC201000: Label 'Direct expenses, incl.';
+        XACC201100: Label 'Raw materials';
+        XACC201200: Label 'Labour costs';
+        XACC201300: Label 'Social assessments to budget';
+        XACC201400: Label 'Depreciation';
+        XACC201500: Label 'Other direct expenses';
+        XACC202000: Label 'Indirect costs, incl.';
+        XACC202100: Label 'Material expenses';
+        XACC202900: Label 'Other indirect costs';
+        XACC202910: Label 'Repair and maintenance of fixed assets';
+        XACC202920: Label 'Travel allowance';
+        XACC202930: Label 'Entertainment expenses';
+        XACC202940: Label 'Consulting and information expenses';
+        XACC202941: Label 'Juridical expenses';
+        XACC202942: Label 'Audit expenses';
+        XACC202951: Label 'Property insurance';
+        XACC202952: Label 'Life insurance';
+        XACC202980: Label 'Deferrals writing-off';
+        XACC202990: Label 'Other indirect costs';
+        XACC202995: Label 'Expenses not intended for tax purposes';
+        XACC209999: Label 'MAINLINE PRODUCTION Total';
+        XACC210000: Label 'IN-HOUSE HALF-FINISHED PRODUCTS';
+        XACC211000: Label 'In-house half-finished products';
+        XACC219999: Label 'IN-HOUSE HALF-FINISHED PRODUCTS Total';
+        XACC230000: Label 'AUXILIARY PRODUCTION';
+        XACC231000: Label 'Auxiliary production';
+        XACC239999: Label 'AUXILIARY PRODUCTION Total';
+        XACC250000: Label 'MANUFACTURING OVERHEAD COSTS';
+        XACC251000: Label 'Manufacturing overhead costs';
+        XACC259999: Label 'MANUFACTURING OVERHEAD COSTS, Total';
+        XACC260000: Label 'NON-PRODUCTON OVERHEAD COSTS';
+        XACC261000: Label 'Material expenses';
+        XACC262000: Label 'Raw materials';
+        XACC263000: Label 'Labour costs';
+        XACC264000: Label 'Social assessments to budget';
+        XACC265000: Label 'Depreciation';
+        XACC266000: Label 'Transport tax';
+        XACC269000: Label 'Other costs';
+        XACC269100: Label 'Repair and maintenance of fixed assets';
+        XACC269200: Label 'Travel allowance';
+        XACC269300: Label 'Entertainment expenses';
+        XACC269410: Label 'Consulting and information expenses';
+        XACC269420: Label 'Juridical expenses';
+        XACC269430: Label 'Audit expenses';
+        XACC269510: Label 'Property insurance';
+        XACC269520: Label 'Life insurance';
+        XACC269800: Label 'Deferrals writing-off';
+        XACC269900: Label 'Other costs';
+        XACC269995: Label 'Expenses not intended for tax purposes';
+        XACC269999: Label 'NON-PRODUCTON OVERHEAD COSTS Total';
+        XACC280000: Label 'PRODUCTON REJECTS';
+        XACC281000: Label 'Production rejects';
+        XACC289999: Label 'PRODUCTON REJECTS Total';
+        XACC290000: Label 'SERVICE MANUFACTURING AND MAINTENANCE';
+        XACC291000: Label 'Service manufacturing and maintenance';
+        XACC299999: Label 'SERVICE MANUFACTURING AND MAINTENANCE Total';
+        XACC400000: Label 'PRODUCTION (SERVICE) OUTPUT';
+        XACC401000: Label 'Production output';
+        XACC409999: Label 'PRODUCTION (SERVICE) OUTPUT Total';
+        XACC410000: Label 'GOODS';
+        XACC411000: Label 'Goods on stock';
+        XACC412000: Label 'Goods in retail';
+        XACC413000: Label 'Tare and empty tare';
+        XACC414000: Label 'Purchased goods';
+        XACC419998: Label 'Goods (temporary)';
+        XACC419999: Label 'GOODS Total';
+        XACC420000: Label 'MARGIN';
+        XACC421000: Label 'Margin';
+        XACC429999: Label 'MARGIN Total';
+        XACC430000: Label 'FINISHED PRODUCT';
+        XACC431000: Label 'Finished product';
+        XACC433000: Label 'Variance';
+        XACC439998: Label 'Finished product (temporary)';
+        XACC439999: Label 'FINISHED PRODUCT Total';
+        XACC440000: Label 'SALES EXPENSES';
+        XACC441000: Label 'Direct sales expenses';
+        XACC441100: Label 'Transport expenses';
+        XACC441200: Label 'Other direct expenses';
+        XACC442000: Label 'Indirect sales expenses';
+        XACC442100: Label 'Material expenses';
+        XACC442200: Label 'Labour costs';
+        XACC442300: Label 'Social assessments to budget';
+        XACC442400: Label 'Depreciation';
+        XACC442900: Label 'Other indirect expenses, Total';
+        XACC442910: Label 'Repair and maintenance of fixed assets';
+        XACC442920: Label 'Travel allowance';
+        XACC442930: Label 'Entertainment expenses';
+        XACC442940: Label 'Consulting and information expenses';
+        XACC442941: Label 'Juridical expenses';
+        XACC442942: Label 'Audit expenses';
+        XACC442951: Label 'Life insurance';
+        XACC442952: Label 'Property insurance';
+        XACC442961: Label 'Advertising expenses (standard)';
+        XACC442962: Label 'Advertising expenses (exceeded)';
+        XACC442980: Label 'Deferrals writing-off';
+        XACC442990: Label 'Other indirect costs';
+        XACC442995: Label 'Expenses not intended for tax purposes';
+        XACC449999: Label 'SALES EXPENSES Total';
+        XACC450000: Label 'GOODS SHIPPED';
+        XACC451000: Label 'Goods shipped';
+        XACC459999: Label 'GOODS SHIPPED Total';
+        XACC460000: Label 'EXECUTED STAGES OF WIP';
+        XACC461000: Label 'Executed stages of WIP';
+        XACC469999: Label 'EXECUTED STAGES OF WIP Total';
+        XACC500000: Label 'CASH';
+        XACC501000: Label 'Cash, rub';
+        XACC501001: Label 'Cash, currency - USD';
+        XACC501002: Label 'Cash, currency - EUR';
+        XACC501004: Label 'Cash2, rub';
+        XACC502000: Label 'Additional cash desks';
+        XACC503000: Label 'Cash documents';
+        XACC509999: Label 'CASH Total';
+        XACC510000: Label 'Bank ACCOUNTS';
+        XACC511001: Label 'Bank account NBM';
+        XACC511002: Label 'Bank account MB';
+        XACC519999: Label 'Bank ACCOUNTS Total';
+        XACC520000: Label 'CURRENCY ACCOUNTS';
+        XACC521000: Label 'Domestic currency accounts, incl';
+        XACC521001: Label 'Running currency account MB USD';
+        XACC521002: Label 'Running currency account MB EUR';
+        XACC522000: Label 'Currency accounts abroad, incl';
+        XACC522001: Label 'Currency account USD';
+        XACC522002: Label 'Currency account EUR';
+        XACC529999: Label 'CURRENCY ACCOUNTS Total';
+        XACC550000: Label 'SPECIAL BANK ACCOUNTS';
+        XACC551000: Label 'Letter of credits';
+        XACC552000: Label 'Check books';
+        XACC553010: Label 'Deposits < 1 year';
+        XACC553020: Label 'Deposits >1 year';
+        XACC554000: Label 'Currency funds on accounts';
+        XACC559999: Label 'SPECIAL BANK ACCOUNTS';
+        XACC570000: Label 'REMITTANCES IN TRANSIT';
+        XACC571000: Label 'Remittances in transit, rub';
+        XACC572000: Label 'Remittances in transit, currency';
+        XACC579999: Label 'REMITTANCES IN TRANSIT Total';
+        XACC580000: Label 'FINANCIAL INVESTMENTS';
+        XACC581000: Label 'Shares and stocks, incl';
+        XACC581110: Label 'Shares';
+        XACC581120: Label 'Shares of subsidiaries and child companies';
+        XACC581210: Label 'Stocks';
+        XACC581220: Label 'Stocks of subsidiaries and child companies';
+        XACC582000: Label 'Debt securities, incl';
+        XACC582100: Label 'Short-term debt securities';
+        XACC582200: Label 'Long-term debt securities';
+        XACC583000: Label 'Loans granted, incl';
+        XACC583100: Label 'Short-term loans granted';
+        XACC583200: Label 'Long-term loans granted';
+        XACC584010: Label 'Partnership investments < 1 year';
+        XACC584020: Label 'Partnership investments > 1 year';
+        XACC585000: Label 'Deposits, incl.';
+        XACC585100: Label 'Short-term deposits';
+        XACC585200: Label 'Long-term deposits';
+        XACC586000: Label 'Others, incl.';
+        XACC586110: Label 'Purch. accounts receivable < 1 year';
+        XACC586120: Label 'Purch. accounts receivable > 1 year';
+        XACC589999: Label 'FINANCIAL INVESTMENTS Total';
+        XACC590000: Label 'DEPRECIABLE INVESTMENT RESERVES';
+        XACC591000: Label 'Depr. short-term securities reserves';
+        XACC592000: Label 'Depr. long-term securities reserves';
+        XACC599999: Label 'DEPRECIABLE INVESTMENT RESERVES Total';
+        XACC600000: Label 'ACCOUNTS PAYABLE';
+        XACC601000: Label 'Accounts payable, incl.';
+        XACC601010: Label 'Accounts payable, rub.';
+        XACC601020: Label 'Issued prepayments, rub';
+        XACC601110: Label 'Accounts payable, currency.';
+        XACC601120: Label 'Issued prepayments, currency';
+        XACC601210: Label 'Accounts payable, y.e.';
+        XACC601220: Label 'Issued prepayments, y.e.';
+        XACC602000: Label 'Accounts payable under comission contracts';
+        XACC603000: Label 'Auxiliary account (transit)';
+        XACC604000: Label 'Bills issued as payment for goods';
+        XACC609000: Label 'In-house accounting';
+        XACC609999: Label 'ACCOUNTS PAYABLE Total';
+        XACC620000: Label 'ACCOUNTS RECEIVABLE';
+        XACC621000: Label 'Accounts receivable (d2d operations)';
+        XACC621010: Label 'Accounts receivable, rub';
+        XACC621020: Label 'Prepayments obtained, rub';
+        XACC621021: Label 'VAT on prepayments';
+        XACC621110: Label 'Accounts receivable, currency 1';
+        XACC621120: Label 'Accounts receivable, currency 2';
+        XACC621210: Label 'Accounts receivable, y.e. 1';
+        XACC621220: Label 'Accounts receivable, y.e. 2';
+        XACC622000: Label 'Bills received as payment for goods';
+        XACC623010: Label 'Accounts receivable under comission contracts';
+        XACC623020: Label 'Prepayments - consideration';
+        XACC629000: Label 'In-house accounting';
+        XACC629999: Label 'ACCOUNTS RECEIVABLE Total';
+        XACC630000: Label 'ALLOWANCE FOR DOUBTFUL ACCOUNTS';
+        XACC631000: Label 'Allowance for doubtful accounts';
+        XACC639999: Label 'ALLOWANCE FOR DOUBTFUL ACCOUNTS Total';
+        XACC660000: Label 'SHORT-TERM CREADITS AND LOANS';
+        XACC661100: Label 'Short-term credits, rub.';
+        XACC661110: Label '%% on short-term credits, rub.';
+        XACC661200: Label 'Short-term credits, currency';
+        XACC661210: Label '%% on short-term credits, currency';
+        XACC662100: Label 'Short-term loans, rub.';
+        XACC662110: Label '%% on short-term loans, rub.';
+        XACC662200: Label 'Short-term loans, currency';
+        XACC662210: Label '%% on short-term loans, currency';
+        XACC663000: Label 'Paper credits, incl';
+        XACC663100: Label 'Paper credits, rub.';
+        XACC663110: Label '%% on paper credits, rub.';
+        XACC663200: Label 'Paper credits, currency';
+        XACC663210: Label '%% on paper credits, currency';
+        XACC664000: Label 'Loan securities, incl.';
+        XACC664100: Label 'Loan securities, rub.';
+        XACC664110: Label '%% on Loan securities, rub.';
+        XACC664200: Label 'Loan securities, currency';
+        XACC664210: Label '%% on Loan securities, currency';
+        XACC669999: Label 'SHORT-TERM CREADITS AND LOANS Total';
+        XACC670000: Label 'LONG-TERM CREADITS AND LOANS';
+        XACC671100: Label 'Long-term credits, rub.';
+        XACC671110: Label '%% on long-term credits, rub.';
+        XACC671200: Label 'Long-term credits, currency';
+        XACC671210: Label '%% on long-term credits, currency';
+        XACC672100: Label 'Long-term loans, rub.';
+        XACC672110: Label '%% on long-term loans, rub.';
+        XACC672200: Label 'Long-term loans, currency';
+        XACC672210: Label '%% on long-term loans, currency';
+        XACC673000: Label 'Paper credits, incl';
+        XACC673100: Label 'Paper credits, rub.';
+        XACC673110: Label '%% on paper credits, rub.';
+        XACC673200: Label 'Paper credits, currency';
+        XACC673210: Label '%% on paper credits, currency';
+        XACC674000: Label 'Loan securities, incl.';
+        XACC674100: Label 'Loan securities, rub.';
+        XACC674110: Label '%% on Loan securities, rub.';
+        XACC674200: Label 'Loan securities, currency';
+        XACC674210: Label '%% on Loan securities, currency';
+        XACC679999: Label 'LONG-TERM CREADITS AND LOANS Total';
+        XACC680000: Label 'TAX AND DUTY ACCOUNTS';
+        XACC681000: Label 'Land tax';
+        XACC682000: Label 'Transport tax';
+        XACC683000: Label 'Profit tax';
+        XACC683010: Label 'PT remitted to federal budget';
+        XACC683020: Label 'PT remitted to regional budget';
+        XACC683100: Label 'Profit tax d2d, incl.';
+        XACC683110: Label 'Profit tax (cond. income/expenses)';
+        XACC683120: Label 'PT (constant assets and liabilities)';
+        XACC683130: Label 'PT (deferred assets)';
+        XACC683140: Label 'PT (deferred liabilities)';
+        XACC683200: Label 'Fines and penalties for PT';
+        XACC683300: Label 'Re-calculation of PT';
+        XACC684000: Label 'VAT, incl';
+        XACC684100: Label 'VAT remitted to federal budget';
+        XACC684200: Label 'VAT remitted to regional budget';
+        XACC684220: Label 'VAT on sales prepayments';
+        XACC684230: Label 'VAT on purchase prepayments';
+        XACC684300: Label 'VAT offset (accounts payable)';
+        XACC684310: Label 'VAT offset (tax agent)';
+        XACC684400: Label 'VAT on other incomes';
+        XACC684410: Label 'VAT on CMW for in-house consumption';
+        XACC684420: Label 'VAT on imported goods';
+        XACC684430: Label 'VAT of tax agent';
+        XACC684440: Label 'VAT on other incomes';
+        XACC684500: Label 'VAT fines';
+        XACC684600: Label 'VAT offsett for non-production purposes';
+        XACC685000: Label 'Physical person income tax, incl';
+        XACC685100: Label 'Physical person income tax (residents)';
+        XACC685200: Label 'Physical person income tax (non residents)';
+        XACC686000: Label 'Estate tax';
+        XACC687000: Label 'State duties and fees';
+        XACC688000: Label 'Excise';
+        XACC689000: Label 'Other taxes';
+        XACC689999: Label 'TAX AND DUTY ACCOUNTS Total';
+        XACC690000: Label 'SOCIAL INSURANCE ACCOUNTS';
+        XACC691000: Label 'Social insurance accounts, incl.';
+        XACC691100: Label 'Social insurance accounts: single social tax';
+        XACC691200: Label 'Social insurance accounts: injury insurance';
+        XACC692000: Label 'Pension fund, incl.';
+        XACC692200: Label 'PF insurance pension part';
+        XACC692300: Label 'PF accumulated pension part';
+        XACC693000: Label 'Obligitory medical insurance, incl.';
+        XACC693100: Label 'Payments to federal FOMI';
+        XACC693200: Label 'Payments to local FOMI';
+        XACC699999: Label 'SOCIAL INSURANCE ACCOUNTS Total';
+        XACC700000: Label 'PAYROLL PAYMENTS';
+        XACC701000: Label 'Salaries and wages';
+        XACC701100: Label 'Salaries and wages under contractor agreements';
+        XACC702000: Label 'Dividends paid to founders';
+        XACC709999: Label 'PAYROLL PAYMENTS Total';
+        XACC710000: Label 'ADVANCE HOLDER PAYMENTS';
+        XACC711000: Label 'Advance holder payments, rub.';
+        XACC712001: Label 'Advance holder payments, currency 1';
+        XACC712002: Label 'Advance holder payments, currency 2';
+        XACC712003: Label 'Advance holder payments, currency 3';
+        XACC719000: Label 'Auxiliary account for mutual settlement (transit)';
+        XACC719999: Label 'ADVANCE HOLDER PAYMENTS Total';
+        XACC730000: Label 'OTHER PERSONAL ACCOUNTS';
+        XACC731000: Label 'Issued loans';
+        XACC732000: Label 'Property damage';
+        XACC739000: Label 'Other operations';
+        XACC739999: Label 'OTHER PERSONAL ACCOUNTS Total';
+        XACC750000: Label 'FOUNDERS PAYMENTS';
+        XACC751000: Label 'Investments into authorised capital';
+        XACC752000: Label 'Income payments';
+        XACC759999: Label 'FOUNDERS PAYMENTS Totals';
+        XACC760000: Label 'DEBTORS AND CREDITORS ACCOUNTS';
+        XACC761000: Label 'Estate and personal insurance';
+        XACC762000: Label 'Claims incl.';
+        XACC762100: Label 'Vendor claims';
+        XACC762200: Label 'Customer claims';
+        XACC763000: Label 'Dividents due and incomes due';
+        XACC764000: Label 'Deponents';
+        XACC765000: Label 'Other debtors and creditors, incl.';
+        XACC765100: Label 'Securities` purchase contrants';
+        XACC765110: Label '%% on securities` purchase contrants';
+        XACC765200: Label 'Securities` sales contrants';
+        XACC765210: Label '%% on securities` sales contrants';
+        XACC765300: Label 'Accounting of expenses under comission contracts';
+        XACC765400: Label 'Non-interest loans';
+        XACC765500: Label 'Lease';
+        XACC765600: Label 'Other financial investments';
+        XACC765700: Label 'Contractor`s agreements';
+        XACC765990: Label 'Other';
+        XACC768000: Label 'VAT on issued prepayments';
+        XACC769000: Label 'Auxiliary account for mutual settlement (transit)';
+        XACC769999: Label 'DEBTORS AND CREDITORS ACCOUNTS Total';
+        XACC770000: Label 'DEFERRED TAX LIABILITIES';
+        XACC771000: Label 'Deferred tax liabilities';
+        XACC779999: Label 'DEFERRED TAX LIABILITIES Total';
+        XACC790000: Label 'IN-HOUSE ACCOUNTS';
+        XACC791000: Label 'Dedicated property';
+        XACC792000: Label 'On-going operations';
+        XACC793000: Label 'Trust managing contracts';
+        XACC799999: Label 'IN-HOUSE ACCOUNTS Total';
+        XACC800000: Label 'AUTHORISED  CAPITAL';
+        XACC801000: Label 'Authorised capital';
+        XACC802000: Label 'Share capital';
+        XACC809999: Label 'AUTHORISED  CAPITAL Total';
+        XACC810000: Label 'OWNED SHARES';
+        XACC811000: Label 'Owned shares';
+        XACC819999: Label 'OWNED SHARES Total';
+        XACC820000: Label 'CAPITAL RESERVES';
+        XACC821100: Label 'Reserve fund according regulation';
+        XACC821200: Label 'Reserve fund according company documents';
+        XACC829999: Label 'CAPITAL RESERVES Total';
+        XACC830000: Label 'SURPLUS CAPITAL';
+        XACC831000: Label 'Surplus capital';
+        XACC839999: Label 'SURPLUS CAPITAL Total';
+        XACC840000: Label 'RETAINED INCOME';
+        XACC841000: Label 'Retained income';
+        XACC849999: Label 'RETAINED INCOME Total';
+        XACC860000: Label 'TARGET FINANCING';
+        XACC861000: Label 'Target financing';
+        XACC869999: Label 'TARGET FINANCING Total';
+        XACC900000: Label 'SALES';
+        XACC901000: Label 'Sales, incl.';
+        XACC901110: Label 'Sales of goods VAT 20%';
+        XACC901120: Label 'Sales of goods VAT 10%';
+        XACC901130: Label 'Sales of goods VAT 0%';
+        XACC901140: Label 'Sales of goods VAT exempt';
+        XACC901210: Label 'Sales of jobs and services VAT 20%';
+        XACC901230: Label 'Sales of jobs and services VAT 0%';
+        XACC901240: Label 'Sales of jobs and services VAT exempt';
+        XACC901310: Label 'Sales of own production VAT 20%';
+        XACC901320: Label 'Sales of own production VAT 10%';
+        XACC901330: Label 'Sales of own production VAT 0%';
+        XACC901340: Label 'Sales of own production VAT exempt';
+        XACC902000: Label 'Cost of sales, incl.';
+        XACC902110: Label 'Cost of sold goods VAT 20%';
+        XACC902120: Label 'Cost of sold goods VAT 10%';
+        XACC902130: Label 'Cost of sold goods VAT 0%';
+        XACC902140: Label 'Cost of sold goods VAT exempt';
+        XACC902210: Label 'Cost of sold jobs and services VAT 20%';
+        XACC902230: Label 'Cost of sold jobs and services VAT 10%';
+        XACC902240: Label 'Cost of sold jobs and services VAT exempt';
+        XACC902310: Label 'Cost of own production VAT 20%';
+        XACC902320: Label 'Cost of own production VAT 10%';
+        XACC902330: Label 'Cost of own production VAT 0%';
+        XACC902340: Label 'Cost of own production VAT exempt';
+        XACC903000: Label 'VAT, incl.';
+        XACC903110: Label 'VAT on goods 20%';
+        XACC903120: Label 'VAT on goods 10%';
+        XACC903210: Label 'VAT on jobs and services 20%';
+        XACC903310: Label 'VAT on own production 20%';
+        XACC903320: Label 'VAT on own production 10%';
+        XACC904000: Label 'Excise';
+        XACC905000: Label 'Export duties';
+        XACC906000: Label 'Commercial expenses';
+        XACC907000: Label 'Executive expenses';
+        XACC909000: Label 'Sales gains and losses';
+        XACC909999: Label 'SALES Total';
+        XACC910000: Label 'OTHER INCOME AND EXPENSE';
+        XACC911000: Label 'Other income incl.';
+        XACC911100: Label 'Interest receivable (060), incl.';
+        XACC911101: Label '%% on deposits';
+        XACC911102: Label '%% on securities';
+        XACC911103: Label '%% on credits and loans';
+        XACC911200: Label 'Income of founders in other companies (080), incl.';
+        XACC911201: Label 'Share in authorized capital of other companies';
+        XACC911202: Label 'Profit from joint operations';
+        XACC911300: Label 'Other income (090), incl.';
+        XACC911301: Label 'from estate rented out';
+        XACC911302: Label 'from selling (disposal) of fixed assets';
+        XACC911303: Label 'from selling securities';
+        XACC911304: Label 'from selling legal claims';
+        XACC911305: Label 'from selling other estate';
+        XACC911306: Label 'Fines and penalties recognized';
+        XACC911307: Label 'Amends';
+        XACC911308: Label 'Accumulated earnings';
+        XACC911309: Label 'Accounts payable amortisation';
+        XACC911310: Label 'exchange differences';
+        XACC911311: Label 'exchange differences (y.e.)';
+        XACC911312: Label 'differences from purch./selling currency';
+        XACC911313: Label 'Restored reserves';
+        XACC911314: Label 'Gains from force-majeure';
+        XACC911315: Label 'Gratuitous assets received (except inventories)';
+        XACC911316: Label 'Gratuitous inventories received';
+        XACC911330: Label 'Other income';
+        XACC911390: Label 'Other income not intended for tax purposes';
+        XACC912000: Label 'Other expenses, incl.';
+        XACC912100: Label 'Interest payable (070), incl.';
+        XACC912101: Label '%% on deposits';
+        XACC912102: Label '%% on securities';
+        XACC912103: Label '%% on credits and loans';
+        XACC912104: Label '%% extra';
+        XACC912300: Label 'Other expenses (100), incl.';
+        XACC912301: Label 'from estate rented out';
+        XACC912302: Label 'from selling fixed assets';
+        XACC912303: Label 'from selling securities';
+        XACC912304: Label 'from selling legal claims';
+        XACC912305: Label 'from selling other estate';
+        XACC912306: Label 'fines and penalties payable  recognized';
+        XACC912307: Label 'amends';
+        XACC912308: Label 'accumulated earnings';
+        XACC912309: Label 'accounts receivable amortisation';
+        XACC912310: Label 'exchange differences';
+        XACC912311: Label 'exchange differences (y.e.)';
+        XACC912312: Label 'differences from purch./selling currency';
+        XACC912313: Label 'build up reserves';
+        XACC912314: Label 'losses from force-majeure';
+        XACC912315: Label 'gratuitous assets passed';
+        XACC912316: Label 'discount of assets';
+        XACC912317: Label 'lending agency services';
+        XACC912318: Label 'taxes, fees, payments';
+        XACC912319: Label 'taxes on accounts payable amortisation';
+        XACC912320: Label 'court and arbitrage fees';
+        XACC912321: Label 'charity';
+        XACC912322: Label 'cultural events';
+        XACC912330: Label 'other expenses (except inventories)';
+        XACC912331: Label 'other expenses (writing-off inventories)';
+        XACC912390: Label 'other expenses not for tax purposes';
+        XACC912391: Label 'other expenses (writing-off inv.) not for tax';
+        XACC912400: Label 'VAT on other taxable income';
+        XACC912410: Label 'VAT on selling fixed assets';
+        XACC912420: Label 'VAT on selling other property';
+        XACC912430: Label 'VAT not offset';
+        XACC912440: Label 'VAT on gratuitous inventories received';
+        XACC912450: Label 'VAT on accounts payable';
+        XACC912490: Label 'VAT on other taxable income';
+        XACC919000: Label 'Other income/expense balance Total';
+        XACC919999: Label 'OTHER INCOME AND EXPENSE Total';
+        XACC940000: Label 'SHORTAGES AND LOSSES FROM SPOILAGE';
+        XACC941000: Label 'Shortages and losses from spoilage';
+        XACC949999: Label 'SHORTAGES AND LOSSES FROM SPOILAGE Total';
+        XACC960000: Label 'LIABILITY RESERVES';
+        XACC961000: Label 'Reserves for deferrals';
+        XACC961020: Label 'Reserves for FA repair';
+        XACC961040: Label 'Reserves for warranty repair';
+        XACC961060: Label 'Reserves for holiday premium';
+        XACC969999: Label 'LIABILITY RESERVES Total';
+        XACC970000: Label 'DEFERRALS';
+        XACC971000: Label 'Deferrals < 1 year, incl.';
+        XACC971100: Label 'Deferrals < 1 year (HRP)';
+        XACC971200: Label 'Deferrals < 1 year (general journal)';
+        XACC971300: Label 'Deferrals < 1 year (within FE card)';
+        XACC972000: Label 'Deferrals > 1 year';
+        XACC972200: Label 'Deferrals > 1 year(general journal)';
+        XACC972300: Label 'Deferrals > 1 year (within FE card)';
+        XACC979999: Label 'DEFERRALS Total';
+        XACC980000: Label 'DEFERRED REVENUE';
+        XACC981000: Label 'Deferred revenue received';
+        XACC982000: Label 'Gratuitous earnings';
+        XACC983000: Label 'Earnings from former shortages';
+        XACC984000: Label 'Earnings from guilty in shortages';
+        XACC989999: Label 'DEFERRED REVENUE Total';
+        XACC990000: Label 'PROFITS AND LOSSES';
+        XACC991000: Label 'Profits (losses) from sales';
+        XACC992000: Label 'Other income and expenses balance';
+        XACC993000: Label 'Other expenses';
+        XACC994000: Label 'Profit tax, incl.';
+        XACC994100: Label 'Profit tax (cond. income/expenses)';
+        XACC994200: Label 'Constant tax assets';
+        XACC994250: Label 'Constant tax liabilities';
+        XACC994300: Label 'Fines  and penalties on profit tax';
+        XACC994400: Label 'Tax re-calculations';
+        XACC995100: Label 'Disposal of CTA';
+        XACC995200: Label 'Disposal of CTL';
+        XACC999000: Label 'Fiscal year profit calculation';
+        XACC999999: Label 'PROFITS AND LOSSES Total';
+        XACC_AD_G_CU: Label 'Sales exchange diff. gains';
+        XACC_AD_G_V: Label 'Purch. exchange diff. gains';
+        XACC_AD_L_CU: Label 'Sales exchange diff. losses';
+        XACC_AD_L_V: Label 'Purch. exchange diff. losses';
+        XACC_PR_G_CU: Label 'Cust. prepayment revaluation  gains';
+        XACC_PR_G_V: Label 'Vend. prepayment revaluation  gains';
+        XACC_PR_L_CU: Label 'Cust. prepayment revaluation  losses';
+        XACC_PR_L_V: Label 'Vend. prepayment revaluation  losses';
+        XACC_TAXACC: Label 'Off-balance accounts for TA';
+        XACC_TAXACC_BAL: Label 'Balance account for TA';
+        XACC_TAXDEPR_IA: Label 'TA Depreciation of IA';
+        XACC_TAXDEPR_1010: Label 'TA Depreciation of buildings';
+        XACC_TAXDEPR_1020: Label 'TA Depr. of construct. and transfer mechanisms';
+        XACC_TAXDEPR_1030: Label 'TA Depr. of  machines and equipment';
+        XACC_TAXDEPR_1040: Label 'TA Depr. of  vehicles';
+        XACC_TAXDEPR_1050: Label 'TA Depr. of manufacturing and household equipment';
+        XACC_TAXDEPR_1060: Label 'TA Depr. of plough cattle';
+        XACC_TAXDEPR_1070: Label 'TA Depr. of productive livestock';
+        XACC_TAXDEPR_1080: Label 'TA Depr. of perennial plantations';
+        XACC_TAXDEPR_1090: Label 'TA Depr. of other types';
+        XACC_0000: Label 'OFF-BALANCE ACCOUNTS';
+        XACC_0010: Label 'Fixed assets leased';
+        XACC_0011: Label 'Estate under leasing contract';
+        XACC_0020: Label 'Inventories under safekeeping';
+        XACC_0030: Label 'Materials received for recycling';
+        XACC_0040: Label 'Inventories received for commission trade';
+        XACC_0050: Label 'Equipments received for installation';
+        XACC_0060: Label 'Registered forms';
+        XACC_0070: Label 'Accounts receivable written-off';
+        XACC_0080: Label 'Provisions received';
+        XACC_0090: Label 'Provisions issued';
+        XACC_0100: Label 'FA accum. depreciation';
+        XACC_0110: Label 'FA leased';
+        XACC_0120: Label 'Housing accum. depreciation';
+        XACC_0130: Label 'Recreation Accum. depreciation';
+        XACC_0140: Label 'IA received for usage';
+        XACC_0150: Label 'Additional currency rounding';
+        XACC_9900: Label 'Bal. account for off-balance accounts';
+        XACC_9999: Label 'OFF-BALANCE ACCOUNTS Total';
+        XACC__1001: Label 'Beginning balance';
+        XACC__1002: Label 'Beginning balance (inventories)';
+        XACC__1009: Label 'Vendor off-balance accounts';
+        XBUSINESS: Label 'BUSINESS';
+        XPURCHASE: Label 'PURCHASE';
+
+    procedure InsertMiniAppData()
+    begin
+        DemoDataSetup.Get();
+        InsertData('00-0000', XACC000000, 1, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('01-0000', XACC010000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('01-1000', XACC011000, 2, 0, 0, '01-1000..01-1999', 0, '', '', '', '', false, 0);
+        InsertData('01-1010', XACC011010, 0, 0, 0, '', 0, '', XFA, '', XFA20, false, 0);
+        InsertData('01-1020', XACC011020, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1030', XACC011030, 0, 0, 0, '', 0, '', XFA, '', XFA20, false, 0);
+        InsertData('01-1040', XACC011040, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1060', XACC011060, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1070', XACC011070, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1080', XACC011080, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1090', XACC011090, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1100', XACC011100, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-1110', XACC011110, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2000', XACC012000, 2, 0, 0, '01-2000..01-2999', 0, '', '', '', '', false, 0);
+        InsertData('01-2010', XACC012010, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2020', XACC012020, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2030', XACC012030, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2040', XACC012040, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2060', XACC012060, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2070', XACC012070, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2080', XACC012080, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2090', XACC012090, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-2100', XACC012100, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-4000', XACC014000, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-5000', XACC015000, 0, 0, 0, '', 0, '', XFA, '', '', false, 0);
+        InsertData('01-9000', XACC019000, 0, 0, 0, '', 0, '', XFA, '', '', true, 0);
+        InsertData('01-9999', XACC019999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('02-0000', XACC020000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1000', XACC021000, 2, 0, 0, '02-1000..02-1999', 0, '', '', '', '', false, 0);
+        InsertData('02-1010', XACC021010, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1020', XACC021020, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1030', XACC021030, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1040', XACC021040, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1060', XACC021060, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1070', XACC021070, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1080', XACC021080, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-1090', XACC021090, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2000', XACC022000, 2, 0, 0, '02-2000..02-2999', 0, '', '', '', '', false, 0);
+        InsertData('02-2010', XACC022010, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2020', XACC022020, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2030', XACC022030, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2040', XACC022040, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2060', XACC022060, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2070', XACC022070, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2080', XACC022080, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-2090', XACC022090, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-4000', XACC024000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-5000', XACC025000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-6000', XACC026000, 2, 0, 0, '02-6000..02-6999', 0, '', '', '', '', false, 0);
+        InsertData('02-6100', XACC026100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-6200', XACC026200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-6300', XACC026300, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('02-9999', XACC029999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('05-0000', XACC050000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1000', XACC051000, 2, 0, 0, '05-1000..05-1999', 0, '', '', '', '', false, 0);
+        InsertData('05-1100', XACC051100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1200', XACC051200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1300', XACC051300, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1400', XACC051400, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-1500', XACC051500, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-9000', XACC059000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('05-9999', XACC059999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('08-0000', XACC080000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('08-1000', XACC081000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-2000', XACC082000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-3000', XACC083000, 2, 0, 0, '08-3000..08-3999', 0, '', '', '', '', false, 0);
+        InsertData('08-3400', XACC083400, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('08-4000', XACC084000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-4010', XACC084010, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-6000', XACC086000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('08-7000', XACC087000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-9000', XACC089000, 0, 0, 0, '', 0, '', XASSETSFA, '', XFA20, false, 0);
+        InsertData('08-9999', XACC089999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('09-0000', XACC090000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('09-1000', XACC091000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('09-1010', XACC091010, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('09-9999', XACC099999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('11-0000', XACC110000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('11-1000', XACC111000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('11-9999', XACC119999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('14-0000', XACC140000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('14-1000', XACC141000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('14-9999', XACC149999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('15-0000', XACC150000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('15-1000', XACC151000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('15-2000', XACC152000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('15-3000', XACC153000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('15-9999', XACC159999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('16-0000', XACC160000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('16-1000', XACC161000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('16-9999', XACC169999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('19-0000', XACC190000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-1000', XACC191000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-1100', XACC191100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-1200', XACC191200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-2000', XACC192000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-3000', XACC193000, 2, 0, 0, '19-3000..19-3399', 0, '', '', '', '', false, 0);
+        InsertData('19-3100', XACC193100, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-3200', XACC193200, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-3300', XACC193300, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-4000', XACC194000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-5000', XACC195000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('19-9999', XACC199999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('26-0000', XACC260000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('26-1000', XACC261000, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, '', XSERV20, true, 0);
+        InsertData('26-3000', XACC263000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-4000', XACC264000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-5000', XACC265000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-6000', XACC266000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-9000', XACC269000, 2, 0, 0, '26-9000..26-9998', 0, '', '', '', '', true, 0);
+        InsertData('26-9100', XACC269100, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9200', XACC269200, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9300', XACC269300, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9410', XACC269410, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9420', XACC269420, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9430', XACC269430, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9510', XACC269510, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9520', XACC269520, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9800', XACC269800, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('26-9900', XACC269900, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9995', XACC269995, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('26-9999', XACC269999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('28-0000', XACC280000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('28-1000', XACC281000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('28-9999', XACC289999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('29-0000', XACC290000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('29-1000', XACC291000, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, '', '', true, 0);
+        InsertData('29-9999', XACC299999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('41-0000', XACC410000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-1000', XACC411000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-2000', XACC412000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-3000', XACC413000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-4000', XACC414000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-9998', XACC419998, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('41-9999', XACC419999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('42-0000', XACC420000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('42-1000', XACC421000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('42-9999', XACC429999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('43-0000', XACC430000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('43-1000', XACC431000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('43-9998', XACC439998, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('43-3000', XACC433000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('43-9999', XACC439999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('44-0000', XACC440000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('44-1000', XACC441000, 2, 0, 0, '44-1000..44-1999', 0, '', '', '', '', false, 0);
+        InsertData('44-1100', XACC441100, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-1200', XACC441200, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2000', XACC442000, 2, 0, 0, '44-2000..44-2999', 0, '', '', '', '', false, 0);
+        InsertData('44-2100', XACC442100, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2200', XACC442200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('44-2300', XACC442300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('44-2400', XACC442400, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('44-2900', XACC442900, 2, 0, 0, '44-2900..44-2998', 0, '', '', '', '', true, 0);
+        InsertData('44-2910', XACC442910, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2920', XACC442920, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2930', XACC442930, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2940', XACC442940, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2941', XACC442941, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2942', XACC442942, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2951', XACC442951, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2952', XACC442952, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2961', XACC442961, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2962', XACC442962, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2980', XACC442980, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('44-2990', XACC442990, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-2995', XACC442995, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('44-9999', XACC449999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('45-0000', XACC450000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('45-1000', XACC451000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('45-9999', XACC459999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('46-0000', XACC460000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('46-1000', XACC461000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('46-9999', XACC469999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('50-0000', XACC500000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-1000', XACC501000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('50-1001', XACC501001, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-1002', XACC501002, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-1004', XACC501004, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-2000', XACC502000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-3000', XACC503000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('50-9999', XACC509999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('51-0000', XACC510000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('51-1001', XACC511001, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('51-1002', XACC511002, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('51-9999', XACC519999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('52-0000', XACC520000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-1000', XACC521000, 2, 0, 0, '52-1000..52-1999', 0, '', '', '', '', false, 0);
+        InsertData('52-1001', XACC521001, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-1002', XACC521002, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-2000', XACC522000, 2, 0, 0, '52-2000..52-2999', 0, '', '', '', '', false, 0);
+        InsertData('52-2001', XACC522001, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-2002', XACC522002, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('52-9999', XACC529999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('55-0000', XACC550000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('55-1000', XACC551000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('55-2000', XACC552000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('55-3010', XACC553010, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('55-3020', XACC553020, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('55-4000', XACC554000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('55-9999', XACC559999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('57-0000', XACC570000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('57-1000', XACC571000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('57-2000', XACC572000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('57-9999', XACC579999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('58-0000', XACC580000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('58-1000', XACC581000, 2, 0, 0, '58-1000..58-1999', 0, '', '', '', '', false, 0);
+        InsertData('58-1110', XACC581110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-1120', XACC581120, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('58-1210', XACC581210, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-1220', XACC581220, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-2000', XACC582000, 2, 0, 0, '58-2000..58-2999', 0, '', '', '', '', false, 0);
+        InsertData('58-2100', XACC582100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-2200', XACC582200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-3000', XACC583000, 2, 0, 0, '58-3000..58-3999', 0, '', '', '', '', false, 0);
+        InsertData('58-3100', XACC583100, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('58-3200', XACC583200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-4010', XACC584010, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-4020', XACC584020, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-5000', XACC585000, 2, 0, 0, '58-5000..58-5999', 0, '', '', '', '', false, 0);
+        InsertData('58-5100', XACC585100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-5200', XACC585200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-6000', XACC586000, 2, 0, 0, '58-6000..58-6999', 0, '', '', '', '', false, 0);
+        InsertData('58-6110', XACC586110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-6120', XACC586120, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('58-9999', XACC589999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('59-0000', XACC590000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('59-1000', XACC591000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('59-2000', XACC592000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('59-9999', XACC599999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('60-0000', XACC600000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('60-1000', XACC601000, 2, 0, 0, '60-1000..60-1999', 0, '', '', '', '', false, 2);
+        InsertData('60-1010', XACC601010, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-1020', XACC601020, 0, 0, 0, '', 2, '', '', '', '', false, 2);
+        InsertData('60-1110', XACC601110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-1120', XACC601120, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-1210', XACC601210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-1220', XACC601220, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-2000', XACC602000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-3000', XACC603000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('60-4000', XACC604000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('60-9000', XACC609000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('60-9999', XACC609999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('62-0000', XACC620000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('62-1000', XACC621000, 2, 0, 0, '62-1000..62-1999', 0, '', '', '', '', false, 1);
+        InsertData('62-1010', XACC621010, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-1020', XACC621020, 0, 0, 0, '', 2, '', '', XPURCHASE, XGOODS20, false, 1);
+        InsertData('62-1021', XACC621021, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-1110', XACC621110, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-1120', XACC621120, 0, 0, 0, '', 2, '', '', XPURCHASE, XGOODS20, false, 1);
+        InsertData('62-1210', XACC621210, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-1220', XACC621220, 0, 0, 0, '', 2, '', '', XPURCHASE, XGOODS20, false, 1);
+        InsertData('62-2000', XACC622000, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-3010', XACC623010, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-3020', XACC623020, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('62-9000', XACC629000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('62-9999', XACC629999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('63-0000', XACC630000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('63-1000', XACC631000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('63-9999', XACC639999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('66-0000', XACC660000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('66-1100', XACC661100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-1110', XACC661110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-1200', XACC661200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-1210', XACC661210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-2100', XACC662100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-2110', XACC662110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-2200', XACC662200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-2210', XACC662210, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('66-3000', XACC663000, 2, 0, 0, '66-3000..66-3999', 0, '', '', '', '', false, 0);
+        InsertData('66-3100', XACC663100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-3110', XACC663110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-3200', XACC663200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-3210', XACC663210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-4000', XACC664000, 2, 0, 0, '66-4000..66-4999', 0, '', '', '', '', false, 0);
+        InsertData('66-4100', XACC664100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-4110', XACC664110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-4200', XACC664200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-4210', XACC664210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('66-9999', XACC669999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('67-0000', XACC670000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('67-1100', XACC671100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-1110', XACC671110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-1200', XACC671200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-1210', XACC671210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-2100', XACC672100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-2110', XACC672110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-2200', XACC672200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-2210', XACC672210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-3000', XACC673000, 2, 0, 0, '67-3000..67-3999', 0, '', '', '', '', false, 0);
+        InsertData('67-3100', XACC673100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-3110', XACC673110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-3200', XACC673200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-3210', XACC673210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-4000', XACC674000, 2, 0, 0, '67-4000..67-4999', 0, '', '', '', '', false, 0);
+        InsertData('67-4100', XACC674100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-4110', XACC674110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-4200', XACC674200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-4210', XACC674210, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('67-9999', XACC679999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('68-0000', XACC680000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('68-1000', XACC681000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-2000', XACC682000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-3000', XACC683000, 2, 0, 0, '68-3000..68-3999', 0, '', '', '', '', false, 0);
+        InsertData('68-3010', XACC683010, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-3020', XACC683020, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-3100', XACC683100, 2, 0, 0, '68-3100..68-3149', 0, '', '', '', '', false, 0);
+        InsertData('68-3110', XACC683110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-3120', XACC683120, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-3130', XACC683130, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-3140', XACC683140, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-3200', XACC683200, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-3300', XACC683300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4000', XACC684000, 2, 0, 0, '68-4000..68-4999', 0, '', '', '', '', false, 0);
+        InsertData('68-4100', XACC684100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-4200', XACC684200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4220', XACC684220, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('68-4230', XACC684230, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('68-4300', XACC684300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4310', XACC684310, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4400', XACC684400, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4410', XACC684410, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-4430', XACC684430, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-4440', XACC684440, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-4500', XACC684500, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-4600', XACC684600, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('68-5000', XACC685000, 2, 0, 0, '68-5000..68-5999', 0, '', '', '', '', false, 2);
+        InsertData('68-5100', XACC685100, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-5200', XACC685200, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('68-6000', XACC686000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-7000', XACC687000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-8000', XACC688000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-9000', XACC689000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('68-9999', XACC689999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('69-0000', XACC690000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('69-1000', XACC691000, 2, 0, 0, '69-1000..69-1999', 0, '', '', '', '', false, 0);
+        InsertData('69-1100', XACC691100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-1200', XACC691200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-2000', XACC692000, 2, 0, 0, '69-2000..69-2999', 0, '', '', '', '', false, 0);
+        InsertData('69-2200', XACC692200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-2300', XACC692300, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-3000', XACC693000, 2, 0, 0, '69-3000..69-3999', 0, '', '', '', '', false, 0);
+        InsertData('69-3100', XACC693100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-3200', XACC693200, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('69-9999', XACC699999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('70-0000', XACC700000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('70-1000', XACC701000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('70-1100', XACC701100, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('70-2000', XACC702000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('70-9999', XACC709999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('71-0000', XACC710000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('71-1000', XACC711000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('71-2001', XACC712001, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('71-2002', XACC712002, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('71-2003', XACC712003, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('71-9000', XACC719000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('71-9999', XACC719999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('73-0000', XACC730000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('73-1000', XACC731000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('73-2000', XACC732000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('73-9000', XACC739000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('73-9999', XACC739999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('75-0000', XACC750000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('75-1000', XACC751000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('75-2000', XACC752000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('75-9999', XACC759999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('76-0000', XACC760000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('76-1000', XACC761000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-2000', XACC762000, 2, 0, 0, '76-2000..76-2999', 0, '', '', '', '', false, 0);
+        InsertData('76-2100', XACC762100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-2200', XACC762200, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('76-3000', XACC763000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-4000', XACC764000, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5000', XACC765000, 2, 0, 0, '76-5000..76-5999', 0, '', '', '', '', false, 0);
+        InsertData('76-5100', XACC765100, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5110', XACC765110, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5200', XACC765200, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('76-5210', XACC765210, 0, 0, 0, '', 0, '', '', '', '', false, 1);
+        InsertData('76-5300', XACC765300, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5400', XACC765400, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5500', XACC765500, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5600', XACC765600, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5700', XACC765700, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+        InsertData('76-5990', XACC765990, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('76-8000', XACC768000, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('76-9000', XACC769000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('76-9999', XACC769999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('77-0000', XACC770000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('77-1000', XACC771000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('77-9999', XACC779999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('79-0000', XACC790000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('79-1000', XACC791000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('79-2000', XACC792000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('79-3000', XACC793000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('79-9999', XACC799999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('80-0000', XACC800000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('80-1000', XACC801000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('80-2000', XACC802000, 0, 0, 0, '', 0, '', '', '', '', true, 2);
+        InsertData('80-9999', XACC809999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('81-0000', XACC810000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('81-1000', XACC811000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('81-9999', XACC819999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('82-0000', XACC820000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('82-1100', XACC821100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('82-1200', XACC821200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('82-9999', XACC829999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('83-0000', XACC830000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('83-1000', XACC831000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('83-9999', XACC839999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('84-0000', XACC840000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('84-1000', XACC841000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('84-9999', XACC849999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('86-0000', XACC860000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('86-1000', XACC861000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('86-9999', XACC869999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('90-0000', XACC900000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-1000', XACC901000, 2, 0, 0, '90-1000..90-1999', 0, '', '', '', '', false, 0);
+        InsertData('90-1110', XACC901110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1120', XACC901120, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1130', XACC901130, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1140', XACC901140, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1210', XACC901210, 0, 0, 0, '', 2, XBUSINESS, XSERV20, XPURCHASE, XSERV20, true, 0);
+        InsertData('90-1310', XACC901310, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1320', XACC901320, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1330', XACC901330, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-1340', XACC901340, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2000', XACC902000, 2, 0, 0, '90-2000..90-2999', 0, '', '', '', '', false, 0);
+        InsertData('90-2110', XACC902110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2120', XACC902120, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2130', XACC902130, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2140', XACC902140, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2210', XACC902210, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2230', XACC902230, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2240', XACC902240, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-2310', XACC902310, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2320', XACC902320, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2330', XACC902330, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-2340', XACC902340, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-3000', XACC903000, 2, 0, 0, '90-3000..90-3999', 0, '', '', '', '', false, 0);
+        InsertData('90-3110', XACC903110, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-3120', XACC903120, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-3210', XACC903210, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-3310', XACC903310, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-3320', XACC903320, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('90-4000', XACC904000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-5000', XACC905000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-6000', XACC906000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-7000', XACC907000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-9000', XACC909000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('90-9999', XACC909999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('91-0000', XACC910000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('91-1000', XACC911000, 2, 0, 0, '91-1000..91-1999', 0, '', '', '', '', false, 0);
+        InsertData('91-1100', XACC911100, 2, 0, 0, '91-1100..91-1199', 0, '', '', '', '', false, 0);
+        InsertData('91-1101', XACC911101, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1102', XACC911102, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1103', XACC911103, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1200', XACC911200, 2, 0, 0, '91-1200..91-1299', 0, '', '', '', '', false, 0);
+        InsertData('91-1201', XACC911201, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1202', XACC911202, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1300', XACC911300, 2, 0, 0, '91-1300..91-1399', 0, '', '', '', '', false, 0);
+        InsertData('91-1301', XACC911301, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1302', XACC911302, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1303', XACC911303, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1304', XACC911304, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1305', XACC911305, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1306', XACC911306, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1307', XACC911307, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1308', XACC911308, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1309', XACC911309, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1310', XACC911310, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1311', XACC911311, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1312', XACC911312, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1313', XACC911313, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1314', XACC911314, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1315', XACC911315, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1316', XACC911316, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-1330', XACC911330, 0, 0, 0, '', 0, '', XEXPENSES, '', XSERV20, true, 0);
+        InsertData('91-1390', XACC911390, 0, 0, 0, '', 0, '', XEXPENSES, '', XSERV20, true, 0);
+        InsertData('91-2000', XACC912000, 2, 0, 0, '91-2000..91-2999', 0, '', '', '', '', false, 0);
+        InsertData('91-2100', XACC912100, 2, 0, 0, '91-2100..91-2199', 0, '', '', '', '', false, 0);
+        InsertData('91-2101', XACC912101, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2102', XACC912102, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2103', XACC912103, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2104', XACC912104, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2300', XACC912300, 2, 0, 0, '91-2300..91-2399', 0, '', '', '', '', false, 0);
+        InsertData('91-2301', XACC912301, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2302', XACC912302, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2303', XACC912303, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2304', XACC912304, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2305', XACC912305, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2306', XACC912306, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2307', XACC912307, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2308', XACC912308, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2309', XACC912309, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2310', XACC912310, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2311', XACC912311, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2312', XACC912312, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2313', XACC912313, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2314', XACC912314, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2315', XACC912315, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2316', XACC912316, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2317', XACC912317, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2318', XACC912318, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2319', XACC912319, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2320', XACC912320, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2321', XACC912321, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2322', XACC912322, 0, 0, 0, '', 0, '', '', '', XSERV20, true, 0);
+        InsertData('91-2330', XACC912330, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('91-2331', XACC912331, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('91-2390', XACC912390, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('91-2391', XACC912391, 0, 0, 0, '', 1, XBUSINESS, XEXPENSES, XPURCHASE, XSERV20, true, 0);
+        InsertData('91-2400', XACC912400, 2, 0, 0, '91-2400..91-2499', 0, '', '', '', '', true, 0);
+        InsertData('91-2410', XACC912410, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2420', XACC912420, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2430', XACC912430, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2440', XACC912440, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2450', XACC912450, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-2490', XACC912490, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-9000', XACC919000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('91-9999', XACC919999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('94-0000', XACC940000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('94-1000', XACC941000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('94-9999', XACC949999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('96-0000', XACC960000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('96-1000', XACC961000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('96-1020', XACC961020, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('96-1040', XACC961040, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('96-1060', XACC961060, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('96-9999', XACC969999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('98-0000', XACC980000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('98-1000', XACC981000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('98-2000', XACC982000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('98-3000', XACC983000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('98-4000', XACC984000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('98-9999', XACC989999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('99-0000', XACC990000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-0100', XACC991000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0200', XACC992000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0300', XACC993000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0400', XACC994000, 2, 0, 0, '99-0400..99-0499', 0, '', '', '', '', true, 0);
+        InsertData('99-0410', XACC994100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0420', XACC994200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0425', XACC994250, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0430', XACC994300, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0440', XACC994400, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0510', XACC995100, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0520', XACC995200, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0530', XACC999000, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-0999', XACC999999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('99-1000', XACC_0000, 3, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1001', XACC__1001, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-1002', XACC__1002, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-1009', XACC__1009, 0, 0, 0, '', 0, '', '', '', '', false, 2);
+
+        InsertData('99-1020', XACC_0020, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1030', XACC_0030, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1040', XACC_0040, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1050', XACC_0050, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1060', XACC_0060, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+        InsertData('99-1070', XACC_0070, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1080', XACC_0080, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1090', XACC_0090, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1110', XACC_0110, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1120', XACC_0120, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1130', XACC_0130, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1150', XACC_0150, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1190', XACC_9900, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-1999', XACC_9999, 4, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('99-5000', XACC_TAXACC, 1, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5010', XACC_PR_G_CU, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5020', XACC_PR_G_V, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5030', XACC_PR_L_CU, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5040', XACC_PR_L_V, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+
+        InsertData('99-5050', XACC_AD_G_CU, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5060', XACC_AD_G_V, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5070', XACC_AD_L_CU, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5080', XACC_AD_L_V, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-5090', XACC_TAXACC_BAL, 0, 0, 0, '', 0, '', '', '', '', true, 0);
+
+        InsertData('99-6010', XACC_TAXDEPR_1010, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6020', XACC_TAXDEPR_1020, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6030', XACC_TAXDEPR_1030, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6040', XACC_TAXDEPR_1040, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6050', XACC_TAXDEPR_1050, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6060', XACC_TAXDEPR_1060, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6070', XACC_TAXDEPR_1070, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6080', XACC_TAXDEPR_1080, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6090', XACC_TAXDEPR_1090, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        InsertData('99-6095', XACC_TAXDEPR_IA, 0, 0, 0, '', 0, '', '', '', '', false, 0);
+        GLAccIndent.Indent();
+    end;
+
+    procedure InsertData(AccountNo: Code[20]; AccountName: Text[50]; AccountType: Option; IncomeBalance: Option; NoOfBlankLines: Integer; Totaling: Text[30]; GenPostingType: Option; GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; VATGenPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; DirectPosting: Boolean; SourceType: Integer)
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.Init();
+        GLAccount.Validate("No.", Adjust.Convert(AccountNo));
+        GLAccount.Validate(Name, AccountName);
+        GLAccount.Validate("Account Type", AccountType);
+        if GLAccount."Account Type" = GLAccount."Account Type"::Posting then
+            GLAccount.Validate("Direct Posting", DirectPosting);
+        GLAccount.Validate("Income/Balance", "G/L Account Report Type".FromInteger(IncomeBalance));
+        case AccountNo of
+            '50-1000':
+                GLAccount."Reconciliation Account" := true;
+        end;
+        GLAccount.Validate("No. of Blank Lines", NoOfBlankLines);
+        if Totaling <> '' then
+            GLAccount.Validate(Totaling, Totaling);
+        if GenPostingType > 0 then
+            GLAccount.Validate("Gen. Posting Type", GenPostingType);
+        if GenBusPostingGroup <> '' then
+            GLAccount.Validate("Gen. Bus. Posting Group", GenBusPostingGroup);
+        if GenProdPostingGroup <> '' then
+            GLAccount.Validate("Gen. Prod. Posting Group", GenProdPostingGroup);
+        if VATGenPostingGroup <> '' then
+            GLAccount.Validate("VAT Bus. Posting Group", VATGenPostingGroup);
+        if VATProdPostingGroup <> '' then
+            GLAccount.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
+        GLAccount.Validate("Source Type", SourceType);
+        GLAccount."Search Name" := ''; // FIX for Russian account names
+        GLAccount.Insert();
+    end;
+
+    procedure AddCategoriesToGLAccounts()
+    var
+        GLAccountCategory: Record "G/L Account Category";
+    begin
+        if GLAccountCategory.IsEmpty() then
+            exit;
+
+        GLAccountCategory.SetRange("Parent Entry No.", 0);
+        if GLAccountCategory.FindSet() then
+            repeat
+                AssignCategoryToChartOfAccounts(GLAccountCategory);
+                AssignCategoryToLocalChartOfAccounts(GLAccountCategory);
+            until GLAccountCategory.Next() = 0;
+
+        GLAccountCategory.SetFilter("Parent Entry No.", '<>%1', 0);
+        if GLAccountCategory.FindSet() then
+            repeat
+                AssignSubcategoryToChartOfAccounts(GLAccountCategory);
+                AssignSubcategoryToLocalChartOfAccounts(GLAccountCategory);
+            until GLAccountCategory.Next() = 0;
+    end;
+
+    procedure AssignCategoryToChartOfAccounts(GLAccountCategory: Record "G/L Account Category")
+    begin
+        case GLAccountCategory."Account Category" of
+            GLAccountCategory."Account Category"::Assets:
+                UpdateGLAccounts(GLAccountCategory, '991002', '992999');
+            GLAccountCategory."Account Category"::Liabilities:
+                UpdateGLAccounts(GLAccountCategory, '995000', '995997');
+            GLAccountCategory."Account Category"::Equity:
+                UpdateGLAccounts(GLAccountCategory, '993100', '994999');
+            GLAccountCategory."Account Category"::Income:
+                begin
+                    UpdateGLAccounts(GLAccountCategory, '996100', '996995');
+                    UpdateGLAccounts(GLAccountCategory, '999100', '999190');
+                    UpdateGLAccounts(GLAccountCategory, '999310', '999310');
+                    UpdateGLAccounts(GLAccountCategory, '999330', '999330');
+                    UpdateGLAccounts(GLAccountCategory, '999410', '999410');
+                end;
+            GLAccountCategory."Account Category"::"Cost of Goods Sold":
+                begin
+                    UpdateGLAccounts(GLAccountCategory, '997100', '997995');
+                    UpdateGLAccounts(GLAccountCategory, '997705', '997795');
+                end;
+            GLAccountCategory."Account Category"::Expense:
+                begin
+                    UpdateGLAccounts(GLAccountCategory, '998000', '998910');
+                    UpdateGLAccounts(GLAccountCategory, '999320', '999320');
+                    UpdateGLAccounts(GLAccountCategory, '999340', '999340');
+                end;
+        end;
+    end;
+
+    procedure AssignSubcategoryToChartOfAccounts(GLAccountCategory: Record "G/L Account Category")
+    var
+        GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
+    begin
+        case GLAccountCategory.Description of
+            GLAccountCategoryMgt.GetCash():
+                UpdateGLAccounts(GLAccountCategory, '992900', '992990');
+            GLAccountCategoryMgt.GetAR():
+                begin
+                    UpdateGLAccounts(GLAccountCategory, '992300', '992390');
+                    UpdateGLAccounts(GLAccountCategory, '995620', '995631');
+                end;
+            GLAccountCategoryMgt.GetPrepaidExpenses():
+                begin
+                    UpdateGLAccounts(GLAccountCategory, '992200', '992200');
+                    UpdateGLAccounts(GLAccountCategory, '992400', '992440');
+                end;
+            GLAccountCategoryMgt.GetInventory():
+                UpdateGLAccounts(GLAccountCategory, '992100', '992190');
+            GLAccountCategoryMgt.GetEquipment():
+                UpdateGLAccounts(GLAccountCategory, '991003', '991395');
+            GLAccountCategoryMgt.GetAccumDeprec():
+                UpdateGLAccounts(GLAccountCategory, '991140', '991140');
+            GLAccountCategoryMgt.GetCurrentLiabilities():
+                begin
+                    UpdateGLAccounts(GLAccountCategory, '995300', '995611');
+                    UpdateGLAccounts(GLAccountCategory, '995700', '995995');
+                    UpdateGLAccounts(GLAccountCategory, '994010', '994010');
+                end;
+            GLAccountCategoryMgt.GetPayrollLiabilities():
+                UpdateGLAccounts(GLAccountCategory, '995830', '995830');
+            GLAccountCategoryMgt.GetLongTermLiabilities():
+                UpdateGLAccounts(GLAccountCategory, '995100', '995290');
+            GLAccountCategoryMgt.GetCommonStock():
+                UpdateGLAccounts(GLAccountCategory, '993110', '993110');
+            GLAccountCategoryMgt.GetRetEarnings():
+                UpdateGLAccounts(GLAccountCategory, '993120', '993120');
+            GLAccountCategoryMgt.GetDistrToShareholders():
+                UpdateGLAccounts(GLAccountCategory, '993100', '993100');
+            GLAccountCategoryMgt.GetIncomeService():
+                UpdateGLAccounts(GLAccountCategory, '996410', '996955');
+            GLAccountCategoryMgt.GetIncomeProdSales():
+                UpdateGLAccounts(GLAccountCategory, '996105', '996295');
+            GLAccountCategoryMgt.GetIncomeSalesDiscounts():
+                UpdateGLAccounts(GLAccountCategory, '996910', '996910');
+            GLAccountCategoryMgt.GetIncomeSalesReturns():
+                ;
+            GLAccountCategoryMgt.GetCOGSLabor():
+                UpdateGLAccounts(GLAccountCategory, '997480', '997793');
+            GLAccountCategoryMgt.GetCOGSMaterials():
+                UpdateGLAccounts(GLAccountCategory, '997100', '997295');
+            GLAccountCategoryMgt.GetRentExpense():
+                ;
+            GLAccountCategoryMgt.GetAdvertisingExpense():
+                UpdateGLAccounts(GLAccountCategory, '998410', '998420');
+            GLAccountCategoryMgt.GetInterestExpense():
+                UpdateGLAccounts(GLAccountCategory, '999200', '999290');
+            GLAccountCategoryMgt.GetFeesExpense():
+                ;
+            GLAccountCategoryMgt.GetInsuranceExpense():
+                ;
+            GLAccountCategoryMgt.GetPayrollExpense():
+                UpdateGLAccounts(GLAccountCategory, '998700', '998790');
+            GLAccountCategoryMgt.GetBenefitsExpense():
+                ;
+            GLAccountCategoryMgt.GetRepairsExpense():
+                UpdateGLAccounts(GLAccountCategory, '998530', '998530');
+            GLAccountCategoryMgt.GetUtilitiesExpense():
+                UpdateGLAccounts(GLAccountCategory, '998100', '998240');
+            GLAccountCategoryMgt.GetOtherIncomeExpense():
+                begin
+                    UpdateGLAccounts(GLAccountCategory, '998600', '998690');
+                    UpdateGLAccounts(GLAccountCategory, '999420', '999420');
+                end;
+            GLAccountCategoryMgt.GetTaxExpense():
+                UpdateGLAccounts(GLAccountCategory, '999510', '999510');
+        end;
+    end;
+
+    local procedure UpdateGLAccounts(GLAccountCategory: Record "G/L Account Category"; FromGLAccountNo: Code[20]; ToGLAccountNo: Code[20])
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if not TryGetGLAccountNoRange(GLAccount, FromGLAccountNo, ToGLAccountNo) then
+            exit;
+
+        GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", false);
+        GLAccount.ModifyAll("Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
+    end;
+
+    [TryFunction]
+    local procedure TryGetGLAccountNoRange(var GLAccount: Record "G/L Account"; FromGLAccountNo: Code[20]; ToGLAccountNo: Code[20])
+    var
+        MakeAdjustments: Codeunit "Make Adjustments";
+    begin
+        GLAccount.SetRange("No.", MakeAdjustments.Convert(FromGLAccountNo), MakeAdjustments.Convert(ToGLAccountNo));
+    end;
+
+    local procedure AssignCategoryToLocalChartOfAccounts(GLAccountCategory: Record "G/L Account Category")
+    begin
+        GLAccountCategory.Find();
+        // Reserved for local chart of accounts
+    end;
+
+    local procedure AssignSubcategoryToLocalChartOfAccounts(GLAccountCategory: Record "G/L Account Category")
+    begin
+        GLAccountCategory.Find();
+        // Reserved for local chart of accounts
+    end;
+}
+

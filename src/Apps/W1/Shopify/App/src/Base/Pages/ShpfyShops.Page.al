@@ -74,4 +74,12 @@ page 30102 "Shpfy Shops"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        ShopMgt: Codeunit "Shpfy Shop Mgt.";
+    begin
+        ShopMgt.SendBelgianLocalizationNotification();
+        ShopMgt.SendNorthAmericaLocalizationNotification();
+    end;
 }

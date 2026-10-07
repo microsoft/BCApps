@@ -11,8 +11,8 @@ page 37016 "Purchases by Item"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases by Item';
-    AboutTitle = 'About Purchases by Item';
+    Caption = 'Purchases by Item (Power BI)';
+    AboutTitle = 'About Purchases by Item (Power BI)';
     AboutText = 'The Purchases by Item report breaks down procurement performance by item, highlighting metrics such as Purchase Amount, Purchase Quantity. The Treemap visualizes the relative size and contribution of each item to the whole, making it easy to identify the largest or smallest purchases at a glance.';
 
     layout

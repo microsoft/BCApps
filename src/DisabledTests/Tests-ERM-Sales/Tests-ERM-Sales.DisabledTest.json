@@ -1,0 +1,4787 @@
+[
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "BatchPostingWithErrorsShowJobQueueErrorsBackground"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "PostingPostingNoConflictErrorHandling"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "PostingReturnReceiptNoConflictErrorHandling"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "PostingShippingNoConflictErrorHandling"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "SalesOrderShouldNotThrowErrorWhenCampaignNoIsUpdated"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T001_PostingDateIsInNotAllowedPeriodInGLSetup"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T002_PostingDateIsInNotAllowedPeriodInUserSetup"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T011_GenPostingSetupIsBlocked"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T012_VATPostingSetupIsBlocked"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T013_TwoLinesWithBlockedPostingSetup"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T1002_PostingDateIsInNotAllowedPeriodInGenJnlTemplate"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T900_PreviewWithOneLoggedAndOneDirectError"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T940_BatchPostingWithOneLoggedAndOneDirectError"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "T950_BatchPostingWithOneLoggedAndOneDirectErrorBackground"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "VerifyPostShipmentForSpecialOrdersWithReservationsAndOneNonInventoryItem"
+  },
+  {
+    "codeunitId": 132501,
+    "codeunitName": "Sales Document Posting Errors",
+    "method": "VerifyPostShipmentForSpecialOrdersWithReservationsAndOneServiceItem"
+  },
+  {
+    "codeunitId": 132940,
+    "codeunitName": "External Doc. No. Tests-Sales",
+    "method": "ExternalDocNoNotificationForCrMemo"
+  },
+  {
+    "codeunitId": 132940,
+    "codeunitName": "External Doc. No. Tests-Sales",
+    "method": "ExternalDocNoNotificationForInvoice"
+  },
+  {
+    "codeunitId": 132940,
+    "codeunitName": "External Doc. No. Tests-Sales",
+    "method": "ExternalDocNoNotificationForOrder"
+  },
+  {
+    "codeunitId": 134032,
+    "codeunitName": "ERM Customer Date Compression",
+    "method": "DateCompressionByMonth"
+  },
+  {
+    "codeunitId": 134032,
+    "codeunitName": "ERM Customer Date Compression",
+    "method": "DateCompressionByWeek"
+  },
+  {
+    "codeunitId": 134032,
+    "codeunitName": "ERM Customer Date Compression",
+    "method": "DateCompressionByYear"
+  },
+  {
+    "codeunitId": 134032,
+    "codeunitName": "ERM Customer Date Compression",
+    "method": "UnapplyDateCompressCustEntry"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "BlanketOrderSalesOrderAction"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "BlanketOrderSalesOrderActionErr"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "BlanketSalesOrderQtyShipFullPost"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "BlanketSalesOrderQtyShipZeroPartialPost"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "BlanketSalesOrderToSalesOrderRecalculateInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "CreateSalesOrderFromBlanketOrderWithItemCharge"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "CrMemoFromBlanketOrderByCopyDocument"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "CrMemoFromBlanketOrderByGetDocLinesToReverse"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DeleteSalesBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DeletionErrorSalesBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DoNotCheckForBlockedItemVariantWhenQtyToShipZero"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DoNotCheckForBlockedItemWhenQtyToShipZero"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "ExtTextOnSalesBlnktOrd"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "LinkingSpecialOrderSalesOrderToBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "LocationOnSalesBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "PartialShipSalesBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "PostSecondSalesInvoiceByCopyDocumentRecalculateNo"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "ReturnOrderFromBlanketOrderByCopyDocument"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "ReturnOrderFromBlanketOrderByGetDocLinesToReverse"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesBlanketOrderContactEditableAfterCustomerSelected"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesBlanketOrderCreation"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesBlanketOrderReport"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesBlanketOrderUsingCopyDocument"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesCreditMemoFrmBlnketOrdrReference"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesInvoiceAfterCrMemoFromBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesInvoiceAfterCrMemoWithManuallySetBlanketFieldsFromBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesOrderCreationFromBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesOrderFromBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesOrderFromSalesBlanketOrderWithPostingDateBlank"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesOrderUnitPriceFromBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SalesOrdrInvDiscFrmBlnketOrdr"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "SecondSalesInvoiceByCopyDocumentRecalculateYes"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "VATAmountOnSalesBlanketOrder"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "VerifyDropShipmentMustBeTrueInBlanketSalesOrderLineByCopyDocument"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "VerifySpecialOrderMustBeTrueInBlanketSalesOrderLineByCopyDocument"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "VerifyUnitPriceOnSalesLineIsNotChangedOnUpdatQtyForSalesOrderRelatedToBlanketOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "AddNonInventoryItemToShippingAdviceCompleteSalesOrderWithExistingPick"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "AmountInclVATContainsVATDifferenceInOpenSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "AmountInclVATContainsVATDifferenceInOpenSalesOrderNM"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "BalanceLCYOnCustomer"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "BaseValuesAreRoundedWithRoundingPrecisionOnSalesOrderLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "BaseValuesAreRoundedWithRoundingPrecisionSpecifiedOnSalesOrderLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "BaseValuesAreRoundedWithRoundingPrecisionUnspecifiedOnSalesOrderLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "BatchPostSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "BatchPostSalesOrderBackground"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "BinCodeNotAllowedForNonInventoryItems"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CheckNoErrorOnDeletionOfChargeItemLineInSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CheckNoOverFlowErrorExistOnSalesLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CheckNotHandlerCreationSalesOrderForItem"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CheckStatusOpenErrorWithReleasedSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CombinedDimOnSalesInvoiceWithItemChargeAssignedOnShpmt"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CopySalesOrderFromPartialPostingSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CorrectPostedSalesInvoiceWithItemHasDimensionMandatory"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CreateSalesLineFromSalesShipmentLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "CreateSalesLineFromShptLineWithDiscountAmount"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "DeleteNotShippedSalesOrders"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "DeleteShippedInvoicedSalOrders"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "DeleteShippedSalesOrders"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ErrorThrownWhenBaseQtyToAssembleToOrderRoundedTo0OnSalesOrderLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ErrorThrownWhenBaseQtyToInvoiceRoundedTo0OnSalesOrderLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ErrorThrownWhenBaseQtyToShipRoundedTo0OnSalesOrderLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ErrorThrownWhenBaseQuantityIsRoundedTo0OnSalesOrderLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ErrorThrownWhenBaseReturnQtyToReceiveRoundedTo0OnSalesOrderLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ExtendedTextInSaleOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "GenBusinessPostingGroupInLinesNotUpdated"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "GenBusinessPostingGroupInLinesUpdated"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "GLRegInSyncWithCLEAfterZeroAmountSalesInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvDiscAfterPartialOrderPost"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvDiscAmtAfterGetReturnReceiptLinesAndDisabledCalcDiscSetup"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvDiscAmtAfterGetReturnReceiptLinesAndEnabledCalcDiscSetup"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvDiscAmtAfterGetShipmentLinesAndDisabledCalcDiscSetup"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvDiscAmtAfterGetShipmentLinesAndEnabledCalcDiscSetup"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvDiscBeforePartialOrderPost"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvoiceDiscountOnGLEntry"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvoiceDiscountOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "InvoiceDiscountOnSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "LineAmountToHandleRecalculatesBasedOnQtyAndPrice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "LineAmountToHandleRoundingWithIntegerPrecision"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "LineAmountToHandleRoundingWithIntegerPrecisionAndPrepmt"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "LineDiscountOnGLEntry"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "LineDiscountOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "LineDiscountOnSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "LineDiscountOnSalsInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "LocationForNonInventoryItemsAllowed"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "MessageAddedUndoShipmentCreatesNegativeLineSalesShipmentWhenUndoneCancelledSalesInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PartialSalesInvoicePostingClearsQtyToAssignThatIsLessThanAssignedInInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PartialSalesInvoicePostingDontClearQtyToAssignInPrimaryDocument"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PlannedShippingDateMustBeUpdatedWhenShippingTimeExists"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostedDocToPrintMessageRaisedWhenDeleteSalesInvithNoInPostedInvoiceNos"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostedSalesCreditMemoNavigate"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostedSalesInvoiceEntries"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostedSalesInvoiceNavigate"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostedSalesInvoiceWithPartialQuantity"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostedSalesShipmentNavigate"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostedSalesShipmentNavigateDocumentNo"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostingInvoiceFilledWithGetShipmentFromMultipleShipments"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostSalesInvoiceWhileModifyingLineDuringPosting"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostSalesOrderWithChangedVATAmountAndInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "PostSalesOrderWithChangedVATAmountAndInvoiceDiscountNM"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "QtyToInvoiceDistributedEvenlyOnItemChargeAssignmentInPartialPosting"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "QtyToShipBaseInInvoiceLineIsValidatedWhileDefaultQtyToShipIsBlank"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "QtyToShipBaseInInvoiceLineIsValidatedWhileDefaultQtyToShipIsRemainder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "QtyToShipBaseInSalesLineIsValidatedWhileDefaultQtyToShipIsBlank"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "QtyToShipBaseInSalesLineIsValidatedWhileDefaultQtyToShipIsRemainder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "QtyToShipInSalesLineIsCorrectlyUpdatedWithChangeInQty"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "QuoteNoIsNotVisibleWhenBlank"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "QuoteNoIsVisibleWhenFilled"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ReleasingOfSalesOrderHavingSalesLineWithoutUOMGivesError"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "RemainingAmountLCY"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ReturnQtyToReceiveBaseInCreditMemoLineIsValidatedWhileDefaultQtyToShipIsBlank"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ReturnQtyToReceiveBaseInCreditMemoLineIsValidatedWhileDefaultQtyToShipIsRemainder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ReturnQtyToReceiveBaseInSalesLineIsValidatedWhileDefaultQtyToShipIsBlank"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ReturnQtyToReceiveBaseInSalesLineIsValidatedWhileDefaultQtyToShipIsRemainder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ReversedSalesAmountIncludesInvDiscountWhenInvoiceSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "RevertCurrencyCodeWhenRefusedToRecreateSalesLines"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesAmountExpectedIncludesInvDiscountWhenReceiveAndPartInvoiceReturnOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesAmountExpectedIncludesInvDiscountWhenShipAndPartiallyInvoiceSO"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesAmountExpectedIncludesInvDiscountWhenShipSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesAmountExpectedIncludesInvDiscountWhenShipSalesOrderWithTwoLines"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesCreditMemoContactEditableAfterCustomerSelected"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesHeaderDimWithSalesPerson"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesHeaderUpdatedWithNoShippedNotInvoicedLines"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesHeaderUpdatedWithPartiallyShippedNotInvoicedLines"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesHeaderUpdateWithFullyShippedInvoicedLines"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesInvoiceAfterRelease"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesInvoiceAfterReopen"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesInvoiceBillToAddressFieldsEditableIfDifferentSellToCustomer"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesInvoiceBillToAddressFieldsNotEditableIfSameSellToCustomer"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesInvoiceContactEditableAfterCustomerSelected"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesInvoiceForItemChargeWithVATDifferencePostValuesPricesInclVAT"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesInvoiceForItemChargeWithVATDifferencePostValuesPricesWoVAT"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByDescription_FixedAsset"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByDescription_GLAccount"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByDescription_Item"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByDescription_ItemCharge"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByDescription_Resource"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByDescription_StandardText_Negative"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByNo_FixedAsset"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByNo_GLAccount"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByNo_Item"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByNo_ItemCharge"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByNo_Resource"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesLine_FindRecordByNo_StandardText"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderAmountItemChargeAssignment"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderAsInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderAsShip"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderBillToAddressFieldsEditableIfDifferentSellToCustomer"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderBillToAddressFieldsNotEditableIfSameSellToCustomer"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderContactEditableAfterCustomerSelected"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderCreation"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderEquallyItemChargeAssignment"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderForWarehouseLocation"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderPartialShipment"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderSellToEmailIsChangedWhenChangingSellToContactNo"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderSellToEmailIsChangedWhenChangingSellToContactNoToEmptyEmail"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderSellToEmailIsNotChangedWhenChangingSellToContactNoToEmptyEmail"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderSellToPhoneNoIsChangedWhenChangingSellToContactNo"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderWithFCY"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderWithFCYDiscount"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderWithGLAccAndUOMDefaultQtyBlank"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SalesOrderWithPostingDateBlank"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SBOwnerCueSOsNotInvoicedDecrease"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "SBOwnerCueSOsNotInvoicedIncrease"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "ServiceChargeLineIsNotRecreatedWhenChangePostingDateAndCalcInvDiscIsOff"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "TestDeleteSalesOrderSalesOrderEntityBufferDeleted"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "TestReserveFromInventoryOnSalesLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "TestReserveFromInventoryPartialQuantitySalesLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "TotalAmountIncVATOnSalesInvoiceSubformWithVATDifference"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "TotalAmountIncVATOnSalesInvoiceSubformWithVATDifferenceNonModal"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "TwoGLEntriesAfterZeroAmountSalesInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UndoSalesReceiptLineChargeItem"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UndoSalesReceiptLineGLAccount"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UndoSalesReceiptLineResource"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UndoSalesShipmentLineChargeItem"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UndoSalesShipmentLineGLAccount"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UndoSalesShipmentLineResource"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UndoSalesShipmentWithDefaultQtyBlank"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UnitPriceShouldBeUpdatedwhenWeChangeUOMonCorrectiveSalesCreaditMemo"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "UpdateSalesOrderQuantityWhenUsingCancelInvoiceifSalesCrMemoWorkflowIsEnabled"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VATAmountOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VATAmountOnSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyAdjustedCostLCYOnSalesOrderStatusticAfterCorrectSalesInvoiceAndPostShipmentLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyAdjustedCostLCYOnSalesOrderStatusticAfterCorrectSalesInvoiceAndPostShipmentLineNM"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyCompletelyShippedWhenSalesOrderAsShip"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyConfirmationDialogIsShownOnChangedShipToCodeOption"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyManuallyCreatedSalesCrMemoUpdateExistingSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyPostSalesOrderWithChargeItemPostedFromSalesInvoiceRelatedToShipmentCreatedFromSalesOrder"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyQuantityToShipOnSalesOrderUpdatedWithGLAccountWithCorrectiveCreditMemo"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyReserveQtyAfterAddingATOItemSubstitutionOnSalesLine"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceApplyEntries"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceDifferentQuantity"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifySalesOrderUpdatedAfterPartialCorrectPostedSalesInvoice"
+  },
+  {
+    "codeunitId": 134378,
+    "codeunitName": "ERM Sales Order",
+    "method": "VerifyServiceChargeLineIsRecreatedOnUpdateBillToCustomerOnSalesOrder"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "CompanyContactWithoutCustomer"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "CreateCustomerForContactQuoteWithoutCustomerTemplate"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "CreateCustomerFromQuoteContactWithMultipleCustomerTemplates"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "CreateCustomerFromQuoteWithPersonContactLinkedToCompanyContact"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "DeleteOverdueQuotesConfirmNo"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "DeleteOverdueQuotesConfirmYes"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "DeleteOverdueQuotesEmptyQuoteValidUntilDate"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "QuoteValidUntilDateOnValidateDocumentDate"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesInvoiceFromSalesQuoteDeleteComments"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesOrderFromSalesQuote"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesOrderFromSalesQuoteDeleteComments"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesOrderFromSalesQuoteWithPostingDateBlank"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesOrderFromSalesQuoteWithVATRegNo"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesOrderInvDiscFromSaleQuote"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteBillToAddressFieldsEditableIfDifferentSellToCustomer"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteBillToAddressFieldsNotEditableIfSameSellToCustomer"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteConfirmDialogFalse"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteConfirmDialogTrue"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteContactEditableAfterCustomerSelected"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteControlsDisabledBeforeCustomerSelected"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteControlsEnabledAfterCustomerSelected"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteCreation"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteExtendedText"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuotePageIsCommentLineIsBlankLineResetOnChangeLine"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuotesControlsEnabledWithSalesQuote"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteToSalesOrderUnlockedPage"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteWithCustomer"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteWithSellToCustomerNoLinesEditable"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteYourReferenceQuoteValidUntilDateFieldsEditable"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteYourReferenceQuoteValidUntilDateFieldsVisible"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "TestDeleteSalesQuoteSalesQuoteEntityBufferDeleted"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "TestReleaseSalesQuoteWithPrepayment"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "TestSPrePaymentErrorOnNegValueQtySalsQuote"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "UI_CreditLimitNotificationShownDeltaAmountUnderLimit"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "UI_CreditLimitNotificationShownInSalesOrderCreatedFromQuote"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "UI_ItemAvailabilityNotificationShownInSalesOrderCreatedFromQuote"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "UpdatedShipToFieldsOfSalesQuoteFromTemplateMovedToSalesOrder"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "VATAmountOnSalesQuote"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "WorkDescriptionCorrectlyCopiedToTheSalesOrderFromSalesQuote"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "ApplyInvoiceFromCreditMemo"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "ApplyInvoiceFromReturnOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "ArchieveVersionSalesOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CheckQtyToHandleOnItemChargeAssignmentWhenMultipleCombinedSalesShipmentsUsedForSameCustomer"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CheckStandardTextLineOnSalesReturnOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CombineGLEntriesForTheSameAccountIfCopyDocumentLineDescrToGLEntryIsFalse"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyArchivedPartiallyPostedSalesOrderToOrderLastPostingAndShippingNoSAreBlank"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyArchivedPartiallyPostedSalesReturnOrderToOrderLastReturnReceiptNoIsBlank"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyDocumentLineDescriptionToGLEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyPartiallyPostedSalesOrderToOrderLastPostingAndShippingNoSAreBlank"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyPartiallyPostedSalesReturnOrderToOrderLastReturnReceiptNoIsBlank"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyPostedCrMemoRetRecDateOrderConfirm"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyPostedCrMemoRetRecDateOrderNonConfirm"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyPostedInvShptDateOrderConfirm"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyPostedInvShptDateOrderNonConfirm"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CopyUnappliedSalesLineToSalesReturnOrderByCopyDocument"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CreditMemoAmountIsIncludedInSalesThisMonth"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CurrencyOnReturnOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CustLedgerEntryWithDocumentTypeRefund"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CustomerListBalanceDueMatchesCustomerCard"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CustomerRegistrationNumberOnPostedSalesCrMemo"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "CustomerRegistrationNumberOnPostedSalesInvoice"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "ErrorGLAccountMustHaveAValueIsShownForPurchaseOrderWithMissingGenBusPostingGroupInGLAccount"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "ExtendCopyDocumentLineDescriptionToGLEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "GetPostedDocToReverseMessageWhenSalesOrderAlreadyReversed"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "GetPostedDocToReverseMessageWhenSalesOrderWithItemTrackingAlreadyReversed"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "InvoiceAmountIsIncludedInSalesThisMonth"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "InvoiceDiscountOnGLEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "InvoiceDiscountReturnOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "LineDiscountOnGLEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "LocationforReturnOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "LookUpSecondCustomerSameNameAsSellToCustOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "PartialSalesOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "PaymentDiscountPercentAfterRunningCombineShipment"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "PostPartialSalesOrderVerifyGLEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "PostSalesOrderAfterLastAccoutningPeriodWithAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "PostSalesReturnOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "ReceiveSalesReturnOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "ReceiveSalesReturnOrderForDeletedShipTo"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "RecieveandInvoiceReturnOrder"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "RemainingPmtDiscPossibleACY"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "RenameItemNoExistsInValueEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesAnalysisReportMultipleColumns"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesAnalysisReportWithItemLedgerEntryTypePurchaseAndValueTypeCost"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesAnalysisReportWithItemLedgerEntryTypePurchaseAndValueTypeSale"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesAnalysisReportWithItemLedgerEntryTypeSales"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesCreditMemoWithACY"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesCreditMemoWithPaymentDisc"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesInvoiceAmountExclVATWithInheritFromParentAllocationAccount"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesInvoiceAmountInclVATWithInheritFromParentAllocationAccount"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesInvoiceHavingAllocationAccountShouldPostGLEntriesWithCorrectDistributedAmounts"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesInvoiceWithACY"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesInvoiceWithPaymentDisc"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesOrderNegativeErrorMsg"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesPersonCodeSalesInvoice"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesRetOrderReceiptCreditMemo"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "SalesShipmentInvoice"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "UI_GetPostedDocumentLinesToReverseFromSalesCrMemoWithItem"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "UnitPriceInclVATOnSalesCrMemo"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "UpdateSalesInvoice"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "VerifyVATAmountAfterPosting"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "YourReferenceSalesCrMemoToCustLedgerEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "YourReferenceSalesInvoiceToCustLedgerEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "YourReferenceSalesOrderToCustLedgerEntry"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "YourReferenceSalesReturnOrderToCustLedgerEntry"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CheckCreditLimitCustomerTotalAmount"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CheckCreditLimitCustomerTotalAmountFromLine"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CheckCreditLimitSalesInvoiceLineAmountDecrease"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CheckCreditLimitSalesInvoiceLineAmountIncrease"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CheckCreditLimitSalesOrderLineAmountDecrease"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CheckCreditLimitSalesOrderLineAmountIncrease"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustCreditLimitOnNewBlanketSalesOrderFromCustomerCard"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustCreditLimitOnNewSalesCreditMemoFromCustomerCard"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustCreditLimitOnNewSalesInvoiceFromCustomerCard"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustCreditLimitOnNewSalesOrderFromCustomerCard"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustCreditLimitOnNewSalesQuoteFromCustomerCard"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustCreditLimitOnNewSalesReturnOrderFromCustomerCard"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustomerCreditLimitWithItemSalesPrices"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustomerPaymentMethodAccount"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustomerPaymentMethodCash"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "DeleteLineWithExtendedTextInSaleOrderWithShptLines"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "DueDateOnSalesCreditMemoAfterCopyDocument"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "DueDateOnSalesReturnOrderAfterCopyDocument"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "InvoiceDiscountOnStatisticsForShippedSalesOrder"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "InvoiceDiscountOnStatisticsForShippedSalesOrderNM"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "ItemLedgerentryCountryRegionAfterPostingSalesDocumentWithoutShipToCode"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "ItemLedgerentryCountryRegionAfterPostingSalesReturnOrderWithSellToCountryRegion"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "ItemTrackingOnPostedSalesDocument"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "LineDiscInPriceExclVATInvWithShptLinesFromPriceInclVATOrder"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "LineDiscInPriceInclVATInvWithShptLinesFromPriceExclVATOrder"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "ModifyCustomerLedgerEntry"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "SalesCreditMemo"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "SalesInvoice"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "SalesInvoiceCopyDocBlankLines"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "SalesInvoiceUsingChangedVATPostingGroup"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "SalesInvoiceUsingGetShipmentLines"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "SalesInvoiceUsingGetShipmentLinesWithBlockedCustomer"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "SalesOrderCopyStandardCode"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "SalesReturnOrderNavigate"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "TwoSingleQuotesFilterRecordsWithEmptyStartingDate"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "UI_CopyExistingPriceOnSalesPricesPage"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "UI_CopyPriceOnSalesPricesPage"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "UI_DoNotSelectPriceWhenCopyPricesOnSalesPricesPage"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "VATEntryForSalesInvoiceWithICPartner"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "VerifyShipToCountryRegionCodeOnILE"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "WorkdateFiltersRecordsWithWorkStartingDate"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "AllowInvoiceDiscountResetToFalseAfterSetUpVATCalcullationTypeToFullVAT"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "BlanketSalesOrder_ShipToContactEditable"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CannotSetupAllowInvoiceDiscountForFullVATLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CertificateOfSupplyPartiallyShippedOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeCrMemoHdrInfoError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangePriceIncludingVATFalseValueRecalculateAmountCorrectlyForFullVAT"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangePriceIncludingVATFalseValueRecalculateAmountCorrectlyForFullVATWithDiscountAmount"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangePriceIncludingVATTrueValueRecalculateAmountCorrectlyForFullVAT"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangePriceIncludingVATTrueValueRecalculateAmountCorrectlyForFullVATWithDiscountAmount"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeRetOrdLnNoError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeRetOrdLnRetQtyToReceiveError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeRetOrdlnTypeError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeSalesCrMemoLnQtyError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeSalesCrMemoLnQtyMorethanRetRcptQtyError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeSalesCrMemoLnTypeError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeSalesRetOrdHdrInfoAfterRcdError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ChangeSalesRetOrdHdrInfoAfterReopenError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "COD351_InsertSalesCreditMemoWithExistingLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "COD351_InsertSalesInvoiceWithExistingLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "COD351_InsertSalesOrderWithExistingLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "COD351_InsertSalesReturnOrderWithExistingLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ConfirmationOnShipmentAgentCodeUpdateOnPremAndSaas"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ConfirmationOnShipmentDateUpdateOnPrem"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CopySalesInvoiceFirstLineNotShipped"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CopySalesInvoiceFirstLineTypeBlank"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CreateSalesLineFromSalesShipmentLineExtendedTextLineContainsShipmentDate"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CreateSalesOrderWithDiffBillToCustomerAndSalesPriceSpecified"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CreditMemoLineDiscountNotRecalculatedAfterReducingLineQty"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CreditMemoLineDiscountRecalculatedManuallyCreatedLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CreditMemoLineDiscountRoundingUsingCopyDoc"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CreditMemoLineDiscountRoundingUsingGetPostedDocLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CreditMemoPriceRecalculatedCopiedFromPostedLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CreditMemoPriceRecalculatedManuallyCreatedLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "CrMemoGetPostedDocumentLinesPostedReturnReceiptUnitPrice"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DeleteCustomerWithOutstdSalesRetError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DeleteItemWithOutstdSalesRetError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DeleteRcdRetOrdLnError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DeleteSalesRetOrdHdrAfterRcdError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DeleteSalesRetOrdHdrAfterReopenError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DocumentTotalsCalculateCorrectlyWithFullVATAndPriceIncludingVATTrue"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DoNotModifyHeaderOnAutoCalcInvoiceDiscInLinesSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DoNotModifyHeaderOnAutoCalcInvoiceDiscInLinesSalesInvoice"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DoNotModifyHeaderOnAutoCalcInvoiceDiscInLinesSalesOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "DoNotModifyHeaderOnAutoCalcInvoiceDiscInLinesSalesQuote"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ErrorOnDeletePostedCreditMemo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ErrorOnDeletePostedSalesRetOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ErrorOnGetRetRcptNoAfterCreateCrMemo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ErrorOnUpdateGreaterQtytoInvOnCrMemo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ExplBOMOnSalesCrMemoError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ExtendedTextOnSalesRetOrd"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetDocLinesToReverseFromInvoiceWithTwoShipments"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetPostedDocLinesFromSalesCrMemoWithAutoExtText"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetPostedDocLinesFromSalesInvoiceWithAutoExtText"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetPostedDocLinesFromSalesRetOrderWithAutoExtText"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetPostedDocLinesFromSalesShipmentWithAutoExtText"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetPostedDocumentLinesToReverseCopiesLinesWhenDefaultQtyToShipIsBlankInSalesReceiSetup"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLineAfterPartialPostingWithQtyFilter"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLineOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesAfterPartialPosting"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesCalcsDiscountAndServiceChargeForShippedItemWithExtText"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesCalcsDiscountsAndServiceChargeForSeveralShippedItems"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesCalcsDiscountsAndServiceChargeWhenDiscountsAreTurnedOnAfterShipment"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesFromEmptyFilteredRecord"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesWithItemCharge_Shipment_UndoShipment_Shipment"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesWithItemChargeFirstNormalOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesWithItemChargeFirstReversedOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesWithItemChargeNormalOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GetShipmentLinesWithItemChargeReversedOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "GLEntriesAfterGetShipmentLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "InvoiceQuoteNoIsNotVisibleWhenBlank"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "InvoiceQuoteNoIsVisibleWhenFilled"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ItemSubstituionDoesntInsertExtTextWhenAutoExtTextIsFalse"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ItemSubstituionDoesntInsertExtTextWhenAutoExtTextIsTrue"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "NoErrorWhileCreatingCertificateOfSupplyForDocWithSeveralSalesShipLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PartiallyPostSalesOrderWithCompleteShipmentAdviceError"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PartiallyPostSalesOrderWithCompleteShipmentAdviceErrorZero"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PartialPostingOfSalesRetOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostAndSendSalesInvoiceBackgroundPostingEnabled"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostAndSendSalesInvoiceWithPreviewTokenInPostingNo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostAndSendSalesOrderBackgroundPostingEnabled"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostedDocWithoutRetReasonCode"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostedDocWithRetReasonCode"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCreditMemoCardWithBlankQuantityIsFoundationFALSE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCreditMemoCardWithBlankQuantityIsFoundationTRUE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCreditMemoCardWithBlankQuantityIsFoundationTRUEWithConfirmPosting"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCreditMemoCardWithBlankQuantityIsFoundationWithoutConfirmation"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCreditMemoListWithBlankQuantityIsFoundationFALSE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCreditMemoListWithBlankQuantityIsFoundationTRUE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCreditMemoListWithBlankQuantityIsFoundationTRUEWithConfirmPosting"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCrMemoDescriptionLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesCrMemoUsingGetPostedDocLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesInvoiceAfterQuantityFilterOnGetShipmentLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesInvoiceCardWithBlankQuantityIsFoundationFALSE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesInvoiceCardWithBlankQuantityIsFoundationTRUE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesInvoiceDescriptionLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesInvoiceListWithBlankQuantityIsFoundationFALSE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesInvoiceListWithBlankQuantityIsFoundationTRUE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesInvoiceWithDiffCustPostingGroup"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesOrderCardWithBlankQuantityConfirmation"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesOrderCardWithBlankQuantityIsFoundationFALSE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesOrderCardWithBlankQuantityIsFoundationTRUE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesOrderListWithBlankQuantityIsFoundationFALSE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesOrderListWithBlankQuantityIsFoundationTRUE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesOrderWithPreviewTokenInPostingAndShippingNo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesRetOrderWithoutAppFromItemEntryWithIT"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesRetRcptDescriptionLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesReturnOrderCardWithBlankQuantityConfirmation"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PostSalesShptDescriptionLine"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PrintSalesQuoteCardWithBlankQuantityIsFoundationFALSE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PrintSalesQuoteCardWithBlankQuantityIsFoundationTRUE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PrintSalesQuoteListWithBlankQuantityIsFoundationFALSE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "PrintSalesQuoteListWithBlankQuantityIsFoundationTRUE"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "QuoteToInvoiceAutomaticSalesInvoiceRespectsWorkDate"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "RecreateSalesCommentLineForSalesOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "RecreateSalesCommentLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "RecreateSalesItemLineWithEmptyNo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "RecreatingSalesLinesWithoutOrderPromisingDoesNotTouchReqLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "RegenerateSalesCrMemoLnAfterDelete"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ReplaceSalesLineStandardTextWithExtText"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ResponsibilityCenterOnPostedSalesDocument"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ResponsibilityCenterOnSalesOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ReturnOrderPostedAsReceiveWhenReturnReceiptOnCrMemoOptionIsDisabled"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesCrMemoWithPostedShipmentNegativeQty"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesInvoice_ShipToContactEditable"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesInvoiceWithPostedShipmentNegativeQty"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesLineFactboxPriceLineNotUpdatedInReleasedOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesLineFactboxPriceLineUpdatedInReopenedOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesLineFactboxSalesPriceNotUpdatedInReleasedOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesLineFactboxSalesPriceUpdatedInReopenedOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesOrder_ShipToContactEditable"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesOrderArchiveUserRespCenterFilter"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesOrderInvalidTaxAreaCode"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_BillTo_ResetBillTo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_BillTo_ShipTo_ChangeBillTo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_BillTo_ShipToBlank_ManualEdit_ChangeBillTo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_BillTo_UserSetup"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_BillToBlank"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_ShipTo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_ShipTo_ShipTo2"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_ShipTo_ShipToBlank_ChangeShipTo"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellTo_UserSetup"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellToBlank_BillToBlank_UserSetup"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "Salesperson_SellToBlank_UserSetup"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalespersonCodeClearedOnChangedCustomerWithoutSalesperson"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalespersonCodeUpdatedFromCustomerWithSalesperson"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalespersonCodeUpdatedFromUserSetupWhenChangingToCustomerWithoutSalesperson"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalespersonCodeUpdatedFromUserSetupWhenCustomerWithoutSalesperson"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalespersonCodeUpdatedOnChangedCustomerWithSalesperson"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalespersonCommissionReportAdjustedProfitLCY"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalespersonCommissionReportTotals"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalespersonSalesStatisticsReportTotals"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "SalesQuote_ShipToContactEditable"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "TaxAreaCodeBlankOnCustomerNotModifiedOnHeaderValidation"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "TestPostedSalesCrMemoHeaderWorkDescription"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "TestPostedSalesShipmentHeaderWorkDescription"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "TestPostShipSalesOrderAfterReleased"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "TestSalesArchiveWorkDescription"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UnitPriceFromItemCardMustBeRespectedWhenCreatingSalesOrderIfSalesPriceNOTExist"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UnreliazedGainLossEntrieAreClearWhenUsingMultiplePostingGroups"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UpdateSalesLines_UT"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UpdateSalesLinesByNo_UT"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UpdateSalesOrderLineAutoCalcInvoiceDisc"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UpdateSalesOrderLineAutoCalcInvoiceDiscTwoLines"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UT_GetPostedDocument_ReturnOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UT_GetPostedDocument_ReturnOrder_ShippedOnly"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UT_SendPostedDocument_ReturnOrder"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "UT_SendPostedDocument_ReturnOrder_ShippedOnly"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "VATAmountOnPostedSalesInvoice"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "VerifyUnitCostLCYZeroWhenItemVariantCodeValidated"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "WarningMessageWhenLanguageCodeIsUpdated"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "WarningMessageWhenPostingDateIsUpdatedWithCurrency"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "WarningMessageWhenPostingDateIsUpdatedWithoutCurrency"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "WorkDescriptionOnPostedSalesShipmentForDropShipment"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ZeroSalesPriceMustBeRespectedOverItemCardUnitPriceWhenCreatingSalesOrder"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CheckCustomerCardStatisticsTotalLCYValueWhenThereIsMoreThanOneShipment"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CheckCustomerCardStatisticsTotalOnFactBox"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CheckFilterOnCustStatsByCurrLinesFromCustCard"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CheckFilterOnCustStatsByCurrLinesFromCustList"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CheckOverDueBalanceForCustomer"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CustomerAmountOverdueWarning"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CustomerStatisticsAmountNotOverdue"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CustomerStatisticsAmountOverdue"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "CustomerStatisticsServiceItem"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "OverdueAmountForCustomerAfterWarning"
+  },
+  {
+    "codeunitId": 134389,
+    "codeunitName": "ERM Customer Statistics",
+    "method": "QuantityReducedInSalesInvoiceAfterGenShipmentLineReservesTrackingInformation"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "AceptConfirmationOnChangingInvDiscountAmountInSalesOrderWithPostedLine"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrder_SetAndCleanCurrencyCode"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderApplyManualDiscount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderApplyManualDiscountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderChangeSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZero"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderChangeSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZeroNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderDiscountTypeAmountIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderDiscountTypeAmountIsSetWhenInvoiceIsOpenedNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderDiscountTypePercentageIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderDiscountTypePercentageIsSetWhenInvoiceIsOpenedNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrdereChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrdereChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentageNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderMakeOrderDiscountTypePercentageIsKept"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderMakeOrderDiscountTypePercentageIsKeptNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "BlanketOrderModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentageNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ChangeSalesLineAccountNoAfterRelease"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemo_SetAndCleanCurrencyCode"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoApplyManualDiscount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoApplyManualDiscountNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoChangeSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZero"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoChangeSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZeroNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentageNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmountNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoInvioceDiscountTypeAmountIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoInvioceDiscountTypeAmountIsSetWhenInvoiceIsOpenedNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoInvioceDiscountTypePercentageIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoInvioceDiscountTypePercentageIsSetWhenInvoiceIsOpenedNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmountNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentageNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoPostInvoiceDiscountAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "CreditMemoPostInvoiceDiscountPrecentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "DeclineConfirmationOnChangingInvDiscountAmountInSalesOrderWithPostedLine"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "DrillingDownQtyToAssignFieldOnWrongTypeDoesNotRollbackPrevChanges"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvioceDiscountTypeAmountIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvioceDiscountTypeAmountIsSetWhenInvoiceIsOpenedNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvioceDiscountTypePercentageIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvioceDiscountTypePercentageIsSetWhenInvoiceIsOpenedNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "Invoice_SetAndCleanCurrencyCode"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceApplyManualDiscount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceApplyManualDiscountNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentageNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmountNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceChangingSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZero"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceChangingSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZeroNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceModifyindFieldOnHeaderRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceModifyindFieldOnHeaderRecalculatesForInvoiceDiscountTypePercentageNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoiceModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmountNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoicePostSalesInvoiceWithDiscountAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "InvoicePostSalesInvoiceWithDiscountPrecentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "NoConfirmationOnChangingInvDiscountAmountInSalesOrderWithoutPostedLines"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "Order_SetAndCleanCurrencyCode"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderApplyManualDiscount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderApplyManualDiscountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentageNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderChangingSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZero"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderChangingSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZeroNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderDiscountTypeAmountIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderDiscountTypeAmountIsSetWhenInvoiceIsOpenedNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderDiscountTypePercentageIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderDiscountTypePercentageIsSetWhenInvoiceIsOpenedNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderLineNoRemainsPositiveWhenAutoSplitKeyExhausted"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentageNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderPostSalesInvoiceWithDiscountAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "OrderPostSalesInvoiceWithDiscountPrecentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "PostedSalesCrMemoStatisticsServiceItem"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "PostedSalesInvoiceStatisticsServiceItem"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "Quote_SetAndCleanCurrencyCode"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteApplyManualDiscount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteApplyManualDiscountNonModal"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentageNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmountNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteChangingSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZero"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteChangingSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZeroNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteDiscountTypeAmountIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteDiscountTypeAmountIsSetWhenInvoiceIsOpenedNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteDiscountTypePercentageIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteDiscountTypePercentageIsSetWhenInvoiceIsOpenedNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteMakeOrderDiscountTypePercentageIsKept"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteMakeOrderDiscountTypePercentageIsKeptNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmountNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "QuoteModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentageNonModalStats"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrder_SetAndCleanCurrencyCode"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderApplyManualDiscount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderApplyManualDiscountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderChangeSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZero"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderChangeSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZeroNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentageNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderDiscountTypeAmountIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderDiscountTypeAmountIsSetWhenInvoiceIsOpenedNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderDiscountTypePercentageIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderDiscountTypePercentageIsSetWhenInvoiceIsOpenedNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmountNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderModifyindFieldOnHeaderUpdatesTotalsAndDiscountsForInvoiceDiscountTypePercentageNM"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderPostInvoiceDiscountAmount"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "ReturnOrderPostInvoiceDiscountPrecentage"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesBlanketOrderSubformTotalAmountsWithBlankCurrencyCaption"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesCreditMemoSubformTotalAmountsWithBlankCurrencyCaption"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesInvoiceSubformTotalAmountsWithBlankCurrencyCaption"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesLineUnitofMeasureCodeLookupItem"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesLineUnitofMeasureCodeLookupResource"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesLineVATCaptionOnChangeBillToCustomer"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesLineVATCaptionOnChangeSellToCustomer"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesOrderSubformTotalAmountsWithBlankCurrencyCaption"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesQuoteSubformTotalAmountsWithBlankCurrencyCaption"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "SalesReturnOrderSubformTotalAmountsWithBlankCurrencyCaption"
+  },
+  {
+    "codeunitId": 134393,
+    "codeunitName": "ERM Sales Subform",
+    "method": "UpdateInvoiceDiscountPercentOnSalesOrderPage"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "SalesInvoiceStatisticShowsCorrectQuantityWithInvoiceRounding"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestCancelingPostedInvoice"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestChangingSellToCustomerRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestChangingSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZero"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestCorrectingCancelledPostedInvoice"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestCreatingPostedInvoiceThroughCodeTransfersId"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestDeleteInvoice"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestDeletePostedInvoice"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestDeletingAllLinesUpdatesTotalsDiscountAmt"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestDeletingAllLinesUpdatesTotalsDiscountPct"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestDeletingAllLinesUpdatesTotalsNoDiscount"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestDeletingLineUpdatesTotalsDiscountAmt"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestDeletingLineUpdatesTotalsDiscountPct"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestDeletingLineUpdatesTotalsNoDiscount"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestInvoiceApplyManualDiscount"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestModifyindFieldOnHeaderRecalculatesForInvoiceDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestModifyindFieldOnHeaderSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPostSalesInvoiceTransfersId"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPostSalesInvoiceWithDiscountAmount"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPostSalesInvoiceWithDiscountPrecentage"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPropagateDeleteAggregateLine"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPropagateDeleteSalesAggregate"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPropagateDeleteSalesAggregatePostedInvoice"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPropagateInsertSalesLineTrhowsAnErrorIfDocumentIDNotSpecified"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPropagateInsertSalesLineTrhowsAnErrorIfMultipleDocumentIdsFound"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPropagateModifySalesAggregate"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestPropagateModifySalesLine"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestRenamePostedInvoice"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestRenamingCancelledDocument"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestRenamingCustomerLedgerEntry"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestSalesCrMemoModifyWithCurrencyAndJobQueueStatus"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestSalesInvoiceModifyWithCurrencyAndJobQueueStatus"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestSalesOrderModifyWithCurrencyAndJobQueueStatus"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestSalesQuoteToInvoiceCreatesAggregate"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "TestUpdateAggregateTable"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "VerifyTotalTaxAmountSameOnGLEntries"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "VerifyUpdateonPostedInvoice"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestCancelingPostedCrMemo"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestChangingSellToCustomerRecalculatesForCrMemoDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestChangingSellToCustomerSetsDiscountToZeroForCrMemoDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestChangingSellToCustomerToCustomerWithoutDiscountsSetDiscountAndCustDiscPctToZero"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestCreatingPostedCrMemoThroughCodeTransfersId"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestCrMemoApplyManualDiscount"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestDeleteCrMemo"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestDeletePostedCrMemo"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestDeletingAllLinesUpdatesTotalsDiscountAmt"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestDeletingAllLinesUpdatesTotalsDiscountPct"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestDeletingAllLinesUpdatesTotalsNoDiscount"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestDeletingLineUpdatesTotalsDiscountAmt"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestDeletingLineUpdatesTotalsDiscountPct"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestDeletingLineUpdatesTotalsNoDiscount"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestModifyindFieldOnHeaderRecalculatesForCrMemoDiscountTypePercentage"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestModifyindFieldOnHeaderSetsDiscountToZeroForCrMemoDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPostSalesCrMemoTransfersId"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPostSalesCrMemoWithDiscountAmount"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPostSalesCrMemoWithDiscountPrecentage"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPropagateDeleteAggregateLine"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPropagateDeleteSalesAggregate"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPropagateDeleteSalesAggregatePostedCrMemo"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPropagateInsertSalesLineTrhowsAnErrorIfDocumentIDNotSpecified"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPropagateInsertSalesLineTrhowsAnErrorIfMultipleDocumentIdsFound"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPropagateModifySalesAggregate"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestPropagateModifySalesLine"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestRenamePostedCrMemo"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestRenamingCancelledDocument"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestRenamingCustomerLedgerEntry"
+  },
+  {
+    "codeunitId": 134397,
+    "codeunitName": "ERM Sales Cr. Memo Aggr. UT",
+    "method": "TestUpdateAggregateTable"
+  },
+  {
+    "codeunitId": 134463,
+    "codeunitName": "ERM Item Reference Sales",
+    "method": "ICRLookupSalesItemWhenBarCodeAndBarCodeDateLimitedShowDialogTrue"
+  },
+  {
+    "codeunitId": 134463,
+    "codeunitName": "ERM Item Reference Sales",
+    "method": "ICRLookupSalesItemWhenBarCodeAndExpiredBarCodeShowDialogTrue"
+  },
+  {
+    "codeunitId": 134463,
+    "codeunitName": "ERM Item Reference Sales",
+    "method": "ICRLookupSalesItemWhenTwoExpiredBarCodesShowDialogTrue"
+  },
+  {
+    "codeunitId": 134463,
+    "codeunitName": "ERM Item Reference Sales",
+    "method": "SalesLineLookupItemRefNoWhenSameCustomerDifferentItems"
+  },
+  {
+    "codeunitId": 134463,
+    "codeunitName": "ERM Item Reference Sales",
+    "method": "VerifyDescriptionInSalesLineWhenBothItemReferenceAndItemVariantAreUsed"
+  },
+  {
+    "codeunitId": 134463,
+    "codeunitName": "ERM Item Reference Sales",
+    "method": "VerifyDescriptionInSalesLineWhenItemReferenceAndItemVariantAndItemTranslationUsed"
+  },
+  {
+    "codeunitId": 134563,
+    "codeunitName": "ERM Insert Std. Sales Lines",
+    "method": "BlanketOrderToOrderAutomaticSalesOrderNoRecurringLines"
+  },
+  {
+    "codeunitId": 134563,
+    "codeunitName": "ERM Insert Std. Sales Lines",
+    "method": "QuoteToOrderAutomaticSalesOrderNoRecurringLines"
+  },
+  {
+    "codeunitId": 134563,
+    "codeunitName": "ERM Insert Std. Sales Lines",
+    "method": "QuoteToOrderAutomaticSalesOrderRespectsWorkDate"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "AssembleToOrderReleaseOrderPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "CustLedgerEntryIsClosedInPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "ErrorOnPostPreviewOrderWithBlockedCustomer"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "ErrorOnPostPreviewOrderWithPrivacyBlockedCustomer"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PartialShippedSalesOrderOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostedCrMemoNoStartsWithAsterisksOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostedInvoiceNoStartsWithAsterisksOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostedReturnReceiptNoStartsWithAsterisksOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostedShipmentNoStartsWithAsterisksOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostingNoOnSalesCreditMemoIsNotAssignedOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostingNoOnSalesInvoiceIsNotAssignedOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostingNoOnSalesOrderIsNotAssignedOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostSalesOrderAfterUpdatingVATAmtonVATAmtLine"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PostSalesOrderAfterUpdatingVATAmtonVATAmtLineNM"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PreviewPostingTokInPostingNoFieldsIsReset"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PreviewSalesInvoiceCreditMemoWithNegativeShipmentLine"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PreviewSalesInvoiceWithInvDisc"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PreviewSalesInvoiceWithInvDiscAndPriceInclVAT"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "PreviewSalesInvoiceWithSameInvoiceAndPostingInvoiceNos"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "ReturnReceiptNoOnSalesReturnOrderIsNotAssignedOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesCreditMemoListOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesCreditMemoOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesInvoiceListOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesInvoiceOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesInvoiceTryPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesInvoiceTryPreviewWithFailure"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesOrderListOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesOrderOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesOrderWithCalcInvAndDiscPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesOrderWithCalcInvAndDiscPreviewPartialInvoice"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesPrepmtCrMemoOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesPrepmtInvoiceOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesReturnListOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "SalesReturnOpensPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "ShippingNoOnSalesOrderIsNotAssignedOnPostingPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "TestPartialSalesOrderPreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "TestSalesInvoicePreview"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "TestSalesInvoicePreviewWorksWithApprovals"
+  },
+  {
+    "codeunitId": 134763,
+    "codeunitName": "Test Sales Post Preview",
+    "method": "TestSalesOrderPreview"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "PostDeferralsWithBlankDescriptionWhenOmitDefaultDescriptionDisabledOnDeferralGLAccount"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "PostDeferralsWithBlankDescriptionWhenOmitDefaultDescriptionEnabledOnDeferralGLAccount"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "PostDeferralsWithDescriptionWhenOmitDefaultDescriptionEnabledOnDeferralGLAccount"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestArchiveOrderWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestChangingSalesLineNo"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestChangingSalesLineType"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestClearingSalesLineDeferralCode"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestCopyOrderWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestCopyOrderWithDeferralToQuote"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestCopyOrderWithDeferralToReturnOrder"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestCopyPostedInvoiceWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestCopyPostedInvoiceWithDeferralToReturnOrder"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestCopyQuoteToOrderDefaultsDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestCopyReturnOrderWithDeferralToReturnOrder"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestDeleteArchiveOrderWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestDeletingSalesLine"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestEditSalesInvoiceDeferralScheduleIsRecalculated"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenPostedSalesCreditMemoDeferralSchedulePos"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenPostedSalesInvoiceDeferralSchedulePos"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesCreditMemoDeferralScheduleNeg"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesCreditMemoDeferralSchedulePos"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesInvoiceDeferralScheduleNeg"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesInvoiceDeferralSchedulePos"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesOrderArchiveDeferralSchedulePos"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesOrderDeferralScheduleNeg"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesOrderDeferralSchedulePos"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesReturnOrderArchiveDeferralSchedulePos"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesReturnOrderDeferralScheduleNeg"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestOpenSalesReturnOrderDeferralSchedulePos"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostBatchTwoCreditMemosWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostBatchTwoInvoicesWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostBatchTwoOrdersWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostCreditMemoWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostCreditMemoWithPartialDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceTwoLinesWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceWithCurrencyAndDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceWithDeferralDeferralHeaderZero"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceWithDeferralDeletesDeferralHeaderAndLines"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceWithDeferralNoDeferralHeader"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceWithDeferralNoDeferralLines"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceWithDeferralOneZeroDeferralLine"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostInvoiceWithPartialDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostOrderWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostPartialOrderTwoLinesWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostPartialOrderWithCurrencyAndDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostPartialOrderWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostPartialOrderWithDeferralMultipleTimes"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostPartialOrderWithPartialDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestPostReturnOrderWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestRestoreArchiveWithDeferral"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestSalesBlanketOrderWithItem"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestSalesCreditMemoWithResource"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestSalesInvoiceWithGLAccount"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestSalesOrderWithItem"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestSalesQuoteWithItem"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestSalesReturnOrderWithItem"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "TestSalesReturnOrderWithItemReturnStartDate"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "UpdateAmountToDeferOnDeferralScheduleCreatedAfterAmountValidation"
+  },
+  {
+    "codeunitId": 134805,
+    "codeunitName": "RED Test Unit for Sales Doc",
+    "method": "UpdateAmountToDeferOnDeferralScheduleCreatedBeforeAmountValidation"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "PostPurchaseOrderWithDeferralSetup"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "PostSalesOrderWithDeferralSetup"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "PurchaseFCYDeferralsWithDimensions"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "PurchaseInvoicingOfDeferralWithLCYAndRounding"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "PurchaseInvoicingOfPartialDeferralWithReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "SalesFCYDeferralsWithDimensions"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "SalesInvoicingOfDeferralWithLCYAndRounding"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "SalesInvoicingOfPartialDeferralWithReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "SameDeferralCodeInPurchaseInvoiceWithTwoLines"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "SameDeferralCodeInSalesInvoiceWithTwoLines"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "TestDeletePurchPostedCreditMemoWithDeferral"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "TestDeletePurchPostedInvoiceWithDeferral"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "TestDeleteSalesPostedCreditMemoWithDeferral"
+  },
+  {
+    "codeunitId": 134806,
+    "codeunitName": "RED Test Unit for SalesPurDoc2",
+    "method": "TestDeleteSalesPostedInvoiceWithDeferral"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestAllocateBalancingAccountVariableGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestAllocateToDifferentAccountsInheritFromParentVariableGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestAllocateToDifferentAccountsPerQuantityGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestAllocateToDifferentAccountsVariableGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestAllocateToSameAccountDifferentDimensionsVariableGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestAllocateToSameAccountDifferentDimensionsVariableGLAllocationIntheritFromParent"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestAllocateToSameAccountFixedGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestAllocateToSameAccountFixedPerQuantityGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestDimensionsPropagateWhenDistributionHasNoDimensions"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestFixedPercentageRoundingWithFourAccounts"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestOverrideGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestOverrideGLAllocationInheritFromParent"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestOverrideGLAllocationIsDeletedIfLineChanged"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestOverrideGLAllocationSplitPerQuantity"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestReplaceAllocationAccountWithLinesPerAmountGLAllocation"
+  },
+  {
+    "codeunitId": 134830,
+    "codeunitName": "Alloc. Account Sales E2E Tests",
+    "method": "TestReplaceAllocationAccountWithLinesPerQuantityGLAllocation"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ErrorMessagesPageSalesPostBatchMgtRunWithUIPostsFilteredOutRecords"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ErrorOnPostSelectedCreditMemo"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ErrorOnPostSelectedInvoice"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ErrorOnPostSelectedOrder"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ErrorOnPostSelectedReturnOrder"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "PostSelectedCreditMemo"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "PostSelectedInvoice"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "PostSelectedOrder"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "PostSelectedReturnOrder"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReleaseSelectedBlanketOrders"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReleaseSelectedCreditMemos"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReleaseSelectedInvoices"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReleaseSelectedOrders"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReleaseSelectedQuotes"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReleaseSelectedReturnOrders"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReopenSelectedBlanketOrders"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReopenSelectedCreditMemos"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReopenSelectedInvoices"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReopenSelectedOrders"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReopenSelectedQuotes"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "ReopenSelectedReturnOrders"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "SalesPostBatchMgtRunWithUIPostsFilteredOutRecords"
+  },
+  {
+    "codeunitId": 134891,
+    "codeunitName": "Sales Batch Document Posting",
+    "method": "TwoOfThreeInvoicesPostedAsBatchWhileSecondFailed"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "SalesChangeDate"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "SalesChangeLocation"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "SalesChangeUOMAvailWarning"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "SalesDemandBeforeSupplyArrive"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "SalesDemandHigherThanSupply"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "SalesDemandLowerThanSupply"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "SalesLocationDifferent"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "VariantCodeIsTransferredFromSalesToPurchaseViaItemAvailCheckPage"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CanCancelSalesCrMemoWithNonInventoryItemWhenCOGSAccountIsEmpty"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CanCancelSalesCrMemoWithServiceItemWhenCOGSAccountIsEmpty"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CancelCorrectiveCreditMemo"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CancelCreditMemoAfterApplyUnapplyMultipleInvoices"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CancelCreditMemoAfterFullyApplyUnapplySingleInvoice"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CancelCreditMemoAfterUnapplication"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CancelOriginallInvoiceSecondTimeAfterCrMemoCancellation"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCorrectiveInvoice"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCreditMemoIfInvoiceAppliedPartially"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCrMemoIfAlreadyCancelled"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCrMemoIfCustomerIsBlocked"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCrMemoIfInvPostPeriodIsClosed"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCrMemoIfItemIsBlocked"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCrMemoIfItemVariantIsBlocked"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCrMemoIfNotCorrectiveDoc"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CannotCancelCrMemoIfPostingDateNotAllowed"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CantCancelSalesCrMemoWithInventoryItemWhenCOGSAccountIsEmpty"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CorrectiveInvoiceFailsIfCancelCrMemoHasBlockedAccount"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CorrectiveInvoiceIsRoundedWhenCancelCrMemo"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "CostApplcationAfterReapplyOnSecondInvoiceCancellation"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "NewCanCancelSalesCrMemoWithNonInventoryItemWhenCOGSAccountIsEmpty"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "NotPossibleToCancelInvoiceWithFixedAsset"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "NotPossibleToCorrectInvoiceWithFixedAsset"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "NotPossibleToCreateCorrectiveCreditMemo"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "UI_CancelCorrectiveCreditMemoFromPostedSalesCreditMemoPage"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "UI_CancelCorrectiveCreditMemoFromPostedSalesCreditMemosPage"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "UI_NotPossibleToCancelRegularSalesCreditMemo"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "UI_ShowCanceledCrMemoFromPostedSalesInvoicePage"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "UI_ShowCanceledCrMemoFromPostedSalesInvoicesPage"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "UI_ShowCorrectiveInvoiceFromPostedSalesCrMemoPage"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "UI_ShowCorrectiveInvoiceFromPostedSalesCrMemosPage"
+  },
+  {
+    "codeunitId": 137026,
+    "codeunitName": "Sales Correct Cr. Memo",
+    "method": "UT_CannotCancelCreditMemoIfDetailedEntryDifferentFromInitialOrApplication"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "PrintSendDocumentsWithRemovedSalesPersonPurchaserCodesIsNotPossible"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "SalesInvoiceStatisticShowsCorrectQuantityWithSalesLineInvoiceRoundingGL"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnBlanketSalesOrderLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnSalesQuoteLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnSalesReturnOrderLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnBlanketSalesOrderLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnSalesQuoteLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnSalesReturnOrderLineForGLAccount"
+  }
+]

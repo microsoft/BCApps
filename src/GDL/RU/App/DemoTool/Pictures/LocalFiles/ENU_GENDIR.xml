@@ -1,0 +1,6877 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<GeneralDictionary>
+  <GenDir>
+    <Code>AF</Code>
+    <Name>Air-Force</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>CSS</Code>
+    <Name>Committee of State Security</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Committee of State Security</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>DI</Code>
+    <Name>Department of the Interior</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Department of the Interior</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>FABSI</Code>
+    <Name>FABSI</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>FABSI</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>FAGCI</Code>
+    <Name>The Federal Agency for Government Communications and Information</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>The Federal Agency for Government Communications and Information</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>FATSI</Code>
+    <Name>FATSI</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>FATSI</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>FBS</Code>
+    <Name>Federal Border Service</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Federal Border Service</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>FSS</Code>
+    <Name>The Federal Security Service</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>The Federal Security Service</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>INDUCTEE</Code>
+    <Name>INDUCTEE</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>INDUCTEE</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>NAVY</Code>
+    <Name>Navy</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Navy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>OFSS</Code>
+    <Name>Office of the Federal Security Service</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>RA</Code>
+    <Name>The Russian Army</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>The Russian Army</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>SA</Code>
+    <Name>The Soviet Army</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>The Soviet Army</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>COMMAN</Code>
+    <Name>Command</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Command</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ENGINEERING</Code>
+    <Name>Engineering</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Engine-ing</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ENG-TECH</Code>
+    <Name>Engineering and technical</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Engineering and technical</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ENSIGNS</Code>
+    <Name>Ensigns</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Ensigns</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>HUMANIT</Code>
+    <Name>Humanitarian</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Humanitarian</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>MEDIC</Code>
+    <Name>Medicians</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>PETTOFF</Code>
+    <Name>Petty officer</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Petty officer</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>POLIT</Code>
+    <Name>Political</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Political</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>RYADOVOY</Code>
+    <Name>Ryadovoy</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Ryadovoy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>SAILOR</Code>
+    <Name>Sailor</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Sailor</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>SERGEANTS</Code>
+    <Name>Sergeants</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Sergeants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>SOLDIER</Code>
+    <Name>Soldier</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Soldier</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>WARFOFF</Code>
+    <Name>Warrant officer</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Warrant officer</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>CARICINO</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>OVK Caricino district Moscow SAD</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>IZMAILOVO</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>OVK Izmailovo district Moscow EAD</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>LUBERCI</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Lubereckiy OGVK MO</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>MOS NWAD</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Moscow NWAD</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>MOS SAD</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Moscow SAD</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>1</Code>
+    <Name>Actress drama and film</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Actress drama and film</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>10</Code>
+    <Name>cook</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>cook</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>100</Code>
+    <Name>telegraph and telephone connection</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>telegraph and telephone connection</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>101</Code>
+    <Name>economics and organization of the engineering industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economics and organization of the engineering industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>102</Code>
+    <Name>machinery and equipment trade and public catering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>machinery and equipment trade and public catering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>103</Code>
+    <Name>cultural and educational work</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>cultural and educational work</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>104</Code>
+    <Name>seller</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>seller</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>105</Code>
+    <Name>radiotechnics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radiotechnics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>106</Code>
+    <Name>construction and road machines</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>construction and road machines</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>107</Code>
+    <Name>journalism</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>journalism</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>108</Code>
+    <Name>hygiene work</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>hygiene work</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>109</Code>
+    <Name>radio and electronical devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radio and electronical devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>11</Code>
+    <Name>physical culture and sport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>physical culture and sport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>110</Code>
+    <Name>chemical engineering of plastics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical engineering of plastics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>111</Code>
+    <Name>finance and credit</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>finance and credit</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>112</Code>
+    <Name>radiomechanic repair radio equipment</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radiomechanic repair radio equipment</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>113</Code>
+    <Name>machines and apparatus</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>machines and apparatus</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>114</Code>
+    <Name>oil and gas processing equipment for chemical plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>oil and gas processing equipment for chemical plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>115</Code>
+    <Name>machinery shoe factories</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>machinery shoe factories</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>116</Code>
+    <Name>railway carriage and wagon industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>railway carriage and wagon industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>118</Code>
+    <Name>choral conducting</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>choral conducting</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>119</Code>
+    <Name>welding production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>welding production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>12</Code>
+    <Name>waiter</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>waiter</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>120</Code>
+    <Name>operation of automatic devices in the food industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operation of automatic devices in the food industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>121</Code>
+    <Name>programming for fast-acting machines</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>programming for fast-acting machines</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>122</Code>
+    <Name>history and civics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>history and civics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>123</Code>
+    <Name>obstetric</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>obstetric</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>124</Code>
+    <Name>chemical technology and equipment finishing productions</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical technology and equipment finishing productions</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>125</Code>
+    <Name>ship electronics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ship electronics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>126</Code>
+    <Name>precise mechanics devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>precise mechanics devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>127</Code>
+    <Name>education in preschool</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>education in preschool</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>128</Code>
+    <Name>planning in light industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>planning in light industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>129</Code>
+    <Name>shipbuilding</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>shipbuilding</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>13</Code>
+    <Name>semiconductors and dielectrics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>semiconductors and dielectrics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>130</Code>
+    <Name>labor economics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>labor economics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>131</Code>
+    <Name>hydrology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>hydrology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>132</Code>
+    <Name>Multichannel electrical connection</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Multichannel electrical connection</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>133</Code>
+    <Name>physical education</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>physical education</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>134</Code>
+    <Name>machine engineering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>machine engineering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>135</Code>
+    <Name>library science and bibliography</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>library science and bibliography</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>136</Code>
+    <Name>aerofotogeodeziya</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>aerofotogeodeziya</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>137</Code>
+    <Name>foreign language's history</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>foreign language's history</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>138</Code>
+    <Name>cinema equipment and its operation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>cinema equipment and its operation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>139</Code>
+    <Name>maintenance and repair of equipment</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>maintenance and repair of equipment</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>14</Code>
+    <Name>mining machines and systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mining machines and systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>140</Code>
+    <Name>philosophy</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>philosophy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>141</Code>
+    <Name>turner</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>turner</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>142</Code>
+    <Name>television technics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>television technics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>143</Code>
+    <Name>electrical machines</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrical machines</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>144</Code>
+    <Name>repair and maintenance of equipment</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>repair and maintenance of equipment</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>145</Code>
+    <Name>power supply rail</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>power supply rail</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>146</Code>
+    <Name>forestry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>forestry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>147</Code>
+    <Name>political economy</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>political economy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>148</Code>
+    <Name>national economy planning</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>national economy planning</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>149</Code>
+    <Name>design and production of ECD</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>design and production of ECD</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>15</Code>
+    <Name>electrical systems and networks</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrical systems and networks</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>150</Code>
+    <Name>swedish philology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>swedish philology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>151</Code>
+    <Name>accounting</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>accounting</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>152</Code>
+    <Name>technology and organization of catering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology and organization of catering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>153</Code>
+    <Name>economics and management of water transport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economics and management of water transport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>154</Code>
+    <Name>medical work</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>medical work</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>155</Code>
+    <Name>operation of autotransport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operation of autotransport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>156</Code>
+    <Name>hydrography</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>hydrography</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>157</Code>
+    <Name>stomatology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>stomatology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>158</Code>
+    <Name>applied mathematics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>applied mathematics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>159</Code>
+    <Name>Commodity of book</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Commodity of book</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>16</Code>
+    <Name>economy of trade</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economy of trade</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>160</Code>
+    <Name>geology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>geology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>161</Code>
+    <Name>economy and planning MTS</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economy and planning MTS</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>162</Code>
+    <Name>Heat-gas supply and ventilation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Heat-gas supply and ventilation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>163</Code>
+    <Name>industrial electronics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>industrial electronics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>164</Code>
+    <Name>mechan. technology of fibrous metal</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mechan. technology of fibrous metal</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>165</Code>
+    <Name>oceanology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>oceanology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>166</Code>
+    <Name>bibliology and organization of the book trade</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>bibliology and organization of the book trade</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>167</Code>
+    <Name>metallurgy of non-ferrous metals</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>metallurgy of non-ferrous metals</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>168</Code>
+    <Name>english philology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>english philology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>169</Code>
+    <Name>maritime navigation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>maritime navigation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>17</Code>
+    <Name>french and german languages</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>french and german languages</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>170</Code>
+    <Name>mason</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mason</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>171</Code>
+    <Name>operation of water transport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operation of water transport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>172</Code>
+    <Name>physics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>physics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>173</Code>
+    <Name>drawing and fine arts</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>drawing and fine arts</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>174</Code>
+    <Name>semiconductor and electronic-vacuum engineering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>semiconductor and electronic-vacuum engineering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>175</Code>
+    <Name>electroenergetical plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electroenergetical plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>176</Code>
+    <Name>technical disciplines and career guidance</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technical disciplines and career guidance</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>177</Code>
+    <Name>energy plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>energy plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>178</Code>
+    <Name>radiotechnics weapon</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radiotechnics weapon</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>179</Code>
+    <Name>political-military</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>political-military</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>18</Code>
+    <Name>spanish language and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>spanish language and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>180</Code>
+    <Name>tracked and wheeled vehicles</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>tracked and wheeled vehicles</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>181</Code>
+    <Name>metallurgy and welding technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>metallurgy and welding technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>182</Code>
+    <Name>preservation technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>preservation technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>183</Code>
+    <Name>production of microelectronics devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>production of microelectronics devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>184</Code>
+    <Name>sip weaving</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>sip weaving</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>185</Code>
+    <Name>philology of swahili</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>philology of swahili</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>186</Code>
+    <Name>operation of industrial robots</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operation of industrial robots</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>187</Code>
+    <Name>highfreq. connection and connection lines mechanics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>highfreq. connection and connection lines mechanics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>188</Code>
+    <Name>organization machining</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>organization machining</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>189</Code>
+    <Name>shipbuilding and ship repair</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>shipbuilding and ship repair</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>19</Code>
+    <Name>cabinetmaking</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>cabinetmaking</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>190</Code>
+    <Name>instrumentation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>instrumentation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>191</Code>
+    <Name>automation and telemechanics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>automation and telemechanics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>192</Code>
+    <Name>radio connection and broadcasting</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radio connection and broadcasting</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>193</Code>
+    <Name>welding technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>welding technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>194</Code>
+    <Name>planning in the chemical industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>planning in the chemical industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>195</Code>
+    <Name>foundry iron</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>foundry iron</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>196</Code>
+    <Name>metallurgy and heat treatment of metal</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>metallurgy and heat treatment of metal</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>197</Code>
+    <Name>electric lighting devices and plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electric lighting devices and plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>198</Code>
+    <Name>electromechanical equipment</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electromechanical equipment</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>199</Code>
+    <Name>the electric drive and automation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>the electric drive and automation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>2</Code>
+    <Name>architecture</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>architecture</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>20</Code>
+    <Name>rubber technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>rubber technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>200</Code>
+    <Name>topography</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>topography</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>201</Code>
+    <Name>construction and operation of buildings and structures</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>construction and operation of buildings and structures</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>202</Code>
+    <Name>construction and maintenance of roads and bridges</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>construction and maintenance of roads and bridges</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>203</Code>
+    <Name>electrical equipment of ships</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrical equipment of ships</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>204</Code>
+    <Name>Physico-chemical study of the metallurgical process</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Physico-chemical study of the metallurgical process</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>205</Code>
+    <Name>information measuring technics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>information measuring technics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>206</Code>
+    <Name>construction of electric</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>construction of electric</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>207</Code>
+    <Name>paramedic</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>paramedic</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>208</Code>
+    <Name>audit and control</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>audit and control</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>209</Code>
+    <Name>steam generating plants and devices NPP</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>steam generating plants and devices NPP</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>21</Code>
+    <Name>service organization in catering enterprise</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>service organization in catering enterprise</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>210</Code>
+    <Name>telecommunications and radio installation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>telecommunications and radio installation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>211</Code>
+    <Name>processing of plastics and rubber</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>processing of plastics and rubber</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>212</Code>
+    <Name>industrial arts</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>industrial arts</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>213</Code>
+    <Name>urban electric transport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>urban electric transport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>214</Code>
+    <Name>mechanical equipment unattended installations</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mechanical equipment unattended installations</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>215</Code>
+    <Name>state insurance</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>state insurance</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>216</Code>
+    <Name>ship body building</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ship body building</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>217</Code>
+    <Name>mechanization of accounting and computing work</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mechanization of accounting and computing work</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>218</Code>
+    <Name>plastics technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>plastics technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>219</Code>
+    <Name>automation of chemical processes</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>automation of chemical processes</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>22</Code>
+    <Name>sanitary unit buildings</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>sanitary unit buildings</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>220</Code>
+    <Name>romanj-germanic languages ??and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>romanj-germanic languages ??and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>221</Code>
+    <Name>control devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>control devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>222</Code>
+    <Name>the design and manufacture of radio</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>the design and manufacture of radio</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>223</Code>
+    <Name>accounting in agriculture production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>accounting in agriculture production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>224</Code>
+    <Name>state credit</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>state credit</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>225</Code>
+    <Name>ship machines and mechanism</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ship machines and mechanism</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>226</Code>
+    <Name>computing technics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>computing technics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>227</Code>
+    <Name>french language and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>french language and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>228</Code>
+    <Name>Commodity book catalog</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Commodity book catalog</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>229</Code>
+    <Name>service and repair of autotransport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>service and repair of autotransport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>23</Code>
+    <Name>aircraft production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>aircraft production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>230</Code>
+    <Name>manufacture of electronic and electrical automation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>manufacture of electronic and electrical automation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>231</Code>
+    <Name>non-metallic protective coatings</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>non-metallic protective coatings</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>232</Code>
+    <Name>industry planning</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>industry planning</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>233</Code>
+    <Name>composing production technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>composing production technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>234</Code>
+    <Name>confectionery production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>confectionery production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>235</Code>
+    <Name>engineering technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>engineering technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>236</Code>
+    <Name>production of construction parts and reinforced concrete structures</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>production of construction parts and reinforced concrete structures</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>237</Code>
+    <Name>technology of basic organic and petrochemical synthetics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology of basic organic and petrochemical synthetics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>238</Code>
+    <Name>operation and commissioning of machines with CP</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operation and commissioning of machines with CP</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>239</Code>
+    <Name>mining mechanics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mining mechanics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>24</Code>
+    <Name>electrical machinery</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrical machinery</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>240</Code>
+    <Name>antisubmarine armament</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>antisubmarine armament</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>241</Code>
+    <Name>chemistry and technology of highmolecular compounds</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemistry and technology of highmolecular compounds</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>242</Code>
+    <Name>music teacher, music educator</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>music teacher, music educator</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>243</Code>
+    <Name>chemestry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemestry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>244</Code>
+    <Name>chemical fiber technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical fiber technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>245</Code>
+    <Name>teacher</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>teacher</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>246</Code>
+    <Name>electronic and electrical automation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electronic and electrical automation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>247</Code>
+    <Name>automatic and comprehensive mechanisms of mechanical engineering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>automatic and comprehensive mechanisms of mechanical engineering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>248</Code>
+    <Name>operation of ship power plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operation of ship power plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>249</Code>
+    <Name>mine and torpedo</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mine and torpedo</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>25</Code>
+    <Name>applied geodesy</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>applied geodesy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>250</Code>
+    <Name>optical and electrical systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>optical and electrical systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>251</Code>
+    <Name>stylist</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>stylist</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>252</Code>
+    <Name>control-measuring instrument and devices production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>control-measuring instrument and devices production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>253</Code>
+    <Name>bridges and tunnels</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>bridges and tunnels</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>254</Code>
+    <Name>history</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>history</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>255</Code>
+    <Name>pediatrics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pediatrics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>256</Code>
+    <Name>technology of printing production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology of printing production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>257</Code>
+    <Name>philologist-german studies</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>philologist-german studies</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>258</Code>
+    <Name>butts plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>butts plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>259</Code>
+    <Name>command-stuff operation tactics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>command-stuff operation tactics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>26</Code>
+    <Name>foreign languages</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>foreign languages</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>260</Code>
+    <Name>chemical engineering binders</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical engineering binders</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>261</Code>
+    <Name>commodity and trade organization</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>commodity and trade organization</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>262</Code>
+    <Name>operation and repair of radiotechnics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operation and repair of radiotechnics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>263</Code>
+    <Name>devices construction and plants building</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>devices construction and plants building</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>264</Code>
+    <Name>boiler and steam turbine plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>boiler and steam turbine plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>265</Code>
+    <Name>feed milling industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>feed milling industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>266</Code>
+    <Name>electronical-physical systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electronical-physical systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>267</Code>
+    <Name>air devices construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>air devices construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>268</Code>
+    <Name>radiotechnics measuring</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radiotechnics measuring</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>269</Code>
+    <Name>Internal combustion engines</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Internal combustion engines</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>27</Code>
+    <Name>refrigeration and compressor machines and installations</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>refrigeration and compressor machines and installations</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>270</Code>
+    <Name>machines and devices PPI</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>machines and devices PPI</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>271</Code>
+    <Name>water supply and sewerage</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>water supply and sewerage</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>272</Code>
+    <Name>mathematics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mathematics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>273</Code>
+    <Name>opto-mechanical devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>opto-mechanical devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>274</Code>
+    <Name>chemical technology of paints, varnishes and paints</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical technology of paints, varnishes and paints</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>275</Code>
+    <Name>commodity food and manufactured goods</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>commodity food and manufactured goods</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>276</Code>
+    <Name>control-measuring devices production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>control-measuring devices production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>277</Code>
+    <Name>weaving</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>weaving</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>278</Code>
+    <Name>chemical technology of film photographic</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical technology of film photographic</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>279</Code>
+    <Name>accounting and business analysis</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>accounting and business analysis</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>28</Code>
+    <Name>mechanization of cargo handling on transport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mechanization of cargo handling on transport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>280</Code>
+    <Name>industrial heat</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>industrial heat</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>281</Code>
+    <Name>computer programming and systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>computer programming and systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>282</Code>
+    <Name>dry-cleaning and dyeing clothes</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>dry-cleaning and dyeing clothes</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>283</Code>
+    <Name>accounting and operating machinery in the state bank</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>accounting and operating machinery in the state bank</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>284</Code>
+    <Name>technology sewing machines</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology sewing machines</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>285</Code>
+    <Name>secretary-typist</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>secretary-typist</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>286</Code>
+    <Name>sanparamedic</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>sanparamedic</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>287</Code>
+    <Name>machinery and equipment textile industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>machinery and equipment textile industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>288</Code>
+    <Name>meteorology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>meteorology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>289</Code>
+    <Name>organization of services in hotels and tourist complexes</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>organization of services in hotels and tourist complexes</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>29</Code>
+    <Name>dental technician</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>dental technician</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>290</Code>
+    <Name>operating and repair of electrosupplying transport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operating and repair of electrosupplying transport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>291</Code>
+    <Name>gyroscopic equipment and devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>gyroscopic equipment and devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>292</Code>
+    <Name>electric of aircraft</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electric of aircraft</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>293</Code>
+    <Name>musical education</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>musical education</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>294</Code>
+    <Name>mathematical and computing instruments and devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mathematical and computing instruments and devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>295</Code>
+    <Name>navigation in the sea lanes</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>navigation in the sea lanes</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>296</Code>
+    <Name>east languages and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>east languages and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>297</Code>
+    <Name>mathematiical equipment of the automated control systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mathematiical equipment of the automated control systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>298</Code>
+    <Name>electrical and industrial installations</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrical and industrial installations</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>299</Code>
+    <Name>radio and sea navigation of maritime industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radio and sea navigation of maritime industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>3</Code>
+    <Name>greening of cities and towns</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>greening of cities and towns</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>30</Code>
+    <Name>green construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>green construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>300</Code>
+    <Name>auto transport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>auto transport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>301</Code>
+    <Name>processing technology on machines with control system</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>processing technology on machines with control system</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>302</Code>
+    <Name>electro devices of industry and plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electro devices of industry and plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>303</Code>
+    <Name>excavator driver of 5 rank</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>excavator driver of 5 rank</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>304</Code>
+    <Name>relay protection and automation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>relay protection and automation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>305</Code>
+    <Name>tral engine and armament</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>tral engine and armament</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>306</Code>
+    <Name>cartography</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>cartography</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>307</Code>
+    <Name>chemical technology of electronic vacuum materials</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical technology of electronic vacuum materials</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>308</Code>
+    <Name>economics and organization of metallurgical industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economics and organization of metallurgical industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>31</Code>
+    <Name>electronic devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electronic devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>310</Code>
+    <Name>information processing technology in ACS</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>information processing technology in ACS</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>311</Code>
+    <Name>technology products catering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology products catering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>312</Code>
+    <Name>torpedoes</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>torpedoes</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>313</Code>
+    <Name>preschool pedagogy and psychology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>preschool pedagogy and psychology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>314</Code>
+    <Name>philology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>philology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>315</Code>
+    <Name>control systems of rocket-space objects</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>control systems of rocket-space objects</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>316</Code>
+    <Name>calculator</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>calculator</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>317</Code>
+    <Name>building machines and industry equpiment</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>building machines and industry equpiment</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>318</Code>
+    <Name>slavic languages and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>slavic languages and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>319</Code>
+    <Name>design</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>design</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>32</Code>
+    <Name>draftsman and designer</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>draftsman and designer</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>320</Code>
+    <Name>diesel-electro energy systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>diesel-electro energy systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>321</Code>
+    <Name>biologist-physyologist and plant biochemist</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>biologist-physyologist and plant biochemist</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>322</Code>
+    <Name>radio-reley and tronosfery connection</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radio-reley and tronosfery connection</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>323</Code>
+    <Name>radiotechnical resources</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radiotechnical resources</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>324</Code>
+    <Name>chemical compressor and refrigeration engineering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical compressor and refrigeration engineering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>325</Code>
+    <Name>secretary-referent</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>secretary-referent</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>326</Code>
+    <Name>agricultural commodity</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>agricultural commodity</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>327</Code>
+    <Name>millwork and cabinetmaking</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>millwork and cabinetmaking</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>328</Code>
+    <Name>aircraft engines</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>aircraft engines</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>329</Code>
+    <Name>economy</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>33</Code>
+    <Name>thermal equipment industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>thermal equipment industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>330</Code>
+    <Name>Locomotives / electric locomotives and EMUs</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Locomotives / electric locomotives and EMUs</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>331</Code>
+    <Name>geological mapping, prospecting and exploration</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>geological mapping, prospecting and exploration</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>332</Code>
+    <Name>technology of garments</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology of garments</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>333</Code>
+    <Name>operator of chemical production 3 rank</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operator of chemical production 3 rank</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>334</Code>
+    <Name>SGPTU-42</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>SGPTU-42</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>335</Code>
+    <Name>crane operator</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>crane operator</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>336</Code>
+    <Name>veterinary</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>veterinary</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>337</Code>
+    <Name>mate navy</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mate navy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>338</Code>
+    <Name>accounting with using of computer</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>accounting with using of computer</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>339</Code>
+    <Name>organization of air transfer</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>organization of air transfer</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>34</Code>
+    <Name>planning at the enterprise engineering industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>planning at the enterprise engineering industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>340</Code>
+    <Name>automated control systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>automated control systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>341</Code>
+    <Name>tourism organizor</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>tourism organizor</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>342</Code>
+    <Name>soil science and agricultural chemistry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>soil science and agricultural chemistry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>343</Code>
+    <Name>radiotechnics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radiotechnics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>344</Code>
+    <Name>russian language and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>russian language and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>345</Code>
+    <Name>computer using and ACS in fleet</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>computer using and ACS in fleet</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>346</Code>
+    <Name>management of the joint venture and foreign trade activities</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>management of the joint venture and foreign trade activities</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>347</Code>
+    <Name>jurisprudence</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>jurisprudence</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>348</Code>
+    <Name>management</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>management</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>349</Code>
+    <Name>waiter</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>waiter</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>35</Code>
+    <Name>technology of milk and milk products</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology of milk and milk products</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>350</Code>
+    <Name>storage and processing of grain technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>storage and processing of grain technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>351</Code>
+    <Name>hydromelioration</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>hydromelioration</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>352</Code>
+    <Name>automation of the process and production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>automation of the process and production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>353</Code>
+    <Name>radio devices construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radio devices construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>354</Code>
+    <Name>electrorolling train</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrorolling train</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>355</Code>
+    <Name>military communications</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>military communications</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>356</Code>
+    <Name>ceramic technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ceramic technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>357</Code>
+    <Name>engineering navigation-hydrographic</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>engineering navigation-hydrographic</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>358</Code>
+    <Name>food management technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>food management technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>359</Code>
+    <Name>microelectronical devices production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>microelectronical devices production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>36</Code>
+    <Name>planning in the food industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>planning in the food industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>360</Code>
+    <Name>an employee of the hotel industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>an employee of the hotel industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>361</Code>
+    <Name>shoemaker shoe repair</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>shoemaker shoe repair</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>362</Code>
+    <Name>accounting, control and AHD</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>accounting, control and AHD</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>363</Code>
+    <Name>artist painting on porcelain</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>artist painting on porcelain</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>364</Code>
+    <Name>grinder</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>grinder</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>365</Code>
+    <Name>organization of services in hotels and tourist complexes</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>organization of services in hotels and tourist complexes</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>366</Code>
+    <Name>jurisprudence and accounting in the social security system</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>jurisprudence and accounting in the social security system</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>367</Code>
+    <Name>economics and management of commerce</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economics and management of commerce</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>368</Code>
+    <Name>plasterer and painter</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>plasterer and painter</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>369</Code>
+    <Name>spacecraft and upper stages</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>spacecraft and upper stages</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>37</Code>
+    <Name>Commodity and organization of food products</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Commodity and organization of food products</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>370</Code>
+    <Name>economics, management in the residential housing and public services</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economics, management in the residential housing and public services</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>371</Code>
+    <Name>state and municipal management</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>state and municipal management</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>372</Code>
+    <Name>opto-electronic devices and systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>opto-electronic devices and systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>373</Code>
+    <Name>waiter with foreign lang. knowledge</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>waiter with foreign lang. knowledge</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>374</Code>
+    <Name>organization of cooperative trade and merchandising products</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>organization of cooperative trade and merchandising products</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>375</Code>
+    <Name>command tactical motorized infantry troops</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>command tactical motorized infantry troops</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>376</Code>
+    <Name>management in food service</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>management in food service</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>377</Code>
+    <Name>electronic medical devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electronic medical devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>378</Code>
+    <Name>economics and organization of industrial food products</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economics and organization of industrial food products</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>379</Code>
+    <Name>economy, accounting and control</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economy, accounting and control</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>38</Code>
+    <Name>optical devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>optical devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>380</Code>
+    <Name>Commodity food products</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Commodity food products</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>381</Code>
+    <Name>museums and monuments protection of cultural history</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>museums and monuments protection of cultural history</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>382</Code>
+    <Name>technics and physics of low temperature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technics and physics of low temperature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>383</Code>
+    <Name>command physical training and sports coaching</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>command physical training and sports coaching</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>384</Code>
+    <Name>socio-cultural activities</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>socio-cultural activities</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>385</Code>
+    <Name>technician organizer service in the hotel</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technician organizer service in the hotel</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>386</Code>
+    <Name>green building and amenity horticulture</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>green building and amenity horticulture</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>387</Code>
+    <Name>french</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>french</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>388</Code>
+    <Name>building products production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>building products production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>389</Code>
+    <Name>german and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>german and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>39</Code>
+    <Name>ship automation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ship automation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>390</Code>
+    <Name>history of political parties</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>history of political parties</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>391</Code>
+    <Name>technician-organizer of the hotel industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technician-organizer of the hotel industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>392</Code>
+    <Name>economy and organization of railway transport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economy and organization of railway transport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>393</Code>
+    <Name>command and tactical radio equipment</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>command and tactical radio equipment</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>394</Code>
+    <Name>head of HR</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>head of HR</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>395</Code>
+    <Name>radio communication</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radio communication</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>396</Code>
+    <Name>organization of naval operations energy systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>organization of naval operations energy systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>397</Code>
+    <Name>french and german languages</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>french and german languages</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>398</Code>
+    <Name>electronic weapons</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electronic weapons</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>399</Code>
+    <Name>budget accounting</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>budget accounting</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>4</Code>
+    <Name>nurse</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>nurse</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>40</Code>
+    <Name>industrial and civil construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>industrial and civil construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>400</Code>
+    <Name>subsoil waters</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>subsoil waters</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>401</Code>
+    <Name>adjustor of radiodevices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>adjustor of radiodevices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>402</Code>
+    <Name>seller</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>seller</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>403</Code>
+    <Name>cook, confectioner</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>cook, confectioner</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>404</Code>
+    <Name>electro mounter of light systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electro mounter of light systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>405</Code>
+    <Name>management and organization of foreign economic activity</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>management and organization of foreign economic activity</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>406</Code>
+    <Name>mechanic of mechanical assembly work</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mechanic of mechanical assembly work</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>407</Code>
+    <Name>industrial and civil construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>industrial and civil construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>408</Code>
+    <Name>instrumentation</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>instrumentation</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>409</Code>
+    <Name>electrical</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrical</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>41</Code>
+    <Name>bakery production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>bakery production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>410</Code>
+    <Name>operator on the formulation and processing of translation of documents</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>operator on the formulation and processing of translation of documents</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>411</Code>
+    <Name>economical and social planning</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economical and social planning</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>412</Code>
+    <Name>electroenergetics</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electroenergetics</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>413</Code>
+    <Name>building construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>building construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>414</Code>
+    <Name>tractor driver generalist</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>tractor driver generalist</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>415</Code>
+    <Name>management of hotel and tourism business</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>management of hotel and tourism business</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>416</Code>
+    <Name>artillery command, operation artillery weapons</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>artillery command, operation artillery weapons</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>417</Code>
+    <Name>mathematical methods and researc in economy</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mathematical methods and researc in economy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>418</Code>
+    <Name>catering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>catering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>419</Code>
+    <Name>history with add. Soviet law</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>history with add. Soviet law</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>42</Code>
+    <Name>postal services</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>postal services</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>420</Code>
+    <Name>electro-mounter</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electro-mounter</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>421</Code>
+    <Name>mechanization of agriculture</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mechanization of agriculture</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>422</Code>
+    <Name>stitching and binding production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>stitching and binding production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>423</Code>
+    <Name>painter</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>painter</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>424</Code>
+    <Name>radio and electronical devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radio and electronical devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>425</Code>
+    <Name>restorer of wood</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>restorer of wood</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>426</Code>
+    <Name>refrigeration equipment and machinery</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>refrigeration equipment and machinery</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>427</Code>
+    <Name>automation, telemech. and communication in rail transport</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>automation, telemech. and communication in rail transport</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>428</Code>
+    <Name>command and staff</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>command and staff</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>429</Code>
+    <Name>practical finance management</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>practical finance management</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>43</Code>
+    <Name>analysis of trade, public catering and material supply</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>analysis of trade, public catering and material supply</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>430</Code>
+    <Name>control devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>control devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>44</Code>
+    <Name>accounting in trade</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>accounting in trade</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>45</Code>
+    <Name>tractor construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>tractor construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>46</Code>
+    <Name>metal cutting</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>metal cutting</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>47</Code>
+    <Name>economy of catering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economy of catering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>48</Code>
+    <Name>pre-school education</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pre-school education</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>49</Code>
+    <Name>radar devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radar devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>5</Code>
+    <Name>german language</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>german language</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>50</Code>
+    <Name>Planning for consumer services</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Planning for consumer services</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>51</Code>
+    <Name>plain print technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>plain print technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>52</Code>
+    <Name>electrical devices of industrials and plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrical devices of industrials and plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>53</Code>
+    <Name>economics and Industrial Objects offers a broad</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economics and Industrial Objects offers a broad</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>54</Code>
+    <Name>bookbinding production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>bookbinding production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>55</Code>
+    <Name>programming</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>programming</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>56</Code>
+    <Name>ship power plants</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ship power plants</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>57</Code>
+    <Name>control-measuring devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>control-measuring devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>58</Code>
+    <Name>instrument production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>instrument production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>59</Code>
+    <Name>computers, devices and equipments</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>computers, devices and equipments</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>6</Code>
+    <Name>automated control systems</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>automated control systems</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>60</Code>
+    <Name>jurisprudence</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>jurisprudence</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>61</Code>
+    <Name>czech language and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>czech language and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>62</Code>
+    <Name>mount and repair of industrial devices</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>mount and repair of industrial devices</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>63</Code>
+    <Name>medical assistant</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>medical assistant</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>64</Code>
+    <Name>refractories technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>refractories technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>66</Code>
+    <Name>installer</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>installer</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>67</Code>
+    <Name>pulp and paper production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pulp and paper production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>68</Code>
+    <Name>forging-stamping production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>forging-stamping production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>69</Code>
+    <Name>pantryman</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pantryman</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>7</Code>
+    <Name>construction and operation of special purpose facilities</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>construction and operation of special purpose facilities</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>70</Code>
+    <Name>english and german languages</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>english and german languages</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>71</Code>
+    <Name>control man</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>control man</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>72</Code>
+    <Name>Electrodevices construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Electrodevices construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>73</Code>
+    <Name>economics and organization of the wood and pulp and paper industry</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economics and organization of the wood and pulp and paper industry</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>74</Code>
+    <Name>contrabass</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>contrabass</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>75</Code>
+    <Name>barman</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>barman</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>76</Code>
+    <Name>pharmaceutical</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pharmaceutical</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>77</Code>
+    <Name>clothing manufacture</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>clothing manufacture</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>78</Code>
+    <Name>local telephone</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>local telephone</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>79</Code>
+    <Name>builder</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>builder</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>8</Code>
+    <Name>food technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>food technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>80</Code>
+    <Name>technology and complex mechanization</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology and complex mechanization</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>81</Code>
+    <Name>cashier-controller</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>cashier-controller</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>82</Code>
+    <Name>town construction</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>town construction</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>83</Code>
+    <Name>chemical engineering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>chemical engineering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>84</Code>
+    <Name>economical cybernetics in agriculture</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>economical cybernetics in agriculture</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>85</Code>
+    <Name>knitting production</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>knitting production</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>86</Code>
+    <Name>automatical and electrical connection</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>automatical and electrical connection</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>87</Code>
+    <Name>english language and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>english language and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>89</Code>
+    <Name>russian language and literature</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>russian language and literature</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>9</Code>
+    <Name>organization and catering technology</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>organization and catering technology</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>90</Code>
+    <Name>elect. technical metal coating</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>elect. technical metal coating</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>91</Code>
+    <Name>geografy</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>geografy</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>92</Code>
+    <Name>engineering of wire connection</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>engineering of wire connection</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>93</Code>
+    <Name>commodity industrial goods</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>commodity industrial goods</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>94</Code>
+    <Name>electrical ship equipment</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>electrical ship equipment</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>95</Code>
+    <Name>technical maintenance of buildings</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technical maintenance of buildings</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>96</Code>
+    <Name>technology of leather</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology of leather</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>97</Code>
+    <Name>radio engineering</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>radio engineering</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>98</Code>
+    <Name>technology of synthetic resins</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>technology of synthetic resins</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>99</Code>
+    <Name>construction of elevated water and sewer systems and structures</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>construction of elevated water and sewer systems and structures</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>AD</Code>
+    <Name>Lawyer</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>AU</Code>
+    <Name>Private auditor</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>DT</Code>
+    <Name>Private detective</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>FH</Code>
+    <Name>A member of the farm</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>IP</Code>
+    <Name>Solo entrepreneur</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>NR</Code>
+    <Name>wage-earner</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>NRED</Code>
+    <Name>HIRED/ONE</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>NT</Code>
+    <Name>Notary private practice</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>OV </Code>
+    <Name>Special payments</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>SH</Code>
+    <Name>Farm worker</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>CH31</Code>
+    <Name>The work in the exclusion zone</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 31 of law # 1244-1 from 15 may 1991</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Territorial Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>CH33</Code>
+    <Name>Permanent residence (work) in the living area with the right to resettlement</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 33 of law # 1244-1 from 15 may 1991</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Territorial Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>CH34</Code>
+    <Name>Perm. residence (work) in the zone with prefer. policies socio-economic conditions</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 34 of law # 1244-1 from 15 may 1991</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Territorial Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>CH35</Code>
+    <Name>Permanent residence (work) in the evacuation zone to resettlement in other areas</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 35 of law # 1244-1 from 15 may 1991</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Territorial Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>CH36</Code>
+    <Name>Working in the evacuation zone (the actual duration)</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 36 of law # 1244-1 from 15 may 1991</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Territorial Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>MKS</Code>
+    <Name>Region equals to Far North</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 14 Pension due to Far North work</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Territorial Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>RKS</Code>
+    <Name>Far North Region</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 14 Pension due to Far North work</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Territorial Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>27-1</Code>
+    <Name>Underground work, work in hazardous conditions</Name>
+    <Note />
+    <Type>Special Work Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>subp. 1 of par. 1 article 27 law # 173-FL from 17.1.2001</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Special Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>27-2</Code>
+    <Name>Work with difficult working conditions</Name>
+    <Note />
+    <Type>Special Work Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>subp. 2 of par. 1 article 27 law # 173-FL from 17.1.2001</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Special Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ZP12A</Code>
+    <Name>Underground work, work in hazardous conditions</Name>
+    <Note />
+    <Type>Special Work Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>par. "a" of article 12 law #340-1 from 20.11.1990</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Special Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ZP12B</Code>
+    <Name>Work with difficult working conditions</Name>
+    <Note />
+    <Type>Special Work Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>par. "b" of article 12 law #340-1 from 20.11.1990</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Special Conditions</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>DIVER</Code>
+    <Name>Divers and other workers involved in the work</Name>
+    <Note />
+    <Type>Countable Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>par. "a" of article 12 law #340-1 from 19.11.1990</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Countable Service Reason</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>LEPRO</Code>
+    <Name>Work in a leper colony and anti-plague facilities</Name>
+    <Note />
+    <Type>Countable Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>indent 3 article 94 law RF #340##-1 from 20.11.1990</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Countable Service Reason</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>SEASON</Code>
+    <Name>Work full navigation season on water transport</Name>
+    <Note />
+    <Type>Countable Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>indent 2 article 94 law RF #340##-1 from 20.11.1990</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Countable Service Reason</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>UIK104</Code>
+    <Name>The work of convicted while serving their sentences</Name>
+    <Note />
+    <Type>Countable Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 104 of criminal-executive code RF</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Countable Service Reason</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>CHILDREN</Code>
+    <Name>Leave to care for a child</Name>
+    <Note />
+    <Type>Countable Service Addition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>par. "c" article 92 law RF # 340-1 from 19.11.1990</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Maternity Leave</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>DECREE</Code>
+    <Name>Maternity leave</Name>
+    <Note />
+    <Type>Countable Service Addition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>par. "c" article 92 law RF # 340-1 from 19.11.1990</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Maternity Leave</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>SERVICE</Code>
+    <Name>Military service and the other equal to it</Name>
+    <Note />
+    <Type>Countable Service Addition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>subp. 3 par. 4 article 30 law #173##-FL from 17.12.2001</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>27-11GR</Code>
+    <Name>Underground and open pit mining</Name>
+    <Note />
+    <Type>Long Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>part 1 subp. 11 par. 1 article 27 law #173-FL from 17.12.2001</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Long Service</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>28-SP</Code>
+    <Name>Rescuers work in professional rescue services</Name>
+    <Note />
+    <Type>Long Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>subp. 7 par. 1 article 28 law #173##-FL from 17.12.2001</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Long Service</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ZP78GR</Code>
+    <Name>Underground and open pit mining</Name>
+    <Note />
+    <Type>Long Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>part 1 article 78 law # 340-1 from 20.11.1990</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Long Service</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ADMINISTR</Code>
+    <Name>Leave without pay</Name>
+    <Note />
+    <Type>Other Absence</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 76 codex law about work RF</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Maternity Leave</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>LONGLEAVE</Code>
+    <Name>Stayed paid leave</Name>
+    <Note />
+    <Type>Other Absence</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Article 114-116 Labor Code RF</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Maternity Leave</XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>VRNETRUD</Code>
+    <Name>The period of temporary disability</Name>
+    <Note />
+    <Type>Other Absence</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>subp. 2 par. 1 article 11 law #173##-FL from 17.12.2001</FullName>
+    <RegionDirectory />
+    <Export>No</Export>
+    <XMLElementType>Maternity Leave</XMLElementType>
+  </GenDir>
+</GeneralDictionary>

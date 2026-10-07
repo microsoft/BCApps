@@ -1,0 +1,87 @@
+[
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalance"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceAddlDep"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceAddlDepFirstYearHalfUtilize"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceAfterRevaluation"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceBlockAllAssetSoldAboveWDV"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceBlockAllAssetSoldBelowWDV"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceBlockOneAssetSoldAboveWDV"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceBlockOneAssetSoldBelowWDV"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceNormalDepFirstYearHalfUtilize"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationDecliningBalanceWithCompanyDepBook"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationStraightLine"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationStraightLineNonSeasonalWithCompanyDepBook"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationStraightLineSeasonalWithCompanyDepBook"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyDepreciationStraightLineWithResidualWithCompanyDepBook"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyFAStockUponNewFAPurchaseStraightLine"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyFAStockUponNewFAPurchaseWithCompanyDepBook"
+  },
+  {
+    "codeunitId": 18649,
+    "codeunitName": "FA Depreciation",
+    "method": "VerifyNumberofDaysCalculationForLeapYear"
+  }
+]

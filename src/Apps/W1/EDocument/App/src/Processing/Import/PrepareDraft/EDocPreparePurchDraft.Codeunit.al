@@ -43,6 +43,8 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         LineAmount: Decimal;
         LineVATAmount: Decimal;
         TotalLineVATAmount: Decimal;
+        VendorAlreadyAssigned: Boolean;
+        VendorFoundByProvider: Boolean;
     begin
         IUnitOfMeasureProvider := EDocImportParameters."Processing Customizations";
         IPurchaseLineProvider := EDocImportParameters."Processing Customizations";
@@ -52,10 +54,12 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
 
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         EDocumentPurchaseHeader.TestField("E-Document Entry No.");
-        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then begin
+        VendorAlreadyAssigned := EDocumentPurchaseHeader."[BC] Vendor No." <> '';
+        if not VendorAlreadyAssigned then begin
             Vendor := GetVendor(EDocument, EDocImportParameters."Processing Customizations");
             EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
         end;
+        VendorFoundByProvider := (not VendorAlreadyAssigned) and (EDocumentPurchaseHeader."[BC] Vendor No." <> '');
 
         PurchaseOrder := IPurchaseOrderProvider.GetPurchaseOrder(EDocumentPurchaseHeader);
         if PurchaseOrder."No." <> '' then begin
@@ -67,6 +71,17 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         EDocumentPurchaseHeader.Modify();
 
         EDocImpSessionTelemetry.SetBool('Vendor', EDocumentPurchaseHeader."[BC] Vendor No." <> '');
+
+        case true of
+            VendorAlreadyAssigned:
+                EDocImpSessionTelemetry.SetText('Vendor Assignment Source', 'Already Assigned');
+            VendorFoundByProvider:
+                EDocImpSessionTelemetry.SetText('Vendor Assignment Source', 'Provider');
+            EDocumentPurchaseHeader."[BC] Vendor No." <> '':
+                EDocImpSessionTelemetry.SetText('Vendor Assignment Source', 'History');
+            else
+                EDocImpSessionTelemetry.SetText('Vendor Assignment Source', 'None');
+        end;
         if EDocumentPurchaseHeader."[BC] Vendor No." <> '' then begin
 
             EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -116,9 +131,21 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
     var
         EDocumentPurchaseDraft: Page "E-Document Purchase Draft";
     begin
+        EnsureDraftHeaderExistsForFailedExtraction(EDocument);
         EDocumentPurchaseDraft.Editable(true);
         EDocumentPurchaseDraft.SetRecord(EDocument);
         EDocumentPurchaseDraft.Run();
+    end;
+
+    internal procedure EnsureDraftHeaderExistsForFailedExtraction(EDocument: Record "E-Document")
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        EDocument.CalcFields("Import Processing Status");
+        if not ((EDocument."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and (EDocument.Status = Enum::"E-Document Status"::Error)) then
+            exit;
+
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
     end;
 
     procedure CleanUpDraft(EDocument: Record "E-Document")
@@ -141,6 +168,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         Log(EDocActivityLogSession, EDocActivityLogSession.DeferralTok());
         Log(EDocActivityLogSession, EDocActivityLogSession.ItemRefTok());
         Log(EDocActivityLogSession, EDocActivityLogSession.TextToAccountMappingTok());
+        Log(EDocActivityLogSession, EDocActivityLogSession.ItemDescriptionTok());
     end;
 
     local procedure Log(EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session"; ActivityLogName: Text)

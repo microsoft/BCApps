@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Setup;
 
-codeunit 99001503 "Subcontracting Comp. Init."
+codeunit 20503 "Subcontracting Comp. Init."
 {
     var
         ReqWkshTempDescLbl: Label 'Subcontracting', MaxLength = 80;
@@ -64,7 +64,8 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
-        ReqWkshTemplate.Insert(true);
+        if not ReqWkshTemplate.Insert(true) then
+            ReqWkshTemplate.Modify(true);
         exit(true);
     end;
 

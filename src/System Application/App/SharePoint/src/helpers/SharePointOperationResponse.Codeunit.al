@@ -79,10 +79,41 @@ codeunit 9108 "SharePoint Operation Response"
         JToken: JsonToken;
     begin
         GetResultAsText(Result);
-        if Result <> '' then
-            if JObject.ReadFrom(Result) then
-                if JObject.Get('error_description', JToken) then
-                    exit(JToken.AsValue().AsText());
+        if Result = '' then
+            exit('');
+        if not JObject.ReadFrom(Result) then
+            exit('');
+
+        // OData (v3 verbose / v4) error format: { "error": { "message": ... } }
+        if JObject.Get('error', JToken) then begin
+            if JToken.IsObject() then
+                exit(GetODataErrorMessage(JToken.AsObject()));
+            if JToken.IsValue() then
+                exit(JToken.AsValue().AsText());
+        end;
+
+        // OAuth / STS token endpoint format: { "error_description": "..." }
+        if JObject.Get('error_description', JToken) then
+            if JToken.IsValue() then
+                exit(JToken.AsValue().AsText());
+    end;
+
+    local procedure GetODataErrorMessage(ErrorObject: JsonObject) ErrorText: Text
+    var
+        MessageToken: JsonToken;
+        ValueToken: JsonToken;
+    begin
+        if ErrorObject.Get('message', MessageToken) then
+            case true of
+                // OData v3 verbose: "message": { "lang": "...", "value": "..." }
+                MessageToken.IsObject():
+                    if MessageToken.AsObject().Get('value', ValueToken) then
+                        if ValueToken.IsValue() then
+                            ErrorText := ValueToken.AsValue().AsText();
+                // OData v4: "message": "..."
+                MessageToken.IsValue():
+                    ErrorText := MessageToken.AsValue().AsText();
+            end;
     end;
 
     internal procedure GetDiagnostics(): Interface "HTTP Diagnostics"

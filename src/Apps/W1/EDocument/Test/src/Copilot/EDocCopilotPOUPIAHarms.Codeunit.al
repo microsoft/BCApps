@@ -1,3 +1,4 @@
+#if not CLEAN29
 namespace Microsoft.Sales.Document.Test;
 
 using Microsoft.eServices.EDocument;
@@ -119,3 +120,4 @@ codeunit 133527 EDocCopilotPOUPIAHarms
     end;
 
 }
+#endif

@@ -37,30 +37,45 @@ page 30144 "Shpfy Add Item Confirm"
     trigger OnOpenPage()
     begin
         ActiveConfirmTxt := StrSubstNo(AddToStoreActiveConfirmLbl, ItemDescription, ShopCode);
-        DraftConfirmTxt := StrSubstNo(AddToStoreDraftConfirmLbl, ItemDescription, ShopCode);
+        if IsUnlisted then
+            DraftConfirmTxt := StrSubstNo(AddToStoreUnlistedConfirmLbl, ItemDescription, ShopCode)
+        else
+            DraftConfirmTxt := StrSubstNo(AddToStoreDraftConfirmLbl, ItemDescription, ShopCode);
     end;
 
     var
         ItemDescription: Text[100];
         ShopCode: Code[20];
         IsActive: Boolean;
+        IsUnlisted: Boolean;
         ActiveConfirmTxt: Text;
         DraftConfirmTxt: Text;
 
         AddToStoreActiveConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will be immediately active.', Comment = '%1 - Item description, %2 - Shopify store name';
         AddToStoreDraftConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will remain in draft until you activate it.', Comment = '%1 - Item description, %2 - Shopify store name';
+        AddToStoreUnlistedConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will be unlisted.', Comment = '%1 - Item description, %2 - Shopify store name';
 
-    internal procedure SetIsActive(Active: Boolean)
+#if not CLEAN30
+    [Obsolete('Use SetProductStatus instead.', '30.0')]
+    procedure SetIsActive(Active: Boolean)
     begin
         IsActive := Active;
+        IsUnlisted := false;
+    end;
+#endif
+
+    procedure SetProductStatus(ProductStatus: Enum "Shpfy Cr. Prod. Status Value")
+    begin
+        IsActive := ProductStatus = ProductStatus::Active;
+        IsUnlisted := ProductStatus = ProductStatus::Unlisted;
     end;
 
-    internal procedure SetItemDescription(Description: Text[100])
+    procedure SetItemDescription(Description: Text[100])
     begin
         ItemDescription := Description;
     end;
 
-    internal procedure SetShopCode(Code: Code[20])
+    procedure SetShopCode(Code: Code[20])
     begin
         ShopCode := Code;
     end;

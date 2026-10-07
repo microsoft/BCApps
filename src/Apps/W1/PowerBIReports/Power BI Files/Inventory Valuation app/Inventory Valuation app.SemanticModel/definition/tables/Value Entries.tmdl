@@ -442,12 +442,41 @@ table 'Value Entries'
 
 	measure 'Value Entry Back Link' = ```
 			
-			VAR PostingDateFilter = " AND 'Value Entry'.'Posting Date' IS '" & [Date Ranged] & "'"
+			VAR PageLink = [Base Link] & "&page=5802"
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR SelectedEntryNos = VALUES ( 'Value Entries'[Entry No.] )
+			VAR MaxEntryNoDigits = LEN ( MAXX ( SelectedEntryNos, 'Value Entries'[Entry No.] ) & "" )
+			VAR EntryNoRangeStarts =
+			    FILTER (
+			        SelectedEntryNos,
+			        VAR CurrentEntryNo = 'Value Entries'[Entry No.]
+			        RETURN COUNTROWS ( FILTER ( SelectedEntryNos, 'Value Entries'[Entry No.] = CurrentEntryNo - 1 ) ) = 0
+			    )
+			// Conservative estimate: bound each run by (2 * widest selected entry no + separator/range marker)
+			VAR ProjectedEntryNoRangedLength = COUNTROWS ( EntryNoRangeStarts ) * ( 2 * MaxEntryNoDigits + 3 )
+			// Project the URL length from run counts and digit widths without materializing the ranged strings
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Value Entry'.'Entry No.' IS ''" ) + ProjectedEntryNoRangedLength
+			    + LEN ( " AND 'Value Entry'.'Posting Date' IS ''" ) + ProjectedRangedLength
 			RETURN
 			    IF (
 			        NOT ISFILTERED ( 'Date' ),
 			        BLANK (),
-			        [Base Link] & "&page=5802&filter='Value Entry'.'Entry No.' IS '" & [Value Entry Ranged] & "'" & PostingDateFilter
+			        // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			        IF (
+			            ProjectedLength <= 2000,
+			            PageLink & "&filter='Value Entry'.'Entry No.' IS '" & [Value Entry Ranged] & "'" & " AND 'Value Entry'.'Posting Date' IS '" & [Date Ranged] & "'",
+			            PageLink
+			        )
 			    )
 			
 			```

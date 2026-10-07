@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 enumextension 133501 "E-Doc. Mock Customizations" extends "E-Doc. Proc. Customizations"
@@ -13,5 +14,9 @@ enumextension 133501 "E-Doc. Mock Customizations" extends "E-Doc. Proc. Customiz
     {
         Implementation = IEDocumentCreatePurchaseInvoice = "E-Doc. Processing Mocks",
                          IEDocumentCreatePurchaseCreditMemo = "E-Doc. Processing Mocks";
+    }
+    value(133502; "Mock Create Sales Order")
+    {
+        Implementation = IEDocumentCreateSalesOrder = "E-Doc. Processing Mocks";
     }
 }

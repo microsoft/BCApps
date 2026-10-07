@@ -11,8 +11,8 @@ page 37004 "Sales by Item"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales by Item';
-    AboutTitle = 'About Sales by Item';
+    Caption = 'Sales by Item (Power BI)';
+    AboutTitle = 'About Sales by Item (Power BI)';
     AboutText = 'The Sales by Item report breaks down sales performance by item category, highlighting metrics such as Sales Amount, Gross Profit Margin, and Gross Profit as a Percent of the Grand Total. This report provides detailed insights into which categories and items are driving revenue and profitability.';
 
     layout

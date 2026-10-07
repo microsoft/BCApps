@@ -1,0 +1,406 @@
+codeunit 101902 "Make Adjustments"
+{
+    SingleInstance = true;
+
+    trigger OnRun()
+    begin
+        GenerateMap();
+    end;
+
+    var
+        DemoDataSetup: Record "Demo Data Setup";
+        TempGLAccountMapBuffer: Record "G/L Account Map Buffer";
+
+    procedure Convert("Account No.": Code[20]) Return: Code[20]
+    begin
+        if not IsAccountMapped("Account No.", Return) then
+            exit("Account No.");
+    end;
+
+    // This Account is also used for Vendor and Customer posting grouppes
+    procedure GetAdjustmentAccount(): Code[20]
+    begin
+        exit('999150');
+    end;
+
+    local procedure AddMapElement("Key": Code[20]; Value: Code[20])
+    begin
+        TempGLAccountMapBuffer.Key := Key;
+        TempGLAccountMapBuffer.Value := Value;
+        TempGLAccountMapBuffer.Insert();
+    end;
+
+    local procedure IsAccountMapped(AccountNo: Code[20]; var Return: Code[20]): Boolean
+    begin
+        TempGLAccountMapBuffer.SetCurrentKey(Key);
+        if TempGLAccountMapBuffer.Get(AccountNo) then begin
+            Return := TempGLAccountMapBuffer.Value;
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    local procedure GenerateMap()
+    begin
+        AddMapElement('990011', '22700');
+        AddMapElement('990012', '22780');
+        AddMapElement('990013', '22850');
+        AddMapElement('990014', '22450');
+        AddMapElement('990015', '41400');
+        AddMapElement('990016', '41450');
+        AddMapElement('990017', '41500');
+        AddMapElement('991000', '91000');
+        AddMapElement('991002', '10000');
+        AddMapElement('991003', '16000');
+        AddMapElement('991005', '91005');
+        AddMapElement('991100', '18000');
+        AddMapElement('991110', '18100');
+        AddMapElement('991120', '18110');
+        AddMapElement('991130', '18120');
+        AddMapElement('991140', '18200');
+        AddMapElement('991190', '18300');
+        AddMapElement('991200', '17000');
+        AddMapElement('991210', '17100');
+        AddMapElement('991220', '17110');
+        AddMapElement('991230', '17120');
+        AddMapElement('991240', '17200');
+        AddMapElement('991290', '17300');
+        AddMapElement('991300', '16100');
+        AddMapElement('991310', '16200');
+        AddMapElement('991320', '16210');
+        AddMapElement('991330', '16220');
+        AddMapElement('991340', '16300');
+        AddMapElement('991390', '16400');
+        AddMapElement('991395', '91395');
+        AddMapElement('991999', '18950');
+        AddMapElement('992000', '11000');
+        AddMapElement('992100', '14000');
+        AddMapElement('992110', '14100');
+        AddMapElement('992111', '14101');
+        AddMapElement('992112', '14102');
+        AddMapElement('992120', '14200');
+        AddMapElement('992121', '14201');
+        AddMapElement('992130', '14300');
+        AddMapElement('992131', '14301');
+        AddMapElement('992132', '14302');
+        AddMapElement('992140', '14600');
+        AddMapElement('992180', '14400');
+        AddMapElement('992190', '14500');
+        AddMapElement('992200', '15000');
+        AddMapElement('992210', '15010');
+        AddMapElement('992211', '15011');
+        AddMapElement('992212', '15012');
+        AddMapElement('992220', '15100');
+        AddMapElement('992230', '15230');
+        AddMapElement('992231', '15231');
+        AddMapElement('992232', '15232');
+        AddMapElement('992240', '15240');
+        AddMapElement('992290', '15300');
+        AddMapElement('992300', '13000');
+        AddMapElement('992310', '13100');
+        AddMapElement('992320', '13200');
+        AddMapElement('992325', '13250');
+        AddMapElement('992330', '13300');
+        AddMapElement('992340', '13350');
+        AddMapElement('992390', '13400');
+        AddMapElement('992400', '13500');
+        AddMapElement('992410', '13510');
+        AddMapElement('992420', '13520');
+        AddMapElement('992430', '13530');
+        AddMapElement('992440', '13540');
+        AddMapElement('992800', '12000');
+        AddMapElement('992810', '12100');
+        AddMapElement('992890', '12300');
+        AddMapElement('992900', '11100');
+        AddMapElement('992910', '11200');
+        AddMapElement('992920', '11400');
+        AddMapElement('992930', '11500');
+        AddMapElement('992940', '11600');
+        AddMapElement('992990', '11700');
+        AddMapElement('992995', '15950');
+        AddMapElement('992999', '19950');
+        AddMapElement('993000', '20000');
+        AddMapElement('993100', '30300');
+        AddMapElement('993110', '30100');
+        AddMapElement('993120', '30200');
+        AddMapElement('993195', '30400');
+        AddMapElement('993199', '30500');
+        AddMapElement('994000', '94000');
+        AddMapElement('994010', '25300');
+        AddMapElement('994999', '94999');
+        AddMapElement('995000', '21000');
+        AddMapElement('995100', '25000');
+        AddMapElement('995110', '25100');
+        AddMapElement('995120', '25200');
+        AddMapElement('995290', '25400');
+        AddMapElement('995300', '22000');
+        AddMapElement('995310', '22100');
+        AddMapElement('995350', '22150');
+        AddMapElement('995360', '22160');
+        AddMapElement('995370', '22170');
+        AddMapElement('995380', '22180');
+        AddMapElement('995390', '22190');
+        AddMapElement('995400', '22200');
+        AddMapElement('995410', '22300');
+        AddMapElement('995420', '22400');
+        AddMapElement('995425', '22425');
+        AddMapElement('995490', '22500');
+        AddMapElement('995500', '22510');
+        AddMapElement('995510', '22550');
+        AddMapElement('995530', '22530');
+        AddMapElement('995590', '22590');
+        AddMapElement('995600', '22780');
+        AddMapElement('995610', '63400');
+        AddMapElement('995611', '22811');
+        AddMapElement('995620', '22750');
+        AddMapElement('995630', '95630');
+        AddMapElement('995650', '63450');
+        AddMapElement('995660', '95660');
+        AddMapElement('995710', '22700');
+        AddMapElement('995790', '95790');
+        AddMapElement('995795', '22950');
+        AddMapElement('995796', '22960');
+        AddMapElement('995797', '22970');
+        AddMapElement('995799', '22990');
+        AddMapElement('995800', '23000');
+        AddMapElement('995810', '23100');
+        AddMapElement('995820', '23200');
+        AddMapElement('995830', '23300');
+        AddMapElement('995840', '23800');
+        AddMapElement('995850', '23850');
+        AddMapElement('995890', '23900');
+        AddMapElement('995900', '24000');
+        AddMapElement('995910', '24200');
+        AddMapElement('995920', '24300');
+        AddMapElement('995990', '24400');
+        AddMapElement('995995', '24500');
+        AddMapElement('995997', '25995');
+        AddMapElement('995999', '39950');
+        AddMapElement('996000', '96000');
+        AddMapElement('996100', '40000');
+        AddMapElement('996105', '44000');
+        AddMapElement('996110', '44100');
+        AddMapElement('996120', '44200');
+        AddMapElement('996130', '44300');
+        AddMapElement('996190', '44399');
+        AddMapElement('996191', '44400');
+        AddMapElement('996195', '44500');
+        AddMapElement('996205', '43000');
+        AddMapElement('996210', '43100');
+        AddMapElement('996220', '43200');
+        AddMapElement('996230', '43300');
+        AddMapElement('996290', '43400');
+        AddMapElement('996291', '43400');
+        AddMapElement('996295', '43500');
+        AddMapElement('996405', '42000');
+        AddMapElement('996410', '42100');
+        AddMapElement('996420', '42200');
+        AddMapElement('996430', '42300');
+        AddMapElement('996490', '42400');
+        AddMapElement('996495', '42500');
+        AddMapElement('996605', '41000');
+        AddMapElement('996610', '41100');
+        AddMapElement('996620', '41200');
+        AddMapElement('996695', '41300');
+        AddMapElement('996710', '45000');
+        AddMapElement('996810', '45100');
+        AddMapElement('996820', '45150');
+        AddMapElement('996910', '45200');
+        AddMapElement('996950', '41400');
+        AddMapElement('996955', '41450');
+        AddMapElement('996959', '41500');
+        AddMapElement('996995', '49950');
+        AddMapElement('997100', '50000');
+        AddMapElement('997105', '54000');
+        AddMapElement('997110', '54100');
+        AddMapElement('997120', '54200');
+        AddMapElement('997130', '54300');
+        AddMapElement('997140', '54400');
+        AddMapElement('997150', '53450');
+        AddMapElement('997170', '54500');
+        AddMapElement('997171', '54501');
+        AddMapElement('997180', '54599');
+        AddMapElement('997181', '54600');
+        AddMapElement('997189', '54701');
+        AddMapElement('997190', '54700');
+        AddMapElement('997191', '54710');
+        AddMapElement('997192', '54702');
+        AddMapElement('997193', '54703');
+        AddMapElement('997195', '54900');
+        AddMapElement('997205', '53000');
+        AddMapElement('997210', '53100');
+        AddMapElement('997220', '53150');
+        AddMapElement('997230', '53200');
+        AddMapElement('997240', '53300');
+        AddMapElement('997250', '53350');
+        AddMapElement('997270', '53400');
+        AddMapElement('997271', '53401');
+        AddMapElement('997280', '53499');
+        AddMapElement('997281', '53500');
+        AddMapElement('997289', '53601');
+        AddMapElement('997290', '53600');
+        AddMapElement('997291', '53700');
+        AddMapElement('997292', '53800');
+        AddMapElement('997293', '53850');
+        AddMapElement('997295', '53900');
+        AddMapElement('997405', '52000');
+        AddMapElement('997480', '62925');
+        AddMapElement('997481', '52210');
+        AddMapElement('997490', '52200');
+        AddMapElement('997495', '52300');
+        AddMapElement('997620', '51000');
+        AddMapElement('997705', '52400');
+        AddMapElement('997710', '52410');
+        AddMapElement('997791', '52450');
+        AddMapElement('997792', '52460');
+        AddMapElement('997793', '52475');
+        AddMapElement('997795', '52500');
+        AddMapElement('997805', '57000');
+        AddMapElement('997890', '57100');
+        AddMapElement('997891', '57200');
+        AddMapElement('997892', '57210');
+        AddMapElement('997893', '57300');
+        AddMapElement('997894', '57400');
+        AddMapElement('997895', '57900');
+        AddMapElement('997995', '59950');
+        AddMapElement('998000', '60000');
+        AddMapElement('998100', '65000');
+        AddMapElement('998110', '65100');
+        AddMapElement('998120', '65200');
+        AddMapElement('998130', '65300');
+        AddMapElement('998190', '65400');
+        AddMapElement('998200', '65500');
+        AddMapElement('998210', '65600');
+        AddMapElement('998230', '65700');
+        AddMapElement('998240', '65800');
+        AddMapElement('998290', '65900');
+        AddMapElement('998300', '64000');
+        AddMapElement('998310', '64100');
+        AddMapElement('998320', '64200');
+        AddMapElement('998330', '64300');
+        AddMapElement('998390', '64400');
+        AddMapElement('998400', '61000');
+        AddMapElement('998410', '61100');
+        AddMapElement('998420', '61200');
+        AddMapElement('998430', '61300');
+        AddMapElement('998450', '61350');
+        AddMapElement('998490', '61400');
+        AddMapElement('998500', '63000');
+        AddMapElement('998510', '63100');
+        AddMapElement('998520', '63200');
+        AddMapElement('998530', '63300');
+        AddMapElement('998590', '63500');
+        AddMapElement('998600', '67000');
+        AddMapElement('998610', '67100');
+        AddMapElement('998620', '67200');
+        AddMapElement('998630', '67300');
+        AddMapElement('998640', '67400');
+        AddMapElement('998690', '67600');
+        AddMapElement('998695', '69950');
+        AddMapElement('998700', '62000');
+        AddMapElement('998710', '62100');
+        AddMapElement('998720', '62200');
+        AddMapElement('998730', '62300');
+        AddMapElement('998740', '62400');
+        AddMapElement('998750', '62500');
+        AddMapElement('998790', '62950');
+        AddMapElement('998800', '66000');
+        AddMapElement('998810', '66100');
+        AddMapElement('998820', '66200');
+        AddMapElement('998830', '66300');
+        AddMapElement('998840', '48500');
+        AddMapElement('998890', '66400');
+        AddMapElement('998910', '67500');
+        AddMapElement('998995', '69999');
+        AddMapElement('999100', '47000');
+        AddMapElement('999110', '47100');
+        AddMapElement('999120', '47200');
+        AddMapElement('999130', '47300');
+        AddMapElement('999135', '47260');
+        AddMapElement('999140', '47400');
+        AddMapElement('999150', '47500');
+        AddMapElement('999160', '47510');
+        AddMapElement('999170', '47520');
+        AddMapElement('999190', '56950');
+        AddMapElement('999200', '68000');
+        AddMapElement('999210', '68100');
+        AddMapElement('999220', '68200');
+        AddMapElement('999230', '68300');
+        AddMapElement('999240', '68400');
+        AddMapElement('999250', '54800');
+        AddMapElement('999255', '68455');
+        AddMapElement('999260', '68460');
+        AddMapElement('999270', '68470');
+        AddMapElement('999290', '68600');
+        AddMapElement('999310', '48100');
+        AddMapElement('999320', '48200');
+        AddMapElement('999330', '48300');
+        AddMapElement('999340', '48400');
+        AddMapElement('999350', '81150');
+        AddMapElement('999360', '81160');
+        AddMapElement('999395', '81999');
+        AddMapElement('999410', '85100');
+        AddMapElement('999420', '85200');
+        AddMapElement('999495', '99495');
+        AddMapElement('999510', '84100');
+        AddMapElement('999999', '99999');
+        AddMapElement('8012200', '12200');
+        AddMapElement('8022600', '22600');
+        AddMapElement('8022790', '22790');
+        AddMapElement('8023050', '23050');
+        AddMapElement('8023400', '23400');
+        AddMapElement('8023500', '23500');
+        AddMapElement('8023600', '23600');
+        AddMapElement('8023700', '23700');
+        AddMapElement('8023750', '23750');
+        AddMapElement('8023775', '23775');
+        AddMapElement('8030000', '30000');
+        AddMapElement('8059999', '59999');
+        AddMapElement('8062600', '62600');
+        AddMapElement('8062700', '62700');
+        AddMapElement('8062800', '62800');
+        AddMapElement('8062900', '62900');
+        AddMapElement('8080700', '48000');
+        AddMapElement('8081300', '47600');
+        AddMapElement('8084000', '84000');
+        AddMapElement('8084200', '84200');
+        AddMapElement('8084300', '84300');
+        AddMapElement('8084500', '84500');
+        AddMapElement('8085000', '85000');
+        AddMapElement('8085300', '85300');
+    end;
+
+    procedure AdjustDate(OriginalDate: Date): Date
+    var
+        TempDate: Date;
+        WeekDay: Integer;
+        MonthDay: Integer;
+        Week: Integer;
+        Month: Integer;
+        Year: Integer;
+    begin
+        if DemoDataSetup.Get() then;
+        if OriginalDate <> 0D then begin
+            TempDate := CalcDate('<+92Y>', OriginalDate);
+            WeekDay := Date2DWY(TempDate, 1);
+            MonthDay := Date2DMY(TempDate, 1);
+            Month := Date2DMY(TempDate, 2);
+            Week := Date2DWY(TempDate, 2);
+            Year := Date2DMY(TempDate, 3) + DemoDataSetup."Starting Year" - 1994;
+            case Month of
+                1, 3, 5, 7, 8, 10, 12:
+                    if (MonthDay = 31) or (MonthDay = 1) then
+                        exit(DMY2Date(MonthDay, Month, Year));
+                2:
+                    if (MonthDay = 28) or (MonthDay = 1) then
+                        exit(DMY2Date(MonthDay, Month, Year));
+                4, 6, 9, 11:
+                    if (MonthDay = 30) or (MonthDay = 1) then
+                        exit(DMY2Date(MonthDay, Month, Year));
+            end;
+            exit(DWY2Date(WeekDay, Week, Year));
+        end;
+        exit(0D);
+    end;
+}
+

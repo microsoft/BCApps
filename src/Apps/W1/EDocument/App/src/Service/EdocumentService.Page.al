@@ -72,12 +72,16 @@ page 6133 "E-Document Service"
                 field("Import Process"; Rec."Import Process")
                 {
                     ToolTip = 'Specifies the version of the import process to use for incoming e-documents.';
-                    Visible = false;
                 }
                 group(PurchaseDraft)
                 {
                     Caption = 'Purchase Draft';
                     Visible = Rec."Import Process" = Enum::"E-Document Import Process"::"Version 2.0";
+                    field("Read into Draft Impl."; Rec."Read into Draft Impl.")
+                    {
+                        Caption = 'Draft Format';
+                        ToolTip = 'Specifies the format used to read the incoming structured e-document into a draft, for example PEPPOL for PEPPOL BIS invoices. Leave it as Unspecified only when the integration or a PDF reader (such as Azure Document Intelligence) determines the format automatically.';
+                    }
                     field("Verify Totals When Posting"; Rec."Verify Purch. Total Amounts")
                     {
                         Caption = 'Verify totals when posting invoice.';
@@ -191,6 +195,15 @@ page 6133 "E-Document Service"
                     {
                     }
                 }
+                group(ItemChargeMapping)
+                {
+                    ShowCaption = false;
+
+                    field("Item Charge E-Invoice Mapping"; Rec."Item Charge E-Invoice Mapping")
+                    {
+                        Visible = false;
+                    }
+                }
 
             }
             part(EDocumentDataExchDef; "E-Doc. Service Data Exch. Sub")
@@ -253,11 +266,19 @@ page 6133 "E-Document Service"
             }
             action(SupportedDocTypes)
             {
-                Caption = 'Configure documents to export.';
-                ToolTip = 'Set up what documents framework will export.';
+                ApplicationArea = Basic, Suite;
+                Caption = 'Configure supported documents';
+                ToolTip = 'Set up which document types the framework can send or receive for this service.';
                 Image = Documents;
-                RunObject = Page "E-Doc Service Supported Types";
-                RunPageLink = "E-Document Service Code" = field(Code);
+
+                trigger OnAction()
+                var
+                    EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+                begin
+                    InitializeDefaultSupportedTypes();
+                    EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
+                    Page.Run(Page::"E-Doc Service Supported Types", EDocServiceSupportedType);
+                end;
             }
             action(Receive)
             {
@@ -328,7 +349,27 @@ page 6133 "E-Document Service"
         ServiceIntegrationSetupMsg: Label 'There is no configuration setup for this service integration.';
         DocNotCreatedQst: Label 'Failed to create new Purchase %1 from E-Document. Do you want to open E-Document to see reported errors?', Comment = '%1 - Purchase Document Type';
         LegacyIntegrationVisible: Boolean;
+        InitializeSupportedTypes: Boolean;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        InitializeSupportedTypes := true;
+    end;
+
+    trigger OnClosePage()
+    begin
+        InitializeDefaultSupportedTypes();
+    end;
+
+    local procedure InitializeDefaultSupportedTypes()
+    begin
+        if not InitializeSupportedTypes or (Rec.Code = '') then
+            exit;
+
+        CurrPage.SaveRecord();
+        Rec.Validate("Document Format");
+        InitializeSupportedTypes := false;
+    end;
 
     trigger OnOpenPage()
     var

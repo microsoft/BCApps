@@ -111,5 +111,29 @@ codeunit 6175 "E-Doc. Activity Log Session"
         exit('TextToAccountMapping');
     end;
 
+    procedure ItemDescriptionTok(): Text
+    begin
+        exit('ItemDescription');
+    end;
+
+    procedure SellerItemIdTok(): Text
+    begin
+        exit('SellerItemId');
+    end;
+
+    procedure GtinTok(): Text
+    begin
+        exit('Gtin');
+    end;
+
+    procedure StandardItemIdTok(): Text
+    begin
+        exit('StandardItemId');
+    end;
+
+    procedure BuyerItemRefTok(): Text
+    begin
+        exit('BuyerItemRef');
+    end;
 
 }

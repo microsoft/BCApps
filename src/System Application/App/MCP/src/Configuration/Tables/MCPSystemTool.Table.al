@@ -23,11 +23,16 @@ table 8353 "MCP System Tool"
             Caption = 'Tool Description';
             ToolTip = 'Specifies the description of the system tool.';
         }
+        field(3; "Server Feature"; Enum "MCP Server Feature")
+        {
+            Caption = 'Server Feature';
+            ToolTip = 'Specifies which server feature exposes this tool.';
+        }
     }
 
     keys
     {
-        key(Key1; "Tool Name")
+        key(Key1; "Server Feature", "Tool Name")
         {
             Clustered = true;
         }

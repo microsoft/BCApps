@@ -1,0 +1,3 @@
+Code,Description,DefVATProdPostingGroup,AutoInsertDefault
+TGPPG1,Test Gen Prod PG 1,,false
+TGPPG2,Test Gen Prod PG 2,,true

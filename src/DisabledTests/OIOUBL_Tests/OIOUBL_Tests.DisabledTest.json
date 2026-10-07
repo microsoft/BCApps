@@ -1,0 +1,402 @@
+[
+  {
+    "codeunitId": 148050,
+    "codeunitName": "OIOUBL-Check Sales and Service",
+    "method": "PostSalesCreditMemoWithNegativeLineDiscAmount"
+  },
+  {
+    "codeunitId": 148050,
+    "codeunitName": "OIOUBL-Check Sales and Service",
+    "method": "PostSalesInvoiceWithNegativeLineAmount"
+  },
+  {
+    "codeunitId": 148050,
+    "codeunitName": "OIOUBL-Check Sales and Service",
+    "method": "PostSalesInvoiceWithNegativeLineDiscPct"
+  },
+  {
+    "codeunitId": 148050,
+    "codeunitName": "OIOUBL-Check Sales and Service",
+    "method": "PostSalesInvoiceWithOneNegativeLineButPositiveTotal"
+  },
+  {
+    "codeunitId": 148050,
+    "codeunitName": "OIOUBL-Check Sales and Service",
+    "method": "PostServiceCreditMemoWithOneNegativeLineButPositiveTotal"
+  },
+  {
+    "codeunitId": 148050,
+    "codeunitName": "OIOUBL-Check Sales and Service",
+    "method": "PostServiceOrderWithNegativeLineAmount"
+  },
+  {
+    "codeunitId": 148050,
+    "codeunitName": "OIOUBL-Check Sales and Service",
+    "method": "PostServiceOrderWithNegativeLineDiscAmount"
+  },
+  {
+    "codeunitId": 148050,
+    "codeunitName": "OIOUBL-Check Sales and Service",
+    "method": "PostServiceOrderWithNegativeLineDiscPct"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "PostSalesCrMemoWhenDocNoAsExtDocNoEnabled"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "PostSalesInvoiceWhenDocNoAsExtDocNoEnabled"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "PostSalesInvoiceWithTotalLineAmountPositive"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "SalesCrMemoBlankDescError"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "SalesCrMemoBlankUOMError"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "SalesCrMemoPaymentTermsCodeNotNeeded"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "SalesOrderBlankDescError"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "SalesOrderBlankUOMError"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "ServiceCrMemoBlankDescError"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "ServiceCrMemoGLAccountBlankUOM"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "ServiceCrMemoItemBlankUOMError"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "ServiceCrMemoPaymentTermsCodeNotNeeded"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "ServiceInvoiceBlankDescError"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "ServiceInvoiceGLAccountTypeBlankUOM"
+  },
+  {
+    "codeunitId": 148051,
+    "codeunitName": "OIOUBL-ERM Sales/Service Docs",
+    "method": "ServiceInvoiceItemTypeBlankUOMError"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "OIOUBL-ERM Elec Document Sales",
+    "method": "ElectronicSalesCreditMemoWithMultipleGL"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "OIOUBL-ERM Elec Document Sales",
+    "method": "ElectronicSalesInvoiceWithMultipleGL"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "OIOUBL-ERM Elec Document Sales",
+    "method": "PostPrePaymentFromSalesOrderOIOUBL"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "OIOUBL-UT ERM Elec. Doc Sales",
+    "method": "ElectronicSalesCreditMemoWithMultipleGL"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "OIOUBL-UT ERM Elec. Doc Sales",
+    "method": "ElectronicSalesInvoiceWithMultipleGL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "AmountPriceDiscountOnServiceCrMemoPricesInclVATWithLineInvoiceDiscount"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "AmountPriceDiscountOnServiceCrMemoWithLineInvoiceDiscount"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "AmountPriceDiscountOnServiceInvoicePricesInclVATWithLineInvoiceDiscount"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "AmountPriceDiscountOnServiceInvoiceWithLineInvoiceDiscount"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoDecimalUnitPrice"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoMultipleLineWithoutVATAndAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoMultipleLineWithoutVATWithAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoMultipleLineWithVATAndAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoMultipleLineWithVATWithoutAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoSingleLineWithoutVATAndAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoSingleLineWithoutVATWithAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoSingleLineWithVATAndAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoSingleLineWithVATWithoutAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoUsingMultipleGLAccount"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoUsingMultipleGLAccountAndItem"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoUsingMultipleItemAndGLAccount"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoUsingNumberBlank"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoUsingTypeAndNumberBlank"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceCrMemoUsingTypeBlank"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvMultipleLineWithoutVATAndAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvMultipleLineWithoutVATWithAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvMultipleLineWithVATWithAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvMultipleLineWithVATWithoutAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvoiceDecimalUnitPrice"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvoiceUsingMultipleGLAccount"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvoiceUsingMultipleGLAccountAndItem"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvoiceUsingMultipleItemAndGLAccount"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvoiceUsingNumberBlank"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvoiceUsingTypeAndNumberBlank"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvoiceUsingTypeBlank"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvSingleLineWithoutVATAndAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvSingleLineWithoutVATWithAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvSingleLineWithVATAndAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "ElectronicServiceInvSingleLineWithVATWithoutAccCode"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceCrMemoNonElectronicDocument"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceCrMemoNonOIOUBL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceCrMemoOIOUBL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceCrMemoOIOUBLWithPrintAndEmail"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceInvoiceNonElectronicDocument"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceInvoiceNonOIOUBL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceInvoiceOIOUBL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceInvoiceOIOUBLAndPDFWithPrintAndEmail"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "PostAndSendServiceInvoiceOIOUBLWithPrintAndEmail"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendMultiplePostedServiceCrMemosOIOUBL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendMultiplePostedServiceInvoicesOIOUBL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendPostedServiceCrMemoOIOUBL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendPostedServiceCrMemoOIOUBLWithNonStandardCodeunit"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendPostedServiceDocumentOIOUBLWithoutElectronicDocFormat"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendPostedServiceInvoiceOIOUBL"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendPostedServiceInvoiceOIOUBLAndPDFWithPrintAndEmail"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendPostedServiceInvoiceOIOUBLWithNonStandardCodeunit"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "OIOUBL-Elec. Service Document",
+    "method": "SendPostedServiceInvoiceOIOUBLWithPrintAndEmail"
+  }
+]

@@ -1,0 +1,3695 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by VI (GNIVC FNS RF) -->
+<!-- edited with XMLSPY v2004 rel. 4 U (http://www.xmlspy.com) by Home (Home) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="Файл">
+		<xs:annotation>
+			<xs:documentation>Файл обмена</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Документ">
+					<xs:annotation>
+						<xs:documentation>Состав и структура документа</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СвНП">
+								<xs:annotation>
+									<xs:documentation>Сведения о налогоплательщике</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="НПЮЛ">
+											<xs:annotation>
+												<xs:documentation>Налогоплательщик - юридическое лицо</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="НаимОрг" use="required">
+													<xs:annotation>
+														<xs:documentation>Наименование организации / Наименование обособленного подразделения организации</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="1000"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ИННЮЛ" type="ИННЮЛТип" use="required">
+													<xs:annotation>
+														<xs:documentation>ИНН организации</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="КПП" type="КППТип" use="required">
+													<xs:annotation>
+														<xs:documentation>КПП</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ОКВЭД" type="ОКВЭДТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Код вида экономической деятельности по классификатору ОКВЭД </xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="Тлф" use="optional">
+										<xs:annotation>
+											<xs:documentation>Номер контактного телефона</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+												<xs:maxLength value="20"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Подписант">
+								<xs:annotation>
+									<xs:documentation>Лицо, подписавшее документ</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ФИО" type="ФИОТип">
+											<xs:annotation>
+												<xs:documentation>Фамилия, имя, отчество</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="СвПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Сведения о представителе налогоплательщика</xs:documentation>
+												<xs:documentation>Обязательно для «ПрПодп»=2</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="НаимДок" use="required">
+													<xs:annotation>
+														<xs:documentation>Наименование документа, подтверждающего полномочия представителя</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="120"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НаимОрг" use="optional">
+													<xs:annotation>
+														<xs:documentation>Наименование организации - представителя налогоплательщика </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="1000"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ПрПодп" use="required">
+										<xs:annotation>
+											<xs:documentation>Признак лица, подписавшего документ</xs:documentation>
+											<xs:documentation>Принимает значение:
+1 – налогоплательщик   |
+2 – представитель налогоплательщика</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element ref="Прибыль"/>
+						</xs:sequence>
+						<xs:attribute name="КНД" use="required">
+							<xs:annotation>
+								<xs:documentation>Код формы отчетности по КНД</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="КНДТип">
+									<xs:enumeration value="1151006"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ДатаДок" type="ДатаТип" use="required">
+							<xs:annotation>
+								<xs:documentation>Дата формирования документа</xs:documentation>
+								<xs:documentation>
+Дата в формате ДД.ММ.ГГГГ</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="Период" use="required">
+							<xs:annotation>
+								<xs:documentation>Отчетный (налоговый) период</xs:documentation>
+								<xs:documentation>Принимает значение:
+21 – 1 квартал  | 
+31 – полугодие  | 
+33 –	девять месяцев  | 
+34 –	год  | 
+35 – один месяц  | 
+36 – два месяца  | 
+37 – три месяца  | 
+38 – четыре месяца  | 
+39 – пять месяцев  | 
+40 – шесть месяцев  | 
+41 – семь месяцев  | 
+42 – восемь месяцев  | 
+43 – девять месяцев  | 
+44 – десять месяцев  | 
+45 – одиннадцать месяцев  | 
+46 – год  | 
+50 – последний налоговый период при реорганизации (ликвидации) организации
+*коды в диапазоне с 35 по 46 указываются налогоплательщиками, уплачивающими ежемесячные авансовые платежи исходя из фактической полученной прибыли</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="2"/>
+									<xs:enumeration value="21"/>
+									<xs:enumeration value="31"/>
+									<xs:enumeration value="33"/>
+									<xs:enumeration value="34"/>
+									<xs:enumeration value="35"/>
+									<xs:enumeration value="36"/>
+									<xs:enumeration value="37"/>
+									<xs:enumeration value="38"/>
+									<xs:enumeration value="39"/>
+									<xs:enumeration value="40"/>
+									<xs:enumeration value="41"/>
+									<xs:enumeration value="42"/>
+									<xs:enumeration value="43"/>
+									<xs:enumeration value="44"/>
+									<xs:enumeration value="45"/>
+									<xs:enumeration value="46"/>
+									<xs:enumeration value="50"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ОтчетГод" type="xs:gYear" use="required">
+							<xs:annotation>
+								<xs:documentation>Отчетный год</xs:documentation>
+								<xs:documentation>
+Год в формате ГГГГ</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="КодНО" type="СОНОТип" use="required">
+							<xs:annotation>
+								<xs:documentation>Код налогового органа</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="НомКорр" use="required">
+							<xs:annotation>
+								<xs:documentation>Номер корректировки</xs:documentation>
+								<xs:documentation>Принимает значение:
+0 – первичный документ, 
+1 – 999 – номер корректировки для корректирующего документа</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+									<xs:maxLength value="3"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ПоМесту" use="required">
+							<xs:annotation>
+								<xs:documentation>Код места, по которому представляется документ</xs:documentation>
+								<xs:documentation>Принимает значение:
+213 – по месту учета в качестве крупнейшего налогоплательщика  | 
+214 – по месту нахождения российской организации, не являющейся крупнейшим налогоплательщиком  |
+215 – по месту нахождения правопреемника, не являющегося крупнейшим налогоплательщиком  |
+216 – по месту учета правопреемника, являющегося крупнейшим налогоплательщиком  |
+220 – по месту нахождения обособленного подразделения российской организации  |
+223 – по месту нахождения (учета) российской организации при представлении декларации по ликвидированному обособленному подразделению  |
+231 – по месту нахождения налогового агента – организации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="3"/>
+									<xs:enumeration value="213"/>
+									<xs:enumeration value="214"/>
+									<xs:enumeration value="215"/>
+									<xs:enumeration value="216"/>
+									<xs:enumeration value="220"/>
+									<xs:enumeration value="223"/>
+									<xs:enumeration value="231"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="ИдФайл" use="required">
+				<xs:annotation>
+					<xs:documentation>Идентификатор файла</xs:documentation>
+					<xs:documentation>Повторяет имя передаваемого файла (без расширения)</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="100"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ВерсПрог" use="required">
+				<xs:annotation>
+					<xs:documentation>Версия передающей программы</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="40"/>
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ВерсФорм" use="required">
+				<xs:annotation>
+					<xs:documentation>Версия формата</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="5"/>
+						<xs:enumeration value="5.01"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Прибыль">
+		<xs:annotation>
+			<xs:documentation>Налоговая декларация по налогу на прибыль организаций</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="НалПУ">
+					<xs:annotation>
+						<xs:documentation>Сумма налога, подлежащая уплате</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="НалПУАв" minOccurs="0" maxOccurs="2">
+								<xs:annotation>
+									<xs:documentation>Сумма налога, подлежащая уплате в бюджет, по данным налогоплательщика (для организаций, уплачивающих авансовые платежи и налог на прибыль организаций)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ФедБдж" type="ПУАвТип" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы налога для уплаты в федеральный бюджет</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="СубБдж" type="ПУАвТип" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы налога для уплаты в бюджет субъекта Российской Федерации</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ТипНП" use="required">
+										<xs:annotation>
+											<xs:documentation>Признак налогоплательщика (код)</xs:documentation>
+											<xs:documentation>Принимает значение:
+1 – организация, не относящаяся к указанным по коду 2 | 
+2 – сельскохозяйственный товаропроизводитель</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОКАТО" type="ОКАТОТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Код по ОКАТО</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="НалПУМес" minOccurs="0" maxOccurs="2">
+								<xs:annotation>
+									<xs:documentation>Сумма налога, подлежащая уплате в бюджет, по данным налогоплательщика (для организаций, уплачивающих ежемесячные авансовые платежи)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ФедБдж" type="ПУМесТип" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы налога для уплаты в федеральный бюджет</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="СубБдж" type="ПУМесТип" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы налога для уплаты в бюджет субъекта Российской Федерации</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ТипНП" use="required">
+										<xs:annotation>
+											<xs:documentation>Признак налогоплательщика (код)</xs:documentation>
+											<xs:documentation>Принимает значение:
+1 – организация, не относящаяся к указанным по коду 2 | 
+2 – сельскохозяйственный товаропроизводитель</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОКАТО" use="required">
+										<xs:annotation>
+											<xs:documentation>Код по ОКАТО</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="ОКАТОТип"/>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="НалПУПроц" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Сумма налога, подлежащая уплате в бюджет, по данным налогоплательщика (для организаций, уплачивающих налог на прибыль организаций с доходов в виде процентов, а также дивидендов)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="УплСрок" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Уплата по сроку</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="Срок" type="ДатаТип" use="required">
+													<xs:annotation>
+														<xs:documentation>Срок уплаты</xs:documentation>
+														<xs:documentation>
+Дата в формате ДД.ММ.ГГГГ</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="НалПУ" use="required">
+													<xs:annotation>
+														<xs:documentation>Сумма налога, подлежащая уплате</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ВидПлат" use="required">
+										<xs:annotation>
+											<xs:documentation>Вид платежа (код)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОКАТО" type="ОКАТОТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Код по ОКАТО</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="КБК" type="КБКТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Код бюджетной классификации</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="РасчНал" minOccurs="0" maxOccurs="3">
+					<xs:annotation>
+						<xs:documentation>Расчет налога на прибыль организаций (лист 02)</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ДохРеалВнеРеал" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Доходы от реализации и внереализационные доходы (приложение 1 к листу 02)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ДохРеал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Доходы от реализации</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="ВырРеал" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>Выручка от реализации</xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:attribute name="ВырРеалВс" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Выручка от реализации, всего</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="ВырРеалТовСоб" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Выручка от реализации товаров (работ, услуг) собственного производства</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="ВырРеалТовПок" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Выручка от реализации покупных товаров</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="ВырРеалИмПрав" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Выручка от реализации имущественных прав, за исключением доходов от реализации права требования, долей, паев, указанных в Приложении 3 к Листу 02</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="ВырРеалИмПроч" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Выручка от реализации прочего имущества</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="ВырРеалЦБ" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>Выручка от реализации (выбытия, в т.ч. доход от погашения) ценных бумаг профессиональных участников рынка ценных бумаг</xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:attribute name="ВырРеалЦБВс" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Выручка от реализации (выбытия, в т.ч. доход от погашения) ценных бумаг профессиональных участников рынка ценных бумаг, всего</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="ОтклВырЦБМин" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Сумма отклонения фактической выручки от реализации (выбытия) ценных бумаг, обращающихся на организованном рынке ценных бумаг ниже минимальной цены сделок на организованном рынке ценных бумаг</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="ОтклВырЦБРасч" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Сумма отклонения фактической выручки от реализации (выбытия) ценных бумаг, не обращающихся на организованном рынке ценных бумаг ниже расчетной цены</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="ВырРеалПред" use="optional">
+													<xs:annotation>
+														<xs:documentation>Выручка от реализации предприятия как имущественного комплекса </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ВырРеалОпер32" use="optional">
+													<xs:annotation>
+														<xs:documentation>Выручка от реализации по операциям, отраженным в Приложении 3 к Листу 02</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ВырРеалИтог" use="required">
+													<xs:annotation>
+														<xs:documentation>Итого доходов от реализации</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="ДохВнеРеал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Внереализационные доходы</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="ВнеРеалДохВс" use="required">
+													<xs:annotation>
+														<xs:documentation>Внереализационные доходы - всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ВнеРеалДохПр" use="optional">
+													<xs:annotation>
+														<xs:documentation>Внереализационные доходы в виде дохода прошлых лет, выявленного в отчетном (налоговом) периоде</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ВнеРеалДохСт" use="optional">
+													<xs:annotation>
+														<xs:documentation>Внереализационные доходы в виде стоимости полученных материалов или иного имущества при ликвидации выводимых из эксплуатации основных средств</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ВнеРеалДохБезв" use="optional">
+													<xs:annotation>
+														<xs:documentation>Внереализационные доходы в виде безвозмездно полученного имущества (работ, услуг) или имущественных прав (кроме указанных в ст. 251 НК РФ)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="СумДохНеУчНБ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма доходов, не учитываемых при определении налоговой базы</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="РасхРеалВнеРеал" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Расходы, связанные с производством и реализацией, внереализационные расходы и убытки, приравниваемые к внереализационным расходам (приложение 2 к листу 02)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="РасхРеал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Расходы, связанные с производством и реализацией</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="ПрямРасхТорг" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>Прямые расходы налогоплательщиков, осуществляющих оптовую, мелкооптовую и розничную торговлю в текущем отчетном (налоговом) периоде, относящихся к реализованным товарам</xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:attribute name="ПрямРасхТоргВс" use="required">
+																<xs:annotation>
+																	<xs:documentation>Прямые расходы налогоплательщиков, осуществляющих оптовую, мелкооптовую и розничную торговлю в текущем отчетном (налоговом) периоде, относящихся к реализованным товарам, всего</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РеалПокТов" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Стоимость реализованных покупных товаров </xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="КосвРасх" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>Косвенные расходы</xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:attribute name="КосвРасхВс" use="required">
+																<xs:annotation>
+																	<xs:documentation>Косвенные расходы, всего</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="Налоги" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Суммы налогов и сборов, начисленные в порядке, установленном законодательством Российской Федерации о налогах и сборах, за исключением ЕСН, а также налогов, перечисленных в ст. 270 НК РФ</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="НИОКР" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы на НИОКР</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="НИОКРнеПолРез" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы на НИОКР, не давшие положительного результата</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РасхКапВл" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы на капитальные вложения в соответствии с п.1.1 ст. 259 НК РФ</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РасхТрудИнв" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы, осуществленные налогоплательщиком -организацией, использующим труд инвалидов, согласно пп. 38 п. 1 ст. 264 НК РФ</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РасхОргИнв" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы налогоплательщиков - общественных организаций инвалидов, а также налогоплательщиков-учреждений, единственными собственниками имущества которых являются общественные организации инвалидов, согласно пп. 39 п.1 ст.264 НК РФ</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РасхЗемУчВс" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы на приобретение права на земельные участки, указанные в п. 1 и 2 ст. 264.1 НК РФ, признаваемые расходами отчетного (налогового) периода, всего</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РасхЗемУчСрокНП" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы на приобретение права на земельные участки,  указанные в п. 1 и 2 ст. 264.1 НК РФ, при признании расходов в течение срока, определенного налогоплательщиком (но не менее 5 лет)</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РасхЗемУч30пр" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы на приобретение права на земельные участки,  указанные в п. 1 и 2 ст. 264.1 НК РФ, при признании расходов в размере, не превышающем 30% налоговой базы предыдущего налогового периода</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РасхЗемУчСрокРас" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы на приобретение права на земельные участки,  указанные в п. 1 и 2 ст. 264.1 НК РФ, при признании расходов в течение срока, установленного договором при приобретении земельного участка на условиях рассрочки</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+															<xs:attribute name="РасхЗемУчСрокАр" use="optional">
+																<xs:annotation>
+																	<xs:documentation>Расходы на приобретение права на земельные участки,  указанные в п. 1 и 2 ст. 264.1 НК РФ, при признании расходов в течение срока действия договора аренды земельного участка, не подлежащего государственной регистрации</xs:documentation>
+																</xs:annotation>
+																<xs:simpleType>
+																	<xs:restriction base="xs:integer">
+																		<xs:totalDigits value="15"/>
+																	</xs:restriction>
+																</xs:simpleType>
+															</xs:attribute>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="ПрямРасхРеал" use="optional">
+													<xs:annotation>
+														<xs:documentation>Прямые расходы, относящиеся к реализованным товарам, работам, услугам</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="РеалИмущПрав" use="optional">
+													<xs:annotation>
+														<xs:documentation>Стоимость реализованных имущественных прав (кроме прав требований долей, паев, указанных в Приложении 3 к Листу 02 ) </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ПриобрРеалИмущ" use="optional">
+													<xs:annotation>
+														<xs:documentation>Цена приобретения реализованного прочего имущества и расходы, связанные с его реализацией </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="АктивРеалПред" use="optional">
+													<xs:annotation>
+														<xs:documentation>Стоимость чистых активов предприятия, реализованного как имущественный комплекс </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ПриобРеалЦБ" use="optional">
+													<xs:annotation>
+														<xs:documentation>Расходы, связанные с приобретением и реализацией (выбытием, в т.ч. погашением) ценных бумаг профессиональными участниками рынка ценных бумаг</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="РасхОпер32" use="optional">
+													<xs:annotation>
+														<xs:documentation>Расходы по операциям, отраженным в Приложении 3 к Листу 02</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УбытПрошОбсл" use="optional">
+													<xs:annotation>
+														<xs:documentation>Суммы убытков прошлых лет по объектам обслуживающих производств и хозяйств, включая объекты жилищно - коммунальной и социально - культурной сферы, учитываемые в уменьшение прибыли текущего отчетного (налогового) периода, полученной по указанным видам деятельности</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УбытРеалАмИм" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма убытка от реализации амортизируемого имущества, относящаяся к расходам текущего отчетного (налогового) периода</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УбытРеалЗемУч" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма убытка от реализации права на земельный участок, относящаяся к расходам текущего отчетного (налогового) периода</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НадбПокПред" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма надбавки, уплачиваемая покупателем предприятия как имущественного комплекса, относящаяся к расходам текущего отчетного (налогового) периода</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="РасхПризнИтого" use="required">
+													<xs:annotation>
+														<xs:documentation>Итого признанных расходов</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="СумАморт" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Сумма начисленной амортизации за отчетный (налоговый) период</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="СумАмортПер" use="required">
+													<xs:annotation>
+														<xs:documentation>Сумма начисленной амортизации за отчетный (налоговый) период, всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="СумАмортПерНмА" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма начисленной амортизации за отчетный (налоговый) период по нематериальным активам</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="РасхВнеРеал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Внереализационнве расходы</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="РасхВнеРеалВс" use="required">
+													<xs:annotation>
+														<xs:documentation>Внереализационнве расходы, всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="РасхВнереалПрДО" use="optional">
+													<xs:annotation>
+														<xs:documentation>Расходы в виде процентов по долговым обязательствам любого вида, в том числе процентов, начисленных по ценным бумагам и иным обязательствам, выпущенным (эмитированным) налогоплательщиком</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="РасхВнереалРзрв" use="optional">
+													<xs:annotation>
+														<xs:documentation>Расходы по созданию резерва предстоящих расходов, направляемых на цели, обеспечивающие социальную защиту инвалидов</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УбытРеалПравТр" use="optional">
+													<xs:annotation>
+														<xs:documentation>Убыток от реализации права требования, относящийся к внереализационным расходам текущего отчетного (налогового) периода</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="РасхЛиквОС" use="optional">
+													<xs:annotation>
+														<xs:documentation>Расходы на ликвидацию выводимых из эксплуатации основных средств, объектов незавершенного строительства и иного имущества, охрану недр и другие аналогичные работы</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="РасхШтраф" use="optional">
+													<xs:annotation>
+														<xs:documentation>Штрафы, пени и иные санкции за нарушение договорных или долговых обязательств, возмещение причиненного ущерба</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="УбытПриравн" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Убытки, приравниваемые к внереализационным расходам</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="УбытПриравнВс" use="required">
+													<xs:annotation>
+														<xs:documentation>Убытки, приравниваемые к внереализационным расходам, всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УбытПрошПер" use="optional">
+													<xs:annotation>
+														<xs:documentation>Убытки прошлых налоговых периодов, выявленные в текущем отчетном (налоговом) периоде</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="СумБезнадДолг" use="optional">
+													<xs:annotation>
+														<xs:documentation>Суммы безнадежных долгов, а в случае, если налогоплательщик принял решение о создании резерва по сомнительным долгам, суммы безнадежных долгов, не покрытые за счет средств резерва</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="РасчРасхОпер" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Расчет суммы расходов по операциям, финансовые результаты по которым учитываются при налогообложении прибыли  с учетом положений статей 264.1, 268, 268.1, 275.1, 276, 279, 323 НК (за исключением отраженных в Листе 05) (приложение 3 к листу 02)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ВыручРеалПТ" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Выручка от реализации права требования</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="ВыручРеалПТДоСр" use="optional">
+													<xs:annotation>
+														<xs:documentation>Выручка от реализации права требования до наступления срока платежа (п.1 ст. 279 НК РФ)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ВыручРеалПТПосСр" use="optional">
+													<xs:annotation>
+														<xs:documentation>Выручка от реализации права требования после наступления срока платежа (п.2 ст. 279 НК РФ)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="СтоимРеалПТ" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Стоимость реализованного права требования</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="СтоимРеалПТДоСр" use="optional">
+													<xs:annotation>
+														<xs:documentation>Стоимость реализованного права требования до наступления срока платежа (п.1 ст. 279 НК РФ)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="СтоимРеалПТПосСр" use="optional">
+													<xs:annotation>
+														<xs:documentation>Стоимость реализованного права требования после наступления срока платежа (п.2 ст. 279 НК РФ)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="УбытРеалПТ" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Убыток от реализации права требования в соответствии со статьей 279 НК РФ</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="Убыт1Соот269" use="optional">
+													<xs:annotation>
+														<xs:documentation>Убыток от реализации права требования в соответствии со статьей 279 НК РФ по п. 1 – размер убытка, соответствующий сумме процентов, исчисленных в соответствии со ст. 269 НК РФ</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="Убыт1Прев269" use="optional">
+													<xs:annotation>
+														<xs:documentation>Убыток от реализации права требования в соответствии со статьей 279 НК РФ по п. 1 – размер убытка, превышающий сумму процентов, исчисленных в соответствии со ст. 269 НК  РФ</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="Убыт2РеалПТ" use="optional">
+													<xs:annotation>
+														<xs:documentation>Убыток от реализации права требования в соответствии со статьей 279 НК РФ по п. 2 – убыток от реализации права требования</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="Убыт2ВнРасх" use="optional">
+													<xs:annotation>
+														<xs:documentation>Убыток от реализации права требования в соответствии со статьей 279 НК РФ по п. 2 – убыток от реализации права требования, относящийся к внереализационным расходам текущего отчетного (налогового) периода</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="КолОбРеалАИ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Количество объектов реализации амортизируемого имущества, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="КолОбРеалАИУб" use="optional">
+										<xs:annotation>
+											<xs:documentation>Количество объектов реализации амортизируемого имущества, реализованных с убытком</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ВыручРеалАИ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Выручка от реализации амортизируемого имущества</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОстСтРеалАИ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Остаточная стоимость реализованного амортизируемого имущества и расходы, связанные с его реализацией</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПрибРеалАИ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Прибыль от реализации амортизируемого имущества (без учета объектов, реализованных с убытком)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытРеалАИ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Убытки от реализации амортизируемого имущества (без учета объектов, реализованных с прибылью)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ВыручРеалПТФУ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Выручка от реализации права требования как реализация финансовых услуг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СтоимРеалПТФУ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Стоимость реализованного права требования при  его реализации как финансовой услуги</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытРеалПТФУ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Убытки при реализации права требования как реализация  финансовых услуг </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ВыручРеалТов" use="optional">
+										<xs:annotation>
+											<xs:documentation>Выручка от реализации товаров (работ, услуг), имущественных прав по объектам обслуживающих производств и хозяйств, включая объекты жилищно-коммунальной и социально-культурной сферы</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="РасхРеалТов" use="optional">
+										<xs:annotation>
+											<xs:documentation>Расходы, понесенные обслуживающими производствами и хозяйствами при реализации ими товаров (работ, услуг), имущественных прав в текущем отчетном (налоговом) периоде</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытОбОбсл" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма убытков текущего отчетного (налогового) периода по объектам обслуживающих производств и хозяйств, включая объекты жилищно-коммунальной и социально-культурной сферы</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытОбОбслНеобл" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма убытков не учитываемых для целей налогообложения в текущем отчетного (налогового) периода по объектам обслуживающих производств и хозяйств, включая объекты жилищно-коммунальной и социально-культурной сферы</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДохДоговДУИ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доходы учредителя доверительного управления, полученные в рамках договора доверительного управления имуществом (п.3 ст. 276 НК РФ)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="РасхДоговДУИ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Расходы учредителя доверительного управления, связанные с осуществлением договора доверительного управления имуществом (п.3 ст. 276 НК РФ)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытДоговДУИ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Убытки, полученные в отчетном (налоговом) периоде в рамках договора доверительного управления имуществом (п.4 ст. 276 НК РФ)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ЦенаРеалПравЗУ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Цена реализации права на земельный участок </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумНевозмЗатрЗУ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма не возмещенных налогоплательщику затрат, связанных с приобретением права на земельный участок </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытРеалЗУ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Убыток от реализации права на земельный участок  </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ВыручРеалДол" use="optional">
+										<xs:annotation>
+											<xs:documentation>Выручка от реализации долей, паев</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СтоимРеалДол" use="optional">
+										<xs:annotation>
+											<xs:documentation>Стоимость реализованных долей, паев</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытРеалИмПр" use="optional">
+										<xs:annotation>
+											<xs:documentation>Убыток от реализации долей, паев</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ЦенаПриобрПр" use="optional">
+										<xs:annotation>
+											<xs:documentation>Цена приобретения предприятия как имущественного комплекса </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СтоимЧАПр" use="optional">
+										<xs:annotation>
+											<xs:documentation>Стоимость чистых активов предприятия, приобретенного как имущественный комплекс</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НадбПокупПр" use="optional">
+										<xs:annotation>
+											<xs:documentation>Надбавка, уплачиваемая покупателем предприятия как имущественного комплекса </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СкидПокупПр" use="optional">
+										<xs:annotation>
+											<xs:documentation>Скидка, получаемая покупателем предприятия как имущественного комплекса</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ВыручОп302Ит" use="required">
+										<xs:annotation>
+											<xs:documentation>Итого выручка от реализации по операциям, отраженным в Приложении  3 к Листу 02</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="РасхОп302Ит" use="required">
+										<xs:annotation>
+											<xs:documentation>Итого расходы по операциям, отраженным в Приложении 3 к Листу 02</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытОп302" use="required">
+										<xs:annotation>
+											<xs:documentation>Убытки по операциям, отраженным в Приложении  3 к Листу 02 </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="УбытУменНБ" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Расчет суммы убытка или части убытка, уменьшающего налоговую базу (приложение 4 к листу 02)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ОстУбытНачПерГод" minOccurs="0" maxOccurs="10">
+											<xs:annotation>
+												<xs:documentation>Остаток неперенесенного убытка на начало налогового периода, полученного после 01.01.2002 (по годам)</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="Год" type="xs:gYear" use="required">
+													<xs:annotation>
+														<xs:documentation>Год</xs:documentation>
+														<xs:documentation>
+Год в формате ГГГГ</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="ОстУбыт" use="required">
+													<xs:annotation>
+														<xs:documentation>Остаток неперенесенного убытка</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ОстУбытНачВс" use="optional">
+										<xs:annotation>
+											<xs:documentation>Остаток неперенесенного убытка на начало налогового периода, всего </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОстУбытНачДо2002" use="optional">
+										<xs:annotation>
+											<xs:documentation>Остаток неперенесенного убытка на начало налогового периода, полученного до 01.01.2002</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОстУбытНачПос2002" use="optional">
+										<xs:annotation>
+											<xs:documentation>Остаток неперенесенного убытка на начало налогового периода, полученного после 01.01.2002</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБаза" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговая база за отчетный (налоговый) период</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="УбытУмНалБаза" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма убытка или части убытка, уменьшающего налоговую базу за отчетный (налоговый) период</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОстУбытКонВс" use="optional">
+										<xs:annotation>
+											<xs:documentation>Остаток неперенесенного убытка на конец налогового периода, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОстУбытКонДо2002" use="optional">
+										<xs:annotation>
+											<xs:documentation>Остаток неперенесенного убытка на конец налогового периода, полученного до 01.01.2002</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОстУбытКонПос2002" use="optional">
+										<xs:annotation>
+											<xs:documentation>Остаток неперенесенного убытка на конец налогового периода, полученного после 01.01.2002</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="РаспрНалСубРФ" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Расчет распределения авансовых платежей и налога на прибыль организаций в бюджет субъекта Российской Федерации организацией, имеющей обособленные подразделения (приложение 5 к листу 02)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="ОбРасч" use="required">
+										<xs:annotation>
+											<xs:documentation>Расчет составлен (по объекту расчета)</xs:documentation>
+											<xs:documentation>Принимает значение:
+1 – по организации без входящих в нее обособленных подразделений  | 
+2 – по обособленному подразделению  |
+3 – по обособленному подразделению, закрытому в течение текущего налогового периода  |
+4 – по группе обособленных подразделений, находящихся на территории одного субъекта Российской Федерации|</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+												<xs:enumeration value="3"/>
+												<xs:enumeration value="4"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НаимОП" use="required">
+										<xs:annotation>
+											<xs:documentation>Наименование обособленного подразделения</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+												<xs:maxLength value="1000"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="КППОП" type="КППТип" use="required">
+										<xs:annotation>
+											<xs:documentation>КПП обособленного подразделения</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ОбязУплНалОП" use="required">
+										<xs:annotation>
+											<xs:documentation>Отметка о возложении обязанности по уплате налога на обособленное подразделение</xs:documentation>
+											<xs:documentation>Принимает значение:
+1 – возложена  | 
+0 – не возложена</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="0"/>
+												<xs:enumeration value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБазаОрг" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговая база в целом по организации</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБазаБезЛиквОП" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговая база без учета закрытых в течение текущего налогового
+периода обособленных подразделений</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДоляНалБаз" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доля налоговой базы</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:decimal">
+												<xs:totalDigits value="11"/>
+												<xs:fractionDigits value="8"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБазаДоля" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговая база исходя из доли</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СтавНалСубРФ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Ставка налога в бюджет субъекта Российской Федерации</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:decimal">
+												<xs:totalDigits value="4"/>
+												<xs:fractionDigits value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумНал" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалНачислСубРФ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Начислено налога в бюджет субъекта Российской Федерации</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалВыплВнеРФ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, выплаченная за пределами Российской Федерации и  засчитываемая в уплату налога</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумНалП" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога к доплате (Сумма налога к уменьшению)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="МесАвПлат" use="optional">
+										<xs:annotation>
+											<xs:documentation>Ежемесячные авансовые платежи в квартале, следующем за отчетным периодом</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="МесАвПлат1КвСлед" use="optional">
+										<xs:annotation>
+											<xs:documentation>Ежемесячные авансовые платежи на I квартал следующего налогового периода </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="ТипНП" use="required">
+							<xs:annotation>
+								<xs:documentation>Признак налогоплательщика (код)</xs:documentation>
+								<xs:documentation>Принимает значение:
+1 – организация, не относящаяся к указанным по кодам 2 и 3  | 
+2 – сельскохозяйственный товаропроизводитель  |
+3 – резидент особой экономической зоны</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="1"/>
+									<xs:enumeration value="1"/>
+									<xs:enumeration value="2"/>
+									<xs:enumeration value="3"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ДохРеал" use="optional">
+							<xs:annotation>
+								<xs:documentation>Доходы от реализации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ДохВнереал" use="optional">
+							<xs:annotation>
+								<xs:documentation>Внереализационные доходы</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="РасхУмРеал" use="optional">
+							<xs:annotation>
+								<xs:documentation>Расходы, уменьшающие сумму доходов от реализации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="РасхВнереал" use="optional">
+							<xs:annotation>
+								<xs:documentation>Внереализационные расходы</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Убытки" use="optional">
+							<xs:annotation>
+								<xs:documentation>Убытки</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ПрибУб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Итого прибыль (убыток)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ДохИсклПриб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Доходы, исключаемые из прибыли</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ПрибБРСт0" use="optional">
+							<xs:annotation>
+								<xs:documentation>Прибыль, полученная Банком России от осуществления деятельности, связанной с выполнением его функций, и облагаемая по налоговой ставке 0 процентов</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумЛьгот" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма льгот, предусмотренных законодаттельством РФ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалБаза" use="optional">
+							<xs:annotation>
+								<xs:documentation>Налоговая база</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="УбытУмНБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма убытка или части убытка, уменьшающего налоговую базу за отчетный (налоговый) период</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалБазаИсч" use="optional">
+							<xs:annotation>
+								<xs:documentation>Налоговая база для исчисления налога</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалБазаИсчСуб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Налоговая база для исчисления налога в бюджет субъекта РФ (с учетом положений абз.4 и 5 п.1 ст.284 НК РФ)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СтавНалВсего" use="optional">
+							<xs:annotation>
+								<xs:documentation>Ставка налога на прибыль, всего</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:decimal">
+									<xs:totalDigits value="4"/>
+									<xs:fractionDigits value="2"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СтавНалФБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Ставка налога на прибыль в Федеральный бюджет</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:decimal">
+									<xs:totalDigits value="4"/>
+									<xs:fractionDigits value="2"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СтавНалСуб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Ставка налога на прибыль в бюджет субъекта Российской Федерации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:decimal">
+									<xs:totalDigits value="4"/>
+									<xs:fractionDigits value="2"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СтавНалСуб284" use="optional">
+							<xs:annotation>
+								<xs:documentation>Ставка налога на прибыль в бюджет субъекта Российской Федерации (с учетом положений абз. 4 и 5  п.1 ст.284 НК РФ)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:decimal">
+									<xs:totalDigits value="4"/>
+									<xs:fractionDigits value="2"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалИсчисл" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма исчисленного налога на прибыль, всего</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалИсчислФБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма исчисленного налога на прибыль в Федеральный бюджет</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалИсчислСуб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма исчисленного налога на прибыль в бюджет субъекта Российской Федерации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="АвНачисл" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма начисленных авансовых платежей за отчетный (налоговый) период, всего</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="АвНачислФБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма начисленных авансовых платежей за отчетный (налоговый) период в федеральный бюджет</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="АвНачислСуб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма начисленных авансовых платежей за отчетный (налоговый) период в бюджет субъекта Российской Федерации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалВыпл311" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, выплаченная за пределами Российской Федерации и засчитываемая в уплату налога согласно порядку, установленному ст.311 НК РФ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалВыпл311ФБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, выплаченная за пределами Российской Федерации и засчитываемая в уплату налога в федеральный бюджет согласно порядку, установленному ст.311 НК РФ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалВыпл311Суб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, выплаченная за пределами Российской Федерации и засчитываемая в уплату налога в бюджет субъекта Российской Федерации согласно порядку, установленному ст.311 НК РФ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалДоплФБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога на прибыль к доплате в федеральный бюджет</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалДоплСуб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога на прибыль к доплате в бюджет субъекта Российской Федерации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалУменФБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога на прибыль к уменьшению в федеральный бюджет</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалУменСуб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога на прибыль к уменьшению в бюджет субъекта Российской Федерации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="АвПлатМес" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма ежемесячных авансовых платежей, подлежащих к уплате в квартале, следующем за текущим отчетным периодом</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="АвПлатМесФБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма ежемесячных авансовых платежей, подлежащих к уплате в федеральный бюджет в квартале, следующем за текущим отчетным периодом</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="АвПлатМесСуб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма ежемесячных авансовых платежей, подлежащих к уплате в бюджет субъекта Российской Федерации в квартале, следующем за текущим отчетным периодом</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="НалУдНА" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Расчет налога на прибыль организаций, удерживаемого налоговым агентом (источником выплаты доходов) (лист 03)</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="НалДохДив" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Расчет налога на прибыль организаций с доходов в виде дивидендов (доходов от долевого участия в других организациях, созданных на территории Российской Федерации) (раздел А)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="УменДив" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Дивиденды к уменьшению</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="УменДивВс" use="required">
+													<xs:annotation>
+														<xs:documentation>Дивиденды к уменьшению, всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УменДивИнОрг" use="optional">
+													<xs:annotation>
+														<xs:documentation>Дивиденды, начисленные иностранным организациям </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УменДивФЛНеРез" use="optional">
+													<xs:annotation>
+														<xs:documentation>Дивиденды, начисленные физическим лицам, не являющимся резидентами Российской Федерации </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УменДивНАПред" use="optional">
+													<xs:annotation>
+														<xs:documentation>Дивиденды, полученные самим налоговым агентом в предыдущем отчетном (налоговом) периоде</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УменДивНАТекущ" use="optional">
+													<xs:annotation>
+														<xs:documentation>Дивиденды, полученные самим налоговым агентом в текущем отчетном (налоговом) периоде, до распределения дивидендов между акционерами (участниками) </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="РаспрДив" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы дивидендов, подлежащие распределению российским акционерам</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="ДивРАВс" use="required">
+													<xs:annotation>
+														<xs:documentation>Суммы дивидендов, подлежащие распределению российским акционерам, всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ДивРО9" use="optional">
+													<xs:annotation>
+														<xs:documentation>Суммы дивидендов, подлежащие распределению российским организациям (налоговая ставка 9%)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ДивРО0" use="optional">
+													<xs:annotation>
+														<xs:documentation>Суммы дивидендов, подлежащие распределению российским организациям (налоговая ставка 0%)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УвДивРО9" use="optional">
+													<xs:annotation>
+														<xs:documentation>Удельный вес дивидендов, выплачиваемых российским организациям, облагаемых по налоговой ставке 9%</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:decimal">
+															<xs:totalDigits value="18"/>
+															<xs:fractionDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="УвДивРО0" use="optional">
+													<xs:annotation>
+														<xs:documentation>Удельный вес дивидендов, выплачиваемых российским организациям, облагаемых по налоговой ставке 0%</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:decimal">
+															<xs:totalDigits value="18"/>
+															<xs:fractionDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="НалБаза2752" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Налоговая база, рассчитанная в порядке, установленном п. 2 ст. 275 НК РФ</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="НалБаза2752Вс" use="required">
+													<xs:annotation>
+														<xs:documentation>Налоговая база, рассчитанная в порядке, установленном п. 2 ст. 275 НК РФ, всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НалБаза2752РО9" use="optional">
+													<xs:annotation>
+														<xs:documentation>Налоговая база, рассчитанная в порядке, установленном п. 2 ст. 275 НК РФ, по российским организациям, облагаемая по налоговой ставке 9%</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НалБаза2752РО0" use="optional">
+													<xs:annotation>
+														<xs:documentation>Налоговая база, рассчитанная в порядке, установленном п. 2 ст. 275 НК РФ, по российским организациям, облагаемая по налоговой ставке 0%</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ДивРаспрНеПлат" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма дивидендов, распределяемая в пользу акционеров (участников), не являющихся плательщиками налога на прибыль</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ДивРаспрФЛРез" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма дивидендов, распределяемая в пользу акционеров (физических лиц – резидентов)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="15"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ВидДив" use="required">
+										<xs:annotation>
+											<xs:documentation>Вид дивидендов</xs:documentation>
+											<xs:documentation>Принимает значение:
+1 – промежуточные дивиденды  | 
+2 – по результатам финансового года</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалПер" use="required">
+										<xs:annotation>
+											<xs:documentation>Налоговый (отчетный) период</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="2"/>
+												<xs:enumeration value="21"/>
+												<xs:enumeration value="31"/>
+												<xs:enumeration value="33"/>
+												<xs:enumeration value="34"/>
+												<xs:enumeration value="35"/>
+												<xs:enumeration value="36"/>
+												<xs:enumeration value="37"/>
+												<xs:enumeration value="38"/>
+												<xs:enumeration value="39"/>
+												<xs:enumeration value="40"/>
+												<xs:enumeration value="41"/>
+												<xs:enumeration value="42"/>
+												<xs:enumeration value="43"/>
+												<xs:enumeration value="44"/>
+												<xs:enumeration value="45"/>
+												<xs:enumeration value="46"/>
+												<xs:enumeration value="50"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОтчетГод" type="xs:gYear" use="required">
+										<xs:annotation>
+											<xs:documentation>Отчетный год</xs:documentation>
+											<xs:documentation>
+Год в формате ГГГГ</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="СумДивРаспр" use="required">
+										<xs:annotation>
+											<xs:documentation>Сумма дивидендов, подлежащих распределению между акционерами (участниками) в текущем налоговом периоде, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СтавНал" use="optional">
+										<xs:annotation>
+											<xs:documentation>Ставка налога</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалИсчисл" use="optional">
+										<xs:annotation>
+											<xs:documentation>Исчисленная сумма налога, подлежащая уплате в бюджет</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалДивПред" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, начисленная с дивидендов, выплаченных в предыдущие отчетные (налоговые) периоды</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалДивПосл" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, начисленная с дивидендов, выплаченных в последнем квартале (месяце) отчетного (налогового) периода, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="НалДохЦБ" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Расчет налога на прибыль организаций  с доходов в виде процентов по государственным и муниципальным ценным бумагам (раздел Б)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="ВидДоход" use="required">
+										<xs:annotation>
+											<xs:documentation>Вид дохода</xs:documentation>
+											<xs:documentation>Принимает значение:
+1 – доход в виде процентов по государственным и муниципальным ценным бумагам (ставка 15%)  | 
+2 – доход в виде процентов по муниципальным ценным бумагам, эмитированным на срок не менее трех лет до 1.01.2007 г., а
+также доход в виде процентов по облигациям с ипотечным покрытием, эмитированным до 1.01. 2007 г., и доход учредителей
+доверительного управления ипотечным покрытием, полученным на основании приобретения ипотечных сертификатов
+участия , выданных управляющим ипотечным покрытием до 1.01.2007 г.(ставка 9%)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБаза" use="required">
+										<xs:annotation>
+											<xs:documentation>Налоговая база</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СтавНал" use="required">
+										<xs:annotation>
+											<xs:documentation>Ставка налога</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалИсчисл" use="required">
+										<xs:annotation>
+											<xs:documentation>Исчислено налога с доходов</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалНачислПред" use="optional">
+										<xs:annotation>
+											<xs:documentation>Начислено налога в предыдущие отчетные периоды</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалНачислПосл" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, начисленная с доходов, выплаченных в последнем квартале (месяце) отчетного (налогового) периода, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="РеестрСумДив" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Реестр – расшифровка сумм дивидендов (процентов) (раздел В)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="СвПолуч">
+											<xs:annotation>
+												<xs:documentation>Сведения о получателе</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="МНПолуч" type="АдрРФТип">
+														<xs:annotation>
+															<xs:documentation>Место нахождения</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="НаимПолуч" use="required">
+													<xs:annotation>
+														<xs:documentation>Наименование получателя (наименование организации / фамилия, имя, отчество физического лица)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="1000"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ФИОРук" use="optional">
+													<xs:annotation>
+														<xs:documentation>Руководитель организации (Ф.И.О)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="182"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="Тлф" use="optional">
+													<xs:annotation>
+														<xs:documentation>Контактный телефон</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="20"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ДатаПерДив" type="ДатаТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Дата перечисления дивидендов</xs:documentation>
+											<xs:documentation>
+Дата в формате ДД.ММ.ГГГГ</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="СумДив" use="required">
+										<xs:annotation>
+											<xs:documentation>Сумма дивидендов</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумНал" use="required">
+										<xs:annotation>
+											<xs:documentation>Сумма налога</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="НалДохСтав" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Расчет налога на прибыль организаций с доходов, исчисленного по ставкам, отличным от  ставки, указанной  в п. 1 ст. 284 НК РФ  (лист 04)</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="ВидДоход" use="required">
+							<xs:annotation>
+								<xs:documentation>ВидДоход</xs:documentation>
+								<xs:documentation>Принимает значение:
+1 – доход в виде процентов по государственным и муниципальным ценным бумагам (ставка 15%)  | 
+2 – доход в виде процентов по муниципальным ценным бумагам, эмитированным на срок не менее трех лет до 1.01.2007 г. (ставка 9%)  | 
+3 – доход в виде процентов по государственным и муниципальным облигациям, подлежащий налогообложению (ставка 0%)  | 
+4 – доход в виде дивидендов (доходов от долевого участия в иностранных организациях)(ставка 9%)  | 
+5 – доход в виде дивидендов (доходов от долевого участия в иностранных организациях)(ставка 0%)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="1"/>
+									<xs:enumeration value="1"/>
+									<xs:enumeration value="2"/>
+									<xs:enumeration value="3"/>
+									<xs:enumeration value="4"/>
+									<xs:enumeration value="5"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалБаза" use="required">
+							<xs:annotation>
+								<xs:documentation>Налоговая база</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ДохУмНалБаз" use="optional">
+							<xs:annotation>
+								<xs:documentation>Доходы, уменьшающие налоговую базу</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СтавНал" use="required">
+							<xs:annotation>
+								<xs:documentation>Ставка налога</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="2"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалИсчисл" use="required">
+							<xs:annotation>
+								<xs:documentation>Исчислено налога с доходов</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалДивНеРФПред" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога с выплаченных дивидендов за пределами Российской Федерации и засчитанная в уплату налога согласно порядку, установленному статьями 275, 311 НК РФ, в предыдущие отчетные периоды</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалДивНеРФ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога с выплаченных дивидендов за пределами Российской Федерации и засчитываемая в уплату налога согласно порядку, установленному статьями 275,  311 НК РФ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалНачислПред" use="optional">
+							<xs:annotation>
+								<xs:documentation>Начислено налога, в предыдущие отчетные  периоды</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалНачислПосл" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, начисленная с доходов, полученных в последнем квартале (месяце) отчетного (налогового) периода,  всего</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="НалБазОпОсоб" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Расчет налоговой базы по налогу на прибыль организаций по операциям, финансовые результаты которых учитываются в особом порядке (за исключением отраженных в Приложении 3 к Листу 02)  (лист 05)</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="ВидОпер" use="required">
+							<xs:annotation>
+								<xs:documentation>Вид операции</xs:documentation>
+								<xs:documentation>Принимает значение:
+1 – с ценными бумагами, обращающимися на организованном рынке ценных бумаг  | 
+2 – с ценными бумагами, не обращающимися на организованном рынке ценных бумаг  | 
+3 – с финансовыми инструментами срочных сделок, не обращающимися на организованном рынке ценных бумаг  | 
+4 – по операциям с ценными бумагами, обращающимися и не обращающимися на организованном рынке ценных бумаг, полученными первичными владельцами государственных ценных бумаг в результате новации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="1"/>
+									<xs:enumeration value="1"/>
+									<xs:enumeration value="2"/>
+									<xs:enumeration value="3"/>
+									<xs:enumeration value="4"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ДохВыбытПогаш" use="required">
+							<xs:annotation>
+								<xs:documentation>Доход от выбытия, в т.ч. доход от погашения</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумОтклРЦ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма отклонения от рыночной (расчетной) цены</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="РасхПриобРеал" use="optional">
+							<xs:annotation>
+								<xs:documentation>Расходы, связанные с приобретением и реализацией (выбытием, в т.ч. погашением)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Прибыль" use="required">
+							<xs:annotation>
+								<xs:documentation>Итого прибыль (убыток)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="КорПриб" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма корректировки прибыли (убытка)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалБазаБезУбПред" use="optional">
+							<xs:annotation>
+								<xs:documentation>Налоговая база без учета убытков, полученных в предыдущих налоговых периодах</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумУбытПред" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма убытка или части убытка, полученного в предыдущем (предыдущих) налоговом (налоговых) периоде (периодах)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумУбытУменНБ" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма убытка или части убытка, признаваемая в отчетном (налоговом) периоде в целях налогообложения, уменьшающая налоговую базу за отчетный (налоговый) период</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумНеучУбытПер" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма неучтенного убытка, подлежащего переносу на будущий отчетный (налоговый) период</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалБаза" use="required">
+							<xs:annotation>
+								<xs:documentation>Налоговая база</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ДохРасНалБазаНПФ" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Доходы, расходы и налоговая  база, полученная негосударственным пенсионным фондом от размещения пенсионных резервов  (лист 06)</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ДоходНПФ">
+								<xs:annotation>
+									<xs:documentation>Доход негосударственного пенсионного фонда </xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="ДоходНПФВс" use="required">
+										<xs:annotation>
+											<xs:documentation>Доход негосударственного пенсионного фонда, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="РеалЦБРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход от реализации или иного выбытия ценных бумаг (в том числе погашения), обращающихся на организованном рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОтклВырЦБРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма отклонения фактической выручки от реализации ценных бумаг, обращающихся на организованном рынке ценных бумаг, от минимальной цены сделок на организованном рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="РеалЦБНеРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход от реализации или иного выбытия ценных бумаг (в том числе погашения), не обращающихся на  организованном  рынке  ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ОтклВырЦБНеРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма отклонения фактической выручки от реализации ценных бумаг, не обращающихся на организованном рынке ценных бумаг, от расчетной цены</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцГосЦБ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход в виде процентов по государственным и муниципальным ценным бумагам</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцЦБЭм2007" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход в виде процентов по муниципальным ценным бумагам, эмитированным на срок не менее трех лет до 01.01.2007, а также в виде процентов по облигациям с ипотечным покрытием, эмитированным до 01.01.2007, и доход учредителей доверительного управления ипотечным покрытием, полученный на основании приобретения ипотечных сертификатов участия, выданных управляющим ипотечным покрытием до 01.01.2007</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДолУчДрОрг" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход от долевого участия в других организациях</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцГосЦБУдНА" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход в виде процентов по государственным и муниципальным ценным бумагам, налог по которым удерживается налоговым агентом</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцМунЦБ2007НА" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход в виде процентов по муниципальным ценным бумагам, эмитированным на срок не менее трех лет до 01.01.2007, налог по которым удерживается налоговым агентом</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДрИнвВлож" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход от осуществления других инвестиций (вложений)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ДоходНПФСтРеф">
+								<xs:annotation>
+									<xs:documentation>Доход негосударственного  пенсионного фонда, рассчитанный исходя из ставки рефинансирования Банка России и суммы размещенного резерва</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="ДоходНПФСтРефВс" use="required">
+										<xs:annotation>
+											<xs:documentation>Доход негосударственного  пенсионного фонда, рассчитанный исходя из ставки рефинансирования Банка России и суммы размещенного резерва, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ЦБРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход, приходящийся на  ценные бумаги, обращающиеся на организованном рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ЦБНеРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход, приходящийся на ценные бумаги, не обращающиеся на организованном рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцГосЦБ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход в виде процентного дохода по государственным и муниципальным ценным бумагам</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцЦБЭм2007" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход в виде процентов по муниципальным ценным бумагам, эмитированным на срок не менее трех лет до 01.01.2007, а также в виде процентов по облигациям с ипотечным покрытием, эмитированным до 01.01.2007, и доход учредителей доверительного управления ипотечным покрытием, полученный на основании приобретения ипотечных сертификатов участия, выданных управляющим ипотечным покрытием до 01.01.2007</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДрИнвВлож" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход, полученный от других инвестиций (вложений) </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Расход" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Расходы</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="РасходВс" use="required">
+										<xs:annotation>
+											<xs:documentation>Расходы, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ВлЦБРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Расходы, приходящиеся на вложения в ценные бумаги, обращающиеся на организованном рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ВлЦБНеРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Расходы, приходящиеся на вложения в ценные бумаги, не обращающиеся на  организованном  рынке  ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДрИнвВлож" use="optional">
+										<xs:annotation>
+											<xs:documentation>Расходы, приходящиеся на другие инвестиции (вложения)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ОтчРазмРезУстав" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Отчисления от доходов, полученных  от размещения пенсионных резервов, направленных на формирование имущества,  предназначенного  для  обеспечения уставной деятельности фонда</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="ОтчРазмРезУставВс" use="required">
+										<xs:annotation>
+											<xs:documentation>Отчисления от доходов, полученных  от размещения пенсионных резервов, направленных на формирование имущества,  предназначенного  для  обеспечения уставной деятельности фонда, всего</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ЦБРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Отчисления от размещения пенсионных резервов от вложений в ценные бумаги, обращающиеся на организованном рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ЦБНеРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Отчисления от размещения пенсионных резервов от    вложений  в ценные бумаги, не обращающиеся  на  организованном  рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцЦБ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Отчисления от доходов, полученных в виде процентов по государственным и муниципальным ценным бумагам</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцЦБЭм2007" use="optional">
+										<xs:annotation>
+											<xs:documentation>Отчисления от доходов в виде процентов по муниципальным ценным бумагам, эмитированным на срок не менее трех лет до 01.01.2007, а также от доходов в виде процентов по облигациям с ипотечным покрытием, эмитированным до 01.01.2007, и доходов учредителей доверительного управления ипотечным покрытием, полученным на основании приобретения ипотечных сертификатов участия, выданных управляющим ипотечным покрытием до 01.01.2007</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДолУчДрОрг" use="optional">
+										<xs:annotation>
+											<xs:documentation>Отчисления от доходов, полученных от долевого участия в других организациях</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцЦБУдНА" use="optional">
+										<xs:annotation>
+											<xs:documentation>Отчисления от доходов в виде  процентов по государственным и муниципальным ценным  бумагам,  удерживаемых налоговым агентом</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПроцЦБЭм2007УдНА" use="optional">
+										<xs:annotation>
+											<xs:documentation>Отчисления от доходов в виде процентов по муниципальным ценным бумагам, эмитированным на срок не менее трех лет до 01.01.2007, удерживаемых налоговым агентом (источником выплаты доходов)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДрИнвВлож" use="optional">
+										<xs:annotation>
+											<xs:documentation>Отчисления от осуществления других инвестиций (вложений)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ПрибУб">
+								<xs:annotation>
+									<xs:documentation>Прибыль (убыток)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="ПрибЦБРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Прибыль (убыток) от вложений в ценные бумаги, обращающиеся на  организованном  рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумИсклПрибЦБРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Суммы, исключаемые из прибыли от вложений в ценные бумаги, обращающиеся на  организованном  рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ПрибЦБНеРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Прибыль (убыток) от вложений в ценные бумаги, не обращающиеся на организованном рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумИсклПрибЦБНеРын" use="optional">
+										<xs:annotation>
+											<xs:documentation>Суммы, исключаемые из прибыли от вложений в ценные бумаги, не обращающиеся на  организованном  рынке ценных бумаг</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДохПроцЦБ" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход в виде процентов по государственным и муниципальным ценным бумагам</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДохПроцЭм2007" use="optional">
+										<xs:annotation>
+											<xs:documentation>Доход в виде процентов по муниципальным ценным бумагам, эмитированным на срок не менее трех лет до 01.01.2007, а также доход в виде процентов по облигациям с ипотечным покрытием, эмитированным до 01.01.2007, и доход учредителей доверительного управления ипотечным покрытием, полученный на основании приобретения ипотечных сертификатов участия, выданных управляющим ипотечным покрытием до 01.01.2007</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДрИнвВлож" use="optional">
+										<xs:annotation>
+											<xs:documentation>Прибыль (убыток) от осуществления  других инвестиций (вложений) </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумИсклДрИнвВлож" use="optional">
+										<xs:annotation>
+											<xs:documentation>Суммы, исключаемые из прибыли от осуществления  других инвестиций (вложений) </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ВлЦБОргРын" type="ДанВидВл" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Формирование налоговой базы от вложения в ценные бумаги, обращающиеся на организованном рынке ценных бумаг</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="ВлЦБОргНеРын" type="ДанВидВл" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Формирование налоговой базы от вложения в ценные бумаги, не обращающиеся на организованном рынке ценных бумаг</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="ДрИнвВлож" type="ДанВидВл" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Формирование налоговой базы от осуществления других инвестиции</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="СумПенсРез" use="required">
+							<xs:annotation>
+								<xs:documentation>Сумма размещенных пенсионных резервов за отчетный период</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ПроцДохРазмРез" use="optional">
+							<xs:annotation>
+								<xs:documentation>Процент отчислений на уставную деятельность от доходов, полученных от размещения пенсионных резервов</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:decimal">
+									<xs:totalDigits value="7"/>
+									<xs:fractionDigits value="4"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалБаза" use="optional">
+							<xs:annotation>
+								<xs:documentation>Налоговая база для исчисления налога</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ЦелИспИмущ" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Отчет о целевом использовании имущества (в том числе денежных средств), работ, услуг, полученных в рамках благотворительной деятельности, целевых поступлений, целевого финансирования  (лист 07)</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СвЦелСред" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Сведения по полученным целевым средствам</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="КодВидПост" use="required">
+										<xs:annotation>
+											<xs:documentation>Код вида поступлений</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="3"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДатаПост" type="ДатаТип" use="optional">
+										<xs:annotation>
+											<xs:documentation>Дата поступления</xs:documentation>
+											<xs:documentation>
+Дата в формате ДД.ММ.ГГГГ</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="СрокИспол" type="ДатаТип" use="optional">
+										<xs:annotation>
+											<xs:documentation>Срок использования (до какой даты)</xs:documentation>
+											<xs:documentation>
+Дата в формате ДД.ММ.ГГГГ</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="СтИмущСрд" use="required">
+										<xs:annotation>
+											<xs:documentation>Стоимость имущества, работ, услуг или сумма денежных средств</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумСрокНеИст" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма средств, срок использования которых не истек</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумИспНазн" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма средств, использованных по назначению в течение установленного срока</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумНеИсп" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма средств, использованных не по назначению или не использованных в установленный срок </xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="15"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="СтИмущСрдИт" use="required">
+							<xs:annotation>
+								<xs:documentation>Стоимость имущества, работ, услуг или сумма денежных средств, итого по отчету</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумСрокНеИстИт" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма средств, срок использования которых не истек, итого по отчету</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумИспНазнИт" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма средств, использованных по назначению в течение установленного срока, итого по отчету</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумНеИспИт" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма средств, использованных не по назначению или не использованных в установленный срок, итого по отчету </xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="15"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="ПУАвТип">
+		<xs:annotation>
+			<xs:documentation>Сумма налога, подлежащая уплате в бюджет для организаций, уплачивающих авансовые платежи и налог на прибыль организаций</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="КБК" type="КБКТип" use="required">
+			<xs:annotation>
+				<xs:documentation>Код бюджетной классификации</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="НалПУ" use="required">
+			<xs:annotation>
+				<xs:documentation>Сумма налога к доплате (сумма налога к уменьшению)</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="15"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ПУМесТип">
+		<xs:annotation>
+			<xs:documentation>Сумма налога, подлежащая уплате в бюджет для организаций, уплачивающих ежемесячные авансовые платежи</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="КБК" type="КБКТип" use="required">
+			<xs:annotation>
+				<xs:documentation>Код бюджетной классификации</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="АвПлат1" use="required">
+			<xs:annotation>
+				<xs:documentation>Сумма ежемесячного авансового платежа по 1 сроку </xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="15"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="АвПлат2" use="required">
+			<xs:annotation>
+				<xs:documentation>Сумма ежемесячного авансового платежа по 2 сроку</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="15"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="АвПлат3" use="required">
+			<xs:annotation>
+				<xs:documentation>Сумма ежемесячного авансового платежа по 3 сроку </xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="15"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ДанВидВл">
+		<xs:annotation>
+			<xs:documentation>Данные по виду вложения</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="НалБаза" use="optional">
+			<xs:annotation>
+				<xs:documentation>Налоговая база</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="15"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="СумУбПред" use="optional">
+			<xs:annotation>
+				<xs:documentation>Сумма убытка или части убытка, полученного в предыдущем (предыдущих) налоговом (налоговых) периоде (периодах). Входящее сальдо</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="15"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="СумУбПриз" use="optional">
+			<xs:annotation>
+				<xs:documentation>Сумма убытка, признаваемая в отчетном (налоговом) периоде в целях налогообложения  </xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="15"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="СумНеучУбыт" use="optional">
+			<xs:annotation>
+				<xs:documentation>Сумма неучтенного убытка, подлежащего переносу на будущий отчетный (налоговый) период. Исходящее сальдо</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="15"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="АдрРФТип">
+		<xs:annotation>
+			<xs:documentation>Адрес в Российской Федерации </xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="Индекс" use="optional">
+			<xs:annotation>
+				<xs:documentation>Индекс</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:length value="6"/>
+					<xs:pattern value="[0-9]{6}"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="КодРегион" use="required">
+			<xs:annotation>
+				<xs:documentation>Код региона</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="CCРФТип"/>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Район" use="optional">
+			<xs:annotation>
+				<xs:documentation>Район</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="50"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Город" use="optional">
+			<xs:annotation>
+				<xs:documentation>Город</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="50"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="НаселПункт" use="optional">
+			<xs:annotation>
+				<xs:documentation>Населенный пункт</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="50"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Улица" use="optional">
+			<xs:annotation>
+				<xs:documentation>Улица</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="50"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Дом" use="optional">
+			<xs:annotation>
+				<xs:documentation>Дом</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="8"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Корпус" use="optional">
+			<xs:annotation>
+				<xs:documentation>Корпус</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="8"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Кварт" use="optional">
+			<xs:annotation>
+				<xs:documentation>Квартира</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="8"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ФИОТип">
+		<xs:annotation>
+			<xs:documentation>Фамилия, Имя, Отчество</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="Фамилия" use="required">
+			<xs:annotation>
+				<xs:documentation>Фамилия</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Имя" use="required">
+			<xs:annotation>
+				<xs:documentation>Имя</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Отчество" use="optional">
+			<xs:annotation>
+				<xs:documentation>Отчество</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:simpleType name="ИННЮЛТип">
+		<xs:annotation>
+			<xs:documentation>Идентификационный номер налогоплательщика - юридического лица</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="10"/>
+			<xs:pattern value="([0-9]{1}[1-9]{1}|[1-9]{1}[0-9]{1})[0-9]{8}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="КППТип">
+		<xs:annotation>
+			<xs:documentation>Код причины постановки на учет (КПП)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="9"/>
+			<xs:pattern value="([0-9]{1}[1-9]{1}|[1-9]{1}[0-9]{1})[0-9]{7}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="КБКТип">
+		<xs:annotation>
+			<xs:documentation>Код из Классификатора бюджетной классификации</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="20"/>
+			<xs:pattern value="[0-9]{20}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="КНДТип">
+		<xs:annotation>
+			<xs:documentation>Код из Классификатора налоговой документации</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="7"/>
+			<xs:pattern value="[0-9]{7}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ДатаТип">
+		<xs:annotation>
+			<xs:documentation>Дата в формате ДД.ММ.ГГГГ</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="10"/>
+			<xs:pattern value="(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1})\.(0[1-9]{1}|1[0-2]{1})\.(1[0-9]{3}|20[0-9]{2})"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКВЭДТип">
+		<xs:annotation>
+			<xs:documentation>Код из Общероссийского классификатора видов экономической деятельности</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="8"/>
+			<xs:minLength value="1"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}\.[0-9]{2}"/>
+			<xs:pattern value="[0-9]{2}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{1}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}\.[0-9]{1}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}\.[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКАТОТип">
+		<xs:annotation>
+			<xs:documentation>Коды из Классификатора объектов административно-территориального деления</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="11"/>
+			<xs:pattern value="[0-9]{11}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="СОНОТип">
+		<xs:annotation>
+			<xs:documentation>Коды из Классификатора системы обозначений налоговых органов</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="4"/>
+			<xs:pattern value="[0-9]{4}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CCРФТип">
+		<xs:annotation>
+			<xs:documentation>Код из Справочника субъекта Российской Федерации </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="2"/>
+			<xs:pattern value="[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

@@ -4,13 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 99001501 "Subcontract. - Objs"
+permissionset 20501 "Subcontract. - Objs"
 {
     Caption = 'Subcontracting - Objects';
     Assignable = true;
     Access = Internal;
     Permissions =
         // Tables
+        table "Subc. Standard Task Comment" = X,
+        table "Subc. Routing Comment Line" = X,
+        table "Subc. Prod. Rtng. Comment" = X,
         table "Subcontractor Price" = X,
         table "Subcontractor WIP Ledger Entry" = X,
 
@@ -46,6 +49,7 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subcontracting Comp. Init." = X,
         codeunit "Subcontracting Management" = X,
         codeunit "Subc. Synchronize Management" = X,
+        codeunit "Subc. Transfer Header Ext." = X,
         codeunit "Subc. Transfer Line Ext." = X,
         codeunit "Subc. Transfer Management" = X,
         codeunit "Subc. Transfer Rcpt Line Ext." = X,
@@ -68,19 +72,34 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Transfer WIP Posting" = X,
         codeunit "Subc. WhsePostShipment Ext" = X,
         codeunit "Subc. WIP Item Ledg Find Entry" = X,
+        codeunit "Subc. Application Area Mgmt." = X,
+#if not CLEAN29
+#pragma warning disable AL0432
+        codeunit "Subc. Feature Flag Handler" = X,
+#pragma warning restore AL0432
+#endif
+        codeunit "Subc. Upgrade Tag Def. Ext." = X,
+        codeunit "Subc. Worksheet Handler" = X,
+        codeunit "Subc. Attachment Details Ext." = X,
+        codeunit "Subc. Routing Line Ext." = X,
 
         // Pages
+        page "Subc. Standard Task Comments" = X,
+        page "Subc. Routing Comments" = X,
+        page "Subc. Prod. Rtng. Comments" = X,
         page "Subc. Prod. Order Components" = X,
+        page "Subc. Subcontracting Worksheet" = X,
         page "Subc. Purchase Line Factbox" = X,
         page "Subc. Routing Info Factbox" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
+        page "Subcontracting Setup Wizard" = X,
         page "Subc. WIP Adjustment" = X,
         page "Subc. WIP Ledger Entries" = X,
 
         // Reports
+        report "Subc. Calculate Subcontracts" = X,
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
-        report "Subc. Detailed Calculation" = X,
         report "Subc. Dispatching List" = X;
 }

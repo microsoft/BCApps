@@ -307,7 +307,6 @@ report 4403 "EXR Aged Acc Payable Excel"
 
     local procedure InitReport()
     var
-        FirstStartDate: Date;
         WorkingEndDate: Date;
         WorkingStartDate: Date;
         i: Integer;
@@ -331,22 +330,35 @@ report 4403 "EXR Aged Acc Payable Excel"
             WorkingStartDate := CalcDate(PeriodLength, WorkingStartDate);
             WorkingEndDate := CalcDate(PeriodLength, WorkingEndDate);
         until i >= PeriodCount;
-        FirstStartDate := WorkingStartDate;
 
-        VendorAgingData.SetAutoCalcFields("Net Change (LCY)");
-        VendorAgingData.SetRange("Date Filter", FirstStartDate, EndingDate);
-        if SkipZeroBalanceVendors then
+        PeriodStarts.Add(0D);
+        PeriodEnds.Add(WorkingEndDate);
+
+        VendorAgingData.SetRange("Date Filter", 0D, EndingDate);
+        if SkipZeroBalanceVendors then begin
+            VendorAgingData.SetAutoCalcFields("Net Change (LCY)");
             VendorAgingData.SetFilter("Net Change (LCY)", '<>0');
+        end;
     end;
 
     local procedure InsertAgingData(var Vendor: Record "Vendor")
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        EarliestPeriodStart: Date;
     begin
+        EarliestPeriodStart := PeriodStarts.Get(PeriodStarts.Count());
         VendorLedgerEntry.SetCurrentKey("Vendor No.", Open, Positive, "Due Date", "Currency Code");
         VendorLedgerEntry.SetRange("Vendor No.", Vendor."No.");
         VendorLedgerEntry.SetRange("Posting Date", 0D, EndingDate);
         VendorLedgerEntry.SetRange("Date Filter", 0D, EndingDate);
+
+        case TempEXRAgingReportBuffer."Aged By" of
+            TempEXRAgingReportBuffer."Aged By"::"Posting Date":
+                VendorLedgerEntry.SetRange("Posting Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Document Date":
+                VendorLedgerEntry.SetRange("Document Date", EarliestPeriodStart, EndingDate);
+        end;
+
         VendorLedgerEntry.SetAutoCalcFields("Remaining Amt. (LCY)", "Remaining Amount", "Original Amount", "Original Amt. (LCY)");
         VendorLedgerEntry.SetFilter("Remaining Amt. (LCY)", '<>0');
         if VendorLedgerEntry.FindSet() then

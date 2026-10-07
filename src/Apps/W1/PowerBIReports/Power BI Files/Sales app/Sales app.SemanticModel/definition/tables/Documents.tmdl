@@ -95,11 +95,6 @@ table Documents
 			
 			// --- Sales Lines --
 			
-			    VAR SalesLineDocumentNos = 
-			        CONCATENATEX(VALUES('Sales Lines'[Document No.]), 'Sales Lines'[Document No.], "|")
-			    VAR SalesLineItems = 
-			        CONCATENATEX( VALUES('Sales Lines'[itemNo]), 'Sales Lines'[itemNo], "|")
-			
 			    // --- Document Type concatenation ---
 			    VAR DistinctSaleLineDocTypes =
 			        DISTINCT ( SELECTCOLUMNS ( 'Sales Lines', "Document Type", 'Sales Lines'[Document Type] ) )
@@ -113,9 +108,6 @@ table Documents
 			                'Sales Document Type'[Caption], [Document Type]
 			            )
 			        )
-			
-			    VAR SalesLineDocumentTypes =
-			        CONCATENATEX ( SalesLineDocTypesWithValues, [DocTypeValue], "|" )
 			
 			    // --- Line Type concatenation ---
 			    VAR DistinctSalesLineTypes =
@@ -131,15 +123,7 @@ table Documents
 			            )
 			        )
 			
-			    VAR SalesLineTypes =
-			        CONCATENATEX ( SalesLineTypesWithValues, [LineTypeValue], "|" )
-			
 			// --- Sales Value Entries --- 
-			    VAR SalesValueEntriesDocumentNos =
-			        CONCATENATEX(VALUES('Sales Value Entries'[Document No.]), 'Sales Value Entries'[Document No.], "|")
-			    VAR SalesValueEntriesItems = 
-			        CONCATENATEX(VALUES('Sales Value Entries'[itemNo]), 'Sales Value Entries'[itemNo], "|")
-			    
 			    // --- Sales Value Enntry Document Type concatenation ---
 			    VAR DistinctSaleValueEntryDocTypes =
 			        DISTINCT ( SELECTCOLUMNS ( 'Sales Value Entries', "Document Type", 'Sales Value Entries'[Document Type] ) )
@@ -154,16 +138,7 @@ table Documents
 			            )
 			        )
 			
-			    VAR SalesValueEntryDocumentTypes =
-			        CONCATENATEX ( SalesValueEntryDocTypesWithValues, [DocTypeValue], "|" )
-			
 			// --- Sales Invoice Lines ---
-			
-			    VAR SalesInvoiceLineDocumentNos = 
-			        CONCATENATEX(VALUES('Sales Invoice Lines'[Document No.]), 'Sales Invoice Lines'[Document No.], "|")
-			    VAR SalesInvoiceLineItems = 
-			        CONCATENATEX(VALUES('Sales Invoice Lines'[No]), 'Sales Invoice Lines'[No], "|")
-			
 			    // --- Line Type concatenation ---
 			    VAR DistinctSalesInvoiceLineTypes =
 			        DISTINCT ( SELECTCOLUMNS ( 'Sales Invoice Lines', "Line Type", 'Sales Invoice Lines'[Type] ) )
@@ -178,13 +153,7 @@ table Documents
 			            )
 			        )
 			
-			    VAR SalesInvoiceLineTypes =
-			        CONCATENATEX ( SalesInvoiceLineTypesWithValues, [LineTypeValue], "|" )
-			
 			// --- Sales Credit Lines ---
-			    VAR SalesCreditLineDocumentNos = CONCATENATEX(VALUES('Sales Credit Lines'[Document No.]), 'Sales Credit Lines'[Document No.], "|")
-			    VAR SalesCreditLineItems = CONCATENATEX(VALUES('Sales Credit Lines'[No]), 'Sales Credit Lines'[No], "|")
-			
 			    // --- Line Type concatenation ---
 			    VAR DistinctSalesCreditLineTypes =
 			        DISTINCT ( SELECTCOLUMNS ( 'Sales Credit Lines', "Line Type", 'Sales Credit Lines'[Type] ) )
@@ -199,14 +168,7 @@ table Documents
 			            )
 			        )
 			
-			    VAR SalesCreditLineTypes =
-			        CONCATENATEX ( SalesCreditLineTypesWithValues, [LineTypeValue], "|" )
-			
 			// --- Project Lines ---
-			    VAR ProjectLedgerEntryDocumentNos = CONCATENATEX(VALUES('Project Ledger Entries'[Document No.]), 'Project Ledger Entries'[Document No.], "|")
-			    VAR ProjectLedgerEntryProjectNos = CONCATENATEX(VALUES('Project Ledger Entries'[projectNo]), 'Project Ledger Entries'[projectNo], "|")
-			    VAR ProjectLedgerEntryItems = CONCATENATEX(VALUES('Project Ledger Entries'[No]), 'Project Ledger Entries'[No], "|")
-			
 			    // --- Line Type concatenation ---
 			    VAR DistinctProjectLedgerLineTypes =
 			        DISTINCT ( SELECTCOLUMNS ( 'Project Ledger Entries', "Line Type", 'Project Ledger Entries'[Type] ) )
@@ -220,14 +182,106 @@ table Documents
 			                'Project Journal Line Type'[Caption], [Line Type]
 			            )
 			        )
+
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+
+			VAR NormalizedDimensionSetIDs =
+			    SELECTCOLUMNS (
+			        VALUES ( 'Dimension Sets'[dimensionSetID] ),
+			        "DimensionSetID", IF ( ISBLANK ( 'Dimension Sets'[dimensionSetID] ), 0, 'Dimension Sets'[dimensionSetID] )
+			    )
+			VAR DistinctDimensionSetIDs = DISTINCT ( NormalizedDimensionSetIDs )
+			VAR MaximumDimensionSetIDDigits = LEN ( MAXX ( DistinctDimensionSetIDs, [DimensionSetID] ) & "" )
+			VAR DimensionRangeStarts =
+			    FILTER (
+			        DistinctDimensionSetIDs,
+			        VAR CurrentDimensionSetID = [DimensionSetID]
+			        RETURN COUNTROWS ( FILTER ( DistinctDimensionSetIDs, [DimensionSetID] = CurrentDimensionSetID - 1 ) ) = 0
+			    )
+			// Conservative estimate: bound each normalized run by (2 * widest selected ID + separator/range marker)
+			VAR ProjectedRangedDimensionsLength = COUNTROWS ( DimensionRangeStarts ) * ( 2 * MaximumDimensionSetIDDigits + 3 )
 			
-			    VAR ProjectLedgerEntryTypes =
-			        CONCATENATEX ( SalesLineTypesWithValues, [LineTypeValue], "|" )
+			VAR _PageOnly =
+			    SWITCH(
+			        SELECTEDVALUE('Documents'[Source Table]),
+			        "Sales Line", [Base Link] & "&page=516",
+			        "Sales Value Entries", [Base Link] & "&page=5802",
+			        "Sales Invoice Line", [Base Link] & "&page=526",
+			        "Sales Credit Line", [Base Link] & "&page=527",
+			        "Project Ledger Entry", [Base Link] & "&page=92"
+			        )
+			// Project the URL length per branch from the component values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    SWITCH(
+			        SELECTEDVALUE('Documents'[Source Table]),
+			        "Sales Line",
+			            LEN ( [Base Link] ) + LEN ( "&page=516&filter='Sales Line'.'Document Type' IS ''" )
+			            + SUMX ( SalesLineDocTypesWithValues, LEN ( [DocTypeValue] ) + 1 )
+			            + LEN ( " AND 'Sales Line'.'Document No.' IS ''" )
+			            + SUMX ( VALUES ( 'Sales Lines'[Document No.] ), LEN ( 'Sales Lines'[Document No.] ) + 1 )
+			            + LEN ( " AND 'Sales Line'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			            + LEN ( " AND 'Sales Line'.'No.' IS ''" )
+			            + SUMX ( VALUES ( 'Sales Lines'[itemNo] ), LEN ( 'Sales Lines'[itemNo] ) + 1 )
+			            + LEN ( " AND 'Sales Line'.'Type' IS ''" )
+			            + SUMX ( SalesLineTypesWithValues, LEN ( [LineTypeValue] ) + 1 ),
+			        "Sales Value Entries",
+			            LEN ( [Base Link] ) + LEN ( "&page=5802&filter='Value Entry'.'Item Ledger Entry Type' IS 'Sale'" )
+			            + LEN ( " AND 'Value Entry'.'Document Type' IS ''" )
+			            + SUMX ( SalesValueEntryDocTypesWithValues, LEN ( [DocTypeValue] ) + 1 )
+			            + LEN ( " AND 'Value Entry'.'Document No.' IS ''" )
+			            + SUMX ( VALUES ( 'Sales Value Entries'[Document No.] ), LEN ( 'Sales Value Entries'[Document No.] ) + 1 )
+			            + LEN ( " AND 'Value Entry'.'Posting Date' IS " ) + ProjectedRangedLength
+			            + LEN ( " AND 'Value Entry'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			            + LEN ( " AND 'Value Entry'.'Item No.' IS ''" )
+			            + SUMX ( VALUES ( 'Sales Value Entries'[itemNo] ), LEN ( 'Sales Value Entries'[itemNo] ) + 1 ),
+			        "Sales Invoice Line",
+			            LEN ( [Base Link] ) + LEN ( "&page=526&filter='Sales Invoice Line'.'Document No.' IS ''" )
+			            + SUMX ( VALUES ( 'Sales Invoice Lines'[Document No.] ), LEN ( 'Sales Invoice Lines'[Document No.] ) + 1 )
+			            + LEN ( " AND 'Sales Invoice Line'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			            + LEN ( " AND 'Sales Invoice Line'.'No.' IS ''" )
+			            + SUMX ( VALUES ( 'Sales Invoice Lines'[No] ), LEN ( 'Sales Invoice Lines'[No] ) + 1 )
+			            + LEN ( " AND 'Sales Invoice Line'.'Type' IS ''" )
+			            + SUMX ( SalesInvoiceLineTypesWithValues, LEN ( [LineTypeValue] ) + 1 ),
+			        "Sales Credit Line",
+			            LEN ( [Base Link] ) + LEN ( "&page=527&filter='Sales Cr.Memo Line'.'Document No.' IS ''" )
+			            + SUMX ( VALUES ( 'Sales Credit Lines'[Document No.] ), LEN ( 'Sales Credit Lines'[Document No.] ) + 1 )
+			            + LEN ( " AND 'Sales Cr.Memo Line'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			            + LEN ( " AND 'Sales Cr.Memo Line'.'No.' IS ''" )
+			            + SUMX ( VALUES ( 'Sales Credit Lines'[No] ), LEN ( 'Sales Credit Lines'[No] ) + 1 )
+			            + LEN ( " AND 'Sales Cr.Memo Line'.'Type' IS ''" )
+			            + SUMX ( SalesCreditLineTypesWithValues, LEN ( [LineTypeValue] ) + 1 ),
+			        "Project Ledger Entry",
+			            LEN ( [Base Link] ) + LEN ( "&page=92&filter='Job Ledger Entry'.'Document No.' IS ''" )
+			            + SUMX ( VALUES ( 'Project Ledger Entries'[Document No.] ), LEN ( 'Project Ledger Entries'[Document No.] ) + 1 )
+			            + LEN ( " AND 'Job Ledger Entry'.'Job No.' IS ''" )
+			            + SUMX ( VALUES ( 'Project Ledger Entries'[projectNo] ), LEN ( 'Project Ledger Entries'[projectNo] ) + 1 )
+			            + LEN ( " AND 'Job Ledger Entry'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			            + LEN ( " AND 'Job Ledger Entry'.'No.' IS ''" )
+			            + SUMX ( VALUES ( 'Project Ledger Entries'[No] ), LEN ( 'Project Ledger Entries'[No] ) + 1 )
+			            + LEN ( " AND 'Job Ledger Entry'.'Type' IS ''" )
+			            + SUMX ( SalesLineTypesWithValues, LEN ( [LineTypeValue] ) + 1 )
+			        )
 			
-			RETURN 
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000, 
 			    SWITCH(
 			        SELECTEDVALUE('Documents'[Source Table]),
 			        "Sales Line", 
+			            VAR SalesLineDocumentTypes = CONCATENATEX ( SalesLineDocTypesWithValues, [DocTypeValue], "|" )
+			            VAR SalesLineDocumentNos = CONCATENATEX ( VALUES ( 'Sales Lines'[Document No.] ), 'Sales Lines'[Document No.], "|" )
+			            VAR SalesLineItems = CONCATENATEX ( VALUES ( 'Sales Lines'[itemNo] ), 'Sales Lines'[itemNo], "|" )
+			            VAR SalesLineTypes = CONCATENATEX ( SalesLineTypesWithValues, [LineTypeValue], "|" )
+			            RETURN
 			            [Base Link] 
 			            & "&page=516&filter='Sales Line'.'Document Type' IS '" & SalesLineDocumentTypes & "'"
 			            & " AND 'Sales Line'.'Document No.' IS '" & SalesLineDocumentNos & "'"
@@ -235,6 +289,10 @@ table Documents
 			            & " AND 'Sales Line'.'No.' IS '" & SalesLineItems & "'"
 			            & " AND 'Sales Line'.'Type' IS '" & SalesLineTypes & "'",
 			        "Sales Value Entries",
+			            VAR SalesValueEntryDocumentTypes = CONCATENATEX ( SalesValueEntryDocTypesWithValues, [DocTypeValue], "|" )
+			            VAR SalesValueEntriesDocumentNos = CONCATENATEX ( VALUES ( 'Sales Value Entries'[Document No.] ), 'Sales Value Entries'[Document No.], "|" )
+			            VAR SalesValueEntriesItems = CONCATENATEX ( VALUES ( 'Sales Value Entries'[itemNo] ), 'Sales Value Entries'[itemNo], "|" )
+			            RETURN
 			            [Base Link] & "&page=5802&filter='Value Entry'.'Item Ledger Entry Type' IS 'Sale'"
 			                    & " AND 'Value Entry'.'Document Type' IS '" & SalesValueEntryDocumentTypes & "'"
 			                    & " AND 'Value Entry'.'Document No.' IS '" & SalesValueEntriesDocumentNos & "'"
@@ -242,24 +300,39 @@ table Documents
 			                    & " AND 'Value Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
 			                    & " AND 'Value Entry'.'Item No.' IS '" & SalesValueEntriesItems & "'",
 			        "Sales Invoice Line", 
+			            VAR SalesInvoiceLineDocumentNos = CONCATENATEX ( VALUES ( 'Sales Invoice Lines'[Document No.] ), 'Sales Invoice Lines'[Document No.], "|" )
+			            VAR SalesInvoiceLineItems = CONCATENATEX ( VALUES ( 'Sales Invoice Lines'[No] ), 'Sales Invoice Lines'[No], "|" )
+			            VAR SalesInvoiceLineTypes = CONCATENATEX ( SalesInvoiceLineTypesWithValues, [LineTypeValue], "|" )
+			            RETURN
 			            [Base Link] 
 			            & "&page=526&filter='Sales Invoice Line'.'Document No.' IS '" & SalesInvoiceLineDocumentNos & "'"
 			            & " AND 'Sales Invoice Line'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
 			            & " AND 'Sales Invoice Line'.'No.' IS '" & SalesInvoiceLineItems & "'"
 			            & " AND 'Sales Invoice Line'.'Type' IS '" & SalesInvoiceLinetypes & "'",
 			        "Sales Credit Line", 
+			            VAR SalesCreditLineDocumentNos = CONCATENATEX ( VALUES ( 'Sales Credit Lines'[Document No.] ), 'Sales Credit Lines'[Document No.], "|" )
+			            VAR SalesCreditLineItems = CONCATENATEX ( VALUES ( 'Sales Credit Lines'[No] ), 'Sales Credit Lines'[No], "|" )
+			            VAR SalesCreditLineTypes = CONCATENATEX ( SalesCreditLineTypesWithValues, [LineTypeValue], "|" )
+			            RETURN
 			            [Base Link] 
 			            & "&page=527&filter='Sales Cr.Memo Line'.'Document No.' IS '" & SalesCreditLineDocumentNos & "'"
 			            & " AND 'Sales Cr.Memo Line'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
 			            & " AND 'Sales Cr.Memo Line'.'No.' IS '" & SalesCreditLineItems & "'"
 			            & " AND 'Sales Cr.Memo Line'.'Type' IS '" & SalesCreditLineTypes & "'",
 			        "Project Ledger Entry", 
+			            VAR ProjectLedgerEntryDocumentNos = CONCATENATEX ( VALUES ( 'Project Ledger Entries'[Document No.] ), 'Project Ledger Entries'[Document No.], "|" )
+			            VAR ProjectLedgerEntryProjectNos = CONCATENATEX ( VALUES ( 'Project Ledger Entries'[projectNo] ), 'Project Ledger Entries'[projectNo], "|" )
+			            VAR ProjectLedgerEntryItems = CONCATENATEX ( VALUES ( 'Project Ledger Entries'[No] ), 'Project Ledger Entries'[No], "|" )
+			            VAR ProjectLedgerEntryTypes = CONCATENATEX ( SalesLineTypesWithValues, [LineTypeValue], "|" )
+			            RETURN
 			            [Base Link] 
 			            & "&page=92&filter='Job Ledger Entry'.'Document No.' IS '" & ProjectLedgerEntryDocumentNos & "'"
 			            & " AND 'Job Ledger Entry'.'Job No.' IS '" & ProjectLedgerEntryProjectNos & "'"
 			            & " AND 'Job Ledger Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
 			            & " AND 'Job Ledger Entry'.'No.' IS '" & ProjectLedgerEntryItems & "'"
 			            & " AND 'Job Ledger Entry'.'Type' IS '" & ProjectLedgerEntryTypes & "'"
+			        ),
+			        _PageOnly
 			        )
 			```
 		displayFolder: _Sales Measures\_Back Links
@@ -402,75 +475,36 @@ table Documents
 
 	measure 'Ranged Dimensions' = ```
 			
-			VAR _FilterTable = VALUES('Dimension Sets'[dimensionSetID])
-			VAR IndexedDimSetID =
+			VAR NormalizedIDs =
+			    SELECTCOLUMNS(
+			        VALUES('Dimension Sets'[dimensionSetID]),
+			        "DimensionSetID", IF(ISBLANK('Dimension Sets'[dimensionSetID]), 0, 'Dimension Sets'[dimensionSetID])
+			    )
+			VAR DistinctIDs = DISTINCT(NormalizedIDs)
+			VAR MaxID = MAXX(DistinctIDs, [DimensionSetID])
+			VAR RangeStarts =
+			    FILTER(
+			        DistinctIDs,
+			        VAR CurrentID = [DimensionSetID]
+			        RETURN COUNTROWS(FILTER(DistinctIDs, [DimensionSetID] = CurrentID - 1)) = 0
+			    )
+			VAR RangeEnds =
 			    ADDCOLUMNS(
-			        _FilterTable,
-			        "@Index", RANKX(
-			            SUMMARIZECOLUMNS(
-			                'Dimension Sets'[dimensionSetID], _FilterTable
-			            ),
-			            'Dimension Sets'[dimensionSetID],
-			            ,
-			            ASC,
-			            DENSE
-			        )
+			        RangeStarts,
+			        "@RangeEnd",
+			            VAR CurrentStart = [DimensionSetID]
+			            VAR NextStart = MINX(FILTER(RangeStarts, [DimensionSetID] > CurrentStart), [DimensionSetID])
+			            RETURN IF(ISBLANK(NextStart), MaxID, MAXX(FILTER(DistinctIDs, [DimensionSetID] < NextStart), [DimensionSetID]))
 			    )
-			 
-			VAR PreviousIndexedDimSetID =
+			VAR Ranges =
 			    ADDCOLUMNS(
-			        IndexedDimSetID,
-			        "@Previous Date",
-			            VAR PrevIndex = [@Index] - 1
-			            RETURN SELECTCOLUMNS(
-			                FILTER(IndexedDimSetID, [@Index] = PrevIndex),
-			                [dimensionSetID])
+			        RangeEnds,
+			        "@Range",
+			            IF([DimensionSetID] = [@RangeEnd], [DimensionSetID] & "", [DimensionSetID] & ".." & [@RangeEnd])
 			    )
-			 
-			VAR CalculateBreakPoint =
-			    ADDCOLUMNS(
-			        PreviousIndexedDimSetID,
-			        "@Break Point",
-			        IF( NOT 'Dimension Sets'[dimensionSetID] - [@Previous Date] = 1, TRUE(), FALSE()
-			        )
-			    )
-			 
-			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
-			 
-			VAR MaxDimension = CALCULATE(MAX('Dimension Sets'[dimensionSetID]),_FilterTable)
-			 
-			var NextIndex =
-			    ADDCOLUMNS(
-			        BreakPointTable,
-			        "@NextIndex",
-			        SELECTCOLUMNS(
-			            OFFSET( +1, BreakPointTable ),
-			            [@Index]
-			        ) - 1
-			    )
-			 
-			VAR NextDimension =
-			    ADDCOLUMNS(
-			        NextIndex,
-			        "@NextDimension",
-			            VAR PrevIndex = [@Index] - 1
-			            RETURN SELECTCOLUMNS(
-			                FILTER(IndexedDimSetID, [@Index] = [@NextIndex]),
-			                'Dimension Sets'[dimensionSetID])
-			    )
-			 
-			VAR Ranged =
-			ADDCOLUMNS(
-			    NextDimension,
-			    "@Range",
-			    IF( ISBLANK([@NextDimension]),
-			    'Dimension Sets'[dimensionSetID] & ".." & MaxDimension ,
-			    'Dimension Sets'[dimensionSetID] & ".." & [@NextDimension]
-			    )
-			)
 			
 			Return
-			    IF(COUNTROWS(NextDimension) = 1, MaxDimension, CONCATENATEX(Ranged, [@Range], "|"))
+			    CONCATENATEX(Ranges, [@Range], "|", [DimensionSetID], ASC)
 			```
 		displayFolder: _Sales Measures\_Back Links
 		lineageTag: 08d97b1c-8c55-423e-b9cf-8a3328c70938
@@ -527,4 +561,3 @@ table Documents
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
-

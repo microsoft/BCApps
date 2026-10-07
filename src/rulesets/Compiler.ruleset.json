@@ -3701,7 +3701,8 @@
         },
         {
             "id": "AL0925",
-            "action": "Error"
+            "action": "None",
+            "justification": "Information diagnostic reported for not implemented optional interface methods to help new feature discoverability."
         },
         {
             "id": "AL0926",

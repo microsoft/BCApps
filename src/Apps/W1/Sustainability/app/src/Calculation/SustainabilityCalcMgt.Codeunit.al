@@ -1,0 +1,342 @@
+namespace Microsoft.Sustainability.Calculation;
+
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Purchases.Document;
+using Microsoft.Sustainability.Account;
+using Microsoft.Sustainability.Journal;
+using Microsoft.Sustainability.Ledger;
+
+codeunit 6218 "Sustainability Calc. Mgt."
+{
+    var
+        CollectingSustainabilityJnlLine: Record "Sustainability Jnl. Line";
+        EmissionScopeCache: Dictionary of [Code[20], Enum "Emission Scope"];
+        CalculationFoundationCache: Dictionary of [Code[20], Enum "Calculation Foundation"];
+        FromToFilterLbl: Label '%1..%2', Locked = true;
+
+    internal procedure CalculationEmissions(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+        SustainAccountSubcategory: Record "Sustain. Account Subcategory";
+        IsHandled: Boolean;
+    begin
+        OnBeforeCalculationEmissions(IsHandled, SustainabilityJnlLine);
+
+        if IsHandled then
+            exit;
+
+        SustainAccountCategory.Get(SustainabilityJnlLine."Account Category");
+        SustainAccountSubcategory.Get(SustainabilityJnlLine."Account Category", SustainabilityJnlLine."Account Subcategory");
+
+        CalculationEmissions(SustainabilityJnlLine, SustainAccountCategory, SustainAccountSubcategory);
+    end;
+
+    internal procedure CalculationEmissions(var SustainabilityJnlLine: Record "Sustainability Jnl. Line"; SustainAccountCategory: Record "Sustain. Account Category"; SustainAccountSubcategory: Record "Sustain. Account Subcategory")
+    var
+        SustainabilityCalculation: Codeunit "Sustainability Calculation";
+    begin
+        if SustainabilityJnlLine."Manual Input" then
+            exit;
+
+        SustainAccountCategory.TestField("Emission Scope");
+        SustainAccountCategory.TestField("Calculation Foundation");
+
+        case SustainAccountCategory."Emission Scope" of
+            Enum::"Emission Scope"::"Scope 1":
+                SustainabilityCalculation.CalculateScope1Emissions(SustainabilityJnlLine, SustainAccountCategory, SustainAccountSubcategory);
+
+            Enum::"Emission Scope"::"Scope 2":
+                SustainabilityCalculation.CalculateScope2Emissions(SustainabilityJnlLine, SustainAccountCategory, SustainAccountSubcategory);
+
+            Enum::"Emission Scope"::"Scope 3":
+                SustainabilityCalculation.CalculateScope3Emissions(SustainabilityJnlLine, SustainAccountCategory, SustainAccountSubcategory);
+
+            Enum::"Emission Scope"::"Water/Waste":
+                SustainabilityCalculation.CalculateWaterOrWaste(SustainabilityJnlLine, SustainAccountCategory, SustainAccountSubcategory);
+        end;
+
+        if not SustainAccountCategory.CO2 then
+            SustainabilityJnlLine.Validate("Emission CO2", 0);
+
+        if not SustainAccountCategory.CH4 then
+            SustainabilityJnlLine.Validate("Emission CH4", 0);
+
+        if not SustainAccountCategory.N2O then
+            SustainabilityJnlLine.Validate("Emission N2O", 0);
+
+        if not SustainAccountCategory."Water Intensity" then
+            SustainabilityJnlLine.Validate("Water Intensity", 0);
+
+        if not SustainAccountCategory."Waste Intensity" then
+            SustainabilityJnlLine.Validate("Waste Intensity", 0);
+
+        if not SustainAccountCategory."Discharged Into Water" then
+            SustainabilityJnlLine.Validate("Discharged Into Water", 0);
+    end;
+
+    internal procedure CalculationEmissions(var PurchaseLine: Record "Purchase Line")
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+        SustainAccountSubcategory: Record "Sustain. Account Subcategory";
+    begin
+        SustainAccountCategory.Get(PurchaseLine."Sust. Account Category");
+        SustainAccountSubcategory.Get(PurchaseLine."Sust. Account Category", PurchaseLine."Sust. Account Subcategory");
+
+        CalculationEmissions(PurchaseLine, SustainAccountCategory, SustainAccountSubcategory);
+    end;
+
+    internal procedure CalculationEmissions(var PurchaseLine: Record "Purchase Line"; SustainAccountCategory: Record "Sustain. Account Category"; SustainAccountSubcategory: Record "Sustain. Account Subcategory")
+    var
+        SustainabilityCalculation: Codeunit "Sustainability Calculation";
+    begin
+        SustainAccountCategory.TestField("Emission Scope");
+        SustainAccountCategory.TestField("Calculation Foundation");
+
+        case SustainAccountCategory."Emission Scope" of
+            Enum::"Emission Scope"::"Scope 1":
+                SustainabilityCalculation.CalculateScope1Emissions(PurchaseLine, SustainAccountCategory, SustainAccountSubcategory);
+            Enum::"Emission Scope"::"Scope 2":
+                SustainabilityCalculation.CalculateScope2Emissions(PurchaseLine, SustainAccountCategory, SustainAccountSubcategory);
+            Enum::"Emission Scope"::"Scope 3":
+                SustainabilityCalculation.CalculateScope3Emissions(PurchaseLine, SustainAccountCategory, SustainAccountSubcategory);
+            Enum::"Emission Scope"::"Water/Waste":
+                SustainabilityCalculation.CalculateWaterOrWaste(PurchaseLine, SustainAccountCategory, SustainAccountSubcategory);
+        end;
+
+        if not SustainAccountCategory.CO2 then
+            PurchaseLine.Validate("Emission CO2", 0);
+
+        if not SustainAccountCategory.CH4 then
+            PurchaseLine.Validate("Emission CH4", 0);
+
+        if not SustainAccountCategory.N2O then
+            PurchaseLine.Validate("Emission N2O", 0);
+    end;
+
+    internal procedure GetFormulaInputEditability(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        if SustainabilityJnlLine."Manual Input" then
+            exit;
+
+        GetFormulaInputEditability(SustainabilityJnlLine."Account Category", false, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
+    end;
+
+    internal procedure GetFormulaInputEditability(PurchaseLine: Record "Purchase Line"; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        GetFormulaInputEditability(PurchaseLine."Sust. Account Category", true, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
+    end;
+
+    local procedure GetFormulaInputEditability(AccountCategoryCode: Code[20]; PurchaseSurface: Boolean; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    var
+        EmissionScope: Enum "Emission Scope";
+        CalculationFoundation: Enum "Calculation Foundation";
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        if not GetCalculationParameters(AccountCategoryCode, EmissionScope, CalculationFoundation) then
+            exit;
+
+        case EmissionScope of
+            Enum::"Emission Scope"::"Scope 1":
+                case CalculationFoundation of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Distance:
+                        DistanceEditable := true;
+                    Enum::"Calculation Foundation"::Installations:
+                        begin
+                            CustomAmountEditable := true;
+                            InstallationMultiplierEditable := true;
+                            TimeFactorEditable := true;
+                        end;
+                end;
+            Enum::"Emission Scope"::"Scope 2":
+                case CalculationFoundation of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Custom:
+                        CustomAmountEditable := true;
+                end;
+            Enum::"Emission Scope"::"Scope 3":
+                case CalculationFoundation of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Distance:
+                        begin
+                            DistanceEditable := true;
+                            InstallationMultiplierEditable := true;
+                        end;
+                    Enum::"Calculation Foundation"::Custom:
+                        CustomAmountEditable := true;
+                end;
+            Enum::"Emission Scope"::"Water/Waste":
+                if (not PurchaseSurface) and (CalculationFoundation = Enum::"Calculation Foundation"::Custom) then
+                    CustomAmountEditable := true;
+        end;
+    end;
+
+    local procedure GetCalculationParameters(AccountCategoryCode: Code[20]; var EmissionScope: Enum "Emission Scope"; var CalculationFoundation: Enum "Calculation Foundation"): Boolean
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+    begin
+        if AccountCategoryCode = '' then
+            exit(false);
+
+        if EmissionScopeCache.Get(AccountCategoryCode, EmissionScope) and CalculationFoundationCache.Get(AccountCategoryCode, CalculationFoundation) then
+            exit(true);
+
+        SustainAccountCategory.SetLoadFields("Emission Scope", "Calculation Foundation");
+        if not SustainAccountCategory.Get(AccountCategoryCode) then
+            exit(false);
+
+        EmissionScope := SustainAccountCategory."Emission Scope";
+        CalculationFoundation := SustainAccountCategory."Calculation Foundation";
+        EmissionScopeCache.Set(AccountCategoryCode, EmissionScope);
+        CalculationFoundationCache.Set(AccountCategoryCode, CalculationFoundation);
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Filter general ledger entries by criteria defined in sustainability category and by date and calculate the total
+    /// </summary>
+    /// <param name="SustainAccountCategory">Specifies the sustainability category that contains default filters.</param>
+    /// <param name="FromDate">Specifies the "from" part of a date filter .</param>
+    /// <param name="ToDate">Specifies the "to" part of a date filter .</param>
+    /// <returns>The sum of G/L Entry Amounts.</returns>
+    procedure GetCollectableGLAmount(SustainAccountCategory: Record "Sustain. Account Category"; FromDate: Date; ToDate: Date): Decimal
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        FilterGLEntry(SustainAccountCategory, FromDate, ToDate, GLEntry);
+        exit(GetTotalGLEntryAmount(GLEntry));
+    end;
+
+    internal procedure CollectGeneralLedgerAmount(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    var
+        GLEntry: Record "G/L Entry";
+        SustainAccountCategory: Record "Sustain. Account Category";
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
+        CollectAmountFromGLEntry: Page "Collect Amount from G/L Entry";
+        FromDate, ToDate : Date;
+    begin
+        SustainabilityJnlLine.Validate("Custom Amount");
+
+        SustainAccountCategory.Get(SustainabilityJnlLine."Account Category");
+        SustainAccountCategory.SetRecFilter();
+
+        SetCollectingJournalLine(SustainabilityJnlLine);
+
+        CollectAmountFromGLEntry.SetCollectingJournalLine(SustainabilityJnlLine);
+        CollectAmountFromGLEntry.SetTableView(SustainAccountCategory);
+        CollectAmountFromGLEntry.LookupMode(true);
+        if CollectAmountFromGLEntry.RunModal() = Action::LookupOK then begin
+            CollectAmountFromGLEntry.GetDates(FromDate, ToDate);
+
+            FilterGLEntry(SustainAccountCategory, FromDate, ToDate, GLEntry);
+            SustainabilityJnlLine.Validate("Custom Amount", GetTotalGLEntryAmount(GLEntry));
+            SustainabilityJnlLine.SetGLCollectionInformation(FromDate, ToDate);
+
+            SustJnlLineGLEntry.StoreCollectedGLEntries(SustainabilityJnlLine, GLEntry);
+        end;
+    end;
+
+    internal procedure SetCollectingJournalLine(SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+        CollectingSustainabilityJnlLine := SustainabilityJnlLine;
+    end;
+
+    internal procedure FilterGLEntry(SustainAccountCategory: Record "Sustain. Account Category"; FromDate: Date; ToDate: Date; var GLEntry: Record "G/L Entry");
+    begin
+        GLEntry.Reset();
+        GLEntry.SetCurrentKey("G/L Account No.", "Posting Date");
+        GLEntry.SetFilter("G/L Account No.", SustainAccountCategory."G/L Account Filter");
+        GLEntry.SetFilter("Global Dimension 1 Code", SustainAccountCategory."Global Dimension 1 Filter");
+        GLEntry.SetFilter("Global Dimension 2 Code", SustainAccountCategory."Global Dimension 2 Filter");
+        if (FromDate <> 0D) or (ToDate <> 0D) then
+            GLEntry.SetFilter("Posting Date", StrSubstNo(FromToFilterLbl, FromDate, ToDate));
+        OnAfterFilterGLEntry(SustainAccountCategory, FromDate, ToDate, GLEntry);
+
+        MarkCollectableGLEntries(SustainAccountCategory.Code, FromDate, ToDate, GLEntry);
+    end;
+
+    local procedure MarkCollectableGLEntries(AccountCategoryCode: Code[20]; FromDate: Date; ToDate: Date; var GLEntry: Record "G/L Entry")
+    var
+        CollectedGLEntryNos: Dictionary of [Integer, Boolean];
+    begin
+        AddPostedGLEntryNos(AccountCategoryCode, FromDate, ToDate, CollectedGLEntryNos);
+        AddGLEntryNosCollectedOnOtherJournalLines(AccountCategoryCode, FromDate, ToDate, CollectedGLEntryNos);
+
+        GLEntry.ClearMarks();
+        if GLEntry.FindSet() then
+            repeat
+                if not CollectedGLEntryNos.ContainsKey(GLEntry."Entry No.") then
+                    GLEntry.Mark(true);
+            until GLEntry.Next() = 0;
+
+        GLEntry.MarkedOnly(true);
+    end;
+
+    local procedure AddPostedGLEntryNos(AccountCategoryCode: Code[20]; FromDate: Date; ToDate: Date; var CollectedGLEntryNos: Dictionary of [Integer, Boolean])
+    var
+        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
+    begin
+        SustGLSustLedgerRel.SetCurrentKey("Account Category", "Posting Date", "G/L Entry No.");
+        SustGLSustLedgerRel.SetRange("Account Category", AccountCategoryCode);
+        if (FromDate <> 0D) or (ToDate <> 0D) then
+            SustGLSustLedgerRel.SetFilter("Posting Date", StrSubstNo(FromToFilterLbl, FromDate, ToDate));
+        SustGLSustLedgerRel.SetLoadFields("G/L Entry No.");
+        if SustGLSustLedgerRel.FindSet() then
+            repeat
+                if not CollectedGLEntryNos.ContainsKey(SustGLSustLedgerRel."G/L Entry No.") then
+                    CollectedGLEntryNos.Add(SustGLSustLedgerRel."G/L Entry No.", true);
+            until SustGLSustLedgerRel.Next() = 0;
+    end;
+
+    local procedure AddGLEntryNosCollectedOnOtherJournalLines(AccountCategoryCode: Code[20]; FromDate: Date; ToDate: Date; var CollectedGLEntryNos: Dictionary of [Integer, Boolean])
+    var
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
+    begin
+        SustJnlLineGLEntry.SetCurrentKey("Account Category", "Posting Date", "G/L Entry No.");
+        SustJnlLineGLEntry.SetRange("Account Category", AccountCategoryCode);
+        if (FromDate <> 0D) or (ToDate <> 0D) then
+            SustJnlLineGLEntry.SetFilter("Posting Date", StrSubstNo(FromToFilterLbl, FromDate, ToDate));
+        if SustJnlLineGLEntry.FindSet() then
+            repeat
+                if not SustJnlLineGLEntry.BelongsToJournalLine(CollectingSustainabilityJnlLine) then
+                    if not CollectedGLEntryNos.ContainsKey(SustJnlLineGLEntry."G/L Entry No.") then
+                        CollectedGLEntryNos.Add(SustJnlLineGLEntry."G/L Entry No.", true);
+            until SustJnlLineGLEntry.Next() = 0;
+    end;
+
+    local procedure GetTotalGLEntryAmount(var GLEntry: Record "G/L Entry"): Decimal
+    begin
+        GLEntry.CalcSums(Amount);
+        exit(Abs(GLEntry.Amount));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterFilterGLEntry(SustainAccountCategory: Record "Sustain. Account Category"; FromDate: Date; ToDate: Date; var GLEntry: Record "G/L Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalculationEmissions(var IsHandled: Boolean; var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+    end;
+}

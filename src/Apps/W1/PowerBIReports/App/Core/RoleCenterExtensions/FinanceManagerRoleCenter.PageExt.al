@@ -137,6 +137,7 @@ pageextension 36959 "Finance Manager Role Center" extends "Finance Manager Role 
                     RunObject = page "Detailed Cust. Ledger Entries";
                     Tooltip = 'Open a Power BI Report that provides granular detail about the entries posted to Customer Ledger and Detailed Customer Sub Ledger.';
                 }
+#if not CLEAN29
                 action("Inventory Valuation Report (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
@@ -144,6 +145,10 @@ pageextension 36959 "Finance Manager Role Center" extends "Finance Manager Role 
                     Image = "PowerBI";
                     RunObject = page "Inventory Valuation Report";
                     Tooltip = 'Open a Power BI Report that offers a consolidated view of all inventory valuation report pages, conveniently embedded into a single page for easy access.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The Power BI report action has been moved to the Inventory Valuation group on the Business Manager Role Center.';
+                    ObsoleteTag = '29.0';
+                    Visible = false;
                 }
                 action("Inventory Valuation Overview (Power BI)")
                 {
@@ -152,6 +157,10 @@ pageextension 36959 "Finance Manager Role Center" extends "Finance Manager Role 
                     Image = "PowerBI";
                     RunObject = page "Inventory Valuation Overview";
                     Tooltip = 'Open a Power BI Report that  displays the inventory ending balance against the ending balance posted to the general ledger. Inventory value by location is plotted on a bar chart which is supported by inventory metrics such as increase quantity and decrease quantity. ';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The Power BI report action has been moved to the Inventory Valuation group on the Business Manager Role Center.';
+                    ObsoleteTag = '29.0';
+                    Visible = false;
                 }
                 action("Inventory Valuation by Item (Power BI)")
                 {
@@ -160,6 +169,10 @@ pageextension 36959 "Finance Manager Role Center" extends "Finance Manager Role 
                     Image = "PowerBI";
                     RunObject = page "Inventory Valuation by Item";
                     Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by item category. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The Power BI report action has been moved to the Inventory Valuation group on the Business Manager Role Center.';
+                    ObsoleteTag = '29.0';
+                    Visible = false;
                 }
                 action("Inventory Valuation by Loc. (Power BI)")
                 {
@@ -168,7 +181,12 @@ pageextension 36959 "Finance Manager Role Center" extends "Finance Manager Role 
                     Image = "PowerBI";
                     RunObject = page "Inventory Valuation by Loc.";
                     Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by location. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The Power BI report action has been moved to the Inventory Valuation group on the Business Manager Role Center.';
+                    ObsoleteTag = '29.0';
+                    Visible = false;
                 }
+#endif
                 action("Late Payments (Receivables) (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;

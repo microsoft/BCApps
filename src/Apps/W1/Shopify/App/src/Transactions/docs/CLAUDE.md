@@ -4,7 +4,9 @@ Tracks individual payment transactions on Shopify orders -- captures, authorizat
 
 ## How it works
 
-`ShpfyTransactions.UpdateTransactionInfos` fetches all transactions for a given order via the `GetOrderTransactions` GraphQL query and upserts them into the `Shpfy Order Transaction` table. Each transaction record captures the type (Sale, Authorization, Capture, Void, Refund), status, gateway name, credit card details, dual-currency amounts (shop money and presentment money), and rounding amounts. The gateway and credit card company are auto-registered in their respective lookup tables (`Shpfy Transaction Gateway`, `Shpfy Credit Card Company`), and a `Shpfy Payment Method Mapping` entry is auto-created keyed on shop + gateway + credit card company.
+`ShpfyTransactions.UpdateTransactionInfos` fetches all transactions for a given order via the `GetOrderTransactions` GraphQL query and upserts them into the `Shpfy Order Transaction` table. Each transaction record captures the type (Sale, Authorization, Capture, Void, Refund), status, gateway name, credit card details, dual-currency amounts (shop money and presentment money), their currency codes, and rounding amounts. The gateway and credit card company are auto-registered in their respective lookup tables (`Shpfy Transaction Gateway`, `Shpfy Credit Card Company`), and a `Shpfy Payment Method Mapping` entry is auto-created keyed on shop + gateway + credit card company.
+
+*Updated: 2026-07-29 -- Transaction shop currency is now imported from `amountSet.shopMoney.currencyCode`*
 
 The `Shpfy Suggest Payments` codeunit hooks into BC's general journal posting to stamp Shopify Transaction IDs onto Customer Ledger Entries. This creates a traceable link from Shopify payment captures to BC accounting entries. The `Used` FlowField on the transaction table checks whether a CLE with that transaction ID exists. On journal reversal, the transaction ID is cleared from both the original and reversal entries.
 
@@ -17,7 +19,7 @@ The `Shpfy Payment Method Mapping` table is the central configuration point -- u
 - The `Parent Id` field on `Shpfy Order Transaction` links refund transactions back to their original charge, enabling refund-to-charge tracing.
 - Payment method mapping is keyed on shop + gateway + credit card company -- the same gateway can map to different BC payment methods depending on the card brand.
 - The `Gift Card Id` is extracted from the transaction's receipt JSON, not from a direct GraphQL field.
-- Transaction amounts include both shop money and presentment money, plus separate rounding amounts for each currency.
+- Transaction amounts include both shop money and presentment money, plus separate rounding amounts for each currency. `Currency` comes from `amountSet.shopMoney.currencyCode`; `Presentment Currency` comes from `amountSet.presentmentMoney.currencyCode`. `Shpfy Suggest Payments` then uses the order's processed currency handling to apply either shop amount + rounding or presentment amount + rounding.
 - The `Manual Payment Gateway` boolean distinguishes manual payment methods (like COD or bank transfer) from automated gateways.
 - FlowFields on the transaction table provide quick lookups to Sales Document No., Posted Invoice No., and Shopify Order No. for the related order.
 

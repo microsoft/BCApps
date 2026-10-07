@@ -19,21 +19,39 @@ table 'Back Links'
 			VAR Endpoint = "&page=99000759&"
 			VAR baseLink = [Base Link] & Endpoint
 			
-			// Build filter context
-			VAR WorkCenters =
-			    CONCATENATEX(VALUES ( 'Calendar Entries'[No.] ), 'Calendar Entries'[No.], "|" )
+			// Build filter context(transformed low-cardinality values only )
 			VAR CapacityTypePrep =
 			    CONCATENATEX(VALUES ( 'Calendar Entries'[Capacity Type] ), 'Calendar Entries'[Capacity Type], "|" )
 			VAR CapacityType = 
 			    SUBSTITUTE(SUBSTITUTE(CapacityTypePrep, "Work Center", "0"), "Machine Center","1")
 			
-			// Build URL string components
-			VAR CapacityTypeFilter = "filter='Calendar Entry'.'Capacity Type' IS " & "'" & CapacityType & "'"
-			VAR WorkCenterFilter = " AND 'Calendar Entry'.'No.' IS " & WorkCenters
-			VAR CalednarEntryPostingDateFilter = " AND 'Calendar Entry'.'Date' IS " & [Ranged]
-			
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( baseLink )
+			    + LEN ( "filter='Calendar Entry'.'Capacity Type' IS ''" ) + LEN ( CapacityType )
+			    + LEN ( " AND 'Calendar Entry'.'No.' IS " )
+			    + SUMX ( VALUES ( 'Calendar Entries'[No.] ), LEN ( 'Calendar Entries'[No.] ) + 1 )
+			    + LEN ( " AND 'Calendar Entry'.'Date' IS " ) + ProjectedRangedLength
 			RETURN
-			    baseLink & CapacityTypeFilter & WorkCenterFilter & CalednarEntryPostingDateFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        baseLink
+			            & "filter='Calendar Entry'.'Capacity Type' IS " & "'" & CapacityType & "'"
+			            & " AND 'Calendar Entry'.'No.' IS " & CONCATENATEX(VALUES ( 'Calendar Entries'[No.] ), 'Calendar Entries'[No.], "|" )
+			            & " AND 'Calendar Entry'.'Date' IS " & [Ranged],
+			    baseLink
+			    )
 			```
 		isHidden
 		lineageTag: 08219a66-0acd-42a9-8e13-5380f953c9a2
@@ -118,36 +136,51 @@ table 'Back Links'
 			VAR Endpoint = "&page=99000820&"
 			VAR baseLink = [Base Link] & Endpoint
 			
-			// Build filter context
-			VAR WorkCenters =
-			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[workCenterNo] ), 'Prod Order Capacity Need'[workCenterNo], "|" )
-			VAR Nos = 
-			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[no] ), 'Prod Order Capacity Need'[no], "|" )
-			VAR Types = 
-			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Type] ), 'Prod Order Capacity Need'[Type], "|" )
-			
-			VAR ProdOrderStatus =
-			    CONCATENATEX(VALUES( 'Production Orders'[Prod Order Status]),  'Production Orders'[Prod Order Status], "|" )
-			
-			VAR ProdOrders = 
-			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Prod. Order No.] ), 'Prod Order Capacity Need'[Prod. Order No.], "|" )
+			// Build filter context(transformed low-cardinality values only )
 			
 			VAR RequestedOnlyInput = 
 			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Requested Only] ), 'Prod Order Capacity Need'[Requested Only], "|" )
 			VAR RequestedOnly = 
 			    SUBSTITUTE(SUBSTITUTE(RequestedOnlyInput, "FALSE", "0"), "TRUE","1")
 			
-			// Build URL string components
-			VAR WorkCenterFilter = "filter='Prod. Order Capacity Need'.'Work Center No.' IS " & "'" & WorkCenters & "'"
-			VAR ProdOrderFilter = " AND 'Prod. Order Capacity Need'.'Prod. Order No.' IS " & "'" & ProdOrders  & "'"
-			VAR ProdOrderStatusFilter = " AND 'Prod. Order Capacity Need'.'Status' IS " & "'" & ProdOrderStatus & "'"
-			VAR NoFilter = " AND 'Prod. Order Capacity Need'.'No.' IS " & "'" & Nos & "'"
-			VAR TypesFilter = " AND 'Prod. Order Capacity Need'.'Type' IS " & "'" & Types & "'"
-			VAR DateFilter = " AND 'Prod. Order Capacity Need'.'Date' IS " & [Ranged]
-			VAR RequestedOnlyFilter =  " AND 'Prod. Order Capacity Need'.'Requested Only' IS " & "'" & RequestedOnly & "'"
-			
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( baseLink )
+			    + LEN ( "filter='Prod. Order Capacity Need'.'Work Center No.' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Capacity Need'[workCenterNo] ), LEN ( 'Prod Order Capacity Need'[workCenterNo] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'No.' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Capacity Need'[no] ), LEN ( 'Prod Order Capacity Need'[no] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'Type' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Capacity Need'[Type] ), LEN ( 'Prod Order Capacity Need'[Type] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'Date' IS " ) + ProjectedRangedLength
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'Prod. Order No.' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Capacity Need'[Prod. Order No.] ), LEN ( 'Prod Order Capacity Need'[Prod. Order No.] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'Status' IS ''" )
+			    + SUMX ( VALUES ( 'Production Orders'[Prod Order Status] ), LEN ( 'Production Orders'[Prod Order Status] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'Requested Only' IS ''" ) + LEN ( RequestedOnly )
 			RETURN
-			    baseLink & WorkCenterFilter & NoFilter & TypesFilter & DateFilter & ProdOrderFilter & ProdOrderStatusFilter & RequestedOnlyFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        baseLink
+			            & "filter='Prod. Order Capacity Need'.'Work Center No.' IS " & "'" & CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[workCenterNo] ), 'Prod Order Capacity Need'[workCenterNo], "|" ) & "'"
+			            & " AND 'Prod. Order Capacity Need'.'No.' IS " & "'" & CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[no] ), 'Prod Order Capacity Need'[no], "|" ) & "'"
+			            & " AND 'Prod. Order Capacity Need'.'Type' IS " & "'" & CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Type] ), 'Prod Order Capacity Need'[Type], "|" ) & "'"
+			            & " AND 'Prod. Order Capacity Need'.'Date' IS " & [Ranged]
+			            & " AND 'Prod. Order Capacity Need'.'Prod. Order No.' IS " & "'" & CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Prod. Order No.] ), 'Prod Order Capacity Need'[Prod. Order No.], "|" )  & "'"
+			            & " AND 'Prod. Order Capacity Need'.'Status' IS " & "'" & CONCATENATEX(VALUES( 'Production Orders'[Prod Order Status]),  'Production Orders'[Prod Order Status], "|" ) & "'" &  " AND 'Prod. Order Capacity Need'.'Requested Only' IS " & "'" & RequestedOnly & "'",
+			    baseLink
+			    )
 			```
 		isHidden
 		lineageTag: ebbde43d-0b1a-4736-8c3c-71e9a3180437
@@ -159,24 +192,41 @@ table 'Back Links'
 			VAR Endpoint = "&page=99000820&"
 			VAR baseLink = [Base Link] & Endpoint
 			
-			// Build filter context
-			VAR WorkCenters =
-			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[workCenterNo] ), 'Prod Order Capacity Need'[workCenterNo], "|" )
-			VAR Nos = 
-			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[no] ), 'Prod Order Capacity Need'[no], "|" )
-			VAR Types = 
-			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Type] ), 'Prod Order Capacity Need'[Type], "|" )
-			    
-			
-			// Build URL string components
-			VAR WorkCenterFilter = "filter='Prod. Order Capacity Need'.'Work Center No.' IS " & "'" & WorkCenters & "'"
-			VAR NoFilter = " AND 'Prod. Order Capacity Need'.'No.' IS " & "'" & Nos & "'"
-			VAR TypesFilter = " AND 'Prod. Order Capacity Need'.'Type' IS " & "'" & Types & "'"
-			VAR DateFilter = " AND 'Prod. Order Capacity Need'.'Date' IS " & [Ranged]
-			VAR RequestedOnlyFilter =  " AND 'Prod. Order Capacity Need'.'Requested Only' IS 'No'"
-			
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( baseLink )
+			    + LEN ( "filter='Prod. Order Capacity Need'.'Work Center No.' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Capacity Need'[workCenterNo] ), LEN ( 'Prod Order Capacity Need'[workCenterNo] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'No.' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Capacity Need'[no] ), LEN ( 'Prod Order Capacity Need'[no] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'Type' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Capacity Need'[Type] ), LEN ( 'Prod Order Capacity Need'[Type] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'Date' IS " ) + ProjectedRangedLength
+			    + LEN ( " AND 'Prod. Order Capacity Need'.'Requested Only' IS 'No'" )
 			RETURN
-			    baseLink & WorkCenterFilter & NoFilter & TypesFilter & DateFilter & RequestedOnlyFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        baseLink
+			            & "filter='Prod. Order Capacity Need'.'Work Center No.' IS " & "'" &
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[workCenterNo] ), 'Prod Order Capacity Need'[workCenterNo], "|" ) & "'"
+			            & " AND 'Prod. Order Capacity Need'.'No.' IS " & "'" & 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[no] ), 'Prod Order Capacity Need'[no], "|" ) & "'"
+			            & " AND 'Prod. Order Capacity Need'.'Type' IS " & "'" & 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Type] ), 'Prod Order Capacity Need'[Type], "|" ) & "'" & " AND 'Prod. Order Capacity Need'.'Date' IS " & [Ranged]
+			            &  " AND 'Prod. Order Capacity Need'.'Requested Only' IS 'No'",
+			    baseLink
+			    )
 			```
 		isHidden
 		lineageTag: 260ab712-b2d0-481a-b1d1-9ddf9ed984a1
@@ -188,15 +238,20 @@ table 'Back Links'
 			VAR Endpoint = "&page=5832&"
 			VAR baseLink = [Base Link] & Endpoint
 			
-			// Build filter context
-			VAR ProdOrders = 
-			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Prod. Order No.] ), 'Prod Order Capacity Need'[Prod. Order No.], "|" )
-			
-			// Build URL string components
-			VAR CapacityTypeFilter = "filter='Capacity Ledger Entry'.'Order No.' IS " & "'" & ProdOrders & "'"
-			
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( baseLink )
+			    + LEN ( "filter='Capacity Ledger Entry'.'Order No.' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Capacity Need'[Prod. Order No.] ), LEN ( 'Prod Order Capacity Need'[Prod. Order No.] ) + 1 )
 			RETURN
-			    baseLink & CapacityTypeFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        baseLink
+			            & "filter='Capacity Ledger Entry'.'Order No.' IS " & "'" & 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Prod. Order No.] ), 'Prod Order Capacity Need'[Prod. Order No.], "|" ) & "'",
+			    baseLink
+			    )
 			```
 		isHidden
 		lineageTag: 5b769c7e-3d21-40ae-922e-ffbc42a4bc3a

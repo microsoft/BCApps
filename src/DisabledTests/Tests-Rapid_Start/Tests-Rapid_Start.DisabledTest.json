@@ -1,0 +1,152 @@
+[
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "CheckFindPage"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "CreateMissingCodesWithCompositeKey"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_OverwritePackage_NoAssignmentsForExisting"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_OverwritePackage_OnlyOneNewWshtLineAdded"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_OverwritePackageWithoutWshtLine_WshtPackageCodeClear"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_PackageWithoutWorksheetLine_NoWorksheetLines"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_PackageWithoutWshtLineToExistingWshtLine_NoAssignments"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_PackageWithWorksheetLine_WorksheetLineCreated"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_PackageWithWorksheetLineWithoutPackageAssignment_NoWorksheetLines"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_PackageWithWshtLineToExistingWshtLine_NoAssignmentsForExisting"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ExportImport_PackageWithWshtLineToExistingWshtLine_OnlyOneNewWshtLineAdded"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "OpenPageConfigPackageFieldWithoutFilters"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "ReassignPackage"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "UserCanChangeRelatedTableForFieldInConfigPackageWhenAddingTable"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "VerifyImportExportDisabledWithoutWriteAccessOnConfigPackageCard"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "VerifyImportExportDisabledWithoutWriteAccessOnConfigPackages"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "VerifyImportPackage"
+  },
+  {
+    "codeunitId": 136606,
+    "codeunitName": "ERM RS Wizard & Worksheet",
+    "method": "VerifyWorksheetLineDeletionSkipsRelatedTables"
+  },
+  {
+    "codeunitId": 136611,
+    "codeunitName": "ERM RS Dimensions as Columns",
+    "method": "ApplyPackageWithDimAsColumnsWithoutSettingDimSetIDField"
+  },
+  {
+    "codeunitId": 136611,
+    "codeunitName": "ERM RS Dimensions as Columns",
+    "method": "DimensionSet_DimAsColumnsDimTablesAdded"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "CustomProcCodShouldBeRanForReleasePurchDoc"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "CustomProcCodShouldBeRanForReleaseSalesDoc"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "InvoicePurchaseOrder"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "InvoiceSalesOrder"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "PostGenJournalLine"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "PostGenJournalLineFiltered"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "ReceivePurchaseOrder"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "RulesOrderDefinesExecutionOrder"
+  },
+  {
+    "codeunitId": 136612,
+    "codeunitName": "ERM RS Process Data",
+    "method": "ShipSalesOrder"
+  },
+  {
+    "codeunitId": 138401,
+    "codeunitName": "RS Pack Evaluation Api Setup",
+    "method": "EntityTablesAreNotEmpty"
+  }
+]

@@ -72,9 +72,8 @@ table 6125 "E-Doc. Data Storage"
         }
     }
 
-    internal procedure GetTempBlob() TempBlob: Codeunit "Temp Blob"
+    procedure GetTempBlob() TempBlob: Codeunit "Temp Blob"
     begin
         TempBlob.FromRecord(Rec, Rec.FieldNo("Data Storage"));
     end;
-
 }
