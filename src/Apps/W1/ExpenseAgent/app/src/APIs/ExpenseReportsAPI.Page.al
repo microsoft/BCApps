@@ -178,6 +178,16 @@ page 6928 "Expense Reports API"
                     Caption = 'Final Approver Name';
                     Editable = false;
                 }
+                field(alternateApproverNo; Rec."Alternate Approver No.")
+                {
+                    Caption = 'Alternate Approver No.';
+                    Editable = false;
+                }
+                field(alternateApproverName; Rec."Alternate Approver Name")
+                {
+                    Caption = 'Alternate Approver Name';
+                    Editable = false;
+                }
                 field(interimApproverNo; Rec."Interim Approver No.")
                 {
                     Caption = 'Interim Approver No.';

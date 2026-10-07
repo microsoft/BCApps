@@ -53,6 +53,7 @@ codeunit 148309 "Expense Test II"
         FieldShouldBeEditableErr: Label '%1 should be editable in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
         DuplicateEmailErr: Label '%1 %2 is already used by another %3. %1 must be unique.', Comment = '%1 = Email Caption, %2 = Email address, %3 = Expense User Table Caption';
         DuplicateEmployeeNoErr: Label '%1 %2 is already linked to another %3. Each employee can only be linked to one %3.', Comment = '%1 = Employee No. Caption, %2 = Employee No., %3 = Expense User Table Caption';
+        CannotChangeDefaultApproverToLimitedErr: Label 'You cannot mark %1 as false because Expense User %2 is the default approver in Expense Agent Setup.', Comment = '%1 = Field caption, %2 = Expense User No.';
         ExpenseLocationMissingMsg: Label '%1 is missing in Expense No. %2.', Comment = '%1 = Expense Location Caption, %2 = Expense No.';
         ExpenseReportAlreadyExistErr: Label 'An expense report already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
@@ -3153,6 +3154,59 @@ codeunit 148309 "Expense Test II"
 
         // [THEN] Verify that an error is thrown because a billable customer and a project are mutually exclusive.
         Assert.ExpectedError(StrSubstNo(BillableCustomerAndProjectErr, Expense.FieldCaption("Billable to Customer"), Expense.FieldCaption("Job No.")));
+    end;
+
+    [Test]
+    procedure DefaultApproverCannotBeChangedToLimitedApproval()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        // [SCENARIO 626975] The configured default approver must retain unlimited approval.
+        Initialize();
+
+        // [GIVEN] An unlimited approver is configured as the default approver.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser."Can Approve" := true;
+        ExpenseUser."Unlimited Approval" := true;
+        ExpenseUser.Modify();
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAgentSetup."Default Approver No." := ExpenseUser."No.";
+        ExpenseAgentSetup.Modify();
+
+        // [WHEN] The default approver is changed to limited approval.
+        asserterror ExpenseUser.Validate("Unlimited Approval", false);
+
+        // [THEN] The default-approver invariant rejects the change.
+        Assert.ExpectedError(
+            StrSubstNo(
+                CannotChangeDefaultApproverToLimitedErr,
+                ExpenseUser.FieldCaption("Unlimited Approval"),
+                ExpenseUser."No."));
+    end;
+
+    [Test]
+    procedure RemovingApprovalRightsClearsLimitAndUnlimitedApproval()
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 626975] Removing approval rights clears the related approval-limit settings.
+        Initialize();
+
+        // [GIVEN] An approver has approval rights and a finite limit.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser."Can Approve" := true;
+        ExpenseUser."Unlimited Approval" := false;
+        ExpenseUser."Approval Limit (LCY)" := 250;
+        ExpenseUser.Modify();
+
+        // [WHEN] Approval rights are removed.
+        ExpenseUser.Validate("Can Approve", false);
+
+        // [THEN] Approval is disabled and neither unlimited nor finite approval remains configured.
+        ExpenseUser.TestField("Can Approve", false);
+        ExpenseUser.TestField("Unlimited Approval", false);
+        ExpenseUser.TestField("Approval Limit (LCY)", 0);
     end;
 
     local procedure Initialize()

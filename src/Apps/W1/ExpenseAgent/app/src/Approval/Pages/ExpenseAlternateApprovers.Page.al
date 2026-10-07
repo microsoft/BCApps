@@ -8,7 +8,6 @@ page 7140 "Expense Alternate Approvers"
 {
     PageType = List;
     ApplicationArea = Basic, Suite;
-    UsageCategory = Administration;
     SourceTable = "Expense Alternate Approver";
 
     layout
@@ -17,11 +16,6 @@ page 7140 "Expense Alternate Approvers"
         {
             repeater(Group)
             {
-                field("Primary Approver No."; Rec."Primary Approver No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the primary approver covered by the alternate.';
-                }
                 field("Alternate Approver No."; Rec."Alternate Approver No.")
                 {
                     ApplicationArea = Basic, Suite;
