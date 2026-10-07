@@ -166,16 +166,17 @@ codeunit 5522 "Order Planning Mgt."
         HeaderExists := false;
 
         repeat
-            if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then begin
-                if not HeaderExists then
-                    InsertDemandHeader(UnplannedDemand, ReqLine);
-                HeaderExists := true;
+            if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then
+                if not IsItemBlocked(Item, TempUnplannedDemand."Item No.") then begin
+                    if not HeaderExists then
+                        InsertDemandHeader(UnplannedDemand, ReqLine);
+                    HeaderExists := true;
 
-                ReqLine.TransferFromUnplannedDemand(TempUnplannedDemand);
-                ReqLine.SetSupplyQty(TempUnplannedDemand."Quantity (Base)", TempUnplannedDemand."Needed Qty. (Base)");
-                ReqLine.SetSupplyDates(TempUnplannedDemand."Demand Date");
-                InsertReqLineFromUnplannedDemand(ReqLine, Item);
-            end;
+                    ReqLine.TransferFromUnplannedDemand(TempUnplannedDemand);
+                    ReqLine.SetSupplyQty(TempUnplannedDemand."Quantity (Base)", TempUnplannedDemand."Needed Qty. (Base)");
+                    ReqLine.SetSupplyDates(TempUnplannedDemand."Demand Date");
+                    InsertReqLineFromUnplannedDemand(ReqLine, Item);
+                end;
             TempUnplannedDemand.Delete();
         until TempUnplannedDemand.Next() = 0;
 
@@ -498,6 +499,13 @@ codeunit 5522 "Order Planning Mgt."
             until Location.Next() = 0;
 
         exit(AvailableQtyBaseTotal);
+    end;
+
+    local procedure IsItemBlocked(var Item: Record Item; ItemNo: Code[20]): Boolean
+    begin
+        if Item."No." <> ItemNo then
+            Item.Get(ItemNo);
+        exit(Item.Blocked);
     end;
 
     [IntegrationEvent(false, false)]
