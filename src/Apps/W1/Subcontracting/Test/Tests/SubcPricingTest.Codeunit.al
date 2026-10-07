@@ -1841,6 +1841,108 @@ codeunit 139982 "Subc. Pricing Test"
         exit(ReqWkshTemplate.Name);
     end;
 
+    [Test]
+    procedure TimeBasedSubcontractorPriceIncludesRunTime()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        ExpectedDirectUnitCost: Decimal;
+        Price: Decimal;
+        RunTime: Decimal;
+    begin
+        // [SCENARIO 653252] A subcontractor price for a time-based operation includes Run Time
+        Initialize();
+
+        // [GIVEN] A time-based subcontracting operation with Run Time 2 and a matching price of 2000
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Time);
+        WorkCenter.Modify(true);
+
+        RunTime := 2;
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Run Time", RunTime);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        Price := 2000;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", Price);
+        SubcontractorPrice.Modify(true);
+        ExpectedDirectUnitCost := Price * RunTime;
+
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] Calculate Subcontracts creates the worksheet line
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+
+        // [THEN] The worksheet cost is the price multiplied by Run Time
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, RequisitionLine."Direct Unit Cost",
+            WorksheetDirectUnitCostErr);
+
+        // [WHEN] The worksheet action is carried out
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(
+            PurchaseLine, Item."No.", ProductionOrder."No.");
+
+        // [THEN] The purchase line retains the time-derived cost
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            CarriedOutPurchaseLineDirectUnitCostErr);
+
+        // [WHEN] Automatic purchase-line repricing runs
+        PurchaseLine."Direct Unit Cost" := 0;
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        // [THEN] Repricing restores the time-derived cost
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            AutomaticPurchaseLineRepricingErr);
+
+        // [WHEN] Create Subcontracting Order is run directly for another production order
+        Clear(ProductionOrder);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        ProdOrderRoutingLine.Reset();
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+        Clear(PurchaseLine);
+        CreateSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+
+        // [THEN] The directly created purchase line uses the time-derived cost
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            DirectlyCreatedPurchaseLineDirectUnitCostErr);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Pricing Test");
@@ -1966,4 +2068,8 @@ codeunit 139982 "Subc. Pricing Test"
         IsInitialized: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
+        WorksheetDirectUnitCostErr: Label 'The worksheet Direct Unit Cost must include Run Time for a time-based subcontractor price.';
+        CarriedOutPurchaseLineDirectUnitCostErr: Label 'The carried-out purchase line Direct Unit Cost must include Run Time for a time-based subcontractor price.';
+        AutomaticPurchaseLineRepricingErr: Label 'Automatic purchase-line repricing must include Run Time for a time-based subcontractor price.';
+        DirectlyCreatedPurchaseLineDirectUnitCostErr: Label 'The directly created purchase line Direct Unit Cost must include Run Time for a time-based subcontractor price.';
 }
