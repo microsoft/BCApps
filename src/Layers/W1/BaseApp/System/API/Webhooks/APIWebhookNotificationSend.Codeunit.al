@@ -85,6 +85,7 @@ codeunit 6154 "API Webhook Notification Send"
         SubscriptionsPerNotificationUrlDictionary: Dictionary of [Text, List of [Text[150]]];
         SubscriptionsTypeNotificationUrlDictionary: Dictionary of [Text, Integer];
         ProcessingDateTime: DateTime;
+        SendingBlockedByEnvironment: Boolean;
         APIWebhookCategoryLbl: Label 'AL API Webhook', Locked = true;
         ActivityLogContextLbl: Label 'APIWEBHOOK', Locked = true;
         JobQueueCategoryCodeLbl: Label 'APIWEBHOOK', Locked = true;
@@ -189,6 +190,9 @@ codeunit 6154 "API Webhook Notification Send"
         DeleteSubscriptionWithTooManyFailuresTitleTxt: Label 'Delete subscription with too many failures.', Locked = true;
         IncreaseAttemptNumberTitleTxt: Label 'Increase attempt number.', Locked = true;
         NotificationFailedTitleTxt: Label 'Notification failed.', Locked = true;
+        NotificationBlockedByEnvironmentTitleTxt: Label 'Notification blocked by environment.', Locked = true;
+        NotificationBlockedByEnvironmentTxt: Label 'Outgoing HTTP requests from the Base Application extension are blocked in this environment. To send webhook notifications, turn on Allow HttpClient Requests for the Base Application extension on the Extension Management page. The notifications are kept and sent again later. Notification URL: %1.', Locked = true;
+        NotificationBlockedByEnvironmentMsg: Label 'Notification is blocked by the environment and is kept for a later attempt. Notification URL number: %1.', Locked = true;
         JobFailedTitleTxt: Label 'Job failed.', Locked = true;
         NoPermissionsTxt: Label 'No permissions.', Locked = true;
         PostEmittedTxt: Label 'Notification POST emitted to URL %1.', Locked = true;
@@ -220,6 +224,7 @@ codeunit 6154 "API Webhook Notification Send"
         Clear(ResourceUrlBySubscriptionIdDictionary);
         Clear(NotificationUrlBySubscriptionIdDictionary);
         Clear(SubscriptionsPerNotificationUrlDictionary);
+        SendingBlockedByEnvironment := false;
 
         ProcessingDateTime := CurrentDateTime();
     end;
@@ -254,6 +259,7 @@ codeunit 6154 "API Webhook Notification Send"
         NotificationUrlCount: Integer;
         I: Integer;
         Reschedule: Boolean;
+        IsBlockedByEnvironment: Boolean;
         HasPayload: Boolean;
     begin
         NotificationUrlCount := SubscriptionsPerNotificationUrlDictionary.Keys().Count();
@@ -263,15 +269,16 @@ codeunit 6154 "API Webhook Notification Send"
                 PayloadPerNotificationUrl := GetPayloadPerNotificationUrl(I, SubscriptionIds);
                 if not HasPayload then
                     HasPayload := PayloadPerNotificationUrl <> '';
-                if SendNotification(I, NotificationUrl, PayloadPerNotificationUrl, Reschedule) then
+                if SendNotification(I, NotificationUrl, PayloadPerNotificationUrl, Reschedule, IsBlockedByEnvironment) then
                     DeleteNotifications(SubscriptionIds)
                 else
-                    if Reschedule then
-                        IncreaseAttemptNumber(SubscriptionIds)
-                    else begin
-                        DeleteNotifications(SubscriptionIds);
-                        DeleteInvalidSubscriptions(SubscriptionIds);
-                    end;
+                    if not IsBlockedByEnvironment then
+                        if Reschedule then
+                            IncreaseAttemptNumber(SubscriptionIds)
+                        else begin
+                            DeleteNotifications(SubscriptionIds);
+                            DeleteInvalidSubscriptions(SubscriptionIds);
+                        end;
             end;
         if not HasPayload then
             Session.LogMessage('0000735', AllPayloadsEmptyMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
@@ -1083,7 +1090,10 @@ codeunit 6154 "API Webhook Notification Send"
         repeat
             APIWebhookNotificationAggr.TransferFields(TempAPIWebhookNotificationAggr, true);
             if APIWebhookNotificationAggr."Sending Scheduled Date Time" < ProcessingDateTime then begin
-                ScheduledDateTime := ProcessingDateTime + GetDelayTimeForAttempt(TempAPIWebhookNotificationAggr."Attempt No.");
+                if SendingBlockedByEnvironment then
+                    ScheduledDateTime := ProcessingDateTime + GetDelayTimeWhenBlockedByEnvironment()
+                else
+                    ScheduledDateTime := ProcessingDateTime + GetDelayTimeForAttempt(TempAPIWebhookNotificationAggr."Attempt No.");
                 APIWebhookNotificationAggr."Sending Scheduled Date Time" := ScheduledDateTime;
                 if (ScheduledDateTime < EarliestScheduledDateTime) or (EarliestScheduledDateTime = 0DT) then
                     EarliestScheduledDateTime := ScheduledDateTime;
@@ -1104,7 +1114,7 @@ codeunit 6154 "API Webhook Notification Send"
         Session.LogMessage('000070E', StrSubstNo(SavedFailedNotificationsMsg, DateTimeToString(EarliestScheduledDateTime)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
     end;
 
-    local procedure SendNotification(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var Reschedule: Boolean): Boolean
+    local procedure SendNotification(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var Reschedule: Boolean; var IsBlockedByEnvironment: Boolean): Boolean
     var
 #if not CLEAN30
         HttpStatusCode: DotNet HttpStatusCode;
@@ -1117,6 +1127,8 @@ codeunit 6154 "API Webhook Notification Send"
         Success: Boolean;
         IsDataverseSubscription: Boolean;
     begin
+        IsBlockedByEnvironment := false;
+
         if NotificationUrl = '' then begin
             Session.LogMessage('000029Z', StrSubstNo(EmptyNotificationUrlErr, NotificationUrlNumber), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             exit(true);
@@ -1131,7 +1143,7 @@ codeunit 6154 "API Webhook Notification Send"
 
         Session.LogMessage('000029B', StrSubstNo(SendNotificationMsg, NotificationUrlNumber), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
         Success := SendRequest(
-            NotificationUrlNumber, NotificationUrl, NotificationPayload, ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCodeNumber);
+            NotificationUrlNumber, NotificationUrl, NotificationPayload, ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCodeNumber, IsBlockedByEnvironment);
         if not Success then
             ErrorMessage += GetLastErrorText + ErrorMessage;
 
@@ -1152,6 +1164,14 @@ codeunit 6154 "API Webhook Notification Send"
 #endif
 
         if not Success then begin
+            if IsBlockedByEnvironment then begin
+                SendingBlockedByEnvironment := true;
+                Reschedule := false;
+                Session.LogMessage('', StrSubstNo(NotificationBlockedByEnvironmentMsg, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+                LogActivity(true, NotificationBlockedByEnvironmentTitleTxt, StrSubstNo(NotificationBlockedByEnvironmentTxt, NotificationUrl));
+                exit(false);
+            end;
+
             IsDataverseSubscription := SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = SubscriptionType::Dataverse;
             Reschedule := ShouldReschedule(HttpStatusCodeNumber) or IsDataverseSubscription;
             Session.LogMessage('000076N', StrSubstNo(SendingNotificationFailedErr, NotificationUrl, HttpStatusCodeNumber, ErrorMessage, ErrorDetails), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', APIWebhookCategoryLbl);
@@ -1171,7 +1191,7 @@ codeunit 6154 "API Webhook Notification Send"
     end;
 
     [TryFunction]
-    local procedure SendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCodeNumber: Integer)
+    local procedure SendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCodeNumber: Integer; var IsBlockedByEnvironment: Boolean)
     var
         APIWebhookSubscription: Record "API Webhook Subscription";
         HttpClient: HttpClient;
@@ -1185,6 +1205,7 @@ codeunit 6154 "API Webhook Notification Send"
         Timeout: Integer;
     begin
         HttpStatusCodeNumber := 0;
+        IsBlockedByEnvironment := false;
 
         if NotificationUrl = '' then begin
             Session.LogMessage('00002A1', StrSubstNo(EmptyNotificationUrlErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
@@ -1227,6 +1248,7 @@ codeunit 6154 "API Webhook Notification Send"
         Session.LogMessage('0000FBA', StrSubstNo(PostEmittedTxt, MaskedUrl), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
             ErrorMessage := GetLastErrorText();
+            IsBlockedByEnvironment := HttpResponseMessage.IsBlockedByEnvironment();
             Session.LogMessage('00002A3', StrSubstNo(CannotGetResponseErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             Session.LogMessage('0000FBB', StrSubstNo(PostFailedTxt, GetMaskedUrl(MaskedUrl), HttpStatusCodeNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             Error(CannotGetResponseErr, NotificationUrlNumber);
@@ -1833,6 +1855,13 @@ codeunit 6154 "API Webhook Notification Send"
             else
                 exit(60000000);
         end;
+    end;
+
+    local procedure GetDelayTimeWhenBlockedByEnvironment(): Integer
+    begin
+        // Retrying soon is pointless until an administrator allows outgoing HTTP requests, so wait as long as for the last attempts.
+        // New notifications still schedule an earlier run, and every run sends all pending notifications.
+        exit(GetDelayTimeForAttempt(GetMaxNumberOfAttempts()));
     end;
 
     local procedure AddCompanyIdToResource(TempAPIWebhookSubscription: Record "API Webhook Subscription" temporary; var ResourceUrl: Text)
