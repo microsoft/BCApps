@@ -125,7 +125,6 @@ codeunit 48520 "Fabric Platform Mgt"
     begin
         if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, TableId) then
             Error(TableInvalidErr, TableId);
-
         if TenantFabricTables.Get(TableId) then
             Error(TableExistsErr, TableId);
 
@@ -146,7 +145,6 @@ codeunit 48520 "Fabric Platform Mgt"
         NewTableCount: Integer;
     begin
         AllObjWithCaption.SetLoadFields("Object ID");
-
         if AllObjWithCaption.FindSet() then
             repeat
                 if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then
@@ -154,7 +152,6 @@ codeunit 48520 "Fabric Platform Mgt"
             until AllObjWithCaption.Next() = 0;
 
         EnsureCapacity(NewTableCount);
-
         if AllObjWithCaption.FindSet() then
             repeat
                 if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then begin
@@ -196,7 +193,6 @@ codeunit 48520 "Fabric Platform Mgt"
     begin
         if Claim.Get(TableId, SourceType, PackageCode) then
             Claim.Delete(true);
-
         if not HasAnyClaim(TableId) then
             if TenantFabricTables.Get(TableId) then
                 TenantFabricTables.Delete(true);
@@ -248,7 +244,6 @@ codeunit 48520 "Fabric Platform Mgt"
     begin
         if not Company.Get(CompanyName) then
             Error(CompanyInvalidErr, CompanyName);
-
         if TenantFabricCompanies.Get(CompanyName) then
             Error(CompanyExistsErr, CompanyName);
 
@@ -419,11 +414,7 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(StopRequestedMsg);
     end;
 
-    /// <summary>
-    /// Error action handler that stops the running synchronization.
-    /// </summary>
-    /// <param name="ErrInfo">The error that triggered the action.</param>
-    procedure StopExportFromErrorAction(ErrInfo: ErrorInfo)
+    internal procedure StopExportFromErrorAction(ErrInfo: ErrorInfo)
     begin
         StopExport();
     end;
