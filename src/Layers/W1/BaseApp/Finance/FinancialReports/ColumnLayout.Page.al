@@ -26,6 +26,7 @@ page 489 "Column Layout"
     AutoSplitKey = true;
     Caption = '(Financial Report) Column Definitions';
     DataCaptionFields = "Column Layout Name";
+    MultipleNewLines = true;
     PageType = Worksheet;
     SourceTable = "Column Layout";
     UsageCategory = None;
