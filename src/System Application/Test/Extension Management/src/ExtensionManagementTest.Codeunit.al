@@ -32,9 +32,9 @@ codeunit 133100 "Extension Management Test"
         ExtensionManagement: Codeunit "Extension Management";
         ExtensionManagementTest: Codeunit "Extension Management Test";
         ExtensionInstallationImplTest: Codeunit "Extension Installation Impl";
-        ExtensionManagementTestBound: Boolean;
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
+        ExtensionManagementTestBound: Boolean;
         MainAppId: Guid;
         DependingAppId: Guid;
         NotInstalledSuccErr: Label 'Extension was not installed succesfully';
