@@ -324,6 +324,7 @@ codeunit 148346 "Expense Interim Approval Test"
 
         // [THEN] The report remains pending and the alternate becomes the active and final approver.
         VerifyApprovalRouting(ExpenseReportHeader, AlternateApprover, AlternateApprover);
+        ExpenseReportHeader.TestField("Alternate Approver No.", AlternateApprover."No.");
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverAssigned);
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
@@ -366,6 +367,7 @@ codeunit 148346 "Expense Interim Approval Test"
 
         // [THEN] The report routes to the final approver because alternate coverage is inactive.
         VerifyApprovalRouting(ExpenseReportHeader, FinalApprover, FinalApprover);
+        ExpenseReportHeader.TestField("Alternate Approver No.", '');
         WorkDate(OriginalWorkDate);
     end;
 
@@ -476,6 +478,7 @@ codeunit 148346 "Expense Interim Approval Test"
 
         // [THEN] The alternate is active and the event identifies an administrator actor.
         VerifyApprovalRouting(ExpenseReportHeader, AlternateApprover, AlternateApprover);
+        ExpenseReportHeader.TestField("Alternate Approver No.", AlternateApprover."No.");
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverAssigned);
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
@@ -951,7 +954,7 @@ codeunit 148346 "Expense Interim Approval Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure InterimApproverWithInsufficientLimitCannotBeAssigned()
+    procedure InterimApproverWithInsufficientLimitCanApprove()
     var
         Submitter: Record "Expense User";
         InterimApprover: Record "Expense User";
@@ -959,7 +962,7 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader: Record "Expense Report Header";
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 640938] An interim approver cannot be assigned when the report exceeds their approval limit.
+        // [SCENARIO 640938] An interim approver can approve even when the report exceeds their approval limit.
         Initialize();
 
         // [GIVEN] A submitted report for 200 has final approver "A2", and interim approver "I" has an approval limit of 100.
@@ -967,12 +970,48 @@ codeunit 148346 "Expense Interim Approval Test"
         CreateApproverExpenseUser(InterimApprover);
         SetApprovalLimit(InterimApprover, 100);
 
-        // [WHEN] Submitter "S" assigns "I" as the interim approver.
-        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        // [WHEN] Submitter "S" assigns "I" as interim approver and "I" approves.
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
 
-        // [THEN] An error explains that the report exceeds "I"'s approval limit.
-        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", InterimApprover.FieldCaption("Approval Limit (LCY)"), InterimApprover."No."));
-        Assert.ExpectedErrorCode('Dialog');
+        // [THEN] The report advances to the final approver.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+        VerifyActiveApprover(ExpenseReportHeader, FinalApprover);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ActiveAlternateCanApproveAboveOwnLimit()
+    var
+        Submitter: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        AlternateApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalWorkDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 640938] An active alternate approver can approve above their own approval limit.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] A submitted report for 200 and an active alternate with an approval limit of 100.
+        CreateSubmittedUnlimitedApprovalScenario(Submitter, FinalApprover, ExpenseReportHeader, 200);
+        CreateApproverExpenseUser(AlternateApprover);
+        SetApprovalLimit(AlternateApprover, 100);
+        CreateAlternateApproverCoverage(
+            FinalApprover."No.",
+            AlternateApprover."No.",
+            WorkDate(),
+            WorkDate());
+        ExpenseReportHeader.AssignAlternateApprover('');
+
+        // [WHEN] The alternate approves the report.
+        ExpenseReportHeader.PerformManualApproved(AlternateApprover."No.", true);
+
+        // [THEN] The report is approved without applying the alternate's personal limit.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        WorkDate(OriginalWorkDate);
     end;
 
     [Test]
