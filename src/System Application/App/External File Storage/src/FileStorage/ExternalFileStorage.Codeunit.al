@@ -41,9 +41,9 @@ codeunit 9454 "External File Storage"
     [TryFunction]
     procedure GetDestinationContext(TempFileAccount: Record "File Account" temporary; LockAccount: Boolean; var DestinationFingerprint: Text[64]; var ChangeGeneration: BigInteger)
     var
+        CryptographyManagement: Codeunit "Cryptography Management";
         Connector: Interface "External File Storage Connector";
         ContextProvider: Interface "External File Storage Context";
-        CryptographyManagement: Codeunit "Cryptography Management";
         HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
         Descriptor: Text;
         ContextUnavailableErr: Label 'The storage account does not provide an available destination binding. Internal content must be retained.';

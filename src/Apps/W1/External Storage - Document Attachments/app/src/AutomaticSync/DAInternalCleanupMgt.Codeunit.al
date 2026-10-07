@@ -17,8 +17,7 @@ codeunit 8759 "DA Internal Cleanup Mgt."
     Permissions = tabledata "DA Internal Cleanup Entry" = rimd,
                   tabledata "DA External Storage Setup" = rm,
                   tabledata "Document Attachment" = r,
-                  tabledata "Tenant Media" = r,
-                  tabledata "File Scenario" = r;
+                  tabledata "Tenant Media" = r;
 
     procedure StoreUpload(DocumentAttachment: Record "Document Attachment"; var Upload: Record "DA Internal Cleanup Entry")
     var
@@ -139,10 +138,10 @@ codeunit 8759 "DA Internal Cleanup Mgt."
     procedure CheckBinding(Entry: Record "DA Internal Cleanup Entry"; var DocumentAttachment: Record "Document Attachment"; var Setup: Record "DA External Storage Setup"; LockRecords: Boolean; var Reason: Text): Boolean
     var
         TenantMedia: Record "Tenant Media";
-        Scenario: Record "File Scenario";
         Account: Record "File Account" temporary;
         ExternalFileStorage: Codeunit "External File Storage";
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        FileScenario: Codeunit "File Scenario";
         Fingerprint: Text[64];
         Generation: BigInteger;
     begin
@@ -155,7 +154,6 @@ codeunit 8759 "DA Internal Cleanup Mgt."
         if LockRecords then begin
             DocumentAttachment.ReadIsolation(IsolationLevel::UpdLock);
             Setup.ReadIsolation(IsolationLevel::UpdLock);
-            Scenario.ReadIsolation(IsolationLevel::UpdLock);
             TenantMedia.ReadIsolation(IsolationLevel::UpdLock);
         end;
         if not DocumentAttachment.GetBySystemId(Entry."Attachment System ID") then begin
@@ -192,13 +190,10 @@ codeunit 8759 "DA Internal Cleanup Mgt."
             exit(false);
         if TenantMedia.SystemRowVersion <> Entry."Source Media Version" then
             exit(false);
-        if not Scenario.Get(Enum::"File Scenario"::"Doc. Attach. - External Storage") then
-            exit(false);
-        if (Scenario."Account Id" <> Entry."Account ID") or (Scenario.Connector <> Entry.Connector) then
-            exit(false);
-
         Account."Account Id" := Entry."Account ID";
         Account.Connector := Entry.Connector;
+        if not FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Doc. Attach. - External Storage", Account, LockRecords) then
+            exit(false);
         ClearLastError();
         if not ExternalFileStorage.GetDestinationContext(Account, LockRecords, Fingerprint, Generation) then begin
             Reason := GetLastErrorText(true);
