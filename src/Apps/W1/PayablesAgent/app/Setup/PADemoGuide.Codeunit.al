@@ -128,19 +128,6 @@ codeunit 3309 "PA Demo Guide"
     end;
 
     /// <summary>
-    /// Returns True if an email account is configured in the saved setup so that demo invoices can be sent by email.
-    /// </summary>
-    /// <returns>True if an email account is configured and email monitoring is enabled.</returns>
-    procedure IsEmailConfiguredForDemoEmail(): Boolean
-    var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
-    begin
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        exit(IsEmailConfiguredForDemoEmail(PASetupConfiguration));
-    end;
-
-    /// <summary>
     /// Gets the count of the demo files to download.
     /// </summary>
     /// <returns>Count of demo files</returns>
