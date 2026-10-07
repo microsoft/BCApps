@@ -185,9 +185,7 @@ report 8752 "DA External Storage Sync"
             SyncDirection::"To External Storage":
                 DocumentAttachment.SetRange("Stored Externally", false);
             SyncDirection::"To Internal Storage":
-                begin
-                    DocumentAttachment.SetRange("Stored Externally", true);
-                end;
+                DocumentAttachment.SetRange("Stored Externally", true);
         end;
     end;
 
