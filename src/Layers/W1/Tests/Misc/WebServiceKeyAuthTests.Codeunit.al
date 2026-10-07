@@ -28,6 +28,7 @@ codeunit 139497 "Web Service Key Auth Tests"
         SendSucceeded: Boolean;
         ResponseBlockStateKnown: Boolean;
         ResponseBlockedByEnvironment: Boolean;
+        TransportDiagnosticsLbl: Label 'Stage=%1; SendSucceeded=%2; HttpStatus=%3; BlockedKnown=%4; Blocked=%5; ErrorCode=%6; CallStack=%7', Locked = true;
 
     [Test]
     procedure MissingKeyAuthenticatesAnotherHttpSession()
@@ -386,7 +387,7 @@ codeunit 139497 "Web Service Key Auth Tests"
     local procedure GetTransportDiagnostics(): Text
     begin
         exit(StrSubstNo(
-            'Stage=%1; SendSucceeded=%2; HttpStatus=%3; BlockedKnown=%4; Blocked=%5; ErrorCode=%6; CallStack=%7',
+            TransportDiagnosticsLbl,
             TransportStage, SendSucceeded, ResponseStatus, ResponseBlockStateKnown, ResponseBlockedByEnvironment,
             TransportErrorCode, TransportErrorCallStack));
     end;
