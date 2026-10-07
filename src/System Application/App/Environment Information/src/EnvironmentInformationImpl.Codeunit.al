@@ -66,7 +66,9 @@ codeunit 3702 "Environment Information Impl."
         EnvironmentInformation: Record "Environment Information";
         DescriptionInStream: InStream;
     begin
-        GetEnvironmentInformationSafe(EnvironmentInformation);
+        if not EnvironmentInformation.Get() then
+            exit('');
+
         EnvironmentInformation.CalcFields(Description);
         if not EnvironmentInformation.Description.HasValue() then
             exit('');
