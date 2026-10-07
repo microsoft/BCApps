@@ -212,6 +212,7 @@ page 8076 "Serv. Comm. WO Vend. Contract"
         ServiceCommitment.SetRange("Invoicing via", Enum::"Invoicing Via"::Contract);
         ServiceCommitment.SetRange("Subscription Contract No.", '');
         ServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Vendor);
+        OnRefreshServiceCommitmentsOnAfterServiceCommitmentSetFilters(ServiceCommitment, VendorContract);
         if ServiceCommitment.FindSet() then
             repeat
                 if not Rec.Get(ServiceCommitment."Entry No.") then begin
@@ -222,5 +223,10 @@ page 8076 "Serv. Comm. WO Vend. Contract"
                 end;
             until ServiceCommitment.Next() = 0;
         Rec.SetFilter("Subscription Line End Date", '>%1|%2', WorkDate(), 0D);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRefreshServiceCommitmentsOnAfterServiceCommitmentSetFilters(var SubscriptionLine: Record "Subscription Line"; VendorSubscriptionContract: Record "Vendor Subscription Contract")
+    begin
     end;
 }
