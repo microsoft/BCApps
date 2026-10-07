@@ -72,6 +72,9 @@ codeunit 148184 "Sustainability Posting Test"
         EntryNoShouldBeConsecutiveErr: Label 'The committed Entry Nos. should be consecutive.', Locked = true;
         TwoLedgerEntriesExpectedErr: Label 'Exactly two Sustainability Ledger Entries should be posted.', Locked = true;
         PreviewKeyShouldBeNegativeErr: Label 'The preview Sustainability Ledger Entry should use a negative temporary key.', Locked = true;
+        PreviewActionShouldBeHiddenErr: Label 'Actions that only work on posted entries must be hidden in posting preview.', Locked = true;
+        PostedEntryActionShouldBeVisibleErr: Label 'Actions that only work on posted entries must stay available for posted entries.', Locked = true;
+        EntryShouldBeShownErr: Label 'The entries page should show the entry that it was opened with.', Locked = true;
 
     [Test]
     procedure TestInformationIsTransferredToLedgerEntry()
@@ -5666,6 +5669,48 @@ codeunit 148184 "Sustainability Posting Test"
     end;
 
     [Test]
+    procedure VerifyTemporaryPostedLedgerEntriesKeepPostedEntryActions()
+    var
+        SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        TempSustainabilityLedgerEntry: Record "Sustainability Ledger Entry" temporary;
+        SustainabilityJournalMgt: Codeunit "Sustainability Journal Mgt.";
+        SustainabilityPostMgt: Codeunit "Sustainability Post Mgt";
+        SustainabilityLedgerEntries: TestPage "Sustainability Ledger Entries";
+    begin
+        // [SCENARIO 651047] An Analysis View drill-down shows posted entries through a temporary buffer, so the posted entry actions must stay available there even when the document number matches the preview mask.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] A posted Sustainability Ledger Entry.
+        SustainabilityJnlBatch := SustainabilityJournalMgt.GetASustainabilityJournalBatch(false);
+        SustainabilityAccount := LibrarySustainability.GetAReadyToPostAccount();
+        SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(SustainabilityJnlBatch, SustainabilityAccount, 10000);
+        SustainabilityJournalLine.Validate("Fuel/Electricity", LibraryRandom.RandIntInRange(1, 10));
+        SustainabilityJournalLine.Modify(true);
+        SustainabilityPostMgt.InsertLedgerEntry(SustainabilityJournalLine);
+
+        // [GIVEN] The posted entry is copied into a temporary buffer and carries the document number that posting preview also uses.
+        SustainabilityLedgerEntry.Reset();
+        SustainabilityLedgerEntry.FindLast();
+        TempSustainabilityLedgerEntry := SustainabilityLedgerEntry;
+        TempSustainabilityLedgerEntry."Document No." := '***';
+        TempSustainabilityLedgerEntry.Insert();
+
+        // [WHEN] The entries page is opened with that temporary buffer.
+        SustainabilityLedgerEntries.Trap();
+        Page.Run(Page::"Sustainability Ledger Entries", TempSustainabilityLedgerEntry);
+
+        // [THEN] The actions that act on posted entries are still offered.
+        Assert.IsTrue(SustainabilityLedgerEntries.First(), EntryShouldBeShownErr);
+        Assert.IsTrue(SustainabilityLedgerEntries.ReverseTransaction.Visible(), PostedEntryActionShouldBeVisibleErr);
+        Assert.IsTrue(SustainabilityLedgerEntries.Navigate.Visible(), PostedEntryActionShouldBeVisibleErr);
+        Assert.IsTrue(SustainabilityLedgerEntries.CollectedGLEntries.Visible(), PostedEntryActionShouldBeVisibleErr);
+        SustainabilityLedgerEntries.Close();
+    end;
+
+    [Test]
     procedure VerifySpecificCarbonTrackingUsesLotEmissionAfterTransfer()
     var
         Item: Record Item;
@@ -6528,6 +6573,9 @@ codeunit 148184 "Sustainability Posting Test"
         GLPostingPreview."No. of Records".DrillDown();
         SustainabilityLedgerEntries.First();
         Assert.IsTrue(SustainabilityLedgerEntries."Entry No.".AsInteger() < 0, PreviewKeyShouldBeNegativeErr);
+        Assert.IsFalse(SustainabilityLedgerEntries.ReverseTransaction.Visible(), PreviewActionShouldBeHiddenErr);
+        Assert.IsFalse(SustainabilityLedgerEntries.Navigate.Visible(), PreviewActionShouldBeHiddenErr);
+        Assert.IsFalse(SustainabilityLedgerEntries.CollectedGLEntries.Visible(), PreviewActionShouldBeHiddenErr);
         SustainabilityLedgerEntries.Close();
 
         GLPostingPreview.OK().Invoke();
@@ -6592,9 +6640,17 @@ codeunit 148184 "Sustainability Posting Test"
     [PageHandler]
     [Scope('OnPrem')]
     procedure GLPostingPreviewHandlerForAssemblyOrder(var GLPostingPreview: TestPage "G/L Posting Preview")
+    var
+        SustainabilityValueEntries: TestPage "Sustainability Value Entries";
     begin
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Sustainability Value Entry"));
         GLPostingPreview."No. of Records".AssertEquals(2);
+
+        SustainabilityValueEntries.Trap();
+        GLPostingPreview."No. of Records".DrillDown();
+        Assert.IsTrue(SustainabilityValueEntries.First(), EntryShouldBeShownErr);
+        Assert.IsFalse(SustainabilityValueEntries."&Navigate".Visible(), PreviewActionShouldBeHiddenErr);
+        SustainabilityValueEntries.Close();
 
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Sustainability Ledger Entry"));
         GLPostingPreview."No. of Records".AssertEquals('');

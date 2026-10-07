@@ -96,6 +96,23 @@ codeunit 6233 "Sust. Preview Post Instance"
         NextSustLedgerPreviewEntryNo := -2000000000;
     end;
 
+    internal procedure IsPreviewLedgerEntry(EntryNo: Integer): Boolean
+    var
+        TempPreviewSustLedgEntry: Record "Sustainability Ledger Entry" temporary;
+    begin
+        // Share the buffer so the lookup does not move the single instance record.
+        TempPreviewSustLedgEntry.Copy(TempSustLedgEntry, true);
+        exit(TempPreviewSustLedgEntry.Get(EntryNo));
+    end;
+
+    internal procedure IsPreviewValueEntry(EntryNo: Integer): Boolean
+    var
+        TempPreviewSustValueEntry: Record "Sustainability Value Entry" temporary;
+    begin
+        TempPreviewSustValueEntry.Copy(TempSustValueEntry, true);
+        exit(TempPreviewSustValueEntry.Get(EntryNo));
+    end;
+
     var
         TempSustLedgEntry: Record "Sustainability Ledger Entry" temporary;
         TempSustValueEntry: Record "Sustainability Value Entry" temporary;
