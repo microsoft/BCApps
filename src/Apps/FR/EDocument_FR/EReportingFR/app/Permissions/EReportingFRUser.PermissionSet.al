@@ -23,5 +23,6 @@ permissionset 10988 "E-Reporting FR User"
         codeunit "FR E-Invoice Profile Validator" = X,
         codeunit "FR E-Invoice Message API" = X,
         page "FR E-Invoice Refusal Dialog" = X,
-        page "FR E-Invoice Messages" = X;
+        page "FR E-Invoice Messages" = X,
+        page "E-Document Payment Occurrences" = X;
 }
