@@ -845,13 +845,20 @@ function Invoke-RequiredDisabledTestExecution {
             Reset-BcTestTenant -ContainerName $Parameters.containerName -Tenant $dispatch.TenantInfo.Id `
                 -TenantDatabaseName $dispatch.TenantInfo.DatabaseName -TemplateDatabaseName $TemplateDatabaseName
         }
+        if ($env:BC_SQL_PILOT_ARM) {
+            foreach ($dispatch in $batch) {
+                Invoke-SqlPilotCompaniesProbe -ContainerName $Parameters.containerName -Tenant $dispatch.TenantInfo.Id `
+                    -Credential $Parameters.credential -CompanyName $Parameters.companyName
+            }
+        }
         foreach ($dispatch in $batch) {
             Start-RequiredDisabledDispatch -Parameters $Parameters -WorkItem $dispatch.WorkItem `
                 -TenantInfo $dispatch.TenantInfo `
                 -ScriptPath $ScriptPath -TestType $TestType -State $state -Verb $dispatch.Verb
         }
         $null = Wait-ForAllTestJobs -state $state
-        if ($env:BC_SQL_PILOT_ARM -and $state.hasFailures) {
+        if ($env:BC_SQL_PILOT_ARM -and ($state.hasFailures -or $state.transient.Count -gt 0)) {
+            $state.hasFailures = $true
             break
         }
     }
@@ -878,6 +885,10 @@ function Register-TestJobOutcome {
         $State
     )
 
+    if ($env:BC_SQL_PILOT_ARM -and $Result.Outcome -in @('Failed', 'Transient')) {
+        $State.hasFailures = $true
+        return
+    }
     switch ($Result.Outcome) {
         'Transient' {
             Write-Host "Transient platform race for '$($Result.AppName)' on '$($Result.Tenant)'. Queued for one retry."
@@ -1254,6 +1265,46 @@ function Invoke-WarmupDispatch {
     return @($Pending | Select-Object -Skip 1)
 }
 
+function Invoke-SqlPilotWarmup {
+    param(
+        [hashtable]$Parameters, [string[]]$AppNames, [hashtable]$AppIdByName,
+        [string[]]$Tenants, [string]$ScriptPath, [string]$TestType, [string[]]$CleanTenantAppNames
+    )
+    if ($Parameters.tenant -ne 'default' -or $Tenants[0] -ne 'default' -or
+        $AppNames.Count -le 1 -or -not $AppIdByName[$AppNames[0]]) {
+        throw 'Original first-app warmup cannot be guaranteed on the default tenant.'
+    }
+    $warmupDirectory = Join-Path $env:BC_SQL_PILOT_OUTPUT 'warmup'
+    New-Item -ItemType Directory $warmupDirectory -Force | Out-Null
+    $warmupParameters = $Parameters.Clone()
+    foreach ($key in @('XUnitResultFileName', 'JUnitResultFileName')) {
+        if ($warmupParameters[$key]) {
+            $warmupParameters[$key] = Join-Path $warmupDirectory ([IO.Path]::GetFileName($warmupParameters[$key]))
+        }
+    }
+    $warmupState = [PSCustomObject]@{
+        jobs = @(); hasFailures = $false; transient = @(); retried = @{}; retryTenant = @{}
+        rerun = @(); rerunDone = @{}; rerunBudget = 0; tenantCount = $Tenants.Count
+    }
+    $observation = @{
+        phase = 'warmup'; app = $AppNames[0]; tenant = 'default'
+        startedUtc = [DateTime]::UtcNow.ToString('o'); passed = $false; retries = 0
+    }
+    try {
+        $remaining = @(Invoke-WarmupDispatch -Parameters $warmupParameters -Pending $AppNames -AppIdByName $AppIdByName `
+            -Tenants $Tenants -ScriptPath $ScriptPath -TestType $TestType -State $warmupState `
+            -CleanTenantAppNames $CleanTenantAppNames)
+        if ($remaining.Count -ne ($AppNames.Count - 1) -or $warmupState.hasFailures -or
+            $warmupState.transient.Count -gt 0 -or $warmupState.rerun.Count -gt 0 -or $warmupState.jobs.Count -gt 0) {
+            throw 'First-app warmup failed or did not complete; no retry or clean-lane dispatch is permitted.'
+        }
+        $observation.passed = $true
+    } finally {
+        $observation.completedUtc = [DateTime]::UtcNow.ToString('o')
+        $observation | ConvertTo-Json | Set-Content (Join-Path $warmupDirectory 'outcome.json') -Encoding UTF8
+    }
+}
+
 <#
 .SYNOPSIS
     Deletes the result file written by a rerun, so it cannot take part in the merge.
@@ -1433,6 +1484,12 @@ function Invoke-ParallelTestExecution {
         rerun = @(); rerunDone = @{}; rerunBudget = (Get-AppRerunBudget); tenantCount = $tenants.Count
     }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
+
+    if ($env:BC_SQL_PILOT_ARM) {
+        if (-not $templateDatabaseName) { throw 'Pristine template must be frozen before warmup.' }
+        Invoke-SqlPilotWarmup -Parameters $parameters -AppNames $appNamesToTest -AppIdByName $appIdByName `
+            -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -CleanTenantAppNames $cleanTenantAppNames
+    }
 
     if ($requiredDisabledWorkItems.Count -gt 0) {
         try {

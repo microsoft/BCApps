@@ -123,9 +123,139 @@ function Select-SqlPilotPrefix {
     $ids = @(139700,139702,139703,139706,139725,139726,139732,139739,139742,139745,139802,139803,139806,139826,139832,139854,139972,139780,148315,148318,148343)
     if ($WorkItems.Count -lt $ids.Count) { throw 'Discovery returned an incomplete pilot prefix.' }
     for ($i = 0; $i -lt $ids.Count; $i++) {
-        if ([int]$WorkItems[$i].CodeunitId -ne $ids[$i]) { throw "Original W1 discovery order differs at position $i." }
+        if ([int]$WorkItems[$i].CodeunitId -ne $ids[$i]) { throw "Pinned 21-codeunit discovery order differs at position $i; do not reorder or reduce the cohort." }
     }
     @($WorkItems | Select-Object -First $ids.Count)
 }
 
-Export-ModuleMember -Function Initialize-SqlResetPilot, Get-SqlResetPlan, Complete-SqlResetPlan, Invoke-SqlPilotReset, Select-SqlPilotPrefix
+<#
+.SYNOPSIS
+    Probes companies from the host after an owned worker restore, with bounded readiness retries.
+.DESCRIPTION
+    Uses the disposable container's existing password credential and private API endpoint.
+    Only transient HTTP and connection/timeout failures may retry, up to three attempts.
+    No redirects, response bodies, passwords or authorization headers are logged.
+#>
+function Invoke-SqlPilotCompaniesProbe {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingAllowUnencryptedAuthentication', '',
+        Justification = 'Preserves the existing disposable-container Basic authentication over its private Docker address.')]
+    [CmdletBinding()]
+    param(
+        [string]$ContainerName, [string]$Tenant,
+        [Parameter(Mandatory)][PSCredential]$Credential,
+        [Parameter(Mandatory)][string]$CompanyName
+    )
+    if (-not $script:pilot -or $ContainerName -ne $script:pilot.Container -or
+        -not $script:pilot.Workers.ContainsKey($Tenant) -or
+        $script:pilot.Workers[$Tenant].Generation -lt 1) {
+        throw 'Companies probe requires an owned, freshly restored worker.'
+    }
+    $trace = Join-Path $script:pilot.OutputDirectory 'companies-probes.jsonl'
+    $observation = @{
+        tenant = $Tenant; generation = $script:pilot.Workers[$Tenant].Generation
+        startedUtc = [DateTime]::UtcNow.ToString('o'); status = $null; passed = $false
+        clientRequestId = [guid]::NewGuid().ToString(); serverRequestId = $null
+        uri = $null; retries = 0; attempts = 0; recordType = 'outcome'
+        outcome = 'failed'; recovered = $false; maximumAttempts = 3
+    }
+    $clock = [Diagnostics.Stopwatch]::StartNew()
+    try {
+        # Match BCH's direct container API address, without its request wrapper or auth negotiation.
+        $config = Get-BcContainerServerConfiguration -ContainerName $ContainerName
+        $ip = Get-BcContainerIpAddress -containerName $ContainerName
+        $parsedIp = $null
+        if (-not [Net.IPAddress]::TryParse($ip, [ref]$parsedIp) -or
+            $config.ServerInstance -notmatch '^[a-zA-Z0-9_-]+$' -or
+            $config.ClientServicesCredentialType -notin @('NavUserPassword', 'UserPassword')) {
+            throw 'Unexpected container API configuration.'
+        }
+        $scheme = if ($config.ODataServicesSSLEnabled -eq 'true') { 'https' } else { 'http' }
+        $uri = [UriBuilder]::new($scheme, $ip, [int]$config.ODataServicesPort,
+            "$($config.ServerInstance)/api/v2.0/companies", "?tenant=$Tenant").Uri.AbsoluteUri
+        $observation.uri = $uri
+        for ($attemptNumber = 1; $attemptNumber -le 3; $attemptNumber++) {
+            $attempt = @{
+                recordType = 'attempt'; probeId = $observation.clientRequestId
+                tenant = $Tenant; generation = $observation.generation; uri = $uri
+                attempt = $attemptNumber; startedUtc = [DateTime]::UtcNow.ToString('o')
+                status = $null; passed = $false; retryable = $false
+                clientRequestId = [guid]::NewGuid().ToString(); serverRequestId = $null
+            }
+            $attemptClock = [Diagnostics.Stopwatch]::StartNew()
+            try {
+                $response = Invoke-WebRequest -Uri $uri -Method Get -Authentication Basic -Credential $Credential `
+                    -AllowUnencryptedAuthentication -SkipCertificateCheck -SkipHttpErrorCheck -MaximumRedirection 0 `
+                    -MaximumRetryCount 0 -TimeoutSec 20 -OperationTimeoutSeconds 20 -ErrorAction Stop `
+                    -Headers @{ Accept = 'application/json'; 'client-request-id' = $attempt.clientRequestId }
+                $attempt.status = [int]$response.StatusCode
+                foreach ($key in @('request-id', 'x-ms-request-id')) {
+                    $value = [string]($response.Headers[$key] | Select-Object -First 1)
+                    if ($value -match '^[a-zA-Z0-9._:-]{1,128}$') { $attempt.serverRequestId = $value; break }
+                }
+                if ($attempt.status -ne 200) {
+                    $attempt.errorCategory = 'HttpStatus'
+                    $attempt.retryable = $attempt.status -in @(500, 502, 503, 504)
+                } else {
+                    $body = $response.Content | ConvertFrom-Json -ErrorAction Stop
+                    if (-not $body.PSObject.Properties['value'] -or
+                        @($body.value | Where-Object { $_.name -eq $CompanyName -and $_.id }).Count -ne 1) {
+                        throw 'Companies probe did not return exactly one expected company.'
+                    }
+                    $attempt.passed = $true
+                }
+            } catch {
+                $attempt.errorType = $_.Exception.GetType().FullName
+                $attempt.errorCategory = 'PermanentFailure'
+                # Inspect types, never exception messages (which may contain authentication material).
+                if ($null -eq $attempt.status) {
+                    $exception = $_.Exception
+                    while ($null -ne $exception) {
+                        if ($exception -is [TimeoutException] -or
+                            $exception -is [OperationCanceledException] -or
+                            ($exception -is [Net.Http.HttpRequestException] -and
+                                $exception.PSObject.Properties['HttpRequestError'] -and
+                                $exception.HttpRequestError -in @('ConnectionError', 'NameResolutionError', 'ResponseEnded')) -or
+                            ($exception -is [Net.Sockets.SocketException] -and
+                                $exception.SocketErrorCode -in @('ConnectionRefused', 'ConnectionReset', 'ConnectionAborted',
+                                    'HostNotFound', 'HostUnreachable', 'NetworkDown', 'NetworkReset', 'NetworkUnreachable', 'TimedOut', 'TryAgain')) -or
+                            ($exception -is [Net.WebException] -and
+                                $exception.Status -in @('Timeout', 'ConnectFailure', 'ConnectionClosed', 'KeepAliveFailure',
+                                    'ReceiveFailure', 'SendFailure', 'NameResolutionFailure', 'ProxyNameResolutionFailure'))) {
+                            $attempt.retryable = $true
+                            $attempt.errorCategory = 'ConnectionOrTimeout'
+                            break
+                        }
+                        $exception = $exception.InnerException
+                    }
+                }
+            } finally {
+                $attempt.completedUtc = [DateTime]::UtcNow.ToString('o')
+                $attempt.elapsedMilliseconds = $attemptClock.ElapsedMilliseconds
+                $attempt | ConvertTo-Json -Compress | Add-Content $trace
+                $observation.attempts = $attemptNumber
+                $observation.retries = $attemptNumber - 1
+                $observation.status = $attempt.status
+                $observation.serverRequestId = $attempt.serverRequestId
+            }
+            if ($attempt.passed) {
+                $observation.passed = $true
+                $observation.recovered = $attemptNumber -gt 1
+                $observation.outcome = if ($observation.recovered) { 'recovered' } else { 'first-try-success' }
+                break
+            }
+            if (-not $attempt.retryable -or $attemptNumber -eq 3) { break }
+            Start-Sleep -Seconds 2
+        }
+        if (-not $observation.passed) { throw 'Companies probe exhausted eligible attempts or encountered a permanent failure.' }
+    } catch {
+        $observation.errorType = $_.Exception.GetType().FullName
+        # HTTP exception details can contain authentication material; never emit the original error.
+        throw "Companies probe failed for $Tenant after $($observation.attempts) attempt(s); see sanitized companies-probes.jsonl."
+    } finally {
+        $observation.completedUtc = [DateTime]::UtcNow.ToString('o')
+        $observation.elapsedMilliseconds = $clock.ElapsedMilliseconds
+        $observation | ConvertTo-Json -Compress | Add-Content $trace
+    }
+}
+
+Export-ModuleMember -Function Initialize-SqlResetPilot, Get-SqlResetPlan, Complete-SqlResetPlan, Invoke-SqlPilotReset, Select-SqlPilotPrefix, Invoke-SqlPilotCompaniesProbe

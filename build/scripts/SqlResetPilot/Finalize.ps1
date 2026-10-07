@@ -7,7 +7,9 @@ if (-not (Test-Path $ownershipPath)) {
 }
 $ownership = Get-Content $ownershipPath -Raw | ConvertFrom-Json
 if ($ownership.runId -ne $env:GITHUB_RUN_ID -or $ownership.arm -ne $env:BC_SQL_PILOT_ARM -or
-    $ownership.container -ne "bcbuildprojectsTestAppsW1$($env:GITHUB_RUN_ID)") {
+    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or
+    $ownership.country -ne $env:BC_SQL_PILOT_COUNTRY -or $ownership.trial -ne $env:BC_SQL_PILOT_TRIAL -or
+    $ownership.container -ne "bcbuildprojectsTestApps$($env:BC_SQL_PILOT_COUNTRY)Trial$($env:BC_SQL_PILOT_TRIAL)$($env:GITHUB_RUN_ID)") {
     throw 'Cleanup ownership mismatch.'
 }
 Import-Module (Join-Path (Split-Path $env:BcContainerHelperPath -Parent) 'BcContainerHelper.psm1') -ErrorAction Stop
@@ -16,8 +18,19 @@ try {
         $events = Get-BcContainerEventLog -containerName $ownership.container -doNotOpen
         Copy-Item $events (Join-Path $output 'final-container.evtx')
     }
-    $project = Join-Path $env:GITHUB_WORKSPACE 'build\projects\Test Apps W1'
-    Get-ChildItem $project -Filter 'TestResults*.xml' -File | Copy-Item -Destination $output
+    $project = Join-Path $env:GITHUB_WORKSPACE "build\projects\Test Apps $($env:BC_SQL_PILOT_COUNTRY) Trial$($env:BC_SQL_PILOT_TRIAL)"
+    $resultLocations = @{
+        'project-root' = $project
+        'buildartifacts' = Join-Path $project '.buildartifacts'
+    }
+    foreach ($label in $resultLocations.Keys) {
+        if (Test-Path $resultLocations[$label]) {
+            $destination = Join-Path $output "clean-results\$label"
+            New-Item -ItemType Directory -Path $destination -Force | Out-Null
+            Get-ChildItem $resultLocations[$label] -Filter 'TestResults*.xml' -File |
+                Copy-Item -Destination $destination
+        }
+    }
 } finally {
     if (Test-BcContainer -containerName $ownership.container) {
         Remove-BcContainer -containerName $ownership.container
