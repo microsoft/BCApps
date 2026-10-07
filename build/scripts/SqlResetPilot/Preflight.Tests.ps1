@@ -9,20 +9,20 @@ Describe 'Experiment country and trial container ownership' {
             'BC_SQL_PILOT_ARM','BC_SQL_PILOT_COUNTRY','BC_SQL_PILOT_TRIAL','BC_SQL_PILOT_OUTPUT','Settings')) {
             $script:saved[$name] = [Environment]::GetEnvironmentVariable($name)
         }
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-warmup-experiment'
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-de3-communication-replay'
         $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
         $env:GITHUB_RUN_ATTEMPT = '1'
         $env:GITHUB_RUN_ID = '123'
         $env:BC_SQL_PILOT_ARM = 'control'
         $env:BC_SQL_PILOT_COUNTRY = 'DE'
-        $env:BC_SQL_PILOT_TRIAL = '2'
+        $env:BC_SQL_PILOT_TRIAL = '3'
         $env:BC_SQL_PILOT_OUTPUT = $TestDrive
         $env:Settings = @{
             country = 'DE'; testType = 'IntegrationTest'; numberOfTenantsForTesting = 4
             companyName = 'My Company'; enableCleanTestCodeunitExecution = $true; enableTaskScheduler = $false
         } | ConvertTo-Json
         $script:parameters = @{
-            ContainerName = 'bcbuildprojectsTestAppsDETrial2123'
+            ContainerName = 'bcbuildprojectsTestAppsDETrial3123'
             platformArtifactUrl = 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/30.0.55665.0/platform'
         }
         Mock Get-Module { { '6.1.19-preview2811389' } } -ParameterFilter { $Name -eq 'BcContainerHelper' }
@@ -35,8 +35,8 @@ Describe 'Experiment country and trial container ownership' {
         & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters
         $record = Get-Content (Join-Path $TestDrive 'container-ownership.json') -Raw | ConvertFrom-Json
         $record.country | Should -Be 'DE'
-        $record.trial | Should -Be '2'
-        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial2123'
+        $record.trial | Should -Be '3'
+        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial3123'
         $script:parameters.useGenericImage | Should -Be 'mcr.microsoft.com/businesscentral@sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492'
     }
     It 'refuses a preexisting container rather than replacing it' {
@@ -48,10 +48,19 @@ Describe 'Experiment country and trial container ownership' {
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
     }
     It 'rejects another trial or country mapping' {
-        $env:BC_SQL_PILOT_TRIAL = '3'
-        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
         $env:BC_SQL_PILOT_TRIAL = '2'
+        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial2123'
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
+        $env:BC_SQL_PILOT_TRIAL = '3'
         $env:BC_SQL_PILOT_COUNTRY = 'W1'
+        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsW1Trial3123'
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
+    }
+    It 'rejects the original branch and nonmanual events' {
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-warmup-experiment'
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
+        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-de3-communication-replay'
+        $env:GITHUB_EVENT_NAME = 'pull_request'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
     }
     It 'rejects reruns and fresh-name treatment' {

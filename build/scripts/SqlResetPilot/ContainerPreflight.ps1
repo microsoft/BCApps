@@ -1,9 +1,9 @@
 param([hashtable]$Parameters)
 $ErrorActionPreference = 'Stop'
-if ($env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-warmup-experiment' -or
+if ($env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-de3-communication-replay' -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
     $env:BC_SQL_PILOT_ARM -ne 'control' -or -not $env:BC_SQL_PILOT_OUTPUT -or
-    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or
+    $env:BC_SQL_PILOT_COUNTRY -ne 'DE' -or $env:BC_SQL_PILOT_TRIAL -ne '3' -or
     $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
     throw 'Refusing SQL pilot outside its disposable manually dispatched CI job.'
 }

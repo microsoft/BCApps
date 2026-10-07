@@ -1,10 +1,10 @@
 $ErrorActionPreference = 'Stop'
 $base = 'c4953dceffe02a017adad34973e1955017bf5d20'
 if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
-    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-warmup-experiment' -or
+    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-de3-communication-replay' -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
-    $env:BC_SQL_PILOT_ARM -ne 'control' -or $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or
-    $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
+    $env:BC_SQL_PILOT_ARM -ne 'control' -or $env:BC_SQL_PILOT_COUNTRY -ne 'DE' -or
+    $env:BC_SQL_PILOT_TRIAL -ne '3' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
     throw 'This diagnostic is restricted to its explicitly dispatched disposable CI branch, attempt one.'
 }
 git merge-base --is-ancestor $base HEAD
@@ -64,6 +64,12 @@ foreach ($artifact in $artifacts) {
     experimentHead = $env:GITHUB_SHA; run = $env:GITHUB_RUN_ID; arm = $env:BC_SQL_PILOT_ARM
     country = $env:BC_SQL_PILOT_COUNTRY; trial = $env:BC_SQL_PILOT_TRIAL; project = $trialProject
     warmup = 'original-first-app-before-clean-lane'; companiesProbe = 'once-per-restored-worker'; retries = 0
+    replacementOf = @{
+        runId = '37608087700'; jobId = '112748402288'; country = 'DE'; trial = 3
+        event = 'workflow_dispatch'; runAttempt = 1; workflow = '.github/workflows/CICD.yaml'
+        workflowSha = 'fcc1776c6b165199dd66e4227675b1cc31da7a8f'
+        reason = 'self-hosted runner lost communication with server; tests never started'
+    }
     budgetMinutes = 120; startedUtc = [DateTime]::UtcNow.ToString('o')
     artifacts = $manifest
 } | ConvertTo-Json -Depth 8 | Set-Content (Join-Path $output 'provenance.json') -Encoding UTF8

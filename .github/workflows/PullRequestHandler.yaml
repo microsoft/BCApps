@@ -35,7 +35,7 @@ jobs:
 
   Initialization:
     needs: [ PregateCheck ]
-    if: (!failure() && !cancelled()) && github.head_ref != 'features/646383-sql-api-warmup-experiment'
+    if: (!failure() && !cancelled()) && github.head_ref != 'features/646383-sql-api-warmup-experiment' && github.head_ref != 'features/646383-sql-api-de3-communication-replay'
     runs-on: [ windows-latest ]
     outputs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}

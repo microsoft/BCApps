@@ -1,10 +1,22 @@
-# API warmup experiment — diagnostic only, do not merge
+# DE trial 3 communication replacement — diagnostic only, do not merge
 
-One manual `CICD.yaml` dispatch on `features/646383-sql-api-warmup-experiment`
-runs **W1 and DE, five independent trials each**. Maximum parallelism is five;
-each trial is capped at 120 minutes (1,200 runner-minutes total maximum).
-Only attempt one is allowed. No automatic rerun, replacement dispatch, PR,
-merge queue, local/shared NST operation, or fresh-database-name treatment.
+One authorized manual `CICD.yaml` dispatch on
+`features/646383-sql-api-de3-communication-replay` runs **only DE trial 3**,
+with maximum parallelism one and a 120-minute cap. This replaces only job
+`112748402288` from run `37608087700`: the self-hosted runner lost communication
+before tests started. The original event was `workflow_dispatch`, attempt one,
+workflow `.github/workflows/CICD.yaml`, at
+`fcc1776c6b165199dd66e4227675b1cc31da7a8f`.
+The new run is separately identified in `provenance.json`; it is not an original
+success. The genuine W1 SQL failure is not rerun.
+
+Treatment is byte-for-byte the original `fcc1776` runner/lifecycle: full cohort,
+no extra disabled method, no SQL retry, one companies probe with its original
+60-second timeout. Changes only narrow workflow/branch/preflight guards, record
+replacement provenance and update diagnostic tests/docs. Cleanup and artifact
+collection remain the original implementation. Only attempt one is allowed.
+No further dispatch, PR, merge queue, local/shared NST operation, or
+fresh-database-name treatment is authorized.
 
 ## Fixed baseline
 

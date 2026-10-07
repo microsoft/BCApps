@@ -1,4 +1,4 @@
-name: 'SQL API warmup experiment - DO NOT MERGE'
+name: 'SQL API DE3 communication replacement - DO NOT MERGE'
 
 on:
   workflow_dispatch:
@@ -11,13 +11,13 @@ permissions:
 
 jobs:
   Pilot:
-    if: github.ref == 'refs/heads/features/646383-sql-api-warmup-experiment' && github.run_attempt == 1
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-de3-communication-replay' && github.run_attempt == 1
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 1
       matrix:
-        country: [W1, DE]
-        trial: [1, 2, 3, 4, 5]
+        country: [DE]
+        trial: [3]
     runs-on: GitHub-BCAppsPL
     timeout-minutes: 120
     defaults:
