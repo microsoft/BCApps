@@ -23,12 +23,15 @@ codeunit 139608 "Shpfy Orders API Test"
     TestType = Uncategorized;
     TestPermissions = Disabled;
     TestHttpRequestPolicy = BlockOutboundRequests;
+    EventSubscriberInstance = Manual;
 
     var
         Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
         InitializeTest: Codeunit "Shpfy Initialize Test";
+        HttpResponses: Codeunit "Library - Variable Storage";
+        ShpfyOrdersAPITest: Codeunit "Shpfy Orders API Test";
         Any: Codeunit Any;
         CompanyLocationId: BigInteger;
         IsInitialized: Boolean;
@@ -952,6 +955,12 @@ codeunit 139608 "Shpfy Orders API Test"
         // [WHEN] Order is processed
         ProcessOrders.ProcessShopifyOrder(OrderHeader);
 
+        // [THEN] Currency handling is stored on the processed order
+        OrderHeader.Get(OrderHeader."Shopify Order Id");
+        LibraryAssert.AreEqual(
+            Enum::"Shpfy Currency Handling"::"Presentment Currency",
+            OrderHeader."Processed Currency Handling",
+            'Processed currency handling should match the shop setting');
         // [THEN] Sales document is created from Shopify order and order line is reserved
         SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
         LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
@@ -1700,6 +1709,63 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'Bulk sync report should issue exactly one plan-refresh query.');
     end;
 
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure TestAutoCreateOrderStoresCurrencyHandlingUsedForSalesDocument()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        SalesHeader: Record "Sales Header";
+        ShopFilter: Record "Shpfy Shop";
+        SyncOrdersFromShopify: Report "Shpfy Sync Orders from Shopify";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+        EntryNo: Integer;
+        OrderId: BigInteger;
+    begin
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Auto Create Orders" := true;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Presentment Currency";
+        Shop.Modify(false);
+
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+        EntryNo := OrdersToImport."Entry No.";
+        OrderId := OrdersToImport.Id;
+        OrdersToImport.Reset();
+        OrdersToImport.SetFilter("Entry No.", '<>%1', EntryNo);
+        OrdersToImport.DeleteAll(false);
+        EnqueueAutoCreateOrderResponses(JShopifyOrder, JShopifyLineItems);
+        Commit();
+
+        ShopFilter.SetRange(Code, Shop.Code);
+        SyncOrdersFromShopify.SetTableView(ShopFilter);
+        SyncOrdersFromShopify.UseRequestPage(false);
+        BindSubscription(ShpfyOrdersAPITest);
+        SyncOrdersFromShopify.Run();
+        UnbindSubscription(ShpfyOrdersAPITest);
+        HttpResponses.AssertEmpty();
+
+        OrderHeader.Get(OrderId);
+        LibraryAssert.IsTrue(OrderHeader.Processed, 'Shopify order should be processed automatically');
+        LibraryAssert.AreEqual(
+            Enum::"Shpfy Currency Handling"::"Shop Currency",
+            OrderHeader."Processed Currency Handling",
+            'Automatically processed order should store the currency handling used for the sales document');
+        SalesHeader.SetRange("Shpfy Order Id", OrderId);
+        LibraryAssert.IsTrue(SalesHeader.FindFirst(), 'Sales document should be created automatically');
+        LibraryAssert.AreEqual(Shop."Currency Code", SalesHeader."Currency Code", 'Sales document should use the shop currency');
+
+        Shop.Get(Shop.Code);
+        Shop."Auto Create Orders" := false;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+    end;
+
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; ShopParam: Record "Shpfy Shop")
     var
         ShopifyCustomerTemplate: Record "Shpfy Customer Template";
@@ -1806,6 +1872,7 @@ codeunit 139608 "Shpfy Orders API Test"
         // the plan-refresh flag into the next test and corrupt unrelated HTTP calls.
         PlanRefreshExpected := false;
         PlanRefreshCallCount := 0;
+        HttpResponses.Clear();
 
         if IsInitialized then
             exit;
@@ -1827,6 +1894,11 @@ codeunit 139608 "Shpfy Orders API Test"
         if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
 
+        if HttpResponses.Length() > 0 then begin
+            Response.Content.WriteFrom(HttpResponses.DequeueText());
+            exit(false);
+        end;
+
         if PlanRefreshExpected and (PlanRefreshCallCount = 0) then begin
             PlanRefreshCallCount += 1;
             Response.Content.WriteFrom(DowngradedPlanShopResponseTok);
@@ -1840,6 +1912,43 @@ codeunit 139608 "Shpfy Orders API Test"
         end else
             Response.Content.WriteFrom('{"data":{}}');
         exit(false);
+    end;
+
+    local procedure EnqueueAutoCreateOrderResponses(JShopifyOrder: JsonObject; JShopifyLineItems: JsonArray)
+    var
+        HeaderData: JsonObject;
+        HeaderResponse: JsonObject;
+        LineData: JsonObject;
+        LineItems: JsonObject;
+        LineOrder: JsonObject;
+        LinePageInfo: JsonObject;
+        LineResponse: JsonObject;
+    begin
+        HttpResponses.Enqueue(DowngradedPlanShopResponseTok);
+        HttpResponses.Enqueue('{"data":{}}');
+
+        HeaderData.Add('order', JShopifyOrder);
+        HeaderResponse.Add('data', HeaderData);
+        HttpResponses.Enqueue(Format(HeaderResponse));
+
+        LinePageInfo.Add('hasNextPage', false);
+        LinePageInfo.Add('endCursor', '');
+        LineItems.Add('pageInfo', LinePageInfo);
+        LineItems.Add('nodes', JShopifyLineItems);
+        LineOrder.Add('lineItems', LineItems);
+        LineData.Add('order', LineOrder);
+        LineResponse.Add('data', LineData);
+        HttpResponses.Enqueue(Format(LineResponse));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeProcessSalesDocument, '', false, false)]
+    local procedure ChangeCurrencyHandlingOnBeforeProcessSalesDocument(var ShopifyOrderHeader: Record "Shpfy Order Header")
+    var
+        ShopToUpdate: Record "Shpfy Shop";
+    begin
+        ShopToUpdate.Get(ShopifyOrderHeader."Shop Code");
+        ShopToUpdate."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        ShopToUpdate.Modify(false);
     end;
 
     local procedure PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; var JOrdersToImport: JsonObject; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)

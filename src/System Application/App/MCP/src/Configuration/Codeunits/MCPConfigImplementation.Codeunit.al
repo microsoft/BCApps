@@ -1661,8 +1661,9 @@ codeunit 8351 "MCP Config Implementation"
         if ConfigJson.Contains('enableApiTools') then
             MCPConfiguration.EnableApiTools := ConfigJson.GetBoolean('enableApiTools');
 
+        MCPConfiguration.EnableAlQueryTools := false;
         if ConfigJson.Contains('enableAlQueryTools') then
-            MCPConfiguration.EnableAlQueryTools := ConfigJson.GetBoolean('enableAlQueryTools');
+            MCPConfiguration.EnableAlQueryTools := ConfirmDataQueryToolsOnImport(ConfigJson.GetBoolean('enableAlQueryTools'));
 
         if ConfigJson.Contains('enableAgents') then
             MCPConfiguration.EnableAgents := ConfigJson.GetBoolean('enableAgents');
@@ -1683,6 +1684,20 @@ codeunit 8351 "MCP Config Implementation"
         end;
 
         exit(MCPConfiguration.SystemId);
+    end;
+
+    internal procedure ConfirmDataQueryToolsOnImport(ShouldEnableDataQueryTools: Boolean): Boolean
+    var
+        MCPBillingConfirmation: Page "MCP Billing Confirmation";
+    begin
+        if not ShouldEnableDataQueryTools then
+            exit(false);
+
+        if not GuiAllowed() then
+            exit(false);
+
+        MCPBillingConfirmation.SetFeature("MCP Server Feature"::"Data Query Tools");
+        exit(MCPBillingConfirmation.RunModal() = Action::Yes);
     end;
 
     local procedure ImportTool(ConfigId: Guid; ToolJson: JsonObject)

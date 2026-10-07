@@ -73,4 +73,9 @@ codeunit 130131 "MCP Config Test Library"
                 SystemTools.Add(TempMCPSystemTool."Tool Name", TempMCPSystemTool."Tool Description");
             until TempMCPSystemTool.Next() = 0;
     end;
+
+    procedure ConfirmDataQueryToolsOnImport(EnableDataQueryTools: Boolean): Boolean
+    begin
+        exit(MCPConfigImplementation.ConfirmDataQueryToolsOnImport(EnableDataQueryTools));
+    end;
 }

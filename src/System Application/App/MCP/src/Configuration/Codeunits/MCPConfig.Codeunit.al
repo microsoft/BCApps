@@ -120,6 +120,10 @@ codeunit 8350 "MCP Config"
     /// <summary>
     /// Enables or disables the Data Query Tools feature for the specified configuration.
     /// </summary>
+    /// <remarks>
+    /// Before enabling Data Query Tools, the caller must ensure that the administrator has acknowledged the applicable pricing and terms.
+    /// For more information, see https://go.microsoft.com/fwlink/?LinkId=2383165.
+    /// </remarks>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable, false to disable.</param>
     procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
@@ -391,6 +395,10 @@ codeunit 8350 "MCP Config"
     /// <summary>
     /// Imports an MCP configuration and its tools from a JSON stream.
     /// </summary>
+    /// <remarks>
+    /// If the imported configuration enables Data Query Tools and a user interface is available, the administrator must acknowledge the applicable pricing and terms.
+    /// Data Query Tools remains disabled when a user interface is not available.
+    /// </remarks>
     /// <param name="InStream">The input stream containing the JSON configuration.</param>
     /// <param name="NewName">The name for the imported configuration.</param>
     /// <param name="NewDescription">The description for the imported configuration.</param>
