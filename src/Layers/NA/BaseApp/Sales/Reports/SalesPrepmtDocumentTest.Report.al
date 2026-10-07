@@ -918,12 +918,18 @@ report 212 "Sales Prepmt. Document Test"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PrepaymentDocumentType; DocumentType)
+                    field(PrepaymentDocumentType; RequestDocumentType)
                     {
                         ApplicationArea = Prepayments;
                         Caption = 'Prepayment Document Type';
                         OptionCaption = 'Invoice,Credit Memo';
-                        ToolTip = 'Specifies whether you want to see test documents for prepayment credit memos or prepayment invoices.';
+                        ToolTip = 'Specifies whether to test a prepayment invoice or credit memo.';
+                        Visible = not StatisticDocumentType;
+
+                        trigger OnValidate()
+                        begin
+                            DocumentType := RequestDocumentType;
+                        end;
                     }
                     field(ShowDimensions; ShowDim)
                     {
@@ -956,6 +962,8 @@ report 212 "Sales Prepmt. Document Test"
 
     trigger OnPreReport()
     begin
+        if not StatisticDocumentType then
+            DocumentType := RequestDocumentType;
         SalesHeaderFilter := "Sales Header".GetFilters();
 
         GLSetup.Get();
@@ -1007,6 +1015,8 @@ report 212 "Sales Prepmt. Document Test"
         DimText: Text[120];
         ErrorText: array[99] of Text[250];
         DocumentType: Option Invoice,"Credit Memo",Statistic;
+        RequestDocumentType: Option Invoice,"Credit Memo";
+        StatisticDocumentType: Boolean;
         VATAmount: Decimal;
         VATBaseAmount: Decimal;
         ErrorCounter: Integer;

@@ -13,7 +13,7 @@ page 7076 "Expense Agent Status"
     SourceTableTemporary = true;
     ApplicationArea = All;
     UsageCategory = Administration;
-    Caption = 'Expense Agent Status';
+    Caption = 'Expense Agent Communication Status';
     Editable = false;
 
     layout

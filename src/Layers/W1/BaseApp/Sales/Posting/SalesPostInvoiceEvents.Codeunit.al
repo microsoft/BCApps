@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.Projects.Project.Posting;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 
@@ -1062,6 +1063,34 @@ codeunit 825 "Sales Post Invoice Events"
     /// <param name="SuppressCommit">Indicates whether to suppress database commits.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostLinesOnBeforeGenJnlLinePost(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; TempInvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; SuppressCommit: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Runs the OnPostLinesOnBeforeCalcSums integration event.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="TotalSalesLine">The total sales line amounts.</param>
+    /// <param name="TotalSalesLineLCY">The total sales line amounts in local currency.</param>
+    /// <param name="InvoicePostingParameters">The invoice posting parameters.</param>
+    /// <param name="JobPostLine">The job post line codeunit instance.</param>
+    procedure RunOnPostLinesOnBeforeCalcSums(var SalesHeader: Record "Sales Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var InvoicePostingParameters: Record "Invoice Posting Parameters"; var JobPostLine: Codeunit "Job Post-Line")
+    begin
+        OnPostLinesOnBeforeCalcSums(SalesHeader, GenJnlPostLine, TotalSalesLine, TotalSalesLineLCY, InvoicePostingParameters, JobPostLine);
+    end;
+
+    /// <summary>
+    /// Raised before calculating the total amount from the temporary invoice posting buffer.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="GenJnlPostLine">The general journal post line codeunit instance.</param>
+    /// <param name="TotalSalesLine">The total sales line amounts.</param>
+    /// <param name="TotalSalesLineLCY">The total sales line amounts in local currency.</param>
+    /// <param name="InvoicePostingParameters">The invoice posting parameters.</param>
+    /// <param name="JobPostLine">The job post line codeunit instance.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPostLinesOnBeforeCalcSums(var SalesHeader: Record "Sales Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var InvoicePostingParameters: Record "Invoice Posting Parameters"; var JobPostLine: Codeunit "Job Post-Line")
     begin
     end;
 

@@ -5,19 +5,21 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.VAT.Setup;
 
 codeunit 148348 "Expense VAT Spec. API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseVATSpecifications', Locked = true;
 
@@ -69,6 +71,8 @@ codeunit 148348 "Expense VAT Spec. API Test"
         Assert.AreEqual(20, ExpenseVATSpecification."VAT Amount", 'The VAT amount must match the API payload.');
         Assert.AreEqual(120, ExpenseVATSpecification.Amount, 'The amount must match the API payload.');
         Assert.AreEqual(120, ExpenseVATSpecification."Amount (LCY)", 'The LCY amount must match the API payload.');
+        Assert.AreEqual(100, ExpenseVATSpecification."VAT Base Amount (LCY)", 'The LCY VAT base amount must match the API payload.');
+        Assert.AreEqual(20, ExpenseVATSpecification."VAT Amount (LCY)", 'The LCY VAT amount must match the API payload.');
         Assert.AreEqual(0.95, ExpenseVATSpecification.Confidence, 'The confidence must match the API payload.');
         Assert.AreNotEqual(
             0,
@@ -77,14 +81,23 @@ codeunit 148348 "Expense VAT Spec. API Test"
     end;
 
     local procedure Initialize()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense VAT Spec. API Test");
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense VAT Spec. API Test");
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
+        ExpenseAgentSetup.Modify(true);
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense VAT Spec. API Test");

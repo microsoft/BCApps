@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 #pragma warning disable AA0247
 
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 page 11016 "Sales VAT Adv. Notif. Card"
+#pragma warning restore AS0011
 {
     PageType = Card;
     Caption = 'Sales VAT Adv. Notif. Card';

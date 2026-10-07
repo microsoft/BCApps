@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -38,6 +39,13 @@ codeunit 13917 "Export ZUGFeRD Document"
         EDocumentService: Record "E-Document Service";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         PeppolVATHelper: Codeunit "PEPPOL VAT Helper";
+        EDocumentDEHelper: Codeunit "E-Document DE Helper";
+        EDocItemChargeMapping: Codeunit "E-Doc. Item Charge Mapping";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
+        SourceDocumentRecordRef: RecordRef;
+        ItemChargeStructures: Dictionary of [Integer, Integer];
+        LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
+        LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
         FeatureNameTok: Label 'E-document ZUGFeRD Format', Locked = true;
         StartEventNameTok: Label 'E-document ZUGFeRD export started', Locked = true;
         EndEventNameTok: Label 'E-document ZUGFeRD export completed', Locked = true;
@@ -46,6 +54,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
+#if not CLEAN30
+        EDocumentServiceProvided: Boolean;
+#endif
         DocumentLanguageCode: Code[10];
 
     trigger OnRun()
@@ -57,6 +68,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExportSalesDocument(Rec);
 
         UnbindSubscription(ZUGFeRDReportIntegration);
+        ResetProvidedService();
     end;
 
 
@@ -285,15 +297,22 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService();
+#pragma warning restore AL0432
+#endif
         if not DocumentLinesExist(SalesInvoiceHeader, SalesInvLine) then
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesInvoiceHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
         InitializeNamespaces();
+        ClassifyItemCharges(SalesInvoiceHeader, SalesInvLine);
         CurrencyCode := GetCurrencyCode(SalesInvoiceHeader."Currency Code", Currency);
         CalculateLineAmounts(SalesInvoiceHeader, SalesInvLine, Currency, LineAmounts);
         InsertVATAmounts(SalesInvLine, LineVATAmount, LineAmount, LineDiscAmount, SalesInvoiceHeader."Prices Including VAT", Currency);
@@ -303,6 +322,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var FileOutstream: Outstream)
@@ -320,15 +340,22 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService();
+#pragma warning restore AL0432
+#endif
         if not DocumentLinesExist(SalesCrMemoHeader, SalesCrMemoLine) then
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(SalesCrMemoHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
         InitializeNamespaces();
+        ClassifyItemCharges(SalesCrMemoHeader, SalesCrMemoLine);
         CurrencyCode := GetCurrencyCode(SalesCrMemoHeader."Currency Code", Currency);
         CalculateLineAmounts(SalesCrMemoHeader, SalesCrMemoLine, Currency, LineAmounts);
         InsertVATAmounts(SalesCrMemoLine, LineVATAmount, LineAmount, LineDiscAmount, SalesCrMemoHeader."Prices Including VAT", Currency);
@@ -338,6 +365,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(ServiceInvoiceHeader: Record "Service Invoice Header"; var FileOutstream: Outstream)
@@ -357,7 +385,12 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService();
+#pragma warning restore AL0432
+#endif
+        ClearItemChargeClassification();
         TransferToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
         SalesInvoiceHeader."Company Bank Account Code" := ServiceInvoiceHeader."Company Bank Account Code";
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
@@ -370,6 +403,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         DocumentLanguageCode := SalesInvoiceHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceInvoiceHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -383,6 +418,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     procedure CreateXML(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var FileOutstream: Outstream)
@@ -402,7 +438,12 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         Clear(ItemGTINCache);
         GetSetups();
+#if not CLEAN30
+#pragma warning disable AL0432
         FindEDocumentService();
+#pragma warning restore AL0432
+#endif
+        ClearItemChargeClassification();
         TransferToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
         SalesCrMemoHeader."Company Bank Account Code" := ServiceCrMemoHeader."Company Bank Account Code";
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
@@ -415,6 +456,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         DocumentLanguageCode := SalesCrMemoHeader."Language Code";
+        SourceDocumentRecordRef.Close();
+        SourceDocumentRecordRef.GetTable(ServiceCrMemoHeader);
         XmlDocument.ReadFrom(GetInvoiceXMLHeader(), XMLDoc);
         XmlDoc.GetRoot(RootXMLNode);
 
@@ -428,6 +471,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc.WriteTo(XMLDocText);
         FileOutstream.WriteText(XMLDocText);
         Clear(XMLDoc);
+        SourceDocumentRecordRef.Close();
     end;
 
     local procedure DocumentLinesExist(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"): Boolean
@@ -489,7 +533,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExchangedDocumentElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, '380')); // Invoice type code
 
         IssueDateTimeElement := XmlElement.Create('IssueDateTime', XmlNamespaceRAM);
-        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesInvoiceHeader."Posting Date")));
+        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesInvoiceHeader."Document Date")));
         ExchangedDocumentElement.Add(IssueDateTimeElement);
         RootXMLNode.Add(ExchangedDocumentElement);
         OnAfterInsertSalesInvHeaderData(RootXMLNode, SalesInvoiceHeader);
@@ -513,7 +557,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExchangedDocumentElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, '381')); // Credit memo type code
 
         IssueDateTimeElement := XmlElement.Create('IssueDateTime', XmlNamespaceRAM);
-        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesCrMemoHeader."Posting Date")));
+        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesCrMemoHeader."Document Date")));
         ExchangedDocumentElement.Add(IssueDateTimeElement);
         RootXMLNode.Add(ExchangedDocumentElement);
         OnAfterInsertSalesCrMemoHeaderData(RootXMLNode, SalesCrMemoHeader);
@@ -795,18 +839,27 @@ codeunit 13917 "Export ZUGFeRD Document"
     local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesInvHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
     var
         SettlementElement, MonetarySummationElement : XmlElement;
+        ItemChargeTotalAmount: Decimal;
+        ItemChargeAllowanceTotalAmount: Decimal;
     begin
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
+        // BT-90 Bank assigned creditor identifier. The CII HeaderTradeSettlement sequence puts
+        // CreditorReferenceID before InvoiceCurrencyCode, so it is added first.
+        InsertCreditorReference(SettlementElement, SalesInvHeader."Payment Method Code", SalesInvHeader."Company Bank Account Code");
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
-        InsertPaymentMethod(SettlementElement, SalesInvHeader."Company Bank Account Code");
+        InsertPaymentMethod(SettlementElement, SalesInvHeader."Payment Method Code", SalesInvHeader."Company Bank Account Code", SalesInvHeader."Direct Debit Mandate ID", SalesInvHeader);
         InsertTradeTax(SettlementElement, SalesInvLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesInvLine, LineDiscAmount, LineAmounts);
+        InsertItemChargeAllowanceCharges(SettlementElement, SalesInvLine);
 
-        InsertPaymentTerms(SettlementElement, SalesInvHeader."Payment Terms Code", SalesInvHeader."Due Date");
+        InsertPaymentTerms(SettlementElement, SalesInvHeader."Payment Terms Code", SalesInvHeader."Due Date", GetDirectDebitMandateID(SalesInvHeader."Payment Method Code", SalesInvHeader."Direct Debit Mandate ID"));
+        GetDocumentLevelItemChargeTotals(SalesInvLine, ItemChargeTotalAmount, ItemChargeAllowanceTotalAmount);
         MonetarySummationElement := XmlElement.Create('SpecifiedTradeSettlementHeaderMonetarySummation', XmlNamespaceRAM);
-        MonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName(Amount)) + LineAmounts.Get(SalesInvLine.FieldName("Inv. Discount Amount")))));
-        MonetarySummationElement.Add(XmlElement.Create('AllowanceTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName("Inv. Discount Amount")))));
+        MonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName(Amount)) + LineAmounts.Get(SalesInvLine.FieldName("Inv. Discount Amount")) - ItemChargeTotalAmount + ItemChargeAllowanceTotalAmount)));
+        if ItemChargeTotalAmount > 0 then
+            MonetarySummationElement.Add(XmlElement.Create('ChargeTotalAmount', XmlNamespaceRAM, FormatDecimal(ItemChargeTotalAmount)));
+        MonetarySummationElement.Add(XmlElement.Create('AllowanceTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName("Inv. Discount Amount")) + ItemChargeAllowanceTotalAmount)));
         MonetarySummationElement.Add(XmlElement.Create('TaxBasisTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName(Amount)))));
         MonetarySummationElement.Add(XmlElement.Create('TaxTotalAmount', XmlNamespaceRAM, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName("Amount Including VAT")) - LineAmounts.Get(SalesInvLine.FieldName(Amount)))));
         MonetarySummationElement.Add(XmlElement.Create('GrandTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName("Amount Including VAT")))));
@@ -820,18 +873,24 @@ codeunit 13917 "Export ZUGFeRD Document"
     local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
     var
         SettlementElement, MonetarySummationElement : XmlElement;
+        ItemChargeTotalAmount: Decimal;
+        ItemChargeAllowanceTotalAmount: Decimal;
     begin
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
-        InsertPaymentMethod(SettlementElement, SalesCrMemoHeader."Company Bank Account Code");
+        InsertPaymentMethod(SettlementElement, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '', SalesCrMemoHeader);
         InsertTradeTax(SettlementElement, SalesCrMemoLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesCrMemoLine, LineDiscAmount, LineAmounts);
+        InsertItemChargeAllowanceCharges(SettlementElement, SalesCrMemoLine);
 
-        InsertPaymentTerms(SettlementElement, SalesCrMemoHeader."Payment Terms Code", SalesCrMemoHeader."Due Date");
+        InsertPaymentTerms(SettlementElement, SalesCrMemoHeader."Payment Terms Code", SalesCrMemoHeader."Due Date", '');
+        GetDocumentLevelItemChargeTotals(SalesCrMemoLine, ItemChargeTotalAmount, ItemChargeAllowanceTotalAmount);
         MonetarySummationElement := XmlElement.Create('SpecifiedTradeSettlementHeaderMonetarySummation', XmlNamespaceRAM);
-        MonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName(Amount)) + LineAmounts.Get(SalesCrMemoLine.FieldName("Inv. Discount Amount")))));
-        MonetarySummationElement.Add(XmlElement.Create('AllowanceTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName("Inv. Discount Amount")))));
+        MonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName(Amount)) + LineAmounts.Get(SalesCrMemoLine.FieldName("Inv. Discount Amount")) - ItemChargeTotalAmount + ItemChargeAllowanceTotalAmount)));
+        if ItemChargeTotalAmount > 0 then
+            MonetarySummationElement.Add(XmlElement.Create('ChargeTotalAmount', XmlNamespaceRAM, FormatDecimal(ItemChargeTotalAmount)));
+        MonetarySummationElement.Add(XmlElement.Create('AllowanceTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName("Inv. Discount Amount")) + ItemChargeAllowanceTotalAmount)));
         MonetarySummationElement.Add(XmlElement.Create('TaxBasisTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName(Amount)))));
         MonetarySummationElement.Add(XmlElement.Create('TaxTotalAmount', XmlNamespaceRAM, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName("Amount Including VAT")) - LineAmounts.Get(SalesCrMemoLine.FieldName(Amount)))));
         MonetarySummationElement.Add(XmlElement.Create('GrandTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName("Amount Including VAT")))));
@@ -943,7 +1002,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         SupplyChainTradeTransactionElement := XmlElement.Create('SupplyChainTradeTransaction', XmlNamespaceRSM);
         if SalesInvoiceLine.FindSet() then
             repeat
-                InsertInvoiceLine(SupplyChainTradeTransactionElement, SalesInvoiceLine, Currency, CurrencyCode, SalesInvoiceHeader."Prices Including VAT");
+                if not IsItemChargeAllowanceCharge(SalesInvoiceLine."Line No.") then
+                    InsertInvoiceLine(SupplyChainTradeTransactionElement, SalesInvoiceLine, Currency, CurrencyCode, SalesInvoiceHeader."Prices Including VAT");
             until SalesInvoiceLine.Next() = 0;
         InsertApplicableHeaderTradeAgreement(SupplyChainTradeTransactionElement, SalesInvoiceHeader);
         InsertApplicableHeaderTradeDelivery(SupplyChainTradeTransactionElement, SalesInvoiceHeader);
@@ -1029,14 +1089,13 @@ codeunit 13917 "Export ZUGFeRD Document"
 
             SpecifiedLineTradeAgreementElement := XmlElement.Create('SpecifiedLineTradeAgreement', XmlNamespaceRAM);
             NetPriceProductTradePriceElement := XmlElement.Create('NetPriceProductTradePrice', XmlNamespaceRAM);
-            ChargeAmountElement := XmlElement.Create('ChargeAmount', XmlNamespaceRAM, FormatDecimalUnlimited(SalesInvoiceLine."Unit Price"));
+            ChargeAmountElement := XmlElement.Create('ChargeAmount', XmlNamespaceRAM, FormatDecimalUnlimited(GetInvoiceLineUnitPrice(SalesInvoiceLine)));
             NetPriceProductTradePriceElement.Add(ChargeAmountElement);
             SpecifiedLineTradeAgreementElement.Add(NetPriceProductTradePriceElement);
             InvoiceLineElement.Add(SpecifiedLineTradeAgreementElement);
 
             SpecifiedLineTradeDeliveryElement := XmlElement.Create('SpecifiedLineTradeDelivery', XmlNamespaceRAM);
-            BilledQuantityElement := XmlElement.Create('BilledQuantity', XmlNamespaceRAM, FormatDecimalUnlimited(SalesInvoiceLine.Quantity));
-            BilledQuantityElement.SetAttribute('unitCode', GetUoMCode(SalesInvoiceLine."Unit of Measure Code"));
+            BilledQuantityElement := CreateBilledQuantityElement(SalesInvoiceLine);
             SpecifiedLineTradeDeliveryElement.Add(BilledQuantityElement);
             InvoiceLineElement.Add(SpecifiedLineTradeDeliveryElement);
 
@@ -1055,9 +1114,10 @@ codeunit 13917 "Export ZUGFeRD Document"
             if SalesInvoiceLine."Line Discount Amount" <> 0 then
                 InsertAllowanceCharge(SpecifiedLineTradeSettlementElement, 'Line Discount', GetTaxCategoryID(SalesInvoiceLine."Tax Category", SalesInvoiceLine."VAT Bus. Posting Group",
                     SalesInvoiceLine."VAT Prod. Posting Group"), SalesInvoiceLine."Line Discount Amount", SalesInvoiceLine."VAT %", false);
+            InsertLineLevelItemChargeAllowanceCharges(SpecifiedLineTradeSettlementElement, SalesInvoiceLine);
 
             SpecifiedTradeSettlementLineMonetarySummationElement := XmlElement.Create('SpecifiedTradeSettlementLineMonetarySummation', XmlNamespaceRAM);
-            SpecifiedTradeSettlementLineMonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(SalesInvoiceLine.Amount + SalesInvoiceLine."Inv. Discount Amount")));
+            SpecifiedTradeSettlementLineMonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(SalesInvoiceLine.Amount + SalesInvoiceLine."Inv. Discount Amount" + GetLineLevelItemChargeAmount(SalesInvoiceLine))));
             SpecifiedLineTradeSettlementElement.Add(SpecifiedTradeSettlementLineMonetarySummationElement);
 
             InvoiceLineElement.Add(SpecifiedLineTradeSettlementElement);
@@ -1073,7 +1133,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         SupplyChainTradeTransactionElement := XmlElement.Create('SupplyChainTradeTransaction', XmlNamespaceRSM);
         if SalesCrMemoLine.FindSet() then
             repeat
-                InsertCrMemoLine(SupplyChainTradeTransactionElement, SalesCrMemoLine, Currency, CurrencyCode, SalesCrMemoHeader."Prices Including VAT");
+                if not IsItemChargeAllowanceCharge(SalesCrMemoLine."Line No.") then
+                    InsertCrMemoLine(SupplyChainTradeTransactionElement, SalesCrMemoLine, Currency, CurrencyCode, SalesCrMemoHeader."Prices Including VAT");
             until SalesCrMemoLine.Next() = 0;
         InsertApplicableHeaderTradeAgreement(SupplyChainTradeTransactionElement, SalesCrMemoHeader);
         InsertApplicableHeaderTradeDelivery(SupplyChainTradeTransactionElement, SalesCrMemoHeader);
@@ -1119,14 +1180,13 @@ codeunit 13917 "Export ZUGFeRD Document"
 
             SpecifiedLineTradeAgreementElement := XmlElement.Create('SpecifiedLineTradeAgreement', XmlNamespaceRAM);
             NetPriceProductTradePriceElement := XmlElement.Create('NetPriceProductTradePrice', XmlNamespaceRAM);
-            ChargeAmountElement := XmlElement.Create('ChargeAmount', XmlNamespaceRAM, FormatDecimalUnlimited(SalesCrMemoLine."Unit Price"));
+            ChargeAmountElement := XmlElement.Create('ChargeAmount', XmlNamespaceRAM, FormatDecimalUnlimited(GetInvoiceLineUnitPrice(SalesCrMemoLine)));
             NetPriceProductTradePriceElement.Add(ChargeAmountElement);
             SpecifiedLineTradeAgreementElement.Add(NetPriceProductTradePriceElement);
             CrMemoLineElement.Add(SpecifiedLineTradeAgreementElement);
 
             SpecifiedLineTradeDeliveryElement := XmlElement.Create('SpecifiedLineTradeDelivery', XmlNamespaceRAM);
-            BilledQuantityElement := XmlElement.Create('BilledQuantity', XmlNamespaceRAM, FormatDecimalUnlimited(SalesCrMemoLine.Quantity));
-            BilledQuantityElement.SetAttribute('unitCode', GetUoMCode(SalesCrMemoLine."Unit of Measure Code"));
+            BilledQuantityElement := CreateBilledQuantityElement(SalesCrMemoLine);
             SpecifiedLineTradeDeliveryElement.Add(BilledQuantityElement);
             CrMemoLineElement.Add(SpecifiedLineTradeDeliveryElement);
 
@@ -1145,8 +1205,10 @@ codeunit 13917 "Export ZUGFeRD Document"
             if SalesCrMemoLine."Line Discount Amount" <> 0 then
                 InsertAllowanceCharge(SpecifiedLineTradeSettlementElement, 'Line Discount', GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group",
                     SalesCrMemoLine."VAT Prod. Posting Group"), SalesCrMemoLine."Line Discount Amount", SalesCrMemoLine."VAT %", false);
+            InsertLineLevelItemChargeAllowanceCharges(SpecifiedLineTradeSettlementElement, SalesCrMemoLine);
+
             SpecifiedTradeSettlementLineMonetarySummationElement := XmlElement.Create('SpecifiedTradeSettlementLineMonetarySummation', XmlNamespaceRAM);
-            SpecifiedTradeSettlementLineMonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount")));
+            SpecifiedTradeSettlementLineMonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount" + GetLineLevelItemChargeAmount(SalesCrMemoLine))));
             SpecifiedLineTradeSettlementElement.Add(SpecifiedTradeSettlementLineMonetarySummationElement);
 
             CrMemoLineElement.Add(SpecifiedLineTradeSettlementElement);
@@ -1155,7 +1217,26 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
     end;
 
-    local procedure InsertPaymentTerms(var RootXMLNode: XmlElement; PaymentTermsCode: Code[10]; DueDate: Date)
+    local procedure InsertCreditorReference(var SettlementElement: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20])
+    var
+        CreditorNo: Code[35];
+    begin
+        if not DEPaymentMeansHelper.IsDirectDebit(DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode)) then
+            exit;
+        CreditorNo := DEPaymentMeansHelper.GetCreditorNo(CompanyBankAccountCode);
+        if CreditorNo = '' then
+            exit;
+        SettlementElement.Add(XmlElement.Create('CreditorReferenceID', XmlNamespaceRAM, CreditorNo));
+    end;
+
+    local procedure GetDirectDebitMandateID(PaymentMethodCode: Code[10]; DirectDebitMandateID: Code[35]): Code[35]
+    begin
+        if DEPaymentMeansHelper.IsDirectDebit(DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode)) then
+            exit(DirectDebitMandateID);
+        exit('');
+    end;
+
+    local procedure InsertPaymentTerms(var RootXMLNode: XmlElement; PaymentTermsCode: Code[10]; DueDate: Date; DirectDebitMandateID: Code[35])
     var
         PaymentTerms: Record "Payment Terms";
         PaymentTermsElement: XmlElement;
@@ -1172,32 +1253,104 @@ codeunit 13917 "Export ZUGFeRD Document"
         DueDateElement := XmlElement.Create('DueDateDateTime', XmlNamespaceRAM);
         DueDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(DueDate)));
         PaymentTermsElement.Add(DueDateElement);
+        // BT-89 Mandate reference identifier. The CII TradePaymentTerms sequence puts DirectDebitMandateID
+        // after DueDateDateTime, so it is added last.
+        if DirectDebitMandateID <> '' then
+            PaymentTermsElement.Add(XmlElement.Create('DirectDebitMandateID', XmlNamespaceRAM, DirectDebitMandateID));
         RootXMLNode.Add(PaymentTermsElement);
     end;
 
-    local procedure InsertPaymentMethod(var RootXMLNode: XmlElement; CompanyBankAccountCode: Code[20])
+    local procedure InsertPaymentMethod(var RootXMLNode: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35]; RecordVariant: Variant)
     var
-        PaymentMethodElement, PaymentMethodTypeCodeElement, PaymentMethodIBANElement, PaymentMethodBICElement : XmlElement;
+        DataTypeManagement: Codeunit "Data Type Management";
+        HeaderRecordRef: RecordRef;
+        PaymentMethodElement, PaymentMethodTypeCodeElement : XmlElement;
+        PaymentMeansCode: Code[3];
+    begin
+        PaymentMeansCode := DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode);
+        PaymentMethodElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', XmlNamespaceRAM);
+        PaymentMethodTypeCodeElement := XmlElement.Create('TypeCode', XmlNamespaceRAM, PaymentMeansCode);
+        PaymentMethodElement.Add(PaymentMethodTypeCodeElement);
+
+        case PaymentMeansCode of
+            '30', '58':
+                InsertCreditTransferPayment(PaymentMethodElement, CompanyBankAccountCode);
+            '49', '59':
+                InsertDirectDebitPayment(PaymentMethodElement, DirectDebitMandateID);
+        end;
+
+        // The original source document, so that a subscriber sees the service header and not the sales header it was transferred to.
+        // The passed header is only used when InsertSupplyChainTradeTransaction is called directly, without CreateXML.
+        if SourceDocumentRecordRef.Number() <> 0 then
+            OnInsertPaymentMethodOnBeforeAddToRoot(PaymentMethodElement, SourceDocumentRecordRef)
+        else
+            if DataTypeManagement.GetRecordRef(RecordVariant, HeaderRecordRef) then
+                OnInsertPaymentMethodOnBeforeAddToRoot(PaymentMethodElement, HeaderRecordRef);
+        RootXMLNode.Add(PaymentMethodElement);
+    end;
+
+    local procedure InsertDirectDebitPayment(var PaymentMethodElement: XmlElement; DirectDebitMandateID: Code[35])
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+    begin
+        // BG-17 CREDIT TRANSFER (PayeePartyCreditorFinancialAccount, PayeeSpecifiedCreditorFinancialInstitution) must not
+        // be sent for direct debit (BR-DE-25-b). The creditor is identified by BT-90 CreditorReferenceID instead.
+
+        // BT-91 PayerPartyDebtorFinancialAccount = account being charged (customer, direct debit only), resolved via the mandate.
+        if DirectDebitMandateID <> '' then begin
+            SEPADirectDebitMandate.SetLoadFields(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code");
+            if SEPADirectDebitMandate.Get(DirectDebitMandateID) then begin
+                CustomerBankAccount.SetLoadFields(CustomerBankAccount.IBAN);
+                if CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
+                    AddDebtorAccount(PaymentMethodElement, CustomerBankAccount.IBAN);
+            end;
+        end;
+    end;
+
+    local procedure InsertCreditTransferPayment(var PaymentMethodElement: XmlElement; CompanyBankAccountCode: Code[20])
+    var
         IBAN: Text[50];
         SWIFTCode: Code[20];
     begin
+        // PayeePartyCreditorFinancialAccount = company bank account (payment recipient), for invoices and credit memos alike.
+        // Customer bank data is intentionally not used as payee here, even though a customer IBAN/BIC could technically be read
         GetBankAccountPaymentDetails(CompanyBankAccountCode, IBAN, SWIFTCode);
-        PaymentMethodElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', XmlNamespaceRAM);
-        PaymentMethodTypeCodeElement := XmlElement.Create('TypeCode', XmlNamespaceRAM, '58'); //generic for Credit transfer
-        PaymentMethodElement.Add(PaymentMethodTypeCodeElement);
+        AddCreditorAccount(PaymentMethodElement, IBAN);
+        AddCreditorFinancialInstitution(PaymentMethodElement, SWIFTCode);
+    end;
 
-        if IBAN <> '' then begin
-            PaymentMethodIBANElement := XmlElement.Create('PayeePartyCreditorFinancialAccount', XmlNamespaceRAM);
-            PaymentMethodIBANElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
-            PaymentMethodElement.Add(PaymentMethodIBANElement);
-        end;
+    local procedure AddCreditorAccount(var PaymentMethodElement: XmlElement; IBAN: Text[50])
+    var
+        PaymentMethodIBANElement: XmlElement;
+    begin
+        if IBAN = '' then
+            exit;
+        PaymentMethodIBANElement := XmlElement.Create('PayeePartyCreditorFinancialAccount', XmlNamespaceRAM);
+        PaymentMethodIBANElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
+        PaymentMethodElement.Add(PaymentMethodIBANElement);
+    end;
 
-        if SWIFTCode <> '' then begin
-            PaymentMethodBICElement := XmlElement.Create('PayeeSpecifiedCreditorFinancialInstitution', XmlNamespaceRAM);
-            PaymentMethodBICElement.Add(XmlElement.Create('BICID', XmlNamespaceRAM, GetIBAN(SWIFTCode)));
-            PaymentMethodElement.Add(PaymentMethodBICElement);
-        end;
-        RootXMLNode.Add(PaymentMethodElement);
+    local procedure AddDebtorAccount(var PaymentMethodElement: XmlElement; IBAN: Text[50])
+    var
+        DebtorAccountElement: XmlElement;
+    begin
+        if IBAN = '' then
+            exit;
+        DebtorAccountElement := XmlElement.Create('PayerPartyDebtorFinancialAccount', XmlNamespaceRAM);
+        DebtorAccountElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
+        PaymentMethodElement.Add(DebtorAccountElement);
+    end;
+
+    local procedure AddCreditorFinancialInstitution(var PaymentMethodElement: XmlElement; SWIFTCode: Code[20])
+    var
+        PaymentMethodBICElement: XmlElement;
+    begin
+        if SWIFTCode = '' then
+            exit;
+        PaymentMethodBICElement := XmlElement.Create('PayeeSpecifiedCreditorFinancialInstitution', XmlNamespaceRAM);
+        PaymentMethodBICElement.Add(XmlElement.Create('BICID', XmlNamespaceRAM, GetIBAN(SWIFTCode)));
+        PaymentMethodElement.Add(PaymentMethodBICElement);
     end;
 
     local procedure InsertInvDiscountAllowanceCharge(var RootXMLNode: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; var LineDiscAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal])
@@ -1342,7 +1495,6 @@ codeunit 13917 "Export ZUGFeRD Document"
     local procedure GetBuyerReference(RecordVariant: Variant): Text
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        EDocDEHelper: Codeunit "E-Document DE Helper";
         DataTypeManagement: Codeunit "Data Type Management";
         HeaderRecordRef: RecordRef;
         BuyerReferenceFieldRef: FieldRef;
@@ -1367,7 +1519,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         BuyerReference := BuyerReferenceFieldRef.Value();
         BillToCustomerNo := CustomerNoFieldRef.Value();
         YourReference := YourReferenceFieldRef.Value();
-        exit(EDocDEHelper.GetBuyerReferenceValue(BuyerReference, BillToCustomerNo, YourReference));
+        exit(EDocumentDEHelper.GetBuyerReferenceValue(BuyerReference, BillToCustomerNo, YourReference));
     end;
 
     local procedure GetIBAN(IBAN: Text[50]) IBANFormatted: Text[50]
@@ -1433,6 +1585,406 @@ codeunit 13917 "Export ZUGFeRD Document"
         PhoneNumber := CompanyInformation."Phone No.";
         EmailAddress := CompanyInformation."E-Mail";
     end;
+
+    #region ItemCharge
+    local procedure ClassifyItemCharges(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line")
+    var
+        ChargeSalesInvLine: Record "Sales Invoice Line";
+        TargetSalesInvLine: Record "Sales Invoice Line";
+        Structure: Enum "Item Charge E-Doc. Structure";
+        ExportedLineExists: Boolean;
+    begin
+        ClearItemChargeClassification();
+
+        ChargeSalesInvLine.CopyFilters(SalesInvLine);
+        ChargeSalesInvLine.SetRange(Type, ChargeSalesInvLine.Type::"Charge (Item)");
+        if not ChargeSalesInvLine.FindSet() then
+            exit;
+
+        ExportedLineExists := ExportedNonChargeLineExists(SalesInvLine);
+
+        repeat
+            Structure := EDocItemChargeMapping.GetItemChargeStructure(EDocumentService, SalesInvoiceHeader, ChargeSalesInvLine, TargetSalesInvLine);
+            // The export skips lines that the classification cannot see, such as lines without a number, without a
+            // quantity, or removed by a subscriber. Turning the item charges into allowances/charges would then leave
+            // the document without any invoice line, which BR-16 does not allow.
+            if not ExportedLineExists then
+                Structure := Structure::"Line with Unit Code";
+            // A line level allowance/charge needs an invoice line to live in. Without one it degrades to document level, so that the charge is never lost.
+            if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesInvLine, TargetSalesInvLine."Line No.") then
+                Structure := Structure::"Document Allowance/Charge";
+            ItemChargeStructures.Add(ChargeSalesInvLine."Line No.", Structure.AsInteger());
+            if Structure = Structure::"Line Allowance/Charge" then
+                AddLineLevelItemCharge(TargetSalesInvLine."Line No.", ChargeSalesInvLine."Line No.", ChargeSalesInvLine.Amount);
+        until ChargeSalesInvLine.Next() = 0;
+    end;
+
+    local procedure ClassifyItemCharges(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    var
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TargetSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        Structure: Enum "Item Charge E-Doc. Structure";
+        ExportedLineExists: Boolean;
+    begin
+        ClearItemChargeClassification();
+
+        ChargeSalesCrMemoLine.CopyFilters(SalesCrMemoLine);
+        ChargeSalesCrMemoLine.SetRange(Type, ChargeSalesCrMemoLine.Type::"Charge (Item)");
+        if not ChargeSalesCrMemoLine.FindSet() then
+            exit;
+
+        ExportedLineExists := ExportedNonChargeLineExists(SalesCrMemoLine);
+
+        repeat
+            Structure := EDocItemChargeMapping.GetItemChargeStructure(EDocumentService, SalesCrMemoHeader, ChargeSalesCrMemoLine, TargetSalesCrMemoLine);
+            // The export skips lines that the classification cannot see, such as lines without a number, without a
+            // quantity, or removed by a subscriber. Turning the item charges into allowances/charges would then leave
+            // the document without any credit memo line, which BR-16 does not allow.
+            if not ExportedLineExists then
+                Structure := Structure::"Line with Unit Code";
+            // A line level allowance/charge needs a credit memo line to live in. Without one it degrades to document level, so that the charge is never lost.
+            if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesCrMemoLine, TargetSalesCrMemoLine."Line No.") then
+                Structure := Structure::"Document Allowance/Charge";
+            ItemChargeStructures.Add(ChargeSalesCrMemoLine."Line No.", Structure.AsInteger());
+            if Structure = Structure::"Line Allowance/Charge" then
+                AddLineLevelItemCharge(TargetSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine.Amount);
+        until ChargeSalesCrMemoLine.Next() = 0;
+    end;
+
+    local procedure ClearItemChargeClassification()
+    begin
+        Clear(ItemChargeStructures);
+        Clear(LineLevelItemChargeAmounts);
+        Clear(LineLevelItemChargeLineNos);
+    end;
+
+    local procedure AddLineLevelItemCharge(TargetLineNo: Integer; ChargeLineNo: Integer; ChargeAmount: Decimal)
+    var
+        ChargeLineNos: List of [Integer];
+    begin
+        if LineLevelItemChargeAmounts.ContainsKey(TargetLineNo) then
+            LineLevelItemChargeAmounts.Set(TargetLineNo, LineLevelItemChargeAmounts.Get(TargetLineNo) + ChargeAmount)
+        else
+            LineLevelItemChargeAmounts.Add(TargetLineNo, ChargeAmount);
+
+        if not LineLevelItemChargeLineNos.Get(TargetLineNo, ChargeLineNos) then
+            LineLevelItemChargeLineNos.Add(TargetLineNo, ChargeLineNos);
+        ChargeLineNos.Add(ChargeLineNo);
+    end;
+
+    local procedure ExportedNonChargeLineExists(var SalesInvLine: Record "Sales Invoice Line"): Boolean
+    var
+        ExportedSalesInvLine: Record "Sales Invoice Line";
+    begin
+        ExportedSalesInvLine.CopyFilters(SalesInvLine);
+        ExportedSalesInvLine.SetFilter(Type, '<>%1', ExportedSalesInvLine.Type::"Charge (Item)");
+        exit(not ExportedSalesInvLine.IsEmpty());
+    end;
+
+    local procedure ExportedNonChargeLineExists(var SalesCrMemoLine: Record "Sales Cr.Memo Line"): Boolean
+    var
+        ExportedSalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        ExportedSalesCrMemoLine.CopyFilters(SalesCrMemoLine);
+        ExportedSalesCrMemoLine.SetFilter(Type, '<>%1', ExportedSalesCrMemoLine.Type::"Charge (Item)");
+        exit(not ExportedSalesCrMemoLine.IsEmpty());
+    end;
+
+    local procedure IsExportedLine(var SalesInvLine: Record "Sales Invoice Line"; LineNo: Integer): Boolean
+    var
+        ExportedSalesInvLine: Record "Sales Invoice Line";
+    begin
+        if LineNo = 0 then
+            exit(false);
+        ExportedSalesInvLine.CopyFilters(SalesInvLine);
+        ExportedSalesInvLine.SetRange("Line No.", LineNo);
+        exit(not ExportedSalesInvLine.IsEmpty());
+    end;
+
+    local procedure IsExportedLine(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; LineNo: Integer): Boolean
+    var
+        ExportedSalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        if LineNo = 0 then
+            exit(false);
+        ExportedSalesCrMemoLine.CopyFilters(SalesCrMemoLine);
+        ExportedSalesCrMemoLine.SetRange("Line No.", LineNo);
+        exit(not ExportedSalesCrMemoLine.IsEmpty());
+    end;
+
+    local procedure InsertItemChargeAllowanceCharges(var SettlementElement: XmlElement; var SalesInvLine: Record "Sales Invoice Line")
+    var
+        ChargeSalesInvLine: Record "Sales Invoice Line";
+    begin
+        if ItemChargeStructures.Count() = 0 then
+            exit;
+
+        ChargeSalesInvLine.CopyFilters(SalesInvLine);
+        ChargeSalesInvLine.SetRange(Type, ChargeSalesInvLine.Type::"Charge (Item)");
+        if not ChargeSalesInvLine.FindSet() then
+            exit;
+
+        repeat
+            if IsDocumentLevelItemCharge(ChargeSalesInvLine."Line No.") then
+                InsertItemChargeAllowanceCharge(SettlementElement, ChargeSalesInvLine, true);
+        until ChargeSalesInvLine.Next() = 0;
+    end;
+
+    local procedure InsertItemChargeAllowanceCharges(var SettlementElement: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    var
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        if ItemChargeStructures.Count() = 0 then
+            exit;
+
+        ChargeSalesCrMemoLine.CopyFilters(SalesCrMemoLine);
+        ChargeSalesCrMemoLine.SetRange(Type, ChargeSalesCrMemoLine.Type::"Charge (Item)");
+        if not ChargeSalesCrMemoLine.FindSet() then
+            exit;
+
+        repeat
+            if IsDocumentLevelItemCharge(ChargeSalesCrMemoLine."Line No.") then
+                InsertItemChargeAllowanceCharge(SettlementElement, ChargeSalesCrMemoLine, true);
+        until ChargeSalesCrMemoLine.Next() = 0;
+    end;
+
+    local procedure InsertLineLevelItemChargeAllowanceCharges(var LineTradeSettlementElement: XmlElement; var SalesInvLine: Record "Sales Invoice Line")
+    var
+        ChargeSalesInvLine: Record "Sales Invoice Line";
+        ChargeLineNos: List of [Integer];
+        ChargeLineNo: Integer;
+    begin
+        if not LineLevelItemChargeLineNos.Get(SalesInvLine."Line No.", ChargeLineNos) then
+            exit;
+
+        foreach ChargeLineNo in ChargeLineNos do begin
+            ChargeSalesInvLine.Get(SalesInvLine."Document No.", ChargeLineNo);
+            InsertItemChargeAllowanceCharge(LineTradeSettlementElement, ChargeSalesInvLine, false);
+        end;
+    end;
+
+    local procedure InsertLineLevelItemChargeAllowanceCharges(var LineTradeSettlementElement: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    var
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        ChargeLineNos: List of [Integer];
+        ChargeLineNo: Integer;
+    begin
+        if not LineLevelItemChargeLineNos.Get(SalesCrMemoLine."Line No.", ChargeLineNos) then
+            exit;
+
+        foreach ChargeLineNo in ChargeLineNos do begin
+            ChargeSalesCrMemoLine.Get(SalesCrMemoLine."Document No.", ChargeLineNo);
+            InsertItemChargeAllowanceCharge(LineTradeSettlementElement, ChargeSalesCrMemoLine, false);
+        end;
+    end;
+
+    local procedure InsertItemChargeAllowanceCharge(var ParentXMLNode: XmlElement; ChargeSalesInvLine: Record "Sales Invoice Line"; InsertCategoryTax: Boolean)
+    var
+        AllowanceChargeElement: XmlElement;
+        ReasonCode: Code[10];
+        ReasonText: Text[100];
+    begin
+        GetItemChargeReason(ChargeSalesInvLine, ReasonCode, ReasonText);
+        AllowanceChargeElement := XmlElement.Create('SpecifiedTradeAllowanceCharge', XmlNamespaceRAM);
+        AllowanceChargeElement.Add(
+            XmlElement.Create('ChargeIndicator', XmlNamespaceRAM,
+                XmlElement.Create('Indicator', XmlNamespaceUDT, EDocumentDEHelper.IsCharge(ChargeSalesInvLine.Amount))));
+        AllowanceChargeElement.Add(XmlElement.Create('ActualAmount', XmlNamespaceRAM, FormatDecimal(EDocumentDEHelper.GetReportedAmount(ChargeSalesInvLine.Amount))));
+        if ReasonCode <> '' then
+            AllowanceChargeElement.Add(XmlElement.Create('ReasonCode', XmlNamespaceRAM, ReasonCode));
+        AllowanceChargeElement.Add(XmlElement.Create('Reason', XmlNamespaceRAM, ReasonText));
+        if InsertCategoryTax then
+            InsertCategoryTradeTax(
+                AllowanceChargeElement,
+                GetTaxCategoryID(ChargeSalesInvLine."Tax Category", ChargeSalesInvLine."VAT Bus. Posting Group", ChargeSalesInvLine."VAT Prod. Posting Group"),
+                FormatFiveDecimal(ChargeSalesInvLine."VAT %"));
+        ParentXMLNode.Add(AllowanceChargeElement);
+    end;
+
+    local procedure InsertItemChargeAllowanceCharge(var ParentXMLNode: XmlElement; ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line"; InsertCategoryTax: Boolean)
+    var
+        AllowanceChargeElement: XmlElement;
+        ReasonCode: Code[10];
+        ReasonText: Text[100];
+    begin
+        GetItemChargeReason(ChargeSalesCrMemoLine, ReasonCode, ReasonText);
+        AllowanceChargeElement := XmlElement.Create('SpecifiedTradeAllowanceCharge', XmlNamespaceRAM);
+        AllowanceChargeElement.Add(
+            XmlElement.Create('ChargeIndicator', XmlNamespaceRAM,
+                XmlElement.Create('Indicator', XmlNamespaceUDT, EDocumentDEHelper.IsCharge(ChargeSalesCrMemoLine.Amount))));
+        AllowanceChargeElement.Add(XmlElement.Create('ActualAmount', XmlNamespaceRAM, FormatDecimal(EDocumentDEHelper.GetReportedAmount(ChargeSalesCrMemoLine.Amount))));
+        if ReasonCode <> '' then
+            AllowanceChargeElement.Add(XmlElement.Create('ReasonCode', XmlNamespaceRAM, ReasonCode));
+        AllowanceChargeElement.Add(XmlElement.Create('Reason', XmlNamespaceRAM, ReasonText));
+        if InsertCategoryTax then
+            InsertCategoryTradeTax(
+                AllowanceChargeElement,
+                GetTaxCategoryID(ChargeSalesCrMemoLine."Tax Category", ChargeSalesCrMemoLine."VAT Bus. Posting Group", ChargeSalesCrMemoLine."VAT Prod. Posting Group"),
+                FormatFiveDecimal(ChargeSalesCrMemoLine."VAT %"));
+        ParentXMLNode.Add(AllowanceChargeElement);
+    end;
+
+    local procedure GetItemChargeReason(ChargeSalesInvLine: Record "Sales Invoice Line"; var ReasonCode: Code[10]; var ReasonText: Text[100])
+    begin
+        EDocItemChargeMapping.GetItemChargeReason(ChargeSalesInvLine."No.", ReasonCode, ReasonText);
+        if ReasonText = '' then
+            ReasonText := ChargeSalesInvLine.Description;
+        if (ReasonText = '') and (ReasonCode = '') then
+            ReasonText := ChargeSalesInvLine."No.";
+    end;
+
+    local procedure GetItemChargeReason(ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line"; var ReasonCode: Code[10]; var ReasonText: Text[100])
+    begin
+        EDocItemChargeMapping.GetItemChargeReason(ChargeSalesCrMemoLine."No.", ReasonCode, ReasonText);
+        if ReasonText = '' then
+            ReasonText := ChargeSalesCrMemoLine.Description;
+        if (ReasonText = '') and (ReasonCode = '') then
+            ReasonText := ChargeSalesCrMemoLine."No.";
+    end;
+
+    local procedure GetDocumentLevelItemChargeTotals(var SalesInvLine: Record "Sales Invoice Line"; var TotalChargeAmount: Decimal; var TotalAllowanceAmount: Decimal)
+    var
+        ChargeSalesInvLine: Record "Sales Invoice Line";
+    begin
+        TotalChargeAmount := 0;
+        TotalAllowanceAmount := 0;
+        if ItemChargeStructures.Count() = 0 then
+            exit;
+
+        ChargeSalesInvLine.CopyFilters(SalesInvLine);
+        ChargeSalesInvLine.SetRange(Type, ChargeSalesInvLine.Type::"Charge (Item)");
+        if not ChargeSalesInvLine.FindSet() then
+            exit;
+
+        repeat
+            if IsDocumentLevelItemCharge(ChargeSalesInvLine."Line No.") then
+                if EDocumentDEHelper.IsCharge(ChargeSalesInvLine.Amount) then
+                    TotalChargeAmount += EDocumentDEHelper.GetReportedAmount(ChargeSalesInvLine.Amount)
+                else
+                    TotalAllowanceAmount += EDocumentDEHelper.GetReportedAmount(ChargeSalesInvLine.Amount);
+        until ChargeSalesInvLine.Next() = 0;
+    end;
+
+    local procedure GetDocumentLevelItemChargeTotals(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var TotalChargeAmount: Decimal; var TotalAllowanceAmount: Decimal)
+    var
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        TotalChargeAmount := 0;
+        TotalAllowanceAmount := 0;
+        if ItemChargeStructures.Count() = 0 then
+            exit;
+
+        ChargeSalesCrMemoLine.CopyFilters(SalesCrMemoLine);
+        ChargeSalesCrMemoLine.SetRange(Type, ChargeSalesCrMemoLine.Type::"Charge (Item)");
+        if not ChargeSalesCrMemoLine.FindSet() then
+            exit;
+
+        repeat
+            if IsDocumentLevelItemCharge(ChargeSalesCrMemoLine."Line No.") then
+                if EDocumentDEHelper.IsCharge(ChargeSalesCrMemoLine.Amount) then
+                    TotalChargeAmount += EDocumentDEHelper.GetReportedAmount(ChargeSalesCrMemoLine.Amount)
+                else
+                    TotalAllowanceAmount += EDocumentDEHelper.GetReportedAmount(ChargeSalesCrMemoLine.Amount);
+        until ChargeSalesCrMemoLine.Next() = 0;
+    end;
+
+    local procedure GetLineLevelItemChargeAmount(var SalesInvLine: Record "Sales Invoice Line") TotalChargeAmount: Decimal
+    begin
+        if not LineLevelItemChargeAmounts.Get(SalesInvLine."Line No.", TotalChargeAmount) then
+            exit(0);
+    end;
+
+    local procedure GetLineLevelItemChargeAmount(var SalesCrMemoLine: Record "Sales Cr.Memo Line") TotalChargeAmount: Decimal
+    begin
+        if not LineLevelItemChargeAmounts.Get(SalesCrMemoLine."Line No.", TotalChargeAmount) then
+            exit(0);
+    end;
+
+    local procedure CreateBilledQuantityElement(SalesInvoiceLine: Record "Sales Invoice Line") BilledQuantityElement: XmlElement
+    begin
+        if IsItemChargeInvoiceLine(SalesInvoiceLine."Line No.") then begin
+            BilledQuantityElement := XmlElement.Create('BilledQuantity', XmlNamespaceRAM, FormatDecimalUnlimited(EDocItemChargeMapping.GetFallbackQuantity(GetLineNetAmount(SalesInvoiceLine))));
+            BilledQuantityElement.SetAttribute('unitCode', EDocItemChargeMapping.GetFallbackUnitOfMeasureCode(SalesInvoiceLine."No."));
+            exit;
+        end;
+
+        BilledQuantityElement := XmlElement.Create('BilledQuantity', XmlNamespaceRAM, FormatDecimalUnlimited(SalesInvoiceLine.Quantity));
+        BilledQuantityElement.SetAttribute('unitCode', GetUoMCode(SalesInvoiceLine."Unit of Measure Code"));
+    end;
+
+    local procedure CreateBilledQuantityElement(SalesCrMemoLine: Record "Sales Cr.Memo Line") BilledQuantityElement: XmlElement
+    begin
+        if IsItemChargeInvoiceLine(SalesCrMemoLine."Line No.") then begin
+            BilledQuantityElement := XmlElement.Create('BilledQuantity', XmlNamespaceRAM, FormatDecimalUnlimited(EDocItemChargeMapping.GetFallbackQuantity(GetLineNetAmount(SalesCrMemoLine))));
+            BilledQuantityElement.SetAttribute('unitCode', EDocItemChargeMapping.GetFallbackUnitOfMeasureCode(SalesCrMemoLine."No."));
+            exit;
+        end;
+
+        BilledQuantityElement := XmlElement.Create('BilledQuantity', XmlNamespaceRAM, FormatDecimalUnlimited(SalesCrMemoLine.Quantity));
+        BilledQuantityElement.SetAttribute('unitCode', GetUoMCode(SalesCrMemoLine."Unit of Measure Code"));
+    end;
+
+    local procedure GetInvoiceLineUnitPrice(SalesInvoiceLine: Record "Sales Invoice Line"): Decimal
+    begin
+        if not IsItemChargeInvoiceLine(SalesInvoiceLine."Line No.") then
+            exit(SalesInvoiceLine."Unit Price");
+
+        exit(EDocItemChargeMapping.GetFallbackUnitPrice(GetLineNetAmount(SalesInvoiceLine)));
+    end;
+
+    local procedure GetInvoiceLineUnitPrice(SalesCrMemoLine: Record "Sales Cr.Memo Line"): Decimal
+    begin
+        if not IsItemChargeInvoiceLine(SalesCrMemoLine."Line No.") then
+            exit(SalesCrMemoLine."Unit Price");
+
+        exit(EDocItemChargeMapping.GetFallbackUnitPrice(GetLineNetAmount(SalesCrMemoLine)));
+    end;
+
+    local procedure GetLineNetAmount(SalesInvoiceLine: Record "Sales Invoice Line"): Decimal
+    begin
+        exit(SalesInvoiceLine.Amount + SalesInvoiceLine."Inv. Discount Amount");
+    end;
+
+    local procedure GetLineNetAmount(SalesCrMemoLine: Record "Sales Cr.Memo Line"): Decimal
+    begin
+        exit(SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount");
+    end;
+
+    local procedure IsItemChargeAllowanceCharge(LineNo: Integer): Boolean
+    var
+        Structure: Enum "Item Charge E-Doc. Structure";
+    begin
+        if not TryGetItemChargeStructure(LineNo, Structure) then
+            exit(false);
+        exit(Structure <> Structure::"Line with Unit Code");
+    end;
+
+    local procedure IsItemChargeInvoiceLine(LineNo: Integer): Boolean
+    var
+        Structure: Enum "Item Charge E-Doc. Structure";
+    begin
+        if not TryGetItemChargeStructure(LineNo, Structure) then
+            exit(false);
+        exit(Structure = Structure::"Line with Unit Code");
+    end;
+
+    local procedure IsDocumentLevelItemCharge(LineNo: Integer): Boolean
+    var
+        Structure: Enum "Item Charge E-Doc. Structure";
+    begin
+        if not TryGetItemChargeStructure(LineNo, Structure) then
+            exit(false);
+        exit(Structure = Structure::"Document Allowance/Charge");
+    end;
+
+    local procedure TryGetItemChargeStructure(LineNo: Integer; var Structure: Enum "Item Charge E-Doc. Structure"): Boolean
+    begin
+        if not ItemChargeStructures.ContainsKey(LineNo) then
+            exit(false);
+        Structure := Enum::"Item Charge E-Doc. Structure".FromInteger(ItemChargeStructures.Get(LineNo));
+        exit(true);
+    end;
+    #endregion
 
     #region CommonFunctions
     local procedure GetSetups()
@@ -1535,12 +2087,44 @@ codeunit 13917 "Export ZUGFeRD Document"
         exit(VATPostingSetup."Tax Category");
     end;
 
+    procedure SetEDocumentService(NewEDocumentService: Record "E-Document Service")
+    begin
+        EDocumentService := NewEDocumentService;
+#if not CLEAN30
+        EDocumentServiceProvided := true;
+#endif
+    end;
+
+    local procedure ResetProvidedService()
+    begin
+        // Clear the per-instance service state at the end of every run so a reused instance never carries
+        // the service provided for an earlier export into a later export that does not provide one.
+        Clear(EDocumentService);
+#if not CLEAN30
+        EDocumentServiceProvided := false;
+#endif
+    end;
+
+#if not CLEAN30
+#pragma warning disable AA0228, AL0432
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService (threaded via "ZUGFeRD Export Context"). This function is still called on every export until CLEAN30: when a service was provided it only raises OnAfterFindEDocumentService without overwriting that service, otherwise it performs the legacy FindLast lookup. As of CLEAN30 this function and that fallback are removed, so any caller that does not provide a service - for example a customized sales report that never sets the ZUGFeRD Export Context - then exports with a blank E-Document Service.', '30.0')]
     local procedure FindEDocumentService()
     begin
+        // A service provided through SetEDocumentService is the service that triggered the export -
+        // never overwrite it with a lookup, but still raise the event so existing subscribers keep working.
+        // When nothing was provided (for example a customized report that does not use the context)
+        // the original lookup runs unchanged.
+        if EDocumentServiceProvided then begin
+            OnAfterFindEDocumentService(EDocumentService);
+            exit;
+        end;
+
         EDocumentService.SetRange("Document Format", EDocumentService."Document Format"::ZUGFeRD);
         if EDocumentService.FindLast() then;
         OnAfterFindEDocumentService(EDocumentService);
     end;
+#pragma warning restore AA0228, AL0432
+#endif
 
     local procedure GetBankAccountPaymentDetails(BankAccountCode: Code[20]; var IBAN: Text[50]; var SWIFTCode: Code[20])
     var
@@ -1558,10 +2142,15 @@ codeunit 13917 "Export ZUGFeRD Document"
     end;
     #endregion
 
+#if not CLEAN30
+#pragma warning disable AA0228
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService (threaded via "ZUGFeRD Export Context"). This event is STILL raised on every export until CLEAN30 - both when a service was provided and on the legacy FindLast lookup path - so existing subscribers keep working during the deprecation window. It no longer exists as of CLEAN30; move any logic that depends on it to the service provided through SetEDocumentService.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service")
     begin
     end;
+#pragma warning restore AA0228
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertSalesInvHeaderData(var XMLCurrNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -1650,6 +2239,15 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertApplicableHeaderTradeAgreement(var HeaderTradeAgreementElement: XmlElement; HeaderRecordRef: RecordRef)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires immediately before the generated payment means element is added to the document root.
+    /// Subscribe to inspect or extend the payment block, using HeaderRecRef to access any field of the source document.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertPaymentMethodOnBeforeAddToRoot(var PaymentMethodElement: XmlElement; HeaderRecRef: RecordRef)
     begin
     end;
 

@@ -46,7 +46,7 @@ codeunit 6908 "Expense Event Subscriber"
         EmailChangeWarningQst: Label 'Employee %1 has existing expenses. Changing the email address may make these expenses inaccessible to them in the expense app. Do you want to continue?', Comment = '%1 = Employee No.';
         PolicyNotAcknowledgedErr: Label 'You must acknowledge the travel policy before releasing the %1.', Comment = '%1 = document type description';
         NoTravelersErr: Label 'You must add at least one traveler before releasing the %1.', Comment = '%1 = document type description';
-        DestinationRequiredErr: Label '%1 is required for international travel.', Comment = '%1 = Field Caption';
+        TravelerNotEmployeeErr: Label 'Traveler %1 must be an expense user linked to an employee before you can release the %2.', Comment = '%1 = Expense User No., %2 = document type description';
         FieldRequiredBeforeReleaseErr: Label 'You must specify %1 before releasing the %2.', Comment = '%1 = Field Caption, %2 = document type description';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Instruction Mgt.", OnShowPostedDocumentOnBeforePageRun, '', false, false)]
@@ -305,17 +305,43 @@ codeunit 6908 "Expense Event Subscriber"
         if not SpendRequest."Travel Policy Acknowledgment" then
             Error(PolicyNotAcknowledgedErr, SpendRequest.GetDocumentTypeDescription());
 
-        if SpendRequest."International Travel" and (SpendRequest."Dest. Country/Region Code" = '') then
-            Error(DestinationRequiredErr, SpendRequest.FieldCaption("Dest. Country/Region Code"));
+        if SpendRequest."Per Diem Included" then begin
+            if SpendRequest."Expense Location" = '' then
+                Error(FieldRequiredBeforeReleaseErr, SpendRequest.FieldCaption("Expense Location"), SpendRequest.GetDocumentTypeDescription());
+            if SpendRequest."Actual Start Date and Time" = 0DT then
+                Error(FieldRequiredBeforeReleaseErr, SpendRequest.FieldCaption("Actual Start Date and Time"), SpendRequest.GetDocumentTypeDescription());
+            if SpendRequest."Actual End Date and Time" = 0DT then
+                Error(FieldRequiredBeforeReleaseErr, SpendRequest.FieldCaption("Actual End Date and Time"), SpendRequest.GetDocumentTypeDescription());
+        end;
+        SpendRequest.CheckExpenseLocation();
+        SpendRequest.CheckActualDateTimes();
 
         Traveler.SetRange("Spend Request No.", SpendRequest."No.");
         if Traveler.IsEmpty() then
             Error(NoTravelersErr, SpendRequest.GetDocumentTypeDescription());
+
+        CheckTravelersAreEmployees(SpendRequest);
+    end;
+
+    local procedure CheckTravelersAreEmployees(SpendRequest: Record "Spend Request")
+    var
+        Traveler: Record Traveler;
+    begin
+        // Each traveler receives an expense report when the travel request is approved, which requires an employee.
+        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Traveler.SetLoadFields("Expense User No.");
+        Traveler.SetAutoCalcFields("Employee No.");
+        Traveler.FindSet();
+        repeat
+            if Traveler."Employee No." = '' then
+                Error(TravelerNotEmployeeErr, Traveler."Expense User No.", SpendRequest.GetDocumentTypeDescription());
+        until Traveler.Next() = 0;
     end;
 
     local procedure AutoApproveSpendRequestWhenAgentDisabled(var SpendRequest: Record "Spend Request")
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
         if SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request" then
             exit;
@@ -323,12 +349,11 @@ codeunit 6908 "Expense Event Subscriber"
         if SpendRequest.Status <> SpendRequest.Status::Released then
             exit;
 
-        // Without the agent there is no approver, so a released request is approved right away.
+        // Without the agent there is no approver, so a Releaseted request is approved right away.
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Enable Agent" then
             exit;
 
-        SpendRequest.Status := SpendRequest.Status::Approved;
-        SpendRequest.Modify();
+        TravelRequestApproval.ApproveAutomatically(SpendRequest);
     end;
 }

@@ -25,6 +25,8 @@ page 7102 "Spend Request Details API"
     SourceTable = "Spend Request Detail";
     AboutText = 'Provides access to data from the Spend Request Detail table';
     AutoSplitKey = true;
+    Permissions = tabledata "Spend Request Detail" = rimd,
+                  tabledata "Spend Request" = rm;
 
     layout
     {

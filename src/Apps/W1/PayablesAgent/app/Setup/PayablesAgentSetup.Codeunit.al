@@ -183,10 +183,18 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     procedure GetOrCreateAgentEDocumentService() EDocumentService: Record "E-Document Service"
+    var
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
         if not EDocumentService.Get(PayablesAgentEDocServiceTok) then begin
             EDocumentService.Code := PayablesAgentEDocServiceTok;
             EDocumentService.Insert(true);
+
+            EDocServiceSupportedType.Init();
+            EDocServiceSupportedType."E-Document Service Code" := EDocumentService.Code;
+            EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
+            EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
+            EDocServiceSupportedType.Insert(false);
         end;
     end;
 
@@ -614,10 +622,10 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     /// <summary>
-    /// Returns the list of user security IDs that have created posted purchase invoices in the past 30 days.
+    /// Returns the list of non-agent user security IDs that have created posted purchase invoices in the past 30 days.
     /// This is used as a heuristic to determine which users should be given access to the agent.
     /// </summary>
-    /// <returns>List of user security IDs that have created posted purchase invoices in the past 30 days.</returns>
+    /// <returns>List of non-agent user security IDs that have created posted purchase invoices in the past 30 days.</returns>
     internal procedure GetUsersThatHaveCreatedPostedPurchInvoice(): List of [Guid]
     var
         User: Record User;
@@ -630,7 +638,8 @@ codeunit 3307 "Payables Agent Setup"
         PAPostedPurchInvUsers.Open();
         while PAPostedPurchInvUsers.Read() do
             if User.Get(PAPostedPurchInvUsers.SystemCreatedBy) then
-                Users.Add(PAPostedPurchInvUsers.SystemCreatedBy);
+                if User."License Type" <> User."License Type"::Agent then
+                    Users.Add(PAPostedPurchInvUsers.SystemCreatedBy);
         PAPostedPurchInvUsers.Close();
         exit(Users);
     end;

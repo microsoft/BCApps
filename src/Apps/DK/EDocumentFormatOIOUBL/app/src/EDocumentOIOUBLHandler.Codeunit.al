@@ -35,7 +35,7 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
     /// <param name="EDocument">The E-Document record that contains the document metadata and information.</param>
     /// <param name="TempBlob">A temporary blob containing the XML document stream to be processed.</param>
     /// <returns>Returns an enum indicating that the process resulted in a purchase document draft.</returns>
-    internal procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
+    procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         OIOUBLXml: XmlDocument;
@@ -82,7 +82,7 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
     /// </summary>
     /// <param name="EDocument">The E-Document record that contains the document to be displayed.</param>
     /// <param name="TempBlob">A temporary blob containing the document data (not used in current implementation).</param>
-    internal procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
+    procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     var
         EDocPurchaseHeader: Record "E-Document Purchase Header";
         EDocPurchaseLine: Record "E-Document Purchase Line";
@@ -141,7 +141,7 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
         EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:PaymentMeans/cbc:PaymentDueDate', EDocumentPurchaseHeader."Due Date");
         EDocumentXMLHelper.SetCurrencyValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
-        EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Applies-to Ext. Invoice No."), EDocumentPurchaseHeader."Applies-to Ext. Invoice No.");
+        EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Vendor Invoice No."), EDocumentPurchaseHeader."Vendor Invoice No.");
 #pragma warning restore AA0139
         EDocumentXMLHelper.SetNumberValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
         EDocumentXMLHelper.SetNumberValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', EDocumentPurchaseHeader.Total);
