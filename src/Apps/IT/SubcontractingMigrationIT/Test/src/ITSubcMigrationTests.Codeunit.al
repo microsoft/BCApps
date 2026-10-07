@@ -2177,6 +2177,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         UndoPurchaseReceiptLine: Codeunit "Undo Purchase Receipt Line";
     begin
         PurchRcptLine.Get(PurchaseReceiptNo, PurchaseReceiptLineNo);
+        PurchRcptLine.SetRecFilter();
         UndoPurchaseReceiptLine.SetHideDialog(true);
         UndoPurchaseReceiptLine.Run(PurchRcptLine);
         Reply := true;

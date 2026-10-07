@@ -43,6 +43,7 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
         PurchaseLine: Record "Purchase Line";
         PurchRcptLineToCheck: Record "Purch. Rcpt. Line";
         CheckedPurchaseLines: Dictionary of [Text, Boolean];
+        HasCompletedWIPPurchaseLine: Boolean;
         PurchaseLineKey: Text;
     begin
         PurchRcptLineToCheck.Copy(PurchRcptLine);
@@ -53,9 +54,6 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
             exit;
 
         PurchaseLine.LockTable();
-        if IsLegacySubcontractingEnabled() then
-            exit;
-
         repeat
             PurchaseLineKey := StrSubstNo('%1|%2', PurchRcptLineToCheck."Order No.", PurchRcptLineToCheck."Order Line No.");
             if not CheckedPurchaseLines.ContainsKey(PurchaseLineKey) then begin
@@ -63,9 +61,12 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
                 if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchRcptLineToCheck."Order No.", PurchRcptLineToCheck."Order Line No.") and
                    IsWIPItem(PurchaseLine) and (PurchaseLine."Outstanding Quantity" = 0)
                 then
-                    Error(UndoLegacyWIPPurchaseReceiptErr);
+                    HasCompletedWIPPurchaseLine := true;
             end;
         until PurchRcptLineToCheck.Next() = 0;
+
+        if HasCompletedWIPPurchaseLine and not IsLegacySubcontractingEnabled() then
+            Error(UndoLegacyWIPPurchaseReceiptErr);
     end;
 
     local procedure IsLegacySubcontractingEnabled(): Boolean
