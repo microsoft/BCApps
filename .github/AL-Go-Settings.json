@@ -3,6 +3,8 @@
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
+  "MinimumDotNetRuntimeVersionStr": "10.0.12",
+  "MinimumDotNetRuntimeVersionUrl": "https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.401/dotnet-sdk-10.0.401-win-x64.zip",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": true,
