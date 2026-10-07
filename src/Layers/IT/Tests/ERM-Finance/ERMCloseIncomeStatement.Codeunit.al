@@ -33,7 +33,7 @@ codeunit 134228 "ERM Close Income Statement"
         ConfirmDeleteGLAccountQst: Label 'Note that accounting regulations may require that you save accounting data for a certain number of years. Are you sure you want to delete the G/L account?';
         CannotDeleteGLAccGLEntryFoundAfterDateErr: Label 'You cannot delete G/L account %1 because it has ledger entries posted after %2.';
         UnexpectedConfirmErr: Label 'Unexpected confirm handler: %1';
-        CloseIncomeDimensionAmountErr: Label 'Close Income Statement amount is incorrect for dimension value %1. Expected %2, actual %3.';
+        CloseIncomeDimensionAmountErr: Label 'Close Income Statement amount is incorrect for dimension value %1. Expected %2, actual %3.', Comment = '%1=Global Dimension 1 Value Code;%2=Expected amount;%3=Actual amount.';
 
     [Test]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
