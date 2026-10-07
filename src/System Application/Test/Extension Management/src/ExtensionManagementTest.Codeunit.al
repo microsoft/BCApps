@@ -5,10 +5,10 @@
 
 namespace System.Test.Apps;
 
-using System.Security.AccessControl;
 using System.Apps;
 using System.Environment.Configuration;
 using System.Media;
+using System.Security.AccessControl;
 using System.TestLibraries.Apps;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
@@ -94,6 +94,8 @@ codeunit 133100 "Extension Management Test"
     var
         NAVAppInstalledApp: Record "NAV App Installed App";
     begin
+        BindSubscription(ExtensionMgtTestLibrary);
+
         if NAVAppInstalledApp.Get(MainAppId) then
             ExtensionManagement.UninstallExtension(NAVAppInstalledApp."Package ID", false);
         if NAVAppInstalledApp.Get(DependingAppId) then
