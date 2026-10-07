@@ -12,9 +12,11 @@ codeunit 6223 "OpenXML Management"
     end;
 
     var
+        ExcelBuffer: Record "Excel Buffer";
         FileMgt: Codeunit "File Management";
         WrkShtHelper: DotNet WorksheetHelper;
         UID: Integer;
+
         CreateWrkBkFailedErr: Label 'Could not create the Excel workbook.';
         OpenWrkBkFailedErr: Label 'Could not open the Excel workbook.';
         MissingXMLMapErr: Label 'The Excel workbook must contain an XML map.';
@@ -292,7 +294,10 @@ codeunit 6223 "OpenXML Management"
         DataTableColumnsCount: Integer;
         StepCount: Integer;
         ShowDialog: Boolean;
+        CellDecorator: DotNet CellDecorator;
     begin
+        ExcelBuffer.Init();
+        CellDecorator := WorksheetWriter.DefaultCellDecorator;
         DataTableRowsCount := DataTable.Rows.Count();
         RowsCount := 0;
         DataTableColumnsCount := DataTable.Columns.Count();
@@ -302,21 +307,18 @@ codeunit 6223 "OpenXML Management"
             StepCount := Round(DataTableRowsCount / 100, 1);
             ConfigProgressBar.Init(DataTableRowsCount, StepCount, CopyDataProgressTxt);
         end;
-
         repeat
             DataRow := DataTable.Rows.Item(RowsCount);
             ColumnsCount := 0;
             repeat
                 DataColumn := DataTable.Columns.Item(ColumnsCount);
-                WriteCellValue(WorksheetWriter, Format(DataColumn.DataType), DataRow, RowsCount, ColumnsCount);
+                WriteCellValue(WorksheetWriter, Format(DataColumn.DataType), DataRow, RowsCount, ColumnsCount, CellDecorator);
                 ColumnsCount += 1;
             until ColumnsCount = DataTableColumnsCount - 1;
             RowsCount += 1;
-
             if ShowDialog then
                 ConfigProgressBar.Update(StrSubstNo(ProgressStatusTxt, WorksheetWriter.Name, RowsCount, DataTableRowsCount));
         until RowsCount = DataTableRowsCount;
-
         if ShowDialog then
             ConfigProgressBar.Close();
     end;
@@ -562,30 +564,44 @@ codeunit 6223 "OpenXML Management"
 
     [Scope('OnPrem')]
     procedure WriteCellValue(var WrkShtWriter: DotNet WorksheetWriter; DataColumnDataType: Text; var DataRow: DotNet DataRow; RowsCount: Integer; ColumnsCount: Integer)
+    var
+        CellDecorator: DotNet CellDecorator;
+    begin
+        CellDecorator := WrkShtWriter.DefaultCellDecorator;
+        WriteCellValue(WrkShtWriter, DataColumnDataType, DataRow, RowsCount, ColumnsCount, CellDecorator);
+    end;
+
+    [Scope('OnPrem')]
+    procedure WriteCellValue(var WrkShtWriter: DotNet WorksheetWriter; DataColumnDataType: Text; var DataRow: DotNet DataRow; RowsCount: Integer; ColumnsCount: Integer; var CellDecorator: DotNet CellDecorator)
     begin
         OnBeforeWriteCellValue(RowsCount);
 
+        // Generate Excel column ID for the current column id.
+        // The code is manually inlined here to avoid calling the GetXLColumnID function
+        // this is to save an allocation of the Excel Buffer record and a method call
+        // since this method is called tables * rows * column times.
+        ExcelBuffer.Validate(ExcelBuffer."Column No.", ColumnsCount + 1);
         case DataColumnDataType of
             'System.DateTime':
                 WrkShtWriter.SetCellValueDate(
-                  RowsCount + 4, GetXLColumnID(ColumnsCount + 1), DataRow.Item(ColumnsCount), '',
-                  WrkShtWriter.DefaultCellDecorator);
+                  RowsCount + 4, ExcelBuffer.xlColID, DataRow.Item(ColumnsCount), '',
+                  CellDecorator);
             'System.Time':
                 WrkShtWriter.SetCellValueTime(
-                  RowsCount + 4, GetXLColumnID(ColumnsCount + 1), DataRow.Item(ColumnsCount), '',
-                  WrkShtWriter.DefaultCellDecorator);
+                  RowsCount + 4, ExcelBuffer.xlColID, DataRow.Item(ColumnsCount), '',
+                  CellDecorator);
             'System.Boolean':
                 WrkShtWriter.SetCellValueBoolean(
-                  RowsCount + 4, GetXLColumnID(ColumnsCount + 1), DataRow.Item(ColumnsCount),
-                  WrkShtWriter.DefaultCellDecorator);
+                  RowsCount + 4, ExcelBuffer.xlColID, DataRow.Item(ColumnsCount),
+                  CellDecorator);
             'System.Integer', 'System.Int32':
                 WrkShtWriter.SetCellValueNumber(
-                  RowsCount + 4, GetXLColumnID(ColumnsCount + 1), Format(DataRow.Item(ColumnsCount)), '',
-                  WrkShtWriter.DefaultCellDecorator);
+                  RowsCount + 4, ExcelBuffer.xlColID, Format(DataRow.Item(ColumnsCount)), '',
+                  CellDecorator);
             else
                 WrkShtWriter.SetCellValueText(
-                  RowsCount + 4, GetXLColumnID(ColumnsCount + 1), DataRow.Item(ColumnsCount),
-                  WrkShtWriter.DefaultCellDecorator);
+                  RowsCount + 4, ExcelBuffer.xlColID, DataRow.Item(ColumnsCount),
+                  CellDecorator);
         end;
     end;
 
