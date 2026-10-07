@@ -294,11 +294,67 @@ codeunit 6103 "E-Document Subscribers"
         if (PurchInvHdrNo = '') and (PurchCrMemoHdrNo = '') then
             exit;
         if PurchInvHdrNo <> '' then begin
-            if PurchInvHeader.Get(PurchInvHdrNo) then
-                PointEDocumentToPostedDocument(PurchaseHeader, PurchInvHeader, PurchInvHdrNo, Enum::"E-Document Type"::"Purchase Invoice", PurchInvHeader."Posting Date")
+            if PurchInvHeader.Get(PurchInvHdrNo) then begin
+                PointEDocumentToPostedDocument(PurchaseHeader, PurchInvHeader, PurchInvHdrNo, Enum::"E-Document Type"::"Purchase Invoice", PurchInvHeader."Posting Date");
+                if IsEligibleForSelfBilling(PurchInvHeader) then
+                    CreateSelfBilledEDocument(CommitIsSupressed, PurchInvHeader, Enum::"E-Document Type"::"Self-Billed Purchase Invoice");
+            end;
         end else
-            if PurchCrMemoHdr.Get(PurchCrMemoHdrNo) then
+            if PurchCrMemoHdr.Get(PurchCrMemoHdrNo) then begin
                 PointEDocumentToPostedDocument(PurchaseHeader, PurchCrMemoHdr, PurchCrMemoHdrNo, Enum::"E-Document Type"::"Purchase Credit Memo", PurchCrMemoHdr."Posting Date");
+                if IsEligibleForSelfBilling(PurchCrMemoHdr) then
+                    CreateSelfBilledEDocument(CommitIsSupressed, PurchCrMemoHdr, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo");
+            end;
+    end;
+
+    local procedure CreateSelfBilledEDocument(CommitIsSupressed: Boolean; PostedRecord: Variant; DocumentType: Enum "E-Document Type")
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        RecRef: RecordRef;
+    begin
+        if not AllowCreateEDocument(CommitIsSupressed, false, false, 'Purch.-Post') then
+            exit;
+
+        RecRef.GetTable(PostedRecord);
+        DocumentSendingProfile := EDocumentProcessing.GetDocSendingProfileForDocRef(RecRef);
+        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType);
+    end;
+
+    /// <summary>
+    /// Self-billing eligibility gate: the posted invoice is a self-billing invoice and both participant IDs
+    /// are present. Shared by the posting subscriber and the manual "Create E-Document" page action's Enabled guard.
+    /// </summary>
+    /// <param name="PurchInvHeader">The posted purchase invoice to check.</param>
+    procedure IsEligibleForSelfBilling(PurchInvHeader: Record "Purch. Inv. Header"): Boolean
+    begin
+        if not PurchInvHeader."Self-Billing Invoice" then
+            exit(false);
+        exit(HasSelfBillingParticipants(PurchInvHeader."Buy-from Vendor No."));
+    end;
+
+    /// <summary>
+    /// Self-billing eligibility gate: the posted credit memo is applied to a self-billing invoice and both participant
+    /// IDs are present. Shared by the posting subscriber and the manual "Create E-Document" page action's Enabled guard.
+    /// </summary>
+    /// <param name="PurchCrMemoHdr">The posted purchase credit memo to check.</param>
+    procedure IsEligibleForSelfBilling(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."): Boolean
+    begin
+        if not EDocumentProcessing.IsSelfBilledCreditMemo(PurchCrMemoHdr) then
+            exit(false);
+        exit(HasSelfBillingParticipants(PurchCrMemoHdr."Buy-from Vendor No."));
+    end;
+
+    local procedure HasSelfBillingParticipants(VendorNo: Code[20]): Boolean
+    var
+        ServiceParticipant: Codeunit "Service Participant";
+    begin
+        if VendorNo = '' then
+            exit(false);
+        if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Vendor, VendorNo) = 0 then
+            exit(false);
+        if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Company, '') = 0 then
+            exit(false);
+        exit(true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", OnAfterTransferOrderPostShipment, '', false, false)]
