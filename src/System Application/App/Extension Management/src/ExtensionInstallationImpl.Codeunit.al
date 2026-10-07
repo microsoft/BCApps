@@ -5,10 +5,10 @@
 
 namespace System.Apps;
 
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.Utilities;
-using System.Environment.Configuration;
 
 codeunit 2500 "Extension Installation Impl"
 {
