@@ -21,12 +21,15 @@ codeunit 8362 FinReportExportNameHandler
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReportManagement, OnGetFilename, '', false, false)]
-    local procedure ReportManagement_OnGetFilename(ReportID: Integer; var Filename: Text; var Success: Boolean)
+    local procedure ReportManagement_OnGetFilename(ReportID: Integer; Caption: Text[250]; ObjectPayload: JsonObject; FileExtension: Text[30]; ReportRecordRef: RecordRef; var Filename: Text; var Success: Boolean)
     var
         FileMgt: Codeunit "File Management";
     begin
+        if Success then
+            exit;
+
         if ReportID = Report::"Account Schedule" then begin
-            Filename := FileMgt.CreateFileNameWithExtension(OutputFilename, FileMgt.GetExtension(Filename));
+            Filename := FileMgt.CreateFileNameWithExtension(OutputFilename, FileExtension);
             Filename := FileMgt.StripNotsupportChrInFileName(Filename);
             Success := true;
         end;
