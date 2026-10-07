@@ -374,6 +374,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
         ValueEntry."Item Ledger Entry No." := 0;
         ValueEntry."Capacity Ledger Entry No." := CapacityLedgerEntry."Entry No.";
+        ValueEntry."Item Ledger Entry Type" := ValueEntry."Item Ledger Entry Type"::" ";
     end;
 
     local procedure SetTrackedSubcontractingCapacityEntryFilters(

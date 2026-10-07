@@ -587,7 +587,10 @@ codeunit 149927 "Subc. Get Receipt Lines"
         ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
         ValueEntry.SetRange("Document No.", PostedInvoiceNo);
         ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
-        Assert.RecordIsNotEmpty(ValueEntry);
+        ValueEntry.FindFirst();
+        Assert.AreEqual(
+            ValueEntry."Item Ledger Entry Type"::" ", ValueEntry."Item Ledger Entry Type",
+            'The tracked separate invoice cost must use capacity posting semantics.');
         ValueEntry.CalcSums("Cost Amount (Actual)");
         Assert.AreEqual(
             Round(Quantity * InvoiceLine."Direct Unit Cost"), Round(ValueEntry."Cost Amount (Actual)"),
