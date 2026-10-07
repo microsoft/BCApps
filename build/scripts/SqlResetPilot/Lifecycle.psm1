@@ -123,7 +123,7 @@ function Select-SqlPilotPrefix {
     $ids = @(139700,139702,139703,139706,139725,139726,139732,139739,139742,139745,139802,139803,139806,139826,139832,139854,139972,139780,148315,148318,148343)
     if ($WorkItems.Count -lt $ids.Count) { throw 'Discovery returned an incomplete pilot prefix.' }
     for ($i = 0; $i -lt $ids.Count; $i++) {
-        if ([int]$WorkItems[$i].CodeunitId -ne $ids[$i]) { throw "Original W1 discovery order differs at position $i." }
+        if ([int]$WorkItems[$i].CodeunitId -ne $ids[$i]) { throw "Pinned 21-codeunit discovery order differs at position $i; do not reorder or reduce the cohort." }
     }
     @($WorkItems | Select-Object -First $ids.Count)
 }

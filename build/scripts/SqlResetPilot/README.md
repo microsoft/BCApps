@@ -55,7 +55,9 @@ The cohort remains the same ordered **21-codeunit prefix**, ending with Expense
 Users (148315), Capabilities (148318), and Activity Log (148343). The previous W1
 control yielded **253 cases: 234 passed, 19 skipped**, across 20 codeunits with
 cases. This is a quick cohort, **not all API paths or the full suite**. Warmup
-counts must be reported separately. Discovery-order drift fails closed.
+counts must be reported separately. Discovery-order drift fails closed for both
+countries; a DE-specific prefix requires evidence from the original DE baseline,
+must include all three Expense codeunits, and must be recorded in full.
 
 ## Isolation, evidence and interpretation
 
@@ -69,6 +71,9 @@ registered name before removing only that owned disposable container.
 
 Artifacts preserve provenance, shell/runtime identity, worklist, SQL reset
 timeline, warmup outcome/results, worker output, prefix JUnit and EVTX.
+Finalization collects project-root `TestResults*.xml` into `clean-results/project-root`
+and `.buildartifacts/TestResults*.xml` into `clean-results/buildartifacts`, preserving
+both without overwrites. Warmup results remain separately labeled under `warmup`.
 `companies-probes.jsonl` records sanitized URI, tenant, generation, HTTP status,
 UTC start/end, duration and safe client/server correlation IDs **for every attempt**.
 Separate outcome records distinguish `first-try-success`, `recovered` and `failed`,

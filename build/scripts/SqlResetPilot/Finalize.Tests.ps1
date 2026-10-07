@@ -20,6 +20,7 @@ Describe 'SQL pilot final cleanup ownership' {
         Mock Test-Path { $true }
         Mock Get-Content { '{"runId":"123","arm":"control","country":"DE","trial":"2","container":"bcbuildprojectsTestAppsDETrial2123"}' }
         Mock Get-ChildItem {}
+        Mock New-Item {}
         Mock Copy-Item {}
         Mock Set-Content {}
         $global:sqlPilotTestContainerExists = $true
@@ -44,6 +45,30 @@ Describe 'SQL pilot final cleanup ownership' {
     It 'still tears down if exporting fails and keeps that failure visible' {
         Mock Get-BcContainerEventLog { throw 'event export failed' }
         { & (Join-Path $PSScriptRoot 'Finalize.ps1') } | Should -Throw
+        Should -Invoke Remove-BcContainer -Times 1 -Exactly -Scope It
+    }
+    It 'collects root and nested runner results separately from warmup' {
+        Mock Get-ChildItem { [PSCustomObject]@{ FullName = 'TestResults.xml' } }
+        & (Join-Path $PSScriptRoot 'Finalize.ps1')
+        Should -Invoke Get-ChildItem -Times 1 -Exactly -Scope It -ParameterFilter {
+            $Path -like '*Test Apps DE Trial2\.buildartifacts' -and $Filter -eq 'TestResults*.xml' -and $File
+        }
+        Should -Invoke Copy-Item -Times 1 -Exactly -Scope It -ParameterFilter {
+            $Destination -like '*clean-results\buildartifacts'
+        }
+        Should -Invoke Copy-Item -Times 1 -Exactly -Scope It -ParameterFilter {
+            $Destination -like '*clean-results\project-root'
+        }
+        Should -Invoke Copy-Item -Times 0 -Exactly -Scope It -ParameterFilter {
+            $Destination -like '*sql-reset-pilot-output\warmup*'
+        }
+    }
+    It 'does not fail cleanup when nested runner results are absent' {
+        Mock Test-Path { $false } -ParameterFilter { $Path -like '*\.buildartifacts' }
+        & (Join-Path $PSScriptRoot 'Finalize.ps1')
+        Should -Invoke Get-ChildItem -Times 0 -Exactly -Scope It -ParameterFilter {
+            $Path -like '*\.buildartifacts'
+        }
         Should -Invoke Remove-BcContainer -Times 1 -Exactly -Scope It
     }
     It 'refuses deletion if ownership was not recorded' {

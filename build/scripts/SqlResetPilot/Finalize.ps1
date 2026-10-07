@@ -19,7 +19,18 @@ try {
         Copy-Item $events (Join-Path $output 'final-container.evtx')
     }
     $project = Join-Path $env:GITHUB_WORKSPACE "build\projects\Test Apps $($env:BC_SQL_PILOT_COUNTRY) Trial$($env:BC_SQL_PILOT_TRIAL)"
-    Get-ChildItem $project -Filter 'TestResults*.xml' -File | Copy-Item -Destination $output
+    $resultLocations = @{
+        'project-root' = $project
+        'buildartifacts' = Join-Path $project '.buildartifacts'
+    }
+    foreach ($label in $resultLocations.Keys) {
+        if (Test-Path $resultLocations[$label]) {
+            $destination = Join-Path $output "clean-results\$label"
+            New-Item -ItemType Directory -Path $destination -Force | Out-Null
+            Get-ChildItem $resultLocations[$label] -Filter 'TestResults*.xml' -File |
+                Copy-Item -Destination $destination
+        }
+    }
 } finally {
     if (Test-BcContainer -containerName $ownership.container) {
         Remove-BcContainer -containerName $ownership.container
