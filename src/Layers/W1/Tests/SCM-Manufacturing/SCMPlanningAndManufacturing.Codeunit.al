@@ -2771,6 +2771,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         CheckProdOrderStatusWarningCount := 0;
         LibraryVariableStorage.Enqueue(true);
         asserterror SalesLine.Validate("No.", '');
+        Assert.ExpectedTestFieldError(SalesLine.FieldCaption("Reserved Qty. (Base)"), Format(0));
         SalesLine.Reset();
         SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
         LibraryVariableStorage.Enqueue(true);
@@ -2888,6 +2889,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         CheckProdOrderStatusWarningCount := 0;
         LibraryVariableStorage.Enqueue(true);
         asserterror SalesLine.Validate("No.", '');
+        Assert.ExpectedTestFieldError(SalesLine.FieldCaption("Reserved Qty. (Base)"), Format(0));
         SalesLine.Reset();
         SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
         LibraryVariableStorage.Enqueue(true);
