@@ -54,6 +54,7 @@ codeunit 8756 "DA Internal Cleanup Worker"
            (Setup."Cleanup Run Minutes" < 1) or (Setup."Cleanup Run Minutes" > 60)
         then
             Error(InvalidLimitsErr);
+        ProcessedCount := 0;
         StartedAt := CurrentDateTime();
         RecoverExpiredLeases(Setup."Cleanup Batch Size");
         Commit();
