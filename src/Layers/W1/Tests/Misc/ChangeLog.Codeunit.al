@@ -1956,6 +1956,34 @@ codeunit 139031 "Change Log"
     end;
 
     [Test]
+    procedure ChangeLogFieldEditRejectsMonitoredTableWithoutFieldSetup()
+    var
+        ChangeLogSetupTable: Record "Change Log Setup (Table)";
+        ChangeLogSetupField: Record "Change Log Setup (Field)";
+        ChangeLogSetupFieldListPage: TestPage "Change Log Setup (Field) List";
+        TableMonitoredErr: Label 'You cannot change the change log field settings for table %1 because it is configured for field monitoring. Use the Monitored Fields Worksheet page to manage its monitored fields.', Comment = '%1 = Table number';
+    begin
+        // [SCENARIO 648216] The navigation error also works when the selected field has no setup record.
+        Initialize();
+        SetTableForChangeLog(GlobalTableNo, LogOption::"Some Fields", LogOption::"Some Fields", LogOption::"Some Fields");
+        ChangeLogSetupTable.Get(GlobalTableNo);
+        ChangeLogSetupTable."Monitor Sensitive Field" := true;
+        ChangeLogSetupTable.Modify();
+        Assert.IsFalse(ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[3]), 'The field setup must not exist.');
+        Commit();
+        OpenChangeLogSetupFieldList(ChangeLogSetupFieldListPage, GlobalTableNo, GlobalExtraFieldNo[3]);
+
+        asserterror ChangeLogSetupFieldListPage."Log Modification".SetValue(true);
+        Assert.ExpectedError(StrSubstNo(TableMonitoredErr, GlobalTableNo));
+        ChangeLogSetupFieldListPage.Close();
+
+        Assert.IsFalse(ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[3]), 'The rejected edit must not create a field setup.');
+        ChangeLogSetupTable.Get(GlobalTableNo);
+        ChangeLogSetupTable.TestField("Monitor Sensitive Field", true);
+        TearDown();
+    end;
+
+    [Test]
     procedure ChangeLogFieldEditPreservesOrdinaryFieldSelections()
     var
         ChangeLogSetupField: Record "Change Log Setup (Field)";
