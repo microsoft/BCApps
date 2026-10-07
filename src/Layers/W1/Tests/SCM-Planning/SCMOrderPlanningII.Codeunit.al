@@ -1354,7 +1354,7 @@ codeunit 137087 "SCM Order Planning - II"
         Quantity: Decimal;
         i: Integer;
     begin
-        // [SCENARIO 650951] The valid item should produce a planning result even though another demand item is blocked.
+        // [SCENARIO 651525] The valid item should produce a planning result even though another demand item is blocked.
         Initialize();
         UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
 
