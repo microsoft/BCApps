@@ -1653,6 +1653,141 @@ codeunit 148346 "Expense Interim Approval Test"
         Assert.ExpectedErrorCode('Dialog');
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ProcessingReportAssignsAlternatesToFilteredAndAllPendingReports()
+    var
+        SubmitterOne: Record "Expense User";
+        InterimApproverOne: Record "Expense User";
+        FinalApproverOne: Record "Expense User";
+        InterimAlternateOne: Record "Expense User";
+        FinalAlternateOne: Record "Expense User";
+        ExpenseReportOne: Record "Expense Report Header";
+        SubmitterTwo: Record "Expense User";
+        InterimApproverTwo: Record "Expense User";
+        FinalApproverTwo: Record "Expense User";
+        InterimAlternateTwo: Record "Expense User";
+        FinalAlternateTwo: Record "Expense User";
+        ExpenseReportTwo: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ReportFilter: Record "Expense Report Header";
+        AssignExpenseReportAlternates: Report "Delegate Expense Approval Req";
+        OriginalWorkDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626975] The processing report applies active interim and final alternates to filtered or all pending reports.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] Two pending reports with active alternate coverage for both approvers.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(SubmitterOne, InterimApproverOne, FinalApproverOne);
+        CreateSubmittedExpenseReport(SubmitterOne, ExpenseReportOne);
+        ExpenseReportOne.AssignInterimApprover(InterimApproverOne."No.", SubmitterOne."No.");
+        CreateApproverExpenseUser(InterimAlternateOne);
+        CreateApproverExpenseUser(FinalAlternateOne);
+        CreateAlternateApproverCoverage(InterimApproverOne."No.", InterimAlternateOne."No.", WorkDate(), WorkDate());
+        CreateAlternateApproverCoverage(FinalApproverOne."No.", FinalAlternateOne."No.", WorkDate(), WorkDate());
+
+        CreateInterimApprovalSetup(SubmitterTwo, InterimApproverTwo, FinalApproverTwo);
+        CreateSubmittedExpenseReport(SubmitterTwo, ExpenseReportTwo);
+        ExpenseReportTwo.AssignInterimApprover(InterimApproverTwo."No.", SubmitterTwo."No.");
+        CreateApproverExpenseUser(InterimAlternateTwo);
+        CreateApproverExpenseUser(FinalAlternateTwo);
+        CreateAlternateApproverCoverage(InterimApproverTwo."No.", InterimAlternateTwo."No.", WorkDate(), WorkDate());
+        CreateAlternateApproverCoverage(FinalApproverTwo."No.", FinalAlternateTwo."No.", WorkDate(), WorkDate());
+
+        // [WHEN] The processing report runs with a filter for the first report only.
+        ReportFilter.SetRange("No.", ExpenseReportOne."No.");
+        AssignExpenseReportAlternates.SetTableView(ReportFilter);
+        AssignExpenseReportAlternates.UseRequestPage(false);
+        AssignExpenseReportAlternates.RunModal();
+
+        // [THEN] Only the filtered report is routed through its interim and final alternates.
+        VerifyInterimApprover(ExpenseReportOne, InterimAlternateOne."No.");
+        VerifyApprovalRouting(ExpenseReportOne, InterimAlternateOne, FinalAlternateOne);
+        ExpenseReportOne.TestField("Alternate Approver No.", FinalAlternateOne."No.");
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportOne.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::InterimApproverAssigned);
+        ExpenseActivityLogEntry.FindLast();
+        ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Administrator);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::AlternateApproverAssigned);
+        ExpenseActivityLogEntry.FindLast();
+        ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Administrator);
+        VerifyInterimApprover(ExpenseReportTwo, InterimApproverTwo."No.");
+        VerifyApprovalRouting(ExpenseReportTwo, InterimApproverTwo, FinalApproverTwo);
+
+        // [WHEN] The report runs again with no report-number filter.
+        Clear(AssignExpenseReportAlternates);
+        AssignExpenseReportAlternates.UseRequestPage(false);
+        AssignExpenseReportAlternates.RunModal();
+
+        // [THEN] The remaining eligible pending report is also routed through both alternates.
+        VerifyInterimApprover(ExpenseReportTwo, InterimAlternateTwo."No.");
+        VerifyApprovalRouting(ExpenseReportTwo, InterimAlternateTwo, FinalAlternateTwo);
+        ExpenseReportTwo.TestField("Alternate Approver No.", FinalAlternateTwo."No.");
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ProcessingReportSkipsFailingReportAndProcessesOthers()
+    var
+        SubmitterFailing: Record "Expense User";
+        InterimApproverFailing: Record "Expense User";
+        FinalApproverFailing: Record "Expense User";
+        InterimAlternateFailing: Record "Expense User";
+        ExpenseReportFailing: Record "Expense Report Header";
+        SubmitterValid: Record "Expense User";
+        InterimApproverValid: Record "Expense User";
+        FinalApproverValid: Record "Expense User";
+        InterimAlternateValid: Record "Expense User";
+        FinalAlternateValid: Record "Expense User";
+        ExpenseReportValid: Record "Expense Report Header";
+        AssignExpenseReportAlternates: Report "Delegate Expense Approval Req";
+        OriginalWorkDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626975] A report that fails alternate assignment is skipped and the remaining reports are still processed.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] A first pending report whose interim approver lost approval rights after alternate coverage was set up.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(SubmitterFailing, InterimApproverFailing, FinalApproverFailing);
+        CreateSubmittedExpenseReport(SubmitterFailing, ExpenseReportFailing);
+        ExpenseReportFailing.AssignInterimApprover(InterimApproverFailing."No.", SubmitterFailing."No.");
+        CreateApproverExpenseUser(InterimAlternateFailing);
+        CreateAlternateApproverCoverage(InterimApproverFailing."No.", InterimAlternateFailing."No.", WorkDate(), WorkDate());
+        InterimApproverFailing."Can Approve" := false;
+        InterimApproverFailing.Modify();
+
+        // [GIVEN] A second pending report created later with valid alternate coverage for both approvers.
+        CreateInterimApprovalSetup(SubmitterValid, InterimApproverValid, FinalApproverValid);
+        CreateSubmittedExpenseReport(SubmitterValid, ExpenseReportValid);
+        ExpenseReportValid.AssignInterimApprover(InterimApproverValid."No.", SubmitterValid."No.");
+        CreateApproverExpenseUser(InterimAlternateValid);
+        CreateApproverExpenseUser(FinalAlternateValid);
+        CreateAlternateApproverCoverage(InterimApproverValid."No.", InterimAlternateValid."No.", WorkDate(), WorkDate());
+        CreateAlternateApproverCoverage(FinalApproverValid."No.", FinalAlternateValid."No.", WorkDate(), WorkDate());
+
+        // [WHEN] The processing report runs without a filter.
+        AssignExpenseReportAlternates.UseRequestPage(false);
+        AssignExpenseReportAlternates.RunModal();
+
+        // [THEN] The failing report is left unchanged.
+        VerifyInterimApprover(ExpenseReportFailing, InterimApproverFailing."No.");
+        VerifyApprovalRouting(ExpenseReportFailing, InterimApproverFailing, FinalApproverFailing);
+
+        // [THEN] The other report is still routed through both alternates.
+        VerifyInterimApprover(ExpenseReportValid, InterimAlternateValid."No.");
+        VerifyApprovalRouting(ExpenseReportValid, InterimAlternateValid, FinalAlternateValid);
+        ExpenseReportValid.TestField("Alternate Approver No.", FinalAlternateValid."No.");
+        WorkDate(OriginalWorkDate);
+    end;
+
     local procedure Initialize()
     var
         UserSetup: Record "User Setup";
