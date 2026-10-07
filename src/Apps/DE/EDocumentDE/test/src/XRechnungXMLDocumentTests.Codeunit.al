@@ -868,6 +868,30 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyDeliveryCountrySubentity()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] The deliver-to country subdivision (BT-79) is exported from "Ship-to County"
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with a ship-to address and a "Ship-to County"
+        ResetPostingNoSeriesDateUsage();
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Ship-to County" := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The delivery Address holds the county in CountrySubentity
+        Assert.AreEqual(
+            SalesInvoiceHeader."Ship-to County", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:CountrySubentity'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cbc:CountrySubentity'));
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipmentDateTodayExportsActualDeliveryDate()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -6098,7 +6122,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         ElementName: Text;
     begin
-        foreach ElementName in '/cbc:StreetName,/cbc:AdditionalStreetName,/cbc:CityName,/cbc:PostalZone'.Split(',') do
+        foreach ElementName in '/cbc:StreetName,/cbc:AdditionalStreetName,/cbc:CityName,/cbc:PostalZone,/cbc:CountrySubentity'.Split(',') do
             if NodeExistsByPath(TempXMLBuffer, InvoiceDeliveryAddressTok + ElementName) then
                 Assert.AreNotEqual('', GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + ElementName), StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + ElementName));
     end;

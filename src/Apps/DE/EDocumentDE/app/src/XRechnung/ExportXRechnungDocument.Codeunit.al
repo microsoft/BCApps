@@ -1066,6 +1066,8 @@ codeunit 13916 "Export XRechnung Document"
             AddressElement.Add(XmlElement.Create('CityName', XmlNamespaceCBC, DeliveryAddress.City));
         if DeliveryAddress."Post Code" <> '' then
             AddressElement.Add(XmlElement.Create('PostalZone', XmlNamespaceCBC, DeliveryAddress."Post Code"));
+        if DeliveryAddress.County <> '' then
+            AddressElement.Add(XmlElement.Create('CountrySubentity', XmlNamespaceCBC, DeliveryAddress.County));
         InsertCountry(AddressElement, GetCountryISOCode(GetCountryRegionCode(DeliveryAddress."Country/Region Code")));
         DeliveryLocationElement.Add(AddressElement);
     end;
