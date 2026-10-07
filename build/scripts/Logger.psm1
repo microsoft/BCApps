@@ -4,7 +4,8 @@
 .SYNOPSIS
 Writes output to log, automatically adding date and time.
 .DESCRIPTION
-Writes a message and timestamp to the host as well as the 'verbose.log' file
+Writes a message and timestamp to the host as well as the 'verbose.log' file.
+Defaults to the Logs folder under INETROOT, or the repository root when INETROOT is unset.
 #>
 function Write-Log
 (
@@ -14,20 +15,24 @@ function Write-Log
     [switch] $Warning,
     [switch] $IsError,
     [switch] $NoVerbose,
-    [string] $LogFolder = "${Env:INETROOT}\Logs",
+    [string] $LogFolder,
     [string] $LogFile = "verbose.log",
     [string] $Prefix = "",
     [switch] $SkipLineHeader
 )
 {
     Begin {
+        if (-not $LogFolder) {
+            $logRoot = if ($env:INETROOT) { $env:INETROOT } else { Join-Path $PSScriptRoot "../.." }
+            $LogFolder = Join-Path $logRoot "Logs"
+        }
         if( -not [System.IO.Directory]::Exists($LogFolder))
         {
             New-Item -Type Directory -Path $LogFolder -Force | Out-Null
         }
         $LogPath = Join-Path $LogFolder $LogFile
 
-        $sem = New-Object System.Threading.Semaphore(1, 1, 'EnlistLoggerSemaphore')
+        $mutex = New-Object System.Threading.Mutex($false, 'EnlistLoggerMutex')
 
         $Debug = $PSBoundParameters['Debug']
         if($Warning)
@@ -43,7 +48,7 @@ function Write-Log
     Process {
         try
         {
-            [bool] $Locked = $sem.WaitOne(5 * 1000)
+            [bool] $Locked = $mutex.WaitOne(5 * 1000)
             $LineHeading = "[$(Get-Date -Format "yyyy-MM-dd HH:mm:ss")]"
 
             $Message | Out-String -Stream |
@@ -77,12 +82,13 @@ function Write-Log
        {
             if ($Locked)
             {
-                $sem.Release() | Out-Null
+                $mutex.ReleaseMutex()
             }
        }
 
     }
     End {
+        $mutex.Dispose()
 
         if($IsError)
         {

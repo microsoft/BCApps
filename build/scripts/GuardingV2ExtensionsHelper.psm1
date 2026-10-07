@@ -169,10 +169,10 @@ function Restore-BaselinesFromArtifacts {
             throw "Unable to find URL for baseline version $BaselineVersion"
         }
         Write-Host "Downloading from $baselineURL to $baselineFolder"
-        Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
+        $artifactFolder = Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder
 
-        # Copy all the files from the sandbox folder to the baseline folder
-        Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/$CountryCode/Extensions" -Filter "*_$($BaselineVersion).app" -Recurse | ForEach-Object {
+        # Use the returned folder to preserve the downloaded artifact's country casing and redirects.
+        Get-ChildItem -Path (Join-Path $artifactFolder "?xtensions" -Resolve) -Filter "*_$($BaselineVersion).app" -Recurse | ForEach-Object {
             Write-Host "Copying $($_.FullName) to $TargetFolder"
             Copy-Item -Path $_.FullName -Destination $TargetFolder -Force | Out-Null
         }
