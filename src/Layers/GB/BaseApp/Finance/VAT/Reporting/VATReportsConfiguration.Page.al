@@ -70,29 +70,6 @@ page 746 "VAT Reports Configuration"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-#if not CLEAN27
-                field("Content Max Lines"; Rec."Content Max Lines")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Max. No. of Lines';
-                    ToolTip = 'Specifies the maximum number of lines in each message.';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Moved to GovTalk app';
-                    ObsoleteTag = '27.0';
-
-                    trigger OnValidate()
-                    begin
-                        if
-                           (Rec."VAT Report Type" = Rec."VAT Report Type"::"VAT Return") and
-                           (Rec."Content Max Lines" <> 0)
-                        then
-                            Error(NotApplicableErr);
-
-                        if Rec."Content Max Lines" < 0 then
-                            Error(MinValueErr);
-                    end;
-                }
-#endif
             }
         }
     }
@@ -100,11 +77,5 @@ page 746 "VAT Reports Configuration"
     actions
     {
     }
-
-#if not CLEAN27
-    var
-        NotApplicableErr: Label 'This value is only applicable for EC Sales list report.';
-        MinValueErr: Label 'The value of Max. No. of Lines must be bigger than zero.';
-#endif
 }
 

@@ -35,9 +35,7 @@ codeunit 136300 "Job Consumption Basic"
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-#if not CLEAN27
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-#endif
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         RollingBackChangesErr: Label 'Rolling back changes...';
         FieldValueIncorrectErr: Label 'Field %1 value is incorrect.';
@@ -251,7 +249,6 @@ codeunit 136300 "Job Consumption Basic"
         TearDown();
     end;
 
-#if not CLEAN27
     [Test]
     [Scope('OnPrem')]
     procedure TestPurchOrderJobGLAccBlank()
@@ -409,7 +406,6 @@ codeunit 136300 "Job Consumption Basic"
 
         TearDown();
     end;
-#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -469,7 +465,6 @@ codeunit 136300 "Job Consumption Basic"
           StrSubstNo(FieldValueIncorrectErr, JobGenJournalLine."Job Total Cost"));
     end;
 
-#if not CLEAN27
     [Test]
     [HandlerFunctions('GetReceiptLinesPageHandler')]
     [Scope('OnPrem')]
@@ -521,7 +516,6 @@ codeunit 136300 "Job Consumption Basic"
             ItemLedgerEntry.TestField("Cost Amount (Expected)", 0);
         until ItemLedgerEntry.Next() = 0;
     end;
-#endif
 
     local procedure JobGLJournalConsumption(JobLineType: Enum "Job Line Type")
     var
@@ -725,7 +719,6 @@ codeunit 136300 "Job Consumption Basic"
                 JobLedgerEntry.TableCaption()));
     end;
 
-#if not CLEAN27
     local procedure CreateSingleLinePurchaseDoc(PurchaseDocumentType: Enum "Purchase Document Type"; var PurchaseHeader: Record "Purchase Header")
     var
         PurchaseLine: Record "Purchase Line";
@@ -737,20 +730,10 @@ codeunit 136300 "Job Consumption Basic"
     end;
 
     local procedure CreateSingleLinePurchDocWithVendorAndItem(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; PurchaseDocumentType: Enum "Purchase Document Type"; VendorNo: Code[20]; ItemNo: Code[20]; Qty: Decimal)
-    var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
     begin
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Reverse Charge VAT Posting Gr.", VATBusinessPostingGroup.Code);
-        PurchasesPayablesSetup.Modify();
-
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseDocumentType, VendorNo);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Qty);
     end;
-#endif
 
     local procedure CreateJobGLJournalLineGLAcc(var GenJournalLine: Record "Gen. Journal Line"; JobTask: Record "Job Task"; JobLineType: Enum "Job Line Type")
     var
@@ -780,7 +763,6 @@ codeunit 136300 "Job Consumption Basic"
         GenJournalLine.Modify(true);
     end;
 
-#if not CLEAN27
     local procedure CreateVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusPostingGroupCode: Code[20])
     var
         VATProductPostingGroup: Record "VAT Product Posting Group";
@@ -794,7 +776,6 @@ codeunit 136300 "Job Consumption Basic"
         VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
         VATPostingSetup.Modify(true);
     end;
-#endif
 
     local procedure MockJobPlanningLine(var JobPlanningLine: Record "Job Planning Line")
     var
@@ -815,7 +796,6 @@ codeunit 136300 "Job Consumption Basic"
         Item.Insert();
     end;
 
-#if not CLEAN27
     local procedure PostPurchaseDocument(PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header")
     begin
         // Receive and invoice the purchase document
@@ -887,7 +867,6 @@ codeunit 136300 "Job Consumption Basic"
             PurchLine.Modify(true)
         end;
     end;
-#endif
 
     local procedure SelectJobGLJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     begin
@@ -1007,7 +986,6 @@ codeunit 136300 "Job Consumption Basic"
           StrSubstNo('Unexpected Message: %1', Msg))
     end;
 
-#if not CLEAN27
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure GetReceiptLinesPageHandler(var GetReceiptLines: TestPage "Get Receipt Lines")
@@ -1015,5 +993,4 @@ codeunit 136300 "Job Consumption Basic"
         GetReceiptLines.GotoKey(LibraryVariableStorage.DequeueText(), LibraryVariableStorage.DequeueInteger());
         GetReceiptLines.OK().Invoke();
     end;
-#endif
 }
