@@ -212,11 +212,11 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     var
         FileConnectorMock: Codeunit "File Connector Mock";
+        ReadbackBlob: Codeunit "Temp Blob";
         FailOnGetFile: Boolean;
         FileExistsCallCount: Integer;
         LastDeletedFilePath: Text;
         FailedToGetFileErr: Label 'Failed to get file.';
-        ReadbackBlob: Codeunit "Temp Blob";
         HasReadbackStream: Boolean;
         ContextEnabled: Boolean;
         GetFileCallCount: Integer;

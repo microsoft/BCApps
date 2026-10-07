@@ -47,7 +47,7 @@ page 8752 "DA Internal Cleanup Entries"
                 Caption = 'Retry Requested Cleanup';
                 Image = Refresh;
                 ToolTip = 'Retry a previously requested cleanup against the unchanged upload provenance. This does not adopt a different destination or legacy binding.';
-                Enabled = (Rec.Origin <> Rec.Origin::Copy) and (Rec.Status in [Rec.Status::Blocked, Rec.Status::"Retry Due"]);
+                Enabled = (Rec.Origin <> Rec.Origin::Copy) and ((Rec.Status = Rec.Status::Blocked) or (Rec.Status = Rec.Status::"Retry Due"));
 
                 trigger OnAction()
                 var
@@ -81,7 +81,7 @@ page 8752 "DA Internal Cleanup Entries"
                 Caption = 'Cancel Cleanup Request';
                 Image = Cancel;
                 ToolTip = 'Cancel selected cleanup requests without deleting internal content or external files.';
-                Enabled = Rec.Status in [Rec.Status::Pending, Rec.Status::"In Progress", Rec.Status::"Retry Due", Rec.Status::Blocked];
+                Enabled = (Rec.Status = Rec.Status::Pending) or (Rec.Status = Rec.Status::"In Progress") or (Rec.Status = Rec.Status::"Retry Due") or (Rec.Status = Rec.Status::Blocked);
 
                 trigger OnAction()
                 var
