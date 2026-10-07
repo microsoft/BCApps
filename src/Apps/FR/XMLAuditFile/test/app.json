@@ -2,7 +2,7 @@
   "id": "86cb76b5-cdd3-4a37-809c-1c41b8bb7cab",
   "name": "XML Audit File FR Tests",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "Tests for the XML Audit File FR extension.",
   "description": "Tests for the XML Audit File FR extension.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
@@ -16,30 +16,30 @@
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "name": "Tests-TestLibraries",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
       "publisher": "Microsoft",
       "name": "Library Variable Storage",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "6086ffec-252c-43fd-b862-08c689e208c2",
       "publisher": "Microsoft",
       "name": "XML Audit File FR",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id":  "a41b0c3e-bf1c-4c97-ad1b-b430a3933ada",
       "name":  "Audit File Export",
       "publisher":  "Microsoft",
-      "version":  "29.0.0.0"
+      "version":  "30.0.0.0"
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 148006,
