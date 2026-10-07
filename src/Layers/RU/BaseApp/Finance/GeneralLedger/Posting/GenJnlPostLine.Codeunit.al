@@ -3829,7 +3829,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     if EntryType = EntryType::"Payment Discount (VAT Excl.)" then
                                         NonDedVATAccountNo := GetPaymentDiscountVATExclNonDedVATAccountNo(VATEntry2, NonDedVATAmount);
                                     InitGLEntryVAT(GenJnlLine, NonDedVATAccountNo, '',
-                                    NonDedVATAmount, NonDedVATAmountAddCurr, false
+                                    NonDedVATAmount, NonDedVATAmountAddCurr, false,
                                     VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax");
                                     InitGLEntryVAT(GenJnlLine, VATPostingSetup.GetRevChargeAccount(false), '',
                                     -NonDedVATAmount, -NonDedVATAmountAddCurr, false,
