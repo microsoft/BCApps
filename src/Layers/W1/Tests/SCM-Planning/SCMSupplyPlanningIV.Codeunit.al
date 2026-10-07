@@ -3377,6 +3377,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PriceCalculationSetup: Record "Price Calculation Setup";
+        RequisitionLine: Record "Requisition Line";
         LeadTime: DateFormula;
         OldPrice: Decimal;
         NewPrice: Decimal;
@@ -3419,7 +3420,11 @@ codeunit 137077 "SCM Supply Planning -IV"
         CreateSalesOrder(Item."No.", '');
 
         // [WHEN] Calculate regenerative plan and carry out action message.
-        CalcRegenPlanAndCarryOut(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        SelectRequisitionLine(RequisitionLine, Item."No.");
+        RequisitionLine.Validate("Accept Action Message", true);
+        RequisitionLine.Modify(true);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
 
         // [THEN] "Direct Unit Cost" on the supplying purchase line = "Y".
         FindPurchLine(PurchaseLine, Item."No.");
@@ -4826,7 +4831,6 @@ codeunit 137077 "SCM Supply Planning -IV"
         CreateAndUpdateItem(
           Item[1], Item[1]."Replenishment System"::Purchase, Item[1]."Reordering Policy"::Order,
           Item[1]."Manufacturing Policy", LibraryPurchase.CreateVendorNo());
-
         for i := 2 to ArrayLen(Item) do begin
             CreateAndUpdateItem(
               Item[i], Item[i]."Replenishment System"::Assembly, Item[i]."Reordering Policy"::Order,
