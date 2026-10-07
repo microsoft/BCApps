@@ -547,8 +547,7 @@ codeunit 134228 "ERM Close Income Statement"
         SelectDimForCloseIncomeStatement(TempDimensionSetEntry);
         DocumentNo := LibraryUtility.GenerateGUID();
         RunCloseIncomeStatement(
-            GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
-            PostToRetainedEarningsAcc::Balance, false, true, DocumentNo);
+            GenJournalLine, PostingDate, PostToRetainedEarningsAcc::Balance, false, true, DocumentNo);
 
         // [THEN] Closing lines contain the correct amount for both dimension values
         VerifyCloseIncomeAmountByGlobalDim1(
