@@ -6,6 +6,7 @@
 namespace System.MCP;
 
 using System.Agents;
+using System.Security.AccessControl;
 
 page 8378 "MCP Config Agent List"
 {
@@ -17,6 +18,7 @@ page 8378 "MCP Config Agent List"
     Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata User = r;
 
     layout
     {
@@ -67,11 +69,11 @@ page 8378 "MCP Config Agent List"
 
     trigger OnAfterGetRecord()
     var
-        Agent: Record Agent;
+        User: Record User;
     begin
         Clear(AgentUserName);
-        if Agent.Get(Rec."Agent ID") then
-            AgentUserName := Agent."User Name";
+        if User.Get(Rec."Agent ID") then
+            AgentUserName := User."User Name";
     end;
 
     internal procedure SetConfigActive(IsActive: Boolean)

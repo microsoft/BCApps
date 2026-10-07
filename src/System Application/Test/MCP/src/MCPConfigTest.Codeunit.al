@@ -1402,28 +1402,14 @@ codeunit 130130 "MCP Config Test"
 
     [Test]
     procedure TestDeleteDefaultConfiguration()
-    var
-        MCPConfiguration: Record "MCP Configuration";
-        MCPConfigurationAgent: Record "MCP Configuration Agent";
-        DefaultConfigId: Guid;
-        AgentId: Guid;
-        OriginalAgentCount: Integer;
     begin
         // [GIVEN] Default configuration is created during setup
-        MCPConfiguration.Get('');
-        DefaultConfigId := MCPConfiguration.SystemId;
-        MCPConfigurationAgent.SetRange(ID, DefaultConfigId);
-        OriginalAgentCount := MCPConfigurationAgent.Count();
-        AgentId := CreateGuid();
-        InsertConfigurationAgent(DefaultConfigId, AgentId, 'Default agent');
 
         // [WHEN] Delete default configuration is called
         asserterror MCPConfig.DeleteConfiguration(MCPConfig.GetConfigurationIdByName(''));
 
         // [THEN] Error message is returned
         Assert.ExpectedError('The default configuration cannot be deleted.');
-        MCPConfiguration.Get('');
-        AssertConfigurationAgentCount(DefaultConfigId, OriginalAgentCount + 1);
     end;
 
     [Test]

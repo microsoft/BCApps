@@ -11,6 +11,7 @@ using System.Environment;
 using System.Feedback;
 using System.Integration;
 using System.Reflection;
+using System.Security.AccessControl;
 using System.Text;
 using System.Utilities;
 
@@ -19,6 +20,7 @@ codeunit 8351 "MCP Config Implementation"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata User = r;
 
     var
         DefaultConfigCannotBeDeactivatedErr: Label 'The default configuration cannot be deactivated.';
@@ -650,7 +652,11 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure SetAgentMetadata(var MCPConfigurationAgent: Record "MCP Configuration Agent")
     var
         Agent: Record Agent;
+        User: Record User;
     begin
+        if not User.Get(MCPConfigurationAgent."Agent ID") then
+            Error(AgentNotFoundErr);
+
         if not Agent.Get(MCPConfigurationAgent."Agent ID") then
             Error(AgentNotFoundErr);
 
