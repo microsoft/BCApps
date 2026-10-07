@@ -1097,10 +1097,10 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         PostedAttachment: Record "Document Attachment";
         Source: Record "Sales Header";
         Posted: Record "Sales Invoice Header";
-        SourceRef: RecordRef;
-        PostedRef: RecordRef;
         Management: Codeunit "Document Attachment Mgmt";
         Impl: Codeunit "DA External Storage Impl.";
+        SourceRef: RecordRef;
+        PostedRef: RecordRef;
         CreateCalls: Integer;
     begin
         Initialize();

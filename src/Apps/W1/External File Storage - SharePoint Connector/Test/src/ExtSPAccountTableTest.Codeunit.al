@@ -21,7 +21,7 @@ codeunit 144583 "Ext. SP Account Table Test"
     procedure DestinationContextBindsNamespaceAndGeneration()
     var
         Account: Record "Ext. SharePoint Account";
-        FileAccount: Record "File Account" temporary;
+        TempFileAccount: Record "File Account" temporary;
         Storage: Codeunit "External File Storage";
         Fingerprint: Text[64];
         ChangedFingerprint: Text[64];
@@ -32,21 +32,21 @@ codeunit 144583 "Ext. SP Account Table Test"
         Account."SharePoint Url" := 'https://example.sharepoint.com/sites/test';
         Account."Base Relative Folder Path" := '/sites/test/Shared Documents';
         Account.Insert();
-        FileAccount."Account Id" := Account.Id;
-        FileAccount.Connector := Enum::"Ext. File Storage Connector"::SharePoint;
-        Assert.IsTrue(Storage.GetDestinationContext(FileAccount, false, Fingerprint, Generation), 'Context should be metadata-only and need no authentication');
+        TempFileAccount."Account Id" := Account.Id;
+        TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::SharePoint;
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, Fingerprint, Generation), 'Context should be metadata-only and need no authentication');
         Account."Base Relative Folder Path" := '/sites/test/Changed';
         Account.Modify();
-        Assert.IsTrue(Storage.GetDestinationContext(FileAccount, false, ChangedFingerprint, ChangedGeneration), 'Changed context should be readable');
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'Changed context should be readable');
         Assert.AreNotEqual(Fingerprint, ChangedFingerprint, 'Base path must affect stable destination identity');
         Account."Base Relative Folder Path" := '/sites/test/Shared Documents';
         Account.Modify();
-        Assert.IsTrue(Storage.GetDestinationContext(FileAccount, false, ChangedFingerprint, ChangedGeneration), 'Restored context should be readable');
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'Restored context should be readable');
         Assert.AreEqual(Fingerprint, ChangedFingerprint, 'Restored destination has the same stable identity');
         Assert.AreNotEqual(Generation, ChangedGeneration, 'Change-away-and-back must change the generation');
         Account."Use legacy REST API" := true;
         Account.Modify();
-        Assert.IsTrue(Storage.GetDestinationContext(FileAccount, false, ChangedFingerprint, ChangedGeneration), 'REST context should be readable');
+        Assert.IsTrue(Storage.GetDestinationContext(TempFileAccount, false, ChangedFingerprint, ChangedGeneration), 'REST context should be readable');
         Assert.AreNotEqual(Fingerprint, ChangedFingerprint, 'API/base-path interpretation must affect identity');
     end;
 
@@ -55,8 +55,8 @@ codeunit 144583 "Ext. SP Account Table Test"
     procedure DestinationDescriptorExcludesCredentialsAndBlocksDisabledAccount()
     var
         Account: Record "Ext. SharePoint Account";
-        Provider: Interface "External File Storage Context";
         Connector: Codeunit "Ext. SharePoint Connector Impl";
+        Provider: Interface "External File Storage Context";
         Descriptor: Text;
         Generation: BigInteger;
     begin

@@ -231,9 +231,9 @@ page 8751 "Document Attachment - External"
                 trigger OnAction()
                 var
                     DocumentAttachment: Record "Document Attachment";
+                    CleanupSetup: Record "DA External Storage Setup";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
                     CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
-                    CleanupSetup: Record "DA External Storage Setup";
                     SuccessCount: Integer;
                     FailedCount: Integer;
                 begin

@@ -19,8 +19,8 @@ codeunit 144591 "Ext. SFTP Connector Test"
     procedure DestinationContextTracksServerNamespaceAndUser()
     var
         Account: Record "Ext. SFTP Account";
-        Provider: Interface "External File Storage Context";
         Connector: Codeunit "Ext. SFTP Connector Impl";
+        Provider: Interface "External File Storage Context";
         OriginalDescriptor: Text;
         Descriptor: Text;
         Generation: BigInteger;

@@ -143,6 +143,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         TempFileAccount: Record "File Account";
         SourceMedia: Record "Tenant Media";
         Upload: Record "DA Internal Cleanup Entry";
+        ExistingAttachment: Record "Document Attachment";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
@@ -155,7 +156,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         FingerprintAfterUpload: Text[64];
         GenerationAfterUpload: BigInteger;
         ContextCaptured: Boolean;
-        ExistingAttachment: Record "Document Attachment";
         AttachmentVersion: BigInteger;
     begin
         // Check if feature is enabled

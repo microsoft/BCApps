@@ -19,8 +19,8 @@ codeunit 144571 "Ext. Azure File Service Test"
     procedure DestinationContextTracksShareAndAccountEdits()
     var
         Account: Record "Ext. File Share Account";
-        Provider: Interface "External File Storage Context";
         Connector: Codeunit "Ext. File Share Connector Impl";
+        Provider: Interface "External File Storage Context";
         OriginalDescriptor: Text;
         Descriptor: Text;
         OriginalGeneration: BigInteger;

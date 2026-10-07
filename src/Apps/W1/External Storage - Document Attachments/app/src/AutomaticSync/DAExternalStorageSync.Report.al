@@ -152,9 +152,9 @@ report 8752 "DA External Storage Sync"
     }
 
     var
+        CleanupSetup: Record "DA External Storage Setup";
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
-        CleanupSetup: Record "DA External Storage Setup";
         Dialog: Dialog;
         FailedCount: Integer;
         MaxRecordsToProcess: Integer;

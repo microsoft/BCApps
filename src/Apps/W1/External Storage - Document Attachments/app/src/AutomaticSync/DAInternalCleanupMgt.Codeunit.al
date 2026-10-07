@@ -138,7 +138,7 @@ codeunit 8759 "DA Internal Cleanup Mgt."
     procedure CheckBinding(Entry: Record "DA Internal Cleanup Entry"; var DocumentAttachment: Record "Document Attachment"; var Setup: Record "DA External Storage Setup"; LockRecords: Boolean; var Reason: Text): Boolean
     var
         TenantMedia: Record "Tenant Media";
-        Account: Record "File Account" temporary;
+        TempAccount: Record "File Account" temporary;
         ExternalFileStorage: Codeunit "External File Storage";
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         FileScenario: Codeunit "File Scenario";
@@ -190,12 +190,12 @@ codeunit 8759 "DA Internal Cleanup Mgt."
             exit(false);
         if TenantMedia.SystemRowVersion <> Entry."Source Media Version" then
             exit(false);
-        Account."Account Id" := Entry."Account ID";
-        Account.Connector := Entry.Connector;
-        if not FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Doc. Attach. - External Storage", Account, LockRecords) then
+        TempAccount."Account Id" := Entry."Account ID";
+        TempAccount.Connector := Entry.Connector;
+        if not FileScenario.IsSpecificFileAccountAssigned(Enum::"File Scenario"::"Doc. Attach. - External Storage", TempAccount, LockRecords) then
             exit(false);
         ClearLastError();
-        if not ExternalFileStorage.GetDestinationContext(Account, LockRecords, Fingerprint, Generation) then begin
+        if not ExternalFileStorage.GetDestinationContext(TempAccount, LockRecords, Fingerprint, Generation) then begin
             Reason := GetLastErrorText(true);
             exit(false);
         end;

@@ -24,17 +24,17 @@ codeunit 134750 "File Accounts Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure OptionalDestinationContextIsOptInAndSecretFree()
     var
-        Account: Record "File Account" temporary;
+        TempAccount: Record "File Account" temporary;
         Mock: Codeunit "File Connector Mock";
         Storage: Codeunit "External File Storage";
         Fingerprint: Text[64];
         Generation: BigInteger;
     begin
         Mock.Initialize();
-        Mock.AddAccount(Account);
-        Assert.IsFalse(Storage.GetDestinationContext(Account, false, Fingerprint, Generation), 'Existing test connector behavior remains unsupported by default');
+        Mock.AddAccount(TempAccount);
+        Assert.IsFalse(Storage.GetDestinationContext(TempAccount, false, Fingerprint, Generation), 'Existing test connector behavior remains unsupported by default');
         Mock.EnableDestinationContext(true);
-        Assert.IsTrue(Storage.GetDestinationContext(Account, false, Fingerprint, Generation), 'Optional capability should return context when enabled');
+        Assert.IsTrue(Storage.GetDestinationContext(TempAccount, false, Fingerprint, Generation), 'Optional capability should return context when enabled');
         Assert.AreNotEqual('', Fingerprint, 'Fingerprint must be present');
         Assert.AreNotEqual(0, Generation, 'Persistent account generation must be present');
         Assert.AreEqual(0, Mock.GetReadbackCallCount(), 'Metadata context must not transfer files');

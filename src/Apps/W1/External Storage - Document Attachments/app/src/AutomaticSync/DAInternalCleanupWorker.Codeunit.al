@@ -149,16 +149,16 @@ codeunit 8756 "DA Internal Cleanup Worker"
     [TryFunction]
     local procedure Readback(Attempt: Record "DA Internal Cleanup Entry"; var RetrievedBytes: BigInteger)
     var
-        Account: Record "File Account" temporary;
+        TempAccount: Record "File Account" temporary;
         ExternalFileStorage: Codeunit "External File Storage";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         OutStream: OutStream;
     begin
-        Account."Account Id" := Attempt."Account ID";
-        Account.Connector := Attempt.Connector;
-        CheckDestination(Attempt, Account);
-        ExternalFileStorage.Initialize(Account);
+        TempAccount."Account Id" := Attempt."Account ID";
+        TempAccount.Connector := Attempt.Connector;
+        CheckDestination(Attempt, TempAccount);
+        ExternalFileStorage.Initialize(TempAccount);
         if not ExternalFileStorage.GetFile(Attempt."External File Path", InStream) then
             Error('%1', GetLastErrorText(true));
         TempBlob.CreateOutStream(OutStream);
@@ -166,16 +166,16 @@ codeunit 8756 "DA Internal Cleanup Worker"
         if not TempBlob.HasValue() then
             Error(EmptyReadbackErr);
         RetrievedBytes := TempBlob.Length();
-        CheckDestination(Attempt, Account);
+        CheckDestination(Attempt, TempAccount);
     end;
 
-    local procedure CheckDestination(Attempt: Record "DA Internal Cleanup Entry"; Account: Record "File Account" temporary)
+    local procedure CheckDestination(Attempt: Record "DA Internal Cleanup Entry"; TempAccount: Record "File Account" temporary)
     var
         ExternalFileStorage: Codeunit "External File Storage";
         Fingerprint: Text[64];
         Generation: BigInteger;
     begin
-        if not ExternalFileStorage.GetDestinationContext(Account, false, Fingerprint, Generation) then
+        if not ExternalFileStorage.GetDestinationContext(TempAccount, false, Fingerprint, Generation) then
             Error('%1', GetLastErrorText(true));
         if (Fingerprint <> Attempt."Destination Fingerprint") or (Generation <> Attempt."Account Generation") then
             Error(DestinationChangedErr);

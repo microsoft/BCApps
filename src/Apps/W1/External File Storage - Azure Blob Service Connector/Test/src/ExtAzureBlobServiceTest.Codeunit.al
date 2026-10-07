@@ -19,8 +19,8 @@ codeunit 144566 "Ext. Azure Blob Service Test"
     procedure DestinationContextTracksContainerAndAccountEdits()
     var
         Account: Record "Ext. Blob Storage Account";
-        Provider: Interface "External File Storage Context";
         Connector: Codeunit "Ext. Blob Sto. Connector Impl.";
+        Provider: Interface "External File Storage Context";
         OriginalDescriptor: Text;
         Descriptor: Text;
         OriginalGeneration: BigInteger;
