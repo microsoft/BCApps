@@ -22,15 +22,27 @@ codeunit 20509 "Subc. Transfer Shipment Data"
             exit;
 
         SubcontractorNo := TransferShipmentHeader."Source ID";
-        SubcontractorName := TransferShipmentHeader."Transfer-to Name";
-        SubcontractorAddressValue := TransferShipmentHeader."Transfer-to Address";
-        SubcontractorAddress[1] := TransferShipmentHeader."Transfer-to Address";
-        SubcontractorAddress[2] := TransferShipmentHeader."Transfer-to Address 2";
-        SubcontractorAddress[3] := TransferShipmentHeader."Transfer-to City";
-        SubcontractorAddress[4] := TransferShipmentHeader."Transfer-to Post Code";
-        SubcontractorAddress[5] := TransferShipmentHeader."Transfer-to County";
-        SubcontractorAddress[6] := TransferShipmentHeader."Trsf.-to Country/Region Code";
-        SubcontractorAddress[7] := TransferShipmentHeader."Transfer-to Contact";
+        if TransferShipmentHeader."Subc. Return Order" then begin
+            SubcontractorName := TransferShipmentHeader."Transfer-from Name";
+            SubcontractorAddressValue := TransferShipmentHeader."Transfer-from Address";
+            SubcontractorAddress[1] := TransferShipmentHeader."Transfer-from Address";
+            SubcontractorAddress[2] := TransferShipmentHeader."Transfer-from Address 2";
+            SubcontractorAddress[3] := TransferShipmentHeader."Transfer-from City";
+            SubcontractorAddress[4] := TransferShipmentHeader."Transfer-from Post Code";
+            SubcontractorAddress[5] := TransferShipmentHeader."Transfer-from County";
+            SubcontractorAddress[6] := TransferShipmentHeader."Trsf.-from Country/Region Code";
+            SubcontractorAddress[7] := TransferShipmentHeader."Transfer-from Contact";
+        end else begin
+            SubcontractorName := TransferShipmentHeader."Transfer-to Name";
+            SubcontractorAddressValue := TransferShipmentHeader."Transfer-to Address";
+            SubcontractorAddress[1] := TransferShipmentHeader."Transfer-to Address";
+            SubcontractorAddress[2] := TransferShipmentHeader."Transfer-to Address 2";
+            SubcontractorAddress[3] := TransferShipmentHeader."Transfer-to City";
+            SubcontractorAddress[4] := TransferShipmentHeader."Transfer-to Post Code";
+            SubcontractorAddress[5] := TransferShipmentHeader."Transfer-to County";
+            SubcontractorAddress[6] := TransferShipmentHeader."Trsf.-to Country/Region Code";
+            SubcontractorAddress[7] := TransferShipmentHeader."Transfer-to Contact";
+        end;
         SubcontractPurchaseOrderNo := TransferShipmentHeader."Subcontr. Purch. Order No.";
     end;
 }
