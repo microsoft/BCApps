@@ -77,6 +77,7 @@ codeunit 6154 "API Webhook Notification Send"
         TypeHelper: Codeunit "Type Helper";
         APIWebhookNotificationMgt: Codeunit "API Webhook Notification Mgt.";
         SubscriptionIdList: List of [Text[150]];
+        BlockedSubscriptionIdList: List of [Text[150]];
         KeyFieldTypeBySubscriptionId: Dictionary of [Text[150], Text];
         SystemIdBySubscriptionIdDictionary: Dictionary of [Text[150], Guid];
         TableIdBySubscriptionIdDictionary: Dictionary of [Text[150], Integer];
@@ -85,7 +86,6 @@ codeunit 6154 "API Webhook Notification Send"
         SubscriptionsPerNotificationUrlDictionary: Dictionary of [Text, List of [Text[150]]];
         SubscriptionsTypeNotificationUrlDictionary: Dictionary of [Text, Integer];
         ProcessingDateTime: DateTime;
-        SendingBlockedByEnvironment: Boolean;
         APIWebhookCategoryLbl: Label 'AL API Webhook', Locked = true;
         ActivityLogContextLbl: Label 'APIWEBHOOK', Locked = true;
         JobQueueCategoryCodeLbl: Label 'APIWEBHOOK', Locked = true;
@@ -191,7 +191,7 @@ codeunit 6154 "API Webhook Notification Send"
         IncreaseAttemptNumberTitleTxt: Label 'Increase attempt number.', Locked = true;
         NotificationFailedTitleTxt: Label 'Notification failed.', Locked = true;
         NotificationBlockedByEnvironmentTitleTxt: Label 'Notification blocked by environment.', Locked = true;
-        NotificationBlockedByEnvironmentTxt: Label 'Outgoing HTTP requests from the Base Application extension are blocked in this environment. To send webhook notifications, turn on Allow HttpClient Requests for the Base Application extension on the Extension Management page. The notifications are kept and sent again later. Notification URL: %1.', Locked = true;
+        NotificationBlockedByEnvironmentTxt: Label 'Outgoing HTTP requests from the Base Application extension are blocked in this environment. To send webhook notifications, turn on Allow HttpClient Requests for the Base Application extension on the Extension Management page. The notifications are kept and sent again later. Notification URL: %1.', Comment = '%1 = notification URL';
         NotificationBlockedByEnvironmentMsg: Label 'Notification is blocked by the environment and is kept for a later attempt. Notification URL number: %1.', Locked = true;
         JobFailedTitleTxt: Label 'Job failed.', Locked = true;
         NoPermissionsTxt: Label 'No permissions.', Locked = true;
@@ -224,7 +224,7 @@ codeunit 6154 "API Webhook Notification Send"
         Clear(ResourceUrlBySubscriptionIdDictionary);
         Clear(NotificationUrlBySubscriptionIdDictionary);
         Clear(SubscriptionsPerNotificationUrlDictionary);
-        SendingBlockedByEnvironment := false;
+        Clear(BlockedSubscriptionIdList);
 
         ProcessingDateTime := CurrentDateTime();
     end;
@@ -272,7 +272,9 @@ codeunit 6154 "API Webhook Notification Send"
                 if SendNotification(I, NotificationUrl, PayloadPerNotificationUrl, Reschedule, IsBlockedByEnvironment) then
                     DeleteNotifications(SubscriptionIds)
                 else
-                    if not IsBlockedByEnvironment then
+                    if IsBlockedByEnvironment then
+                        AddBlockedSubscriptions(SubscriptionIds)
+                    else
                         if Reschedule then
                             IncreaseAttemptNumber(SubscriptionIds)
                         else begin
@@ -1090,7 +1092,7 @@ codeunit 6154 "API Webhook Notification Send"
         repeat
             APIWebhookNotificationAggr.TransferFields(TempAPIWebhookNotificationAggr, true);
             if APIWebhookNotificationAggr."Sending Scheduled Date Time" < ProcessingDateTime then begin
-                if SendingBlockedByEnvironment then
+                if BlockedSubscriptionIdList.Contains(TempAPIWebhookNotificationAggr."Subscription ID") then
                     ScheduledDateTime := ProcessingDateTime + GetDelayTimeWhenBlockedByEnvironment()
                 else
                     ScheduledDateTime := ProcessingDateTime + GetDelayTimeForAttempt(TempAPIWebhookNotificationAggr."Attempt No.");
@@ -1165,7 +1167,6 @@ codeunit 6154 "API Webhook Notification Send"
 
         if not Success then begin
             if IsBlockedByEnvironment then begin
-                SendingBlockedByEnvironment := true;
                 Reschedule := false;
                 Session.LogMessage('', StrSubstNo(NotificationBlockedByEnvironmentMsg, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
                 LogActivity(true, NotificationBlockedByEnvironmentTitleTxt, StrSubstNo(NotificationBlockedByEnvironmentTxt, NotificationUrl));
@@ -1190,23 +1191,32 @@ codeunit 6154 "API Webhook Notification Send"
         exit(true);
     end;
 
-    [TryFunction]
-    local procedure SendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCodeNumber: Integer; var IsBlockedByEnvironment: Boolean)
+    local procedure SendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCodeNumber: Integer; var IsBlockedByEnvironment: Boolean): Boolean
     var
-        APIWebhookSubscription: Record "API Webhook Subscription";
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
-        HttpResponseMessage: HttpResponseMessage;
-        HttpContent: HttpContent;
-        HttpHeaders: HttpHeaders;
-        ContentHeaders: HttpHeaders;
-        MaskedUrl: Text;
-        CorrelationGuid: Text;
-        Timeout: Integer;
     begin
         HttpStatusCodeNumber := 0;
         IsBlockedByEnvironment := false;
 
+        if not TryCreateRequest(NotificationUrlNumber, NotificationUrl, NotificationPayload, HttpClient, HttpRequestMessage) then
+            exit(false);
+
+        // Raised outside the try functions so that errors from subscribers are not swallowed, and before the Authorization header is added.
+        OnSendRequestOnBeforeSendHttpRequest(HttpClient, HttpRequestMessage);
+
+        exit(TrySendRequest(NotificationUrlNumber, NotificationUrl, HttpClient, HttpRequestMessage, ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCodeNumber, IsBlockedByEnvironment));
+    end;
+
+    [TryFunction]
+    local procedure TryCreateRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; NotificationPayload: Text; var HttpClient: HttpClient; var HttpRequestMessage: HttpRequestMessage)
+    var
+        HttpContent: HttpContent;
+        HttpHeaders: HttpHeaders;
+        ContentHeaders: HttpHeaders;
+        CorrelationGuid: Text;
+        Timeout: Integer;
+    begin
         if NotificationUrl = '' then begin
             Session.LogMessage('00002A1', StrSubstNo(EmptyNotificationUrlErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             Error(EmptyNotificationUrlErr, NotificationUrlNumber);
@@ -1228,9 +1238,6 @@ codeunit 6154 "API Webhook Notification Send"
 
         Session.LogMessage('0000KX7', StrSubstNo(PostCorrelationGuidTxt, CorrelationGuid), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
 
-        if SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = APIWebhookSubscription."Subscription Type"::Dataverse then
-            AddTokenToRequestHeader(HttpHeaders);
-
         Timeout := GetSendingNotificationTimeout();
         if Timeout > 0 then
             HttpClient.Timeout(Timeout);
@@ -1242,8 +1249,21 @@ codeunit 6154 "API Webhook Notification Send"
             ContentHeaders.Remove('Content-Type');
         ContentHeaders.Add('Content-Type', 'application/json');
         HttpRequestMessage.Content := HttpContent;
+    end;
 
-        OnSendRequestOnBeforeSendHttpRequest(HttpClient, HttpRequestMessage);
+    [TryFunction]
+    local procedure TrySendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; var HttpClient: HttpClient; var HttpRequestMessage: HttpRequestMessage; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCodeNumber: Integer; var IsBlockedByEnvironment: Boolean)
+    var
+        APIWebhookSubscription: Record "API Webhook Subscription";
+        HttpResponseMessage: HttpResponseMessage;
+        HttpHeaders: HttpHeaders;
+        MaskedUrl: Text;
+    begin
+        if SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = APIWebhookSubscription."Subscription Type"::Dataverse then begin
+            HttpRequestMessage.GetHeaders(HttpHeaders);
+            AddTokenToRequestHeader(HttpHeaders);
+        end;
+
         MaskedUrl := GetMaskedUrl(NotificationUrl);
         Session.LogMessage('0000FBA', StrSubstNo(PostEmittedTxt, MaskedUrl), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
@@ -1857,6 +1877,15 @@ codeunit 6154 "API Webhook Notification Send"
         end;
     end;
 
+    local procedure AddBlockedSubscriptions(var SubscriptionIds: List of [Text[150]])
+    var
+        SubscriptionId: Text[150];
+    begin
+        foreach SubscriptionId in SubscriptionIds do
+            if not BlockedSubscriptionIdList.Contains(SubscriptionId) then
+                BlockedSubscriptionIdList.Add(SubscriptionId);
+    end;
+
     local procedure GetDelayTimeWhenBlockedByEnvironment(): Integer
     begin
         // Retrying soon is pointless until an administrator allows outgoing HTTP requests, so wait as long as for the last attempts.
@@ -2009,7 +2038,7 @@ codeunit 6154 "API Webhook Notification Send"
 #endif
 
     /// <summary>
-    /// Raised right before the webhook notification request is sent. Subscribers can modify the HTTP client (for example, the timeout) and the request message (for example, add headers).
+    /// Raised right before the webhook notification request is sent. Subscribers can modify the HTTP client (for example, the timeout) and the request message (for example, add headers). The Authorization header for Dataverse subscriptions is added after this event.
     /// </summary>
     /// <param name="HttpClient">The HTTP client that will send the request.</param>
     /// <param name="HttpRequestMessage">The request message that will be sent.</param>
