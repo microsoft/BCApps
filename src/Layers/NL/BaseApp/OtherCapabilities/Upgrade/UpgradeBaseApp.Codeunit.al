@@ -3486,11 +3486,11 @@ codeunit 104000 "Upgrade - BaseApp"
             exit;
 
         if PurchasesPayablesSetup.Get() then begin
-            PurchasesPayablesSetup.Validate("Restore Order qty. on return", true);
+            PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", true);
             PurchasesPayablesSetup.Modify();
         end;
         if SalesReceivablesSetup.Get() then begin
-            SalesReceivablesSetup.Validate("Restore Order qty. on return", true);
+            SalesReceivablesSetup.Validate("Restore Order Qty. on Return", true);
             SalesReceivablesSetup.Modify();
         end;
 

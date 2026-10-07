@@ -9152,7 +9152,7 @@ codeunit 80 "Sales-Post"
             exit;
 
         SalesSetup.GetRecordOnce();
-        if not SalesSetup."Restore Order qty. on return" then
+        if not SalesSetup."Restore Order Qty. on Return" then
             exit;
 
         SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");

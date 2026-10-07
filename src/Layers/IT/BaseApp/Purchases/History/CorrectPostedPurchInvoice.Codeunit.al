@@ -204,7 +204,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         end;
 
         PurchasesPayablesSetup.GetRecordOnce();
-        if PurchasesPayablesSetup."Restore Order qty. on return" then begin
+        if PurchasesPayablesSetup."Restore Order Qty. on Return" then begin
             PurchaseHeaderOrder.SetRange("Document Type", PurchaseHeaderOrder."Document Type"::Order);
             PurchaseHeaderOrder.SetRange("No.", PurchInvHeader."Order No.");
             if not PurchaseHeaderOrder.IsEmpty() then
@@ -845,7 +845,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         UndoPostingManagement: Codeunit "Undo Posting Management";
     begin
         PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order qty. on return" then
+        if not PurchasesPayablesSetup."Restore Order Qty. on Return" then
             exit;
 
         PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
@@ -950,7 +950,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
     begin
         PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order qty. on return" then
+        if not PurchasesPayablesSetup."Restore Order Qty. on Return" then
             exit;
 
         PurchCrMemoLine.SetLoadFields("Document No.", "No.", Quantity);
@@ -1145,7 +1145,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchInvLine: Record "Purch. Inv. Line";
     begin
         PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order qty. on return" then
+        if not PurchasesPayablesSetup."Restore Order Qty. on Return" then
             exit;
 
         PurchaseLine.SetLoadFields("Quantity Invoiced", "Qty. Invoiced (Base)", "Quantity Received", "Qty. Received (Base)");

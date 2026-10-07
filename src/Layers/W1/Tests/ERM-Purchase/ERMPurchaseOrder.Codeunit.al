@@ -9528,7 +9528,7 @@ codeunit 134327 "ERM Purchase Order"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         PurchasesPayablesSetup.Modify(true);
     end;
 

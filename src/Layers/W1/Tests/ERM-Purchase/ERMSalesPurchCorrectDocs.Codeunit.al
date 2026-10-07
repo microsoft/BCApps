@@ -318,7 +318,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
     begin
         // [FEATURE] [Sales]
-        // [SCENARIO 649626] Cancelling an order-based sales invoice does not restore order quantities when "Restore Order qty. on return" is disabled.
+        // [SCENARIO 649626] Cancelling an order-based sales invoice does not restore order quantities when "Restore Order Qty. on Return" is disabled.
         Initialize();
         SetSalesRestoreOrderQtyOnReturn(false);
 
@@ -417,7 +417,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
     begin
         // [FEATURE] [Purchase]
-        // [SCENARIO 649626] Cancelling an order-based purchase invoice does not restore order quantities when "Restore Order qty. on return" is disabled.
+        // [SCENARIO 649626] Cancelling an order-based purchase invoice does not restore order quantities when "Restore Order Qty. on Return" is disabled.
         Initialize();
         SetPurchaseRestoreOrderQtyOnReturn(false);
 
@@ -2379,7 +2379,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         PurchasesPayablesSetup.Modify(true);
     end;
 
@@ -2388,7 +2388,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-        SalesReceivablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         SalesReceivablesSetup.Modify(true);
     end;
 

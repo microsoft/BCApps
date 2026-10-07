@@ -1578,7 +1578,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         PostedQuantity: Decimal;
     begin
         // [FEATURE] [Correct] [Credit Memo] [Receipt] [UI]
-        // [SCENARIO 649626] Correcting an order-based purchase invoice does not restore order quantities when "Restore Order qty. on return" is disabled.
+        // [SCENARIO 649626] Correcting an order-based purchase invoice does not restore order quantities when "Restore Order Qty. on Return" is disabled.
         Initialize();
         SetRestoreOrderQtyOnReturn(false);
 
@@ -1977,7 +1977,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         PurchasesPayablesSetup.Modify(true);
     end;
 

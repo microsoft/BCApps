@@ -55,7 +55,7 @@ codeunit 1325 "Cancel PstdPurchInv (Yes/No)"
     begin
         if PurchInvHeader."Order No." <> '' then begin
             PurchasesPayablesSetup.GetRecordOnce();
-            if PurchasesPayablesSetup."Restore Order qty. on return" then
+            if PurchasesPayablesSetup."Restore Order Qty. on Return" then
                 exit(CancelPostedInvoiceFromOrderQst);
         end;
 

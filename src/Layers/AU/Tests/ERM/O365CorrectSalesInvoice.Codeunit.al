@@ -1595,7 +1595,7 @@ codeunit 138015 "O365 Correct Sales Invoice"
         PostedQuantity: Decimal;
     begin
         // [FEATURE] [Correct] [Credit Memo] [Shipment] [UI]
-        // [SCENARIO 649626] Correcting an order-based sales invoice does not restore order quantities when "Restore Order qty. on return" is disabled.
+        // [SCENARIO 649626] Correcting an order-based sales invoice does not restore order quantities when "Restore Order Qty. on Return" is disabled.
         Initialize();
         SetRestoreOrderQtyOnReturn(false);
 
@@ -1848,7 +1848,7 @@ codeunit 138015 "O365 Correct Sales Invoice"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-        SalesReceivablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         SalesReceivablesSetup.Modify(true);
     end;
 

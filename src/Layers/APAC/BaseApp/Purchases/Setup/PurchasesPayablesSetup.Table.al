@@ -377,7 +377,7 @@ table 312 "Purchases & Payables Setup"
         /// <summary>
         /// Indicates whether posting a purchase credit memo or return order restores the reversed quantities on the related purchase order.
         /// </summary>
-        field(70; "Restore Order qty. on return"; Boolean)
+        field(70; "Restore Order Qty. on Return"; Boolean)
         {
             Caption = 'Restore Order quantities on Credit Memo posting';
             ToolTip = 'Specifies whether posting a purchase credit memo restores quantities on the related purchase order. When enabled, Qty. to Receive, Qty. to Invoice, and the received and invoiced quantities on the original purchase order are updated based on the reversed quantity.';

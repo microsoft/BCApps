@@ -1226,7 +1226,7 @@ codeunit 137019 "SCM Correct Invoice"
         SalesLine: Record "Sales Line";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
     begin
-        // [SCENARIO 649626] The order quantity restoration confirmation is not shown when "Restore Order qty. on return" is disabled.
+        // [SCENARIO 649626] The order quantity restoration confirmation is not shown when "Restore Order Qty. on Return" is disabled.
         Initialize();
         SetRestoreOrderQtyOnReturn(false);
 
@@ -1474,7 +1474,7 @@ codeunit 137019 "SCM Correct Invoice"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-        SalesReceivablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         SalesReceivablesSetup.Modify(true);
     end;
 

@@ -9689,7 +9689,7 @@ table 36 "Sales Header"
             exit;
 
         SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Restore Order qty. on return" then
+        if not SalesReceivablesSetup."Restore Order Qty. on Return" then
             exit;
 
         CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");

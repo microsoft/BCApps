@@ -1121,7 +1121,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         Vendor: Record Vendor;
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
     begin
-        // [SCENARIO 649626] The order quantity restoration confirmation is not shown when "Restore Order qty. on return" is disabled.
+        // [SCENARIO 649626] The order quantity restoration confirmation is not shown when "Restore Order Qty. on Return" is disabled.
         Initialize();
         SetRestoreOrderQtyOnReturn(false);
 
@@ -1270,7 +1270,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         PurchasesPayablesSetup.Modify(true);
     end;
 

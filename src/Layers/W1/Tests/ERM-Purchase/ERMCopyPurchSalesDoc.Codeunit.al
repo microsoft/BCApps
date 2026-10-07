@@ -7043,7 +7043,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         PostedDocumentNo: Code[20];
         SalesReturnOrder: TestPage "Sales Return Order";
     begin
-        // [SCENARIO 649626] Sales order quantities are not restored after posting a sales return order when "Restore Order qty. on return" is disabled.
+        // [SCENARIO 649626] Sales order quantities are not restored after posting a sales return order when "Restore Order Qty. on Return" is disabled.
         Initialize();
         SetRestoreOrderQtyOnReturn(false);
 
@@ -9094,7 +9094,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-        SalesReceivablesSetup.Validate("Restore Order qty. on return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         SalesReceivablesSetup.Modify(true);
     end;
 

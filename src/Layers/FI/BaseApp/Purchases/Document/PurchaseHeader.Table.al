@@ -7893,7 +7893,7 @@ table 38 "Purchase Header"
             exit;
 
         PurchasesPayablesSetup.GetRecordOnce();
-        if not PurchasesPayablesSetup."Restore Order qty. on return" then
+        if not PurchasesPayablesSetup."Restore Order Qty. on Return" then
             exit;
 
         CorrectPostedPurchInvoice.UpdatePurchaseOrderLineIfExist(PurchaseCrMemoHeader."No.");
