@@ -163,6 +163,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Projects Builder" = X,
                   codeunit "Expense Report" = X,
                   codeunit "Expense Report Approval Mgmt" = X,
+                  codeunit "Delegate Expense Approval Run" = X,
                   codeunit "Expense Report Batch Post Mgt." = X,
                   codeunit "Expense Report Manual Release" = X,
                   codeunit "Expense Report Manual Reopen" = X,
@@ -180,6 +181,6 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Agent MCP Config." = X,
 #pragma warning restore AL0432
 #endif
-                  codeunit "Release Expense Document" = X;
-
+                  codeunit "Release Expense Document" = X,
+                  report "Delegate Expense Approval Req" = X;
 }
