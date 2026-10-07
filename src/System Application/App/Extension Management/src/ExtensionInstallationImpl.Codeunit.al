@@ -5,9 +5,9 @@
 
 namespace System.Apps;
 
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.Environment.Configuration;
 using System.Utilities;
 
 codeunit 2500 "Extension Installation Impl"
