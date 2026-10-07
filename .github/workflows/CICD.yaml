@@ -1,7 +1,16 @@
-name: 'SQL reset paired pilot - DO NOT MERGE'
+name: 'SQL reset pilot - DO NOT MERGE'
 
 on:
   workflow_dispatch:
+    inputs:
+      arm:
+        description: 'Control only by default; paired requires separate authorization'
+        required: true
+        type: choice
+        default: control
+        options:
+          - control
+          - paired
 
 permissions:
   actions: read
@@ -15,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arm: [control, fresh]
+        arm: ${{ fromJSON(inputs.arm == 'paired' && '["control","fresh"]' || '["control"]') }}
     runs-on: GitHub-BCAppsPL
     timeout-minutes: 120
     defaults:
@@ -31,7 +40,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           lfs: true
-          fetch-depth: 3
+          fetch-depth: 0
 
       - name: Verify baseline PowerShell 7 host
         run: |
