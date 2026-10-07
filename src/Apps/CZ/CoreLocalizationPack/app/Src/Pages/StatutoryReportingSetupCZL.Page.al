@@ -151,7 +151,7 @@ page 31108 "Statutory Reporting Setup CZL"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the type of official company for reporting.';
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field("Official Name"; Rec."Official Name")
                 {
                     ApplicationArea = Basic, Suite;
