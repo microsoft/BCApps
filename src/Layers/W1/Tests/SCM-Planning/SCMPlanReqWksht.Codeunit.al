@@ -5786,6 +5786,61 @@
         PurchaseLine.TestField("Direct Unit Cost", 450);
     end;
 
+    [HandlerFunctions('CarryOutProdOrderToReqWkshRequestPageHandler')]
+    procedure CopyingProdOrderFromPlanningWkshToReqWkshFromRequestPage()
+    var
+        Item: Record Item;
+        PlanningWkshName: Record "Requisition Wksh. Name";
+        ProductionOrder: Record "Production Order";
+        ReqLineInPlanWksh: Record "Requisition Line";
+        ReqLineInReqWksh: Record "Requisition Line";
+        ReqWkshName: Record "Requisition Wksh. Name";
+        PlanningWorksheet: TestPage "Planning Worksheet";
+    begin
+        // [SCENARIO 649803] A production planning line can be copied to a selected requisition worksheet from the Planning Worksheet request page.
+        Initialize();
+        LibraryApplicationArea.EnablePremiumSetup();
+
+        // [GIVEN] An accepted production line in the planning worksheet and a destination requisition worksheet.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Modify(true);
+        LibraryPlanning.SelectRequisitionWkshName(PlanningWkshName, PlanningWkshName."Template Type"::Planning);
+        LibraryPlanning.CreateRequisitionLine(ReqLineInPlanWksh, PlanningWkshName."Worksheet Template Name", PlanningWkshName.Name);
+        ReqLineInPlanWksh.Validate(Type, ReqLineInPlanWksh.Type::Item);
+        ReqLineInPlanWksh.Validate("No.", Item."No.");
+        ReqLineInPlanWksh.Validate("Action Message", ReqLineInPlanWksh."Action Message"::New);
+        ReqLineInPlanWksh.Validate("Accept Action Message", true);
+        ReqLineInPlanWksh.Validate("Replenishment System", ReqLineInPlanWksh."Replenishment System"::"Prod. Order");
+        ReqLineInPlanWksh.Validate("Ref. Order Type", ReqLineInPlanWksh."Ref. Order Type"::"Prod. Order");
+        ReqLineInPlanWksh.Validate(Quantity, LibraryRandom.RandInt(10));
+        ReqLineInPlanWksh.Validate("Due Date", WorkDate());
+        ReqLineInPlanWksh.Modify(true);
+        LibraryPlanning.SelectRequisitionWkshName(ReqWkshName, ReqWkshName."Template Type"::"Req.");
+
+        // [WHEN] Production Order is set to Copy to Req. Wksh and the destination is selected on the request page.
+        LibraryVariableStorage.Enqueue(ReqWkshName."Worksheet Template Name");
+        LibraryVariableStorage.Enqueue(ReqWkshName.Name);
+        Commit();
+        OpenPlanningWorksheetPage(PlanningWorksheet, PlanningWkshName.Name);
+        PlanningWorksheet.CarryOutActionMessage.Invoke();
+
+        // [THEN] The accepted production planning line and its planning data are copied to the destination.
+        ReqLineInReqWksh.SetRange("Worksheet Template Name", ReqWkshName."Worksheet Template Name");
+        ReqLineInReqWksh.SetRange("Journal Batch Name", ReqWkshName.Name);
+        ReqLineInReqWksh.SetRange("No.", Item."No.");
+        ReqLineInReqWksh.FindFirst();
+
+        ReqLineInReqWksh.TestField(Quantity, ReqLineInPlanWksh.Quantity);
+        ReqLineInReqWksh.TestField("Due Date", ReqLineInPlanWksh."Due Date");
+        ReqLineInReqWksh.TestField("Replenishment System", ReqLineInReqWksh."Replenishment System"::"Prod. Order");
+
+        // [THEN] No production order is created.
+        ProductionOrder.SetRange("Source No.", Item."No.");
+        Assert.RecordIsEmpty(ProductionOrder);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         AllProfile: Record "All Profile";
