@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 134194 "UT Derogatory Linkage Upg."
+codeunit 144047 "UT Derogatory Linkage Upg."
 {
     // [FEATURE] [Fixed Asset] [Derogatory]
 
@@ -2117,7 +2117,8 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         PreviousFeatureStatus := CaptureFeatureStateIfRequired();
 
         // [WHEN] A legacy acquisition with salvage is posted, migrated, and reversed
-        asserterror begin
+        asserterror
+        begin
             LegacySalvageMigrationReversalBody();
             CompleteTestBody();
         end;

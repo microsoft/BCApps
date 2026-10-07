@@ -627,6 +627,8 @@ codeunit 134049 "ERM Date Compression FA"
         FALedgerEntry.SetRange("FA No.", FANo);
         FALedgerEntry.SetRange("Depreciation Book Code", BookCode);
         DateCompressFALedger.SetTableView(FALedgerEntry);
+        DateCompressFALedger.SetRetainDocumentNo(false);
+        DateCompressFALedger.SetRetainIndexEntry(false);
         DateCompressFALedger.InitializeRequest(PostingDate, PostingDate, DateComprRegister."Period Length"::Day, FANo, '', false);
         DateCompressFALedger.UseRequestPage(false);
         DateCompressFALedger.Run();
@@ -641,6 +643,8 @@ codeunit 134049 "ERM Date Compression FA"
         MaintenanceLedgerEntry.SetRange("FA No.", FANo);
         MaintenanceLedgerEntry.SetRange("Depreciation Book Code", BookCode);
         DateCompressMaintLedger.SetTableView(MaintenanceLedgerEntry);
+        DateCompressMaintLedger.SetRetainDocumentNo(false);
+        DateCompressMaintLedger.SetRetainIndexEntry(false);
         DateCompressMaintLedger.InitializeRequest(PostingDate, PostingDate, DateComprRegister."Period Length"::Day, FANo, '', false);
         DateCompressMaintLedger.UseRequestPage(false);
         DateCompressMaintLedger.Run();
@@ -790,6 +794,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry."Posting Date" := UnlinkedEntry."FA Posting Date";
         UnlinkedEntry.Insert();
 
+        VerifyUnlinkedFASelection(SourceEntry, CounterpartEntry, UnlinkedEntry);
         RunFilteredFACompression(UnlinkedEntry."FA No.", UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date");
 
         VerifyFACompressionPair(SourceEntry."Entry No.", CounterpartEntry."Entry No.");
@@ -820,6 +825,7 @@ codeunit 134049 "ERM Date Compression FA"
         UnlinkedEntry."Posting Date" := UnlinkedEntry."FA Posting Date";
         UnlinkedEntry.Insert();
 
+        VerifyUnlinkedMaintenanceSelection(SourceEntry, CounterpartEntry, UnlinkedEntry);
         RunFilteredMaintenanceCompression(UnlinkedEntry."FA No.", UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date");
 
         VerifyMaintenanceCompressionPair(SourceEntry."Entry No.", CounterpartEntry."Entry No.");
@@ -831,6 +837,54 @@ codeunit 134049 "ERM Date Compression FA"
         CompressedEntry.FindFirst();
         Assert.AreEqual(100, CompressedEntry.Amount, 'Compression must preserve the selected amount.');
         Assert.AreEqual(0, CompressedEntry."Derogatory Source Entry No.", 'An unlinked summary must remain unlinked.');
+    end;
+
+    local procedure VerifyUnlinkedFASelection(SourceEntry: Record "FA Ledger Entry"; CounterpartEntry: Record "FA Ledger Entry"; UnlinkedEntry: Record "FA Ledger Entry")
+    var
+        SelectedEntry: Record "FA Ledger Entry";
+    begin
+        Assert.AreNotEqual(SourceEntry."Entry No.", CounterpartEntry."Entry No.", 'Source and counterpart must have distinct identities.');
+        Assert.AreNotEqual(SourceEntry."Entry No.", UnlinkedEntry."Entry No.", 'Source and unlinked entry must have distinct identities.');
+        Assert.AreNotEqual(CounterpartEntry."Entry No.", UnlinkedEntry."Entry No.", 'Counterpart and unlinked entry must have distinct identities.');
+        Assert.AreEqual(0, SourceEntry."Derogatory Source Entry No.", 'The source must not be a counterpart.');
+        Assert.AreEqual(SourceEntry."Entry No.", CounterpartEntry."Derogatory Source Entry No.", 'The counterpart must reference the source.');
+        Assert.AreEqual(0, UnlinkedEntry."Derogatory Source Entry No.",
+            StrSubstNo('Unlinked FA entry %1, source %2, counterpart %3, book %4, date %5 must have no source link.',
+                UnlinkedEntry."Entry No.", SourceEntry."Entry No.", CounterpartEntry."Entry No.",
+                UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date"));
+        SelectedEntry.SetRange("Derogatory Source Entry No.", UnlinkedEntry."Entry No.");
+        Assert.RecordIsEmpty(SelectedEntry);
+        SelectedEntry.Reset();
+        SelectedEntry.SetRange("FA No.", UnlinkedEntry."FA No.");
+        SelectedEntry.SetRange("Depreciation Book Code", UnlinkedEntry."Depreciation Book Code");
+        SelectedEntry.SetRange("FA Posting Date", UnlinkedEntry."FA Posting Date");
+        Assert.AreEqual(1, SelectedEntry.Count(), 'The compression view must select only the unlinked entry.');
+        SelectedEntry.FindFirst();
+        Assert.AreEqual(UnlinkedEntry."Entry No.", SelectedEntry."Entry No.", 'Unexpected selected FA entry.');
+    end;
+
+    local procedure VerifyUnlinkedMaintenanceSelection(SourceEntry: Record "Maintenance Ledger Entry"; CounterpartEntry: Record "Maintenance Ledger Entry"; UnlinkedEntry: Record "Maintenance Ledger Entry")
+    var
+        SelectedEntry: Record "Maintenance Ledger Entry";
+    begin
+        Assert.AreNotEqual(SourceEntry."Entry No.", CounterpartEntry."Entry No.", 'Source and counterpart must have distinct identities.');
+        Assert.AreNotEqual(SourceEntry."Entry No.", UnlinkedEntry."Entry No.", 'Source and unlinked entry must have distinct identities.');
+        Assert.AreNotEqual(CounterpartEntry."Entry No.", UnlinkedEntry."Entry No.", 'Counterpart and unlinked entry must have distinct identities.');
+        Assert.AreEqual(0, SourceEntry."Derogatory Source Entry No.", 'The source must not be a counterpart.');
+        Assert.AreEqual(SourceEntry."Entry No.", CounterpartEntry."Derogatory Source Entry No.", 'The counterpart must reference the source.');
+        Assert.AreEqual(0, UnlinkedEntry."Derogatory Source Entry No.",
+            StrSubstNo('Unlinked maintenance entry %1, source %2, counterpart %3, book %4, date %5 must have no source link.',
+                UnlinkedEntry."Entry No.", SourceEntry."Entry No.", CounterpartEntry."Entry No.",
+                UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date"));
+        SelectedEntry.SetRange("Derogatory Source Entry No.", UnlinkedEntry."Entry No.");
+        Assert.RecordIsEmpty(SelectedEntry);
+        SelectedEntry.Reset();
+        SelectedEntry.SetRange("FA No.", UnlinkedEntry."FA No.");
+        SelectedEntry.SetRange("Depreciation Book Code", UnlinkedEntry."Depreciation Book Code");
+        SelectedEntry.SetRange("FA Posting Date", UnlinkedEntry."FA Posting Date");
+        Assert.AreEqual(1, SelectedEntry.Count(), 'The compression view must select only the unlinked entry.');
+        SelectedEntry.FindFirst();
+        Assert.AreEqual(UnlinkedEntry."Entry No.", SelectedEntry."Entry No.", 'Unexpected selected maintenance entry.');
     end;
 
     [ConfirmHandler]

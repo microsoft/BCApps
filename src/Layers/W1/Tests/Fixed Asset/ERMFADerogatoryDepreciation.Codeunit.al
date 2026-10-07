@@ -20,6 +20,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         ComposedFrenchFeatureStateCleanup: Codeunit "ERM Derog. Feature Cleanup";
         IsInitialized: Boolean;
+        BookValue02Contract: Boolean;
         GroupTotalsCap: Label 'GroupTotals';
         NoFixedAssetCap: Label 'No_FixedAsset';
         NetChangeAmt1Cap: Label 'NetChangeAmt1';
@@ -57,9 +58,9 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
         // [THEN] The report shows the derogatory posting type and ending amount
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryAmountHeading', Format(FALedgerEntry."FA Posting Type"::Derogatory));
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryAmountHeading'), Format(FALedgerEntry."FA Posting Type"::Derogatory));
         LibraryReportDataset.AssertElementWithValueExists(
-          'DerogatoryClosingAmount', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory));
+          DatasetColumn('DerogatoryClosingAmount'), FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory));
     end;
 
     [Test]
@@ -162,9 +163,9 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         // [THEN] The report shows derogatory heading and ending amount
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists(
-          'DerogatoryClosingHeading', StrSubstNo('%1 %2', FADepreciationBook.FieldCaption("Derogatory Amount"), FADepreciationBook."Depreciation Starting Date"));
+          DatasetColumn('DerogatoryClosingHeading'), StrSubstNo('%1 %2', FADepreciationBook.FieldCaption("Derogatory Amount"), FADepreciationBook."Depreciation Starting Date"));
         LibraryReportDataset.AssertElementWithValueExists(
-          'DerogatoryClosingAmount', FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory));
+          DatasetColumn('DerogatoryClosingAmount'), FALedgerEntryAmount(FADepreciationBook."FA No.", FALedgerEntry."FA Posting Type"::Derogatory));
     end;
 
     [Test]
@@ -307,7 +308,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
 
         // [THEN] Derogatory reporting is inactive and all per-asset derogatory amounts are zero
         LibraryReportDataset.LoadDataSetFile();
-        VerifyNoDerogatoryBookValue02();
+        VerifyNoDerogatoryBookValue02(FADepreciationBook);
     end;
 
     [Test]
@@ -443,9 +444,9 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         // [THEN] Detail, group, and report-total derogatory sections are hidden
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('HasDerogatorySetup', true);
-        LibraryReportDataset.AssertElementWithValueExists('ShowDerogatoryDetail', false);
-        LibraryReportDataset.AssertElementWithValueExists('ShowDerogatoryGroup', false);
-        LibraryReportDataset.AssertElementWithValueExists('ShowDerogatoryTotal', false);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryDetail'), false);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryGroup'), false);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryTotal'), false);
     end;
 
     [Test]
@@ -1155,7 +1156,15 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
             RowValues[3], FADepreciationBook."Depreciation Starting Date", FADepreciationBook.FieldCaption("Depreciation Starting Date"));
         VerifyRenderedSetupDate(
             RowValues[4], FADepreciationBook."Depreciation Ending Date", FADepreciationBook.FieldCaption("Depreciation Ending Date"));
-        AssertRowContainsValue(RowValues, LibraryReportValidation.FormatDecimalValue(FADepreciationBook."Declining-Balance %"));
+        VerifyRenderedSetupPercentage(RowValues, FADepreciationBook);
+    end;
+
+    local procedure VerifyRenderedSetupPercentage(RowValues: array[50] of Text[250]; FADepreciationBook: Record "FA Depreciation Book")
+    begin
+        if IsFrenchReportContract() and not BookValue02Contract then
+            AssertRowContainsValue(RowValues, Format(FADepreciationBook."Declining-Balance %"))
+        else
+            AssertRowContainsValue(RowValues, LibraryReportValidation.FormatDecimalValue(FADepreciationBook."Declining-Balance %"));
     end;
 
     local procedure VerifyRenderedSetupDate(RenderedDateValue: Text; ExpectedDate: Date; FieldCaption: Text)
@@ -1163,6 +1172,10 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         ExcelBuffer: Record "Excel Buffer";
         DateValue: Decimal;
     begin
+        if IsFrenchReportContract() then begin
+            Assert.AreEqual(Format(ExpectedDate), RenderedDateValue, StrSubstNo(RenderedDateMismatchErr, FieldCaption));
+            exit;
+        end;
         Evaluate(DateValue, RenderedDateValue, 9);
         Assert.AreEqual(
             ExpectedDate, DT2Date(ExcelBuffer.ConvertDateTimeDecimalToDateTime(DateValue)),
@@ -1229,32 +1242,28 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     begin
         LibraryReportDataset.SetRange(NoFATxt, FADepreciationBook."FA No.");
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFATxt, FADepreciationBook."FA No."));
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDeprBookCode', FADepreciationBook."Depreciation Book Code");
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDeprMethod', Format(FADepreciationBook."Depreciation Method"));
+        VerifySetupMetadata(FADepreciationBook, DerogatoryFADepreciationBook);
+    end;
+
+    local procedure VerifySetupMetadata(FADepreciationBook: Record "FA Depreciation Book"; DerogatoryFADepreciationBook: Record "FA Depreciation Book")
+    begin
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('AccountingDeprBookCode'), FADepreciationBook."Depreciation Book Code");
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('AccountingDeprMethod'), Format(FADepreciationBook."Depreciation Method"));
         VerifyCurrentRowDate('AccountingDeprStartingDate', FADepreciationBook."Depreciation Starting Date");
         VerifyCurrentRowDate('AccountingDeprEndingDate', FADepreciationBook."Depreciation Ending Date");
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDecliningBalancePct', FADepreciationBook."Declining-Balance %");
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprBookCode', DerogatoryFADepreciationBook."Depreciation Book Code");
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprMethod', Format(DerogatoryFADepreciationBook."Depreciation Method"));
+        VerifySetupPercentage('AccountingDecliningBalancePct', FADepreciationBook."Declining-Balance %", false);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDeprBookCode'), DerogatoryFADepreciationBook."Depreciation Book Code");
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDeprMethod'), Format(DerogatoryFADepreciationBook."Depreciation Method"));
         VerifyCurrentRowDate('DerogatoryDeprStartingDate', DerogatoryFADepreciationBook."Depreciation Starting Date");
         VerifyCurrentRowDate('DerogatoryDeprEndingDate', DerogatoryFADepreciationBook."Depreciation Ending Date");
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDecliningBalancePct', DerogatoryFADepreciationBook."Declining-Balance %");
+        VerifySetupPercentage('DerogatoryDecliningBalancePct', DerogatoryFADepreciationBook."Declining-Balance %", false);
     end;
 
     local procedure VerifyBookValue02SetupMetadata(FADepreciationBook: Record "FA Depreciation Book"; DerogatoryFADepreciationBook: Record "FA Depreciation Book")
     begin
         LibraryReportDataset.SetRange(NoFixedAssetCap, FADepreciationBook."FA No.");
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, FADepreciationBook."FA No."));
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDeprBookCode', FADepreciationBook."Depreciation Book Code");
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDeprMethod', Format(FADepreciationBook."Depreciation Method"));
-        VerifyCurrentRowDate('AccountingDeprStartingDate', FADepreciationBook."Depreciation Starting Date");
-        VerifyCurrentRowDate('AccountingDeprEndingDate', FADepreciationBook."Depreciation Ending Date");
-        LibraryReportDataset.AssertElementWithValueExists('AccountingDecliningBalancePct', FADepreciationBook."Declining-Balance %");
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprBookCode', DerogatoryFADepreciationBook."Depreciation Book Code");
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDeprMethod', Format(DerogatoryFADepreciationBook."Depreciation Method"));
-        VerifyCurrentRowDate('DerogatoryDeprStartingDate', DerogatoryFADepreciationBook."Depreciation Starting Date");
-        VerifyCurrentRowDate('DerogatoryDeprEndingDate', DerogatoryFADepreciationBook."Depreciation Ending Date");
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDecliningBalancePct', DerogatoryFADepreciationBook."Declining-Balance %");
+        VerifySetupMetadata(FADepreciationBook, DerogatoryFADepreciationBook);
     end;
 
     local procedure VerifyCurrentRowDate(ElementName: Text; ExpectedDate: Date)
@@ -1262,6 +1271,11 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         ActualValue: Variant;
         ActualDate: Date;
     begin
+        ElementName := DatasetColumn(ElementName);
+        if IsFrenchReportContract() then begin
+            LibraryReportDataset.AssertCurrentRowValueEquals(ElementName, Format(ExpectedDate));
+            exit;
+        end;
         if ExpectedDate = 0D then begin
             // XML report datasets omit blank date elements rather than serializing a date value.
             Assert.IsFalse(LibraryReportDataset.CurrentRowHasElement(ElementName), StrSubstNo(DatasetDateMismatchErr, ElementName));
@@ -1277,20 +1291,30 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     begin
         LibraryReportDataset.AssertElementWithValueExists('HasDerogatoryBook', false);
         LibraryReportDataset.AssertElementWithValueExists('HasDerogatorySetup', false);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryOpeningAmount', 0);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryIncreaseAmount', 0);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDecreaseAmount', 0);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryClosingAmount', 0);
+        VerifyZeroDerogatoryAmounts();
     end;
 
-    local procedure VerifyNoDerogatoryBookValue02()
+    local procedure VerifyNoDerogatoryBookValue02(FADepreciationBook: Record "FA Depreciation Book")
+    var
+        DepreciationBook: Record "Depreciation Book";
     begin
-        LibraryReportDataset.AssertElementWithValueExists('HasDerogatoryBook', false);
+        DepreciationBook.SetRange("Derogatory Calc.", FADepreciationBook."Depreciation Book Code");
+        Assert.RecordIsEmpty(DepreciationBook);
+        if not IsFrenchReportContract() then
+            LibraryReportDataset.AssertElementWithValueExists('HasDerogatoryBook', false);
         LibraryReportDataset.AssertElementWithValueExists('HasDerogatorySetup', false);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryOpeningAmount', 0);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryIncreaseAmount', 0);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryDecreaseAmount', 0);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryClosingAmount', 0);
+        VerifyZeroDerogatoryAmounts();
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryDetail'), false);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryGroup'), false);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryTotal'), false);
+    end;
+
+    local procedure VerifyZeroDerogatoryAmounts()
+    begin
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryOpeningAmount'), 0);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryIncreaseAmount'), 0);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryDecreaseAmount'), 0);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryClosingAmount'), 0);
     end;
 
     local procedure VerifyIneligibleBookValue01Row(FANo: Code[20])
@@ -1298,10 +1322,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.SetRange(NoFATxt, FANo);
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFATxt, FANo));
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', false);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryOpeningAmount', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryIncreaseAmount', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecreaseAmount', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryClosingAmount', 0);
+        VerifyZeroDerogatoryRow();
     end;
 
     local procedure VerifyIneligibleBookValue02Row(FANo: Code[20])
@@ -1309,34 +1330,41 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.SetRange(NoFixedAssetCap, FANo);
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, FANo));
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', false);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryOpeningAmount', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryIncreaseAmount', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecreaseAmount', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryReclassOpeningAmt', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryReclassIncreaseAmt', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryReclassDecreaseAmt', 0);
+        VerifyZeroDerogatoryRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryReclassOpeningAmt'), 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryReclassIncreaseAmt'), 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryReclassDecreaseAmt'), 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('ShowDerogatoryDetail'), false);
+    end;
+
+    local procedure VerifyZeroDerogatoryRow()
+    begin
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryOpeningAmount'), 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryIncreaseAmount'), 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDecreaseAmount'), 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryClosingAmount'), 0);
     end;
 
     local procedure VerifyIneligibleBookValue01SetupRow(FANo: Code[20])
     begin
         VerifyIneligibleBookValue01Row(FANo);
         LibraryReportDataset.AssertCurrentRowValueEquals('PrintFASetup', true);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprBookCode', '');
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprMethod', '');
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDeprBookCode'), '');
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDeprMethod'), '');
         VerifyCurrentRowDate('DerogatoryDeprStartingDate', 0D);
         VerifyCurrentRowDate('DerogatoryDeprEndingDate', 0D);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecliningBalancePct', 0);
+        VerifySetupPercentage('DerogatoryDecliningBalancePct', 0, true);
     end;
 
     local procedure VerifyIneligibleBookValue02SetupRow(FANo: Code[20])
     begin
         VerifyIneligibleBookValue02Row(FANo);
         LibraryReportDataset.AssertCurrentRowValueEquals('PrintFASetup', true);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprBookCode', '');
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDeprMethod', '');
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDeprBookCode'), '');
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDeprMethod'), '');
         VerifyCurrentRowDate('DerogatoryDeprStartingDate', 0D);
         VerifyCurrentRowDate('DerogatoryDeprEndingDate', 0D);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecliningBalancePct', 0);
+        VerifySetupPercentage('DerogatoryDecliningBalancePct', 0, true);
     end;
 
     local procedure VerifyMixedBookValue01Amounts(EligibleFADepreciationBook: Record "FA Depreciation Book"; IneligibleFADepreciationBook: Record "FA Depreciation Book"; DerogatoryAmount: Decimal; AccountingBookValue: Decimal)
@@ -1344,12 +1372,12 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.SetRange(NoFATxt, EligibleFADepreciationBook."FA No.");
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFATxt, EligibleFADepreciationBook."FA No."));
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', true);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecreaseAmount', DerogatoryAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryClosingAmount', DerogatoryAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDecreaseAmount'), DerogatoryAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryClosingAmount'), DerogatoryAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, AccountingBookValue);
         VerifyIneligibleBookValue01Row(IneligibleFADepreciationBook."FA No.");
         LibraryReportDataset.Reset();
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryGroupDecreaseAmount', DerogatoryAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupDecreaseAmount'), DerogatoryAmount);
         LibraryReportDataset.AssertElementWithValueExists(BookValueAtEndingDateCap, AccountingBookValue);
     end;
 
@@ -1358,58 +1386,130 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
         LibraryReportDataset.SetRange(NoFixedAssetCap, EligibleFADepreciationBook."FA No.");
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, EligibleFADepreciationBook."FA No."));
         LibraryReportDataset.AssertCurrentRowValueEquals('HasDerogatorySetup', true);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecreaseAmount', DerogatoryAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryClosingAmount', DerogatoryAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDecreaseAmount'), DerogatoryAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryClosingAmount'), DerogatoryAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, AccountingBookValue);
         VerifyIneligibleBookValue02Row(IneligibleFADepreciationBook."FA No.");
         LibraryReportDataset.Reset();
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryGroupDecreaseAmount', DerogatoryAmount);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryTotalDecreaseAmount', DerogatoryAmount);
-        LibraryReportDataset.AssertElementWithValueExists('BookValueAtEndingDate_Control125', AccountingBookValue);
-        LibraryReportDataset.AssertElementWithValueExists('BookValueAtEndingDate_Control169', AccountingBookValue);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupDecreaseAmount'), DerogatoryAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryTotalDecreaseAmount'), DerogatoryAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('BookValueAtEndingDate_Control125'), AccountingBookValue);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('BookValueAtEndingDate_Control169'), AccountingBookValue);
     end;
 
     local procedure VerifyBookValue01DerogatoryAmounts(FANo: Code[20]; OpeningAmount: Decimal; IncreaseAmount: Decimal; DecreaseAmount: Decimal; ClosingAmount: Decimal; BookValue: Decimal)
     begin
         LibraryReportDataset.SetRange(NoFATxt, FANo);
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFATxt, FANo));
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryOpeningAmount', OpeningAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryIncreaseAmount', IncreaseAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecreaseAmount', DecreaseAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryClosingAmount', ClosingAmount);
+        VerifyDerogatoryRow(OpeningAmount, IncreaseAmount, DecreaseAmount, ClosingAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, BookValue);
         LibraryReportDataset.AssertCurrentRowValueEquals('PrintFASetup', false);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryGroupOpeningAmount', OpeningAmount);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryGroupIncreaseAmount', IncreaseAmount);
-        LibraryReportDataset.AssertElementWithValueExists('DerogatoryGroupDecreaseAmount', DecreaseAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupOpeningAmount'), OpeningAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupIncreaseAmount'), IncreaseAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('DerogatoryGroupDecreaseAmount'), DecreaseAmount);
     end;
 
     local procedure VerifyBookValue02DerogatoryAmounts(FANo: Code[20]; OpeningAmount: Decimal; IncreaseAmount: Decimal; DecreaseAmount: Decimal; ClosingAmount: Decimal; BookValue: Decimal)
     begin
         LibraryReportDataset.SetRange(NoFixedAssetCap, FANo);
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoFixedAssetCap, FANo));
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryOpeningAmount', OpeningAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryIncreaseAmount', IncreaseAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryDecreaseAmount', DecreaseAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryClosingAmount', ClosingAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('DerogatoryReclassIncreaseAmt', IncreaseAmount);
+        VerifyDerogatoryRow(OpeningAmount, IncreaseAmount, DecreaseAmount, ClosingAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryReclassIncreaseAmt'), IncreaseAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals(BookValueAtEndingDateCap, BookValue);
         LibraryReportDataset.AssertCurrentRowValueEquals('PrintFASetup', false);
-        LibraryReportDataset.AssertCurrentRowValueEquals('ShowDerogatoryDetail', true);
-        LibraryReportDataset.AssertElementWithValueExists('ShowDerogatoryGroup', true);
-        LibraryReportDataset.AssertElementWithValueExists('ShowDerogatoryTotal', true);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('ShowDerogatoryDetail'), true);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryGroup'), true);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('ShowDerogatoryTotal'), true);
         VerifyBookValue02AggregateAmounts('Group', OpeningAmount, IncreaseAmount, DecreaseAmount);
         VerifyBookValue02AggregateAmounts('Total', OpeningAmount, IncreaseAmount, DecreaseAmount);
     end;
 
     local procedure VerifyBookValue02AggregateAmounts(Prefix: Text; OpeningAmount: Decimal; IncreaseAmount: Decimal; DecreaseAmount: Decimal)
     begin
-        LibraryReportDataset.AssertElementWithValueExists('Derogatory' + Prefix + 'OpeningAmount', OpeningAmount);
-        LibraryReportDataset.AssertElementWithValueExists('Derogatory' + Prefix + 'IncreaseAmount', IncreaseAmount);
-        LibraryReportDataset.AssertElementWithValueExists('Derogatory' + Prefix + 'DecreaseAmount', DecreaseAmount);
-        LibraryReportDataset.AssertElementWithValueExists('Derogatory' + Prefix + 'ReclassOpeningAmt', 0);
-        LibraryReportDataset.AssertElementWithValueExists('Derogatory' + Prefix + 'ReclassIncreaseAmt', IncreaseAmount);
-        LibraryReportDataset.AssertElementWithValueExists('Derogatory' + Prefix + 'ReclassDecreaseAmt', 0);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('Derogatory' + Prefix + 'OpeningAmount'), OpeningAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('Derogatory' + Prefix + 'IncreaseAmount'), IncreaseAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('Derogatory' + Prefix + 'DecreaseAmount'), DecreaseAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('Derogatory' + Prefix + 'ReclassOpeningAmt'), 0);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('Derogatory' + Prefix + 'ReclassIncreaseAmt'), IncreaseAmount);
+        LibraryReportDataset.AssertElementWithValueExists(DatasetColumn('Derogatory' + Prefix + 'ReclassDecreaseAmt'), 0);
+    end;
+
+    local procedure VerifyDerogatoryRow(OpeningAmount: Decimal; IncreaseAmount: Decimal; DecreaseAmount: Decimal; ClosingAmount: Decimal)
+    begin
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryOpeningAmount'), OpeningAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryIncreaseAmount'), IncreaseAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryDecreaseAmount'), DecreaseAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn('DerogatoryClosingAmount'), ClosingAmount);
+    end;
+
+    local procedure VerifySetupPercentage(ElementName: Text; ExpectedPercentage: Decimal; EmptySetup: Boolean)
+    begin
+        if IsFrenchReportContract() then
+            if EmptySetup then
+                LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn(ElementName), '')
+            else
+                LibraryReportDataset.AssertCurrentRowValueEquals(DatasetColumn(ElementName), Format(ExpectedPercentage, 0, '<Precision,2:8><Standard Format,0>'))
+        else
+            LibraryReportDataset.AssertCurrentRowValueEquals(ElementName, ExpectedPercentage);
+    end;
+
+    local procedure IsFrenchReportContract(): Boolean
+    var
+        ApplicationSystemConstants: Codeunit "Application System Constants";
+    begin
+        // Select the localization contract, never infer it from missing dataset elements.
+        exit(CopyStr(ApplicationSystemConstants.OriginalApplicationVersion(), 1, 3) = 'FR ');
+    end;
+
+    local procedure DatasetColumn(W1Column: Text): Text
+    var
+        AmountSuffix: Text;
+    begin
+        if not IsFrenchReportContract() then
+            exit(W1Column);
+
+        AmountSuffix := 'Amounts7';
+        if BookValue02Contract then
+            AmountSuffix := 'Amt7';
+        case W1Column of
+            'AccountingDeprBookCode': exit('DeprBookInfo1');
+            'AccountingDeprMethod': exit('DeprBookInfo2');
+            'AccountingDeprStartingDate': exit('DeprBookInfo3');
+            'AccountingDeprEndingDate': exit('DeprBookInfo4');
+            'AccountingDecliningBalancePct': exit('DeprBookInfo5');
+            'DerogatoryDeprBookCode': exit('DerogDeprBookInfo1');
+            'DerogatoryDeprMethod': exit('DerogDeprBookInfo2');
+            'DerogatoryDeprStartingDate': exit('DerogDeprBookInfo3');
+            'DerogatoryDeprEndingDate': exit('DerogDeprBookInfo4');
+            'DerogatoryDecliningBalancePct': exit('DerogDeprBookInfo5');
+            'DerogatoryAmountHeading': exit('HeadLineText10');
+            'DerogatoryClosingHeading': exit('HeadLineText14');
+            'DerogatoryOpeningAmount': exit('Start' + AmountSuffix);
+            'DerogatoryIncreaseAmount': exit('NetChange' + AmountSuffix);
+            'DerogatoryDecreaseAmount': exit('Disposal' + AmountSuffix);
+            'DerogatoryClosingAmount': exit('TotalEnding' + AmountSuffix);
+            'DerogatoryGroupOpeningAmount': exit('GroupStart' + AmountSuffix);
+            'DerogatoryGroupIncreaseAmount': exit('GroupNetChange' + AmountSuffix);
+            'DerogatoryGroupDecreaseAmount': exit('GroupDisposal' + AmountSuffix);
+            'DerogatoryTotalOpeningAmount': exit('TotalStart' + AmountSuffix);
+            'DerogatoryTotalIncreaseAmount': exit('TotalNetChange' + AmountSuffix);
+            'DerogatoryTotalDecreaseAmount': exit('TotalDisposal' + AmountSuffix);
+            'DerogatoryReclassOpeningAmt': exit('ReclassStartAmt7');
+            'DerogatoryReclassIncreaseAmt': exit('ReclassNetChangeAmt7');
+            'DerogatoryReclassDecreaseAmt': exit('ReclassDisposalAmt7');
+            'DerogatoryGroupReclassOpeningAmt': exit('ReclassGroupStartAmt7');
+            'DerogatoryGroupReclassIncreaseAmt': exit('ReclassGroupNetChangeAmt7');
+            'DerogatoryGroupReclassDecreaseAmt': exit('ReclassGroupDisposalAmt7');
+            'DerogatoryTotalReclassOpeningAmt': exit('ReclassTotalStartAmt7');
+            'DerogatoryTotalReclassIncreaseAmt': exit('ReclassTotalNetChangeAmt7');
+            'DerogatoryTotalReclassDecreaseAmt': exit('ReclassTotalDisposalAmt7');
+            'ShowDerogatoryDetail': exit('ShowSection07');
+            'ShowDerogatoryGroup': exit('ShowSection17');
+            'ShowDerogatoryTotal': exit('ShowSection27');
+            'BookValueAtEndingDate_Control125', 'BookValueAtEndingDate_Control169':
+                exit('BookValueAtEndingDate');
+        end;
+        exit(W1Column);
     end;
 
     local procedure CreateFAJournalBatch(var FAJournalBatch: Record "FA Journal Batch")
@@ -1589,6 +1689,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure FixedAssetBookValue02RequestPageHandler(var FixedAssetBookValue02: TestRequestPage "Fixed Asset - Book Value 02")
     begin
+        BookValue02Contract := true;
         FixedAssetBookValue02.Print_FASetup.SetValue(false);
         FixedAssetBookValue02.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
@@ -1596,6 +1697,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure PrintFASetupFixedAssetBookValue02RequestPageHandler(var FixedAssetBookValue02: TestRequestPage "Fixed Asset - Book Value 02")
     begin
+        BookValue02Contract := true;
         FixedAssetBookValue02.Print_FASetup.SetValue(true);
         FixedAssetBookValue02.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
@@ -1603,6 +1705,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure FixedAssetBookValue01RequestPageHandler(var FixedAssetBookValue01: TestRequestPage "Fixed Asset - Book Value 01")
     begin
+        BookValue02Contract := false;
         FixedAssetBookValue01.Print_FASetup.SetValue(false);
         FixedAssetBookValue01.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
@@ -1610,6 +1713,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure PrintFASetupFixedAssetBookValue01RequestPageHandler(var FixedAssetBookValue01: TestRequestPage "Fixed Asset - Book Value 01")
     begin
+        BookValue02Contract := false;
         FixedAssetBookValue01.Print_FASetup.SetValue(true);
         FixedAssetBookValue01.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
@@ -1617,6 +1721,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure PrintFASetupFixedAssetBookValue01ExcelRequestPageHandler(var FixedAssetBookValue01: TestRequestPage "Fixed Asset - Book Value 01")
     begin
+        BookValue02Contract := false;
         FixedAssetBookValue01.Print_FASetup.SetValue(true);
         FixedAssetBookValue01.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
@@ -1624,6 +1729,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure FixedAssetBookValue01ExcelRequestPageHandler(var FixedAssetBookValue01: TestRequestPage "Fixed Asset - Book Value 01")
     begin
+        BookValue02Contract := false;
         FixedAssetBookValue01.Print_FASetup.SetValue(false);
         FixedAssetBookValue01.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
@@ -1631,6 +1737,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure PrintFASetupFixedAssetBookValue02ExcelRequestPageHandler(var FixedAssetBookValue02: TestRequestPage "Fixed Asset - Book Value 02")
     begin
+        BookValue02Contract := true;
         FixedAssetBookValue02.Print_FASetup.SetValue(true);
         FixedAssetBookValue02.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
@@ -1638,6 +1745,7 @@ codeunit 134111 "ERM FA Derogatory Depreciation"
     [RequestPageHandler]
     procedure FixedAssetBookValue02ExcelRequestPageHandler(var FixedAssetBookValue02: TestRequestPage "Fixed Asset - Book Value 02")
     begin
+        BookValue02Contract := true;
         FixedAssetBookValue02.Print_FASetup.SetValue(false);
         FixedAssetBookValue02.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;

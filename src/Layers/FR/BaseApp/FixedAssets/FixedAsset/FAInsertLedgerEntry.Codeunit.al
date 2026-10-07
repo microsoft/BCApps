@@ -1042,18 +1042,16 @@ codeunit 5600 "FA Insert Ledger Entry"
         CompetingFALedgerEntry: Record "FA Ledger Entry";
         LinkedFALedgerEntry: Record "FA Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
-        DerogatoryDepreciationBookCode: Code[10];
     begin
         OriginalFALedgerEntry.Get(ReversingFALedgerEntry."Reversed Entry No.");
-        if (OriginalFALedgerEntry."Reversed Entry No." <> 0) or
-           not DerogatoryPostingMgt.GetDerogatoryBookCode(
-               OriginalFALedgerEntry."Depreciation Book Code", DerogatoryDepreciationBookCode)
-        then begin
+        if OriginalFALedgerEntry."Reversed Entry No." <> 0 then begin
             DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
             Error(AmbiguousLegacyDerogatoryErr, OriginalFALedgerEntry."Entry No.");
         end;
 
-        SetLegacyFAIdentityFilters(DerogatoryFALedgerEntry, OriginalFALedgerEntry, DerogatoryDepreciationBookCode);
+        // Historical identity must survive relationship removal or reassignment.
+        SetLegacyFAIdentityFilters(DerogatoryFALedgerEntry, OriginalFALedgerEntry, OriginalFALedgerEntry."Depreciation Book Code");
+        DerogatoryFALedgerEntry.SetFilter("Depreciation Book Code", '<>%1', OriginalFALedgerEntry."Depreciation Book Code");
         DerogatoryFALedgerEntry.SetFilter("Transaction No.", '%1|%2', OriginalFALedgerEntry."Transaction No.", 0);
         DerogatoryFALedgerEntry.SetRange(Reversed, false);
         DerogatoryFALedgerEntry.SetRange("Reversed by Entry No.", 0);
@@ -1062,8 +1060,14 @@ codeunit 5600 "FA Insert Ledger Entry"
             Error(AmbiguousLegacyDerogatoryErr, OriginalFALedgerEntry."Entry No.");
         end;
         DerogatoryFALedgerEntry.FindFirst();
+        LinkedFALedgerEntry.SetRange("Derogatory Source Entry No.", DerogatoryFALedgerEntry."Entry No.");
+        if not LinkedFALedgerEntry.IsEmpty() then begin
+            DerogatoryPostingMgt.LogIntegrityError(Database::"FA Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
+            Error(AmbiguousLegacyDerogatoryErr, OriginalFALedgerEntry."Entry No.");
+        end;
 
         SetLegacyFAIdentityFilters(CompetingFALedgerEntry, OriginalFALedgerEntry, OriginalFALedgerEntry."Depreciation Book Code");
+        CompetingFALedgerEntry.SetFilter("Depreciation Book Code", '<>%1', DerogatoryFALedgerEntry."Depreciation Book Code");
         CompetingFALedgerEntry.SetRange("Reversed by Entry No.", 0);
         CompetingFALedgerEntry.SetFilter("Entry No.", '<>%1', OriginalFALedgerEntry."Entry No.");
         // A zero-transaction counterpart could also belong to a source in another transaction.
@@ -1103,19 +1107,16 @@ codeunit 5600 "FA Insert Ledger Entry"
         CompetingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         LinkedMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
-        DerogatoryDepreciationBookCode: Code[10];
     begin
         OriginalMaintenanceLedgerEntry.Get(ReversingMaintenanceLedgerEntry."Reversed Entry No.");
-        if (OriginalMaintenanceLedgerEntry."Reversed Entry No." <> 0) or
-           not DerogatoryPostingMgt.GetDerogatoryBookCode(
-               OriginalMaintenanceLedgerEntry."Depreciation Book Code", DerogatoryDepreciationBookCode)
-        then begin
+        if OriginalMaintenanceLedgerEntry."Reversed Entry No." <> 0 then begin
             DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
             Error(AmbiguousLegacyDerogatoryErr, OriginalMaintenanceLedgerEntry."Entry No.");
         end;
 
         SetLegacyMaintenanceIdentityFilters(
-            DerogatoryMaintenanceLedgerEntry, OriginalMaintenanceLedgerEntry, DerogatoryDepreciationBookCode);
+            DerogatoryMaintenanceLedgerEntry, OriginalMaintenanceLedgerEntry, OriginalMaintenanceLedgerEntry."Depreciation Book Code");
+        DerogatoryMaintenanceLedgerEntry.SetFilter("Depreciation Book Code", '<>%1', OriginalMaintenanceLedgerEntry."Depreciation Book Code");
         DerogatoryMaintenanceLedgerEntry.SetFilter("Transaction No.", '%1|%2', OriginalMaintenanceLedgerEntry."Transaction No.", 0);
         DerogatoryMaintenanceLedgerEntry.SetRange(Reversed, false);
         DerogatoryMaintenanceLedgerEntry.SetRange("Reversed by Entry No.", 0);
@@ -1124,9 +1125,15 @@ codeunit 5600 "FA Insert Ledger Entry"
             Error(AmbiguousLegacyDerogatoryErr, OriginalMaintenanceLedgerEntry."Entry No.");
         end;
         DerogatoryMaintenanceLedgerEntry.FindFirst();
+        LinkedMaintenanceLedgerEntry.SetRange("Derogatory Source Entry No.", DerogatoryMaintenanceLedgerEntry."Entry No.");
+        if not LinkedMaintenanceLedgerEntry.IsEmpty() then begin
+            DerogatoryPostingMgt.LogIntegrityError(Database::"Maintenance Ledger Entry", AmbiguousLegacyDerogatoryTelemetryLbl);
+            Error(AmbiguousLegacyDerogatoryErr, OriginalMaintenanceLedgerEntry."Entry No.");
+        end;
 
         SetLegacyMaintenanceIdentityFilters(
             CompetingMaintenanceLedgerEntry, OriginalMaintenanceLedgerEntry, OriginalMaintenanceLedgerEntry."Depreciation Book Code");
+        CompetingMaintenanceLedgerEntry.SetFilter("Depreciation Book Code", '<>%1', DerogatoryMaintenanceLedgerEntry."Depreciation Book Code");
         CompetingMaintenanceLedgerEntry.SetRange("Reversed by Entry No.", 0);
         CompetingMaintenanceLedgerEntry.SetFilter("Entry No.", '<>%1', OriginalMaintenanceLedgerEntry."Entry No.");
         if DerogatoryMaintenanceLedgerEntry."Transaction No." <> 0 then

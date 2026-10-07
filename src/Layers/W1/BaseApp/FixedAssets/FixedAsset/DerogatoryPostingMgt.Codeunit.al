@@ -15,36 +15,41 @@ codeunit 5869 "Derogatory Posting Mgt."
 {
     Access = Internal;
 
-    procedure CheckDateCompressionAllowed(FALedgerEntry: Record "FA Ledger Entry")
+    procedure CheckDateCompressionAllowed(var FALedgerEntry: Record "FA Ledger Entry")
     var
+        SelectedFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
     begin
-        FALedgerEntry.SetLoadFields("Derogatory Source Entry No.");
+        // Preserve the report's view without changing its cursor or partial-record projection.
+        SelectedFALedgerEntry.Copy(FALedgerEntry);
+        SelectedFALedgerEntry.SetLoadFields("Derogatory Source Entry No.");
         CounterpartFALedgerEntry.SetCurrentKey("Derogatory Source Entry No.", "Depreciation Book Code");
-        if FALedgerEntry.FindSet() then
+        if SelectedFALedgerEntry.FindSet() then
             repeat
-                if FALedgerEntry."Derogatory Source Entry No." <> 0 then
-                    Error(LinkedEntryDateCompressionErr, FALedgerEntry.TableCaption(), FALedgerEntry."Entry No.");
-                CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.", FALedgerEntry."Entry No.");
+                if SelectedFALedgerEntry."Derogatory Source Entry No." <> 0 then
+                    Error(LinkedEntryDateCompressionErr, SelectedFALedgerEntry.TableCaption(), SelectedFALedgerEntry."Entry No.");
+                CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.", SelectedFALedgerEntry."Entry No.");
                 if not CounterpartFALedgerEntry.IsEmpty() then
-                    Error(LinkedEntryDateCompressionErr, FALedgerEntry.TableCaption(), FALedgerEntry."Entry No.");
-            until FALedgerEntry.Next() = 0;
+                    Error(LinkedEntryDateCompressionErr, SelectedFALedgerEntry.TableCaption(), SelectedFALedgerEntry."Entry No.");
+            until SelectedFALedgerEntry.Next() = 0;
     end;
 
-    procedure CheckDateCompressionAllowed(MaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    procedure CheckDateCompressionAllowed(var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
     var
+        SelectedMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
     begin
-        MaintenanceLedgerEntry.SetLoadFields("Derogatory Source Entry No.");
+        SelectedMaintenanceLedgerEntry.Copy(MaintenanceLedgerEntry);
+        SelectedMaintenanceLedgerEntry.SetLoadFields("Derogatory Source Entry No.");
         CounterpartMaintenanceLedgerEntry.SetCurrentKey("Derogatory Source Entry No.", "Depreciation Book Code");
-        if MaintenanceLedgerEntry.FindSet() then
+        if SelectedMaintenanceLedgerEntry.FindSet() then
             repeat
-                if MaintenanceLedgerEntry."Derogatory Source Entry No." <> 0 then
-                    Error(LinkedEntryDateCompressionErr, MaintenanceLedgerEntry.TableCaption(), MaintenanceLedgerEntry."Entry No.");
-                CounterpartMaintenanceLedgerEntry.SetRange("Derogatory Source Entry No.", MaintenanceLedgerEntry."Entry No.");
+                if SelectedMaintenanceLedgerEntry."Derogatory Source Entry No." <> 0 then
+                    Error(LinkedEntryDateCompressionErr, SelectedMaintenanceLedgerEntry.TableCaption(), SelectedMaintenanceLedgerEntry."Entry No.");
+                CounterpartMaintenanceLedgerEntry.SetRange("Derogatory Source Entry No.", SelectedMaintenanceLedgerEntry."Entry No.");
                 if not CounterpartMaintenanceLedgerEntry.IsEmpty() then
-                    Error(LinkedEntryDateCompressionErr, MaintenanceLedgerEntry.TableCaption(), MaintenanceLedgerEntry."Entry No.");
-            until MaintenanceLedgerEntry.Next() = 0;
+                    Error(LinkedEntryDateCompressionErr, SelectedMaintenanceLedgerEntry.TableCaption(), SelectedMaintenanceLedgerEntry."Entry No.");
+            until SelectedMaintenanceLedgerEntry.Next() = 0;
     end;
 
     procedure GetDerogatoryBookCode(SourceDepreciationBookCode: Code[10]; var DerogatoryDepreciationBookCode: Code[10]): Boolean
