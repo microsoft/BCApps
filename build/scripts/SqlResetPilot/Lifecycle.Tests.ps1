@@ -62,7 +62,7 @@ Describe 'SQL reset pilot ownership and mapping' {
         Mock Add-Content -ModuleName Lifecycle {}
         Invoke-SqlPilotReset 'owned' 'tenant2' 'tenant2' 'default'
         $script:tenants[1].DatabaseName | Should -Be 'tenant2_r123456789_g1'
-        Assert-MockCalled Invoke-ScriptInBcContainer -ModuleName Lifecycle -Times 1 -Exactly -Scope It -ParameterFilter {
+        Should -Invoke Invoke-ScriptInBcContainer -ModuleName Lifecycle -Times 1 -Exactly -Scope It -ParameterFilter {
             $containerName -eq 'owned' -and $argumentList.Previous -eq 'tenant2' -and
             $argumentList.Destination -eq 'tenant2_r123456789_g1'
         }
@@ -72,6 +72,6 @@ Describe 'SQL reset pilot ownership and mapping' {
         Mock Add-Content -ModuleName Lifecycle {}
         { Invoke-SqlPilotReset 'owned' 'tenant2' 'tenant2' 'default' } | Should -Throw
         $script:tenants[1].DatabaseName | Should -Be 'tenant2'
-        Assert-MockCalled Invoke-ScriptInBcContainer -ModuleName Lifecycle -Times 1 -Exactly -Scope It
+        Should -Invoke Invoke-ScriptInBcContainer -ModuleName Lifecycle -Times 1 -Exactly -Scope It
     }
 }

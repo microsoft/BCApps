@@ -1,16 +1,7 @@
-name: 'SQL reset pilot - DO NOT MERGE'
+name: 'SQL API warmup experiment - DO NOT MERGE'
 
 on:
   workflow_dispatch:
-    inputs:
-      arm:
-        description: 'Control only by default; paired requires separate authorization'
-        required: true
-        type: choice
-        default: control
-        options:
-          - control
-          - paired
 
 permissions:
   actions: read
@@ -20,11 +11,13 @@ permissions:
 
 jobs:
   Pilot:
-    if: github.ref == 'refs/heads/features/646383-sql-reset-pilot' && github.run_attempt == 1
+    if: github.ref == 'refs/heads/features/646383-sql-api-warmup-experiment' && github.run_attempt == 1
     strategy:
       fail-fast: false
+      max-parallel: 5
       matrix:
-        arm: ${{ fromJSON(inputs.arm == 'paired' && '["control","fresh"]' || '["control"]') }}
+        country: [W1, DE]
+        trial: [1, 2, 3, 4, 5]
     runs-on: GitHub-BCAppsPL
     timeout-minutes: 120
     defaults:
@@ -33,7 +26,9 @@ jobs:
     env:
       ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
       ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
-      BC_SQL_PILOT_ARM: ${{ matrix.arm }}
+      BC_SQL_PILOT_ARM: control
+      BC_SQL_PILOT_COUNTRY: ${{ matrix.country }}
+      BC_SQL_PILOT_TRIAL: ${{ matrix.trial }}
       BuildMode: IntegrationTests
     steps:
       - name: Checkout experiment
@@ -63,11 +58,11 @@ jobs:
         run: |
           & .\build\scripts\SqlResetPilot\Prepare.ps1
 
-      - name: Read pinned W1 Integration settings
+      - name: Read pinned country Integration settings
         uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
           shell: pwsh
-          project: build/projects/Test Apps W1
+          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}
           buildMode: IntegrationTests
 
       - name: Read normal disposable CI license and package secrets
@@ -84,9 +79,9 @@ jobs:
           Secrets: '${{ steps.secrets.outputs.Secrets }}'
         with:
           shell: pwsh
-          project: build/projects/Test Apps W1
+          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}
           buildMode: IntegrationTests
-          artifact: https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/30.0.55683.0/w1
+          artifact: ${{ steps.packages.outputs.artifact }}
           installAppsJson: ${{ steps.packages.outputs.apps }}
           installTestAppsJson: ${{ steps.packages.outputs.tests }}
 
@@ -99,11 +94,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: sql-reset-pilot-${{ matrix.arm }}-${{ github.run_id }}
+          name: sql-api-warmup-${{ matrix.country }}-${{ matrix.trial }}-${{ github.run_id }}
           retention-days: 7
           if-no-files-found: error
           path: |
             sql-reset-pilot-output/**
-            build/projects/Test Apps W1/TestResults*.xml
-            build/projects/Test Apps W1/ContainerEventLog.evtx
-            build/projects/Test Apps W1/BuildOutput.txt
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}/TestResults*.xml
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}/ContainerEventLog.evtx
+            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}/BuildOutput.txt

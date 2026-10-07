@@ -128,4 +128,74 @@ function Select-SqlPilotPrefix {
     @($WorkItems | Select-Object -First $ids.Count)
 }
 
-Export-ModuleMember -Function Initialize-SqlResetPilot, Get-SqlResetPlan, Complete-SqlResetPlan, Invoke-SqlPilotReset, Select-SqlPilotPrefix
+<#
+.SYNOPSIS
+    Makes one authenticated companies request from the host after an owned worker restore.
+.DESCRIPTION
+    Uses the disposable container's existing password credential and private API endpoint.
+    No retries, redirects, response bodies, passwords or authorization headers are logged.
+#>
+function Invoke-SqlPilotCompaniesProbe {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingAllowUnencryptedAuthentication', '',
+        Justification = 'Preserves the existing disposable-container Basic authentication over its private Docker address.')]
+    [CmdletBinding()]
+    param(
+        [string]$ContainerName, [string]$Tenant,
+        [Parameter(Mandatory)][PSCredential]$Credential,
+        [Parameter(Mandatory)][string]$CompanyName
+    )
+    if (-not $script:pilot -or $ContainerName -ne $script:pilot.Container -or
+        -not $script:pilot.Workers.ContainsKey($Tenant) -or
+        $script:pilot.Workers[$Tenant].Generation -lt 1) {
+        throw 'Companies probe requires an owned, freshly restored worker.'
+    }
+    $trace = Join-Path $script:pilot.OutputDirectory 'companies-probes.jsonl'
+    $observation = @{
+        tenant = $Tenant; generation = $script:pilot.Workers[$Tenant].Generation
+        startedUtc = [DateTime]::UtcNow.ToString('o'); status = $null; passed = $false
+        clientRequestId = [guid]::NewGuid().ToString(); serverRequestId = $null
+        uri = $null; retries = 0
+    }
+    $clock = [Diagnostics.Stopwatch]::StartNew()
+    try {
+        # Match BCH's direct container API address, without its request wrapper or auth negotiation.
+        $config = Get-BcContainerServerConfiguration -ContainerName $ContainerName
+        $ip = Get-BcContainerIpAddress -containerName $ContainerName
+        $parsedIp = $null
+        if (-not [Net.IPAddress]::TryParse($ip, [ref]$parsedIp) -or
+            $config.ServerInstance -notmatch '^[a-zA-Z0-9_-]+$' -or
+            $config.ClientServicesCredentialType -notin @('NavUserPassword', 'UserPassword')) {
+            throw 'Unexpected container API configuration.'
+        }
+        $scheme = if ($config.ODataServicesSSLEnabled -eq 'true') { 'https' } else { 'http' }
+        $uri = [UriBuilder]::new($scheme, $ip, [int]$config.ODataServicesPort,
+            "$($config.ServerInstance)/api/v2.0/companies", "?tenant=$Tenant").Uri.AbsoluteUri
+        $observation.uri = $uri
+        $response = Invoke-WebRequest -Uri $uri -Method Get -Authentication Basic -Credential $Credential `
+            -AllowUnencryptedAuthentication -SkipCertificateCheck -SkipHttpErrorCheck -MaximumRedirection 0 `
+            -MaximumRetryCount 0 -TimeoutSec 60 -ErrorAction Stop `
+            -Headers @{ Accept = 'application/json'; 'client-request-id' = $observation.clientRequestId }
+        $observation.status = [int]$response.StatusCode
+        foreach ($key in @('request-id', 'x-ms-request-id')) {
+            $value = [string]($response.Headers[$key] | Select-Object -First 1)
+            if ($value -match '^[a-zA-Z0-9._:-]{1,128}$') { $observation.serverRequestId = $value; break }
+        }
+        if ($response.StatusCode -ne 200) { throw 'Companies probe returned non-200 status.' }
+        $body = $response.Content | ConvertFrom-Json -ErrorAction Stop
+        if (-not $body.PSObject.Properties['value'] -or
+            @($body.value | Where-Object { $_.name -eq $CompanyName -and $_.id }).Count -ne 1) {
+            throw 'Companies probe did not return exactly one expected company.'
+        }
+        $observation.passed = $true
+    } catch {
+        $observation.errorType = $_.Exception.GetType().FullName
+        # HTTP exception details can contain authentication material; never emit the original error.
+        throw "Companies probe failed for $Tenant; see sanitized companies-probes.jsonl. No retry was attempted."
+    } finally {
+        $observation.completedUtc = [DateTime]::UtcNow.ToString('o')
+        $observation.elapsedMilliseconds = $clock.ElapsedMilliseconds
+        $observation | ConvertTo-Json -Compress | Add-Content $trace
+    }
+}
+
+Export-ModuleMember -Function Initialize-SqlResetPilot, Get-SqlResetPlan, Complete-SqlResetPlan, Invoke-SqlPilotReset, Select-SqlPilotPrefix, Invoke-SqlPilotCompaniesProbe

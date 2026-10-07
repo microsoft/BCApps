@@ -1,11 +1,13 @@
 param([hashtable]$Parameters)
 $ErrorActionPreference = 'Stop'
-if ($env:GITHUB_REF -ne 'refs/heads/features/646383-sql-reset-pilot' -or
+if ($env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-warmup-experiment' -or
     $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
-    $env:BC_SQL_PILOT_ARM -notin @('control', 'fresh') -or -not $env:BC_SQL_PILOT_OUTPUT) {
+    $env:BC_SQL_PILOT_ARM -ne 'control' -or -not $env:BC_SQL_PILOT_OUTPUT -or
+    $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or $env:BC_SQL_PILOT_TRIAL -notmatch '^[1-5]$' -or
+    $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
     throw 'Refusing SQL pilot outside its disposable manually dispatched CI job.'
 }
-$expectedName = "bcbuildprojectsTestAppsW1$($env:GITHUB_RUN_ID)"
+$expectedName = "bcbuildprojectsTestApps$($env:BC_SQL_PILOT_COUNTRY)Trial$($env:BC_SQL_PILOT_TRIAL)$($env:GITHUB_RUN_ID)"
 if ($Parameters.ContainerName -ne $expectedName -or (Test-BcContainer -containerName $expectedName)) {
     throw 'Pilot container name is unexpected or already exists. No replacement is authorized.'
 }
@@ -13,10 +15,10 @@ $module = Get-Module BcContainerHelper -ErrorAction Stop
 $helperVersion = & $module { $bcContainerHelperVersion }
 if ($helperVersion -ne '6.1.19-preview2811389') { throw "Wrong BCH version: $helperVersion" }
 $settings = $env:Settings | ConvertFrom-Json
-if ($settings.country -ne 'w1' -or $settings.testType -ne 'IntegrationTest' -or
+if ($settings.country -ne $env:BC_SQL_PILOT_COUNTRY -or $settings.testType -ne 'IntegrationTest' -or
     $settings.numberOfTenantsForTesting -ne 4 -or $settings.companyName -ne 'My Company' -or
     -not $settings.enableCleanTestCodeunitExecution -or $settings.enableTaskScheduler) {
-    throw 'Effective W1 Integration settings differ from the predeclared experiment.'
+    throw 'Effective country Integration settings differ from the predeclared experiment.'
 }
 if (-not (Get-Command New-BcContainer).Parameters.ContainsKey('useGenericImage')) {
     throw 'Exact BCH does not expose the supported generic-image parameter.'
@@ -27,6 +29,7 @@ if ($Parameters.platformArtifactUrl -ne 'https://bcinsider-fvh2ekdjecfjd6gk.b02.
 }
 @{
     container = $expectedName; runId = $env:GITHUB_RUN_ID; arm = $env:BC_SQL_PILOT_ARM
+    country = $env:BC_SQL_PILOT_COUNTRY; trial = $env:BC_SQL_PILOT_TRIAL
     helperVersion = $helperVersion; image = $Parameters.useGenericImage
     imageGenericTag = '1.0.2.128'; platform = '30.0.55665.0'
     hostOS = [Environment]::OSVersion.Version.ToString()
