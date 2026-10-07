@@ -48,7 +48,7 @@ codeunit 13925 "Library - E-Doc DE"
     end;
 
 #if not CLEAN30
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", 'OnAfterFindEDocumentService', '', false, false)]
     local procedure CaptureXRechnungOnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service"; EDocumentFormat: Code[20])
     begin
@@ -62,7 +62,7 @@ codeunit 13925 "Library - E-Doc DE"
         CapturedEDocumentServiceCode := EDocumentService.Code;
         EDocumentServiceEventCount += 1;
     end;
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
 #endif
 
     procedure CreateValidRoutingNo(): Text[50]

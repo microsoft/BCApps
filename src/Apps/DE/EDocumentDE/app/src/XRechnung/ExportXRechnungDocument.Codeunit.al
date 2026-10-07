@@ -87,9 +87,9 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.SetTable(SalesInvoiceHeader);
 
 #if not CLEAN30
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
 #endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
@@ -109,9 +109,9 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.SetTable(SalesCrMemoHeader);
 
 #if not CLEAN30
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
 #endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
@@ -131,9 +131,9 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.SetTable(ServiceInvoiceHeader);
 
 #if not CLEAN30
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
 #endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
@@ -153,9 +153,9 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.SetTable(ServiceCrMemoHeader);
 
 #if not CLEAN30
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
 #endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
@@ -2055,7 +2055,7 @@ codeunit 13916 "Export XRechnung Document"
     end;
 
 #if not CLEAN30
-#pragma warning disable AA0228, AL0432
+#pragma warning disable AA0228, AL0432, AS0105
     [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService. This function is still called on every export until CLEAN30: when a service was provided it only raises OnAfterFindEDocumentService without overwriting that service, otherwise it performs the legacy FindLast lookup. As of CLEAN30 this function and that fallback are removed, so any caller that does not provide a service through SetEDocumentService - for example a customized report - then exports with a blank E-Document Service.', '30.0')]
     local procedure FindEDocumentService(EDocumentFormat: Code[20])
     begin
@@ -2075,7 +2075,7 @@ codeunit 13916 "Export XRechnung Document"
         if EDocumentService.FindLast() then;
         OnAfterFindEDocumentService(EDocumentService, EDocumentFormat);
     end;
-#pragma warning restore AA0228, AL0432
+#pragma warning restore AA0228, AL0432, AS0105
 #endif
 
     local procedure InitializeDecimalFormatFlags()
