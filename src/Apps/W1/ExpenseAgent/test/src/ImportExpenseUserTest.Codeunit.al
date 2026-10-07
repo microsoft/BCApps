@@ -384,6 +384,7 @@ codeunit 148316 "Import Expense User Test"
     begin
         LibraryExpense.CreateExpenseUser(ApproverExpenseUser);
         ApproverExpenseUser."Can Approve" := true;
+        ApproverExpenseUser."Unlimited Approval" := true;
         ApproverExpenseUser."Entra Id" := CreateGuid();
         ApproverExpenseUser.Modify(false);
     end;

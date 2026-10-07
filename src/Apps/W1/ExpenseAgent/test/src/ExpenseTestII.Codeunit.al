@@ -53,7 +53,6 @@ codeunit 148309 "Expense Test II"
         FieldShouldBeEditableErr: Label '%1 should be editable in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
         DuplicateEmailErr: Label '%1 %2 is already used by another %3. %1 must be unique.', Comment = '%1 = Email Caption, %2 = Email address, %3 = Expense User Table Caption';
         DuplicateEmployeeNoErr: Label '%1 %2 is already linked to another %3. Each employee can only be linked to one %3.', Comment = '%1 = Employee No. Caption, %2 = Employee No., %3 = Expense User Table Caption';
-        CannotChangeDefaultApproverToLimitedErr: Label 'You cannot mark %1 as false because Expense User %2 is the default approver in Expense Agent Setup.', Comment = '%1 = Field caption, %2 = Expense User No.';
         ExpenseLocationMissingMsg: Label '%1 is missing in Expense No. %2.', Comment = '%1 = Expense Location Caption, %2 = Expense No.';
         ExpenseReportAlreadyExistErr: Label 'An expense report already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
@@ -3157,7 +3156,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
-    procedure DefaultApproverCannotBeChangedToLimitedApproval()
+    procedure DefaultApproverMustHaveUnlimitedApproval()
     var
         ExpenseUser: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -3165,24 +3164,20 @@ codeunit 148309 "Expense Test II"
         // [SCENARIO 626975] The configured default approver must retain unlimited approval.
         Initialize();
 
-        // [GIVEN] An unlimited approver is configured as the default approver.
+        // [GIVEN] An Expense User can approve, but has a finite approval limit.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         ExpenseUser."Can Approve" := true;
-        ExpenseUser."Unlimited Approval" := true;
+        ExpenseUser."Unlimited Approval" := false;
         ExpenseUser.Modify();
-        ExpenseAgentSetup.GetRecordOnce();
-        ExpenseAgentSetup."Default Approver No." := ExpenseUser."No.";
-        ExpenseAgentSetup.Modify();
+        ExpenseAgentSetup.Get();
 
-        // [WHEN] The default approver is changed to limited approval.
-        asserterror ExpenseUser.Validate("Unlimited Approval", false);
+        // [WHEN] The limited approver is selected as the default.
+        asserterror ExpenseAgentSetup.Validate("Default Approver No.", ExpenseUser."No.");
 
-        // [THEN] The default-approver invariant rejects the change.
-        Assert.ExpectedError(
-            StrSubstNo(
-                CannotChangeDefaultApproverToLimitedErr,
-                ExpenseUser.FieldCaption("Unlimited Approval"),
-                ExpenseUser."No."));
+        // [THEN] Setup rejects the value because it is not a valid default approver.
+        Assert.ExpectedError(ExpenseUser.TableCaption());
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Default Approver No.", '');
     end;
 
     [Test]

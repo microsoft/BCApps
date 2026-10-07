@@ -1806,6 +1806,7 @@ codeunit 148346 "Expense Interim Approval Test"
         LibraryExpense.UpdateUseRulesInAgentSetup(true);
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
         LibraryWorkflow.DisableAllWorkflows();
         UserSetup.DeleteAll();
         // Remove test-created users to stay within the CI license user cap; keep the current session user.
