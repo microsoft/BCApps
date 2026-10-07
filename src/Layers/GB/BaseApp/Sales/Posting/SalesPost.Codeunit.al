@@ -76,9 +76,6 @@ using Microsoft.Warehouse.Setup;
 using System.Automation;
 using System.Email;
 using System.Environment.Configuration;
-#if not CLEAN27
-using System.Telemetry;
-#endif
 using System.Utilities;
 
 /// <summary>
@@ -3990,7 +3987,6 @@ codeunit 80 "Sales-Post"
     var
         IsHandled: Boolean;
     begin
-
         if (CalledFromStatistics) and (not RoundingLineInserted) and (IsInvoiceRoundingLine(SalesHeader, SalesLine)) and (SalesLine."System-Created Entry") then
             exit;
 
@@ -13883,6 +13879,11 @@ codeunit 80 "Sales-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(var SalesHeader: Record "Sales Header"; ReplacePostingDate: Boolean; var SkipTestPostingDate: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnBeforeSalesHeaderModify(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean)
     begin
     end;
@@ -13929,11 +13930,6 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLinesTempOnAfterVatAmountSet(var VATAmount: Decimal; var TotalSalesLine: Record "Sales Line")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(var SalesHeader: Record "Sales Header"; ReplacePostingDate: Boolean; var SkipTestPostingDate: Boolean)
     begin
     end;
 
