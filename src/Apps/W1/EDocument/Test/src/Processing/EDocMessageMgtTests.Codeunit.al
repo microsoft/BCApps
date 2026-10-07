@@ -575,6 +575,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     var
         Customer: Record Customer;
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
         EDocPaymentOccurrenceDispatcher: Codeunit "E-Doc. Payment Occ. Dispatcher";
         Index: Integer;
     begin
@@ -582,9 +583,12 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         // [SCENARIO] One dispatcher invocation processes at most one hundred payment occurrences
         Initialize(Customer);
 
-        // [GIVEN] One hundred and one pending payment occurrences
+        // [GIVEN] One hundred and one pending payment occurrences for an outgoing E-Document
+        CreateOutgoingEDocument(EDocument);
         for Index := 1 to 101 do begin
             EDocPaymentOccurrence.Init();
+            EDocPaymentOccurrence."Entry No." := 0;
+            EDocPaymentOccurrence."E-Document Entry No." := EDocument."Entry No";
             EDocPaymentOccurrence."Source Occurrence ID" := CreateGuid();
             EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Pending;
             EDocPaymentOccurrence.Insert();

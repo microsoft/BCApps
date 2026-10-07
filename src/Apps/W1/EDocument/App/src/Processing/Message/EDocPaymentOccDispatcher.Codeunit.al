@@ -40,6 +40,8 @@ codeunit 6248 "E-Doc. Payment Occ. Dispatcher"
                 EDocPaymentOccurrenceMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
                 ProcessedCount += 1;
             end;
+            EDocPaymentOccurrence.Reset();
+            EDocPaymentOccurrence.SetCurrentKey(Status, "Next Attempt At");
             EDocPaymentOccurrence.SetRange(Status, Status);
             EDocPaymentOccurrence.SetFilter("Next Attempt At", '%1|<=%2', 0DT, CurrentDateTime());
         end;

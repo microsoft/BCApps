@@ -172,6 +172,8 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + ProcessingLeaseDuration();
         EDocPaymentOccurrence.Modify();
         Commit();
+        EDocPaymentOccurrence.Reset();
+        EDocPaymentOccurrence.SetRecFilter();
         if Codeunit.Run(Codeunit::"E-Doc. Payment Occ. Runner", EDocPaymentOccurrence) then begin
             EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
             EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Processed;
