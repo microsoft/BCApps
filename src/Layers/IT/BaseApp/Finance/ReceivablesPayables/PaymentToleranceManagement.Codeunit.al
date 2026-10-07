@@ -215,7 +215,13 @@ codeunit 426 "Payment Tolerance Management"
     procedure PmtTolGenJnl(var NewGenJnlLine: Record "Gen. Journal Line") Result: Boolean
     var
         TempGenJnlLine: Record "Gen. Journal Line" temporary;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnPmtTolGenJnlOnBeforeCheckConditions(NewGenJnlLine, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         if UpdatingGenJnlLineAmount then
             exit(true);
 
@@ -2983,6 +2989,18 @@ codeunit 426 "Payment Tolerance Management"
     end;
 
     /// <summary>
+    /// Integration event raised before checking conditions for payment tolerance in general journal processing.
+    /// Enables subscribers to bypass standard payment tolerance processing.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="Result">Result to return when the event is handled</param>
+    /// <param name="IsHandled">Whether standard payment tolerance processing should be skipped</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPmtTolGenJnlOnBeforeCheckConditions(GenJournalLine: Record "Gen. Journal Line"; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
     /// Integration event raised after checking conditions for payment tolerance in general journal processing.
     /// Enables custom post-validation logic following tolerance condition checks.
     /// </summary>
@@ -3227,4 +3245,3 @@ codeunit 426 "Payment Tolerance Management"
     begin
     end;
 }
-
