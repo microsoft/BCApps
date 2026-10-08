@@ -2278,13 +2278,13 @@ codeunit 13916 "Export XRechnung Document"
     end;
 
 #if not CLEAN30
-#pragma warning disable AA0228
+#pragma warning disable AA0228, AS0105
     [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService. This event is STILL raised on every export until CLEAN30 - both when a service was provided and on the legacy FindLast lookup path - so existing subscribers keep working during the deprecation window. It no longer exists as of CLEAN30; move any logic that depends on it to the service provided through SetEDocumentService.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service"; EDocumentFormat: Code[20])
     begin
     end;
-#pragma warning restore AA0228
+#pragma warning restore AA0228, AS0105
 #endif
 
     [IntegrationEvent(false, false)]
