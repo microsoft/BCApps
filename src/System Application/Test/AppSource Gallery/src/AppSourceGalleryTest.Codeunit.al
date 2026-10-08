@@ -5,6 +5,8 @@
 
 namespace System.Apps.AppSource.Test;
 
+using System.Apps.AppSource;
+using System.Environment.Configuration;
 using System.TestLibraries.Apps.AppSource;
 using System.TestLibraries.Utilities;
 
@@ -170,6 +172,54 @@ codeunit 135074 "AppSource Gallery Test"
         LibraryAssert.IsTrue(AppSrcProductMgrTestImpl.IsRecordWithDisplayNameinProductTable('Dynamics 365 Business Central - Second'), 'The second product name is incorrect.');
 
         AppSrcProductMgrTestImpl.ResetDependencies();
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductDetailsPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestOpenProductDetailsPage()
+    begin
+        OpenProductDetailsPageWithMockProduct();
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductDetailsPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestOpenProductDetailsPageInWriteTransaction()
+    var
+        ApplicationUserSettings: Record "Application User Settings";
+    begin
+        // User settings initialization during product retrieval can start a write transaction.
+        ApplicationUserSettings."User Security ID" := CreateGuid();
+        ApplicationUserSettings.Insert();
+
+        OpenProductDetailsPageWithMockProduct();
+
+        LibraryAssert.IsTrue(ApplicationUserSettings.Get(ApplicationUserSettings."User Security ID"), 'Opening product details should preserve pending user settings.');
+    end;
+
+    local procedure OpenProductDetailsPageWithMockProduct()
+    var
+        AppSourceMockDepsProvider: Codeunit "AppSource Mock Deps. Provider";
+    begin
+        AppSourceMockDepsProvider.SetIsSaas(true);
+        AppSourceMockDepsProvider.SetUserSettings(1033);
+        AppSourceMockDepsProvider.SetCountryLetterCode('us');
+        AppSourceMockDepsProvider.SetJson('{"uniqueProductId": "test-product", "displayName": "Test product", "publisherDisplayName": "Test publisher", "description": "Test description"}');
+        AppSrcProductMgrTestImpl.SetDependencies(AppSourceMockDepsProvider);
+
+        AppSrcProductMgrTestImpl.OpenProductDetailsPage('test-product');
+
+        AppSrcProductMgrTestImpl.ResetDependencies();
+    end;
+
+    [PageHandler]
+    procedure ProductDetailsPageHandler(var AppSourceProductDetails: TestPage "AppSource Product Details")
+    begin
+        AppSourceProductDetails.Offer_DisplayName.AssertEquals('Test product');
+        AppSourceProductDetails.Offer_PublisherDisplayName.AssertEquals('Test publisher');
+        AppSourceProductDetails.Description_Description.AssertEquals('Test description');
+        AppSourceProductDetails.Close();
     end;
 
     [HyperlinkHandler]
