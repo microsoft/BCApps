@@ -141,11 +141,13 @@ codeunit 6969 "Expense Consumption Handler"
     var
         OperationText: Text;
     begin
-        OperationText := Operation;// Code types do not support startswith
+        // We only count expense processing. If the trial is still active, policy evals are for free.
+
+        OperationText := Operation; // Code types do not support startswith
         if OperationText.StartsWith('PE:') then begin
             Session.LogMessage('0000VYH', PolicyEvaluationTrialSkippedTelemetryMsg,
                 Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
-            exit; // We only count expense processing
+            exit;
         end;
 
         CopilotFeatureTrial.ReportNonRecurringFeatureTrialQuota(ConsumptionId, ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent",
