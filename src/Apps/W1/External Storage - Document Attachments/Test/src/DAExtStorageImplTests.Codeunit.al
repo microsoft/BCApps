@@ -1024,7 +1024,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         Assert.IsFalse(PurchaseQuote.Get(PurchaseQuote."Document Type"::Quote, QuoteNo), 'Make Order must delete the source quote');
         Assert.AreEqual(QuoteNo, PurchaseOrder."Quote No.", 'The order must originate from the quote');
-        VerifySourceAttachmentDeleted(Database::"Purchase Header", QuoteNo);
+        VerifySourceAttachmentDeleted(DocumentAttachment);
         FindHeaderAttachment(OrderDocumentAttachment, Database::"Purchase Header", PurchaseOrder."No.");
         Assert.IsTrue(OrderDocumentAttachment."Skip Delete On Copy", 'The actual quote copy flow must protect the destination');
         VerifySharedExternalFileRetained(OrderDocumentAttachment, ExternalFilePath);
@@ -1065,8 +1065,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         PostedNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         Assert.IsFalse(SalesHeader.Get(SalesHeader."Document Type"::Invoice, SourceNo), 'Posting must delete the source sales invoice');
-        VerifySourceAttachmentDeleted(Database::"Sales Header", SourceNo);
-        VerifySourceAttachmentDeleted(Database::"Sales Line", SourceNo);
+        VerifySourceAttachmentDeleted(DocumentAttachment);
+        VerifySourceAttachmentDeleted(LineDocumentAttachment);
         FindHeaderAttachment(PostedDocumentAttachment, Database::"Sales Invoice Header", PostedNo);
         VerifySharedExternalFileRetained(PostedDocumentAttachment, ExternalFilePath);
         FindHeaderAttachment(PostedLineDocumentAttachment, Database::"Sales Invoice Line", PostedNo);
@@ -1108,8 +1108,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         PostedNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         Assert.IsFalse(PurchaseHeader.Get(PurchaseHeader."Document Type"::Invoice, SourceNo), 'Posting must delete the source purchase invoice');
-        VerifySourceAttachmentDeleted(Database::"Purchase Header", SourceNo);
-        VerifySourceAttachmentDeleted(Database::"Purchase Line", SourceNo);
+        VerifySourceAttachmentDeleted(DocumentAttachment);
+        VerifySourceAttachmentDeleted(LineDocumentAttachment);
         FindHeaderAttachment(PostedDocumentAttachment, Database::"Purch. Inv. Header", PostedNo);
         VerifySharedExternalFileRetained(PostedDocumentAttachment, ExternalFilePath);
         FindHeaderAttachment(PostedLineDocumentAttachment, Database::"Purch. Inv. Line", PostedNo);
@@ -1600,6 +1600,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         OriginalSourceEnvironmentHash := DocumentAttachment."Source Environment Hash";
         DocumentAttachment.SetRecFilter();
 
+        Commit();
         Report.RunModal(Report::"DA External Storage Sync", true, false, DocumentAttachment);
 
         RefreshAttachment(DocumentAttachment);
@@ -1629,6 +1630,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         FileScenarioMock.DeleteAllMappings();
         DocumentAttachment.SetRecFilter();
 
+        Commit();
         Report.RunModal(Report::"DA External Storage Sync", true, false, DocumentAttachment);
 
         VerifyExternalReferenceRetired(DocumentAttachment, OriginalDocumentAttachment);
@@ -1678,6 +1680,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateUploadedExternalOnlyAttachment(DocumentAttachment);
         DocumentAttachment.SetRecFilter();
 
+        Commit();
         Report.RunModal(Report::"DA External Storage Sync", true, false, DocumentAttachment);
 
         RefreshAttachment(DocumentAttachment);
@@ -1823,18 +1826,20 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
         CreateDocumentAttachmentWithContent(DocumentAttachment);
-        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload must succeed');
+        UploadDocumentAttachment(DocumentAttachment);
         Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'The attachment must become external-only');
         RefreshAttachment(DocumentAttachment);
+        Assert.IsFalse(DocumentAttachment."Stored Internally", 'The external-only fixture must release internal storage');
+        Assert.IsFalse(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media must not mask external file loss in the fixture');
         Assert.IsFalse(DocumentAttachment."Skip Delete On Copy", 'The source must be eligible for deletion');
     end;
 
-    local procedure VerifySourceAttachmentDeleted(TableId: Integer; SourceNo: Code[20])
+    local procedure VerifySourceAttachmentDeleted(SourceDocumentAttachment: Record "Document Attachment")
     var
         DocumentAttachment: Record "Document Attachment";
     begin
-        DocumentAttachment.SetRange("Table ID", TableId);
-        DocumentAttachment.SetRange("No.", SourceNo);
+        DocumentAttachment := SourceDocumentAttachment;
+        DocumentAttachment.SetRecFilter();
         Assert.IsTrue(DocumentAttachment.IsEmpty(), 'The actual document flow must delete the source attachment');
     end;
 
@@ -2071,7 +2076,6 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     begin
         ExternalStorageSync.SyncDirectionField.SetValue(1);
         ExternalStorageSync.OperationField.SetValue(1);
-        ExternalStorageSync.MaxRecordsToProcessField.SetValue(0);
         ExternalStorageSync.OK().Invoke();
     end;
 
@@ -2088,7 +2092,6 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     begin
         ExternalStorageSync.SyncDirectionField.SetValue(1);
         ExternalStorageSync.OperationField.SetValue(0);
-        ExternalStorageSync.MaxRecordsToProcessField.SetValue(0);
         ExternalStorageSync.OK().Invoke();
     end;
 
