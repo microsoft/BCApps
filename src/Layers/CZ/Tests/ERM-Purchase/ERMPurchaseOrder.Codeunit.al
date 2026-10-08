@@ -9415,7 +9415,7 @@
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Navigate: TestPage Navigate;
-        PurchaseCreditMemo: TestPage "Purchase Credit Memo";
+        PurchaseCreditMemoPage: TestPage "Purchase Credit Memo";
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO 651758] Show Related Entries in Find Entries opens the unposted Purchase Credit Memo.
@@ -9428,12 +9428,12 @@
         VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
 
         // [WHEN] Invoke Show Related Entries on the Purchase Header line.
-        PurchaseCreditMemo.Trap();
+        PurchaseCreditMemoPage.Trap();
         Navigate.Show.Invoke();
 
         // [THEN] The Purchase Credit Memo card opens for "CM".
-        PurchaseCreditMemo."No.".AssertEquals(PurchaseHeader."No.");
-        PurchaseCreditMemo.Close();
+        PurchaseCreditMemoPage."No.".AssertEquals(PurchaseHeader."No.");
+        PurchaseCreditMemoPage.Close();
         Navigate.Close();
     end;
 
