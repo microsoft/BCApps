@@ -127,7 +127,8 @@ table 20406 "Qlty. Inspection Line"
 
                 SetLargeText(Rec."Test Value", false, true);
 
-                UpdateExpressionsInOtherInspectionLinesInSameInspection();
+                if not SkipDependentExpressionUpdate then
+                    UpdateExpressionsInOtherInspectionLinesInSameInspection();
             end;
         }
         field(19; "Test Value Blob"; Blob)
@@ -214,6 +215,7 @@ table 20406 "Qlty. Inspection Line"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         BooleanChoiceListLbl: Label 'No,Yes';
+        SkipDependentExpressionUpdate: Boolean;
 
     trigger OnModify()
     begin
@@ -536,8 +538,16 @@ table 20406 "Qlty. Inspection Line"
     internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
+        EvaluatedValue: Text;
+        PreviousValue: Text;
     begin
-        QltyExpressionMgmt.EvaluateTextExpression(Rec, EvaluateAgainstQltyInspectionHeader);
+        PreviousValue := Rec."Test Value";
+        SkipDependentExpressionUpdate := true;
+        EvaluatedValue := QltyExpressionMgmt.EvaluateTextExpression(Rec, EvaluateAgainstQltyInspectionHeader);
+        SkipDependentExpressionUpdate := false;
+
+        if (EvaluatedValue <> PreviousValue) or (PreviousValue = '') then
+            UpdateExpressionsInOtherInspectionLinesInSameInspection();
     end;
 
     /// <summary>

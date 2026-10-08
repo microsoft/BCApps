@@ -1853,14 +1853,17 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         SourceQltyInspectionLine: Record "Qlty. Inspection Line";
         DependentQltyInspectionLine: Record "Qlty. Inspection Line";
+        ChainedQltyInspectionLine: Record "Qlty. Inspection Line";
         UnrelatedQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         DependentExprQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        ChainedExprQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         UnrelatedExprQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         SourceTextQltyTest: Record "Qlty. Test";
         SecondTextQltyTest: Record "Qlty. Test";
         DependentExpressionQltyTest: Record "Qlty. Test";
+        ChainedExpressionQltyTest: Record "Qlty. Test";
         UnrelatedExpressionQltyTest: Record "Qlty. Test";
         Location: Record Location;
         Item: Record Item;
@@ -1872,7 +1875,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [FEATURE] [AI test 0.3]
-        // [SCENARIO 620380] Changing a line only re-evaluates text-expression lines that reference it, leaving unrelated text-expression lines untouched
+        // [SCENARIO 620380] Changing a line re-evaluates chained text expressions in order and leaves unrelated expressions untouched
         Initialize();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
@@ -1884,6 +1887,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
         QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, SourceTextQltyTest, SourceTextQltyTest."Test Value Type"::"Value Type Text");
         QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, DependentExpressionQltyTest, DependentExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, ChainedExpressionQltyTest, ChainedExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
         QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, SecondTextQltyTest, SecondTextQltyTest."Test Value Type"::"Value Type Text");
         QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, UnrelatedExpressionQltyTest, UnrelatedExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
 
@@ -1896,7 +1900,16 @@ codeunit 139965 "Qlty. Tests - More Tests"
         DependentExprQltyInspectionTemplateLine."Expression Formula" := StrSubstNo(ExpressionFormulaTestCodeTok, SourceTextQltyTest.Code);
         DependentExprQltyInspectionTemplateLine.Modify();
 
-        // [GIVEN] The unrelated text expression "E2" references the second text field "S2", not "S1"
+        // [GIVEN] The chained text expression "E2" references the dependent expression "E1"
+        ChainedExpressionQltyTest.SetResultCondition(DefaultResult2PassCodeTok, StrSubstNo(ExpressionFormulaTestCodeTok, DependentExpressionQltyTest.Code), true);
+        ChainedExpressionQltyTest.Modify();
+        ChainedExprQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        ChainedExprQltyInspectionTemplateLine.SetRange("Test Code", ChainedExpressionQltyTest.Code);
+        ChainedExprQltyInspectionTemplateLine.FindFirst();
+        ChainedExprQltyInspectionTemplateLine."Expression Formula" := StrSubstNo(ExpressionFormulaTestCodeTok, DependentExpressionQltyTest.Code);
+        ChainedExprQltyInspectionTemplateLine.Modify();
+
+        // [GIVEN] The unrelated text expression "E3" references the second text field "S2", not "S1"
         UnrelatedExpressionQltyTest.SetResultCondition(DefaultResult2PassCodeTok, StrSubstNo(ExpressionFormulaTestCodeTok, SecondTextQltyTest.Code), true);
         UnrelatedExpressionQltyTest.Modify();
         UnrelatedExprQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
@@ -1937,7 +1950,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
         DependentQltyInspectionLine.FindFirst();
         LibraryAssert.AreEqual('test', DependentQltyInspectionLine."Test Value", 'Dependent text expression referencing the changed line should be re-evaluated.');
 
-        // [THEN] The unrelated expression "E2", which does not reference "S1", keeps its sentinel value
+        // [THEN] The chained expression "E2" reads the persisted value of "E1"
+        ChainedQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        ChainedQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        ChainedQltyInspectionLine.SetRange("Test Code", ChainedExpressionQltyTest.Code);
+        ChainedQltyInspectionLine.FindFirst();
+        LibraryAssert.AreEqual('test', ChainedQltyInspectionLine."Test Value", 'Chained text expression should use the updated dependent expression value.');
+
+        // [THEN] The unrelated expression "E3", which does not reference "S1", keeps its sentinel value
         UnrelatedQltyInspectionLine.FindFirst();
         LibraryAssert.AreEqual(SentinelValueTok, UnrelatedQltyInspectionLine."Test Value", 'Unrelated text expression not referencing the changed line should not be re-evaluated.');
 
