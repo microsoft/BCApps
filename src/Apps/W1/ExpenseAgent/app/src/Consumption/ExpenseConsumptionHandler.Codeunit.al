@@ -16,6 +16,7 @@ codeunit 6969 "Expense Consumption Handler"
         CopilotFeatureTrial: Codeunit "Copilot Feature Trial";
         ExpenseAgentFeatureTrialIdTok: Label 'ExpenseAgentTrial', Locked = true;
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4. Trial available: %5.', Locked = true;
+        PolicyEvaluationTrialSkippedTelemetryMsg: Label 'Skipped incrementing the Expense Agent feature trial for a policy evaluation operation.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
 
     internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
@@ -137,9 +138,15 @@ codeunit 6969 "Expense Consumption Handler"
     end;
 
     local procedure IncrementTrial(ConsumptionId: Guid; Operation: Code[50])
+    var
+        OperationText: Text;
     begin
-        if Operation = 'TODO policy eval' then
+        OperationText := Operation;// Code types do not support startswith
+        if OperationText.StartsWith('PE:') then begin
+            Session.LogMessage('0000VYH', PolicyEvaluationTrialSkippedTelemetryMsg,
+                Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
             exit; // We only count expense processing
+        end;
 
         CopilotFeatureTrial.ReportNonRecurringFeatureTrialQuota(ConsumptionId, ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent",
             TrialQuota(), TrialQuota(), TrialQuota(), TrialQuota(), '');
@@ -155,7 +162,8 @@ codeunit 6969 "Expense Consumption Handler"
         exit(CopilotQuota.CanConsume());
     end;
 
-    local procedure MakeUniqueId(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]) UniqueId: Text[1024]
+    local procedure MakeUniqueId(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid;
+                                                            Operation: Code[50]) UniqueId: Text[1024]
     var
         TempUniqueId: Text;
     begin
@@ -166,7 +174,6 @@ codeunit 6969 "Expense Consumption Handler"
             Format(Operation, 0, 9));
 
         TempUniqueId := UpperCase(TempUniqueId);
-
         if StrLen(TempUniqueId) > MaxStrLen(UniqueId) then
             Session.LogMessage('0000ROV', UniqueIdTooLongTelemetryErr,
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
