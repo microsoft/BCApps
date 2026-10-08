@@ -143,10 +143,6 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         VerifyPostingSetupPrerequisites();
         VerifyDimensionPrerequisites();
         VerifyUnitOfMeasurePrerequisites();
-        VerifySkillTitleDoesNotExist(LineClassificationSkillTitleLbl);
-        VerifySkillTitleDoesNotExist(ElectricityMeterSkillTitleLbl);
-        VerifySkillTitleDoesNotExist(ServiceClassificationSkillTitleLbl);
-        VerifySkillTitleDoesNotExist(EffectiveDateSkillTitleLbl);
     end;
 
     local procedure VerifyExistingVendor(VendorNo: Code[20])
@@ -233,14 +229,6 @@ codeunit 3327 "PA BC IQ Demo Mgt."
     begin
         if not UnitOfMeasure.Get(UnitOfMeasureCode) then
             Error(RequiredRecordMissingErr, UnitOfMeasure.TableCaption(), UnitOfMeasureCode);
-    end;
-
-    local procedure VerifySkillTitleDoesNotExist(SkillTitle: Text[250])
-    var
-        BusinessSkillProvisioning: Codeunit "Business Skill Provisioning";
-    begin
-        if BusinessSkillProvisioning.SkillTitleExists(SkillTitle) then
-            Error(SkillTitleExistsErr, SkillTitle);
     end;
 
     local procedure RequireRecord(RecordExists: Boolean; RecordCaption: Text; RecordKey: Text)
@@ -386,9 +374,14 @@ codeunit 3327 "PA BC IQ Demo Mgt."
 
     local procedure CreateCompanySkill(Title: Text[250]; Description: Text[2048]; SkillText: Text): BigInteger
     var
-        BusinessSkillProvisioning: Codeunit "Business Skill Provisioning";
+        BusinessSkillBuilder: Codeunit "Business Skill Builder";
     begin
-        exit(BusinessSkillProvisioning.CreateCompanySkill(Title, Description, SkillText, TargetCompanyNameTok));
+        exit(
+            BusinessSkillBuilder.Initialize(Title, SkillText)
+                .SetDescription(Description)
+                .SetActive(true)
+                .AddCompany(TargetCompanyNameTok)
+                .Create());
     end;
 
     local procedure GetLineClassificationSkillText(): Text
@@ -601,9 +594,9 @@ codeunit 3327 "PA BC IQ Demo Mgt."
 
     local procedure VerifySkillIsUnchanged(SkillId: BigInteger; ExpectedTitle: Text[250]; ExpectedText: Text)
     var
-        BusinessSkillProvisioning: Codeunit "Business Skill Provisioning";
+        BusinessSkillLifecycle: Codeunit "Business Skill Lifecycle";
     begin
-        BusinessSkillProvisioning.VerifyCompanySkill(SkillId, ExpectedTitle, ExpectedText, TargetCompanyNameTok);
+        BusinessSkillLifecycle.VerifyCompanySkill(SkillId, ExpectedTitle, ExpectedText, TargetCompanyNameTok);
     end;
 
     local procedure DeleteBusinessSkills(DemoState: Record "PA BC IQ Demo State")
@@ -616,9 +609,9 @@ codeunit 3327 "PA BC IQ Demo Mgt."
 
     local procedure DeleteBusinessSkill(SkillId: BigInteger; ExpectedTitle: Text[250]; ExpectedText: Text)
     var
-        BusinessSkillProvisioning: Codeunit "Business Skill Provisioning";
+        BusinessSkillLifecycle: Codeunit "Business Skill Lifecycle";
     begin
-        BusinessSkillProvisioning.DeleteCompanySkill(SkillId, ExpectedTitle, ExpectedText, TargetCompanyNameTok);
+        BusinessSkillLifecycle.DeleteCompanySkill(SkillId, ExpectedTitle, ExpectedText, TargetCompanyNameTok);
     end;
 
     local procedure DeleteVATPostingSetup()
@@ -736,7 +729,6 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         ProposedCombinationExistsErr: Label 'VAT Posting Setup %1/%2 already exists. Cleanup ownership cannot be guaranteed, so setup stopped without changing data.', Comment = '%1 = VAT business posting group, %2 = VAT product posting group';
         RequiredDimensionValueMissingErr: Label 'Required dimension value %1/%2 does not exist.', Comment = '%1 = dimension code, %2 = value code';
         RequiredDimensionValueBlockedErr: Label 'Required dimension value %1/%2 is blocked.', Comment = '%1 = dimension code, %2 = value code';
-        SkillTitleExistsErr: Label 'A Business Central IQ skill titled "%1" already exists. Cleanup ownership cannot be guaranteed, so setup stopped without changing data.', Comment = '%1 = skill title';
         RecordChangedAfterSetupErr: Label '%1 %2 was changed after demo setup. Cleanup stopped to preserve those changes.', Comment = '%1 = record type, %2 = record key';
         DemoRecordInUseErr: Label '%1 %2 is in use. Cleanup stopped and did not remove any demo setup.', Comment = '%1 = record type, %2 = record key';
         ConfiguredStatusLbl: Label 'Configured. The four GB demo skills and required company setup are available.';
