@@ -32,15 +32,19 @@ discovers on a secondary before freezing the template. Differences in template
 preparation, resource instrumentation, worker layout and **later execution
 temporal bias** mean this is not a perfectly controlled 1/2/4-worker comparison.
 
-### Serialization and package provenance
+### Independent scheduling and package provenance
 
-One workflow, one 20-cell matrix, fail-fast false, max-parallel six. Literal
-repository-wide workflow concurrency group `sql-api-646383-300-trial-comparison`
-is shared with the original 300 and its replacements; cancel-in-progress false.
-The entire new run waits until that group is released, never adding containers
-while the original uses six. **Only one pending run is supported by the existing
-group policy: do not submit another comparison/replacement while this run is
-pending, because GitHub can replace the pending run.** Runner-loss orphans still
+User authorization on 2026-10-08 supersedes the previous shared six-slot hold.
+One workflow, one 20-cell matrix, fail-fast false, max-parallel **two**. Literal
+workflow concurrency group `sql-api-646383-tenant-count-comparison` is independent
+of original300 and readiness; cancel-in-progress false. The authorized total
+budget is **ten**: unchanged original300 six + tenant-count two + readiness two.
+There is no original300 completion dependency. Pending run **37695638367** at
+`3364691220be1ef5d29b6930eacead98eded0f45` must be confirmed never to have started
+trial jobs, canceled, and confirmed canceled before dispatching this scheduling-only
+successor. This is not a test rerun; all 20 original cell identities remain.
+Do not dispatch competing tenant-count runs: GitHub permits only one pending
+run per group and can replace it. Runner-loss orphans still
 require ownership-aware audit; scheduler limits alone cannot prove their removal.
 The historical DE replay 37630750803 completed successfully and is separate.
 

@@ -32,8 +32,9 @@ $manifest = @{
     controlReference = @{ runId = '37634358042'; arm = 'control'; mountedTenants = 4; workers = 3 }
     warmup = $false; companiesProbe = $false; sqlRetry = $false; additionalDisabledTests = @()
     sourceSha = 'c4953dceffe02a017adad34973e1955017bf5d20'; template = 'detached-read-only-before-discovery'
-    concurrencyGroup = 'sql-api-646383-300-trial-comparison'; maxParallel = 6
-    scheduling = 'Entire workflow serialized behind the original 300; no overlapping trial containers'
+    concurrencyGroup = 'sql-api-646383-tenant-count-comparison'; maxParallel = 2
+    scheduling = 'Independent of original300: original6 + tenant-count2 + readiness2 = authorized total10'
+    schedulingSupersedesRunId = '37695638367'; schedulingOnlySuccessor = $true; testRerun = $false
     timingCaveats = @('Later execution temporal bias', '1/2 actual workers versus reserved-default 3-worker reference',
         'Resource sampling and detached read-only-template preparation are new harness instrumentation')
 }

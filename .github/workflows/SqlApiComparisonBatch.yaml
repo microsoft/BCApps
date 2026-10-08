@@ -31,7 +31,7 @@ jobs:
     if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-tenant-count-comparison' && github.run_attempt == 1
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 2
       matrix: ${{ fromJSON(inputs.matrix) }}
     runs-on: GitHub-BCAppsPL
     timeout-minutes: 120

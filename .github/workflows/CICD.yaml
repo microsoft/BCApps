@@ -10,10 +10,10 @@ permissions:
   id-token: write
   packages: read
 
-# Repository-wide literal group shared with the original 300 and its replacements.
-# One pending run only: do not submit another contender while this run is pending.
+# Independent tenant-count scheduling: original300 keeps six slots; this run uses two.
+# Readiness owns two more slots under the explicitly authorized total budget of ten.
 concurrency:
-  group: sql-api-646383-300-trial-comparison
+  group: sql-api-646383-tenant-count-comparison
   cancel-in-progress: false
 
 jobs:

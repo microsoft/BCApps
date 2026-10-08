@@ -5,6 +5,20 @@ BeforeAll {
     function global:Get-BcContainerServerConfiguration { param($ContainerName) throw 'Live call forbidden.' }
 }
 Describe 'Isolated tenant-count identity and scheduling' {
+    It 'uses an independent two-slot matrix and records scheduling-only supersession' {
+        $root = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
+        $workflow = Get-Content (Join-Path $root '.github\workflows\CICD.yaml') -Raw
+        $batch = Get-Content (Join-Path $root '.github\workflows\SqlApiComparisonBatch.yaml') -Raw
+        $planner = Get-Content (Join-Path $PSScriptRoot 'PlanTenantCount.ps1') -Raw
+        $workflow | Should -Match 'group: sql-api-646383-tenant-count-comparison'
+        $workflow | Should -Not -Match 'group: sql-api-646383-300-trial-comparison'
+        $workflow | Should -Match 'cancel-in-progress: false'
+        $workflow | Should -Match 'needs: Plan'
+        $batch | Should -Match 'max-parallel: 2'
+        $batch | Should -Match 'fail-fast: false'
+        $planner | Should -Match "concurrencyGroup = 'sql-api-646383-tenant-count-comparison'; maxParallel = 2"
+        $planner | Should -Match "schedulingSupersedesRunId = '37695638367'; schedulingOnlySuccessor = \`$true; testRerun = \`$false"
+    }
     BeforeEach {
         $script:saved = @{}
         $values = @{
