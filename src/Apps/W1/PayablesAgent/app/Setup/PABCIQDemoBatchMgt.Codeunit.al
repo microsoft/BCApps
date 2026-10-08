@@ -17,14 +17,7 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task" = rimd,
-                  tabledata "Agent Task File" = rimd,
-                  tabledata "Agent Task Log Entry" = rimd,
-                  tabledata "Agent Task Memory Entry" = rimd,
-                  tabledata "Agent Task Message" = rimd,
-                  tabledata "Agent Task Message Attachment" = rimd,
-                  tabledata "Agent Task Timeline Step" = rimd,
-                  tabledata "Agent User Int Request Details" = rimd,
+    Permissions =     tabledata "Agent Task" = r,
                   tabledata "E-Doc. Data Storage" = rimd,
                   tabledata "E-Document" = rimd,
                   tabledata "E-Document Log" = r,
@@ -195,7 +188,7 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
         DemoBatchDocument.Insert(true);
         Commit();
 
-        if not TryImportResource(ResourcePath, FileName, SourceDetails, EDocument) then begin
+        if not Codeunit.Run(Codeunit::"PA BC IQ Demo Submit", DemoBatchDocument) then begin
             SubmissionError := GetLastErrorText();
             RecoverEDocument(SourceDetails, EDocument);
             UpdateBatchDocumentFromEDocument(DemoBatchDocument, EDocument);
@@ -209,12 +202,13 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
             Error(ResourceSubmissionErr, FileName, SubmissionError);
         end;
 
+        DemoBatchDocument.Get(DemoBatch."Run ID", Sequence);
+        EDocument.Get(DemoBatchDocument."E-Document Entry No.");
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", Format(EDocument."Entry No"));
         if not AgentTask.FindFirst() then
             Error(TaskNotCreatedErr, FileName);
 
-        EDocument.Get(EDocument."Entry No");
         UpdateBatchDocumentFromEDocument(DemoBatchDocument, EDocument);
         DemoBatchDocument."Agent Task ID" := AgentTask.ID;
         DemoBatchDocument.Submitted := true;
@@ -224,16 +218,6 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
         DemoBatch."Submitted Document Count" += 1;
         DemoBatch.Modify(true);
         Commit();
-    end;
-
-    [TryFunction]
-    local procedure TryImportResource(ResourcePath: Text; FileName: Text; SourceDetails: Text; var EDocument: Record "E-Document")
-    var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        ResourceInStream: InStream;
-    begin
-        NavApp.GetResource(ResourcePath, ResourceInStream);
-        PayablesAgentSetup.ImportInvoiceFile(FileName, SourceDetails, ResourceInStream, EDocument);
     end;
 
     local procedure RecoverEDocument(SourceDetails: Text; var EDocument: Record "E-Document")
@@ -373,7 +357,7 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
 
         if DemoBatchDocument."Agent Task ID" <> 0 then
             if AgentTask.Get(DemoBatchDocument."Agent Task ID") then
-                DeleteAgentTask(AgentTask);
+                ArchiveAgentTask(AgentTask);
     end;
 
     local procedure FindLinkedPurchaseHeader(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header")
@@ -433,31 +417,11 @@ codeunit 3329 "PA BC IQ Demo Batch Mgt."
             EDocDataStorage.Delete(true);
     end;
 
-    local procedure DeleteAgentTask(var AgentTask: Record "Agent Task")
+    local procedure ArchiveAgentTask(AgentTask: Record "Agent Task")
     var
-        AgentTaskFile: Record "Agent Task File";
-        AgentTaskLogEntry: Record "Agent Task Log Entry";
-        AgentTaskMemoryEntry: Record "Agent Task Memory Entry";
-        AgentTaskMessage: Record "Agent Task Message";
-        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
-        AgentTaskTimelineStep: Record "Agent Task Timeline Step";
-        AgentUserIntRequestDetails: Record "Agent User Int Request Details";
+        AgentTaskMgt: Codeunit "Agent Task";
     begin
-        AgentTaskMessageAttachment.SetRange("Task ID", AgentTask.ID);
-        AgentTaskMessageAttachment.DeleteAll(true);
-        AgentTaskFile.SetRange("Task ID", AgentTask.ID);
-        AgentTaskFile.DeleteAll(true);
-        AgentTaskMessage.SetRange("Task ID", AgentTask.ID);
-        AgentTaskMessage.DeleteAll(true);
-        AgentTaskTimelineStep.SetRange("Task ID", AgentTask.ID);
-        AgentTaskTimelineStep.DeleteAll(true);
-        AgentUserIntRequestDetails.SetRange("Task ID", AgentTask.ID);
-        AgentUserIntRequestDetails.DeleteAll(true);
-        AgentTaskLogEntry.SetRange("Task ID", AgentTask.ID);
-        AgentTaskLogEntry.DeleteAll(true);
-        AgentTaskMemoryEntry.SetRange("Task ID", AgentTask.ID);
-        AgentTaskMemoryEntry.DeleteAll(true);
-        AgentTask.Delete(true);
+        AgentTaskMgt.ArchiveTask(AgentTask.ID, false);
     end;
 
     local procedure VerifyTargetCompany()
