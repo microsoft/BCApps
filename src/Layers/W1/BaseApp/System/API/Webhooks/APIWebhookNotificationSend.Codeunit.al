@@ -139,6 +139,7 @@ codeunit 6154 "API Webhook Notification Send"
         EmptyPayloadPerNotificationUrlErr: Label 'Empty payload per notification URL. Notification URL number: %1.', Locked = true;
         CannotGetResponseErr: Label 'Cannot get response. Notification URL number: %1.', Locked = true;
         RemoteServerErrorTxt: Label 'The remote server returned an error: (%1) %2.', Locked = true, Comment = '%1 = HTTP status code, %2 = reason phrase';
+        RequestUriChangedErr: Label 'The request URI was changed by an event subscriber, so the Dataverse access token is not sent. Notification URL number: %1.', Locked = true;
         CannotFindCachedAggregateNotificationErr: Label 'Cannot find cached aggregate notification for subscription. Subscription: %1.', Locked = true;
         CannotFindCachedCollectionAggregateNotificationMsg: Label 'Cannot find cached collection aggregate notification for subscription. Subscription: %1.', Locked = true;
         CannotFindCachedEntityKeyFieldTypeForSubscriptionIdErr: Label 'Cannot find cached entity key field type for subscription. Subscription: %1.', Locked = true;
@@ -1195,6 +1196,7 @@ codeunit 6154 "API Webhook Notification Send"
     var
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
+        RequestUri: Text;
     begin
         HttpStatusCodeNumber := 0;
         IsBlockedByEnvironment := false;
@@ -1202,10 +1204,11 @@ codeunit 6154 "API Webhook Notification Send"
         if not TryCreateRequest(NotificationUrlNumber, NotificationUrl, NotificationPayload, HttpClient, HttpRequestMessage) then
             exit(false);
 
+        RequestUri := HttpRequestMessage.GetRequestUri();
         // Raised outside the try functions so that errors from subscribers are not swallowed, and before the Authorization header is added.
         OnSendRequestOnBeforeSendHttpRequest(HttpClient, HttpRequestMessage);
 
-        exit(TrySendRequest(NotificationUrlNumber, NotificationUrl, HttpClient, HttpRequestMessage, ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCodeNumber, IsBlockedByEnvironment));
+        exit(TrySendRequest(NotificationUrlNumber, NotificationUrl, RequestUri, HttpClient, HttpRequestMessage, ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCodeNumber, IsBlockedByEnvironment));
     end;
 
     [TryFunction]
@@ -1252,7 +1255,7 @@ codeunit 6154 "API Webhook Notification Send"
     end;
 
     [TryFunction]
-    local procedure TrySendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; var HttpClient: HttpClient; var HttpRequestMessage: HttpRequestMessage; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCodeNumber: Integer; var IsBlockedByEnvironment: Boolean)
+    local procedure TrySendRequest(NotificationUrlNumber: Integer; NotificationUrl: Text; RequestUri: Text; var HttpClient: HttpClient; var HttpRequestMessage: HttpRequestMessage; var ResponseBody: Text; var ErrorMessage: Text; var ErrorDetails: Text; var HttpStatusCodeNumber: Integer; var IsBlockedByEnvironment: Boolean)
     var
         APIWebhookSubscription: Record "API Webhook Subscription";
         HttpResponseMessage: HttpResponseMessage;
@@ -1260,6 +1263,10 @@ codeunit 6154 "API Webhook Notification Send"
         MaskedUrl: Text;
     begin
         if SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = APIWebhookSubscription."Subscription Type"::Dataverse then begin
+            if HttpRequestMessage.GetRequestUri() <> RequestUri then begin
+                Session.LogMessage('', StrSubstNo(RequestUriChangedErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+                Error(RequestUriChangedErr, NotificationUrlNumber);
+            end;
             HttpRequestMessage.GetHeaders(HttpHeaders);
             AddTokenToRequestHeader(HttpHeaders);
         end;
@@ -2038,7 +2045,7 @@ codeunit 6154 "API Webhook Notification Send"
 #endif
 
     /// <summary>
-    /// Raised right before the webhook notification request is sent. Subscribers can modify the HTTP client (for example, the timeout) and the request message (for example, add headers). The Authorization header for Dataverse subscriptions is added after this event.
+    /// Raised right before the webhook notification request is sent. Subscribers can modify the HTTP client (for example, the timeout) and the request message (for example, add headers). The Authorization header for Dataverse subscriptions is added after this event, and only if the request URI was not changed.
     /// </summary>
     /// <param name="HttpClient">The HTTP client that will send the request.</param>
     /// <param name="HttpRequestMessage">The request message that will be sent.</param>
