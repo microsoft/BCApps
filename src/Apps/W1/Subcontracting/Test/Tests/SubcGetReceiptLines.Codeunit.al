@@ -759,6 +759,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
             CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
             Quantity, true, false, 'STD-COST-SN1', Quantity, '', 0, false, true,
             StandardSubcontractedCost, DirectUnitCost);
+        LibraryInventory.SetAutomaticCostPosting(true);
         SubcontractedVarianceAccountNo := LibraryERM.CreateGLAccountNo();
         InventoryPostingSetup.Get(ProductionOrder."Location Code", Item."Inventory Posting Group");
         InventoryPostingSetup.Validate("Subcontracted Variance Account", SubcontractedVarianceAccountNo);
@@ -827,7 +828,6 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
     local procedure VerifyTrackedSubcontractingInvoiceCapacityLocation(CopyLocationToCapacityValueEntries: Boolean)
     var
-        BlankLocation: Record Location;
         GLEntry: Record "G/L Entry";
         InventoryPostingSetup: Record "Inventory Posting Setup";
         Item: Record Item;
@@ -857,13 +857,14 @@ codeunit 149927 "Subc. Get Receipt Lines"
         ManufacturingSetup.Validate("Copy Loc. to Cap. Val. Entries", CopyLocationToCapacityValueEntries);
         ManufacturingSetup.Modify(true);
 
-        LibraryInventory.UpdateInventoryPostingSetup(BlankLocation, Item."Inventory Posting Group");
-        InventoryPostingSetup.Get('', Item."Inventory Posting Group");
+        if not InventoryPostingSetup.Get('', Item."Inventory Posting Group") then
+            LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, '', Item."Inventory Posting Group");
         InventoryPostingSetup.Validate("WIP Account", LibraryERM.CreateGLAccountNo());
         InventoryPostingSetup.Modify(true);
         ProductionLocation.Get(ProductionOrder."Location Code");
-        LibraryInventory.UpdateInventoryPostingSetup(ProductionLocation, Item."Inventory Posting Group");
-        InventoryPostingSetup.Get(ProductionLocation.Code, Item."Inventory Posting Group");
+        if not InventoryPostingSetup.Get(ProductionLocation.Code, Item."Inventory Posting Group") then
+            LibraryInventory.CreateInventoryPostingSetup(
+                InventoryPostingSetup, ProductionLocation.Code, Item."Inventory Posting Group");
         InventoryPostingSetup.Validate("WIP Account", LibraryERM.CreateGLAccountNo());
         InventoryPostingSetup.Modify(true);
 
