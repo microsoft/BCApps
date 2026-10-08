@@ -13,6 +13,12 @@
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-testing-application/",
   "dependencies": [
     {
+      "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
+      "name": "BLOB Storage",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",

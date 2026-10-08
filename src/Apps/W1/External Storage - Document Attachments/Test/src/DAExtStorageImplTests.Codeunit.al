@@ -7,6 +7,7 @@ namespace Microsoft.ExternalStorage.DocumentAttachments.Test;
 
 using Microsoft.ExternalStorage.DocumentAttachments;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
@@ -17,6 +18,7 @@ using System.Environment;
 using System.ExternalFileStorage;
 using System.TestLibraries.ExternalFileStorage;
 using System.TestLibraries.Utilities;
+using System.Text;
 using System.Utilities;
 
 codeunit 136820 "DA Ext. Storage Impl. Tests"
@@ -304,6 +306,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Result: Boolean;
+        FailureReason: Text;
     begin
         // [SCENARIO] Copy protection prevents physical deletion, not safe local retirement with actual internal bytes.
         Initialize();
@@ -314,13 +317,14 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateExternallyStoredDocument(DocumentAttachment);
         DocumentAttachment."Skip Delete On Copy" := true;
         DocumentAttachment.Modify();
+        Assert.AreNotEqual('', GetInternalAttachmentBytes(DocumentAttachment), 'The fixture must contain actual nonempty internal bytes before retirement');
 
         // [WHEN] Delete is attempted
-        Result := DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment, FailureReason);
 
-        Assert.IsTrue(Result, 'A copied reference with confirmed internal bytes can retire locally');
+        Assert.IsTrue(Result, 'A copied reference with confirmed internal bytes can retire locally. Failure reason: ' + FailureReason);
 
-        // [THEN] Document should still be marked as externally stored
+        // [THEN] Only local external metadata is retired.
         DocumentAttachment.SetRecFilter();
         DocumentAttachment.FindFirst();
         Assert.IsFalse(DocumentAttachment."Stored Externally", 'Retire only local external metadata');
@@ -1058,6 +1062,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SourceNo);
         SalesLine.FindFirst();
+        EnsureGeneralPostingSetup(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
         CreateUploadedExternalOnlyAttachment(LineDocumentAttachment);
         LineDocumentAttachment.Rename(Database::"Sales Line", SourceNo, LineDocumentAttachment."Document Type"::Invoice, SalesLine."Line No.", LineDocumentAttachment.ID);
         LineExternalFilePath := LineDocumentAttachment."External File Path";
@@ -1101,6 +1106,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", SourceNo);
         PurchaseLine.FindFirst();
+        EnsureGeneralPostingSetup(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         CreateUploadedExternalOnlyAttachment(LineDocumentAttachment);
         LineDocumentAttachment.Rename(Database::"Purchase Line", SourceNo, LineDocumentAttachment."Document Type"::Invoice, PurchaseLine."Line No.", LineDocumentAttachment.ID);
         LineExternalFilePath := LineDocumentAttachment."External File Path";
@@ -1586,15 +1592,23 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure CopyToInternalKeepsBothReferences()
     var
         DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         OriginalExternalPath: Text;
         OriginalUploadDate: DateTime;
         OriginalSourceEnvironmentHash: Text[32];
+        OriginalBytes: Text;
     begin
         // [SCENARIO] Copy restores internal bytes without retiring any external metadata.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
-        CreateUploadedExternalOnlyAttachment(DocumentAttachment);
+        FileConnectorMock.SetStoreFileContent(true);
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        OriginalBytes := GetInternalAttachmentBytes(DocumentAttachment);
+        UploadDocumentAttachment(DocumentAttachment);
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'The source must become external-only before round-trip restore');
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsFalse(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media must not mask the mock restore');
         OriginalExternalPath := DocumentAttachment."External File Path";
         OriginalUploadDate := DocumentAttachment."External Upload Date";
         OriginalSourceEnvironmentHash := DocumentAttachment."Source Environment Hash";
@@ -1609,6 +1623,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.AreEqual(OriginalExternalPath, DocumentAttachment."External File Path", 'Copy must preserve the external path');
         Assert.AreEqual(OriginalUploadDate, DocumentAttachment."External Upload Date", 'Copy must preserve upload metadata');
         Assert.AreEqual(OriginalSourceEnvironmentHash, DocumentAttachment."Source Environment Hash", 'Copy must preserve origin metadata');
+        Assert.AreEqual(OriginalBytes, GetInternalAttachmentBytes(DocumentAttachment), 'Copy must restore the exact uploaded bytes');
         Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Copy must not send a remote DELETE');
     end;
 
@@ -1672,12 +1687,19 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment: Record "Document Attachment";
         ExternalStorageSetup: Record "DA External Storage Setup";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        OriginalBytes: Text;
     begin
         // [SCENARIO] Move restores actual bytes and locally retires the external reference, allowing lifecycle changes.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeatureWithDelete();
-        CreateUploadedExternalOnlyAttachment(DocumentAttachment);
+        FileConnectorMock.SetStoreFileContent(true);
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        OriginalBytes := GetInternalAttachmentBytes(DocumentAttachment);
+        UploadDocumentAttachment(DocumentAttachment);
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'The source must become external-only before round-trip restore');
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsFalse(DocumentAttachment."Document Reference ID".HasValue(), 'Internal media must not mask the mock restore');
         DocumentAttachment.SetRecFilter();
 
         Commit();
@@ -1686,6 +1708,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         RefreshAttachment(DocumentAttachment);
         Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'The external file must be restored internally');
         Assert.IsTrue(DocumentAttachment."Stored Internally", 'Restore must succeed');
+        Assert.AreEqual(OriginalBytes, GetInternalAttachmentBytes(DocumentAttachment), 'Move must restore the exact uploaded bytes before local retirement');
         Assert.IsFalse(DocumentAttachment."Stored Externally", 'The local external reference must be retired');
         Assert.AreEqual('', DocumentAttachment."External File Path", 'Clear the locally retired path');
         Assert.AreEqual(0DT, DocumentAttachment."External Upload Date", 'Clear the locally retired upload date');
@@ -1800,6 +1823,35 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     #endregion
 
     #region Helper Functions
+
+    local procedure EnsureGeneralPostingSetup(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        if not GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProdPostingGroup);
+
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupSalesAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure GetInternalAttachmentBytes(DocumentAttachment: Record "Document Attachment"): Text
+    var
+        TenantMedia: Record "Tenant Media";
+        Base64Convert: Codeunit "Base64 Convert";
+        ContentStream: InStream;
+    begin
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Byte comparison requires a stored-internal attachment');
+        Assert.IsTrue(TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()), 'Byte comparison requires the actual media row');
+        TenantMedia.CalcFields(Content);
+        Assert.IsTrue(TenantMedia.Content.HasValue() and (TenantMedia.Content.Length() > 0), 'Byte comparison requires actual nonempty media content');
+        TenantMedia.Content.CreateInStream(ContentStream);
+        exit(Base64Convert.ToBase64(ContentStream));
+    end;
 
     local procedure InitializeDocumentSetup()
     var

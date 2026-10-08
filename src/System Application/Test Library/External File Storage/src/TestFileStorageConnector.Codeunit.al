@@ -6,6 +6,7 @@
 namespace System.TestLibraries.ExternalFileStorage;
 
 using System.ExternalFileStorage;
+using System.Utilities;
 
 codeunit 135814 "Test File Storage Connector" implements "External File Storage Connector"
 {
@@ -25,13 +26,41 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     end;
 
     procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream);
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Content: HttpContent;
+        StoredStream: InStream;
     begin
         if FailOnGetFile then
             Error(FailedToGetFileErr);
+
+        if not StoreFileContent then
+            exit;
+
+        if not StoredFiles.ContainsKey(GetStoredFileKey(AccountId, Path)) then
+            Error(StoredFileNotFoundErr, Path);
+
+        StoredContent.Get(StoredFiles.Get(GetStoredFileKey(AccountId, Path)), TempBlob);
+        TempBlob.CreateInStream(StoredStream);
+        Content.WriteFrom(StoredStream);
+        Content.ReadAs(Stream);
     end;
 
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream);
+    var
+        TempBlob: Codeunit "Temp Blob";
+        StoredStream: OutStream;
     begin
+        if not StoreFileContent then
+            exit;
+
+        if FileConnectorMock.FailOnSend() then
+            Error(FailedToCreateFileErr);
+
+        TempBlob.CreateOutStream(StoredStream);
+        CopyStream(StoredStream, Stream);
+        StoredContent.Add(TempBlob);
+        StoredFiles.Set(GetStoredFileKey(AccountId, Path), StoredContent.Count());
     end;
 
     procedure CopyFile(AccountId: Guid; SourcePath: Text; TargetPath: Text);
@@ -45,6 +74,7 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     procedure FileExists(AccountId: Guid; Path: Text): Boolean;
     begin
         FileExistsCallCount += 1;
+        exit(StoreFileContent and StoredFiles.ContainsKey(GetStoredFileKey(AccountId, Path)));
     end;
 
     procedure DeleteFile(AccountId: Guid; Path: Text);
@@ -52,6 +82,9 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         // The platform invokes connector callbacks inside a TryFunction, so we cannot
         // Modify() a table from here. Stash the path in a SingleInstance global instead.
         LastDeletedFilePath := Path;
+        if StoreFileContent then
+            if StoredFiles.ContainsKey(GetStoredFileKey(AccountId, Path)) then
+                StoredFiles.Remove(GetStoredFileKey(AccountId, Path));
     end;
 
     internal procedure GetLastDeletedPath(): Text
@@ -77,6 +110,18 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     internal procedure SetFailOnGetFile(NewFailOnGetFile: Boolean)
     begin
         FailOnGetFile := NewFailOnGetFile;
+    end;
+
+    internal procedure SetStoreFileContent(NewStoreFileContent: Boolean)
+    begin
+        StoreFileContent := NewStoreFileContent;
+        Clear(StoredFiles);
+        Clear(StoredContent);
+    end;
+
+    local procedure GetStoredFileKey(AccountId: Guid; Path: Text): Text
+    begin
+        exit(Format(AccountId) + Path);
     end;
 
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
@@ -140,8 +185,13 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     var
         FileConnectorMock: Codeunit "File Connector Mock";
+        StoredContent: Codeunit "Temp Blob List";
+        StoredFiles: Dictionary of [Text, Integer];
+        StoreFileContent: Boolean;
         FailOnGetFile: Boolean;
         FileExistsCallCount: Integer;
         LastDeletedFilePath: Text;
         FailedToGetFileErr: Label 'Failed to get file.';
+        FailedToCreateFileErr: Label 'Failed to create file.';
+        StoredFileNotFoundErr: Label 'The file %1 does not exist.', Comment = '%1 = Requested file path';
 }

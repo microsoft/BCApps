@@ -32,6 +32,7 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector.ResetLastDeletedPath();
         TestFileStorageConnector.ResetFileExistsCallCount();
         TestFileStorageConnector.SetFailOnGetFile(false);
+        TestFileStorageConnector.SetStoreFileContent(false);
     end;
 
     procedure GetAccounts(var FileAccount: Record "File Account")
@@ -149,5 +150,16 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector: Codeunit "Test File Storage Connector";
     begin
         TestFileStorageConnector.SetFailOnGetFile(FailOnGetFile);
+    end;
+
+    /// <summary>
+    /// Enables real in-memory file bytes for round-trip tests, or restores the default no-op behavior.
+    /// Every call clears previously stored files.
+    /// </summary>
+    procedure SetStoreFileContent(StoreFileContent: Boolean)
+    var
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
+    begin
+        TestFileStorageConnector.SetStoreFileContent(StoreFileContent);
     end;
 }
