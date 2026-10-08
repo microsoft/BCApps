@@ -27,6 +27,12 @@
             "name": "E-Document Connector - Microsoft 365",
             "publisher": "Microsoft",
             "version": "30.0.0.0"
+        },
+        {
+            "id": "b7e3a1d0-4f8c-4e2a-9c6b-1d3e5f7a9b0c",
+            "name": "Business IQ",
+            "publisher": "Microsoft",
+            "version": "30.0.0.0"
         }
     ],
     "internalsVisibleTo": [
