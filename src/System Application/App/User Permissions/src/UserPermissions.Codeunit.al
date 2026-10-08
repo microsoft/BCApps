@@ -61,6 +61,7 @@ codeunit 152 "User Permissions"
     /// <param name="RoleId">The ID of the permission set.</param>
     /// <param name="Scope">The scope of the permission set. System or tenant.</param>
     /// <param name="AppId">The app ID of the permission set.</param>
+    /// <remarks>The check includes permission sets assigned through user groups.</remarks>
     /// <returns>True if the user has permission sets assigned.</returns>
     procedure HasUserPermissionSetAssigned(UserSecurityId: Guid; Company: Text; RoleId: Code[20]; Scope: Option; AppId: Guid): Boolean
     var
