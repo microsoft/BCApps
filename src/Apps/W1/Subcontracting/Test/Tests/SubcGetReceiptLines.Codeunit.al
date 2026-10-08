@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -12,6 +13,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -37,6 +39,8 @@ codeunit 149927 "Subc. Get Receipt Lines"
 
     var
         Assert: Codeunit Assert;
+        LibraryCosting: Codeunit "Library - Costing";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
@@ -74,6 +78,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         SubcontractingMgmtLibrary.SetupInventorySetup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
+        LibrarySetupStorage.Save(Database::"Manufacturing Setup");
 
         IsInitialized := true;
         Commit();
@@ -718,6 +723,186 @@ codeunit 149927 "Subc. Get Receipt Lines"
         Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Separate invoicing must not create output entries.');
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler')]
+    procedure GetReceiptLinesForStandardCostSerialTrackedSubcontractingReceiptPostsInvoice()
+    var
+        GLEntry: Record "G/L Entry";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
+        DirectUnitCost: Decimal;
+        ExpectedSubcontractedVariance: Decimal;
+        Quantity: Decimal;
+        StandardSubcontractedCost: Decimal;
+        SubcontractedVarianceAccountNo: Code[20];
+    begin
+        // [SCENARIO 649862] Standard-cost tracked separate invoicing uses native subcontracted variance
+        Quantity := 1;
+        StandardSubcontractedCost := 100;
+        DirectUnitCost := 20;
+        ExpectedSubcontractedVariance := StandardSubcontractedCost - DirectUnitCost;
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, true, false, 'STD-COST-SN1', Quantity, '', 0, false, true,
+            StandardSubcontractedCost, DirectUnitCost);
+        SubcontractedVarianceAccountNo := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup.Get(ProductionOrder."Location Code", Item."Inventory Posting Group");
+        InventoryPostingSetup.Validate("Subcontracted Variance Account", SubcontractedVarianceAccountNo);
+        InventoryPostingSetup.Modify(true);
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        VerifyInvoiceSerialApplication(InvoiceLine, ProductionOrder, 'STD-COST-SN1');
+
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::"Direct Cost");
+        ValueEntry.FindFirst();
+        Assert.AreEqual(
+            DirectUnitCost * Quantity, ValueEntry."Cost Amount (Actual)",
+            'The actual invoice cost must remain assigned to subcontracted capacity.');
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
+        Assert.RecordIsEmpty(ValueEntry);
+
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+
+        ValueEntry.Reset();
+        ValueEntry.SetRange("Item No.", Item."No.");
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Output);
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
+        ValueEntry.SetRange("Variance Type", ValueEntry."Variance Type"::Subcontracted);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreEqual(
+            ExpectedSubcontractedVariance, Abs(ValueEntry."Cost Amount (Actual)"),
+            'The economic difference must be posted as native subcontracted variance.');
+
+        GLEntry.SetRange("Document No.", ProductionOrder."No.");
+        GLEntry.SetRange("G/L Account No.", SubcontractedVarianceAccountNo);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(
+            ExpectedSubcontractedVariance, Abs(GLEntry.Amount),
+            'The native subcontracted variance must use the configured G/L account.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForTrackedSubcontractingInvoiceClearsCapacityLocationWhenDisabled()
+    begin
+        VerifyTrackedSubcontractingInvoiceCapacityLocation(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesForTrackedSubcontractingInvoiceCopiesCapacityLocationWhenEnabled()
+    begin
+        VerifyTrackedSubcontractingInvoiceCapacityLocation(true);
+    end;
+
+    local procedure VerifyTrackedSubcontractingInvoiceCapacityLocation(CopyLocationToCapacityValueEntries: Boolean)
+    var
+        BlankLocation: Record Location;
+        GLEntry: Record "G/L Entry";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        Item: Record Item;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProductionLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
+        ExpectedLocationCode: Code[10];
+        ExpectedWIPAccountNo: Code[20];
+        OtherWIPAccountNo: Code[20];
+        Quantity: Decimal;
+    begin
+        CreateSubcontractingReceiptForSeparateInvoice(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount, Quantity, true);
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Copy Loc. to Cap. Val. Entries", CopyLocationToCapacityValueEntries);
+        ManufacturingSetup.Modify(true);
+
+        LibraryInventory.UpdateInventoryPostingSetup(BlankLocation, Item."Inventory Posting Group");
+        InventoryPostingSetup.Get('', Item."Inventory Posting Group");
+        InventoryPostingSetup.Validate("WIP Account", LibraryERM.CreateGLAccountNo());
+        InventoryPostingSetup.Modify(true);
+        ProductionLocation.Get(ProductionOrder."Location Code");
+        LibraryInventory.UpdateInventoryPostingSetup(ProductionLocation, Item."Inventory Posting Group");
+        InventoryPostingSetup.Get(ProductionLocation.Code, Item."Inventory Posting Group");
+        InventoryPostingSetup.Validate("WIP Account", LibraryERM.CreateGLAccountNo());
+        InventoryPostingSetup.Modify(true);
+
+        if CopyLocationToCapacityValueEntries then begin
+            ExpectedLocationCode := ProductionLocation.Code;
+            InventoryPostingSetup.Get(ProductionLocation.Code, Item."Inventory Posting Group");
+            ExpectedWIPAccountNo := InventoryPostingSetup."WIP Account";
+            InventoryPostingSetup.Get('', Item."Inventory Posting Group");
+            OtherWIPAccountNo := InventoryPostingSetup."WIP Account";
+        end else begin
+            ExpectedLocationCode := '';
+            InventoryPostingSetup.Get('', Item."Inventory Posting Group");
+            ExpectedWIPAccountNo := InventoryPostingSetup."WIP Account";
+            InventoryPostingSetup.Get(ProductionLocation.Code, Item."Inventory Posting Group");
+            OtherWIPAccountNo := InventoryPostingSetup."WIP Account";
+        end;
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::"Direct Cost");
+        ValueEntry.FindFirst();
+        Assert.AreEqual(
+            ExpectedLocationCode, ValueEntry."Location Code",
+            'The retargeted capacity Value Entry must follow the manufacturing location setting.');
+
+        GLEntry.SetRange("Document No.", PostedInvoiceNo);
+        GLEntry.SetRange("G/L Account No.", ExpectedWIPAccountNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.SetRange("G/L Account No.", OtherWIPAccountNo);
+        Assert.RecordIsEmpty(GLEntry);
+    end;
+
     local procedure VerifyInvoiceSerialApplication(InvoiceLine: Record "Purchase Line"; ProductionOrder: Record "Production Order"; SerialNo: Code[50])
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -950,6 +1135,35 @@ codeunit 149927 "Subc. Get Receipt Lines"
         TrackingQuantity2: Decimal;
         UseWarehouseReceipt: Boolean;
         LastOperation: Boolean)
+    begin
+        CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+            Item, Vendor, ProductionOrder, PurchRcptLine, PurchaseHeader, PurchaseLine,
+            CapacityLedgerEntryNo, CapacityLedgerEntryCount, OutputItemLedgerEntryCount,
+            Quantity, TrackSerialOutput, TrackLotOutput, TrackingNo1, TrackingQuantity1,
+            TrackingNo2, TrackingQuantity2, UseWarehouseReceipt, LastOperation, 0, 0);
+    end;
+
+    local procedure CreateSubcontractingReceiptForSeparateInvoiceWithTrackingAndCosts(
+        var Item: Record Item;
+        var Vendor: Record Vendor;
+        var ProductionOrder: Record "Production Order";
+        var PurchRcptLine: Record "Purch. Rcpt. Line";
+        var PurchaseHeader: Record "Purchase Header";
+        var PurchaseLine: Record "Purchase Line";
+        var CapacityLedgerEntryNo: Integer;
+        var CapacityLedgerEntryCount: Integer;
+        var OutputItemLedgerEntryCount: Integer;
+        Quantity: Decimal;
+        TrackSerialOutput: Boolean;
+        TrackLotOutput: Boolean;
+        TrackingNo1: Code[50];
+        TrackingQuantity1: Decimal;
+        TrackingNo2: Code[50];
+        TrackingQuantity2: Decimal;
+        UseWarehouseReceipt: Boolean;
+        LastOperation: Boolean;
+        StandardSubcontractedCost: Decimal;
+        DirectUnitCost: Decimal)
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -979,6 +1193,14 @@ codeunit 149927 "Subc. Get Receipt Lines"
                 SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter)
             else
                 SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        if StandardSubcontractedCost <> 0 then begin
+            Item.Validate("Costing Method", Item."Costing Method"::Standard);
+            Item.Validate("Standard Cost", StandardSubcontractedCost);
+            Item.Validate("Unit Cost", StandardSubcontractedCost);
+            Item."Single-Level Subcontrd. Cost" := StandardSubcontractedCost;
+            Item."Rolled-up Subcontracted Cost" := StandardSubcontractedCost;
+            Item.Modify(true);
+        end;
         SubcontractingWorkCenterIndex := 2;
         if not LastOperation then
             SubcontractingWorkCenterIndex := 1;
@@ -999,7 +1221,9 @@ codeunit 149927 "Subc. Get Receipt Lines"
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(
             Item."Routing No.", WorkCenter[SubcontractingWorkCenterIndex]."No.", PurchaseLine);
-        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 25, 2));
+        if DirectUnitCost = 0 then
+            DirectUnitCost := LibraryRandom.RandDecInRange(10, 25, 2);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
         PurchaseLine.Modify(true);
         if TrackSerialOutput or TrackLotOutput then begin
             ProdOrderLine.SetRange(Status, ProductionOrder.Status);
@@ -1055,10 +1279,12 @@ codeunit 149927 "Subc. Get Receipt Lines"
                     WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity1);
                     WarehouseActivityLine.Validate("Serial No.", TrackingNo1);
                     WarehouseActivityLine.Modify(true);
-                    WarehouseActivityLine.Next();
-                    WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
-                    WarehouseActivityLine.Validate("Serial No.", TrackingNo2);
-                    WarehouseActivityLine.Modify(true);
+                    if TrackingQuantity2 <> 0 then begin
+                        WarehouseActivityLine.Next();
+                        WarehouseActivityLine.Validate("Qty. to Handle", TrackingQuantity2);
+                        WarehouseActivityLine.Validate("Serial No.", TrackingNo2);
+                        WarehouseActivityLine.Modify(true);
+                    end;
                 end else
                     if TrackLotOutput then begin
                         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
