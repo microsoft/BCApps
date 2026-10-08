@@ -96,7 +96,7 @@ codeunit 140012 "Test FAB Platform"
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         i: Integer;
     begin
-        //[SCENARIO] The 500-table platform limit is enforced (Story 2)
+        //[SCENARIO] The 1000-table platform limit is enforced (Story 2)
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] 500 table rows already exist
