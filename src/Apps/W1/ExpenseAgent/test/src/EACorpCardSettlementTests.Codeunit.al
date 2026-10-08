@@ -564,6 +564,7 @@ codeunit 148360 EACorpCardSettlementTests
         GenJournalLine.Init();
         GenJournalLine.Validate("Posting Date", WorkDate());
         GenJournalLine.Validate("Document No.", CopyStr(Format(CreateGuid()), 1, MaxStrLen(GenJournalLine."Document No.")));
+        GenJournalLine.Validate("Source Code", LibraryERM.FindGeneralJournalSourceCode());
         GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"Bank Account");
         GenJournalLine.Validate("Account No.", CorpCardBankAccountNo);
         GenJournalLine.Validate("Currency Code", CorpCardTrans."Currency Code");
