@@ -37,17 +37,49 @@ page 6991 "Expense Agent Setup Wizard"
                 UpdatePropagation = Both;
             }
 
-            group(Trial)
+            group(GetStarted)
             {
-                Caption = 'Try out Expense Agent for free';
-                InstructionalText = 'After you set up and activate the Expense Agent, you can try it out for free. This trial is shared across all expense users and companies in this environment.';
-                Visible = TrialExpensesRemaining > 0;
+                Caption = 'Start for free';
+                InstructionalText = 'The first receipts you upload to the Expense Agent will be processed for free. After you run out of free expenses, standard billing applies.';
 
-                field(RemainingExpenses; TrialExpensesText)
+                group(TrialRemaining)
                 {
-                    ShowCaption = false;
-                    Editable = false;
-                    ToolTip = 'Specifies the number of free Expenses left in the trial.';
+                    Caption = 'You still have free expenses remaining';
+                    InstructionalText = 'The number of free expenses is shared across all expense users and companies in this environment.';
+                    Visible = TrialExpensesRemaining > 0;
+
+                    field(RemainingExpenses; TrialExpensesText)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies the number of free Expenses left.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ExpenseDashboardUrl <> '' then
+                                Hyperlink(ExpenseDashboardUrl);
+                        end;
+                    }
+
+                }
+                group(TrialEnded)
+                {
+                    Caption = 'You don''t have any free expenses remaining';
+                    InstructionalText = 'You can continue using the Expense Agent, and normal billing applies.';
+                    Visible = TrialExpensesRemaining <= 0;
+
+                    field(UseExpenseAgent; ExpenseDashboardLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies the number of free Expenses left.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ExpenseDashboardUrl <> '' then
+                                Hyperlink(ExpenseDashboardUrl);
+                        end;
+                    }
                 }
             }
             group(AccessAndSubmission)
@@ -1042,7 +1074,7 @@ page 6991 "Expense Agent Setup Wizard"
         RulesLinkTxt: Label 'Preview the default management rules that will be added';
         RulesAppliedLinkTxt: Label 'View management rules including new defaults';
         ExpensePoliciesLinkTxt: Label 'View expense policies';
-        TrialExpensesRemainingTxt: Label 'Your can still try out %1 expenses with Expense Agent.', Comment = '%1 = the number of free expenses remaining';
+        TrialExpensesRemainingTxt: Label '%1 free expenses remaining', Comment = '%1=Number of free expenses remaining';
         NoSeriesLinkTxt: Label 'Preview the default number series that will be added';
         NoSeriesAppliedLinkTxt: Label 'View number series including new defaults';
         MileageRateSetupLinkTxt: Label 'Configure mileage rates by vehicle type';
