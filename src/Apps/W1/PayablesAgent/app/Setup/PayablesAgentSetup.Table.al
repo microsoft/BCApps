@@ -95,6 +95,11 @@ table 3303 "Payables Agent Setup"
             Caption = 'Applied Instructions Configuration Hash';
             DataClassification = SystemMetadata;
         }
+        field(14; "Use Business Central IQ"; Boolean)
+        {
+            DataClassification = SystemMetadata;
+            InitValue = false;
+        }
     }
     keys
     {
