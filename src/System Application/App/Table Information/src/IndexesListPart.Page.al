@@ -138,6 +138,7 @@ page 8704 "Indexes List Part"
                     Width = 10;
                     Caption = 'Reads/Writes';
                     ToolTip = 'Specifies the ratio of reads (seeks + scans + lookups) to writes (updates). A higher value indicates the index is more read-heavy.';
+                    AutoFormatType = 0;
                     DecimalPlaces = 2;
                     StyleExpr = IndexStyleExpr;
                 }
