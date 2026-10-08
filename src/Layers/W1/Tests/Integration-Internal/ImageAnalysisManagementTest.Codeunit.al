@@ -783,6 +783,7 @@ codeunit 135206 "Image Analysis Management Test"
     procedure TestLimitIsNeverSetWithCustomUri()
     var
         ImageAnalysisSetup: Record "Image Analysis Setup";
+        ComputerVisionUsage: Record "Azure AI Usage";
         ImageAnalysisManagement: Codeunit "Image Analysis Management";
         Value: Integer;
         Type: Option;
@@ -790,6 +791,9 @@ codeunit 135206 "Image Analysis Management Test"
     begin
         // [SCENARIO] For Custom Uri not set Limit means Unlimited
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        // A previous analysis can persist a shared-service limit; this scenario requires no configured limit.
+        ComputerVisionUsage.SetRange(Service, ComputerVisionUsage.Service::"Computer Vision");
+        ComputerVisionUsage.DeleteAll();
         LibraryLowerPermissions.SetO365Basic();
 
         // [GIVEN] A custom uri and key are provided but the limit is not set
@@ -800,8 +804,8 @@ codeunit 135206 "Image Analysis Management Test"
 
         // [THEN] The Limit is set to 999 Years
         ImageAnalysisManagement.GetLimitParams(Type, Value);
-        Assert.AreEqual(Type, LimitType::Year, 'Limit Type was expected to be Year');
-        Assert.AreEqual(Value, 999, 'Limit Value was expected to be 999');
+        Assert.AreEqual(LimitType::Year, Type, 'Limit Type was expected to be Year');
+        Assert.AreEqual(999, Value, 'Limit Value was expected to be 999');
 
         Clear(ImageAnalysisManagement);
 
@@ -817,8 +821,8 @@ codeunit 135206 "Image Analysis Management Test"
 
         // [THEN] The Limit is set to 999 Years
         ImageAnalysisManagement.GetLimitParams(Type, Value);
-        Assert.AreEqual(Type, LimitType::Year, 'Limit Type was expected to be Year');
-        Assert.AreEqual(Value, 999, 'Limit Value was expected to be 999');
+        Assert.AreEqual(LimitType::Year, Type, 'Limit Type was expected to be Year');
+        Assert.AreEqual(999, Value, 'Limit Value was expected to be 999');
     end;
 
     [Test]
