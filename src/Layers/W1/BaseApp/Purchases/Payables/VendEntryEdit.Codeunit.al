@@ -19,13 +19,18 @@ codeunit 113 "Vend. Entry-Edit"
 
     trigger OnRun()
     var
+        PurchInvHeader: Record "Purch. Inv. Header";
         LedgEntryTrackChanges: Codeunit "Ledg. Entry-Track Changes";
         IsHandled: Boolean;
+        PurchInvHeaderFound: Boolean;
     begin
         IsHandled := false;
         OnBeforeOnRun(Rec, VendLedgEntry, DtldVendLedgEntry, IsHandled);
         if IsHandled then
             exit;
+
+        // Lock the posted purchase invoice before the vendor ledger entry to keep the same lock order as "Purch. Inv. Header - Edit"
+        PurchInvHeaderFound := GetPurchInvHeader(PurchInvHeader, Rec);
 
         VendLedgEntry := Rec;
         VendLedgEntry.LockTable();
@@ -68,7 +73,8 @@ codeunit 113 "Vend. Entry-Edit"
 #if not CLEAN29
         OnRunOnAfterVendLedgEntryMofidy(VendLedgEntry);
 #endif
-        UpdatePurchInvHeader(VendLedgEntry);
+        if PurchInvHeaderFound then
+            UpdatePurchInvHeader(PurchInvHeader, VendLedgEntry);
         Rec := VendLedgEntry;
     end;
 
@@ -77,20 +83,25 @@ codeunit 113 "Vend. Entry-Edit"
         CalledFromPurchaseInvEdit := CalledFromPurchaseInvEditSet;
     end;
 
-    local procedure UpdatePurchInvHeader(UpdatePurchaseInvoiceVendLedgEntry: Record "Vendor Ledger Entry")
+    local procedure GetPurchInvHeader(var PurchInvHeader: Record "Purch. Inv. Header"; VendorLedgerEntry: Record "Vendor Ledger Entry"): Boolean
+    begin
+        if CalledFromPurchaseInvEdit then
+            exit(false);
+        if VendorLedgerEntry."Document Type" <> VendorLedgerEntry."Document Type"::Invoice then
+            exit(false);
+        PurchInvHeader.ReadIsolation(IsolationLevel::UpdLock);
+        if not PurchInvHeader.Get(VendorLedgerEntry."Document No.") then
+            exit(false);
+        exit(PurchInvHeader."Vendor Ledger Entry No." = VendorLedgerEntry."Entry No.");
+    end;
+
+    local procedure UpdatePurchInvHeader(var PurchInvHeader: Record "Purch. Inv. Header"; UpdatePurchaseInvoiceVendLedgEntry: Record "Vendor Ledger Entry")
     var
-        PurchInvHeader: Record "Purch. Inv. Header";
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeUpdatePurchaseInvoiceHeader(UpdatePurchaseInvoiceVendLedgEntry, CalledFromPurchaseInvEdit, IsHandled);
         if IsHandled then
-            exit;
-        if CalledFromPurchaseInvEdit then
-            exit;
-        if UpdatePurchaseInvoiceVendLedgEntry."Document Type" <> UpdatePurchaseInvoiceVendLedgEntry."Document Type"::Invoice then
-            exit;
-        if not PurchInvHeader.get(UpdatePurchaseInvoiceVendLedgEntry."Document No.") then
             exit;
 
         PurchInvHeader."Payment Reference" := UpdatePurchaseInvoiceVendLedgEntry."Payment Reference";
