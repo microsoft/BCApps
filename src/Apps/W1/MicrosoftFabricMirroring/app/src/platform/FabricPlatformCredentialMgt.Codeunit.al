@@ -11,7 +11,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     var
         ClientIdRequiredErr: Label 'Client ID must be filled in before acquiring a Fabric API token.';
         TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined.';
-        FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
+        FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration in Microsoft Entra ID and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
         EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment.';
         OpenDataEncryptionMgtLbl: Label 'Activate Encryption';
         OAuthAuthorityUrlTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', Comment = '%1 = tenant ID', Locked = true;
@@ -82,7 +82,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     begin
         if IsolatedStorage.Contains('FabricPlat.ClientSecret', DataScope::Module) then
             IsolatedStorage.Delete('FabricPlat.ClientSecret', DataScope::Module);
-
         if CryptographyManagement.IsEncryptionEnabled() then begin
             IsolatedStorage.SetEncrypted('FabricPlat.ClientSecret', ClientSecret, DataScope::Module);
             exit;
@@ -131,7 +130,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     begin
         if GetClientId() = '' then
             Error(ClientIdRequiredErr);
-
         if LookupState.HasFabricApiToken() then
             exit(LookupState.GetFabricApiToken());
 
@@ -152,7 +150,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
             "Prompt Interaction"::"Select Account",
             AccessToken,
             IdToken);
-
         if AccessToken.IsEmpty() then
             Error(FabricApiTokenInteractiveErr, RedirectUrl);
 
