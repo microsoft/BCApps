@@ -63,9 +63,6 @@ codeunit 30167 "Shpfy Process Orders"
                 ShopifyOrderHeader."Has Error" := false;
                 ShopifyOrderHeader."Error Message" := '';
                 ShopifyOrderHeader.Processed := true;
-                if not Shop.Get(Shop.Code) then
-                    Shop.Get(ShopifyOrderHeader."Shop Code");
-                ShopifyOrderHeader."Processed Currency Handling" := Shop."Currency Handling";
             end;
             ShopifyOrderHeader.Modify(true);
             Commit();
