@@ -605,6 +605,45 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    procedure PaymentOccurrenceDispatcherProcessesEveryDueStatusUnderLoad()
+    var
+        Customer: Record Customer;
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrenceDispatcher: Codeunit "E-Doc. Payment Occ. Dispatcher";
+        ExpiredProcessingEntryNo: Integer;
+        RetryPendingEntryNo: Integer;
+        Index: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Due retries and expired processing leases progress when the pending backlog exceeds the batch limit
+        Initialize(Customer);
+
+        // [GIVEN] One hundred and one pending occurrences, one due retry, and one expired processing lease
+        CreateOutgoingEDocument(EDocument);
+        for Index := 1 to 101 do
+            CreatePaymentOccurrence(EDocument."Entry No", EDocPaymentOccurrence.Status::Pending, 0DT);
+        RetryPendingEntryNo :=
+            CreatePaymentOccurrence(EDocument."Entry No", EDocPaymentOccurrence.Status::"Retry Pending", CurrentDateTime() - 1);
+        ExpiredProcessingEntryNo :=
+            CreatePaymentOccurrence(EDocument."Entry No", EDocPaymentOccurrence.Status::Processing, CurrentDateTime() - 1);
+
+        // [WHEN] The recurrent dispatcher runs once
+        EDocPaymentOccurrenceDispatcher.Run();
+
+        // [THEN] Both recovery classes make progress without exceeding the one-hundred occurrence limit
+        EDocPaymentOccurrence.Get(RetryPendingEntryNo);
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Processed, EDocPaymentOccurrence.Status, 'The due retry must be processed.');
+        EDocPaymentOccurrence.Get(ExpiredProcessingEntryNo);
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Processed, EDocPaymentOccurrence.Status, 'The expired processing lease must be recovered.');
+        EDocPaymentOccurrence.Reset();
+        EDocPaymentOccurrence.SetRange(Status, EDocPaymentOccurrence.Status::Processed);
+        Assert.RecordCount(EDocPaymentOccurrence, 100);
+        EDocPaymentOccurrence.SetRange(Status, EDocPaymentOccurrence.Status::Pending);
+        Assert.RecordCount(EDocPaymentOccurrence, 3);
+    end;
+
+    [Test]
     procedure ActivePaymentOccurrenceLeasePreventsConcurrentProcessing()
     var
         Customer: Record Customer;
@@ -730,6 +769,19 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Service := EDocumentService.Code;
         EDocument.Insert();
+    end;
+
+    local procedure CreatePaymentOccurrence(EDocumentEntryNo: Integer; Status: Enum "E-Doc. Payment Occ. Status"; NextAttemptAt: DateTime): Integer
+    var
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+    begin
+        EDocPaymentOccurrence.Init();
+        EDocPaymentOccurrence."E-Document Entry No." := EDocumentEntryNo;
+        EDocPaymentOccurrence."Source Occurrence ID" := CreateGuid();
+        EDocPaymentOccurrence.Status := Status;
+        EDocPaymentOccurrence."Next Attempt At" := NextAttemptAt;
+        EDocPaymentOccurrence.Insert();
+        exit(EDocPaymentOccurrence."Entry No.");
     end;
 
     local procedure CreatePendingMessage(EDocument: Record "E-Document"): Integer

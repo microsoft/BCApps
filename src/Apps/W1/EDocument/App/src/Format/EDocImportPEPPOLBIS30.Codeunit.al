@@ -532,7 +532,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         OnAfterParseInvoice(EDocument, PurchaseHeader, PurchaseLine, DocumentAttachment, DocumentAttachmentData, TempXMLBuffer, Path, Value);
     end;
 
-    procedure DetermineFileType(MimeType: Text) FileExension: Text[30]
+    procedure DetermineFileType(MimeType: Text) FileExension: Text
     begin
         case MimeType of
             'image/jpeg':
