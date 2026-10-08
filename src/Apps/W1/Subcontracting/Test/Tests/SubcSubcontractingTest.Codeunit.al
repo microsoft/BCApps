@@ -4230,29 +4230,95 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure GetReceiptLinesBlocksSubcontractingReceiptLine()
+    [HandlerFunctions('ConfirmHandler')]
+    procedure GetReceiptLinesCopiesSubcontractingReceiptToSeparateInvoice()
     var
-        PurchRcptLine: Record "Purch. Rcpt. Line";
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
         InvoiceHeader: Record "Purchase Header";
-        Vendor: Record Vendor;
+        InvoiceLine: Record "Purchase Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        SubcWorkCenter: Record "Work Center";
+        ValueEntry: Record "Value Entry";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        OutputEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
     begin
-        // [SCENARIO 632785] Copying a subcontracting service receipt line into a separate purchase document is not
-        // supported (Direct Unit Cost, Gen. Prod. Posting Group, etc. are not transferred) and must be blocked.
-
-        // [GIVEN] A purchase invoice and a posted subcontracting receipt line linked to a production order
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649862] A posted subcontracting receipt can be copied into a separate purchase invoice.
         Initialize();
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
-        MockSubcontractingPurchRcptLine(PurchRcptLine, false);
 
-        // [WHEN] Getting the subcontracting receipt line into the invoice
+        // [GIVEN] A posted receipt for a subcontracting purchase order.
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item,
+            Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+        CapacityLedgerEntry.Get(PurchRcptLine."Item Rcpt. Entry No.");
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        OutputEntryCount := ItemLedgerEntry.Count();
+
+        // [GIVEN] A separate purchase invoice for the subcontractor.
+        LibraryPurchase.CreatePurchHeader(
+            InvoiceHeader, InvoiceHeader."Document Type"::Invoice, PurchaseHeader."Buy-from Vendor No.");
+
+        // [WHEN] The posted receipt line is copied into the separate invoice.
         PurchRcptLine.SetRecFilter();
         PurchGetReceipt.SetPurchHeader(InvoiceHeader);
-        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
 
-        // [THEN] It is blocked
-        Assert.ExpectedError('subcontracting receipt lines');
+        // [THEN] The invoice contains a line linked to the subcontracting receipt.
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        Assert.AreEqual(PurchRcptLine."No.", InvoiceLine."No.", 'The invoice line must contain the received subcontracting item.');
+        Assert.AreEqual(
+            PurchRcptLine."Prod. Order No.", InvoiceLine."Prod. Order No.",
+            'The invoice line must retain the production order context from the subcontracting receipt.');
+        Assert.AreEqual(PurchRcptLine."Routing No.", InvoiceLine."Routing No.", 'The invoice line must retain the routing number.');
+        Assert.AreEqual(PurchRcptLine."Operation No.", InvoiceLine."Operation No.", 'The invoice line must retain the operation number.');
+        Assert.AreEqual(PurchRcptLine."Direct Unit Cost", InvoiceLine."Direct Unit Cost", 'The invoice line must retain the direct unit cost.');
+        Assert.AreEqual(PurchRcptLine."Gen. Bus. Posting Group", InvoiceLine."Gen. Bus. Posting Group", 'The invoice line must retain the general business posting group.');
+        Assert.AreEqual(PurchRcptLine."Gen. Prod. Posting Group", InvoiceLine."Gen. Prod. Posting Group", 'The invoice line must retain the general product posting group.');
+        Assert.AreEqual(PurchRcptLine."Dimension Set ID", InvoiceLine."Dimension Set ID", 'The invoice line must retain dimensions.');
+        Assert.AreEqual(PurchRcptLine."Unit of Measure Code", InvoiceLine."Unit of Measure Code", 'The invoice line must retain the unit of measure.');
+        Assert.AreEqual(PurchRcptLine."Qty. per Unit of Measure", InvoiceLine."Qty. per Unit of Measure", 'The invoice line must retain the quantity per unit of measure.');
+
+        // [WHEN] The separate purchase invoice is posted.
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+
+        // [THEN] The invoice cost is linked to the receipt capacity entry without creating duplicate output.
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::"Direct Cost");
+        Assert.AreEqual(1, ValueEntry.Count(), 'The separate invoice must create one direct-cost value entry.');
+        ValueEntry.FindFirst();
+        Assert.AreEqual(
+            CapacityLedgerEntry."Entry No.", ValueEntry."Capacity Ledger Entry No.",
+            'The invoice value entry must reference the capacity ledger entry created by the subcontracting receipt.');
+        Assert.AreEqual(OutputEntryCount, ItemLedgerEntry.Count(), 'Posting the separate invoice must not create duplicate output.');
     end;
 
     [Test]
@@ -4288,26 +4354,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [WHEN] Running Get Order Lines [THEN] the page handler verifies the subcontracting order line is not offered
         MatchedOrderLineMgmt.GetPurchaseOrderLines(InvoiceLine);
-    end;
-
-    local procedure MockSubcontractingPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; Undone: Boolean)
-    var
-        Item: Record Item;
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        LibraryInventory.CreateItem(Item);
-        PurchRcptLine.Init();
-        PurchRcptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Document No."));
-        PurchRcptLine."Line No." := 10000;
-        PurchRcptLine.Type := PurchRcptLine.Type::Item;
-        PurchRcptLine."No." := Item."No.";
-        PurchRcptLine."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Prod. Order No."));
-        PurchRcptLine."Routing No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Routing No."));
-        PurchRcptLine."Operation No." := '10';
-        PurchRcptLine.Quantity := LibraryRandom.RandIntInRange(5, 10);
-        PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity;
-        PurchRcptLine.Correction := Undone;
-        PurchRcptLine.Insert();
     end;
 
     local procedure Initialize()

@@ -457,9 +457,10 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesFromInvtPutAwayReceiptIsCurrentlyBlocked()
+    procedure GetReceiptLinesCopiesSubcontractingInvtPutAwayReceipt()
     var
         Item: Record Item;
+        InvoiceLine: Record "Purchase Line";
         Location: Record Location;
         MachineCenter: array[2] of Record "Machine Center";
         ProductionOrder: Record "Production Order";
@@ -474,7 +475,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         Quantity: Decimal;
     begin
         // [FEATURE] Group I - Purchase invoice / financial post-processes
-        // [SCENARIO] TC-GAP-I01 A subcontracting receipt cannot be invoiced through Get Receipt Lines
+        // [SCENARIO 649862] TC-GAP-I01 A subcontracting inventory put-away receipt can be copied through Get Receipt Lines
 
         // [GIVEN] LastOperation purchase line fully received via Inventory Put-Away (per TC-E2E-A01)
         Initialize();
@@ -508,10 +509,17 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
         PurchRcptLine.SetRecFilter();
         PurchGetReceipt.SetPurchHeader(InvoiceHeader);
-        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
 
-        // [THEN] Separate invoice creation is blocked for the subcontracting receipt
-        Assert.ExpectedError('subcontracting receipt lines');
+        // [THEN] The invoice line retains receipt and subcontracting production context
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        Assert.AreEqual(PurchRcptLine."Prod. Order No.", InvoiceLine."Prod. Order No.", 'The invoice line must retain the production order number.');
+        Assert.AreEqual(PurchRcptLine."Routing No.", InvoiceLine."Routing No.", 'The invoice line must retain the routing number.');
+        Assert.AreEqual(PurchRcptLine."Operation No.", InvoiceLine."Operation No.", 'The invoice line must retain the operation number.');
     end;
 
     [Test]
