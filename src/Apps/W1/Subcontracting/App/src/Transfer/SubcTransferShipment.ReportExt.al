@@ -69,6 +69,18 @@ reportextension 20500 "Subc. Transfer Shipment" extends "Transfer Shipment"
         }
         modify("Transfer Shipment Header")
         {
+            trigger OnBeforePreDataItem()
+            begin
+                AddLoadFields(
+                    "Subc. Source Type", "Source ID", "Subc. Return Order",
+                    "Transfer-from Name", "Transfer-from Address", "Transfer-from Address 2",
+                    "Transfer-from City", "Transfer-from Post Code", "Transfer-from County",
+                    "Trsf.-from Country/Region Code", "Transfer-from Contact",
+                    "Transfer-to Name", "Transfer-to Address", "Transfer-to Address 2",
+                    "Transfer-to City", "Transfer-to Post Code", "Transfer-to County",
+                    "Trsf.-to Country/Region Code", "Transfer-to Contact", "Subcontr. Purch. Order No.");
+            end;
+
             trigger OnAfterAfterGetRecord()
             var
                 SubcTransferShipmentData: Codeunit "Subc. Transfer Shipment Data";
