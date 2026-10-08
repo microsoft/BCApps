@@ -83,26 +83,30 @@ codeunit 8759 "DA Internal Cleanup Mgt."
         end;
         if (Origin = Origin::Automatic) and not Setup."Automatic Verified Cleanup" then
             exit(false);
-        if (Entry.Origin = Origin) and (Entry.Status in [Entry.Status::Pending, Entry.Status::"In Progress", Entry.Status::"Retry Due"]) then
-            exit(true);
-
         Entry.Origin := Origin;
-        Entry.Status := Entry.Status::Pending;
         Entry."Requested At" := CurrentDateTime();
         Entry."Request Environment Hash" := ExternalStorageImpl.GetCurrentEnvironmentHash();
-        Entry."Next Attempt At" := Entry."Requested At";
-        Entry."Attempt Count" := 0;
-        Entry.Outcome := 'Requested';
+        BlockInternalRelease(Entry);
+        exit(false);
+    end;
+
+    procedure BlockInternalRelease(var Entry: Record "DA Internal Cleanup Entry")
+    var
+        Telemetry: Codeunit "DA Feature Telemetry";
+    begin
+        Entry.Status := Entry.Status::Blocked;
+        Entry.Outcome := 'InternalReleaseUnsupported';
+        Entry."Last Error" := GetInternalReleaseBlockedReason();
         Clear(Entry."Lease Token");
         Clear(Entry."Lease Expires At");
-        Clear(Entry."Last Verified At");
-        Clear(Entry."Retrieved Bytes");
-        Clear(Entry."Attempt Attachment Version");
-        Clear(Entry."Attempt Setup Version");
-        Clear(Entry."Last Error");
+        Clear(Entry."Next Attempt At");
         Entry.Modify();
         Telemetry.LogInternalCleanup(Entry);
-        exit(true);
+    end;
+
+    procedure GetInternalReleaseBlockedReason(): Text
+    begin
+        exit(InternalReleaseBlockedErr);
     end;
 
     procedure CancelCleanup(AttachmentSystemId: Guid)
@@ -262,5 +266,6 @@ codeunit 8759 "DA Internal Cleanup Mgt."
         AttachmentMissingErr: Label 'The attachment no longer exists.';
         SchedulingPermissionErr: Label 'Cleanup requests have been retained, but you do not have permission to schedule the cleanup worker. Ask a job queue administrator to schedule it.';
         WorkerNotRunningMsg: Label 'Cleanup requests have been retained. The cleanup job is on hold or in error; a job queue administrator must restart it.';
-        CleanupDescriptionLbl: Label 'Verify external document attachments and detach internal references';
+        CleanupDescriptionLbl: Label 'Validate pending attachments without releasing internal references';
+        InternalReleaseBlockedErr: Label 'Internal cleanup is blocked because no supported globally owner-preserving media release operation is available. Internal references and content are retained, including after successful external readback. No database storage is reclaimed.';
 }

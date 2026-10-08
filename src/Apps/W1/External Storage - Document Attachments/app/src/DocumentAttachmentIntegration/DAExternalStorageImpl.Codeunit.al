@@ -447,10 +447,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     /// <summary>
-    /// Requests independent verification before detaching this attachment's internal media reference.
+    /// Records a blocked internal cleanup request without releasing the attachment's media.
     /// </summary>
     /// <param name="DocumentAttachment">The document attachment record to delete from internal storage.</param>
-    /// <returns>True if a cleanup request was accepted, not if content was deleted.</returns>
+    /// <returns>False while internal release is unsupported; the blocked reason is recorded on the cleanup entry.</returns>
     procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
         CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";

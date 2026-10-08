@@ -12,8 +12,7 @@ codeunit 8757 "DA Internal Cleanup Finalize"
     TableNo = "DA Internal Cleanup Entry";
     InherentPermissions = X;
     InherentEntitlements = X;
-    Permissions = tabledata "DA Internal Cleanup Entry" = rm,
-                  tabledata "Document Attachment" = rm;
+    Permissions = tabledata "DA Internal Cleanup Entry" = rm;
 
     trigger OnRun()
     var
@@ -54,13 +53,10 @@ codeunit 8757 "DA Internal Cleanup Finalize"
             CurrentEntry.Outcome := 'StateChanged';
             CurrentEntry."Last Error" := CopyStr(Reason, 1, MaxStrLen(CurrentEntry."Last Error"));
         end else begin
-            // Release this reference only. A local reference count is not global media ownership proof.
-            DocumentAttachment.MarkAsDeletedInternally();
-            CurrentEntry.Status := CurrentEntry.Status::Completed;
-            CurrentEntry.Outcome := 'ReferenceDetached';
             CurrentEntry."Last Verified At" := Rec."Last Verified At";
             CurrentEntry."Retrieved Bytes" := Rec."Retrieved Bytes";
-            Clear(CurrentEntry."Last Error");
+            CleanupManagement.BlockInternalRelease(CurrentEntry);
+            exit;
         end;
         Clear(CurrentEntry."Lease Token");
         Clear(CurrentEntry."Lease Expires At");

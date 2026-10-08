@@ -51,12 +51,16 @@ codeunit 136823 "DA Cleanup Company Check"
         Worker.ProcessPending();
         Commit();
         Entry.Get(Rec.SystemId);
-        Assert.AreEqual(Entry.Status::Completed, Entry.Status, 'The cross-company ownership check must cover completed cleanup');
+        Assert.AreEqual(Entry.Status::Blocked, Entry.Status, 'The cross-company check must exercise the blocked release gate');
+        Assert.AreEqual('InternalReleaseUnsupported', Entry.Outcome, 'Successful validation must not claim that media was released');
+        Rec.GetBySystemId(Rec.SystemId);
+        Assert.AreEqual(MediaId, Rec."Document Reference ID".MediaId(), 'The source-company attachment must retain its reference');
+        Assert.IsTrue(Rec."Stored Internally", 'The source company must retain internal storage');
         OtherAttachment.GetBySystemId(OwnerSystemId);
         Assert.AreEqual(MediaId, OtherAttachment."Document Reference ID".MediaId(), 'Cleanup must preserve the other-company media reference');
-        Assert.IsTrue(TenantMedia.Get(MediaId), 'Another company must retain the physical media after detachment');
+        Assert.IsTrue(TenantMedia.Get(MediaId), 'Another company must retain the physical media after blocked cleanup');
         TenantMedia.CalcFields(Content);
-        Assert.IsTrue(TenantMedia.Content.HasValue(), 'Another company must retain actual nonempty content after detachment');
+        Assert.IsTrue(TenantMedia.Content.HasValue(), 'Another company must retain actual nonempty content after blocked cleanup');
     end;
 
     procedure SetTestCompany(Name: Text[30]; SystemId: Guid)

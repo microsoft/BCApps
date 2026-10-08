@@ -93,8 +93,8 @@ table 8750 "DA External Storage Setup"
         }
         field(30; "Automatic Verified Cleanup"; Boolean)
         {
-            Caption = 'Automatic Verified Internal Cleanup';
-            ToolTip = 'Specifies whether new automatic uploads request internal cleanup. A background job must retrieve nonempty external content before detaching the internal reference. Existing attachments are not backfilled.';
+            Caption = 'Record Automatic Cleanup Requests';
+            ToolTip = 'Specifies whether new automatic uploads record internal cleanup requests. Cleanup is blocked: internal references and content remain even after successful readback, with no database storage reclamation. Existing attachments are not backfilled.';
 
             trigger OnValidate()
             var
@@ -102,7 +102,8 @@ table 8750 "DA External Storage Setup"
             begin
                 if "Automatic Verified Cleanup" then begin
                     TestField(Enabled, true);
-                    CleanupManagement.ScheduleCleanup(Rec);
+                    if GuiAllowed() then
+                        Message(CleanupManagement.GetInternalReleaseBlockedReason());
                 end;
             end;
         }
@@ -110,7 +111,7 @@ table 8750 "DA External Storage Setup"
         {
             Caption = 'Cleanup Job Queue Entry ID';
             Editable = false;
-            ToolTip = 'Specifies the job queue entry used for independently verifying and cleaning up internal attachments.';
+            ToolTip = 'Specifies the job queue entry for validating previously pending requests. It cannot release internal references or reclaim database storage.';
         }
         field(32; "Cleanup Batch Size"; Integer)
         {

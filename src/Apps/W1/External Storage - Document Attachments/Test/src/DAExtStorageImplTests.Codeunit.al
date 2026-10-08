@@ -127,7 +127,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure DeleteFromInternalQueuesWithoutReadback()
+    procedure DeleteFromInternalIsBlockedWithoutReadback()
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
@@ -147,16 +147,94 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [WHEN] Delete from internal is attempted
         Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
 
-        Assert.IsTrue(Result, 'Cleanup request should be accepted');
+        Assert.IsFalse(Result, 'Internal cleanup must report blocked, not accepted or deleted');
+        AssertInternalReleaseBlocked(DocumentAttachment);
 
         DocumentAttachment.SetRecFilter();
         DocumentAttachment.FindFirst();
-        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Internal content must remain until independent validation');
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Internal content must remain even when external content is retrievable');
         Assert.IsTrue(DocumentAttachment."Document Reference ID".HasValue(), 'Request must not detach media');
         Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'Upload/request must not read back in the caller transaction');
 
         // [THEN] Document should still be marked as stored externally
         Assert.IsTrue(DocumentAttachment."Stored Externally", 'Document should still be marked as stored externally');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure DirectInternalReleaseCannotBypassBlockedRequest()
+    var
+        Attachment: Record "Document Attachment";
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
+        Impl: Codeunit "DA External Storage Impl.";
+        MediaId: Guid;
+    begin
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        CreateDocumentAttachmentWithContent(Attachment);
+        MediaId := Attachment."Document Reference ID".MediaId();
+        Assert.IsTrue(Impl.UploadToExternalStorage(Attachment), 'External copy should still be available');
+        asserterror Attachment.MarkAsDeletedInternally();
+        Assert.ExpectedError(CleanupManagement.GetInternalReleaseBlockedReason());
+        RefreshAttachment(Attachment);
+        Assert.IsTrue(Attachment."Stored Internally", 'A direct helper call must not change storage state');
+        Assert.AreEqual(MediaId, Attachment."Document Reference ID".MediaId(), 'The direct helper must retain the original reference');
+        AssertMediaContentExists(MediaId);
+        Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'Rejecting direct release must not contact external storage');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,MoveToExternalRequestHandler,BlockedInternalMessageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure MoveToExternalReportReportsBlockedInternalCleanup()
+    var
+        Attachment: Record "Document Attachment";
+        Impl: Codeunit "DA External Storage Impl.";
+        MediaId: Guid;
+        UploadCalls: Integer;
+    begin
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        CreateDocumentAttachmentWithContent(Attachment);
+        MediaId := Attachment."Document Reference ID".MediaId();
+        Assert.IsTrue(Impl.UploadToExternalStorage(Attachment), 'Pre-existing external copy should be used without reupload');
+        UploadCalls := FileConnectorMock.GetCreateFileCallCount();
+        Attachment.SetRecFilter();
+        Report.RunModal(Report::"DA External Storage Sync", true, false, Attachment);
+        RefreshAttachment(Attachment);
+        AssertInternalReleaseBlocked(Attachment);
+        Assert.AreEqual(MediaId, Attachment."Document Reference ID".MediaId(), 'Blocked Move must retain its source reference');
+        AssertMediaContentExists(MediaId);
+        Assert.AreEqual(UploadCalls, FileConnectorMock.GetCreateFileCallCount(), 'Already-external Move must not reupload');
+        Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'Blocked Move must not synchronously validate or release content');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,BlockedInternalMessageHandler')]
+    procedure DeleteFromInternalPageReportsBlockedCleanup()
+    var
+        Attachment: Record "Document Attachment";
+        Impl: Codeunit "DA External Storage Impl.";
+        AttachmentPage: TestPage "Document Attachment - External";
+        MediaId: Guid;
+    begin
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        CreateDocumentAttachmentWithContent(Attachment);
+        MediaId := Attachment."Document Reference ID".MediaId();
+        Assert.IsTrue(Impl.UploadToExternalStorage(Attachment), 'External copy should still be available');
+        AttachmentPage.OpenView();
+        AttachmentPage.GoToRecord(Attachment);
+        AttachmentPage."Delete from Internal".Invoke();
+        AttachmentPage.Close();
+        RefreshAttachment(Attachment);
+        AssertInternalReleaseBlocked(Attachment);
+        Assert.AreEqual(MediaId, Attachment."Document Reference ID".MediaId(), 'The page action must retain the original reference');
+        AssertMediaContentExists(MediaId);
+        Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'The blocked page action must not contact external storage');
     end;
 
     [Test]
@@ -903,8 +981,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         SharedMediaId: Guid;
     begin
-        // [SCENARIO] Deleting an attachment from internal storage must not remove the Tenant Media
-        // while a copied attachment still references it.
+        // [SCENARIO] The fail-closed release gate retains both references and actual shared content.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeature();
@@ -917,8 +994,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [GIVEN] The original attachment is stored externally
         Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should capture provenance');
 
-        // [WHEN] The original is deleted from internal storage
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Internal cleanup must be blocked');
+        StagePreviouslyPendingCleanup(DocumentAttachment);
         RunCleanup();
 
         // [THEN] The shared Tenant Media is kept
@@ -928,24 +1005,24 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         RefreshAttachment(CopiedDocumentAttachment);
         Assert.IsTrue(CopiedDocumentAttachment."Document Reference ID".HasValue(), 'Copied attachment should still have content');
 
-        // [THEN] The original has released its own reference
         RefreshAttachment(DocumentAttachment);
-        Assert.IsFalse(DocumentAttachment."Document Reference ID".HasValue(), 'Original attachment should have released its media reference');
-        Assert.IsFalse(DocumentAttachment."Stored Internally", 'Original should not be marked as stored internally');
+        Assert.AreEqual(SharedMediaId, DocumentAttachment."Document Reference ID".MediaId(), 'The original must retain its media reference');
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'The original must remain stored internally');
+        AssertInternalReleaseBlocked(DocumentAttachment);
+        AssertMediaContentExists(SharedMediaId);
     end;
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure VerifiedCleanupDetachesWithoutDeletingMedia()
+    procedure VerifiedReadbackBlocksReleaseWithoutDeletingMedia()
     var
         DocumentAttachment: Record "Document Attachment";
-        Entry: Record "DA Internal Cleanup Entry";
         TenantMedia: Record "Tenant Media";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         MediaId: Guid;
     begin
-        // [SCENARIO] Cleanup detaches this reference without claiming globally safe physical reclamation.
+        // [SCENARIO] Successful readback cannot authorize a globally unsafe internal media release.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeature();
@@ -956,30 +1033,29 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should capture provenance');
         AssertMediaContentExists(MediaId);
 
-        // [WHEN] It is deleted from internal storage
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Internal cleanup must report blocked');
+        StagePreviouslyPendingCleanup(DocumentAttachment);
         RunCleanup();
 
-        Entry.Get(DocumentAttachment.SystemId);
-        Assert.AreEqual(Entry.Status::Completed, Entry.Status, 'The media assertion must cover completed cleanup, not a blocked request');
+        AssertInternalReleaseBlocked(DocumentAttachment);
+        Assert.AreEqual(1, FileConnectorMock.GetReadbackCallCount(), 'The worker must reach the final release gate after actual nonempty readback');
         Assert.IsTrue(TenantMedia.Get(MediaId), 'This feature must not physically delete Tenant Media');
         AssertMediaContentExists(MediaId);
         RefreshAttachment(DocumentAttachment);
-        Assert.IsFalse(DocumentAttachment."Stored Internally", 'Reference should be detached after current nonempty readback');
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'No database storage is reclaimed after successful readback');
+        Assert.AreEqual(MediaId, DocumentAttachment."Document Reference ID".MediaId(), 'The original reference must remain unchanged');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure UploadSucceedsForCopiedAttachmentAfterSourceIsMigrated()
+    procedure UploadSucceedsForCopiedAttachmentAfterSourceCleanupIsBlocked()
     var
         DocumentAttachment: Record "Document Attachment";
         CopiedDocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
-        // [SCENARIO] A copied attachment can still be migrated after the attachment it was copied from
-        // has been moved to external storage. The shared Tenant Media used to be deleted together with
-        // the source, which left the copy with neither internal content nor an external file.
+        // [SCENARIO] The blocked source cleanup must retain content needed by the copied attachment.
         Initialize();
         SetupFileScenarioWithTestConnector();
         EnableFeature();
@@ -988,11 +1064,15 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateDocumentAttachmentWithContent(DocumentAttachment);
         CreateCopyOfDocumentAttachment(DocumentAttachment, CopiedDocumentAttachment);
 
-        // [GIVEN] The source attachment has been moved to external storage
+        // [GIVEN] The source attachment has an external copy, but internal cleanup is blocked
         Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload of the source should succeed');
         RefreshAttachment(DocumentAttachment);
-        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed for the source');
+        Assert.IsFalse(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Source cleanup must be blocked');
+        StagePreviouslyPendingCleanup(DocumentAttachment);
         RunCleanup();
+        AssertInternalReleaseBlocked(DocumentAttachment);
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachment."Stored Internally", 'Source media must remain stored internally');
 
         // [WHEN] The copied attachment is uploaded
         RefreshAttachment(CopiedDocumentAttachment);
@@ -1057,7 +1137,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure TransformedReadbackCompletesWithoutByteEquality()
+    procedure TransformedReadbackIsRecordedButReleaseRemainsBlocked()
     var
         Attachment: Record "Document Attachment";
         Entry: Record "DA Internal Cleanup Entry";
@@ -1067,8 +1147,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         RunCleanup();
         RefreshAttachment(Attachment);
         Entry.Get(Attachment.SystemId);
-        Assert.IsFalse(Attachment."Stored Internally", 'Nonempty transformed content is retrievable');
-        Assert.AreEqual(Entry.Status::Completed, Entry.Status, 'Cleanup should complete without original byte equality');
+        Assert.IsTrue(Attachment."Stored Internally", 'Retrievability does not authorize internal release');
+        AssertInternalReleaseBlocked(Attachment);
+        Assert.AreNotEqual(0DT, Entry."Last Verified At", 'Successful transformed readback should be recorded without byte equality');
+        Assert.AreEqual(1, Entry."Retrieved Bytes", 'Successful transformed bytes should be recorded, not mistaken for release authority');
+        AssertMediaContentExists(Attachment."Document Reference ID".MediaId());
         Assert.AreEqual(Attachment."External File Path", FileConnectorMock.GetLastReadPath(), 'Use the exact stored path');
         Assert.AreEqual(Entry."Account ID", FileConnectorMock.GetLastReadAccountId(), 'Use the upload account');
     end;
@@ -1327,7 +1410,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         RefreshAttachment(Attachment);
         Entry.Get(Attachment.SystemId);
         Assert.IsTrue(Attachment."Stored Internally", 'Insertion must not detach media');
-        Assert.AreEqual(Entry.Status::Pending, Entry.Status, 'Opted-in insertion requests background cleanup');
+        Assert.AreEqual(Entry.Status::Blocked, Entry.Status, 'Opted-in insertion records the blocked cleanup outcome');
+        AssertInternalReleaseBlocked(Attachment);
         Assert.AreEqual(Entry.Origin::Automatic, Entry.Origin, 'Automatic origin should be recorded');
         Assert.AreEqual(0, FileConnectorMock.GetReadbackCallCount(), 'No readback while inserting or posting');
         Assert.AreEqual(1, FileConnectorMock.GetCreateFileCallCount(), 'Only the existing upload should occur');
@@ -1464,7 +1548,10 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         RunCleanup();
         Assert.AreEqual(1, FileConnectorMock.GetReadbackCallCount(), 'An expired attempt cannot reuse its old evidence');
         Entry.Get(Attachment.SystemId);
-        Assert.AreEqual(Entry.Status::Completed, Entry.Status, 'Fresh validation can complete restarted work');
+        Assert.AreEqual(Entry.Status::Blocked, Entry.Status, 'Fresh validation of old pending work still cannot release media');
+        AssertInternalReleaseBlocked(Attachment);
+        RefreshAttachment(Attachment);
+        AssertMediaContentExists(Attachment."Document Reference ID".MediaId());
     end;
 
     [Test]
@@ -1480,7 +1567,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         PrepareCleanup(Attachment);
         CreateDocumentAttachmentWithContent(Attachment2);
         Assert.IsTrue(Impl.UploadToExternalStorage(Attachment2), 'Second upload should succeed');
-        Assert.IsTrue(Impl.DeleteFromInternalStorage(Attachment2), 'Second request should be accepted');
+        Assert.IsFalse(Impl.DeleteFromInternalStorage(Attachment2), 'Second request must report blocked');
+        StagePreviouslyPendingCleanup(Attachment2);
         Setup.Get();
         Setup."Cleanup Batch Size" := 1;
         Setup.Modify();
@@ -1491,11 +1579,10 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure CrossTableMediaOwnerSurvivesDetachment()
+    procedure CrossTableMediaOwnerSurvivesBlockedRelease()
     var
         Attachment: Record "Document Attachment";
         Owner: Record "DA Cleanup Media Owner";
-        Entry: Record "DA Internal Cleanup Entry";
         MediaId: Guid;
     begin
         PrepareCleanup(Attachment);
@@ -1508,8 +1595,10 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.AreEqual(MediaId, Owner.Media.Item(1), 'The committed cross-table owner must reference the original media before cleanup');
         AssertMediaContentExists(MediaId);
         RunCleanup();
-        Entry.Get(Attachment.SystemId);
-        Assert.AreEqual(Entry.Status::Completed, Entry.Status, 'The cross-table ownership assertion must cover completed cleanup');
+        AssertInternalReleaseBlocked(Attachment);
+        Assert.AreEqual(1, FileConnectorMock.GetReadbackCallCount(), 'The cross-table fixture must exercise the final gate after readback');
+        RefreshAttachment(Attachment);
+        Assert.AreEqual(MediaId, Attachment."Document Reference ID".MediaId(), 'The source attachment must also retain its original reference');
         Owner.Get(Owner.ID);
         Assert.AreEqual(MediaId, Owner.Media.Item(1), 'Supported cross-table MediaSet owner must retain its reference');
         Assert.IsTrue(Owner.Media.Count() > 0, 'Cross-table owner must remain populated');
@@ -1519,7 +1608,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure CrossCompanyAttachmentOwnerSurvivesDetachment()
+    procedure CrossCompanyAttachmentOwnerSurvivesBlockedRelease()
     var
         Attachment: Record "Document Attachment";
         TestCompany: Record Company;
@@ -1557,7 +1646,38 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         EnableFeature();
         CreateDocumentAttachmentWithContent(Attachment);
         Assert.IsTrue(Impl.UploadToExternalStorage(Attachment), 'Upload must succeed');
-        Assert.IsTrue(Impl.DeleteFromInternalStorage(Attachment), 'Cleanup intent must be accepted');
+        Assert.IsFalse(Impl.DeleteFromInternalStorage(Attachment), 'Internal release is unsupported, so requests must be blocked');
+        AssertInternalReleaseBlocked(Attachment);
+        StagePreviouslyPendingCleanup(Attachment);
+    end;
+
+    local procedure StagePreviouslyPendingCleanup(Attachment: Record "Document Attachment")
+    var
+        Entry: Record "DA Internal Cleanup Entry";
+    begin
+        // Exercise requests persisted before the fail-closed gate; production requests do not enqueue them.
+        Entry.Get(Attachment.SystemId);
+        Assert.AreEqual(Entry.Status::Blocked, Entry.Status, 'Only an explicitly blocked request is used to build this historical fixture');
+        Entry.Status := Entry.Status::Pending;
+        Entry."Next Attempt At" := CurrentDateTime();
+        Entry."Attempt Count" := 0;
+        Clear(Entry."Lease Token");
+        Clear(Entry."Lease Expires At");
+        Clear(Entry."Last Verified At");
+        Clear(Entry."Retrieved Bytes");
+        Entry.Modify();
+    end;
+
+    local procedure AssertInternalReleaseBlocked(Attachment: Record "Document Attachment")
+    var
+        Entry: Record "DA Internal Cleanup Entry";
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
+    begin
+        Entry.Get(Attachment.SystemId);
+        Assert.AreEqual(Entry.Status::Blocked, Entry.Status, 'Unsupported release must remain blocked, not completed');
+        Assert.AreEqual('InternalReleaseUnsupported', Entry.Outcome, 'The blocked safety outcome must be explicit');
+        Assert.AreEqual(CleanupManagement.GetInternalReleaseBlockedReason(), Entry."Last Error", 'The diagnostic must explain retention and no storage reclamation');
+        Assert.IsTrue(IsNullGuid(Entry."Lease Token"), 'Blocked release must revoke the lease');
     end;
 
     local procedure AssertMutationRetainsContent(Mutation: Enum "DA Cleanup Test Mutation")
@@ -1573,11 +1693,12 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
             Setup.Get();
             Setup."Automatic Verified Cleanup" := true;
             Setup.Modify();
-            Assert.IsTrue(CleanupManagement.RequestCleanup(Attachment, Enum::"DA Internal Cleanup Origin"::Automatic), 'Policy mutation must start with an authorized automatic request');
+            Assert.IsFalse(CleanupManagement.RequestCleanup(Attachment, Enum::"DA Internal Cleanup Origin"::Automatic), 'Automatic release must also be blocked');
             Entry.Get(Attachment.SystemId);
             Assert.AreEqual(Entry.Origin::Automatic, Entry.Origin, 'The disabled policy must govern the pending attempt');
             Setup.Get();
             Assert.IsTrue(Setup."Automatic Verified Cleanup", 'Policy mutation must change true to false, not false to false');
+            StagePreviouslyPendingCleanup(Attachment);
         end;
         Subscriber.SetMutation(Mutation);
         BindSubscription(Subscriber);
@@ -1773,6 +1894,25 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure ConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [RequestPageHandler]
+    procedure MoveToExternalRequestHandler(var RequestPage: TestRequestPage "DA External Storage Sync")
+    begin
+        RequestPage.SyncDirectionField.SetValue('To External Storage');
+        RequestPage.OperationField.SetValue('Move');
+        RequestPage.MaxRecordsToProcessField.SetValue(1);
+        RequestPage.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    procedure BlockedInternalMessageHandler(MessageText: Text[1024])
+    begin
+        Assert.IsTrue(MessageText.Contains('blocked'), 'The UI must explicitly report blocked cleanup');
+        Assert.IsTrue(MessageText.Contains('retained'), 'The UI must explain that internal content remains');
+        Assert.IsTrue(MessageText.Contains('no database storage') or MessageText.Contains('No database storage'), 'The UI must not promise storage reclamation');
+        Assert.IsFalse(MessageText.Contains('accepted'), 'Blocked cleanup must not be reported as an accepted destructive operation');
+        Assert.IsFalse(MessageText.Contains('deleted successfully'), 'Blocked cleanup must not be reported as deletion');
     end;
 
     #endregion

@@ -15,8 +15,7 @@ page 8752 "DA Internal Cleanup Entries"
     UsageCategory = None;
     Editable = false;
     Extensible = false;
-    Permissions = tabledata "DA Internal Cleanup Entry" = r,
-                  tabledata "DA External Storage Setup" = rm;
+    Permissions = tabledata "DA Internal Cleanup Entry" = r;
 
     layout
     {
@@ -46,34 +45,29 @@ page 8752 "DA Internal Cleanup Entries"
             {
                 Caption = 'Retry Requested Cleanup';
                 Image = Refresh;
-                ToolTip = 'Retry a previously requested cleanup against the unchanged upload provenance. This does not adopt a different destination or legacy binding.';
+                ToolTip = 'Recheck a previous request without releasing internal references. Internal cleanup remains blocked and reclaims no database storage; this does not adopt a different destination or legacy binding.';
                 Enabled = (Rec.Origin <> Rec.Origin::Copy) and ((Rec.Status = Rec.Status::Blocked) or (Rec.Status = Rec.Status::"Retry Due"));
 
                 trigger OnAction()
                 var
                     Entries: Record "DA Internal Cleanup Entry";
                     DocumentAttachment: Record "Document Attachment";
-                    Setup: Record "DA External Storage Setup";
                     CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
-                    Accepted: Integer;
+                    BlockedCount: Integer;
                 begin
                     if not Confirm(RetryQst, false) then
                         exit;
+                    BlockedCount := 0;
                     CurrPage.SetSelectionFilter(Entries);
                     if Entries.FindSet() then
                         repeat
                             if (Entries.Origin <> Entries.Origin::Copy) and (Entries.Status in [Entries.Status::Blocked, Entries.Status::"Retry Due"]) then
                                 if DocumentAttachment.GetBySystemId(Entries."Attachment System ID") then
-                                    if CleanupManagement.RequestCleanup(DocumentAttachment, Entries.Origin) then
-                                        Accepted += 1;
+                                    if not CleanupManagement.RequestCleanup(DocumentAttachment, Entries.Origin) then
+                                        BlockedCount += 1;
                             Commit();
                         until Entries.Next() = 0;
-                    if Accepted > 0 then begin
-                        Setup.Get();
-                        CleanupManagement.ScheduleCleanup(Setup);
-                        Setup.Modify();
-                    end;
-                    Message(RequestsAcceptedMsg, Accepted);
+                    Message(RequestsBlockedMsg, BlockedCount, CleanupManagement.GetInternalReleaseBlockedReason());
                 end;
             }
             action(CancelCleanup)
@@ -102,7 +96,7 @@ page 8752 "DA Internal Cleanup Entries"
     }
 
     var
-        RetryQst: Label 'Retry the selected previously requested cleanup operations? Each attempt performs a new readback before detaching internal references.';
+        RetryQst: Label 'Recheck the selected requests? Internal cleanup remains blocked. Internal references and content will be retained, with no database storage reclamation.';
         CancelQst: Label 'Cancel the selected cleanup requests and retain internal content?';
-        RequestsAcceptedMsg: Label '%1 cleanup request(s) accepted. Blocked bindings remain visible in the request list.', Comment = '%1 = Number of accepted requests';
+        RequestsBlockedMsg: Label '%1 cleanup request(s) blocked. %2', Comment = '%1 = Blocked requests, %2 = Reason explaining retained content and no storage reclamation';
 }

@@ -92,9 +92,9 @@ page 8750 "DA External Storage Setup"
             }
             action(ScheduleInternalCleanup)
             {
-                Caption = 'Schedule Cleanup Worker';
+                Caption = 'Schedule Pending Validation';
                 Image = Job;
-                ToolTip = 'Schedule the worker for existing cleanup requests. It verifies files independently and does not upload attachments or infer cleanup intent for legacy records.';
+                ToolTip = 'Validate previously pending requests independently. Successful readback still leaves internal cleanup blocked, with references and content retained and no database storage reclamation.';
 
                 trigger OnAction()
                 var

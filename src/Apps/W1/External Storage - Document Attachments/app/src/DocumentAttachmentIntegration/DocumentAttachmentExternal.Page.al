@@ -21,7 +21,7 @@ page 8751 "Document Attachment - External"
     Editable = false;
     Extensible = false;
     Permissions = tabledata "DA Internal Cleanup Entry" = r,
-                  tabledata "DA External Storage Setup" = rm;
+                  tabledata "DA External Storage Setup" = r;
 
     layout
     {
@@ -81,7 +81,7 @@ page 8751 "Document Attachment - External"
                 field(InternalCleanupStatus; CleanupStatusText)
                 {
                     Caption = 'Internal Cleanup Status';
-                    ToolTip = 'Shows whether internal cleanup has been requested, completed, or blocked. Upload success is not proof of retrievability.';
+                    ToolTip = 'Shows validation history and why internal cleanup is blocked. Successful upload or readback does not authorize media release or storage reclamation.';
                 }
                 field(InternalCleanupError; CleanupErrorText)
                 {
@@ -224,18 +224,16 @@ page 8751 "Document Attachment - External"
             action("Delete from Internal")
             {
                 Enabled = Rec."Stored Externally" and Rec."Stored Internally";
-                Caption = 'Delete from Internal';
-                ToolTip = 'Request independent background verification before detaching the selected internal attachment references. Internal content remains until verification and current-state checks succeed.';
+                Caption = 'Delete from Internal (Blocked)';
+                ToolTip = 'Record a blocked internal cleanup request. Internal references and content are retained even after successful upload or readback; no database storage is reclaimed.';
                 Image = Delete;
 
                 trigger OnAction()
                 var
                     DocumentAttachment: Record "Document Attachment";
-                    CleanupSetup: Record "DA External Storage Setup";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
                     CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
-                    SuccessCount: Integer;
-                    FailedCount: Integer;
+                    BlockedCount: Integer;
                 begin
                     if not Confirm(DeleteFilesFromIntStorageQst) then
                         exit;
@@ -243,24 +241,15 @@ page 8751 "Document Attachment - External"
                     CurrPage.SetSelectionFilter(DocumentAttachment);
                     DocumentAttachment.SetRange("Stored Externally", true);
                     DocumentAttachment.SetRange("Stored Internally", true);
-                    SuccessCount := 0;
-                    FailedCount := 0;
+                    BlockedCount := 0;
                     if DocumentAttachment.FindSet() then
                         repeat
-                            if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
-                                SuccessCount += 1
-                            else
-                                FailedCount += 1;
+                            if not ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
+                                BlockedCount += 1;
                         until DocumentAttachment.Next() = 0;
 
-                    Commit();
-                    if SuccessCount > 0 then begin
-                        CleanupSetup.Get();
-                        CleanupManagement.ScheduleCleanup(CleanupSetup);
-                        CleanupSetup.Modify();
-                    end;
-                    if SuccessCount + FailedCount > 0 then
-                        Message(FilesDeletedIntStorageMsg, SuccessCount, FailedCount);
+                    if BlockedCount > 0 then
+                        Message(FilesBlockedIntStorageMsg, BlockedCount, CleanupManagement.GetInternalReleaseBlockedReason());
                 end;
             }
         }
@@ -293,10 +282,10 @@ page 8751 "Document Attachment - External"
 
     var
         DeleteFilesFromExternalStorageQst: Label 'Are you sure you want to delete the selected file(s) from external storage?';
-        DeleteFilesFromIntStorageQst: Label 'Request background verification and internal cleanup for the selected files? Internal references will only be detached after nonempty readback and current-state checks. Physical database-space reclamation may be delayed.';
+        DeleteFilesFromIntStorageQst: Label 'Internal cleanup is unavailable. Record blocked requests for the selected files? All internal references and content will remain, and no database storage will be reclaimed.';
         FilesCopiedMsg: Label '%1 file(s) copied successfully to internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesDeletedExternalStorageMsg: Label '%1 file(s) deleted successfully from external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
-        FilesDeletedIntStorageMsg: Label '%1 internal cleanup request(s) accepted. %2 failed or were blocked. Internal content is retained until independent verification succeeds.', Comment = '%1 = Accepted request count, %2 = Failed count';
+        FilesBlockedIntStorageMsg: Label '%1 internal cleanup request(s) blocked. %2', Comment = '%1 = Blocked requests, %2 = Reason explaining retained content and no storage reclamation';
         FilesDownloadedMsg: Label '%1 file(s) downloaded successfully. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesUploadedMsg: Label '%1 file(s) uploaded successfully to external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         ExternalStorageStatsTxt: Label '%1% (%2/%3) files are uploaded to external storage', Comment = '%1 = Percentage, %2 = External count, %3 = Total count';

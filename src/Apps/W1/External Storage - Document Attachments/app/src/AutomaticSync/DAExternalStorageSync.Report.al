@@ -19,7 +19,7 @@ report 8752 "DA External Storage Sync"
     Extensible = false;
     ApplicationArea = All;
     UsageCategory = None;
-    Permissions = tabledata "DA External Storage Setup" = rm,
+    Permissions = tabledata "DA External Storage Setup" = r,
                   tabledata "Document Attachment" = r;
 
     dataset
@@ -40,7 +40,7 @@ report 8752 "DA External Storage Sync"
 
                 ProcessedCount := 0;
                 FailedCount := 0;
-                QueuedCount := 0;
+                InternalCleanupBlockedCount := 0;
 
                 if GuiAllowed() then
                     Dialog.Open(ProcessingMsg, TotalCount);
@@ -67,9 +67,7 @@ report 8752 "DA External Storage Sync"
                             if SyncSuccess and (Operation = Operation::Move) then begin
                                 DeleteSuccess := CleanupManagement.RequestCleanup(DocumentAttachment, Enum::"DA Internal Cleanup Origin"::Move);
                                 if not DeleteSuccess then
-                                    FailedCount += 1
-                                else
-                                    QueuedCount += 1;
+                                    InternalCleanupBlockedCount += 1;
                             end;
                         end;
                     SyncDirection::"To Internal Storage":
@@ -102,12 +100,7 @@ report 8752 "DA External Storage Sync"
                 if GuiAllowed() then begin
                     if TotalCount <> 0 then
                         Dialog.Close();
-                    Message(ProcessedMsg, ProcessedCount - FailedCount, FailedCount, QueuedCount);
-                end;
-                if QueuedCount > 0 then begin
-                    CleanupSetup.Get();
-                    CleanupManagement.ScheduleCleanup(CleanupSetup);
-                    CleanupSetup.Modify();
+                    Message(ProcessedMsg, ProcessedCount - FailedCount - InternalCleanupBlockedCount, FailedCount, InternalCleanupBlockedCount);
                 end;
             end;
         }
@@ -136,7 +129,7 @@ report 8752 "DA External Storage Sync"
                         ApplicationArea = All;
                         Caption = 'Operation';
                         OptionCaption = 'Copy,Move';
-                        ToolTip = 'Specifies whether to copy files or request a move. Moving to external storage retains internal content until a separate background job successfully retrieves nonempty content and revalidates the attachment.';
+                        ToolTip = 'Specifies whether to copy files or request a move. Internal cleanup for Move to External is blocked even after successful upload or readback. Internal references and content remain; no database storage is reclaimed.';
                     }
                     field(MaxRecordsToProcessField; MaxRecordsToProcess)
                     {
@@ -152,7 +145,6 @@ report 8752 "DA External Storage Sync"
     }
 
     var
-        CleanupSetup: Record "DA External Storage Setup";
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
         Dialog: Dialog;
@@ -160,8 +152,8 @@ report 8752 "DA External Storage Sync"
         MaxRecordsToProcess: Integer;
         ProcessedCount: Integer;
         TotalCount: Integer;
-        QueuedCount: Integer;
-        ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed or were blocked. %3 internal cleanup requests are pending independent verification.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments, %3 - Queued cleanup requests';
+        InternalCleanupBlockedCount: Integer;
+        ProcessedMsg: Label 'Processed %1 attachments successfully. %2 operations failed. Internal cleanup was blocked for %3 attachments; their internal references and content are retained and no database storage is reclaimed.', Comment = '%1 - Successful operations excluding blocked moves, %2 - Failed operations, %3 - Blocked internal cleanup requests';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
         SyncDirection: Option "To External Storage","To Internal Storage";
         Operation: Option Copy,Move;

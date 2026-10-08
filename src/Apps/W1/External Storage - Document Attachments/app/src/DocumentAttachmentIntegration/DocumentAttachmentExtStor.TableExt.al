@@ -77,13 +77,12 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
     end;
 
     /// <summary>
-    /// Marks the document attachment as deleted from internal storage.
-    /// Clears the Document Reference ID and sets the stored internally flag to false.
+    /// Rejects internal media release until a supported globally owner-preserving operation is available.
     /// </summary>
     internal procedure MarkAsDeletedInternally()
+    var
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
     begin
-        Clear("Document Reference ID");
-        "Stored Internally" := false;
-        Modify();
+        Error(CleanupManagement.GetInternalReleaseBlockedReason());
     end;
 }
