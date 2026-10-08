@@ -3462,7 +3462,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SelectSubcontractingTransferShipmentLayout();
 
         // [GIVEN] A posted transfer shipment retaining subcontracting references
-        CreateAndPostOrdinaryTransferShipment(TransferShipmentHeader);
+        CreateMockTransferShipment(TransferShipmentHeader, TransferShipmentLine);
         LibraryPurchase.CreateVendor(Vendor);
         PostedVendorName := Vendor.Name;
         PurchaseOrderNo := CopyStr(LibraryRandom.RandText(MaxStrLen(PurchaseOrderNo)), 1, MaxStrLen(PurchaseOrderNo));
@@ -3474,8 +3474,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferShipmentHeader."Subcontr. Purch. Order No." := PurchaseOrderNo;
         TransferShipmentHeader.Modify();
 
-        TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
-        TransferShipmentLine.FindFirst();
         TransferShipmentLine."Subc. Prod. Order No." := ProductionOrderNo;
         TransferShipmentLine.Modify();
 
@@ -3502,6 +3500,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     procedure TransferShipmentReportLeavesSubcontractingReferencesBlankForOrdinaryTransfer()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferShipmentLine: Record "Transfer Shipment Line";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 649580] The standard transfer shipment report leaves subcontracting references blank for an ordinary transfer.
@@ -3509,7 +3508,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SelectSubcontractingTransferShipmentLayout();
 
         // [GIVEN] A posted ordinary transfer shipment
-        CreateAndPostOrdinaryTransferShipment(TransferShipmentHeader);
+        CreateMockTransferShipment(TransferShipmentHeader, TransferShipmentLine);
         Commit();
 
         // [WHEN] The standard transfer shipment report is run
@@ -5851,27 +5850,22 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
-    local procedure CreateAndPostOrdinaryTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header")
+    local procedure CreateMockTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
     var
-        FromLocation: Record Location;
-        InTransitLocation: Record Location;
-        Item: Record Item;
-        ToLocation: Record Location;
-        TransferHeader: Record "Transfer Header";
-        TransferLine: Record "Transfer Line";
-        Quantity: Decimal;
+        LibraryUtility: Codeunit "Library - Utility";
     begin
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
-        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
-        LibraryInventory.CreateItem(Item);
-        Quantity := LibraryRandom.RandDec(10, 2);
-        LibraryInventory.PostPositiveAdjustment(
-            Item, FromLocation.Code, '', '', Quantity, WorkDate(), LibraryRandom.RandDec(100, 2));
-        LibraryInventory.CreateTransferOrder(
-            TransferHeader, TransferLine, Item, FromLocation, ToLocation, InTransitLocation, '', Quantity, WorkDate(), WorkDate());
-        LibraryInventory.PostTransferHeader(TransferHeader, true, false);
-        TransferShipmentHeader.Get(TransferHeader."Last Shipment No.");
+        TransferShipmentHeader.Init();
+        TransferShipmentHeader."No." :=
+            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TransferShipmentHeader."No."));
+        TransferShipmentHeader.Insert();
+
+        TransferShipmentLine.Init();
+        TransferShipmentLine."Document No." := TransferShipmentHeader."No.";
+        TransferShipmentLine."Line No." := 10000;
+        TransferShipmentLine.Description :=
+            CopyStr(LibraryRandom.RandText(MaxStrLen(TransferShipmentLine.Description)), 1, MaxStrLen(TransferShipmentLine.Description));
+        TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
+        TransferShipmentLine.Insert();
     end;
 
     local procedure VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header")
