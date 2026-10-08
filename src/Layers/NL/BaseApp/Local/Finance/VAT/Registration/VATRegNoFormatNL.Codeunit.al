@@ -26,13 +26,23 @@ codeunit 13381 "VAT Reg. No. Format NL"
     procedure CheckCompanyInfo(VATRegNo: Text[20])
     var
         CompanyInformation: Record "Company Information";
+#if not CLEAN30
+        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+#endif
         Mod11ErrorText: Text;
         Mod97ErrorText: Text;
         Number: Integer;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCheckCompanyInfo(VATRegNo, IsHandled);
+#if not CLEAN30
+        VATRegistrationNoFormat.RunOnBeforeCheckCompanyInfo(VATRegNo, IsHandled);
+#endif
+        if IsHandled then
+            exit;
         if not CompanyInformation.Get() then
             exit;
-
         if UpperCase(CopyStr(VATRegNo, 1, 2)) <> 'NL' then
             if CompanyInformation."Country/Region Code" <> 'NL' then
                 exit  // Not an NL VAT Registration No.
@@ -63,10 +73,8 @@ codeunit 13381 "VAT Reg. No. Format NL"
     begin
         if UpperCase(CopyStr(VATRegNo, 1, 2)) = 'NL' then
             VATRegNo := DelStr(VATRegNo, 1, 2);
-
         if CopyStr(VATRegNo, 1, 3) = '000' then
             exit(VATRegNoShouldNotStartWithErr);
-
         for i := 1 to 8 do begin
             if TypeHelper.IsDigit(VATRegNo[i]) then
                 Evaluate(Digit, Format(VATRegNo[i]))
@@ -75,13 +83,11 @@ codeunit 13381 "VAT Reg. No. Format NL"
             Weight := 10 - i;
             Total := Total + Digit * Weight;
         end;
-
         if TypeHelper.IsDigit(VATRegNo[9]) then
             Evaluate(Digit, Format(VATRegNo[9]))
         else
             exit(VATMod11NotAllowedCharErr);
         Total := Total mod 11;
-
         if Digit <> Total then
             exit(VATMod11Err);
     end;
@@ -103,10 +109,8 @@ codeunit 13381 "VAT Reg. No. Format NL"
         // Example: NL123456789B13 is converted to 2321 123456789 11 13, i.e. to 23211234567891113 integer number. 23211234567891113 mod 97 = 1, it is a valid VAT number.
         if CopyStr(VATRegNo, 1, 2) <> 'NL' then
             exit(VATFirstTwoCharsErr);
-
         if StrLen(VATRegNo) <> 14 then
             exit(VATLengthErr);
-
         for i := 1 to StrLen(VATRegNo) do begin
             CurrChar := VATRegNo[i];
             case true of
@@ -131,7 +135,6 @@ codeunit 13381 "VAT Reg. No. Format NL"
             CurrNumber := CurrChar - '0';
             Remainder := (Remainder * 10 + CurrNumber) mod 97;
         end;
-
         if Remainder <> 1 then
             exit(VATMod97Err);
     end;
@@ -148,4 +151,9 @@ codeunit 13381 "VAT Reg. No. Format NL"
         VATMod97Err: Label 'The VAT registration number is not valid according to the Modulus-97 checksum algorithm.';
         SummaryTwoErr: Label '%1%2', Comment = '%1 - VAT registration number, %2 - error text';
         SummaryThreeErr: Label '%1%2 %3', Comment = '%1 - VAT registration number, %2 - error text, %3 - additional error text';
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckCompanyInfo(VATRegNo: Text[20]; var IsHandled: Boolean)
+    begin
+    end;
 }

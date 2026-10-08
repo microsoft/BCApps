@@ -15,5 +15,18 @@ tableextension 13381 "VAT Reg. No. Format NL" extends "VAT Registration No. Form
     begin
         VATRegNoFormatNL.CheckCompanyInfo(VATRegNo);
     end;
+
+#pragma warning disable AL0432
+    internal procedure RunOnBeforeCheckCompanyInfo(VATRegNo: Text[20]; var IsHandled: Boolean)
+    begin
+        OnBeforeCheckCompanyInfo(VATRegNo, IsHandled);
+    end;
+#pragma warning restore AL0432
+
+    [Obsolete('Use codeunit "VAT Reg. No. Format NL" instead.', '30.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckCompanyInfo(VATRegNo: Text[20]; var IsHandled: Boolean)
+    begin
+    end;
 #endif
 }

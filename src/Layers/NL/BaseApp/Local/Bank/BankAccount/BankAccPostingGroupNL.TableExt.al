@@ -13,6 +13,7 @@ tableextension 11410 "Bank Acc. Posting Group NL" extends "Bank Account Posting 
         field(11000000; "Acc.No. Pmt./Rcpt. in Process"; Code[20])
         {
             Caption = 'Acc.No. Pmt./Rcpt. in Process';
+            DataClassification = CustomerContent;
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -25,13 +26,12 @@ tableextension 11410 "Bank Acc. Posting Group NL" extends "Bank Account Posting 
                     GLAccount.TestField(GLAccount."Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
 
                     if GLAccount."Direct Posting" then
-                        Message(Text1000000 + Text1000001, GLAccount."No.", GLAccount.FieldCaption(GLAccount."Direct Posting"));
+                        Message(DirectPostingMsg, GLAccount."No.", GLAccount.FieldCaption(GLAccount."Direct Posting"));
                 end;
             end;
         }
     }
 
     var
-        Text1000000: Label 'Manual posting is possible on General Ledger Account %1. ';
-        Text1000001: Label 'This can be changed by turning off %2.';
+        DirectPostingMsg: Label 'Manual posting is possible on General Ledger Account %1. This can be changed by turning off %2.', Comment = '%1 = G/L Account No., %2 = Direct Posting field caption';
 }

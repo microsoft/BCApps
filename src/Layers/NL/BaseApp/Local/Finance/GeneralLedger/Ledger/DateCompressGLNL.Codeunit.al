@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Ledger;
 
-codeunit 11423 "Date Compress G/L NL"
+codeunit 11448 "Date Compress G/L NL"
 {
     Access = Internal;
 

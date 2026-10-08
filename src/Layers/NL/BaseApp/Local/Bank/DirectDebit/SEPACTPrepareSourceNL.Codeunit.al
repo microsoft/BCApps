@@ -64,7 +64,7 @@ codeunit 11432 "SEPA CT-Prepare Source NL"
                 DescriptionLen := MaxStrLen(TempGenJnlLine.Description);
                 AppliedDocNoList := PaymentHistoryLine.GetAppliedDocNoList(DescriptionLen);
                 if AppliedDocNoList <> '' then begin
-                    TempGenJnlLine.Description := CopyStr(AppliedDocNoList, 1, DescriptionLen);
+                    TempGenJnlLine.Description := CopyStr(AppliedDocNoList, 1, MaxStrLen(TempGenJnlLine.Description));
                     if StrLen(AppliedDocNoList) > DescriptionLen then
                         TempGenJnlLine."Message to Recipient" :=
                           CopyStr(AppliedDocNoList, DescriptionLen + 1, MaxStrLen(TempGenJnlLine."Message to Recipient"));

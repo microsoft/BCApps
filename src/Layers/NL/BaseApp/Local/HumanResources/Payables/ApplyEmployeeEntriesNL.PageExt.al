@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.HumanResources.Payables;
 
-pageextension 11426 "Apply Employee Entries NL" extends "Apply Employee Entries"
+pageextension 11473 "Apply Employee Entries NL" extends "Apply Employee Entries"
 {
     layout
     {

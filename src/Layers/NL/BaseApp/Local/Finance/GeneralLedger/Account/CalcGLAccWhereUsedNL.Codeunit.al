@@ -7,7 +7,7 @@ namespace Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Bank.Payment;
 using System.Utilities;
 
-codeunit 11424 "Calc. G/L Acc. Where-Used NL"
+codeunit 11449 "Calc. G/L Acc. Where-Used NL"
 {
     Access = Internal;
 
