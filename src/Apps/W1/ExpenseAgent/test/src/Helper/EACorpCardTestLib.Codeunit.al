@@ -4,13 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.ExpenseAgent;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
 
 codeunit 148357 EACorpCardTestLib
 {
     var
         Assert: Codeunit "Assert";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryExpense: Codeunit "Library - Expense";
         NoStatementCreatedForProviderTxt: Label 'No statement was created for provider %1.', Comment = '%1 = provider code', Locked = true;
         ProviderTransactionNotImportedTxt: Label 'Provider transaction %1 was not imported for provider %2.', Comment = '%1 = provider transaction ID, %2 = provider code', Locked = true;
@@ -75,6 +78,21 @@ codeunit 148357 EACorpCardTestLib
         CorpCardProvider.Code := ProviderCode;
         CorpCardProvider.Description := ProviderCode;
         CorpCardProvider.Insert(true);
+    end;
+
+    internal procedure EnsureBankAccountPostingGroupAccount(BankAccount: Record "Bank Account")
+    var
+        BankAccountPostingGroup: Record "Bank Account Posting Group";
+        GLAccount: Record "G/L Account";
+    begin
+        BankAccount.TestField("Bank Acc. Posting Group");
+        BankAccountPostingGroup.Get(BankAccount."Bank Acc. Posting Group");
+        if BankAccountPostingGroup."G/L Account No." <> '' then
+            exit;
+
+        LibraryERM.CreateGLAccount(GLAccount);
+        BankAccountPostingGroup.Validate("G/L Account No.", GLAccount."No.");
+        BankAccountPostingGroup.Modify(true);
     end;
 
     internal procedure CountTransForStatement(StatementEntryNo: Integer; ProviderCode: Code[20]): Integer

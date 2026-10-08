@@ -489,6 +489,7 @@ codeunit 148360 EACorpCardSettlementTests
     local procedure CreateBankAccount(var BankAccount: Record "Bank Account"; CurrencyCode: Code[10])
     begin
         LibraryERM.CreateBankAccount(BankAccount);
+        CorpCardTestLib.EnsureBankAccountPostingGroupAccount(BankAccount);
         BankAccount.Validate("Currency Code", CurrencyCode);
         BankAccount.Modify(true);
     end;

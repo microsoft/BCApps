@@ -84,6 +84,7 @@ codeunit 148354 EACorpCardSetupTests
         Initialize();
 
         LibraryERM.CreateBankAccount(PaymentBankAccount);
+        CorpCardTestLib.EnsureBankAccountPostingGroupAccount(PaymentBankAccount);
 
         CreateCorpCardSetup.CreateCsvSampleScenario(PaymentBankAccount."No.");
 
