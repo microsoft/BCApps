@@ -37,6 +37,7 @@ report 8752 "DA External Storage Sync"
                 TempErrorMessage.Reset();
                 TempErrorMessage.DeleteAll();
                 SetFilters();
+                DocumentAttachment.AddLoadFields("Document Reference ID", "File Name", "File Extension", "Stored Externally", "Stored Internally", "External File Path", "External Upload Date", "Source Environment Hash");
                 TotalCount := Count();
 
                 if TotalCount = 0 then
@@ -61,7 +62,6 @@ report 8752 "DA External Storage Sync"
             trigger OnAfterGetRecord()
             var
                 FailureDocumentAttachment: Record "Document Attachment";
-                StepDocumentAttachment: Record "Document Attachment";
                 FailureReason: Text;
                 TelemetryErrorText: Text;
                 TelemetryErrorCallStack: Text;
@@ -80,10 +80,9 @@ report 8752 "DA External Storage Sync"
                         begin
                             SyncSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::Upload, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                             if SyncSuccess and (Operation = Operation::Move) then begin
-                                GetPersistedDocumentAttachment(DocumentAttachment, StepDocumentAttachment);
-                                DeleteSuccess := RunSyncWorker(StepDocumentAttachment, SyncWorkerStep::DeleteInternal, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
+                                DeleteSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::DeleteInternal, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                                 if not DeleteSuccess then begin
-                                    GetPersistedDocumentAttachment(StepDocumentAttachment, FailureDocumentAttachment);
+                                    GetPersistedDocumentAttachment(DocumentAttachment, FailureDocumentAttachment);
                                     LogFailure(FailureDocumentAttachment, StrSubstNo(SourceCleanupFailedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'DeleteInternal');
                                 end;
                             end;
@@ -99,12 +98,11 @@ report 8752 "DA External Storage Sync"
                                 SyncSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::Download, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                                 if SyncSuccess and (Operation = Operation::Move) then begin
                                     RetainedCount += 1;
-                                    GetPersistedDocumentAttachment(DocumentAttachment, StepDocumentAttachment);
-                                    DeleteSuccess := RunSyncWorker(StepDocumentAttachment, SyncWorkerStep::RetireExternalReference, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
+                                    DeleteSuccess := RunSyncWorker(DocumentAttachment, SyncWorkerStep::RetireExternalReference, FailureReason, TelemetryErrorText, TelemetryErrorCallStack, CreatedExternalFilePath);
                                     if DeleteSuccess then
                                         RetiredCount += 1
                                     else begin
-                                        GetPersistedDocumentAttachment(StepDocumentAttachment, FailureDocumentAttachment);
+                                        GetPersistedDocumentAttachment(DocumentAttachment, FailureDocumentAttachment);
                                         LogFailure(FailureDocumentAttachment, StrSubstNo(ReferenceRetirementBlockedErr, FailureReason), TelemetryErrorText, TelemetryErrorCallStack, 'RetireExternalReference');
                                     end;
                                 end;
