@@ -745,12 +745,6 @@ page 344 Navigate
         case ContactType of
             ContactType::Vendor:
                 begin
-                    FindUnpostedPurchaseDocs(PQPurchaseHeader."Document Type"::Quote, PurchaseQuoteTxt, PQPurchaseHeader);
-                    FindUnpostedPurchaseDocs(POPurchaseHeader."Document Type"::Order, PurchaseOrderTxt, POPurchaseHeader);
-                    FindUnpostedPurchaseDocs(PIPurchaseHeader."Document Type"::Invoice, PurchaseInvoiceTxt, PIPurchaseHeader);
-                    FindUnpostedPurchaseDocs(PROPurchaseHeader."Document Type"::"Return Order", PurchaseReturnOrderTxt, PROPurchaseHeader);
-                    FindUnpostedPurchaseDocs(PCMPurchaseHeader."Document Type"::"Credit Memo", PurchaseCreditMemoTxt, PCMPurchaseHeader);
-
                     VendLedgEntry2.SetCurrentKey("External Document No.");
                     VendLedgEntry2.SetFilter("External Document No.", ExtDocNo);
                     VendLedgEntry2.SetFilter("Vendor No.", ContactNo);
@@ -765,8 +759,13 @@ page 344 Navigate
                         SetPostingDate(DateFilter2);
                         SetDocNo(DocNoFilter2);
                         FindRecords();
-                        FoundRecords := true;
+                    end else begin
+                        Rec.DeleteAll();
+                        Rec."Entry No." := 0;
                     end;
+                    FindUnpostedVendorDocs();
+                    UpdateFormAfterFindRecords();
+                    FoundRecords := DocExists;
                 end;
             ContactType::Customer:
                 begin
@@ -2009,6 +2008,31 @@ page 344 Navigate
             OnFindUnpostedPurchaseDocsOnAfterSetFilters(PurchaseHeader);
             Rec.InsertIntoDocEntry(Database::"Purchase Header", PurchDocType, DocTableName, PurchaseHeader.Count);
         end;
+    end;
+
+    local procedure FindUnpostedVendorDocs()
+    var
+        PostedDocNoFilter: Text;
+        PostedPostingDateFilter: Text;
+    begin
+        // Replace purchase documents that FindRecords matched on posted document numbers.
+        Rec.SetRange("Table ID", Database::"Purchase Header");
+        Rec.DeleteAll();
+        Rec.SetRange("Table ID");
+        if not Rec.FindLast() then
+            Rec."Entry No." := 0;
+
+        PostedDocNoFilter := DocNoFilter;
+        PostedPostingDateFilter := PostingDateFilter;
+        DocNoFilter := '';
+        PostingDateFilter := '';
+        FindUnpostedPurchaseDocs(PQPurchaseHeader."Document Type"::Quote, PurchaseQuoteTxt, PQPurchaseHeader);
+        FindUnpostedPurchaseDocs(POPurchaseHeader."Document Type"::Order, PurchaseOrderTxt, POPurchaseHeader);
+        FindUnpostedPurchaseDocs(PIPurchaseHeader."Document Type"::Invoice, PurchaseInvoiceTxt, PIPurchaseHeader);
+        FindUnpostedPurchaseDocs(PROPurchaseHeader."Document Type"::"Return Order", PurchaseReturnOrderTxt, PROPurchaseHeader);
+        FindUnpostedPurchaseDocs(PCMPurchaseHeader."Document Type"::"Credit Memo", PurchaseCreditMemoTxt, PCMPurchaseHeader);
+        DocNoFilter := PostedDocNoFilter;
+        PostingDateFilter := PostedPostingDateFilter;
     end;
 
     procedure FindTrackingRecords()
