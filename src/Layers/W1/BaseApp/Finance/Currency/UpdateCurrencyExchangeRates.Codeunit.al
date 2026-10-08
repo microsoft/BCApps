@@ -48,9 +48,6 @@ codeunit 1281 "Update Currency Exchange Rates"
         HttpStatusTxt: Label '%1 %2', Locked = true, Comment = '%1 = HTTP status code, %2 = reason phrase';
         ActivityLogDetailTxt: Label '%1 %2: %3', Locked = true, Comment = '%1 = HTTP status code, %2 = reason phrase, %3 = response body';
 #pragma warning restore AA0470
-        ResponseTooLargeErr: Label 'The response from the currency exchange rate service exceeded the maximum allowed size and was rejected.';
-        ResponseTooLargeTxt: Label 'The currency exchange rate update failed. The response exceeded the maximum allowed size.', Locked = true;
-        SecurityAuditResponseTooLargeTxt: Label 'The currency exchange rate service returned a response that exceeded the maximum allowed size.', Locked = true;
 
     local procedure SyncCurrencyExchangeRates()
     var
@@ -96,29 +93,13 @@ codeunit 1281 "Update Currency Exchange Rates"
             exit;
 
         ExecuteWebServiceRequest(CurrExchRateUpdateSetup, ResponseInStream);
-        // ExecuteWebServiceRequest copies the downloaded payload into TempBlobResponse and re-creates
-        // ResponseInStream from it, so TempBlobResponse.Length() reflects the actual response and drives the size check.
-        CheckResponseSize(TempBlobResponse);
+        // No app-level response-size cap: the exchange-rate service URL and its response format are configured by the
+        // customer, and a feed legitimately scales with the number of currencies, the history depth, and the per-rate
+        // verbosity of an arbitrary (sometimes human-readable text) format - so no fixed byte cap is safe. Memory is
+        // bounded by the platform HttpClient absolute response limit (150 MiB); the configured Data Exchange Definition
+        // validates and extracts the expected rate fields regardless of payload size.
         CurrExchRateUpdateSetup.GetWebServiceURL(ServiceUrl);
         SourceName := ServiceUrl;
-    end;
-
-    internal procedure CheckResponseSize(var TempBlob: Codeunit "Temp Blob")
-    var
-        AuditLog: Codeunit "Audit Log";
-    begin
-        if TempBlob.Length() <= GetMaxResponseSize() then
-            exit;
-
-        AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
-        Session.LogMessage('0000VEP', ResponseTooLargeTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
-        Clear(TempBlob);
-        Error(ResponseTooLargeErr);
-    end;
-
-    local procedure GetMaxResponseSize(): Integer
-    begin
-        exit(10485760); // 10 MB - exchange rate feeds are small; larger responses are rejected as potentially malicious.
     end;
 
     local procedure CreateDataExchange(var DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def"; ResponseInStream: InStream; SourceName: Text[250])
