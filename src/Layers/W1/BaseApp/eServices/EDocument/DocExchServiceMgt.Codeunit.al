@@ -126,7 +126,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         AcquireAuthorizationCodeTxt: Label 'Attempting to acquire an authorization code.', Locked = true;
         AcquireAccessTokenByAuthorizationCodeTxt: Label 'Attempting to acquire an access token by authorization code.', Locked = true;
         AcquireAccessTokenByRefreshTokenTxt: Label 'Attempting to acquire an access token by refresh token.', Locked = true;
-        CannotGetResponseTxt: Label 'Cannot get a response. Status: %1. Message: %2', Comment = '%1 - response status code, %2 - error message';
+        CannotGetResponseTelemetryTxt: Label 'Cannot get a response from the document exchange service.', Locked = true;
         CannotGetResponseWithDetailsTxt: Label 'Cannot get a response. Status: %1. Message: %2. Details: %3', Comment = '%1 - response status code, %2 - error message, %3 - error details';
         CannotParseResponseTxt: Label 'Cannot parse a response.';
         CannotParseIdTokenTxt: Label 'Cannot parse the ID token. %1', Comment = '%1 - error details';
@@ -380,7 +380,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             ErrorMessage := GetLastErrorText();
 
         if not Succeeded then begin
-            Session.LogMessage('0000EY7', StrSubstNo(CannotGetResponseWithDetailsTxt, HttpStatusCodeNumber, ErrorMessage, ErrorDetails), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+            LogCannotGetResponse('0000EY7', HttpStatusCodeNumber);
             Error(CannotGetResponseWithDetailsTxt, HttpStatusCodeNumber, ErrorMessage, ErrorDetails);
         end;
 
@@ -1386,8 +1386,17 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         end;
 
         ErrorMessage := GetFaultErrorText(SendSucceeded);
-        Session.LogMessage('0000EYX', StrSubstNo(CannotGetResponseTxt, GLBHttpStatusCode, ErrorMessage), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+        LogCannotGetResponse('0000EYX', GLBHttpStatusCode);
         Error(ErrorMessage);
+    end;
+
+    local procedure LogCannotGetResponse(EventId: Text; HttpStatusCode: Integer)
+    var
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        CustomDimensions.Add('Category', TelemetryCategoryTok);
+        CustomDimensions.Add('HttpStatusCode', Format(HttpStatusCode));
+        Session.LogMessage(EventId, CannotGetResponseTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     local procedure GetFaultErrorText(SendSucceeded: Boolean): Text
