@@ -178,9 +178,9 @@ codeunit 18131 "GST On Purchase Tests"
         PurchaseLine.Modify(true);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
+        PurchRcptLine.SetCurrentKey("Order No.", "Order Line No.", "Posting Date");
         PurchRcptLine.SetRange("Order No.", PurchaseLine."Document No.");
         PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
-        PurchRcptLine.SetRange(Correction, false);
         PurchRcptLine.FindLast();
 
         // [WHEN] The latest purchase receipt is undone.
