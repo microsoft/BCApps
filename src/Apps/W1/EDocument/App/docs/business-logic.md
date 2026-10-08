@@ -137,6 +137,8 @@ flowchart TD
 
 A recurrent dispatcher installed with the app picks up `Pending`, retryable `Error`, and stale `Processing` occurrences. Processing raises `OnAfterCreatePaymentOccurrence`, which localization and format apps subscribe to when they need to report the payment event externally. Successful publication sets the occurrence to `Processed`. A failure stores the error, increments `"Retry Count"`, and schedules another attempt after five minutes. Core records and publishes the occurrence but does not itself build or transmit a payment message.
 
+For existing companies, dispatcher provisioning is protected by a dedicated per-company upgrade tag. Later upgrades do not recreate a dispatcher job that was removed after provisioning; new installations still provision the dispatcher directly.
+
 ### Vendor remittance advice
 
 Remittance advice starts from either unposted vendor payment journal lines or posted Vendor Ledger Entry payments. The **Remittance Advice - Journal** and **Remittance Advice - Entries** reports expose a **Create E-Documents** option. Journal lines are grouped by journal template, batch, vendor account, and document number; the lowest-numbered vendor line is used as the stable anchor for the group's E-Document.
