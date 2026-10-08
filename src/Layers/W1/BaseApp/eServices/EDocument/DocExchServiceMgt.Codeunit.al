@@ -145,7 +145,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         EmptyAccessTokenTxt: Label 'The access token is empty.';
         EmptyRefreshTokenTxt: Label 'The refresh token is empty.';
         EmptyIdTokenTxt: Label 'The ID token is empty.';
-        RemoteServiceErrorMessageErr: Label 'The remote service has returned the following error message:\\';
+        RemoteServiceErrorMessageErr: Label 'The remote service has returned the following error message:\\%1', Comment = '%1 = The error message returned by the remote service';
         ConnectionErr: Label 'Connection to the remote service could not be established.\\';
         RemoteServerReturnedErrorErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
         ServiceUrlTxt: Label '\\Service URL: %1.', Comment = '%1 = The URL of the service, for example https://www.contoso.com/';
@@ -1387,7 +1387,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
         ErrorMessage := GetFaultErrorText(SendSucceeded);
         LogCannotGetResponse('0000EYX', GLBHttpStatusCode);
-        Error(ErrorMessage);
+        Error(RemoteServiceErrorMessageErr, ErrorMessage);
     end;
 
     local procedure LogCannotGetResponse(EventId: Text; HttpStatusCode: Integer)
@@ -1412,7 +1412,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         ResponseText: Text;
     begin
         if not SendSucceeded then
-            exit(RemoteServiceErrorMessageErr + ConnectionErr + GetLastErrorText());
+            exit(ConnectionErr + GetLastErrorText());
 
         RemoteServerError := StrSubstNo(RemoteServerReturnedErrorErr, GLBHttpStatusCode, GLBHttpResponseMessage.ReasonPhrase());
         if not (GLBHttpStatusCode in [302, 500]) then // Found, Internal Server Error
@@ -1432,7 +1432,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         if ErrorText = '' then
             ErrorText := RemoteServerError;
 
-        exit(RemoteServiceErrorMessageErr + ErrorText);
+        exit(ErrorText);
     end;
 
     local procedure TraceLogResponse(Name: Text)

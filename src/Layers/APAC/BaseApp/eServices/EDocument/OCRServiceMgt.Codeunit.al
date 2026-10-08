@@ -95,6 +95,13 @@ codeunit 1294 "OCR Service Mgt."
         RemoteServerReturnedErrorErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
         ServiceUrlTxt: Label '\\Service URL: %1.', Comment = '%1 = The URL of the service, for example https://www.contoso.com/';
         NoCookieErr: Label 'The web request has no cookies.';
+        SendRequestFailedErr: Label 'The request to the OCR service could not be sent. %1', Comment = '%1 = The error message returned by the platform';
+        RsoVersionHeaderNameTok: Label 'x-rs-version', Locked = true;
+        RsoVersionTok: Label '2011-10-14', Locked = true;
+        RsoKeyHeaderNameTok: Label 'x-rs-key', Locked = true;
+        RsoCultureHeaderNameTok: Label 'x-rs-culture', Locked = true;
+        RsoUICultureHeaderNameTok: Label 'x-rs-uiculture', Locked = true;
+        RsoCultureTok: Label 'en-US', Locked = true;
         SendRequestFailedTelemetryTxt: Label 'The HTTP request to the OCR service could not be sent.', Locked = true;
         AuthenticationUrlTxt: Label '%1/authentication/rest/authenticate', Locked = true, Comment = '%1 = OCR service URL';
         ServicePathUrlTxt: Label '%1/%2', Locked = true, Comment = '%1 = OCR service URL; %2 = API path and query';
@@ -193,8 +200,8 @@ codeunit 1294 "OCR Service Mgt."
             '<AuthenticationType>SetCookie</AuthenticationType></AuthenticationCredentials>',
             OCRServiceSetup."User Name", OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Password Key")));
 
-        if not TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent) then
-            Error(GetLastErrorText());
+        // Called without using the return value so that the original error propagates.
+        TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
 
         CopyResponseContent(HttpResponseMessage, true, InStr);
         InStr.ReadText(ResponseString);
@@ -284,8 +291,8 @@ codeunit 1294 "OCR Service Mgt."
         GetOcrServiceSetup(true);
 
         InitializeRsoRequest(StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", PathQuery), MethodGetTok, ApplicationXmlTok, true, HttpRequestMessage);
-        if not TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent) then
-            Error(GetLastErrorText());
+        // Called without using the return value so that the original error propagates.
+        TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
         CopyResponseContent(HttpResponseMessage, true, ResponseStr);
         HttpResponseMessage.Content.GetHeaders(ContentHeaders);
         if ContentHeaders.GetValues(ContentTypeHeaderNameTok, ContentTypeValues) then
@@ -434,7 +441,7 @@ codeunit 1294 "OCR Service Mgt."
     begin
         RequestSent := SendRsoRequest(HttpRequestMessage, HttpResponseMessage);
         if not RequestSent then
-            Error(GetLastErrorText());
+            Error(SendRequestFailedErr, GetLastErrorText());
         if not HttpResponseMessage.IsSuccessStatusCode() then
             Error(RemoteServerReturnedErrorErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
     end;
@@ -503,10 +510,10 @@ codeunit 1294 "OCR Service Mgt."
         HttpRequestHeaders: HttpHeaders;
     begin
         HttpRequestMessage.GetHeaders(HttpRequestHeaders);
-        HttpRequestHeaders.Add('x-rs-version', '2011-10-14');
-        HttpRequestHeaders.Add('x-rs-key', OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Authorization Key"));
-        HttpRequestHeaders.Add('x-rs-culture', 'en-US');
-        HttpRequestHeaders.Add('x-rs-uiculture', 'en-US');
+        HttpRequestHeaders.Add(RsoVersionHeaderNameTok, RsoVersionTok);
+        HttpRequestHeaders.Add(RsoKeyHeaderNameTok, OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Authorization Key"));
+        HttpRequestHeaders.Add(RsoCultureHeaderNameTok, RsoCultureTok);
+        HttpRequestHeaders.Add(RsoUICultureHeaderNameTok, RsoCultureTok);
     end;
 
     local procedure RsoAddCookie(var HttpRequestMessage: HttpRequestMessage)
