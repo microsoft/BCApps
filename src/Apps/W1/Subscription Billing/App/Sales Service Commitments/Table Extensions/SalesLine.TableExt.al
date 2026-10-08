@@ -67,6 +67,10 @@ tableextension 8054 "Sales Line" extends "Sales Line"
                 if xRec."No." = Rec."No." then
                     exit;
                 CheckAndDeleteServiceCommitmentsForSalesLine(Rec, xRec);
+                // During Explode BOM the Subscription Lines are added from OnExplodeBOMCompLinesOnAfterToSalesLineInsert,
+                // where the line is inserted and the quantity is set. Adding them here as well offers the Subscription Packages twice per component.
+                if SalesServiceCommitmentMgmt.IsSalesLineBeingExploded(Rec) then
+                    exit;
                 SalesServiceCommitmentMgmt.AddSalesServiceCommitmentsForSalesLine(Rec, false);
             end;
         }
@@ -192,7 +196,15 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         Rec."Sell-to Customer No." := SourceSalesHeader."Sell-to Customer No.";
     end;
 
-    internal procedure DeleteSalesServiceCommitment()
+    /// <summary>
+    /// Deletes the Sales Subscription Lines that belong to this Sales Line.
+    /// Call this whenever a Sales Line is removed without running its triggers (Delete(false), DeleteAll(false)),
+    /// because the OnDelete() trigger of this table extension does not fire in that case and the
+    /// Sales Subscription Lines would be left behind as orphaned records.
+    /// Temporary records and document types that cannot carry Sales Subscription Lines are skipped,
+    /// so the call is safe for any Sales Line.
+    /// </summary>
+    procedure DeleteSalesServiceCommitment()
     var
         SalesServiceCommitment: Record "Sales Subscription Line";
     begin
