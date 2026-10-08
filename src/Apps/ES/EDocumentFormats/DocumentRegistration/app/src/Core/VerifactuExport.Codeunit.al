@@ -203,8 +203,8 @@ codeunit 10778 "Verifactu Export"
 
         DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
         IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, CompanyInformation.Name));
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, CompanyInformation."VAT Registration No."));
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, SalesInvoiceHeader."Bill-to Name"));
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, SalesInvoiceHeader."VAT Registration No."));
         DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
         InvoiceXMLNode.Add(DestinatariosXMLNode);
     end;
@@ -399,8 +399,8 @@ codeunit 10778 "Verifactu Export"
 
         DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
         IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, CompanyInformation.Name));
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, CompanyInformation."VAT Registration No."));
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, ServiceInvoiceHeader."Bill-to Name"));
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, ServiceInvoiceHeader."VAT Registration No."));
         DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
         InvoiceXMLNode.Add(DestinatariosXMLNode);
     end;
@@ -597,8 +597,8 @@ codeunit 10778 "Verifactu Export"
 
         DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
         IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, CompanyInformation.Name));
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, CompanyInformation."VAT Registration No."));
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, SalesCrMemoHeader."Bill-to Name"));
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, SalesCrMemoHeader."VAT Registration No."));
         DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
         InvoiceXMLNode.Add(DestinatariosXMLNode);
     end;
@@ -812,8 +812,8 @@ codeunit 10778 "Verifactu Export"
 
         DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
         IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, CompanyInformation.Name));
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, CompanyInformation."VAT Registration No."));
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, ServiceCrMemoHeader."Bill-to Name"));
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, ServiceCrMemoHeader."VAT Registration No."));
         DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
         InvoiceXMLNode.Add(DestinatariosXMLNode);
     end;
