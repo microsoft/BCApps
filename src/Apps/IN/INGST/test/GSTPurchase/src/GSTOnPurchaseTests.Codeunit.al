@@ -2183,38 +2183,38 @@ codeunit 18131 "GST On Purchase Tests"
                     LibraryERM.CreateBankAccount(BankAccount);
                     Storage.Set(AccountNoLbl, BankAccount."No.");
                     Storage.Set(AccountTypeLbl, Format(AccountType::"Bank Account"));
-                    //CreateVoucherAccountSetup(Type, LocationCode);
+                    CreateVoucherAccountSetup(Type, LocationCode);
                 end;
             Type::"Contra Voucher", Type::"Cash Receipt Voucher":
                 begin
                     LibraryERM.CreateGLAccount(GLAccount);
                     Storage.Set(AccountNoLbl, GLAccount."No.");
                     Storage.Set(AccountTypeLbl, Format(AccountType::"G/L Account"));
-                    // CreateVoucherAccountSetup(Type, LocationCode);
+                    CreateVoucherAccountSetup(Type, LocationCode);
                 end;
         end;
     end;
 
-    // local procedure CreateVoucherAccountSetup(SubType: Enum "Gen. Journal Template Type"; LocationCode: Code[10])
-    // var
-    //     TaxBaseTestPublishers: Codeunit "Tax Base Test Publishers";
-    //     TransactionDirection: Option " ",Debit,Credit,Both;
-    //     AccountNo: Code[20];
-    // begin
-    //     AccountNo := CopyStr(Storage.Get(AccountNoLbl), 1, MaxStrLen(AccountNo));
-    //     case SubType of
-    //         SubType::"Bank Payment Voucher", SubType::"Cash Payment Voucher", SubType::"Contra Voucher":
-    //             begin
-    //                 TaxBaseTestPublishers.InsertJournalVoucherPostingSetupWithLocationCode(SubType, LocationCode, TransactionDirection::Credit);
-    //                 TaxBaseTestPublishers.InsertVoucherCreditAccountNoWithLocationCode(SubType, LocationCode, AccountNo);
-    //             end;
-    //         SubType::"Cash Receipt Voucher", SubType::"Bank Receipt Voucher", SubType::"Journal Voucher":
-    //             begin
-    //                 TaxBaseTestPublishers.InsertJournalVoucherPostingSetupWithLocationCode(SubType, LocationCode, TransactionDirection::Debit);
-    //                 TaxBaseTestPublishers.InsertVoucherDebitAccountNoWithLocationCode(SubType, LocationCode, AccountNo);
-    //             end;
-    //     end;
-    // end;
+    local procedure CreateVoucherAccountSetup(SubType: Enum "Gen. Journal Template Type"; LocationCode: Code[10])
+    var
+        TaxBaseTestPublishers: Codeunit "Tax Base Test Publishers";
+        TransactionDirection: Option " ",Debit,Credit,Both;
+        AccountNo: Code[20];
+    begin
+        AccountNo := CopyStr(Storage.Get(AccountNoLbl), 1, MaxStrLen(AccountNo));
+        case SubType of
+            SubType::"Bank Payment Voucher", SubType::"Cash Payment Voucher", SubType::"Contra Voucher":
+                begin
+                    TaxBaseTestPublishers.InsertJournalVoucherPostingSetupWithLocationCode(SubType, LocationCode, TransactionDirection::Credit);
+                    TaxBaseTestPublishers.InsertVoucherCreditAccountNoWithLocationCode(SubType, LocationCode, AccountNo);
+                end;
+            SubType::"Cash Receipt Voucher", SubType::"Bank Receipt Voucher", SubType::"Journal Voucher":
+                begin
+                    TaxBaseTestPublishers.InsertJournalVoucherPostingSetupWithLocationCode(SubType, LocationCode, TransactionDirection::Debit);
+                    TaxBaseTestPublishers.InsertVoucherDebitAccountNoWithLocationCode(SubType, LocationCode, AccountNo);
+                end;
+        end;
+    end;
 
     local procedure CreateAndPostPurchaseDocument(
         var PurchaseHeader: Record "Purchase Header";
