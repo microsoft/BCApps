@@ -45,6 +45,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookCreateSubscriptionErrorTxt: Label 'Error Expecting Webhook to be created for Account %1', Locked = true;
         WebhookUpdateSubscriptionErrorTxt: Label 'Error Expecting Webhook to be updated to have one for Account %1', Locked = true;
         WebhookDeleteSubscriptionErrorTxt: Label 'Error Expecting Webhook to be deleted for Account %1', Locked = true;
+        UnexpectedInvoiceErr: Label 'Invoice number', Locked = true;
 
     local procedure Initialize();
     var
@@ -57,6 +58,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification: Record "Webhook Notification";
     begin
         BindActiveDirectoryMockEvents();
+        BindPayPalStdMockEvents();
 
         CompanyInformation.GET();
         CompanyInformation."Allow Blank Payment Info." := TRUE;
@@ -69,6 +71,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification.DELETEALL();
         CreateDefaultTemplate();
         SetPaymentRegistrationSetup();
+        DisablePaymentTolerance();
 
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(FALSE);
 
@@ -78,8 +81,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         CreateSalesInvoice(DummySalesHeader, DummyPaymentMethod);
         SetupReportSelections();
         COMMIT();
-
-        BINDSUBSCRIPTION(MSPayPalStdMockEvents);
 
         Initialized := TRUE;
     end;
@@ -829,9 +830,13 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
 
         // Exercise
+        // The webhook handler raises an error for an unknown invoice. In production it runs in an error-trapped background
+        // session, so the error never surfaces; here the handler runs synchronously, so guard it with ASSERTERROR and pin
+        // the reason to the unexpected-invoice message so another validation failure can't satisfy the test.
         ASSERTERROR SendPaymentNotification(
             MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, MissingInvoiceNumberTxt,
             SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
+        Assert.ExpectedError(UnexpectedInvoiceErr);
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
 
         // Verify
@@ -992,7 +997,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         DummyPaymentMethod: Record "Payment Method";
     begin
         CreateDefaultPayPalStandardAccount(MSPayPalStandardAccount);
-        SetupWebhookSubscription(MSPayPalStandardAccount."Account ID");
         CreatePaymentMethod(DummyPaymentMethod, FALSE);
         CreateSalesInvoice(SalesHeader, DummyPaymentMethod);
         SalesHeader.CALCFIELDS("Amount Including VAT");
@@ -1000,22 +1004,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         PostSalesInvoice(SalesHeader, SalesInvoiceHeader);
         SalesInvoiceHeader.CALCFIELDS("Amount Including VAT");
         SalesInvoiceHeader.MODIFY(FALSE);
-    end;
-
-    local procedure SetupWebhookSubscription(AccountID: Text);
-    var
-        WebhookSubscription: Record "Webhook Subscription";
-        WebhookManagement: Codeunit "Webhook Management";
-        WebHooksAdapterUri: Text[250];
-    begin
-        WebHooksAdapterUri := WebhookManagement.GetNotificationUrl();
-        IF WebhookSubscription.GET(AccountID, WebHooksAdapterUri) THEN
-            EXIT;
-        WebhookSubscription.INIT();
-        WebhookSubscription.VALIDATE("Subscription ID", COPYSTR(AccountID, 1, MAXSTRLEN(WebhookSubscription."Subscription ID")));
-        WebhookSubscription.VALIDATE(Endpoint, WebHooksAdapterUri);
-        WebhookSubscription.VALIDATE("Created By", PayPalCreatedByTok);
-        WebhookSubscription.INSERT();
     end;
 
     local procedure GetPaymentNotificationURL(): Text;
@@ -1052,6 +1040,10 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
         OutStream.WRITETEXT(NotificationJson);
         WebhookNotification.INSERT();
+        // Process the notification in the current session (the mock disables the production background session). Run it as
+        // a statement so a handler error - e.g. for a missing invoice - propagates to the test, which guards it with
+        // ASSERTERROR. This needs no COMMIT and keeps each test's writes inside the test's own (rolled-back) transaction.
+        CODEUNIT.RUN(CODEUNIT::"MS - PayPal Webhook Management", WebhookNotification);
     end;
 
     local procedure VerifyRemainingAmount(var TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary; RemainingAmount: Decimal);
@@ -1516,6 +1508,26 @@ codeunit 139500 "MS - PayPal Standard Tests"
             EXIT;
         BINDSUBSCRIPTION(ActiveDirectoryMockEvents);
         ActiveDirectoryMockEvents.Enable();
+    end;
+
+    local procedure BindPayPalStdMockEvents();
+    begin
+        // Rebind every test so the mock (disables background processing, captures payment events) stays active after per-test unbinding.
+        UnbindSubscription(MSPayPalStdMockEvents);
+        BindSubscription(MSPayPalStdMockEvents);
+    end;
+
+    local procedure DisablePaymentTolerance();
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        // Some localizations (e.g. US, GB, CA) configure a payment tolerance in demo data, which would absorb the small
+        // remaining amount asserted by the partial-payment test. Clear it so the amount assertions stay deterministic
+        // across countries. Assign directly (no Validate) to avoid re-stamping existing ledger entries.
+        GeneralLedgerSetup.GET();
+        GeneralLedgerSetup."Payment Tolerance %" := 0;
+        GeneralLedgerSetup."Max. Payment Tolerance Amount" := 0;
+        GeneralLedgerSetup.MODIFY();
     end;
 
     LOCAL PROCEDURE SetPaymentRegistrationSetup();
