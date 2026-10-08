@@ -150,6 +150,7 @@ table 6969 "Expense Agent Env. Consumption"
         Rec.CalcFields("Company Name");
         if Rec."Company Name" <> CompanyName() then
             DestinationCompany := Rec."Company Name";
+
         case Rec."Consumption Source Type" of
             Rec."Consumption Source Type"::Expense:
                 TaskLongName := GetTaskDisplayNameForExpense(DestinationCompany, Rec."Consumption Source System ID");

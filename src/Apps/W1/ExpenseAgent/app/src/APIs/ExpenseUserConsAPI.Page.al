@@ -85,16 +85,22 @@ page 6968 "Expense User Cons. API"
         ConsumptionSourceOperationName: Code[50]): Text[1024]
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
+
         if CopilotQuotaUsageAmount < 0 then
             Error(ConsumptionUsageErr);
+
         if (ActionsSummary = '') or (ActionsDescription = '') then
             Error(ActionsSummaryOrDescriptionErr);
+
         if ConsumptionSourceType = ConsumptionSourceType::Invalid then
             Error(ConsumptionSourceTypeErr);
+
         if IsNullGuid(ConsumptionSourceSystemId) then
             Error(ConsumptionSourceSystemIdErr);
+
         if Rec."No." = '' then
             Error(ExpenseEmployeeCodeErr);
+
         if ConsumptionSourceOperationName = '' then
             Error(EmptyConsumptionOperationErr);
 

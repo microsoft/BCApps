@@ -144,12 +144,13 @@ codeunit 6969 "Expense Consumption Handler"
         TempUniqueId: Text;
     begin
         TempUniqueId := StrSubstNo('%1-%2-%3-%4',
-            Enum::"Copilot Capability"::"Expense Agent",
+            Format(Enum::"Copilot Capability"::"Expense Agent", 0, 9),
             Format(ConsumptionSourceType, 0, 9),
             Format(ConsumptionSourceSystemId, 0, 9),
             Format(Operation, 0, 9));
 
         TempUniqueId := UpperCase(TempUniqueId);
+
         if StrLen(TempUniqueId) > MaxStrLen(UniqueId) then
             Session.LogMessage('0000ROV', UniqueIdTooLongTelemetryErr,
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
