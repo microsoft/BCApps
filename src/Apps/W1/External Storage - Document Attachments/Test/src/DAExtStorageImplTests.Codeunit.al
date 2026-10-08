@@ -23,7 +23,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
                   tabledata "Tenant Media" = r,
                   tabledata "DA External Storage Setup" = rimd,
                   tabledata "DA Internal Cleanup Entry" = rimd,
-                  tabledata "DA Cleanup Media Owner" = rimd;
+                  tabledata "DA Cleanup Media Owner" = rimd,
+                  tabledata Company = rid;
 
     var
         Any: Codeunit Any;
@@ -939,6 +940,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure VerifiedCleanupDetachesWithoutDeletingMedia()
     var
         DocumentAttachment: Record "Document Attachment";
+        Entry: Record "DA Internal Cleanup Entry";
         TenantMedia: Record "Tenant Media";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         MediaId: Guid;
@@ -952,12 +954,16 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateDocumentAttachmentWithContent(DocumentAttachment);
         MediaId := DocumentAttachment."Document Reference ID".MediaId();
         Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload should capture provenance');
+        AssertMediaContentExists(MediaId);
 
         // [WHEN] It is deleted from internal storage
         Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed');
         RunCleanup();
 
+        Entry.Get(DocumentAttachment.SystemId);
+        Assert.AreEqual(Entry.Status::Completed, Entry.Status, 'The media assertion must cover completed cleanup, not a blocked request');
         Assert.IsTrue(TenantMedia.Get(MediaId), 'This feature must not physically delete Tenant Media');
+        AssertMediaContentExists(MediaId);
         RefreshAttachment(DocumentAttachment);
         Assert.IsFalse(DocumentAttachment."Stored Internally", 'Reference should be detached after current nonempty readback');
     end;
@@ -1489,14 +1495,21 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         Attachment: Record "Document Attachment";
         Owner: Record "DA Cleanup Media Owner";
+        Entry: Record "DA Internal Cleanup Entry";
         MediaId: Guid;
     begin
         PrepareCleanup(Attachment);
         MediaId := Attachment."Document Reference ID".MediaId();
         Owner.ID := CreateGuid();
-        Owner.Media.Insert(MediaId);
+        Assert.IsTrue(Owner.Media.Insert(MediaId), 'The cross-table owner must acquire the actual media through MediaSet.Insert');
         Owner.Insert();
+        Commit();
+        Owner.Get(Owner.ID);
+        Assert.AreEqual(MediaId, Owner.Media.Item(1), 'The committed cross-table owner must reference the original media before cleanup');
+        AssertMediaContentExists(MediaId);
         RunCleanup();
+        Entry.Get(Attachment.SystemId);
+        Assert.AreEqual(Entry.Status::Completed, Entry.Status, 'The cross-table ownership assertion must cover completed cleanup');
         Owner.Get(Owner.ID);
         Assert.AreEqual(MediaId, Owner.Media.Item(1), 'Supported cross-table MediaSet owner must retain its reference');
         Assert.IsTrue(Owner.Media.Count() > 0, 'Cross-table owner must remain populated');
@@ -1509,29 +1522,30 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     procedure CrossCompanyAttachmentOwnerSurvivesDetachment()
     var
         Attachment: Record "Document Attachment";
-        OtherAttachment: Record "Document Attachment";
-        Company: Record Company;
-        MediaId: Guid;
-        OtherCompanyName: Text;
+        TestCompany: Record Company;
+        CompanyCheck: Codeunit "DA Cleanup Company Check";
+        TestCompanyId: Guid;
+        FailureReason: Text;
+        Verified: Boolean;
     begin
         PrepareCleanup(Attachment);
-        Company.SetFilter(Name, '<>%1', CompanyName());
-        if not Company.FindFirst() then
-            Error('This ownership validation requires a second test company.');
-        OtherCompanyName := Company.Name;
-        MediaId := Attachment."Document Reference ID".MediaId();
-        OtherAttachment.ChangeCompany(OtherCompanyName);
-        OtherAttachment.TransferFields(Attachment);
-        OtherAttachment.ID := Any.IntegerInRange(100000, 999999);
-        OtherAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
-        OtherAttachment.Insert(false);
+        TestCompany.Name := CopyStr('DA-' + DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(TestCompany.Name));
+        TestCompany.Insert();
+        TestCompany.Get(TestCompany.Name);
+        TestCompanyId := TestCompany.SystemId;
         Commit();
-        RunCleanup();
-        OtherAttachment.Get(OtherAttachment."Table ID", OtherAttachment."No.", OtherAttachment."Document Type", OtherAttachment."Line No.", OtherAttachment.ID);
-        Assert.IsTrue(OtherAttachment."Document Reference ID".HasValue(), 'Another company must retain content after detachment');
-        AssertMediaContentExists(MediaId);
-        OtherAttachment.Delete(false);
+        CompanyCheck.SetTestCompany(TestCompany.Name, TestCompanyId);
+        ClearLastError();
+        Verified := CompanyCheck.Run(Attachment);
+        FailureReason := GetLastErrorText();
+
+        // A Boolean codeunit boundary allows removal of this owned fixture even when its assertions fail.
+        TestCompany.ReadIsolation(IsolationLevel::UpdLock);
+        TestCompany.Get(TestCompany.Name);
+        Assert.AreEqual(TestCompanyId, TestCompany.SystemId, 'Only the company created by this test may be removed');
+        TestCompany.Delete(false);
         Commit();
+        Assert.IsTrue(Verified, FailureReason);
     end;
 
     local procedure PrepareCleanup(var Attachment: Record "Document Attachment")
@@ -1549,16 +1563,36 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     local procedure AssertMutationRetainsContent(Mutation: Enum "DA Cleanup Test Mutation")
     var
         Attachment: Record "Document Attachment";
+        Setup: Record "DA External Storage Setup";
+        Entry: Record "DA Internal Cleanup Entry";
+        CleanupManagement: Codeunit "DA Internal Cleanup Mgt.";
         Subscriber: Codeunit "DA Cleanup Race Subscriber";
     begin
         PrepareCleanup(Attachment);
+        if Mutation = Mutation::Policy then begin
+            Setup.Get();
+            Setup."Automatic Verified Cleanup" := true;
+            Setup.Modify();
+            Assert.IsTrue(CleanupManagement.RequestCleanup(Attachment, Enum::"DA Internal Cleanup Origin"::Automatic), 'Policy mutation must start with an authorized automatic request');
+            Entry.Get(Attachment.SystemId);
+            Assert.AreEqual(Entry.Origin::Automatic, Entry.Origin, 'The disabled policy must govern the pending attempt');
+            Setup.Get();
+            Assert.IsTrue(Setup."Automatic Verified Cleanup", 'Policy mutation must change true to false, not false to false');
+        end;
         Subscriber.SetMutation(Mutation);
         BindSubscription(Subscriber);
         RunCleanup();
         UnbindSubscription(Subscriber);
+        if Mutation = Mutation::Policy then begin
+            Setup.Get();
+            Assert.IsFalse(Setup."Automatic Verified Cleanup", 'The readback callback must actually disable the policy');
+            Entry.Get(Attachment.SystemId);
+            Assert.AreEqual(Entry.Status::Blocked, Entry.Status, 'Disabling automatic cleanup must block the in-flight attempt');
+        end;
         RefreshAttachment(Attachment);
         Assert.IsTrue(Attachment."Stored Internally", 'State mutation must defeat stale cleanup authorization');
         Assert.IsTrue(Attachment."Document Reference ID".HasValue(), 'State mutation must retain local content');
+        AssertMediaContentExists(Attachment."Document Reference ID".MediaId());
         Assert.IsTrue(Attachment."Stored Externally", 'State mutation must not clear external tracking');
         Assert.AreEqual('', FileConnectorMock.GetLastDeletedPath(), 'Cleanup must not delete external content');
     end;

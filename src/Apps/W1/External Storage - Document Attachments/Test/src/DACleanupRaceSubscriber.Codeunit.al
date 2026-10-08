@@ -65,6 +65,7 @@ codeunit 136822 "DA Cleanup Race Subscriber"
             Mutation::Policy:
                 begin
                     Setup.Get();
+                    Setup.TestField("Automatic Verified Cleanup", true);
                     Setup."Automatic Verified Cleanup" := false;
                     Setup.Modify();
                 end;
