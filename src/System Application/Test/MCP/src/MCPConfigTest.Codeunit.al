@@ -1749,8 +1749,8 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected second feature');
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Data Query Tools row is missing');
         Assert.AreEqual('Data Query Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
-        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Agents Tools row is missing');
-        Assert.AreEqual('Agents Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected fourth feature');
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Agent Tools row is missing');
+        Assert.AreEqual('Agent Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected fourth feature');
         Assert.IsFalse(MCPConfigCard.ServerFeatureList.Next(), 'Unexpected extra feature rows');
     end;
 
@@ -2026,9 +2026,9 @@ codeunit 130130 "MCP Config Test"
     local procedure GoToAgentToolsFeature(var MCPConfigCard: TestPage "MCP Config Card")
     begin
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.First(), 'Server Features list is empty');
-        while MCPConfigCard.ServerFeatureList.Feature.Value <> 'Agents Tools (Preview/Billable)' do
+        while MCPConfigCard.ServerFeatureList.Feature.Value <> 'Agent Tools (Preview/Billable)' do
             if not MCPConfigCard.ServerFeatureList.Next() then
-                Error('Agents Tools row is missing.');
+                Error('Agent Tools row is missing.');
     end;
 
     local procedure AssertAgentSystemTools(var MCPConfigCard: TestPage "MCP Config Card")
