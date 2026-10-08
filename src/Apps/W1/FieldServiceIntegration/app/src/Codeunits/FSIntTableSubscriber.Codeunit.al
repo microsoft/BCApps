@@ -1295,7 +1295,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         PreviousFilterGroup: Integer;
         FieldIndex: Integer;
         FieldFilter: Text;
-        CombinedFilterTok: Label '(%1)&(%2)', Locked = true;
+        CombinedFilterTok: Label '(%1)&(%2)', Locked = true, Comment = '%1 = existing candidate filter, %2 = integration mapping filter';
     begin
         // Keep mapping filters separate so they cannot replace the parent or candidate scope.
         MappingRecordRef.Open(RecordsToSynchRecordRef.Number());
@@ -1376,7 +1376,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine.SetFilter("Item Type", '%1|%2', ServiceLine."Item Type"::Inventory, ServiceLine."Item Type"::"Non-Inventory");
         if not ServiceLine.IsEmpty() then begin
             ServiceLineRecordRef.GetTable(ServiceLine);
-            SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
+            SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
         end;
     end;
 
@@ -1397,11 +1397,21 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine.SetRange("Item Type", ServiceLine."Item Type"::Service);
         if not ServiceLine.IsEmpty() then begin
             ServiceLineRecordRef.GetTable(ServiceLine);
-            SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Service", false, false);
+            SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Service", false, false);
         end;
     end;
 
-    internal procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean) JobID: Guid
+    procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
+    begin
+        exit(SynchRecordsToIntegrationTableImpl(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords, false));
+    end;
+
+    internal procedure SynchFilteredRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
+    begin
+        exit(SynchRecordsToIntegrationTableImpl(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords, true));
+    end;
+
+    local procedure SynchRecordsToIntegrationTableImpl(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean; ApplyTableFilter: Boolean) JobID: Guid
     var
         IntegrationTableMapping: Record "Integration Table Mapping";
         IntegrationTableSynch: Codeunit "Integration Table Synch.";
@@ -1414,9 +1424,11 @@ codeunit 6610 "FS Int. Table Subscriber"
         if not IntegrationTableMapping.FindFirst() then
             Error(SynchronizeEmptySetErr);
 
+        if ApplyTableFilter then begin
 #pragma warning disable AA0214
-        ApplyMappingFilter(RecordsToSynchRecordRef, IntegrationTableMapping.GetTableFilter());
+            ApplyMappingFilter(RecordsToSynchRecordRef, IntegrationTableMapping.GetTableFilter());
 #pragma warning restore AA0214
+        end;
         RecordsToSynchRecordRef.Ascending(false);
         if not RecordsToSynchRecordRef.FindSet() then
             exit;

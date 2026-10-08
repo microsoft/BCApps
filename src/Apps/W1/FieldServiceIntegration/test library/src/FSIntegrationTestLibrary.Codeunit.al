@@ -147,7 +147,7 @@ codeunit 139205 "FS Integration Test Library"
     var
         FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
     begin
-        exit(FSIntTableSubscriber.SynchRecordsToIntegrationTable(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords));
+        exit(FSIntTableSubscriber.SynchFilteredRecordsToIntegrationTable(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords));
     end;
 
     /// <summary>
