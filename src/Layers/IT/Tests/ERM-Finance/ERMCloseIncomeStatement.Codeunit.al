@@ -945,8 +945,10 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
         GenJournalLine.SetRange("Document No.", CloseIncomeDocumentNo);
         GenJournalLine.SetRange("Account No.", GLAccountNo);
+#pragma warning disable AA0210
         GenJournalLine.SetRange("Shortcut Dimension 1 Code", GlobalDim1Code);
         GenJournalLine.SetRange("Source Currency Code", SourceCurrencyCode);
+#pragma warning restore AA0210
         GenJournalLine.CalcSums("Source Currency Amount");
 
         Assert.AreEqual(
