@@ -271,14 +271,14 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         Telemetry: Codeunit Telemetry;
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        TelemetryDimensions.Add('Payment Occurrence Entry No.', Format(EDocPaymentOccurrence."Entry No."));
-        TelemetryDimensions.Add('E-Document Entry No.', Format(EDocPaymentOccurrence."E-Document Entry No."));
-        TelemetryDimensions.Add('Occurrence Type', Format(EDocPaymentOccurrence.Type));
-        TelemetryDimensions.Add('Retry Count', Format(EDocPaymentOccurrence."Retry Count"));
+        TelemetryDimensions.Add('PaymentOccurrenceEntryNo', Format(EDocPaymentOccurrence."Entry No."));
+        TelemetryDimensions.Add('EDocumentEntryNo', Format(EDocPaymentOccurrence."E-Document Entry No."));
+        TelemetryDimensions.Add('OccurrenceType', Format(EDocPaymentOccurrence.Type));
+        TelemetryDimensions.Add('RetryCount', Format(EDocPaymentOccurrence."Retry Count"));
         TelemetryDimensions.Add('Status', Format(EDocPaymentOccurrence.Status));
-        TelemetryDimensions.Add('Next Attempt At', Format(EDocPaymentOccurrence."Next Attempt At", 0, 9));
-        TelemetryDimensions.Add('Error Code', ErrorCode);
-        TelemetryDimensions.Add('Manual Retry', Format(ManualRetry));
+        TelemetryDimensions.Add('NextAttemptAt', Format(EDocPaymentOccurrence."Next Attempt At", 0, 9));
+        TelemetryDimensions.Add('ErrorCode', ErrorCode);
+        TelemetryDimensions.Add('ManualRetry', Format(ManualRetry));
         Telemetry.LogMessage(
             '0000LC9', PaymentOccurrenceFailureTelemetryLbl, Verbosity::Error,
             DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);

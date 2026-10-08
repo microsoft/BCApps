@@ -107,7 +107,7 @@ page 10970 "E-Document Payment Occurrences"
             action(RetryNow)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Retry Now';
+                Caption = 'Retry now';
                 Enabled = RetryEnabled;
                 Image = Refresh;
                 Scope = Repeater;
