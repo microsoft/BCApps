@@ -91,7 +91,10 @@ table 5741 "Transfer Line"
                 Validate("Gen. Prod. Posting Group", Item."Gen. Prod. Posting Group");
                 Validate("Inventory Posting Group", Item."Inventory Posting Group");
                 Validate(Quantity, xRec.Quantity);
-                Validate("Unit of Measure Code", Item."Base Unit of Measure");
+                if ("Item No." = xRec."Item No.") and ("Direct Transfer" <> xRec."Direct Transfer") then
+                    Validate("Unit of Measure Code", TempTransferLine."Unit of Measure Code")
+                else
+                    Validate("Unit of Measure Code", Item."Base Unit of Measure");
                 "Item Category Code" := Item."Item Category Code";
 
                 OnAfterAssignItemValues(Rec, Item, TransHeader);
