@@ -3344,6 +3344,93 @@ codeunit 137262 "SCM Invt Item Tracking III"
     end;
 
     [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption')]
+    procedure RemainingQtyOnProdOrderCompAfterTwoPartialConsumptionsWithPlanningAndLotTracking()
+    var
+        CompItem: Record Item;
+        FGItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        LotNoInfo: Record "Lot No. Information";
+        ReservationEntry: Record "Reservation Entry";
+        TrackingCode: Code[10];
+        LotNo: Code[50];
+        InboundQty: array[2] of Decimal;
+        ConsumptionQty: Decimal;
+        QtyPer: Decimal;
+    begin
+        // [SCENARIO 652728] Remaining Quantity on a lot-tracked prod. order component is correct after two partial consumptions,
+        // when the lot comes from two inbound entries and order tracking was created by the planning worksheet.
+        Initialize();
+        InboundQty[1] := 62.86;
+        InboundQty[2] := 19.28;
+        QtyPer := InboundQty[1] + InboundQty[2];
+        ConsumptionQty := 20;
+
+        // [GIVEN] Lot-tracked component item "C" with Lot-for-Lot reordering policy and rounding precision 0.00001.
+        TrackingCode := CreateItemTrackingCode(false, true);
+        UpdateItemTrackingExpiry(TrackingCode);
+        CompItem.Get(CreateTrackedItem('', '', TrackingCode));
+        CompItem.Validate("Rounding Precision", 0.00001);
+        CompItem.Modify(true);
+        UpdateItemReOrderPolicyForLot(CompItem);
+
+        // [GIVEN] Produced item "P" with a certified production BOM: 82.14 of "C" per unit.
+        LibraryInventory.CreateItem(FGItem);
+        CreateProdBOMWithOneCompAndQtyPer(FGItem, CompItem, QtyPer);
+        UpdateParentItemForProduction(FGItem);
+
+        // [GIVEN] Two separate positive adjustments of "C" with the same lot "L": 62.86 and 19.28.
+        LotNo := LibraryUtility.GenerateRandomCode(LotNoInfo.FieldNo("Lot No."), Database::"Lot No. Information");
+        SelectAndClearItemJournalBatch(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
+        ItemJournalBatch.Validate("Item Tracking on Lines", true);
+        ItemJournalBatch.Modify(true);
+        CreateItemJournalLineWithItemTracking(ItemJournalLine, ItemJournalBatch, '', CompItem."No.", InboundQty[1], LotNo);
+        CreateItemJournalLineWithItemTracking(ItemJournalLine, ItemJournalBatch, '', CompItem."No.", InboundQty[2], LotNo);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+
+        // [GIVEN] Released production order for 1 "P", refreshed. Component line for 82.14 "C".
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, FGItem."No.", 1);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+        FindProdOrderComponent(ProdOrderComponent, ProductionOrder, CompItem."No.");
+
+        // [GIVEN] Regenerative plan calculated for "C", so the component is order-tracked against both inbound entries.
+        RunCalculateRegenerativePlan(CompItem."No.");
+
+        // [GIVEN] Lot "L" assigned to the full component quantity.
+        LibraryVariableStorage.Enqueue(TrackingOption::AssignLotNoManual);
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(QtyPer);
+        ProdOrderComponent.OpenItemTrackingLines();
+
+        // [GIVEN] First partial consumption of 20 with lot "L" posted.
+        CreateAndPostConsumptionJournalForProdOrderComp(ProdOrderComponent, LotNo, ConsumptionQty);
+
+        // [WHEN] Second partial consumption of 20 with lot "L" posted.
+        CreateAndPostConsumptionJournalForProdOrderComp(ProdOrderComponent, LotNo, ConsumptionQty);
+
+        // [THEN] Remaining Quantity on the component = 82.14 - 40 = 42.14.
+        ProdOrderComponent.Find();
+        ProdOrderComponent.CalcFields("Act. Consumption (Qty)");
+        ProdOrderComponent.TestField("Act. Consumption (Qty)", 2 * ConsumptionQty);
+        ProdOrderComponent.TestField("Remaining Quantity", QtyPer - 2 * ConsumptionQty);
+        ProdOrderComponent.TestField("Remaining Qty. (Base)", QtyPer - 2 * ConsumptionQty);
+
+        // [THEN] Remaining reservation entries of the component do not carry "New Lot No." from the consumption journal.
+        ReservationEntry.SetSourceFilter(
+            Database::"Prod. Order Component", ProdOrderComponent.Status.AsInteger(), ProdOrderComponent."Prod. Order No.",
+            ProdOrderComponent."Line No.", true);
+        ReservationEntry.SetSourceFilter('', ProdOrderComponent."Prod. Order Line No.");
+        ReservationEntry.SetFilter("New Lot No.", '<>%1', '');
+        Assert.RecordIsEmpty(ReservationEntry);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption,ItemTracingSpecificationRequestPageHandler')]
     procedure ItemDescWithMoreThan50CharactersIsPrintedInItemTracingReport()
@@ -5204,6 +5291,55 @@ codeunit 137262 "SCM Invt Item Tracking III"
     begin
         LibraryInventory.SelectItemJournalTemplateName(ConsumptionItemJournalTemplate, ConsumptionItemJournalTemplate.Type::Consumption);
         LibraryInventory.SelectItemJournalBatchName(ConsumptionItemJournalBatch, ConsumptionItemJournalTemplate.Type, ConsumptionItemJournalTemplate.Name);
+    end;
+
+    local procedure CreateAndPostConsumptionJournalForProdOrderComp(ProdOrderComponent: Record "Prod. Order Component"; LotNo: Code[50]; Qty: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ConsumptionItemJournalTemplate: Record "Item Journal Template";
+        ConsumptionItemJournalBatch: Record "Item Journal Batch";
+    begin
+        ConsumptionJournalSetup(ConsumptionItemJournalTemplate, ConsumptionItemJournalBatch);
+        LibraryInventory.ClearItemJournal(ConsumptionItemJournalTemplate, ConsumptionItemJournalBatch);
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ConsumptionItemJournalTemplate.Name,
+            ConsumptionItemJournalBatch.Name, ItemJournalLine."Entry Type"::Consumption,
+            ProdOrderComponent."Item No.", Qty);
+        ItemJournalLine.Validate("Order No.", ProdOrderComponent."Prod. Order No.");
+        ItemJournalLine.Validate("Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        ItemJournalLine.Validate("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        ItemJournalLine.Validate(Quantity, Qty);
+        ItemJournalLine.Modify(true);
+
+        LibraryVariableStorage.Enqueue(TrackingOption::SetLotNoAndQty);
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(Qty);
+        ItemJournalLine.OpenItemTrackingLines(false);
+
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure CreateProdBOMWithOneCompAndQtyPer(var ParentItem: Record Item; CompItem: Record Item; QtyPer: Decimal)
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+    begin
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, ParentItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+          ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, CompItem."No.", QtyPer);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        ParentItem.Get(ParentItem."No.");
+        ParentItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ParentItem.Modify(true);
+    end;
+
+    local procedure FindProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; ProductionOrder: Record "Production Order"; ItemNo: Code[20])
+    begin
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ItemNo);
+        ProdOrderComponent.FindFirst();
     end;
 
     local procedure CreateAndPostPurchOrderWithTrackedItem(var ItemLedgerEntry: Record "Item Ledger Entry"; var Item: Record Item; TrackingOption: Option; SNSpecific: Boolean; LotSpecific: Boolean)
