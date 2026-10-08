@@ -27,6 +27,7 @@ codeunit 135206 "Image Analysis Management Test"
         GenericErrorErr: Label 'There was an error in contacting the Computer Vision API. Please try again or contact an administrator.';
         ChangingLimitAfterInitErr: Label 'You cannot change the limit setting after initialization.';
         MediaWrongFormatErr: Label 'The media file is not supported. Only images of the following types are supported: JPEG, PNG, GIF, BMP.';
+        ImageAsBase64Txt: Label 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFCAYAAAB8ZH1oAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAhSURBVBhXYwCC/0RirILYMIIDAtjYUIzCwYexCqJhhv8AD/M3yc4WsFgAAAAASUVORK5CYII=', Locked = true;
         LimitType: Option Year,Month,Day,Hour;
         ImageAnalysisRequestCount: Integer;
 
@@ -348,11 +349,9 @@ codeunit 135206 "Image Analysis Management Test"
 
         ImageAnalysisManagement.Initialize();
         ImageAnalysisManagement.SetBlob(TempBlob);
-        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath());
-        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
 
         // [WHEN] Analyze is invoked
-        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        Result := AnalyzeWithMockResponse(ImageAnalysisManagement, ImageAnalysisResult, false);
 
         // [THEN] The analysis fails with the unsupported format error
         Assert.IsFalse(Result, 'Analysis should have failed for content that is not an image.');
@@ -383,11 +382,9 @@ codeunit 135206 "Image Analysis Management Test"
 
         ImageAnalysisManagement.Initialize();
         ImageAnalysisManagement.SetBlob(TempBlob);
-        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath());
-        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
 
         // [WHEN] Analyze is invoked
-        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        Result := AnalyzeWithMockResponse(ImageAnalysisManagement, ImageAnalysisResult, false);
 
         // [THEN] The analysis fails with the unsupported format error
         Assert.IsFalse(Result, 'Analysis should have failed for an unsupported image format.');
@@ -419,11 +416,9 @@ codeunit 135206 "Image Analysis Management Test"
         ImageAnalysisManagement.SetUriAndKey('https://fakeuri/customvision/', GetKey());
         ImageAnalysisManagement.Initialize();
         ImageAnalysisManagement.SetBlob(TempBlob);
-        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetCustomImageAnalysisTagsResponsePath());
-        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
 
         // [WHEN] Analyze is invoked
-        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        Result := AnalyzeWithMockResponse(ImageAnalysisManagement, ImageAnalysisResult, true);
 
         // [THEN] The image reaches the customer's Custom Vision endpoint with its existing authentication
         ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
@@ -458,11 +453,9 @@ codeunit 135206 "Image Analysis Management Test"
         ImageAnalysisManagement.SetUriAndKey('https://fakeuri', GetKey());
         ImageAnalysisManagement.Initialize();
         ImageAnalysisManagement.SetBlob(TempBlob);
-        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath());
-        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
 
         // [WHEN] Analyze is invoked
-        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        Result := AnalyzeWithMockResponse(ImageAnalysisManagement, ImageAnalysisResult, false);
 
         // [THEN] BC forwards the image and uses the mocked service response
         ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
@@ -497,10 +490,8 @@ codeunit 135206 "Image Analysis Management Test"
         ImageAnalysisManagement.SetUriAndKey('https://fakeuri/customvision/', GetKey());
         ImageAnalysisManagement.Initialize();
         ImageAnalysisManagement.SetImagePath(ImagePath);
-        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetCustomImageAnalysisTagsResponsePath());
-        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
 
-        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        Result := AnalyzeWithMockResponse(ImageAnalysisManagement, ImageAnalysisResult, true);
         FileManagement.DeleteServerFile(ImagePath);
 
         Assert.IsFalse(Result, 'Custom Vision must not receive non-image content.');
@@ -519,13 +510,17 @@ codeunit 135206 "Image Analysis Management Test"
         ImageAnalysisManagement: Codeunit "Image Analysis Management";
         ImageAnalysisResult: Codeunit "Image Analysis Result";
         ImageAnalysisManagementTest: Codeunit "Image Analysis Management Test";
+        TempBlob: Codeunit "Temp Blob";
+        ImageInStream: InStream;
         ErrorValue: Text;
         IsUsageLimitError: Boolean;
         Result: Boolean;
     begin
         // [SCENARIO] V3.2 accepts supported image bytes even when the stored MIME type and dimensions are incorrect
         LibraryInventory.CreateItem(Item);
-        Item.Picture.ImportFile(GetImagePath(), 'Description');
+        CreateImageBlob(TempBlob, 500, 600, Enum::"Image Format"::Jpeg);
+        TempBlob.CreateInStream(ImageInStream);
+        Item.Picture.ImportStream(ImageInStream, 'Description', 'image/jpeg');
         TenantMedia.Get(Item.Picture.Item(1));
         TenantMedia."Mime Type" := 'application/octet-stream';
         TenantMedia.Width := 0;
@@ -556,6 +551,8 @@ codeunit 135206 "Image Analysis Management Test"
         ImageAnalysisManagement: Codeunit "Image Analysis Management";
         ImageAnalysisResult: Codeunit "Image Analysis Result";
         ImageAnalysisManagementTest: Codeunit "Image Analysis Management Test";
+        TempBlob: Codeunit "Temp Blob";
+        ImageInStream: InStream;
         ContentOutStream: OutStream;
         ErrorValue: Text;
         IsUsageLimitError: Boolean;
@@ -563,7 +560,9 @@ codeunit 135206 "Image Analysis Management Test"
     begin
         // [SCENARIO] V3.2 rejects non-image bytes even when the stored metadata describes a supported image
         LibraryInventory.CreateItem(Item);
-        Item.Picture.ImportFile(GetImagePath(), 'Description');
+        CreateImageBlob(TempBlob, 500, 600, Enum::"Image Format"::Jpeg);
+        TempBlob.CreateInStream(ImageInStream);
+        Item.Picture.ImportStream(ImageInStream, 'Description', 'image/jpeg');
         TenantMedia.Get(Item.Picture.Item(1));
         TenantMedia.CalcFields(Content);
         Clear(TenantMedia.Content);
@@ -956,19 +955,10 @@ codeunit 135206 "Image Analysis Management Test"
     [Normal]
     local procedure CreateImageBlob(var TempBlob: Codeunit "Temp Blob"; Width: Integer; Height: Integer; ImageFormat: Enum "Image Format")
     var
-        SourceTempBlob: Codeunit "Temp Blob";
-        FileManagement: Codeunit "File Management";
         Image: Codeunit Image;
-        ImageInStream: InStream;
         ImageOutStream: OutStream;
     begin
-        // This import needs to happen before setting to saas
-        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
-        FileManagement.BLOBImportFromServerFile(SourceTempBlob, GetImagePath());
-        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
-
-        SourceTempBlob.CreateInStream(ImageInStream);
-        Image.FromStream(ImageInStream);
+        Image.FromBase64(ImageAsBase64Txt);
         Image.Resize(Width, Height);
         Image.SetFormat(ImageFormat);
 
@@ -988,17 +978,43 @@ codeunit 135206 "Image Analysis Management Test"
     begin
         // [SCENARIO] Custom Vision's supported formats remain accepted with customer-provided credentials
         CreateImageBlob(TempBlob, 500, 600, ImageFormat);
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         ImageAnalysisManagement.SetUriAndKey('https://fakeuri/customvision/', GetKey());
         ImageAnalysisManagement.Initialize();
         ImageAnalysisManagement.SetBlob(TempBlob);
-        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetCustomImageAnalysisTagsResponsePath());
-        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
 
-        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        Result := AnalyzeWithMockResponse(ImageAnalysisManagement, ImageAnalysisResult, true);
 
         ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
         Assert.IsTrue(Result, 'The image format should be accepted by BC. Error: ' + ErrorValue);
         Assert.IsFalse(IsNull(HttpMessageHandler.RequestMessage), 'The image must reach the configured endpoint.');
+    end;
+
+    local procedure AnalyzeWithMockResponse(var ImageAnalysisManagement: Codeunit "Image Analysis Management"; var ImageAnalysisResult: Codeunit "Image Analysis Result"; IsCustomVision: Boolean) Result: Boolean
+    var
+        TempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
+        ResponseOutStream: OutStream;
+        ResponsePath: Text;
+    begin
+        TempBlob.CreateOutStream(ResponseOutStream, TextEncoding::UTF8);
+        ResponseOutStream.WriteText('HTTP/1.1 200 OK');
+        ResponseOutStream.WriteText();
+        ResponseOutStream.WriteText('Content-Type: application/json');
+        ResponseOutStream.WriteText();
+        ResponseOutStream.WriteText();
+        if IsCustomVision then
+            ResponseOutStream.WriteText('{"predictions":[]}')
+        else
+            ResponseOutStream.WriteText('{"tags":[]}');
+
+        ResponsePath := FileManagement.ServerTempFileName('txt');
+        FileManagement.BLOBExportToServerFile(TempBlob, ResponsePath);
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(ResponsePath);
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+        FileManagement.DeleteServerFile(ResponsePath);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Image Analysis Management", OnBeforeSendImageAnalysisRequest, '', false, false)]
