@@ -12,6 +12,7 @@ codeunit 134119 "Price Asset UT"
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryResource: Codeunit "Library - Resource";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
@@ -1037,6 +1038,52 @@ codeunit 134119 "Price Asset UT"
     end;
 
     [Test]
+    procedure BlankProductDiscountRejectsMissingGlobalUOMOnActivation()
+    var
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A blank-product discount cannot be activated with a missing global unit.
+        Initialize();
+
+        // [GIVEN] A draft item discount line with no product and a raw unit value that no longer exists.
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        UnitOfMeasure.Delete(true);
+        LibraryPriceCalculation.CreatePriceHeader(
+            PriceListHeader, PriceListHeader."Price Type"::Sale, PriceListHeader."Source Type"::"All Customers", '');
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader, PriceListLine."Amount Type"::Discount, PriceListLine."Asset Type"::Item, '');
+        PriceListLine."Unit of Measure Code" := UnitOfMeasure.Code;
+        PriceListLine.Modify(true);
+
+        // [WHEN] The price list is activated.
+        asserterror PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
+
+        // [THEN] Verification rejects the missing global unit.
+        VerifyMissingUnitError('Unit of Measure', UnitOfMeasure.Code);
+    end;
+
+    [Test]
+    procedure NewPriceLineWorkTypeUOMDoesNotOverrideResourceDefault()
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A work-type-derived unit is discarded for a new price line when the resource is selected.
+        Initialize();
+        VerifyWorkTypeBeforeResourceUsesDefaultUOM(true);
+    end;
+
+    [Test]
+    procedure ExistingPriceLineWorkTypeUOMDoesNotOverrideResourceDefault()
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A work-type-derived unit is discarded for an existing-mode price line when the resource is selected.
+        Initialize();
+        VerifyWorkTypeBeforeResourceUsesDefaultUOM(false);
+    end;
+
+    [Test]
     procedure PriceLineRejectsDeferredUOMForAnotherItem()
     var
         Item: Record Item;
@@ -1323,6 +1370,40 @@ codeunit 134119 "Price Asset UT"
         asserterror PriceListLine.Validate("Product No.", Resource."No.");
 
         VerifyMissingUnitError('Resource Unit of Measure', UnitOfMeasureCode);
+    end;
+
+    local procedure VerifyWorkTypeBeforeResourceUsesDefaultUOM(NewRecord: Boolean)
+    var
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        Resource: Record Resource;
+        UnitOfMeasure: Record "Unit of Measure";
+        WorkType: Record "Work Type";
+    begin
+        LibraryResource.CreateResource(Resource, '');
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        Assert.AreNotEqual(Resource."Base Unit of Measure", UnitOfMeasure.Code, 'The work type must use a different unit.');
+        LibraryResource.CreateWorkType(WorkType);
+        WorkType.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        WorkType.Modify(true);
+
+        PriceListLine.SetNewRecord(NewRecord);
+        if NewRecord then begin
+            PriceListLine."Price Type" := PriceListLine."Price Type"::Sale;
+            PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Resource);
+        end else begin
+            LibraryPriceCalculation.CreatePriceHeader(
+                PriceListHeader, PriceListHeader."Price Type"::Sale, PriceListHeader."Source Type"::"All Customers", '');
+            LibraryPriceCalculation.CreatePriceListLine(
+                PriceListLine, PriceListHeader, PriceListLine."Amount Type"::Discount, PriceListLine."Asset Type"::Resource, '');
+        end;
+        PriceListLine.Validate("Work Type Code", WorkType.Code);
+        Assert.AreEqual(UnitOfMeasure.Code, PriceListLine."Unit of Measure Code", 'The work type must initially supply its unit.');
+
+        PriceListLine.Validate("Product No.", Resource."No.");
+
+        VerifyPriceLineUnit(PriceListLine, Resource."No.", Resource."Base Unit of Measure");
+        PriceListLine.TestField("Work Type Code", '');
     end;
 
     local procedure Initialize()

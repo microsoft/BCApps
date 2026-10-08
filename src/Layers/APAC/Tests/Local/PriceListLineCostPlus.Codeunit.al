@@ -651,7 +651,7 @@ codeunit 141052 "Price List Line Cost Plus"
     begin
         Assert.AreEqual(ItemUnitOfMeasure."Item No.", PriceListLine."Asset No.", 'The selected item must be retained.');
         Assert.AreEqual(ItemUnitOfMeasure.Code, PriceListLine."Unit of Measure Code", 'The selected unit must be retained.');
-        Assert.AreEqual(ExpectedUnitPrice, PriceListLine."Unit Price", UnitPriceMustBeSameMsg);
+        Assert.AreNearlyEqual(ExpectedUnitPrice, PriceListLine."Unit Price", LibraryERM.GetAmountRoundingPrecision(), UnitPriceMustBeSameMsg);
     end;
 
     local procedure CreateItem(var Item: Record Item)

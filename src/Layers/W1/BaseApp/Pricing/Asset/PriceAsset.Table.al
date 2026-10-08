@@ -112,10 +112,14 @@ table 7003 "Price Asset"
                     case "Asset Type" of
                         "Asset Type"::Item:
                             if "Asset No." <> '' then
-                                ItemUnitofMeasure.Get("Asset No.", "Unit of Measure Code");
+                                ItemUnitofMeasure.Get("Asset No.", "Unit of Measure Code")
+                            else
+                                UnitofMeasure.Get("Unit of Measure Code");
                         "Asset Type"::Resource:
                             if "Asset No." <> '' then
-                                ResourceUnitofMeasure.Get("Asset No.", "Unit of Measure Code");
+                                ResourceUnitofMeasure.Get("Asset No.", "Unit of Measure Code")
+                            else
+                                UnitofMeasure.Get("Unit of Measure Code");
                         "Asset Type"::"Resource Group":
                             UnitofMeasure.Get("Unit of Measure Code");
                         else
