@@ -9,7 +9,6 @@ codeunit 135005 "ERM Financial Report Schedules"
         ConnectorMock: Codeunit "Connector Mock";
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryERM: Codeunit "Library - ERM";
-        LibraryFileMgtHandler: Codeunit "Library - File Mgt Handler";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryReportValidation: Codeunit "Library - Report Validation";
         LibraryRandom: Codeunit "Library - Random";
@@ -517,12 +516,12 @@ codeunit 135005 "ERM Financial Report Schedules"
     end;
 
     [Test]
-    [HandlerFunctions('PrintAccountScheduleRequestPageHandler')]
     procedure PrintPackageUsesPackageCodeAsFileName()
     var
         AccScheduleName: Record "Acc. Schedule Name";
         FinancialReportPackage: Record "Financial Report Package";
         FinRepPackageSchedule: Record "Fin. Report Package Schedule";
+        FinReportExportHandler: Codeunit "Fin. Report Export Handler";
         FinancialReportPackages: TestPage "Financial Report Packages";
     begin
         // [SCENARIO] Printing a financial report package uses the package code as the PDF file name
@@ -537,17 +536,16 @@ codeunit 135005 "ERM Financial Report Schedules"
         Commit();
 
         // [WHEN] The package is printed
-        LibraryFileMgtHandler.SetBeforeDownloadFromStreamHandlerActivated(true);
-        BindSubscription(LibraryFileMgtHandler);
+        BindSubscription(FinReportExportHandler);
         FinancialReportPackages.OpenEdit();
         FinancialReportPackages.GoToRecord(FinancialReportPackage);
         FinancialReportPackages.Print.Invoke();
-        UnbindSubscription(LibraryFileMgtHandler);
+        UnbindSubscription(FinReportExportHandler);
 
         // [THEN] The downloaded PDF file name is based on the package code
         Assert.AreEqual(
             FinancialReportPackage.Code + '.pdf',
-            LibraryFileMgtHandler.GetDownloadFromSreamToFileName(),
+            FinReportExportHandler.GetOutputFileName(),
             'The financial report package file name is not correct');
     end;
 
@@ -555,12 +553,6 @@ codeunit 135005 "ERM Financial Report Schedules"
     procedure AccountScheduleRequestPageHandler(var RequestPage: TestRequestPage "Account Schedule")
     begin
         RequestPage.Dim1Filter.SetValue(LibraryVariableStorage.DequeueText());
-        RequestPage.OK().Invoke();
-    end;
-
-    [RequestPageHandler]
-    procedure PrintAccountScheduleRequestPageHandler(var RequestPage: TestRequestPage "Account Schedule")
-    begin
         RequestPage.OK().Invoke();
     end;
 
