@@ -177,6 +177,26 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Expense Count';
             DataClassification = SystemMetadata;
         }
+        field(55; "Policy Status"; Enum "Expense Policy Status")
+        {
+            Caption = 'Policy Status';
+            DataClassification = SystemMetadata;
+        }
+        field(56; "Failed Policy Count"; Integer)
+        {
+            Caption = 'Failed Policy Count';
+            DataClassification = SystemMetadata;
+        }
+        field(57; "Passed Policy Count"; Integer)
+        {
+            Caption = 'Passed Policy Count';
+            DataClassification = SystemMetadata;
+        }
+        field(58; "Flagged Categories"; Text[2048])
+        {
+            Caption = 'Flagged Categories';
+            DataClassification = CustomerContent;
+        }
         field(100; "History Actor Table ID Filter"; Integer)
         {
             Caption = 'History Actor Table ID Filter';
@@ -212,6 +232,9 @@ table 7100 "Expense Activity Log Entry"
             Clustered = true;
         }
         key(Source; "Source Table ID", "Source Record System ID", "Occurred At", "Entry No.")
+        {
+        }
+        key(SourceEvent; "Source Table ID", "Source Record System ID", "Event Type", "Entry No.")
         {
         }
         key(Subject; "Subject Table ID", "Subject System ID", "Occurred At", "Entry No.")
