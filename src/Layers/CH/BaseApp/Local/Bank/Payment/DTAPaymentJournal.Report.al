@@ -218,11 +218,6 @@ report 3010545 "DTA Payment Journal"
             begin
                 if ("Account No." = '') and (Amount = 0) then
                     CurrReport.Skip();
-                if (oldAccType <> "Account Type") or (oldAccNo <> "Account No.") then begin
-                    oldAccType := "Account Type";
-                    oldAccNo := "Account No.";
-                    NoOfLinesPerVendor := 0;
-                end;
 
                 AgeDays := 0;
                 CashDiscDays := 0;
@@ -356,12 +351,10 @@ report 3010545 "DTA Payment Journal"
                 if "Amount (LCY)" > LargestAmt then
                     LargestAmt := "Amount (LCY)";
 
-                NoOfLinesPerVendor := NoOfLinesPerVendor + 1;
-                if NoOfLinesPerVendor > 1 then
-                    if "Account Type" = "Account Type"::Employee then
-                        TotalVendorTxt := CopyStr(TotalEmployeeMsg + ' ' + "Account No." + ' ' + AccountName, 1, MaxStrLen(TotalVendorTxt))
-                    else
-                        TotalVendorTxt := CopyStr(Text005Msg + ' ' + "Account No." + ' ' + AccountName, 1, MaxStrLen(TotalVendorTxt));
+                if "Account Type" = "Account Type"::Employee then
+                    TotalVendorTxt := CopyStr(TotalEmployeeMsg + ' ' + "Account No." + ' ' + AccountName, 1, MaxStrLen(TotalVendorTxt))
+                else
+                    TotalVendorTxt := CopyStr(Text005Msg + ' ' + "Account No." + ' ' + AccountName, 1, MaxStrLen(TotalVendorTxt));
             end;
 
             trigger OnPreDataItem()
@@ -370,8 +363,6 @@ report 3010545 "DTA Payment Journal"
                 SetRange("Document Type", "Document Type"::Payment);
 
                 intLayout := Layout;
-                oldAccNo := '';
-                Clear(oldAccType);
             end;
         }
     }
@@ -444,7 +435,6 @@ report 3010545 "DTA Payment Journal"
         xAcc: Text;
         LargestAmt: Decimal;
         TotalVendorTxt: Text[80];
-        NoOfLinesPerVendor: Integer;
         AgeDays: Integer;
         CashDiscDays: Integer;
         DueDays: Integer;
@@ -454,8 +444,6 @@ report 3010545 "DTA Payment Journal"
         PmtToleranceAmount: Decimal;
         RestAfterPmt: Decimal;
         intLayout: Integer;
-        oldAccNo: Code[20];
-        oldAccType: Enum "Gen. Journal Account Type";
         AccountName: Text[100];
         PaymentFormTxt: Text;
         BatchNameCaptionLbl: Label 'Batch Name';
