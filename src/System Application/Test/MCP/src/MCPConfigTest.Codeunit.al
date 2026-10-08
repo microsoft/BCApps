@@ -1109,6 +1109,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    [HandlerFunctions('DataQueryBillingNoHandler')]
     procedure TestImportConfiguration()
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -1147,13 +1148,55 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode mismatch');
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
         Assert.IsTrue(MCPConfiguration.EnableApiTools, 'EnableApiTools mismatch');
-        Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'EnableAlQueryTools mismatch');
+        Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled on import');
 
         // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
         Assert.RecordCount(MCPConfigurationTool, 2);
         MCPConfigurationTool.FindFirst();
         Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version mismatch');
+    end;
+
+    [Test]
+    [HandlerFunctions('DataQueryBillingYesHandler')]
+    procedure TestImportConfigurationWithAcknowledgedDataQueryTools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+        ImportedConfigId: Guid;
+        NewName: Text[100];
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('{"name":"Imported configuration","enableAlQueryTools":true,"tools":[]}');
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        NewName := CopyStr(Format(CreateGuid()), 1, MaxStrLen(NewName));
+
+        ImportedConfigId := MCPConfig.ImportConfiguration(InStream, NewName, 'Imported configuration');
+
+        MCPConfiguration.GetBySystemId(ImportedConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be enabled after acknowledgement');
+    end;
+
+    [Test]
+    [HandlerFunctions('DataQueryBillingYesHandler')]
+    procedure TestConfirmDataQueryToolsOnImportYes()
+    begin
+        Assert.IsTrue(MCPConfigTestLibrary.ConfirmDataQueryToolsOnImport(true), 'Data Query Tools should be enabled after confirmation');
+    end;
+
+    [Test]
+    [HandlerFunctions('DataQueryBillingNoHandler')]
+    procedure TestConfirmDataQueryToolsOnImportNo()
+    begin
+        Assert.IsFalse(MCPConfigTestLibrary.ConfirmDataQueryToolsOnImport(true), 'Data Query Tools should remain disabled when confirmation is declined');
+    end;
+
+    [Test]
+    procedure TestConfirmDataQueryToolsOnImportWhenNotRequested()
+    begin
+        Assert.IsFalse(MCPConfigTestLibrary.ConfirmDataQueryToolsOnImport(false), 'Data Query Tools should remain disabled when not requested');
     end;
 
     #endregion
@@ -1265,6 +1308,28 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestSetAsDefaultConfigurationFromCard()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] An active configuration is open on the card
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [WHEN] Set as Default is invoked
+        MCPConfigCard.SetAsDefault.Invoke();
+
+        // [THEN] Configuration is marked as default
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.Default, 'Configuration should be marked as default');
+    end;
+
+    [Test]
     procedure TestClearDefaultConfiguration()
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -1284,6 +1349,32 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfiguration.Default, 'Configuration should not be marked as default');
 
         // [THEN] System default is re-marked as default
+        SystemDefault.Get('');
+        Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
+    end;
+
+    [Test]
+    procedure TestClearDefaultConfigurationFromCard()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        SystemDefault: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A designated default configuration is open on the card
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [WHEN] Clear Default is invoked
+        MCPConfigCard.ClearDefault.Invoke();
+
+        // [THEN] The system default is restored
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.Default, 'Configuration should not be marked as default');
         SystemDefault.Get('');
         Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
     end;
@@ -1409,7 +1500,7 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Dynamic Tool Mode row is missing');
         Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected second feature');
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Data Query Tools row is missing');
-        Assert.AreEqual('Data Query Tools (Preview)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
+        Assert.AreEqual('Data Query Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
         Assert.IsFalse(MCPConfigCard.ServerFeatureList.Next(), 'Unexpected extra feature rows');
     end;
 
@@ -1664,6 +1755,18 @@ codeunit 130130 "MCP Config Test"
     begin
         MCPAPIObjectLookup.First();
         MCPAPIObjectLookup.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure DataQueryBillingYesHandler(var MCPBillingConfirmation: TestPage "MCP Billing Confirmation")
+    begin
+        MCPBillingConfirmation.Yes().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure DataQueryBillingNoHandler(var MCPBillingConfirmation: TestPage "MCP Billing Confirmation")
+    begin
+        MCPBillingConfirmation.No().Invoke();
     end;
 
     [ModalPageHandler]

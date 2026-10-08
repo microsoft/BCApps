@@ -37,6 +37,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         SecondFileNameTxt: Label 'Second';
         FileNameTxt: Label 'filename';
         AttachFileLbl: Label 'Attach a file';
+        CreateReinspectionQst: Label 'Are you sure you want to create a Re-inspection?';
         IsInitialized: Boolean;
 
     [Test]
@@ -941,6 +942,43 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         LibraryAssert.AreEqual(0, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should remain zero on reopen.');
     end;
 
+    [Test]
+    [HandlerFunctions('ReinspectionConfirmHandler')]
+    procedure ReinspectionClearsPassAndFailQuantity()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 647712] Creating a re-inspection from a finished inspection starts with cleared Pass and Fail Quantities.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A finished inspection "I" with both Fail Quantity (from a Not acceptable result) and Pass Quantity populated
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::"Not acceptable");
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 4;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionHeader."Pass Quantity" := 3;
+        QltyInspectionHeader.Modify(false);
+        LibraryAssert.AreEqual(4, QltyInspectionHeader."Fail Quantity", 'Pre-condition: Fail Quantity should be set on the finished inspection.');
+        LibraryAssert.AreEqual(3, QltyInspectionHeader."Pass Quantity", 'Pre-condition: Pass Quantity should be set on the finished inspection.');
+
+        // [WHEN] A re-inspection "R" is created from "I"
+        QltyInspectionHeader.CreateReinspection();
+
+        // [THEN] The new re-inspection carries neither Pass nor Fail Quantity from the previous inspection
+        ReQltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No." + 1);
+        LibraryAssert.AreEqual(0, ReQltyInspectionHeader."Fail Quantity", 'Fail Quantity should be cleared on the new re-inspection.');
+        LibraryAssert.AreEqual(0, ReQltyInspectionHeader."Pass Quantity", 'Pass Quantity should be cleared on the new re-inspection.');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
@@ -963,6 +1001,13 @@ codeunit 139970 "Qlty. Tests - Insepctions"
     [ConfirmHandler]
     procedure ConfirmHandler(Question: Text; var Reply: Boolean)
     begin
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ReinspectionConfirmHandler(Question: Text; var Reply: Boolean)
+    begin
+        LibraryAssert.AreEqual(CreateReinspectionQst, Question, 'The re-inspection confirmation dialog should be raised.');
         Reply := true;
     end;
 

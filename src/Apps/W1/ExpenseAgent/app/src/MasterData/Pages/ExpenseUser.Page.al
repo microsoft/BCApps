@@ -145,6 +145,20 @@ page 6949 "Expense User"
                     ToolTip = 'Specifies whether a welcome email has been queued, sent, or failed for the expense user.';
                 }
             }
+            group("Approval Information")
+            {
+                Caption = 'Approval Information';
+                Visible = Rec."Can Approve";
+
+                field("Approval Limit (LCY)"; Rec."Approval Limit (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Unlimited Approval"; Rec."Unlimited Approval")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+            }
             part(ExpenseApprovalSetup; "Expense Approval Setups Part")
             {
                 ApplicationArea = Basic, Suite;
@@ -234,16 +248,18 @@ page 6949 "Expense User"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        exit(Rec.ConfirmApproverReassignment());
+        IsDeletingExpenseUser := Rec.ConfirmApproverReassignment();
+        exit(IsDeletingExpenseUser);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         ConfirmManagement: Codeunit "Confirm Management";
     begin
-        if Rec."Employee No." = '' then
-            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseWithoutEmployeeNoQst, Rec.FieldCaption("Employee No.")), true) then
-                exit(false);
+        if not IsDeletingExpenseUser then
+            if Rec."Employee No." = '' then
+                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseWithoutEmployeeNoQst, Rec.FieldCaption("Employee No.")), true) then
+                    exit(false);
     end;
 
     trigger OnOpenPage()
@@ -260,6 +276,7 @@ page 6949 "Expense User"
     var
         NoFieldVisible: Boolean;
         IsCreateEmployeeVisible: Boolean;
+        IsDeletingExpenseUser: Boolean;
         CloseWithoutEmployeeNoQst: Label '%1 is blank. The expense user will not be linked to an employee.\\Are you sure you want to exit?', Comment = '%1 = Employee No. field caption';
 
     local procedure SetCodeFieldVisible()

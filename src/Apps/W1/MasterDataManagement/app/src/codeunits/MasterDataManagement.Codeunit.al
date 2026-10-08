@@ -74,6 +74,7 @@ codeunit 7233 "Master Data Management"
         EmptyIntegrationRecordSystemIdErr: Label 'Empty integration record system id.', Locked = true;
         DeletionConflictHandledRemoveCouplingTxt: Label 'Deletion conflict handled by removing the coupling to the deleted record.', Locked = true;
         DeletionConflictHandledRestoreRecordTxt: Label 'Deletion conflict handled by restoring the deleted record.', Locked = true;
+        DeletionConflictSourceRecordErr: Label 'The source record %1 cannot be synchronized because the record it is coupled to has been deleted. Restore the deleted record, or choose a Deletion-Conflict Resolution for this table on the Synchronization Tables page.', Comment = '%1 = the source record identifier';
         ResetAllCustomIntegrationTableMappingsLbl: Label 'One or more of the selected integration table mappings is custom. \\To restore a custom table mapping, you must subscribe to the event OnBeforeResetTableMapping in codeunit "Master Data Mgt. Setup Default" and implement the defaults for each custom table mapping. \\Do you want to continue?';
         DeletedRecordWithZeroTableIdTxt: Label 'CRM Integration Record with zero Table ID has been deleted. Integration ID: %1, CRM ID: %2', Locked = true;
         AllRecordsMarkedAsSkippedTxt: Label 'All of selected %1 records are marked as skipped.', Comment = '%1 = table caption';
@@ -1181,7 +1182,12 @@ codeunit 7233 "Master Data Management"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnDeletionConflictDetected', '', false, false)]
-    local procedure HandleOnDeletionConflictDetected(var IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var DeletionConflictHandled: Boolean)
+    local procedure OnDeletionConflictDetected(var IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var DeletionConflictHandled: Boolean)
+    begin
+        HandleOnDeletionConflictDetected(IntegrationTableMapping, SourceRecordRef, DeletionConflictHandled);
+    end;
+
+    internal procedure HandleOnDeletionConflictDetected(var IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var DeletionConflictHandled: Boolean)
     var
         IntegrationSystemId: Guid;
     begin
@@ -1215,6 +1221,11 @@ codeunit 7233 "Master Data Management"
                     Session.LogMessage('0000J89', DeletionConflictHandledRestoreRecordTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 end;
         end;
+
+        // The platform's default deletion-conflict error names only the table; when MDM hasn't resolved the conflict
+        // (e.g. Deletion-Conflict Resolution = None), fail with a message that identifies the specific source record.
+        if (not DeletionConflictHandled) and (IntegrationTableMapping.Type = IntegrationTableMapping.Type::"Master Data Management") then
+            Error(DeletionConflictSourceRecordErr, Format(SourceRecordRef.RecordId(), 0, 1));
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"My Notifications", 'OnInitializingNotificationWithDefaultState', '', false, false)]
