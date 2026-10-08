@@ -202,6 +202,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.IsTrue(Impl.UploadToExternalStorage(Attachment), 'Pre-existing external copy should be used without reupload');
         UploadCalls := FileConnectorMock.GetCreateFileCallCount();
         Attachment.SetRecFilter();
+        Commit();
         Report.RunModal(Report::"DA External Storage Sync", true, false, Attachment);
         RefreshAttachment(Attachment);
         AssertInternalReleaseBlocked(Attachment);
