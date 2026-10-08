@@ -8,6 +8,7 @@ tableextension 27037 "DIOT VAT Posting Setup" extends "VAT Posting Setup"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(27000; "DIOT WHT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -15,5 +16,6 @@ tableextension 27037 "DIOT VAT Posting Setup" extends "VAT Posting Setup"
             DataClassification = CustomerContent;
             MinValue = 0;
         }
+#pragma warning restore AS0099
     }
 }
