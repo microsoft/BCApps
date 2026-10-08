@@ -516,6 +516,7 @@ codeunit 135005 "ERM Financial Report Schedules"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PrintPackageUsesPackageCodeAsFileName()
     var
         AccScheduleName: Record "Acc. Schedule Name";
