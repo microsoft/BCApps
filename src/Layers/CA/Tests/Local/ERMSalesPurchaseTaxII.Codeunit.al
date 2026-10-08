@@ -334,55 +334,6 @@ codeunit 142051 "ERM Sales/Purchase Tax II"
           'VATAmountLine__VAT_Amount_', Round(PurchaseLine."Line Amount" * PurchaseLine."VAT %" / 100));
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ServiceOrderStatsTestPageHandler')]
-    [Scope('OnPrem')]
-    procedure StatisticsServiceOrderTaxAmount()
-    var
-        ServiceHeader: Record "Service Header";
-        ServiceOrder: TestPage "Service Order";
-        TaxAmount: Decimal;
-    begin
-        // Verify Tax Amount on Service Order Statistics.
-
-        // Setup: Create Service Order and open Service Order page.
-        Initialize();
-        TaxAmount := CreateServiceDocumentWithCurrency(ServiceHeader, ServiceHeader."Document Type"::Order);
-        LibraryVariableStorage.Enqueue(ServiceHeader."Currency Code");
-        LibraryVariableStorage.Enqueue(TaxAmount);
-        OpenServiceOrderPage(ServiceHeader, ServiceOrder);
-
-        // Exercise.
-        ServiceOrder.Statistics.Invoke();
-
-        // Verify: Verify Tax Amount on Service Order Statistics. Verification done in ServiceOrderStatsTestPageHandler.
-    end;
-
-    [Test]
-    [HandlerFunctions('ServiceStatsTestPageHandler')]
-    [Scope('OnPrem')]
-    procedure StatisticsServiceInvoiceTaxAmount()
-    var
-        ServiceHeader: Record "Service Header";
-        ServiceInvoice: TestPage "Service Invoice";
-        TaxAmount: Decimal;
-    begin
-        // Verify Tax Amount on Service Invoice Statistics.
-
-        // Setup: Create Service Invoice and open Service Invoice page.
-        Initialize();
-        TaxAmount := CreateServiceDocumentWithCurrency(ServiceHeader, ServiceHeader."Document Type"::Invoice);
-        LibraryVariableStorage.Enqueue(ServiceHeader."Currency Code");
-        LibraryVariableStorage.Enqueue(TaxAmount);
-        OpenServiceInvoicePage(ServiceHeader, ServiceInvoice);
-
-        // Exercise.
-        ServiceInvoice.Statistics.Invoke();
-
-        // Verify: Verify Tax Amount on Service Invoice Statistics. Verification done in ServiceStatsTestPageHandler.
-    end;
-#endif
     [Test]
     [HandlerFunctions('ServiceOrderStatsTestPageHandlerNM')]
     [Scope('OnPrem')]
@@ -6591,36 +6542,7 @@ codeunit 142051 "ERM Sales/Purchase Tax II"
         LibraryVariableStorage.Dequeue(TaxAmount);
         PurchaseStats.TaxAmount.AssertEquals(TaxAmount);
     end;
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceOrderStatsTestPageHandler(var ServiceOrderStats: TestPage "Service Order Stats.")
-    var
-        Currency: Record Currency;
-        CurrencyCode: Variant;
-        TaxAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(CurrencyCode);
-        LibraryVariableStorage.Dequeue(TaxAmount);
-        Currency.Get(CurrencyCode);
-        Assert.AreNearlyEqual(
-          TaxAmount, ServiceOrderStats.TaxAmount.AsDecimal(), Currency."Amount Rounding Precision", TaxAmountMustMatchErr);
-    end;
 
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceStatsTestPageHandler(var ServiceStats: TestPage "Service Stats.")
-    var
-        Currency: Record Currency;
-        CurrencyCode: Variant;
-        TaxAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(CurrencyCode);
-        LibraryVariableStorage.Dequeue(TaxAmount);
-        Currency.Get(CurrencyCode);
-        Assert.AreNearlyEqual(TaxAmount, ServiceStats.VATAmount.AsDecimal(), Currency."Amount Rounding Precision", TaxAmountMustMatchErr);
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure ServiceOrderStatsTestPageHandlerNM(var ServiceOrderStats: TestPage "Service Order Stats.")

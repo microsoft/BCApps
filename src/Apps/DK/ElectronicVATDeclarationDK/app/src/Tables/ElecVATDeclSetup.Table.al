@@ -1,9 +1,9 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
-using System.Integration;
 using System.Privacy;
 using System.Security.Encryption;
 using System.Telemetry;
+using System.Utilities;
 
 table 13605 "Elec. VAT Decl. Setup"
 {
@@ -158,9 +158,16 @@ table 13605 "Elec. VAT Decl. Setup"
 
     local procedure CheckUrl(Url: Text[250])
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        Uri: Codeunit Uri;
+        InvalidUrlErr: Label 'The URL is not valid.';
+        NonSecureUrlErr: Label 'The URL is not secure.';
     begin
-        HttpWebRequestMgt.CheckUrl(Url);
+        if not Uri.IsValidUri(Url) then
+            Error(InvalidUrlErr);
+
+        Uri.Init(Url);
+        if Uri.GetScheme() <> 'https' then
+            Error(NonSecureUrlErr);
     end;
 
     local procedure CheckCertHasPrivateKey(CertificateCode: Code[20]; ExpectedValue: Boolean)
