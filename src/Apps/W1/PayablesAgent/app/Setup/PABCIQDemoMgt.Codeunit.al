@@ -76,7 +76,7 @@ codeunit 3327 "PA BC IQ Demo Mgt."
         CreateTextToAccountMappings(DemoState);
         CreateHistoryInvoices(DemoState);
         CreateBusinessSkills(DemoState);
-        SetBusinessCentralIQEnabled(false);
+        SetPayablesAgentBusinessCentralIQEnabled(false);
 
         DemoState.Insert(true);
     end;
@@ -137,12 +137,18 @@ codeunit 3327 "PA BC IQ Demo Mgt."
     procedure SetBusinessCentralIQEnabled(Enabled: Boolean)
     var
         DemoState: Record "PA BC IQ Demo State";
-        PayablesAgentSetup: Record "Payables Agent Setup";
     begin
         VerifyTargetCompany();
         if not DemoState.Get(StatePrimaryKeyTok) or (DemoState."Setup Version" <> 2) then
             Error(NotConfiguredErr);
 
+        SetPayablesAgentBusinessCentralIQEnabled(Enabled);
+    end;
+
+    local procedure SetPayablesAgentBusinessCentralIQEnabled(Enabled: Boolean)
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
         PayablesAgentSetup.GetSetup();
         if PayablesAgentSetup."Use Business Central IQ" = Enabled then
             exit;
