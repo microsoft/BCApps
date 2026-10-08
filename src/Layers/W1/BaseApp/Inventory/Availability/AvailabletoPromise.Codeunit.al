@@ -24,10 +24,6 @@ codeunit 5790 "Available to Promise"
                   tabledata "Item Ledger Entry" = r,
                   tabledata "Job Planning Line" = r,
                   tabledata "Planning Component" = r,
-#if not CLEAN27
-                  tabledata Microsoft.Manufacturing.Document."Prod. Order Component" = r,
-                  tabledata Microsoft.Manufacturing.Document."Prod. Order Line" = r,
-#endif
                   tabledata "Purchase Line" = r,
                   tabledata "Requisition Line" = r,
                   tabledata "Reservation Entry" = r,

@@ -95,17 +95,6 @@ codeunit 7301 "Whse. Jnl.-Register Line"
         WarehouseRegister.Lock();
     end;
 
-#if not CLEAN27
-    [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-    procedure LockIfLegacyPosting()
-    begin
-    end;
-
-    [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-    procedure LockTables()
-    begin
-    end;
-#endif
     procedure InitWhseEntry(var WhseEntry: Record "Warehouse Entry"; ZoneCode: Code[10]; BinCode: Code[20]; Sign: Integer)
     var
         ToBinContent: Record "Bin Content";

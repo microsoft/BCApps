@@ -510,6 +510,122 @@ codeunit 139400 "Permissions Test"
         RecRef.Delete();
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure PopulatePermissionBufferPrefersSpecificObjectOverWildcard()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: Record "Tenant Permission";
+        AccessControl: Record "Access Control";
+        TempPermissionBuffer: Record "Permission Buffer" temporary;
+        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        SpecificPageId: Integer;
+    begin
+        // [SCENARIO 615963] A specific object permission is displayed instead of the wildcard permission
+        // [GIVEN] Running on-prem, so entitlement permissions are not resolved for the test user
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+
+        // [GIVEN] A permission set with an indirect wildcard permission
+        SpecificPageId := Page::"Customer Card";
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
+
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := 0;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Indirect;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The same permission set grants direct access to a specific page
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := SpecificPageId;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Yes;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The permission set is assigned to the current user
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := TenantPermissionSet."Role ID";
+        AccessControl.Scope := AccessControl.Scope::Tenant;
+        AccessControl."Company Name" := GetCurrentCompanyName();
+        AccessControl.Insert(true);
+
+        // [WHEN] The permission buffer is populated for the specific page
+        EffectivePermissionsMgt.PopulatePermissionBuffer(
+            TempPermissionBuffer, UserSecurityId(), GetCurrentCompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+
+        // [THEN] The specific page permission is displayed
+        TempPermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
+        Assert.IsTrue(TempPermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
+        Assert.AreEqual(
+            TempPermissionBuffer."Execute Permission"::Yes, TempPermissionBuffer."Execute Permission",
+            'The specific page permission should override the wildcard permission.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure PopulatePermissionBufferPrefersSpecificEmptyOverWildcard()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: Record "Tenant Permission";
+        AccessControl: Record "Access Control";
+        TempPermissionBuffer: Record "Permission Buffer" temporary;
+        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        SpecificPageId: Integer;
+    begin
+        // [SCENARIO 615963] A specific exclusion is displayed instead of the wildcard permission
+        // [GIVEN] Running on-prem, so entitlement permissions are not resolved for the test user
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+
+        // [GIVEN] A permission set with a wildcard permission
+        SpecificPageId := Page::"Customer Card";
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
+
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := 0;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Yes;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The same permission set excludes a specific page
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := SpecificPageId;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::" ";
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The permission set is assigned to the current user
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := TenantPermissionSet."Role ID";
+        AccessControl.Scope := AccessControl.Scope::Tenant;
+        AccessControl."Company Name" := GetCurrentCompanyName();
+        AccessControl.Insert(true);
+
+        // [WHEN] The permission buffer is populated for the specific page
+        EffectivePermissionsMgt.PopulatePermissionBuffer(
+            TempPermissionBuffer, UserSecurityId(), GetCurrentCompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+
+        // [THEN] The specific page exclusion is displayed
+        TempPermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
+        Assert.IsTrue(TempPermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
+        Assert.AreEqual(
+            TempPermissionBuffer."Execute Permission"::" ", TempPermissionBuffer."Execute Permission",
+            'The specific page exclusion should override the wildcard permission.');
+    end;
+
     //[Test] ignore 426467
     [HandlerFunctions('SendResolveNotificationHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -528,7 +644,7 @@ codeunit 139400 "Permissions Test"
         AccessControl."App ID" := AppID;
         AccessControl."Role ID" := PermissionSetNonExistentTxt;
         AccessControl."User Security ID" := UserSecurityId();
-        AccessControl."Company Name" := CompanyName();
+        AccessControl."Company Name" := GetCurrentCompanyName();
         AccessControl.Scope := AccessControl.Scope::Tenant;
         AccessControl.Insert();
 
@@ -536,7 +652,7 @@ codeunit 139400 "Permissions Test"
         PermissionPagesMgt.CreateAndSendResolvePermissionNotification();
 
         // [Then] Validate that the record no longer exists
-        Found := AccessControl.Get(UserSecurityId(), PermissionSetNonExistentTxt, CompanyName(), AccessControl.Scope::Tenant, AppID);
+        Found := AccessControl.Get(UserSecurityId(), PermissionSetNonExistentTxt, GetCurrentCompanyName(), AccessControl.Scope::Tenant, AppID);
         Assert.IsFalse(Found, 'Access control still exists.');
     end;
 
@@ -653,9 +769,13 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet: Record "Tenant Permission Set";
         ExpandedPermission: Record "Expanded Permission";
         PermSetAssignmentBuffer: Record "Perm. Set Assignment Buffer";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         PermissionsOverview: TestPage "Permissions Overview";
     begin
         // [SCENARIO] A local user with permission set is shown in the permissions overview factbox
+        // [GIVEN] Running in SaaS, so Entra security groups are resolved through the mock graph
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
         CreateUserData(GraphUser, LocalUser, SecurityGroupBuffer);
         CreatePermSetData(TenantPermissionSet, NullGuid);
 
@@ -677,6 +797,8 @@ codeunit 139400 "Permissions Test"
             Assert.AreEqual(LocalUser."User Name", PermissionsOverview.PermissionSetUsers.UserName.Value,
                 'Local user assigned permission set was not found in factbox');
         until (ExpandedPermission.Next() = 0);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]
@@ -690,9 +812,13 @@ codeunit 139400 "Permissions Test"
         ExpandedPermission: Record "Expanded Permission";
         PermSetAssignmentBuffer: Record "Perm. Set Assignment Buffer";
         SecurityGroup: Codeunit "Security Group";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         PermissionsOverview: TestPage "Permissions Overview";
     begin
         // [SCENARIO] A security group with with user and permission set is shown in the permissions overview factbox
+        // [GIVEN] Running in SaaS, so Entra security groups are resolved through the mock graph
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
         CreateUserData(GraphUser, LocalUser, SecurityGroupBuffer);
         CreatePermSetData(TenantPermissionSet, NullGuid);
 
@@ -720,6 +846,8 @@ codeunit 139400 "Permissions Test"
             Assert.AreEqual(GraphUser."User Name", PermissionsOverview.PermissionSetUsers.UserName.Value,
                 'Graph user inheriting permission set from security group was not found in factbox');
         until (ExpandedPermission.Next() = 0);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]
@@ -937,6 +1065,13 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet."Role ID" := LibraryUtility.GenerateGUID();
         TenantPermissionSet.Name := LibraryUtility.GenerateGUID();
         TenantPermissionSet.Insert();
+    end;
+
+    local procedure GetCurrentCompanyName(): Text[30]
+    var
+        AccessControl: Record "Access Control";
+    begin
+        exit(CopyStr(CompanyName(), 1, MaxStrLen(AccessControl."Company Name")));
     end;
 
     local procedure TearDown()
