@@ -1993,7 +1993,7 @@ page 344 Navigate
             if DocNoFilter <> '' then
                 PurchaseHeader.SetFilter("No.", DocNoFilter);
             if ContactNo <> '' then
-                PurchaseHeader.SetFilter("Sell-to Customer No.", ContactNo);
+                PurchaseHeader.SetFilter("Buy-from Vendor No.", ContactNo);
             if ExtDocNo <> '' then
                 case PurchDocType of
                     PurchDocType::Order:
