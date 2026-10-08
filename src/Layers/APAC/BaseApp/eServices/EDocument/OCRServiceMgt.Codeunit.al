@@ -90,26 +90,26 @@ codeunit 1294 "OCR Service Mgt."
         ApplicationXmlTok: Label 'application/xml', Locked = true;
         AcceptHeaderNameTok: Label 'Accept', Locked = true;
         ContentTypeHeaderNameTok: Label 'Content-Type', Locked = true;
-        RemoteServiceErrorMessageErr: Label 'The remote service has returned the following error message:\\';
+        RemoteServiceErrorMessageErr: Label 'The remote service has returned the following error message:\\%1', Comment = '%1 = The error message returned by the remote service';
         ConnectionErr: Label 'Connection to the remote service could not be established.\\';
         RemoteServerReturnedErrorErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
         ServiceUrlTxt: Label '\\Service URL: %1.', Comment = '%1 = The URL of the service, for example https://www.contoso.com/';
         NoCookieErr: Label 'The web request has no cookies.';
         SendRequestFailedTelemetryTxt: Label 'The HTTP request to the OCR service could not be sent.', Locked = true;
-        AuthenticationUrlTxt: Label '%1/authentication/rest/authenticate', Locked = true;
-        ServicePathUrlTxt: Label '%1/%2', Locked = true;
-        UserConfigurationPathTxt: Label 'accounts/rest/customers/%1/userconfiguration', Locked = true;
-        RequestUploadPathTxt: Label 'files/rest/requestupload?targetCount=%1', Locked = true;
-        UploadImagePathTxt: Label 'files/rest/image2?filename=%1&customerid=&batchexternalid=%2&buyerid=&documenttype=%3&sortingmethod=OneDocumentPerFile', Locked = true;
-        LearningDocumentPathTxt: Label 'documents/rest/%1/learningdocument', Locked = true;
-        OutputDocumentsPathTxt: Label 'documents/rest/customers/%1/outputdocuments', Locked = true;
-        BatchDocumentsPathTxt: Label 'documents/rest/customers/%1/batches/%2/documents?pageIndex=%3&pageSize=%4', Locked = true;
-        BatchesWithExternalIdPathTxt: Label 'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&externalId=%4', Locked = true;
-        BatchesPathTxt: Label 'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&excludeProcessed=1', Locked = true;
-        DocumentPathTxt: Label 'documents/rest/%1', Locked = true;
-        DocumentImagePathTxt: Label 'documents/rest/file/%1/image', Locked = true;
-        DocumentDownloadedPathTxt: Label 'documents/rest/%1/downloaded', Locked = true;
-        ExternalDocumentUrlTxt: Label '%1/documents/%2', Locked = true;
+        AuthenticationUrlTxt: Label '%1/authentication/rest/authenticate', Locked = true, Comment = '%1 = OCR service URL';
+        ServicePathUrlTxt: Label '%1/%2', Locked = true, Comment = '%1 = OCR service URL; %2 = API path and query';
+        UserConfigurationPathTxt: Label 'accounts/rest/customers/%1/userconfiguration', Locked = true, Comment = '%1 = organization ID';
+        RequestUploadPathTxt: Label 'files/rest/requestupload?targetCount=%1', Locked = true, Comment = '%1 = number of documents to upload';
+        UploadImagePathTxt: Label 'files/rest/image2?filename=%1&customerid=&batchexternalid=%2&buyerid=&documenttype=%3&sortingmethod=OneDocumentPerFile', Locked = true, Comment = '%1 = file name; %2 = batch external ID; %3 = document template code';
+        LearningDocumentPathTxt: Label 'documents/rest/%1/learningdocument', Locked = true, Comment = '%1 = document ID';
+        OutputDocumentsPathTxt: Label 'documents/rest/customers/%1/outputdocuments', Locked = true, Comment = '%1 = customer ID';
+        BatchDocumentsPathTxt: Label 'documents/rest/customers/%1/batches/%2/documents?pageIndex=%3&pageSize=%4', Locked = true, Comment = '%1 = customer ID; %2 = batch ID; %3 = page index; %4 = page size';
+        BatchesWithExternalIdPathTxt: Label 'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&externalId=%4', Locked = true, Comment = '%1 = customer ID; %2 = page index; %3 = page size; %4 = batch external ID';
+        BatchesPathTxt: Label 'documents/rest/customers/%1/batches?pageIndex=%2&pageSize=%3&excludeProcessed=1', Locked = true, Comment = '%1 = customer ID; %2 = page index; %3 = page size';
+        DocumentPathTxt: Label 'documents/rest/%1', Locked = true, Comment = '%1 = document ID';
+        DocumentImagePathTxt: Label 'documents/rest/file/%1/image', Locked = true, Comment = '%1 = document ID';
+        DocumentDownloadedPathTxt: Label 'documents/rest/%1/downloaded', Locked = true, Comment = '%1 = document ID';
+        ExternalDocumentUrlTxt: Label '%1/documents/%2', Locked = true, Comment = '%1 = OCR service sign-in URL; %2 = document ID';
 
     procedure SetURLsToDefaultRSO(var OCRServiceSetup: Record "OCR Service Setup")
     begin
@@ -366,7 +366,7 @@ codeunit 1294 "OCR Service Mgt."
         HttpRequestHeaders: HttpHeaders;
     begin
         if not EnvironmentInformation.IsSaaS() then
-            OnOverrideRequestUrl(RequestUrl);
+            OnInitializeRsoRequestOnBeforeSetRequestUri(RequestUrl);
         HttpRequestMessage.SetRequestUri(RequestUrl);
         HttpRequestMessage.Method(Method);
         if AddAuthCookie then
@@ -424,8 +424,8 @@ codeunit 1294 "OCR Service Mgt."
             exit(true);
 
         CustomDimensions.Add('Category', TelemetryCategoryTok);
-        CustomDimensions.Add('ErrorText', GetLastErrorText());
-        Session.LogMessage('0000VWB', SendRequestFailedTelemetryTxt, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        CustomDimensions.Add('ErrorCode', GetLastErrorCode());
+        Session.LogMessage('0000VWB', SendRequestFailedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         exit(false);
     end;
 
@@ -449,8 +449,8 @@ codeunit 1294 "OCR Service Mgt."
         ResponseText: Text;
     begin
         if not RequestSent then begin
-            ErrorText := RemoteServiceErrorMessageErr + ConnectionErr + GetLastErrorText();
-            Error(ErrorText);
+            ErrorText := ConnectionErr + GetLastErrorText();
+            Error(RemoteServiceErrorMessageErr, ErrorText);
         end;
 
         RemoteServerError := StrSubstNo(RemoteServerReturnedErrorErr, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase());
@@ -467,8 +467,7 @@ codeunit 1294 "OCR Service Mgt."
         if ErrorText = '' then
             ErrorText := RemoteServerError;
 
-        ErrorText := RemoteServiceErrorMessageErr + ErrorText;
-        Error(ErrorText);
+        Error(RemoteServiceErrorMessageErr, ErrorText);
     end;
 
     local procedure GetNodeInnerText(Node: XmlNode): Text
@@ -1509,10 +1508,10 @@ codeunit 1294 "OCR Service Mgt."
     end;
 
     /// <summary>
-    /// Allows tests to redirect OCR service requests to a mock service. Raised only in non-SaaS environments.
+    /// Raised in InitializeRsoRequest before the request URI is set. Allows tests to redirect OCR service requests to a mock service. Raised only in non-SaaS environments.
     /// </summary>
     [InternalEvent(false)]
-    local procedure OnOverrideRequestUrl(var Url: Text)
+    local procedure OnInitializeRsoRequestOnBeforeSetRequestUri(var Url: Text)
     begin
     end;
 }

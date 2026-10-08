@@ -75,8 +75,8 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         EncodingUtf8Txt: Label 'utf-8', Locked = true;
         AcceptEncodingHeaderNameTxt: Label 'Accept-Encoding', Locked = true;
         AuthorizationHeaderNameTxt: Label 'Authorization', Locked = true;
-        BasicAuthorizationCredentialsTxt: Label '%1:%2', Locked = true;
-        BasicAuthorizationSchemeTxt: Label 'Basic %1', Locked = true;
+        BasicAuthorizationCredentialsTxt: Label '%1:%2', Locked = true, Comment = '%1 = user name (client ID); %2 = password (client secret)';
+        BasicAuthorizationSchemeTxt: Label 'Basic %1', Locked = true, Comment = '%1 = Base64-encoded credentials';
         AcceptHeaderNameTxt: Label 'Accept', Locked = true;
         ContentTypeHeaderNameTxt: Label 'Content-Type', Locked = true;
         UserAgentHeaderNameTxt: Label 'User-Agent', Locked = true;
@@ -151,23 +151,23 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         ServiceUrlTxt: Label '\\Service URL: %1.', Comment = '%1 = The URL of the service, for example https://www.contoso.com/';
         ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
         SendRequestFailedTelemetryTxt: Label 'The HTTP request to the document exchange service could not be sent.', Locked = true;
-        PostSalesInvUrlTxt: Label '/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.invoice.ubl.1.0', Locked = true;
-        PostSalesCrMemoUrlTxt: Label '/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.creditnote.ubl.1.0', Locked = true;
-        DocumentMetadataUrlTxt: Label '/documents/%1/metadata', Locked = true;
-        DocumentFileUrlTxt: Label '/documentfiles/%1/file?directory=outbox', Locked = true;
-        DocumentFileDispatcherUrlTxt: Label '/documentfiles/%1/dispatcher?directory=outbox', Locked = true;
-        DocumentFileErrorsUrlTxt: Label '/documentfiles/%1/errors', Locked = true;
-        RetrieveDocsUrlTxt: Label '/documents?stag=inbox&withouttag=BusinessDelivered&limit=%1', Locked = true;
-        DocumentUrlTxt: Label '/documents/%1', Locked = true;
-        OriginalDocumentUrlTxt: Label '/documents/%1/original', Locked = true;
-        BusinessDeliveredTagUrlTxt: Label '/documents/%1/tags/BusinessDelivered', Locked = true;
-        ErrorXPathTxt: Label '//%1:Message', Locked = true;
-        StatusXPathTxt: Label '//%1:DeliveryState', Locked = true;
-        DocumentIdXPathTxt: Label './/%1:DocumentId', Locked = true;
-        DocumentTypeXPathTxt: Label './/%1:DocumentType', Locked = true;
-        DescriptionDocumentIdXPathTxt: Label './/%1:ID', Locked = true;
-        EmbeddedDocumentXPathTxt: Label '//%1:EmbeddedDocumentBinaryObject', Locked = true;
-        ExternalDocUrlTxt: Label 'https://%1.tradeshift.com/app/Tradeshift.Migration#::conversation/view/%2::', Locked = true;
+        PostSalesInvUrlTxt: Label '/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.invoice.ubl.1.0', Locked = true, Comment = '%1 = document ID';
+        PostSalesCrMemoUrlTxt: Label '/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.creditnote.ubl.1.0', Locked = true, Comment = '%1 = document ID';
+        DocumentMetadataUrlTxt: Label '/documents/%1/metadata', Locked = true, Comment = '%1 = document ID';
+        DocumentFileUrlTxt: Label '/documentfiles/%1/file?directory=outbox', Locked = true, Comment = '%1 = file name';
+        DocumentFileDispatcherUrlTxt: Label '/documentfiles/%1/dispatcher?directory=outbox', Locked = true, Comment = '%1 = file name';
+        DocumentFileErrorsUrlTxt: Label '/documentfiles/%1/errors', Locked = true, Comment = '%1 = document ID';
+        RetrieveDocsUrlTxt: Label '/documents?stag=inbox&withouttag=BusinessDelivered&limit=%1', Locked = true, Comment = '%1 = maximum number of documents to retrieve';
+        DocumentUrlTxt: Label '/documents/%1', Locked = true, Comment = '%1 = document ID';
+        OriginalDocumentUrlTxt: Label '/documents/%1/original', Locked = true, Comment = '%1 = document ID';
+        BusinessDeliveredTagUrlTxt: Label '/documents/%1/tags/BusinessDelivered', Locked = true, Comment = '%1 = document ID';
+        ErrorXPathTxt: Label '//%1:Message', Locked = true, Comment = '%1 = XML namespace prefix';
+        StatusXPathTxt: Label '//%1:DeliveryState', Locked = true, Comment = '%1 = XML namespace prefix';
+        DocumentIdXPathTxt: Label './/%1:DocumentId', Locked = true, Comment = '%1 = XML namespace prefix';
+        DocumentTypeXPathTxt: Label './/%1:DocumentType', Locked = true, Comment = '%1 = XML namespace prefix';
+        DescriptionDocumentIdXPathTxt: Label './/%1:ID', Locked = true, Comment = '%1 = XML namespace prefix';
+        EmbeddedDocumentXPathTxt: Label '//%1:EmbeddedDocumentBinaryObject', Locked = true, Comment = '%1 = XML namespace prefix';
+        ExternalDocUrlTxt: Label 'https://%1.tradeshift.com/app/Tradeshift.Migration#::conversation/view/%2::', Locked = true, Comment = '%1 = Tradeshift subdomain, for example www or sandbox; %2 = document ID';
 
 
     procedure IsSandbox(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Boolean
@@ -1250,7 +1250,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
         Clear(GLBHttpRequestMessage);
         if not EnvironmentInfo.IsSaaS() then
-            OnOverrideRequestUrl(URL);
+            OnInitializeOnBeforeSetRequestUri(URL);
         GLBRequestUrl := URL;
         GLBHttpRequestMessage.SetRequestUri(URL);
         GLBHttpRequestMessage.Method(Method);
@@ -1381,8 +1381,8 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             end;
         end else begin
             CustomDimensions.Add('Category', TelemetryCategoryTok);
-            CustomDimensions.Add('ErrorText', GetLastErrorText());
-            Session.LogMessage('0000VWA', SendRequestFailedTelemetryTxt, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            CustomDimensions.Add('ErrorCode', GetLastErrorCode());
+            Session.LogMessage('0000VWA', SendRequestFailedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         end;
 
         ErrorMessage := GetFaultErrorText(SendSucceeded);
@@ -1975,10 +1975,10 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     end;
 
     /// <summary>
-    /// Allows tests to redirect document exchange service requests to a mock service. Raised only in non-SaaS environments.
+    /// Raised in Initialize before the request URI is set. Allows tests to redirect document exchange service requests to a mock service. Raised only in non-SaaS environments.
     /// </summary>
     [InternalEvent(false)]
-    local procedure OnOverrideRequestUrl(var Url: Text)
+    local procedure OnInitializeOnBeforeSetRequestUri(var Url: Text)
     begin
     end;
 }
