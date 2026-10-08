@@ -1709,6 +1709,22 @@ table 246 "Requisition Line"
         Item.TestField(Blocked, false);
     end;
 
+    procedure IsItemBlocked(): Boolean
+    var
+        IsHandled: Boolean;
+    begin
+        if (Type <> Type::Item) or ("No." = '') then
+            exit(false);
+
+        GetItem();
+        if not Item.Blocked then
+            exit(false);
+
+        IsHandled := false;
+        OnBeforeCheckBlockedItem(Rec, IsHandled);
+        exit(not IsHandled);
+    end;
+
     local procedure GetItem()
     begin
         TestField("No.");

@@ -123,7 +123,6 @@ codeunit 5522 "Order Planning Mgt."
         Window.Open(Text000);
         WindowUpdateDateTime := CurrentDateTime;
         NoOfRecords := TempUnplannedDemand.Count;
-
         if TempUnplannedDemand.Find('-') then
             repeat
                 i := i + 1;
@@ -164,10 +163,9 @@ codeunit 5522 "Order Planning Mgt."
         OnInsertDemandLinesOnBeforeFindUnplannedDemand(TempUnplannedDemand, ReqLine);
         TempUnplannedDemand.Find('-');
         HeaderExists := false;
-
         repeat
             if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then
-                if not IsItemBlocked(Item, TempUnplannedDemand."Item No.") then begin
+                if not IsUnplannedDemandItemBlocked(ReqLine) then begin
                     if not HeaderExists then
                         InsertDemandHeader(UnplannedDemand, ReqLine);
                     HeaderExists := true;
@@ -345,7 +343,6 @@ codeunit 5522 "Order Planning Mgt."
         if PAGE.RunModal(PAGE::"Item Substitution Entries", TempItemSub) = ACTION::LookupOK then begin
             // Update sourceline
             OnInsertAltSupplyLocationOnAfterSelectSubstitution(ReqLine, TempItemSub);
-
             if TempItemSub."Quantity Avail. on Shpt. Date" >= ReqLine."Needed Quantity (Base)" then begin
                 ReqLine.Delete(true);
                 DelReqLine := true;
@@ -363,10 +360,8 @@ codeunit 5522 "Order Planning Mgt."
            (ReqLine."Demand Type" <> 5407) // Database::"Prod. Order Component"
         then
             exit(false);
-
         if not Item.Get(ReqLine."No.") then
             exit(false);
-
         if Item."Manufacturing Policy" = Item."Manufacturing Policy"::"Make-to-Order" then
             exit(false);
 
@@ -403,16 +398,13 @@ codeunit 5522 "Order Planning Mgt."
                 AvailableQtyBase :=
                   CalcATPQty(
                     ReqLine."No.", ReqLine."Variant Code", Location.Code, ReqLine."Demand Date");
-
                 if AvailableQtyBase > 0 then
                     AvailableQtyBase -= PromisedTransferQty(ReqLine, Location.Code);
-
                 if AvailableQtyBase > 0 then begin
                     CalcNextLineNo(NextLineNo);
                     TempReqLine := ReqLine;
                     TempReqLine."Line No." += NextLineNo;
                     TempReqLine."Transfer-from Code" := Location.Code;
-
                     if TempReqLine."Qty. per Unit of Measure" = 0 then
                         TempReqLine."Qty. per Unit of Measure" := 1;
 
@@ -491,7 +483,6 @@ codeunit 5522 "Order Planning Mgt."
                 AvailableQtyBase :=
                   CalcATPQty(
                     ReqLine."No.", ReqLine."Variant Code", Location.Code, ReqLine."Demand Date");
-
                 if AvailableQtyBase > 0 then
                     AvailableQtyBase -= PromisedTransferQty(ReqLine, Location.Code);
                 if AvailableQtyBase > 0 then
@@ -501,11 +492,18 @@ codeunit 5522 "Order Planning Mgt."
         exit(AvailableQtyBaseTotal);
     end;
 
-    local procedure IsItemBlocked(var Item: Record Item; ItemNo: Code[20]): Boolean
+    local procedure IsUnplannedDemandItemBlocked(RequisitionLine: Record "Requisition Line"): Boolean
     begin
-        if Item."No." <> ItemNo then
-            Item.Get(ItemNo);
-        exit(Item.Blocked);
+        RequisitionLine.Init();
+        RequisitionLine."Planning Line Origin" := RequisitionLine."Planning Line Origin"::"Order Planning";
+        RequisitionLine.Type := RequisitionLine.Type::Item;
+        RequisitionLine."No." := TempUnplannedDemand."Item No.";
+        RequisitionLine."Variant Code" := TempUnplannedDemand."Variant Code";
+        RequisitionLine."Location Code" := TempUnplannedDemand."Location Code";
+        RequisitionLine."Bin Code" := TempUnplannedDemand."Bin Code";
+        RequisitionLine."Drop Shipment" := TempUnplannedDemand."Drop Shipment";
+
+        exit(RequisitionLine.IsItemBlocked());
     end;
 
     [IntegrationEvent(false, false)]
