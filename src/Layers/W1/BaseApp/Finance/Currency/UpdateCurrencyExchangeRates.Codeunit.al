@@ -7,7 +7,6 @@ namespace Microsoft.Finance.Currency;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.IO;
-using System.Telemetry;
 using System.Utilities;
 
 /// <summary>
