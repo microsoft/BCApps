@@ -164,8 +164,7 @@ codeunit 6969 "Expense Consumption Handler"
         exit(CopilotQuota.CanConsume());
     end;
 
-    local procedure MakeUniqueId(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid;
-                                                            Operation: Code[50]) UniqueId: Text[1024]
+    local procedure MakeUniqueId(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]) UniqueId: Text[1024]
     var
         TempUniqueId: Text;
     begin
