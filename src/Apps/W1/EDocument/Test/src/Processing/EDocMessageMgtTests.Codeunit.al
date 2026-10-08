@@ -10,7 +10,9 @@ using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using System.TestLibraries.Upgrade;
 using System.Threading;
+using System.Upgrade;
 using System.Utilities;
 
 codeunit 139898 "E-Doc. Message Mgt. Tests"
@@ -380,6 +382,41 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PaymentOccurrenceDispatcherUpgradeRunsOnlyOnce()
+    var
+        Customer: Record Customer;
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentUpgrade: Codeunit "E-Document Upgrade";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Dispatcher provisioning runs once and does not recreate a removed job on later upgrades
+        Initialize(Customer);
+        UpgradeTagLibrary.DeleteUpgradeTag(EDocumentUpgrade.GetPaymentOccurrenceDispatcherUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+
+        // [WHEN] The dispatcher provisioning upgrade runs
+        EDocumentUpgrade.UpgradePaymentOccurrenceDispatcher();
+
+        // [THEN] A single dispatcher job is scheduled and the upgrade tag is set
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"E-Doc. Payment Occ. Dispatcher");
+        Assert.RecordCount(JobQueueEntry, 1);
+        Assert.IsTrue(UpgradeTag.HasUpgradeTag(EDocumentUpgrade.GetPaymentOccurrenceDispatcherUpgradeTag()), 'Dispatcher provisioning must set its upgrade tag.');
+
+        // [GIVEN] The dispatcher job is removed after provisioning
+        JobQueueEntry.DeleteAll();
+
+        // [WHEN] The dispatcher provisioning upgrade runs again
+        EDocumentUpgrade.UpgradePaymentOccurrenceDispatcher();
+
+        // [THEN] The completed upgrade does not recreate the removed job
+        Assert.RecordCount(JobQueueEntry, 0);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PaymentOccurrenceDispatcherProcessesPendingCapture()
     var
         Customer: Record Customer;
@@ -415,6 +452,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PaymentOccurrenceDispatcherRetriesFailedProcessing()
     var
         Customer: Record Customer;
@@ -455,6 +493,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PaymentOccurrenceStopsAutomaticRetriesAfterFiveFailures()
     var
         Customer: Record Customer;
@@ -500,6 +539,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ManualPaymentOccurrenceRetrySucceedsWithoutResettingHistory()
     var
         Customer: Record Customer;
@@ -534,6 +574,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FailedManualPaymentOccurrenceRetryRemainsActionRequired()
     var
         Customer: Record Customer;
@@ -571,6 +612,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PaymentOccurrenceDispatcherHonorsBatchLimit()
     var
         Customer: Record Customer;
@@ -605,6 +647,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PaymentOccurrenceDispatcherProcessesEveryDueStatusUnderLoad()
     var
         Customer: Record Customer;
@@ -644,6 +687,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ActivePaymentOccurrenceLeasePreventsConcurrentProcessing()
     var
         Customer: Record Customer;

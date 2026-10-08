@@ -20,8 +20,6 @@ codeunit 6168 "E-Document Upgrade"
     InherentEntitlements = X;
 
     trigger OnUpgradePerCompany()
-    var
-        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         UpgradeLogURLMaxLength();
 #if not CLEAN29
@@ -29,7 +27,7 @@ codeunit 6168 "E-Document Upgrade"
 #endif
         UpgradeDataExchV2Defs();
         UpgradeEnableVATOptionsForPurchEDoc();
-        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
+        UpgradePaymentOccurrenceDispatcher();
         UpgradeSupportedTypeDirection();
         UpgradePaymentOccurrenceRetryStatus();
     end;
@@ -73,6 +71,7 @@ codeunit 6168 "E-Document Upgrade"
         PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
         PerCompanyUpgradeTags.Add(GetUpgradeSupportedTypeDirectionTag());
+        PerCompanyUpgradeTags.Add(GetPaymentOccurrenceDispatcherUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPaymentOccurrenceRetryStatusUpgradeTag());
     end;
 
@@ -161,6 +160,24 @@ codeunit 6168 "E-Document Upgrade"
     internal procedure GetUpgradeSupportedTypeDirectionTag(): Code[250]
     begin
         exit('MS-EDoc-SupportedTypeDirection-20260824');
+    end;
+
+    internal procedure UpgradePaymentOccurrenceDispatcher()
+    var
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetPaymentOccurrenceDispatcherUpgradeTag()) then
+            exit;
+
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
+
+        UpgradeTag.SetUpgradeTag(GetPaymentOccurrenceDispatcherUpgradeTag());
+    end;
+
+    internal procedure GetPaymentOccurrenceDispatcherUpgradeTag(): Code[250]
+    begin
+        exit('MS-EDoc-PaymentOccurrenceDispatcher-20261008');
     end;
 
     local procedure UpgradePaymentOccurrenceRetryStatus()
