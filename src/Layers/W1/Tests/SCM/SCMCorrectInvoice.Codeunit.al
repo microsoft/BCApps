@@ -25,7 +25,6 @@ codeunit 137019 "SCM Correct Invoice"
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryJob: Codeunit "Library - Job";
-        LibraryJournals: Codeunit "Library - Journals";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         ItemTrackingMode: Option "Assign Lot","Verify Lot";
         IsInitialized: Boolean;
