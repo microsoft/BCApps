@@ -10,13 +10,14 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Utilities;
 using System.Agents;
+using System.Agents.Internal;
 using System.AI;
 using System.Environment;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Telemetry;
 
-codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
+codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentExperimental
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -60,6 +61,16 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         if EDocument."Outlook Mail Message Id" <> '' then
             exit(Page::"PA Agent Email Task");
         exit(Page::"PA Agent Upload Task");
+    end;
+
+    procedure GetPageScripts(AgentUserId: Guid; var AgentTaskPageScript: Record "Agent Task Page Script")
+    begin
+        // No page scripts are provided by the Payables Agent.
+    end;
+
+    procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
+    begin
+        exit(Feature = Feature::BusinessIQ);
     end;
 
     procedure GetDefaultInitials(): Text[4]
