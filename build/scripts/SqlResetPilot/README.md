@@ -43,6 +43,12 @@ There is no original300 completion dependency. Pending run **37695638367** at
 `3364691220be1ef5d29b6930eacead98eded0f45` must be confirmed never to have started
 trial jobs, canceled, and confirmed canceled before dispatching this scheduling-only
 successor. This is not a test rerun; all 20 original cell identities remain.
+Run **37757613558** at `45a9269e821a370bc31c8d34b932e292af73ba23`
+validated the pins and matrix but failed before any trials: artifact upload
+excluded the hidden `.sql-api-tenant-plan` directory. It is setup-invalid,
+not application evidence. The corrected upload explicitly includes hidden files
+only for `.sql-api-tenant-plan/*.json`. One authorized bootstrap successor
+preserves all 20 cells; it is not an application retry or protocol change.
 Do not dispatch competing tenant-count runs: GitHub permits only one pending
 run per group and can replace it. Runner-loss orphans still
 require ownership-aware audit; scheduler limits alone cannot prove their removal.

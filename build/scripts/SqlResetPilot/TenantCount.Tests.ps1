@@ -5,6 +5,15 @@ BeforeAll {
     function global:Get-BcContainerServerConfiguration { param($ContainerName) throw 'Live call forbidden.' }
 }
 Describe 'Isolated tenant-count identity and scheduling' {
+    It 'uploads the hidden Plan directory with a JSON-only scope' {
+        $root = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
+        $workflow = Get-Content (Join-Path $root '.github\workflows\CICD.yaml') -Raw
+        $upload = [regex]::Match($workflow, '(?ms)^      - name: Preserve immutable exploratory manifest\r?\n.*?(?=^\S|\z)').Value
+        $upload | Should -Not -BeNullOrEmpty
+        $upload | Should -Match '(?m)^          include-hidden-files: true\r?$'
+        $upload | Should -Match '(?m)^          path: \.sql-api-tenant-plan/\*\.json\r?$'
+        $upload | Should -Match '(?m)^          if-no-files-found: error\r?$'
+    }
     It 'uses an independent two-slot matrix and records scheduling-only supersession' {
         $root = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
         $workflow = Get-Content (Join-Path $root '.github\workflows\CICD.yaml') -Raw

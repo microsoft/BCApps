@@ -38,6 +38,7 @@ jobs:
           name: sql-api-tenant-manifest-${{ github.run_id }}
           retention-days: 14
           if-no-files-found: error
+          include-hidden-files: true
           path: .sql-api-tenant-plan/*.json
 
   Trials:
