@@ -61,6 +61,7 @@ codeunit 139204 "FS Integration Test"
         JobQueueEntryStatusOnHoldErr: Label 'Job Queue Entry status should be On Hold.';
         SetupSuccessfulMsg: Label 'The default setup for %1 synchronization has completed successfully.', Comment = '%1 - Dynamics 365 Field Service';
         HourUnitOfMeasureMustBePickedErr: label 'Field Service uses a fixed unit of measure for bookable resources - hour. You must pick a corresponding resource unit of measure.';
+        SynchronizeEmptySetErr: Label 'Attempted to synchronize an empty set of records.';
         IsInitialized: Boolean;
 
     [Test]
@@ -2194,6 +2195,29 @@ codeunit 139204 "FS Integration Test"
         // [THEN] Only "L2" reaches per-record synchronization.
         Assert.AreEqual(2, ServiceLineRecordRef.FilterGroup(), 'The caller filter group must be preserved.');
         VerifyFilteredPair(ExcludedLine.RecordId(), IncludedLine.RecordId());
+    end;
+
+    [Test]
+    procedure UnfilteredSynchronizationRejectsEmptySet()
+    var
+        ServiceLine: Record "Service Line";
+        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
+        ServiceLineRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.3] [FS Integration] [Mapping Filters]
+        // [SCENARIO 649829] The existing public synchronization API retains its empty-set error behavior.
+        Initialize();
+
+        // [GIVEN] The Field Service mappings exist and the supplied service-line set is empty.
+        InitializeAuxiliarySynchronization();
+        ServiceLine.SetRange(SystemId, CreateGuid());
+        ServiceLineRecordRef.GetTable(ServiceLine);
+
+        // [WHEN] The unfiltered public synchronization API is called.
+        asserterror FSIntTableSubscriber.SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
+
+        // [THEN] The established empty-set error is raised.
+        Assert.ExpectedError(SynchronizeEmptySetErr);
     end;
 
     [Test]

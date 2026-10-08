@@ -1424,14 +1424,16 @@ codeunit 6610 "FS Int. Table Subscriber"
         if not IntegrationTableMapping.FindFirst() then
             Error(SynchronizeEmptySetErr);
 
-        if ApplyTableFilter then begin
 #pragma warning disable AA0214
+        if ApplyTableFilter then
             ApplyMappingFilter(RecordsToSynchRecordRef, IntegrationTableMapping.GetTableFilter());
 #pragma warning restore AA0214
-        end;
         RecordsToSynchRecordRef.Ascending(false);
-        if not RecordsToSynchRecordRef.FindSet() then
-            exit;
+        if not RecordsToSynchRecordRef.FindSet() then begin
+            if ApplyTableFilter then
+                exit;
+            Error(SynchronizeEmptySetErr);
+        end;
 
         JobID :=
           IntegrationTableSynch.BeginIntegrationSynchJob(
