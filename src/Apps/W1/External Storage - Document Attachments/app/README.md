@@ -17,6 +17,12 @@ The External Storage extension provides seamless integration between Microsoft D
 - Remote files are never deleted by attachment deletion, synchronization, or failed-upload handling.
 - **Retire External Reference** removes only local external metadata after a fresh, locked attachment and actual nonempty internal media have been verified. Remote bytes remain retained.
 - External-only, missing-content, temporary, or changed attachment snapshots cannot retire their local references.
+- The public `DeleteFromExternalStorage` overloads retain their signatures, but a successful result now means only that the local reference was retired. Callers must not interpret it as remote deletion.
+
+### **Standalone Scope**
+The filename, synchronization diagnostics, and remote-retention changes operate against the dependencies available on main. They do not require the proposed internal-release work in [#12438](https://github.com/microsoft/BCApps/pull/12438), which is optional future work and is not a remote-deletion or ownership foundation.
+
+Internal release remains the separate synchronous behavior described below; this change does not establish globally owner-safe internal-media release. Remote retention is intentional regardless of whether future internal-release work ships; no future physical remote deletion is promised.
 
 ### **Customizable Root Folder**
 - Configure a custom root folder path for all attachments
