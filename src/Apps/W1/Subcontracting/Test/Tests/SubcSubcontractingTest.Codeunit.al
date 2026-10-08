@@ -3403,6 +3403,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferShipmentHeader: Record "Transfer Shipment Header";
         Vendor: Record Vendor;
         SubcTransferShipmentData: Codeunit "Subc. Transfer Shipment Data";
+        LibraryUtility: Codeunit "Library - Utility";
         SubcontractorAddress: array[8] of Text[100];
         SubcontractorAddressValue: Text[100];
         SubcontractorName: Text[100];
@@ -3411,7 +3412,9 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         // [SCENARIO 649580] A subcontracting return shipment prints the posted transfer-from vendor address.
         Initialize();
-        CreateAndPostOrdinaryTransferShipment(TransferShipmentHeader);
+        TransferShipmentHeader."No." :=
+            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TransferShipmentHeader."No."));
+        TransferShipmentHeader.Insert();
         LibraryPurchase.CreateVendor(Vendor);
         Vendor.Address := CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor.Address)), 1, MaxStrLen(Vendor.Address));
         Vendor."Country/Region Code" :=
@@ -5879,7 +5882,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractorNo: Code[20];
         SubcontractPurchaseOrderNo: Code[20];
     begin
-        LibraryReportDataset.AssertElementTagWithValueExists('No_TransShptHeader', TransferShipmentHeader."No.");
+        LibraryReportDataset.AssertElementWithValueExists('No_TransShptHeader', TransferShipmentHeader."No.");
         SubcTransferShipmentData.GetHeaderData(
             TransferShipmentHeader, SubcontractorNo, SubcontractorName, SubcontractorAddressValue,
             SubcontractorAddress, SubcontractPurchaseOrderNo);
