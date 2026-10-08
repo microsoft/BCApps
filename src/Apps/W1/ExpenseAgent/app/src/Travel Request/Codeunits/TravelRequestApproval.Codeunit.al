@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 using System.Telemetry;
+using System.Text;
 
 codeunit 7133 "Travel Request Approval"
 {
@@ -317,17 +318,13 @@ codeunit 7133 "Travel Request Approval"
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        AssignedFilter: TextBuilder;
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+        RecRef: RecordRef;
     begin
         ExpenseApprovalSetup.SetCurrentKey("Approver No.");
         ExpenseApprovalSetup.SetRange("Approver No.", ApproverExpenseUserNo);
-        ExpenseApprovalSetup.SetLoadFields("Expense User No.");
-        // Ranges between setup rows could include expense users without any approval setup.
-        if ExpenseApprovalSetup.FindSet() then
-            repeat
-                AppendSubmitterFilter(AssignedFilter, ExpenseApprovalSetup."Expense User No.");
-            until ExpenseApprovalSetup.Next() = 0;
-        RequestedForFilter := AssignedFilter.ToText();
+        RecRef.GetTable(ExpenseApprovalSetup);
+        RequestedForFilter := SelectionFilterManagement.GetSelectionFilter(RecRef, ExpenseApprovalSetup.FieldNo("Expense User No."));
 
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Default Approver No." = ApproverExpenseUserNo then
@@ -340,6 +337,7 @@ codeunit 7133 "Travel Request Approval"
     local procedure AppendDefaultSubmitters(var RequestedForFilter: Text)
     var
         ExpenseUser: Record "Expense User";
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
         DefaultFilter: TextBuilder;
     begin
         if RequestedForFilter <> '' then
@@ -350,21 +348,12 @@ codeunit 7133 "Travel Request Approval"
         ExpenseUser.SetLoadFields("No.");
         if ExpenseUser.FindSet() then
             repeat
-                AppendSubmitterFilter(DefaultFilter, ExpenseUser."No.");
+                if DefaultFilter.Length > 0 then
+                    DefaultFilter.Append('|');
+                DefaultFilter.Append(SelectionFilterManagement.AddQuotes(ExpenseUser."No."));
             until ExpenseUser.Next() = 0;
 
         RequestedForFilter := DefaultFilter.ToText();
-    end;
-
-    local procedure AppendSubmitterFilter(var SubmitterFilter: TextBuilder; ExpenseUserNo: Code[20])
-    var
-        ExpenseUserFilter: Record "Expense User";
-    begin
-        // Serialize an exact value so filter operators in user numbers remain literal.
-        ExpenseUserFilter.SetRange("No.", ExpenseUserNo);
-        if SubmitterFilter.Length > 0 then
-            SubmitterFilter.Append('|');
-        SubmitterFilter.Append(ExpenseUserFilter.GetFilter("No."));
     end;
 
     var
