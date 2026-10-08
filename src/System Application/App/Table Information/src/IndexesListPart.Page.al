@@ -416,7 +416,7 @@ page 8704 "Indexes List Part"
         Clear(Rec);
 
         Rec.TableId := KeyRec.TableNo;
-        Rec."Column Names" := KeyRec."Key";
+        Rec."Column Names" := CopyStr(KeyRec."Key", 1, MaxStrLen(Rec."Column Names"));
         Rec."Company Name" := CopyStr(SetCompanyName, 1, MaxStrLen(Rec."Company Name"));
         Rec.Unique := KeyRec.Unique and not IsSift;
         Rec.Enabled := false;
@@ -425,7 +425,7 @@ page 8704 "Indexes List Part"
         Rec."Source App ID" := KeyRec."Source App ID";
         if IsSift then begin
             Rec."Index Type" := Rec."Index Type"::SIFT;
-            Rec."Included Fields" := KeyRec.SumIndexFields;
+            Rec."Included Fields" := CopyStr(KeyRec.SumIndexFields, 1, MaxStrLen(Rec."Included Fields"));
         end else
             Rec."Index Type" := Rec."Index Type"::Index;
 
