@@ -29,9 +29,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
         GetPlanningParameters: Codeunit "Planning-Get Parameters";
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         VersionMgt: Codeunit VersionManagement;
-#if not CLEAN27
-        PlanningLineManagement: Codeunit "Planning Line Management";
-#endif
         Text000: Label 'BOM phantom structure for %1 is higher than 50 levels.';
         Text010: Label 'The line with %1 %2 for %3 %4 or one of its versions, has no %5 defined.';
         Text011: Label '%1 has recalculate set to false.';
@@ -47,9 +44,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
     begin
         IsHandled := false;
         OnBeforeTransferRouting(ReqLine, PlanningResiliency, IsHandled);
-#if not CLEAN27
-        PlanningLineManagement.RunOnBeforeTransferRouting(ReqLine, PlanningResiliency, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -71,9 +65,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
             until RoutingLine.Next() = 0;
 
         OnAfterTransferRouting(ReqLine);
-#if not CLEAN27
-        PlanningLineManagement.RunOnAfterTransferRouting(ReqLine);
-#endif
     end;
 
     local procedure CheckRoutingLine(RoutingHeader: Record "Routing Header"; RoutingLine: Record "Routing Line"; var TempPlanningErrorLog: Record "Planning Error Log" temporary; PlanningResiliency: Boolean)
@@ -117,9 +108,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
     begin
         IsHandled := false;
         OnBeforeTransferRoutingLine(PlanningRoutingLine, ReqLine, RoutingLine, IsHandled);
-#if not CLEAN27
-        PlanningLineManagement.RunOnBeforeTransferRoutingLine(PlanningRoutingLine, ReqLine, RoutingLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -127,9 +115,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
         PlanningRoutingLine.TransferFromRoutingLine(RoutingLine);
 
         OnTransferRoutingLineOnBeforeCalcRoutingCostPerUnit(PlanningRoutingLine, ReqLine, RoutingLine);
-#if not CLEAN27
-        PlanningLineManagement.RunOnTransferRoutingLineOnBeforeCalcRoutingCostPerUnit(PlanningRoutingLine, ReqLine, RoutingLine);
-#endif
 
 #if not CLEAN28
         if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() and (RoutingLine.Type = RoutingLine.Type::"Work Center") then begin
@@ -160,9 +145,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
 
         PlanningRoutingLine.UpdateDatetime();
         OnAfterTransferRtngLine(ReqLine, RoutingLine, PlanningRoutingLine);
-#if not CLEAN27
-        PlanningLineManagement.RunOnAfterTransferRtngLine(ReqLine, RoutingLine, PlanningRoutingLine);
-#endif
         PlanningRoutingLine.Insert();
     end;
 
@@ -197,9 +179,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
     begin
         IsHandled := false;
         OnBeforeTransferBOM(ProdBOMNo, Level, LineQtyPerUOM, ItemQtyPerUOM, ReqLine, Blocked, IsHandled);
-#if not CLEAN27
-        PlanningLineManagement.RunOnBeforeTransferBOM(ProdBOMNo, Level, LineQtyPerUOM, ItemQtyPerUOM, ReqLine, Blocked, IsHandled);
-#endif
         if not IsHandled then begin
 
             if ReqLine."Production BOM No." = '' then
@@ -246,16 +225,10 @@ codeunit 99000819 "Mfg. Planning Line Management"
             ProdBOMLine[Level].SetFilter("Starting Date", '%1|..%2', 0D, ReqLine."Starting Date");
             ProdBOMLine[Level].SetFilter("Ending Date", '%1|%2..', 0D, ReqLine."Starting Date");
             OnTransferBOMOnAfterProdBOMLineSetFilters(ProdBOMLine[Level], ReqLine);
-#if not CLEAN27
-            PlanningLineManagement.RunOnTransferBOMOnAfterProdBOMLineSetFilters(ProdBOMLine[Level], ReqLine);
-#endif
             if ProdBOMLine[Level].Find('-') then
                 repeat
                     IsHandled := false;
                     OnTransferBOMOnBeforeTransferPlanningComponent(ReqLine, ProdBOMLine[Level], Blocked, IsHandled, Level);
-#if not CLEAN27
-                    PlanningLineManagement.RunOnTransferBOMOnBeforeTransferPlanningComponent(ReqLine, ProdBOMLine[Level], Blocked, IsHandled, Level);
-#endif
                     if not IsHandled then begin
                         if ProdBOMLine[Level]."Routing Link Code" <> '' then begin
                             PlanningRtngLine2.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
@@ -263,9 +236,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
                             PlanningRtngLine2.SetRange("Worksheet Line No.", ReqLine."Line No.");
                             PlanningRtngLine2.SetRange("Routing Link Code", ProdBOMLine[Level]."Routing Link Code");
                             OnTransferBOMOnBeforePlanningRtngLineFind(PlanningRtngLine2, ProdBOMLine[Level], ReqLine);
-#if not CLEAN27
-                            PlanningLineManagement.RunOnTransferBOMOnBeforePlanningRtngLineFind(PlanningRtngLine2, ProdBOMLine[Level], ReqLine);
-#endif
                             PlanningRtngLine2.FindFirst();
                             ReqQty :=
                               ProdBOMLine[Level].Quantity *
@@ -304,9 +274,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
                                                   PlanningComponent."Quantity per" + ProdBOMLine[Level]."Quantity per" * LineQtyPerUOM / ItemQtyPerUOM);
                                                 PlanningComponent.Validate("Routing Link Code", ProdBOMLine[Level]."Routing Link Code");
                                                 OnBeforeModifyPlanningComponent(ReqLine, ProdBOMLine[Level], PlanningComponent, LineQtyPerUOM, ItemQtyPerUOM);
-#if not CLEAN27
-                                                PlanningLineManagement.RunOnBeforeModifyPlanningComponent(ReqLine, ProdBOMLine[Level], PlanningComponent, LineQtyPerUOM, ItemQtyPerUOM);
-#endif
                                                 PlanningComponent.Modify();
                                             end;
 
@@ -335,9 +302,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
                 until ProdBOMLine[Level].Next() = 0;
         end;
         OnAfterTransferBOM(ReqLine, ProdBOMNo, Level, LineQtyPerUOM, ItemQtyPerUOM);
-#if not CLEAN27
-        PlanningLineManagement.RunOnAfterTransferBOM(ReqLine, ProdBOMNo, Level, LineQtyPerUOM, ItemQtyPerUOM);
-#endif
     end;
 
     local procedure CreatePlanningComponentFromProdBOM(var PlanningComponent: Record "Planning Component"; ReqLine: Record "Requisition Line"; ProdBOMLine: Record "Production BOM Line"; CompSKU: Record "Stockkeeping Unit"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; var NextPlanningCompLineNo: Integer; SKU: Record "Stockkeeping Unit"; Blocked: Boolean)
@@ -380,9 +344,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
 
         PlanningComponent."Flushing Method" := CompSKU."Flushing Method";
         OnTransferBOMOnBeforeGetDefaultBin(PlanningComponent, ProdBOMLine, ReqLine, SKU);
-#if not CLEAN27
-        PlanningLineManagement.RunOnTransferBOMOnBeforeGetDefaultBin(PlanningComponent, ProdBOMLine, ReqLine, SKU);
-#endif
         PlanningComponent.GetDefaultBin();
 
         if SetPlanningLevelCode(PlanningComponent, ProdBOMLine, SKU, CompSKU) then
@@ -392,9 +353,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
         PlanningComponent."Ref. Order Status" := ReqLine."Ref. Order Status";
         PlanningComponent."Ref. Order No." := ReqLine."Ref. Order No.";
         OnBeforeInsertPlanningComponent(ReqLine, ProdBOMLine, PlanningComponent, LineQtyPerUOM, ItemQtyPerUOM);
-#if not CLEAN27
-        PlanningLineManagement.RunOnBeforeInsertPlanningComponent(ReqLine, ProdBOMLine, PlanningComponent, LineQtyPerUOM, ItemQtyPerUOM);
-#endif
         PlanningComponent.Insert();
     end;
 
@@ -406,9 +364,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
             (ComponentSKU."Replenishment System" = ComponentSKU."Replenishment System"::"Prod. Order");
 
         OnAfterSetPlanningLevelCode(PlanningComponent, ProdBOMLine, SKU, ComponentSKU, Result);
-#if not CLEAN27
-        PlanningLineManagement.RunOnAfterSetPlanningLevelCode(PlanningComponent, ProdBOMLine, SKU, ComponentSKU, Result);
-#endif
     end;
 
     local procedure IsPlannedComp(var PlanningComp: Record "Planning Component"; ReqLine: Record "Requisition Line"; ProdBOMLine: Record "Production BOM Line"; SKU: Record "Stockkeeping Unit"): Boolean
@@ -449,9 +404,6 @@ codeunit 99000819 "Mfg. Planning Line Management"
             (PlanningComp."Unit of Measure Code" = ProdBOMLine."Unit of Measure Code") and
             (PlanningComp."Calculation Formula" = ProdBOMLine."Calculation Formula");
         OnAfterIsPlannedCompFound(PlanningComp, ProdBOMLine, IsFound, SKU);
-#if not CLEAN27
-        PlanningLineManagement.RunOnAfterIsPlannedCompFound(PlanningComp, ProdBOMLine, IsFound, SKU);
-#endif
         exit(IsFound);
     end;
 
