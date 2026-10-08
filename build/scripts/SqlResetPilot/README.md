@@ -1,10 +1,13 @@
 # Per-worker remount warmup diagnostic — AB#646383 — DO NOT MERGE
 
-**Prepared only: do not dispatch until the parent verifies safe scheduling.**
-The original300 and pending tenant-count20 retain their original commits and runs.
-This branch uses the same repository concurrency group, max six cells, and
-`cancel-in-progress: false`. GitHub can replace a pending group member when another
-is queued: the scheduling input is an acknowledgement, NOT an automatic lease.
+**Independent parallel scheduling authorized on 2026-10-08.**
+This branch uses `sql-api-646383-worker-readiness-comparison`, at most two
+concurrent cells, and `cancel-in-progress: false`. It does not wait for the
+original300 or tenant-count20 experiment. The planned aggregate bound is ten
+containers: six original300, two tenant-count, and two readiness cells.
+The scheduling input is an acknowledgement, not a cross-workflow resource lease.
+Available runners may still queue work; concurrent physical host isolation is
+not guaranteed. Do not dispatch duplicate runs of this experiment.
 
 ## Current three-arm protocol
 

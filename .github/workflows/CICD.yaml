@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       schedulingApproval:
-        description: Parent must first verify that no pending comparison would be replaced
+        description: Acknowledge independent two-cell scheduling alongside the other experiments
         required: true
         type: choice
         options: [parent-verified-safe-scheduling]
@@ -18,7 +18,7 @@ permissions:
   packages: read
 
 concurrency:
-  group: sql-api-646383-300-trial-comparison
+  group: sql-api-646383-worker-readiness-comparison
   cancel-in-progress: false
 
 jobs:

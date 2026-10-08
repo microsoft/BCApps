@@ -29,6 +29,19 @@ Describe 'Worker remount comparison contracts' {
             @($block | Group-Object experiment, country).Count | Should -Be 6
         }
     }
+    It 'schedules independently with the same two-cell limit in workflow and manifest' {
+        $root = Join-Path $PSScriptRoot '..\..\..'
+        $workflow = Get-Content (Join-Path $root '.github\workflows\CICD.yaml') -Raw
+        $batch = Get-Content (Join-Path $root '.github\workflows\SqlApiComparisonBatch.yaml') -Raw
+        $planner = Get-Content (Join-Path $PSScriptRoot 'PlanWorkerWarmup.ps1') -Raw
+        $workflow | Should -Match 'group: sql-api-646383-worker-readiness-comparison'
+        $workflow | Should -Not -Match 'group: sql-api-646383-300-trial-comparison'
+        $workflow | Should -Match 'cancel-in-progress: false'
+        $batch | Should -Match 'max-parallel: 2'
+        $batch | Should -Match 'fail-fast: false'
+        $planner | Should -Match 'maxParallel = 2'
+        $planner | Should -Match "concurrencyGroup = 'sql-api-646383-worker-readiness-comparison'"
+    }
     It 'accepts each authorized arm: <_>' -ForEach @('control', 'workerwarmup', 'navreadiness') {
         $env:BC_SQL_API_EXPERIMENT = $_
         Test-WorkerWarmupExperiment | Should -BeTrue

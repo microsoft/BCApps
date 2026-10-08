@@ -29,7 +29,7 @@ $proof | ConvertTo-Json -Depth 12 | Set-Content (Join-Path $directory 'artifact-
 @{
     headSha = $env:GITHUB_SHA; runId = $env:GITHUB_RUN_ID; originalCells = $cells; replacementOf = $null
     sourceSha = 'c4953dceffe02a017adad34973e1955017bf5d20'; sharedBaseline = '0227094059f2f26f3fcb1b7f85a3285c17e78b8e'
-    count = 30; exploratory = $true; mountedTenants = 4; workers = 3; maxParallel = 6
+    count = 30; exploratory = $true; mountedTenants = 4; workers = 3; maxParallel = 2
     operation = 'Existing Invoke-WarmupDispatch on each remounted worker'
     app = 'System Application Test Library (original ordered first app)'
     runner = 'Original RunTestsInBcContainer.ps1 IntegrationTest parameters, unchanged'
@@ -38,6 +38,6 @@ $proof | ConvertTo-Json -Depth 12 | Set-Content (Join-Path $directory 'artifact-
     limitation = 'NAV-inspired, not Toolkit page149042/two-API preflight; compound treatment, not a SQL readiness guarantee'
     expectedWarmupsPerCompleteCandidate = 22; expectedCohortCases = 253; expectedExistingSkips = 19
     additionalDisabledTests = @(); extraDefaultWarmup = $false; companiesProbeArm = 'navreadiness'; retries = 0
-    concurrencyGroup = 'sql-api-646383-300-trial-comparison'
+    concurrencyGroup = 'sql-api-646383-worker-readiness-comparison'
 } | ConvertTo-Json -Depth 8 | Set-Content (Join-Path $directory 'matrix-manifest.json')
 "matrix=$(@{ include = $cells } | ConvertTo-Json -Depth 5 -Compress)" | Add-Content $env:GITHUB_OUTPUT
