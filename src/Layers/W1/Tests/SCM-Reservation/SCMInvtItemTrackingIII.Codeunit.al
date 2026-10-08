@@ -3356,7 +3356,7 @@ codeunit 137262 "SCM Invt Item Tracking III"
         LotNoInfo: Record "Lot No. Information";
         ReservationEntry: Record "Reservation Entry";
         TrackingCode: Code[10];
-        LotNo: Code[50];
+        LotNo: Code[20];
         InboundQty: array[2] of Decimal;
         ConsumptionQty: Decimal;
         QtyPer: Decimal;
