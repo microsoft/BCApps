@@ -204,7 +204,7 @@ report 8752 "DA External Storage Sync"
         SyncWorkerStep: Option Upload,Download,DeleteInternal,RetireExternalReference;
         ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
         ProcessedWithRetentionMsg: Label 'Processed %1 attachments successfully. %2 failed. Remote files for %3 attachment(s) were retained. %4 external reference(s) were retired locally; %5 retirement(s) were blocked.', Comment = '%1 = Number of processed attachments, %2 = Number of failed copies, %3 = Number of remote files retained, %4 = Number of local references retired, %5 = Number of blocked retirements';
-        ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
+        ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '#1 = Total Number of Attachments';
         AttachmentFailedErr: Label 'Attachment %1: %2', Comment = '%1 = Original attachment filename, %2 = Failure reason';
         CopyFailedErr: Label 'The attachment could not be copied. %1', Comment = '%1 = Failure reason';
         SourceCleanupFailedErr: Label 'The attachment was copied, but could not be removed from the source storage. %1', Comment = '%1 = Failure reason';

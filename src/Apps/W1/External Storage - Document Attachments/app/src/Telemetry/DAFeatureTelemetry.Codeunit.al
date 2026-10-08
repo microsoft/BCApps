@@ -130,23 +130,20 @@ codeunit 8754 "DA Feature Telemetry"
         Clear(Dimensions);
         Dimensions.Add('Category', ExternalStorageCategoryLbl);
         Dimensions.Add('Operation', Operation);
-        Dimensions.Add('User ID', UserId());
-        Dimensions.Add('File Name', DocumentAttachment."File Name");
         Dimensions.Add('File Extension', DocumentAttachment."File Extension");
         Dimensions.Add('Table ID', Format(DocumentAttachment."Table ID"));
-        
+
         if TryGetTableName(DocumentAttachment."Table ID", TableName) then
             Dimensions.Add('Table Name', TableName);
-        
-        Dimensions.Add('Document No.', DocumentAttachment."No.");
+
         Dimensions.Add('Stored Externally', Format(DocumentAttachment."Stored Externally"));
         Dimensions.Add('Stored Internally', Format(DocumentAttachment."Stored Internally"));
-        
+
         if DocumentAttachment."External File Path" <> '' then
             Dimensions.Add('Has External Path', 'Yes')
         else
             Dimensions.Add('Has External Path', 'No');
-        
+
         if DocumentAttachment."External Upload Date" <> 0DT then
             Dimensions.Add('Upload Date', Format(DocumentAttachment."External Upload Date", 0, 9));
     end;

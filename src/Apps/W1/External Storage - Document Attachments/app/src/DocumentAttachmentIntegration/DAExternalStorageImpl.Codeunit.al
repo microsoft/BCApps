@@ -433,21 +433,21 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         Clear(FailureReason);
         if DocumentAttachment.IsTemporary() or IsNullGuid(DocumentAttachment.SystemId) then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementRecordMissingErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementRecordMissingErr));
 
         ExternalStorageSetup.ChangeCompany(DocumentAttachment.CurrentCompany());
         if not ExternalStorageSetup.Get() then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementFeatureDisabledErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementFeatureDisabledErr));
         if not ExternalStorageSetup.Enabled then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementFeatureDisabledErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementFeatureDisabledErr));
 
         CurrentDocumentAttachment.ChangeCompany(DocumentAttachment.CurrentCompany());
         CurrentDocumentAttachment.ReadIsolation(IsolationLevel::UpdLock);
         if not CurrentDocumentAttachment.GetBySystemId(DocumentAttachment.SystemId) then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementRecordMissingErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementRecordMissingErr));
 
         if not CurrentDocumentAttachment."Stored Externally" or (CurrentDocumentAttachment."External File Path" = '') then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementExternalReferenceMissingErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementExternalReferenceMissingErr));
 
         if (CurrentDocumentAttachment.RecordId() <> DocumentAttachment.RecordId()) or
            (CurrentDocumentAttachment."External File Path" <> DocumentAttachment."External File Path") or
@@ -455,18 +455,18 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
            (CurrentDocumentAttachment."Source Environment Hash" <> DocumentAttachment."Source Environment Hash") or
            (CurrentDocumentAttachment."Document Reference ID".MediaId() <> DocumentAttachment."Document Reference ID".MediaId())
         then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementReferenceChangedErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementReferenceChangedErr));
 
         if not CurrentDocumentAttachment."Stored Internally" or not CurrentDocumentAttachment."Document Reference ID".HasValue() then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementInternalContentMissingErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementInternalContentMissingErr));
 
         TenantMedia.ReadIsolation(IsolationLevel::UpdLock);
         if not TenantMedia.Get(CurrentDocumentAttachment."Document Reference ID".MediaId()) then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementInternalContentMissingErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementInternalContentMissingErr));
 
         TenantMedia.CalcFields(Content);
         if not TenantMedia.Content.HasValue() or (TenantMedia.Content.Length() = 0) then
-            exit(BlockReferenceRetirement(DocumentAttachment, FailureReason, RetirementInternalContentMissingErr));
+            exit(BlockReferenceRetirement(FailureReason, RetirementInternalContentMissingErr));
 
         // Both local rows remain locked until the caller commits; no remote operation or implicit commit is involved.
         CurrentDocumentAttachment.MarkAsNotUploadedToExternal();
@@ -475,12 +475,9 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         exit(true);
     end;
 
-    local procedure BlockReferenceRetirement(DocumentAttachment: Record "Document Attachment"; var FailureReason: Text; Reason: Text): Boolean
-    var
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+    local procedure BlockReferenceRetirement(var FailureReason: Text; Reason: Text): Boolean
     begin
         FailureReason := Reason;
-        DAFeatureTelemetry.LogExternalFileRetained(DocumentAttachment, 'LocalReferenceRetirementBlocked');
         exit(false);
     end;
 
