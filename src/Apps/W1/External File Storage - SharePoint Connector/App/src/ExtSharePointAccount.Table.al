@@ -86,6 +86,12 @@ table 4580 "Ext. SharePoint Account"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether to use Microsoft Graph API or SharePoint REST API. Microsoft Graph API supports downloading files larger than 150 MB through chunked transfers. The app registration requires the Sites.ReadWrite.All or Sites.Selected Microsoft Graph application permission. With Sites.Selected, a SharePoint administrator must grant the app write access to each site using Microsoft Graph PowerShell, Microsoft 365 CLI, or a Microsoft Graph API call.';
         }
+        field(14; "REST Base Folder Path Format"; Enum "Ext. SharePoint Path Format")
+        {
+            Caption = 'REST Base Folder Path Format';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies how to interpret the base folder for the legacy REST API. URL decodes percent-encoded characters, for example Shared%20Documents becomes Shared Documents. Select Decoded Path when percent sequences such as %20 are literal characters in the folder name. Attachment paths and filenames are always treated as decoded.';
+        }
     }
 
     keys
