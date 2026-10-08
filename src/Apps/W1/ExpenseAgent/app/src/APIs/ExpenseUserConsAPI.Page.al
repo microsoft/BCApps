@@ -64,6 +64,7 @@ page 6968 "Expense User Cons. API"
         AgentConversationSessionIdOrTurnInteractionIdErr: Label 'Agent Session ID and Interaction ID must be provided.';
         ConsumptionSourceSystemIdErr: Label 'Consumption Source System ID must be provided.';
         ExpenseEmployeeCodeErr: Label 'Expense Employee Code must be provided.';
+        ExpenseUserEntraIdErr: Label 'Expense User Entra ID must be provided.';
         InvalidJsonConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON containing all required fields.';
         ActionsSummaryErr: Label 'Actions Summary must be provided.';
         EmptyConsumptionOperationErr: Label 'Operation must be provided.';
@@ -129,6 +130,8 @@ page 6968 "Expense User Cons. API"
             Error(InvalidJsonConsumptionRequestErr);
         if IsNullGuid(AgentConversationSessionId) or IsNullGuid(AgentTurnInteractionId) then
             Error(AgentConversationSessionIdOrTurnInteractionIdErr);
+        if IsNullGuid(ExpenseUserEntraId) then
+            Error(ExpenseUserEntraIdErr);
         if ActionsSummary = '' then
             Error(ActionsSummaryErr);
         if ConsumptionSourceType = ConsumptionSourceType::Invalid then

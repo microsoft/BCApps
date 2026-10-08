@@ -129,6 +129,35 @@ codeunit 148350 "Expense Consumption Test"
     end;
 
     [Test]
+    procedure LogConsumptionV2WithoutExpenseUserEntraIdIsRejected()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseUserConsAPI: Page "Expense User Cons. API";
+        AiConsumptionRequestJson: JsonObject;
+        AiConsumptionRequest: Text;
+        ExpenseUserEntraId: Guid;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] V2 consumption without an Expense User Entra ID is rejected
+        Initialize();
+
+        // [GIVEN] Expense User "U" and a valid V2 consumption request
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUserConsAPI.SetRecord(ExpenseUser);
+        AiConsumptionRequestJson := CreateValidConsumptionJson();
+        AiConsumptionRequestJson.WriteTo(AiConsumptionRequest);
+
+        // [WHEN] Consumption is logged without an Expense User Entra ID
+        asserterror ExpenseUserConsAPI.LogAIConsumptionV2(
+            AiConsumptionRequest, CreateGuid(), CreateGuid(), 'Processed expense', ExpenseUserEntraId,
+            Enum::"Expense Agent Cons. Source"::Expense, CreateGuid(), 'PROCESS EXPENSE');
+
+        // [THEN] The request is rejected before consumption is logged
+        Assert.ExpectedError('Expense User Entra ID must be provided.');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
     procedure LoggingConsumptionCreatesEnvironmentConsumption()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
