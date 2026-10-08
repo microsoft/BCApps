@@ -29,6 +29,8 @@ codeunit 139983 "Subc. Management Library"
 
     var
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         UseWithFilterOnlyErr: Label 'Prod. Order Routing Line must have filter to be used in this method.';
         NoJournalSelectedErr: Label 'No Journal Batch is selected.';
@@ -62,6 +64,22 @@ codeunit 139983 "Subc. Management Library"
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Validate("Subc. Location Code", Location.Code);
         Vendor.Modify();
+    end;
+
+    procedure CreatePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
+    begin
+        TransferShipmentHeader.Init();
+        TransferShipmentHeader."No." :=
+            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TransferShipmentHeader."No."));
+        TransferShipmentHeader.Insert();
+
+        TransferShipmentLine.Init();
+        TransferShipmentLine."Document No." := TransferShipmentHeader."No.";
+        TransferShipmentLine."Line No." := 10000;
+        TransferShipmentLine.Description :=
+            CopyStr(LibraryRandom.RandText(MaxStrLen(TransferShipmentLine.Description)), 1, MaxStrLen(TransferShipmentLine.Description));
+        TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
+        TransferShipmentLine.Insert();
     end;
 
     procedure CreateSubContractingPrice(var SubcontractorPrices: Record "Subcontractor Price"; WorkCenterNo: Code[20]; VendorNo: Code[20]; ItemNo: Code[20]; StandardTaskCode: Code[10]; VariantCode: Code[10]; StartDate: Date; UnitOfMeasureCode: Code[10]; MinimumQuantity: Decimal; CurrencyCode: Code[10])
