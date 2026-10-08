@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.QualityManagement;
 
-using Microsoft.DemoData.QualityManagement;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Tracking;
@@ -36,6 +35,10 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         NoCompatibleGenRuleQstFragmentTok: Label 'Could not find any compatible inspection generation rules for the template', Locked = true;
         NoCompatibleGenRuleQuestionSeen: Boolean;
         BeansCategoryTok: Label 'BEANS', Locked = true;
+        BeansTemplateCodeTok: Label 'BEANS', Locked = true;
+        BeansTemplateDescTok: Label 'Beans inspection', Locked = true;
+        ReceiveTemplateCodeTok: Label 'RECEIVE', Locked = true;
+        ReceiveTemplateDescTok: Label 'Receive inspection', Locked = true;
         TrackedBeansItemNoTok: Label 'WRB-1002', Locked = true;
         CustomizedRuleDescTok: Label 'Customized beans inspection', Locked = true;
 
@@ -536,104 +539,94 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansTrackedPurchase_ManualSelectsBeans()
     var
         Item: Record Item;
-        CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
     begin
         // [FEATURE] [AI test 0.3] [Quality Management]
         // [SCENARIO] A manual purchase inspection for tracked WRB-1002 selects the seeded BEANS template.
         Initialize();
 
-        // [GIVEN] The real demo rules and tracked item "I" in the BEANS category.
+        // [GIVEN] The demo rule configuration and tracked item "I" in the BEANS category.
         SeedDemoGenerationRules();
         CreateTrackedDemoItem(Item, TrackedBeansItemNoTok, BeansCategoryTok);
 
         // [WHEN] A manual purchase rule is resolved without specifying a template.
         // [THEN] BEANS takes precedence over the generic RECEIVE rule.
-        VerifyDemoPurchaseRule(Item, true, CreateQMInspTemplateHdr.Beans());
+        VerifyDemoPurchaseRule(Item, true, BeansTemplateCodeTok);
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansTrackedPurchase_AutomaticSelectsBeans()
     var
         Item: Record Item;
-        CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
     begin
         // [FEATURE] [AI test 0.3] [Quality Management]
         // [SCENARIO] An automatic purchase inspection for tracked WRB-1002 selects the seeded BEANS template.
         Initialize();
 
-        // [GIVEN] The real demo rules and tracked item "I" in the BEANS category.
+        // [GIVEN] The demo rule configuration and tracked item "I" in the BEANS category.
         SeedDemoGenerationRules();
         CreateTrackedDemoItem(Item, TrackedBeansItemNoTok, BeansCategoryTok);
 
         // [WHEN] An automatic purchase rule is resolved without specifying a template.
         // [THEN] BEANS takes precedence over the generic RECEIVE rule.
-        VerifyDemoPurchaseRule(Item, false, CreateQMInspTemplateHdr.Beans());
+        VerifyDemoPurchaseRule(Item, false, BeansTemplateCodeTok);
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansPurchase_OtherItemSelectsBeans()
     var
         Item: Record Item;
-        CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
     begin
         // [FEATURE] [AI test 0.3] [Quality Management]
         // [SCENARIO] The seeded BEANS rule matches the category, not only the demo item number.
         Initialize();
 
-        // [GIVEN] The real demo rules and another tracked BEANS item "I".
+        // [GIVEN] The demo rule configuration and another tracked BEANS item "I".
         SeedDemoGenerationRules();
         CreateTrackedDemoItem(Item, '', BeansCategoryTok);
 
         // [WHEN] Manual and automatic purchase rules are resolved for "I".
         // [THEN] Both select BEANS independently of the item number.
-        VerifyDemoPurchaseRule(Item, true, CreateQMInspTemplateHdr.Beans());
-        VerifyDemoPurchaseRule(Item, false, CreateQMInspTemplateHdr.Beans());
+        VerifyDemoPurchaseRule(Item, true, BeansTemplateCodeTok);
+        VerifyDemoPurchaseRule(Item, false, BeansTemplateCodeTok);
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoPurchase_NonBeansItemSelectsReceive()
     var
         Item: Record Item;
         ItemCategory: Record "Item Category";
-        CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
     begin
         // [FEATURE] [AI test 0.3] [Quality Management]
         // [SCENARIO] A tracked item outside BEANS retains the generic RECEIVE purchase rule.
         Initialize();
 
-        // [GIVEN] The real demo rules and tracked item "I" in a different category.
+        // [GIVEN] The demo rule configuration and tracked item "I" in a different category.
         SeedDemoGenerationRules();
         LibraryInventory.CreateItemCategory(ItemCategory);
         CreateTrackedDemoItem(Item, '', ItemCategory.Code);
 
         // [WHEN] Manual and automatic purchase rules are resolved for "I".
         // [THEN] The category-specific rule does not displace RECEIVE.
-        VerifyDemoPurchaseRule(Item, true, CreateQMInspTemplateHdr.Receive());
-        VerifyDemoPurchaseRule(Item, false, CreateQMInspTemplateHdr.Receive());
+        VerifyDemoPurchaseRule(Item, true, ReceiveTemplateCodeTok);
+        VerifyDemoPurchaseRule(Item, false, ReceiveTemplateCodeTok);
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoPurchase_NonItemLineSelectsReceive()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
-        CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
         PurchaseLineRecordRef: RecordRef;
     begin
         // [FEATURE] [AI test 0.3] [Quality Management]
         // [SCENARIO] An item-filtered demo rule does not match a purchase line without an item.
         Initialize();
 
-        // [GIVEN] The real demo rules and a non-item purchase line.
+        // [GIVEN] The demo rule configuration and a non-item purchase line.
         SeedDemoGenerationRules();
         PurchaseLine."Document Type" := PurchaseLine."Document Type"::Order;
         PurchaseLine.Type := PurchaseLine.Type::"G/L Account";
@@ -645,12 +638,11 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
             'The generic purchase generation rule must match a non-item line.');
 
         // [THEN] The item-filtered BEANS rule is skipped in favor of RECEIVE.
-        LibraryAssert.AreEqual(CreateQMInspTemplateHdr.Receive(), TempQltyInspectionGenRule."Template Code", 'A non-item purchase line must select the generic RECEIVE rule.');
+        LibraryAssert.AreEqual(ReceiveTemplateCodeTok, TempQltyInspectionGenRule."Template Code", 'A non-item purchase line must select the generic RECEIVE rule.');
         PurchaseLineRecordRef.Close();
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansRule_HasPurchaseScopeAndPriority()
     var
         BeansQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -662,7 +654,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
         // [GIVEN] No generation rules exist.
 
-        // [WHEN] The real demo template and generation-rule seeders run.
+        // [WHEN] The demo rule configuration is seeded.
         SeedDemoGenerationRules();
 
         // [THEN] BEANS and RECEIVE have the intended scope, activation and relative priority.
@@ -670,7 +662,6 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansRule_RepeatedSeedingIsIdempotent()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -681,14 +672,14 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         // [SCENARIO] Repeating demo generation preserves the existing rule identities and creates no duplicates.
         Initialize();
 
-        // [GIVEN] Both rules have been created by the real demo seeders.
+        // [GIVEN] Both rules have been created by the demo rule fixture.
         SeedDemoGenerationRules();
         LibraryAssert.IsTrue(QltyInspectionGenRule.Get(3), 'The demo seeder must create the BEANS rule.');
         BeansSystemId := QltyInspectionGenRule.SystemId;
         QltyInspectionGenRule.Get(4);
         ReceiveSystemId := QltyInspectionGenRule.SystemId;
 
-        // [WHEN] The same demo seeders run again.
+        // [WHEN] The same fixture is seeded again.
         SeedDemoGenerationRules();
 
         // [THEN] Both original records remain and there are exactly two rules.
@@ -696,7 +687,6 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DemoBeansRule_RepeatedSeedingPreservesCustomization()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -707,7 +697,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         // [SCENARIO] The default demo overwrite guard preserves a customized BEANS rule on regeneration.
         Initialize();
 
-        // [GIVEN] A rule created by the real seeder has user-customized fields.
+        // [GIVEN] A fixture rule has user-customized fields.
         SeedDemoGenerationRules();
         LibraryAssert.IsTrue(QltyInspectionGenRule.Get(3), 'The demo seeder must create the BEANS rule.');
         CreateTrackedDemoItem(Item, '', BeansCategoryTok);
@@ -719,7 +709,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionGenRule.Validate("Activation Trigger", QltyInspectionGenRule."Activation Trigger"::Disabled);
         QltyInspectionGenRule.Modify(true);
 
-        // [WHEN] The real demo generation runs again without enabling overwrite.
+        // [WHEN] The fixture is seeded again without overwrite.
         SeedDemoGenerationRules();
 
         // [THEN] The user's filter, description, priority and activation are preserved.
@@ -734,10 +724,47 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     local procedure SeedDemoGenerationRules()
+    var
+        Item: Record Item;
+        ItemFilter: Text[2048];
     begin
-        Commit();
-        Codeunit.Run(Codeunit::"Create QM Insp. Template Hdr");
-        Codeunit.Run(Codeunit::"Create QM Generation Rule");
+        InsertDemoTemplate(BeansTemplateCodeTok, BeansTemplateDescTok);
+        InsertDemoTemplate(ReceiveTemplateCodeTok, ReceiveTemplateDescTok);
+        Item.SetRange("Item Category Code", BeansCategoryTok);
+        ItemFilter := CopyStr(Item.GetView(false), 1, MaxStrLen(ItemFilter));
+        InsertDemoGenerationRule(3, 30, BeansTemplateCodeTok, BeansTemplateDescTok, ItemFilter);
+        InsertDemoGenerationRule(4, 40, ReceiveTemplateCodeTok, ReceiveTemplateDescTok, '');
+    end;
+
+    local procedure InsertDemoTemplate(TemplateCode: Code[20]; TemplateDescription: Text[100])
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        if QltyInspectionTemplateHdr.Get(TemplateCode) then
+            exit;
+
+        QltyInspectionTemplateHdr.Validate(Code, TemplateCode);
+        QltyInspectionTemplateHdr.Validate(Description, TemplateDescription);
+        QltyInspectionTemplateHdr.Insert(true);
+    end;
+
+    local procedure InsertDemoGenerationRule(EntryNo: Integer; SortOrder: Integer; TemplateCode: Code[20]; RuleDescription: Text[100]; ItemFilter: Text[2048])
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+    begin
+        if QltyInspectionGenRule.Get(EntryNo) then
+            exit;
+
+        QltyInspectionGenRule.Validate("Entry No.", EntryNo);
+        QltyInspectionGenRule.Validate("Sort Order", SortOrder);
+        QltyInspectionGenRule.Validate(Intent, QltyInspectionGenRule.Intent::Purchase);
+        QltyInspectionGenRule.Validate("Template Code", TemplateCode);
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Purchase Line");
+        QltyInspectionGenRule.Validate(Description, RuleDescription);
+        QltyInspectionGenRule.Validate("Activation Trigger", QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic");
+        if ItemFilter <> '' then
+            QltyInspectionGenRule.Validate("Item Filter", ItemFilter);
+        QltyInspectionGenRule.Insert(true);
     end;
 
     local procedure CreateTrackedDemoItem(var Item: Record Item; ItemNo: Code[20]; ItemCategoryCode: Code[20])
@@ -785,10 +812,9 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     local procedure VerifyDemoRuleScope(var BeansQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var ReceiveQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         FilteredItem: Record Item;
-        CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
     begin
         LibraryAssert.IsTrue(BeansQltyInspectionGenRule.Get(3), 'The demo seeder must create the BEANS rule.');
-        LibraryAssert.AreEqual(CreateQMInspTemplateHdr.Beans(), BeansQltyInspectionGenRule."Template Code", 'Entry 3 must select BEANS.');
+        LibraryAssert.AreEqual(BeansTemplateCodeTok, BeansQltyInspectionGenRule."Template Code", 'Entry 3 must select BEANS.');
         LibraryAssert.AreEqual(BeansQltyInspectionGenRule.Intent::Purchase, BeansQltyInspectionGenRule.Intent, 'BEANS must have Purchase intent.');
         LibraryAssert.AreEqual(Database::"Purchase Line", BeansQltyInspectionGenRule."Source Table No.", 'BEANS must apply to Purchase Line.');
         LibraryAssert.AreEqual(BeansQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", BeansQltyInspectionGenRule."Activation Trigger", 'BEANS must support both activation modes.');
@@ -799,7 +825,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         LibraryAssert.AreEqual(BeansCategoryTok, FilteredItem.GetRangeMax("Item Category Code"), 'The item filter must not include other categories.');
 
         ReceiveQltyInspectionGenRule.Get(4);
-        LibraryAssert.AreEqual(CreateQMInspTemplateHdr.Receive(), ReceiveQltyInspectionGenRule."Template Code", 'Entry 4 must retain RECEIVE.');
+        LibraryAssert.AreEqual(ReceiveTemplateCodeTok, ReceiveQltyInspectionGenRule."Template Code", 'Entry 4 must retain RECEIVE.');
         LibraryAssert.AreEqual(ReceiveQltyInspectionGenRule.Intent::Purchase, ReceiveQltyInspectionGenRule.Intent, 'RECEIVE must retain Purchase intent.');
         LibraryAssert.AreEqual(Database::"Purchase Line", ReceiveQltyInspectionGenRule."Source Table No.", 'RECEIVE must retain Purchase Line scope.');
         LibraryAssert.AreEqual(ReceiveQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ReceiveQltyInspectionGenRule."Activation Trigger", 'RECEIVE must retain both activation modes.');
