@@ -23,6 +23,7 @@ codeunit 130130 "MCP Config Test"
         Assert: Codeunit "Library Assert";
         MCPConfig: Codeunit "MCP Config";
         MCPConfigTestLibrary: Codeunit "MCP Config Test Library";
+        ConfigurationWithMissingAgentJsonTxt: Label '{"name":"Imported configuration","enableAgents":true,"tools":[],"agents":[{"agentId":"%1"}]}', Locked = true;
 
     #region Configurations
 
@@ -1393,7 +1394,7 @@ codeunit 130130 "MCP Config Test"
     begin
         MissingAgentId := CreateGuid();
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.WriteText(StrSubstNo('{"name":"Imported configuration","enableAgents":true,"tools":[],"agents":[{"agentId":"%1"}]}', Format(MissingAgentId, 0, 9)));
+        OutStream.WriteText(StrSubstNo(ConfigurationWithMissingAgentJsonTxt, Format(MissingAgentId, 0, 9)));
         TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         NewName := CopyStr(Format(CreateGuid()), 1, MaxStrLen(NewName));
 
