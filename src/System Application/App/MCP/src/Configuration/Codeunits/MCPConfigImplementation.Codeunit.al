@@ -603,17 +603,19 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure CreateAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
     var
-        MCPConfigurationAgent: Record "MCP Configuration Agent";
         MCPConfiguration: Record "MCP Configuration";
+        Agent: Record Agent;
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             Error(ConfigurationNotFoundErr);
 
-        MCPConfigurationAgent.ID := ConfigId;
-        MCPConfigurationAgent."Agent ID" := AgentUserSecurityId;
-        SetAgentMetadata(MCPConfigurationAgent);
-        MCPConfigurationAgent.Insert();
-        exit(MCPConfigurationAgent.SystemId);
+        if not TryGetAgent(AgentUserSecurityId, Agent) then
+            Error(AgentNotFoundErr);
+
+        if not IsAgentEligible(Agent) then
+            Error(AgentNotEligibleErr);
+
+        exit(InsertAgentTool(ConfigId, Agent));
     end;
 
     internal procedure GetAgentToolId(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
@@ -649,21 +651,25 @@ codeunit 8351 "MCP Config Implementation"
         Agent.SetFilter("Publisher Type", '%1|%2', Agent."Publisher Type"::User, Agent."Publisher Type"::"Third Party");
     end;
 
-    internal procedure SetAgentMetadata(var MCPConfigurationAgent: Record "MCP Configuration Agent")
+    local procedure TryGetAgent(AgentUserSecurityId: Guid; var Agent: Record Agent): Boolean
     var
-        Agent: Record Agent;
         User: Record User;
     begin
-        if not User.Get(MCPConfigurationAgent."Agent ID") then
-            Error(AgentNotFoundErr);
+        if not User.Get(AgentUserSecurityId) then
+            exit(false);
 
-        if not Agent.Get(MCPConfigurationAgent."Agent ID") then
-            Error(AgentNotFoundErr);
+        exit(Agent.Get(AgentUserSecurityId));
+    end;
 
-        if not IsAgentEligible(Agent) then
-            Error(AgentNotEligibleErr);
-
+    local procedure InsertAgentTool(ConfigId: Guid; Agent: Record Agent): Guid
+    var
+        MCPConfigurationAgent: Record "MCP Configuration Agent";
+    begin
+        MCPConfigurationAgent.ID := ConfigId;
+        MCPConfigurationAgent."Agent ID" := Agent."User Security ID";
         MCPConfigurationAgent."Agent Name" := Agent."Display Name";
+        MCPConfigurationAgent.Insert();
+        exit(MCPConfigurationAgent.SystemId);
     end;
 
     internal procedure DeleteAPITool(APIToolId: Guid)
@@ -1744,6 +1750,7 @@ codeunit 8351 "MCP Config Implementation"
 
     local procedure ImportAgent(ConfigId: Guid; AgentJson: JsonObject)
     var
+        Agent: Record Agent;
         AgentIdToken: JsonToken;
         AgentId: Guid;
     begin
@@ -1756,7 +1763,13 @@ codeunit 8351 "MCP Config Implementation"
         if not Evaluate(AgentId, AgentIdToken.AsValue().AsText()) then
             Error(InvalidJsonErr);
 
-        CreateAgentTool(ConfigId, AgentId);
+        if not TryGetAgent(AgentId, Agent) then
+            exit;
+
+        if not IsAgentEligible(Agent) then
+            exit;
+
+        InsertAgentTool(ConfigId, Agent);
     end;
     #endregion
 

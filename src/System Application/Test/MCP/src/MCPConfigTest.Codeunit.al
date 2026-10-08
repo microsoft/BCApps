@@ -1381,6 +1381,30 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestImportConfigurationSkipsMissingAgent()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+        ImportedConfigId: Guid;
+        MissingAgentId: Guid;
+        NewName: Text[100];
+    begin
+        MissingAgentId := CreateGuid();
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(StrSubstNo('{"name":"Imported configuration","enableAgents":true,"tools":[],"agents":[{"agentId":"%1"}]}', Format(MissingAgentId, 0, 9)));
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        NewName := CopyStr(Format(CreateGuid()), 1, MaxStrLen(NewName));
+
+        ImportedConfigId := MCPConfig.ImportConfiguration(InStream, NewName, 'Imported configuration');
+
+        MCPConfiguration.GetBySystemId(ImportedConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableAgents, 'Agent Tools should remain enabled');
+        AssertConfigurationAgentCount(ImportedConfigId, 0);
+    end;
+
+    [Test]
     [HandlerFunctions('DataQueryBillingYesHandler')]
     procedure TestImportConfigurationWithAcknowledgedDataQueryTools()
     var
