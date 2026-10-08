@@ -56,7 +56,6 @@ codeunit 149951 "IT Subc. Migration"
             MigrationProgressDialog.Open(MigrationProgressLbl);
         end;
 
-        OnBeforeLockTables();
         LockTables();
         Clear(PreMigrationCounts);
         // These authoritative validations cover changes made by other sessions while confirmation was pending.
@@ -81,11 +80,6 @@ codeunit 149951 "IT Subc. Migration"
 
         if UIAllowed then
             MigrationProgressDialog.Close();
-    end;
-
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeLockTables()
-    begin
     end;
 
     internal procedure MigrateTransferLines()

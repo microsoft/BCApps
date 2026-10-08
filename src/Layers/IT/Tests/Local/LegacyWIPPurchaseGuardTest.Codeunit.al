@@ -292,6 +292,49 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         Assert.RecordIsEmpty(PurchRcptLine);
     end;
 
+    [Test]
+    [HandlerFunctions('AcceptConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure MissingSourcePurchaseLineDoesNotReuseStaleWIPRecord()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+    begin
+        // [SCENARIO 649448] A receipt whose source line was removed does not reuse a stale WIP Purchase Line record
+        Initialize();
+        SetLegacySubcontracting(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        SetWIPItem(PurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseLine."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Delete();
+        SetLegacySubcontracting(false);
+
+        // The downstream undo may reject the missing source, but the compatibility guard must not
+        // classify the failed Get by evaluating fields left on a stale Purchase Line buffer.
+        if not TryUndoPurchaseReceiptLine(PurchRcptLine) then
+            Assert.IsFalse(
+                GetLastErrorText().Contains(UndoLegacyWIPPurchaseReceiptErr),
+                'A missing source Purchase Line must not be classified using stale WIP values.');
+    end;
+
+    [TryFunction]
+    local procedure TryUndoPurchaseReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line")
+    begin
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Legacy WIP Purchase Guard Test");
