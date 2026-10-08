@@ -12,6 +12,7 @@ tableextension 6616 "FS Service Line" extends "Service Line"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(12000; "Item Type"; Enum "Item Type")
         {
             Caption = 'Item Type';
@@ -25,5 +26,6 @@ tableextension 6616 "FS Service Line" extends "Service Line"
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Service Line")));
         }
+#pragma warning restore AS0099
     }
 }
