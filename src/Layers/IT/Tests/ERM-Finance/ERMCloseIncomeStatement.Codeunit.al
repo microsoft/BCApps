@@ -553,6 +553,8 @@ codeunit 134228 "ERM Close Income Statement"
         VerifyCloseIncomeAmountByGlobalDim1(
             GLAccountNo, TempDimensionSetEntry."Dimension Value Code", GenJournalBatch, DocumentNo);
         VerifyCloseIncomeAmountByGlobalDim1(GLAccountNo, DimensionValue.Code, GenJournalBatch, DocumentNo);
+        VerifyCloseIncomeSourceAmountByGlobalDim1(
+            GLAccountNo, TempDimensionSetEntry."Dimension Value Code", Currency.Code, GenJournalBatch, DocumentNo);
     end;
 
     local procedure Initialize()
@@ -929,6 +931,29 @@ codeunit 134228 "ERM Close Income Statement"
             StrSubstNo(CloseIncomeDimensionAmountErr, GlobalDim1Code, -GLEntry.Amount, GenJournalLine.Amount));
     end;
 
+    local procedure VerifyCloseIncomeSourceAmountByGlobalDim1(GLAccountNo: Code[20]; GlobalDim1Code: Code[20]; SourceCurrencyCode: Code[10]; GenJournalBatch: Record "Gen. Journal Batch"; CloseIncomeDocumentNo: Code[20])
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.SetRange("Global Dimension 1 Code", GlobalDim1Code);
+        GLEntry.SetRange("Source Currency Code", SourceCurrencyCode);
+        GLEntry.CalcSums("Source Currency Amount");
+
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.SetRange("Document No.", CloseIncomeDocumentNo);
+        GenJournalLine.SetRange("Account No.", GLAccountNo);
+        GenJournalLine.SetRange("Shortcut Dimension 1 Code", GlobalDim1Code);
+        GenJournalLine.SetRange("Source Currency Code", SourceCurrencyCode);
+        GenJournalLine.CalcSums("Source Currency Amount");
+
+        Assert.AreEqual(
+            -GLEntry."Source Currency Amount", GenJournalLine."Source Currency Amount",
+            StrSubstNo(CloseIncomeDimensionAmountErr, GlobalDim1Code, -GLEntry."Source Currency Amount", GenJournalLine."Source Currency Amount"));
+    end;
+
     [MessageHandler]
     [Scope('OnPrem')]
     procedure MessageHandler(Message: Text[1024])
@@ -985,4 +1010,3 @@ codeunit 134228 "ERM Close Income Statement"
         DimensionSelectionMultiple.OK().Invoke();
     end;
 }
-

@@ -63,11 +63,12 @@ report 94 "Close Income Statement"
                         GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                     end;
 
-                    if (Amount <> 0) or ("Additional-Currency Amount" <> 0) then begin
+                    if (Amount <> 0) or ("Additional-Currency Amount" <> 0) or
+                       ("Source Currency Amount" <> 0) or ("Source Currency VAT Amount" <> 0)
+                    then begin
                         if not GroupSum() then begin
                             TotalAmount += Amount;
-                            if (GLSetup."Additional Reporting Currency" <> '') or ("Additional-Currency Amount" <> 0) then
-                                TotalAmountAddCurr += "Additional-Currency Amount";
+                            TotalAmountAddCurr += "Additional-Currency Amount";
 
                             GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                         end;
@@ -132,7 +133,10 @@ report 94 "Close Income Statement"
                                 Window.Update(3, Round(EntryCount / MaxEntry * 10000, 1));
                             end;
 
-                            if (TempEntryNoAmountBuffer.Amount <> 0) or (TempEntryNoAmountBuffer.Amount2 <> 0) then begin
+                            if (TempEntryNoAmountBuffer.Amount <> 0) or (TempEntryNoAmountBuffer.Amount2 <> 0) or
+                               (TempEntryNoAmountBuffer."Source Currency Amount" <> 0) or
+                               (TempEntryNoAmountBuffer."Source Currency VAT Amount" <> 0)
+                            then begin
                                 GenJnlLine."Line No." := GenJnlLine."Line No." + 10;
                                 GenJnlLine."Account No." := "G/L Account No.";
                                 GenJnlLine."Source Code" := SourceCodeSetup."Close Income Statement";
@@ -212,7 +216,7 @@ report 94 "Close Income Statement"
 
             trigger OnPostDataItem()
             begin
-                if ((TotalAmount <> 0) or ((TotalAmountAddCurr <> 0) and (GLSetup."Additional Reporting Currency" <> ''))) and
+                if ((TotalAmount <> 0) or (TotalAmountAddCurr <> 0)) and
                    (PostToRetainedEarningsAcc = PostToRetainedEarningsAcc::Balance)
                 then begin
                     GenJnlLine."Business Unit Code" := '';
@@ -670,7 +674,7 @@ report 94 "Close Income Statement"
                     NoSeries.GetNextNo(GenJnlBatch."No. Series", EndDateReq);
             end;
         end else
-            if not ZeroGenJnlAmount() then
+            if not ZeroGenJnlAmount() or (GenJnlLine."Source Currency Code" <> '') then
                 GenJnlLine.Insert();
     end;
 
@@ -698,11 +702,9 @@ report 94 "Close Income Statement"
         GLEntrySource."Source Currency Amount" := GLEntry."Source Currency Amount";
         GLEntrySource."Source Currency VAT Amount" := GLEntry."Source Currency VAT Amount";
         TotalAmount += GLEntrySource.Amount;
-        if GLSetup."Additional Reporting Currency" <> '' then begin
-            GLEntry.CalcSums("Additional-Currency Amount");
-            GLEntrySource."Additional-Currency Amount" := GLEntry."Additional-Currency Amount";
-            TotalAmountAddCurr += GLEntrySource."Additional-Currency Amount";
-        end;
+        GLEntry.CalcSums("Additional-Currency Amount");
+        GLEntrySource."Additional-Currency Amount" := GLEntry."Additional-Currency Amount";
+        TotalAmountAddCurr += GLEntrySource."Additional-Currency Amount";
     end;
 
     /// <summary>
@@ -831,12 +833,12 @@ report 94 "Close Income Statement"
     local procedure AddSourceCurrencyFields(): Boolean
     begin
         GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
+        GenJnlLine."Source Curr. VAT Amount" := -(TempEntryNoAmountBuffer."Source Currency VAT Amount");
 
         if TempEntryNoAmountBuffer."Source Currency Amount" = 0 then
             exit(false);
 
         GenJnlLine."Source Currency Amount" := -(TempEntryNoAmountBuffer."Source Currency Amount");
-        GenJnlLine."Source Curr. VAT Amount" := -(TempEntryNoAmountBuffer."Source Currency VAT Amount");
         exit(true);
     end;
 

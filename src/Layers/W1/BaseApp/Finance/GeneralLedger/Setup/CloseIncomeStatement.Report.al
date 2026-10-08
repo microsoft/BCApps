@@ -63,7 +63,9 @@ report 94 "Close Income Statement"
                         GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                     end;
 
-                    if (Amount <> 0) or ("Additional-Currency Amount" <> 0) then begin
+                    if (Amount <> 0) or ("Additional-Currency Amount" <> 0) or
+                       ("Source Currency Amount" <> 0) or ("Source Currency VAT Amount" <> 0)
+                    then begin
                         if not GroupSum() then begin
                             TotalAmount += Amount;
                             TotalAmountAddCurr += "Additional-Currency Amount";
@@ -655,7 +657,7 @@ report 94 "Close Income Statement"
                     NoSeries.GetNextNo(GenJnlBatch."No. Series", EndDateReq);
             end;
         end else
-            if not ZeroGenJnlAmount() then
+            if not ZeroGenJnlAmount() or (GenJnlLine."Source Currency Code" <> '') then
                 GenJnlLine.Insert();
     end;
 

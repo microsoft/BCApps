@@ -671,6 +671,9 @@ codeunit 134228 "ERM Close Income Statement"
 
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
         LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Customer, '', 0);
         GLAccountNo := LibraryERM.CreateGLAccountNo();
         GlobalDim1Code := LibraryERM.GetGlobalDimensionCode(1);
         SourceOnlyDimSetID := CreateDimensionSetWithValue(
@@ -688,9 +691,11 @@ codeunit 134228 "ERM Close Income Statement"
             PostingDate, GLAccountNo, 10, 0, 'EUR', 20, 5, VATOnlyDimSetID, VATOnlyDimValue, '', '');
         InsertGLEntryForCloseIncome(
             PostingDate + 1, GLAccountNo, 30, 0, 'USD', 0, 3, VATOnlyDimSetID, VATOnlyDimValue, '', '');
-        // [GIVEN] A historical additional-currency-only entry after the current setup has no ARC.
+        // [GIVEN] Historical additional-currency amounts remain in the grouped totals after the current setup has no ARC.
         InsertGLEntryForCloseIncome(
-            PostingDate, GLAccountNo, 0, 17, '', 0, 0, AdditionalCurrencyDimSetID, AdditionalCurrencyDimValue, '', '');
+            PostingDate, GLAccountNo, 4, 17, '', 0, 0, AdditionalCurrencyDimSetID, AdditionalCurrencyDimValue, '', '');
+        InsertGLEntryForCloseIncome(
+            PostingDate + 1, GLAccountNo, 5, 8, '', 0, 0, AdditionalCurrencyDimSetID, AdditionalCurrencyDimValue, '', '');
 
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
@@ -709,11 +714,11 @@ codeunit 134228 "ERM Close Income Statement"
         VerifyCloseIncomeJournalLine(
             GenJournalBatch, DocumentNo, GLAccountNo, VATOnlyDimValue, '', '', 'USD', -30, 0, -3);
         VerifyCloseIncomeJournalLine(
-            GenJournalBatch, DocumentNo, GLAccountNo, AdditionalCurrencyDimValue, '', '', '', 0, -17, 0);
+            GenJournalBatch, DocumentNo, GLAccountNo, AdditionalCurrencyDimValue, '', '', '', -9, -25, 0);
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler,DimensionSelectionMultipleModalPageHandler')]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler,DimensionSelectionGlobalDim2ModalPageHandler')]
     [Scope('OnPrem')]
     procedure CloseIncomeStatementGroupsGlobalDimension2WithBusinessUnit()
     var
@@ -738,6 +743,9 @@ codeunit 134228 "ERM Close Income Statement"
 
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
         LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Customer, '', 0);
         GLAccountNo := LibraryERM.CreateGLAccountNo();
         GlobalDim2Code := LibraryERM.GetGlobalDimensionCode(2);
         DimensionSetID1 := CreateDimensionSetWithValue(
@@ -1273,6 +1281,16 @@ codeunit 134228 "ERM Close Income Statement"
     begin
         // Select only two created dimensions
         DimensionSelectionMultiple.FILTER.SetFilter(Code, LibraryERM.GetGlobalDimensionCode(1));
+        DimensionSelectionMultiple.First();
+        DimensionSelectionMultiple.Selected.SetValue(true);
+        DimensionSelectionMultiple.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure DimensionSelectionGlobalDim2ModalPageHandler(var DimensionSelectionMultiple: TestPage "Dimension Selection-Multiple")
+    begin
+        DimensionSelectionMultiple.FILTER.SetFilter(Code, LibraryERM.GetGlobalDimensionCode(2));
         DimensionSelectionMultiple.First();
         DimensionSelectionMultiple.Selected.SetValue(true);
         DimensionSelectionMultiple.OK().Invoke();
