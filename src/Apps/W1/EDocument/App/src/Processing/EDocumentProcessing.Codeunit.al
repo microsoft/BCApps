@@ -224,6 +224,23 @@ codeunit 6108 "E-Document Processing"
         exit(EDocumentWorkflowProcessing.GetEDocumentServiceFromPreviousSendOrExportResponse(WorkflowStepInstance, EDocumentService));
     end;
 
+    /// <summary>
+    /// A posted purchase credit memo is self-billed when it is applied to a posted self-billing invoice.
+    /// Posted credit memos have no self-billing field of their own, so the state is derived from the invoice.
+    /// </summary>
+    /// <param name="PurchCrMemoHdr">The posted purchase credit memo to check.</param>
+    /// <returns>True if the credit memo is applied to a posted self-billing invoice.</returns>
+    procedure IsSelfBilledCreditMemo(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."): Boolean
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        if PurchCrMemoHdr."Applies-to Doc. Type" <> PurchCrMemoHdr."Applies-to Doc. Type"::Invoice then
+            exit(false);
+        if not PurchInvHeader.Get(PurchCrMemoHdr."Applies-to Doc. No.") then
+            exit(false);
+        exit(PurchInvHeader."Self-Billing Invoice");
+    end;
+
     procedure GetDocSendingProfileForDocRef(var RecRef: RecordRef): Record "Document Sending Profile";
     var
         SalesHeader: Record "Sales Header";
@@ -293,12 +310,12 @@ codeunit 6108 "E-Document Processing"
                     SourceDocumentLines.Open(Database::"Service Cr.Memo Line");
                     SourceDocumentLines.Field(3).SetRange(EDocument."Document No.");
                 end;
-            EDocument."Document Type"::"Purchase Invoice":
+            EDocument."Document Type"::"Purchase Invoice", EDocument."Document Type"::"Self-Billed Purchase Invoice":
                 begin
                     SourceDocumentLines.Open(Database::"Purch. Inv. Line");
                     SourceDocumentLines.Field(3).SetRange(EDocument."Document No.");
                 end;
-            EDocument."Document Type"::"Purchase Credit Memo":
+            EDocument."Document Type"::"Purchase Credit Memo", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo":
                 begin
                     SourceDocumentLines.Open(Database::"Purch. Cr. Memo Line");
                     SourceDocumentLines.Field(3).SetRange(EDocument."Document No.");
@@ -659,12 +676,12 @@ codeunit 6108 "E-Document Processing"
                     RelatedRecord := SalesCrMemoHeader;
                     exit(true);
                 end;
-            EDocument."Document Type"::"Purchase Invoice":
+            EDocument."Document Type"::"Purchase Invoice", EDocument."Document Type"::"Self-Billed Purchase Invoice":
                 if PurchInvHeader.Get(EDocument."Document No.") then begin
                     RelatedRecord := PurchInvHeader;
                     exit(true);
                 end;
-            EDocument."Document Type"::"Purchase Credit Memo":
+            EDocument."Document Type"::"Purchase Credit Memo", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo":
                 if PurchCrMemoHdr.Get(EDocument."Document No.") then begin
                     RelatedRecord := PurchCrMemoHdr;
                     exit(true);
