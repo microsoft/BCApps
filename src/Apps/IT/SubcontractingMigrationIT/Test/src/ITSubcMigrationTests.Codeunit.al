@@ -1757,6 +1757,66 @@ codeunit 149956 "IT Subc. Migration Tests"
         Assert.ExpectedError(OpenWIPPurchaseOrdersExistErr);
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure StartDisableLegacySubcontracting_SerializesWithQuantityValidation()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        MigrationTestSync: Record "IT Subc. Migration Test Sync";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        MigrationSessionId: Integer;
+    begin
+        // [SCENARIO 649448] Migration serializes with an in-flight validation that reopens a retained WIP line
+        Initialize();
+
+        // [GIVEN] A fully received legacy WIP purchase line passes the initial precheck
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+#pragma warning disable AL0432
+        PurchaseLine."WIP Item" := true;
+#pragma warning restore AL0432
+        PurchaseLine.Modify();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        Commit();
+
+        // [GIVEN] Migration reaches its lock boundary in another session
+        MigrationTestSync.Init();
+        MigrationTestSync."Entry No." := LibraryUtility.GetNewRecNo(MigrationTestSync, MigrationTestSync.FieldNo("Entry No."));
+        MigrationTestSync.Status := MigrationTestSync.Status::Created;
+        MigrationTestSync.Insert();
+        Commit();
+
+        // [GIVEN] An in-flight quantity validation owns the migration-compatible Purchase Line lock
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate(Quantity, PurchaseLine.Quantity);
+        Assert.IsTrue(
+            StartSession(
+                MigrationSessionId,
+                Codeunit::"IT Subc. Migration Session",
+                CompanyName(),
+                MigrationTestSync),
+            'The migration background session could not be started.');
+        WaitForMigrationStatus(MigrationTestSync."Entry No.", MigrationTestSync.Status::"At Lock Boundary");
+
+        // [WHEN] The retained WIP line is reopened while migration waits for the Purchase Line lock
+        PurchaseLine.Validate(Quantity, PurchaseLine."Quantity Received" + 1);
+        PurchaseLine.Modify(true);
+        Commit();
+
+        // [THEN] Migration resumes, detects the reopened line, and cannot disable the feature
+        WaitForMigrationStatus(MigrationTestSync."Entry No.", MigrationTestSync.Status::Failed);
+        MigrationTestSync.Get(MigrationTestSync."Entry No.");
+        Assert.IsTrue(
+            MigrationTestSync."Error Text".Contains(OpenWIPPurchaseOrdersExistErr),
+            'Migration should stop after detecting the reopened WIP purchase line.');
+        AssertLegacySubcontractingFlag(true);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IT Subc. Migration Tests");
@@ -2153,6 +2213,27 @@ codeunit 149956 "IT Subc. Migration Tests"
         LibraryApplicationArea.EnablePremiumSetup();
         ApplicationAreaMgmtFacade.RefreshExperienceTierCurrentCompany();
         Commit();
+    end;
+
+    local procedure WaitForMigrationStatus(EntryNo: Integer; ExpectedStatus: Option)
+    var
+        MigrationTestSync: Record "IT Subc. Migration Test Sync";
+        StartedAt: DateTime;
+    begin
+        StartedAt := CurrentDateTime();
+        repeat
+            Sleep(100);
+            SelectLatestVersion();
+            MigrationTestSync.Get(EntryNo);
+            if MigrationTestSync.Status = ExpectedStatus then
+                exit;
+        until CurrentDateTime() - StartedAt > 30000;
+
+        Error(
+            'Timed out waiting for migration status %1. Current status is %2. Error: %3',
+            ExpectedStatus,
+            MigrationTestSync.Status,
+            MigrationTestSync."Error Text");
     end;
 
     [ConfirmHandler]

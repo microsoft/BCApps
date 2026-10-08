@@ -25,6 +25,9 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
             exit;
         if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
             exit;
+
+        // Match the migration's Purchase Line-before-Manufacturing Setup lock order.
+        StoredPurchaseLine.LockTable();
         if not StoredPurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.") then
             exit;
         if not IsWIPItem(StoredPurchaseLine) then
@@ -58,10 +61,10 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
             PurchaseLineKey := StrSubstNo('%1|%2', PurchRcptLineToCheck."Order No.", PurchRcptLineToCheck."Order Line No.");
             if not CheckedPurchaseLines.ContainsKey(PurchaseLineKey) then begin
                 CheckedPurchaseLines.Add(PurchaseLineKey, true);
-                if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchRcptLineToCheck."Order No.", PurchRcptLineToCheck."Order Line No.") and
-                   IsWIPItem(PurchaseLine) and (PurchaseLine."Outstanding Quantity" = 0)
-                then
-                    HasCompletedWIPPurchaseLine := true;
+                if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchRcptLineToCheck."Order No.", PurchRcptLineToCheck."Order Line No.") then
+                    if IsWIPItem(PurchaseLine) then
+                        if PurchaseLine."Outstanding Quantity" = 0 then
+                            HasCompletedWIPPurchaseLine := true;
             end;
         until PurchRcptLineToCheck.Next() = 0;
 
