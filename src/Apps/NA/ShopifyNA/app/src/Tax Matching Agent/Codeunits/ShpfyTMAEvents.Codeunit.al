@@ -54,14 +54,19 @@ codeunit 30473 "Shpfy TMA Events"
     begin
         if not Result then
             exit;
+
         if not Shop.Get(ShopifyOrderHeader."Shop Code") then
             exit;
+
         if not ShouldAttemptMatch(ShopifyOrderHeader, Shop) then
             exit;
+
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shopify Tax Matching Agent") then
             exit;
+
         if not CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Shopify Tax Matching Agent") then
             exit;
+
         if not TMAMatcher.TryGetGuardrailPrompt(SecurityPrompt) then begin
             Session.LogMessage('0000UNV', SecurityPromptUnavailableMsg,
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
@@ -110,14 +115,17 @@ codeunit 30473 "Shpfy TMA Events"
     begin
         if Handled then
             exit;
+
         if not Shop.Get(ShopifyOrderHeader."Shop Code") then
             exit;
+
         if not IsSalesDocumentCreationHeld(ShopifyOrderHeader, Shop) then
             exit;
 
         Handled := true;
         Session.LogMessage('0000UMI', CreationBlockedMsg,
             Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
+
         ProcessingError := true;
         if ShopifyOrderHeader."Tax Rate Conflict" then
             ErrorMessage := StrSubstNo(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
