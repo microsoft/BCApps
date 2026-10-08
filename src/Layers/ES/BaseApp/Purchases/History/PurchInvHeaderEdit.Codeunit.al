@@ -36,6 +36,7 @@ codeunit 1405 "Purch. Inv. Header - Edit"
     local procedure UpdateVendorLedgerEntry(PurchInvHeader: Record "Purch. Inv. Header")
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendEntryEdit: Codeunit "Vend. Entry-Edit";
     begin
         if not GetVendorLedgerEntry(VendorLedgerEntry, PurchInvHeader) then
             exit;
@@ -45,7 +46,8 @@ codeunit 1405 "Purch. Inv. Header - Edit"
         VendorLedgerEntry.Description := PurchInvHeader."Posting Description";
         VendorLedgerEntry."Dispute Status" := PurchInvHeader."Dispute Status";
         OnBeforeUpdateVendorLedgerEntryAfterSetValues(VendorLedgerEntry, PurchInvHeader);
-        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendEntryEdit.SetCalledFromPurchaseInvoice(true);
+        VendEntryEdit.Run(VendorLedgerEntry);
     end;
 
     local procedure GetVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; PurchInvHeader: Record "Purch. Inv. Header"): Boolean
