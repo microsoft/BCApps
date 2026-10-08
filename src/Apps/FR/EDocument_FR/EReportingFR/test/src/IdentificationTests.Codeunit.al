@@ -14,7 +14,6 @@ codeunit 148146 "Identification Tests"
 
     trigger OnRun()
     begin
-        // [FEATURE] [FR Identification]
     end;
 
     var

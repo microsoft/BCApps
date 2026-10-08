@@ -118,6 +118,11 @@ table 30111 "Shpfy Order Fulfillment"
             FieldClass = FlowField;
             CalcFormula = exist("Shpfy Fulfillment Line" where("Order Id" = field("Shopify Order Id"), "Is Gift Card" = const(true)));
         }
+        field(19; "Delivered At"; DateTime)
+        {
+            Caption = 'Delivered At (Shopify)';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys

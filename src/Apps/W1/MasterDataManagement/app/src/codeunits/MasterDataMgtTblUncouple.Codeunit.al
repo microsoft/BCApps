@@ -88,20 +88,28 @@ codeunit 7236 "Master Data Mgt. Tbl. Uncouple"
         SourceCompanyName: Text[30];
     begin
         MasterDataManagementSetup.Get();
-        IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-        IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-        IntegrationTableMapping.SetIntRecordRefFilter(IntegrationRecordRef);
-        if IntegrationRecordRef.FindSet() then
-            repeat
-                if TempMasterDataMgtCoupling.IsIntegrationRecordRefCoupled(IntegrationRecordRef) then begin
-                    TempMasterDataMgtCoupling.Delete();
-                    Clear(LocalRecordRef);
-                    IntegrationTableSynch.Uncouple(LocalRecordRef, IntegrationRecordRef);
-                end;
-            until IntegrationRecordRef.Next() = 0;
+        if MasterDataManagementSetup."Source Environment Name" <> '' then begin
+            // Cross-environment: read the whole filtered source set over the wire (no modified-on watermark).
+            if not MasterDataManagementSetup.GetDataSource().GetByFilter(IntegrationTableMapping, IntegrationTableMapping.GetIntegrationTableFilter(), IntegrationRecordRef) then
+                exit;
+        end else begin
+            IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
+            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
+            if SourceCompanyName = '' then
+                SourceCompanyName := MasterDataManagementSetup."Company Name";
+            IntegrationRecordRef.ChangeCompany(SourceCompanyName);
+            IntegrationTableMapping.SetIntRecordRefFilter(IntegrationRecordRef);
+            if not IntegrationRecordRef.FindSet() then
+                exit;
+        end;
+
+        repeat
+            if TempMasterDataMgtCoupling.IsIntegrationRecordRefCoupled(IntegrationRecordRef) then begin
+                TempMasterDataMgtCoupling.Delete();
+                Clear(LocalRecordRef);
+                IntegrationTableSynch.Uncouple(LocalRecordRef, IntegrationRecordRef);
+            end;
+        until IntegrationRecordRef.Next() = 0;
     end;
 
     local procedure UncoupleAllCoupledRecords(var IntegrationTableMapping: Record "Integration Table Mapping"; var IntegrationTableSynch: Codeunit "Integration Table Synch."; var TempMasterDataMgtCoupling: Record "Master Data Mgt. Coupling" temporary)

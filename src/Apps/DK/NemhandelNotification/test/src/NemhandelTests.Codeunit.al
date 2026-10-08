@@ -424,6 +424,30 @@ codeunit 148012 "Nemhandel Tests"
     end;
 
     [Test]
+    procedure GetCompanyStatusWhenResponseSchemaInvalid()
+    var
+        NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";
+        MockHttpClientNemhandel: Codeunit "Mock Http Client Nemhandel";
+        CompanyStatus: Enum "Nemhandel Company Status";
+        CVRNumber: Text[20];
+    begin
+        // [SCENARIO] Run GetCompanyStatus() when the response does not contain the expected 'cvrNummer' field.
+        Initialize();
+        NemhandelStatusPageBckgrnd.SetHttpClient(MockHttpClientNemhandel);
+
+        // [GIVEN] Mocked http client returns a 200 response whose body is missing the expected identifier.
+        CVRNumber := GetCompanyCVRNumber();
+        MockHttpClientNemhandel.SetRequestResult(true);
+        MockHttpClientNemhandel.SetSuccess(200, '{"status":"NORMAL"}');
+
+        // [WHEN] Run GetCompanyStatus() function of "Nemhandel Status Page Bckgrnd" codeunit.
+        CompanyStatus := NemhandelStatusPageBckgrnd.GetCompanyStatus(CVRNumber);
+
+        // [THEN] The malformed response is rejected and the status is "Unknown".
+        Assert.AreEqual(Enum::"Nemhandel Company Status"::Unknown, CompanyStatus, '');
+    end;
+
+    [Test]
     procedure GetCompanyStatusWhenNoConnection()
     var
         NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";

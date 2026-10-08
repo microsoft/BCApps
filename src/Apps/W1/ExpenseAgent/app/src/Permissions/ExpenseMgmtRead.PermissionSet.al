@@ -22,6 +22,8 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense Group" = R,
         tabledata "Expense Itemization" = R,
         tabledata "Expense Location" = R,
+        tabledata "Expense Vehicle Type" = R,
+        tabledata "Mileage Rate Setup" = R,
         tabledata "Expense Agent Setup" = R,
         tabledata "Expense Agent Status" = R,
 #if not CLEAN29

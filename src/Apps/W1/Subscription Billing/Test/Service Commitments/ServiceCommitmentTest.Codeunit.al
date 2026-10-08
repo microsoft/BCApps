@@ -29,6 +29,15 @@ codeunit 148156 "Service Commitment Test"
         DiscountCanBeInvoicedViaContractErr: Label 'Recurring discounts can only be granted for Invoicing via Contract.', Locked = true;
         DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts, can only be assigned to Subscription Items.', Locked = true;
         RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing', Locked = true;
+        BillingLineForServiceCommitmentExistErr: Label 'The contract line is in the current billing. Delete the billing line to be able to adjust the Subscription Line start date.', Locked = true;
+        BillingLineArchiveForServiceCommitmentExistErr: Label 'The contract line has already been billed. The Subscription Line start date can no longer be changed.', Locked = true;
+        BilledUntilEndOfTermDescriptionLbl: Label 'Billed until end of term', Locked = true;
+        ClosedDescriptionLbl: Label 'Already closed', Locked = true;
+        OnOverdueDateDescriptionLbl: Label 'Next Billing Date on the overdue date', Locked = true;
+        BilledUntilEndNearOverdueDateDescriptionLbl: Label 'Billed until an end of term just before the overdue date', Locked = true;
+        OpenEndedDescriptionLbl: Label 'Without Subscription Line End Date', Locked = true;
+        EndingLaterDescriptionLbl: Label 'Ending later, billing behind', Locked = true;
+        LastPeriodDescriptionLbl: Label 'Last period still to be billed', Locked = true;
 
     #region Tests
 
@@ -483,7 +492,7 @@ codeunit 148156 "Service Commitment Test"
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure TestOverdueServiceCommitments()
     var
-        TempOverdueServiceCommitments: Record "Overdue Subscription Line";
+        TempOverdueServiceCommitments: Record "Overdue Subscription Line" temporary;
         ServiceContractSetup: Record "Subscription Contract Setup";
         i: Integer;
         InsertCounter: Integer;
@@ -509,6 +518,44 @@ codeunit 148156 "Service Commitment Test"
         end;
 
         Assert.AreEqual(InsertCounter, TempOverdueServiceCommitments.CountOverdueServiceCommitments(), 'Only service commitments that are open and within the correct date range should be counted.');
+    end;
+
+    [Test]
+    procedure TestOverdueServiceCommitmentsExcludeLinesBilledUntilEndOfTerm()
+    var
+        TempOverdueServiceCommitments: Record "Overdue Subscription Line" temporary;
+    begin
+        // [SCENARIO] A Subscription Line that has been billed beyond its Subscription Line End Date is not counted as overdue,
+        // [SCENARIO] even if its Closed flag has not been updated yet.
+
+        // [GIVEN] Overdue Subscription Lines with and without a Subscription Line End Date
+        Initialize();
+        CreateOverdueServiceCommitments();
+
+        // [WHEN] The overdue Subscription Lines are counted
+        // [THEN] Only the Subscription Lines that still have something left to bill are counted
+        Assert.AreEqual(3, TempOverdueServiceCommitments.CountOverdueServiceCommitments(), 'Subscription Lines that have been billed beyond their Subscription Line End Date should not be counted as overdue.');
+    end;
+
+    [Test]
+    procedure TestOverdueServiceCommitmentsListExcludesLinesBilledUntilEndOfTerm()
+    var
+        TempOverdueServiceCommitments: Record "Overdue Subscription Line" temporary;
+    begin
+        // [SCENARIO] A Subscription Line that has been billed beyond its Subscription Line End Date is not listed on the
+        // [SCENARIO] Overdue Subscription Lines page, even if its Closed flag has not been updated yet.
+
+        // [GIVEN] Overdue Subscription Lines with and without a Subscription Line End Date
+        Initialize();
+        CreateOverdueServiceCommitments();
+
+        // [WHEN] The overdue Subscription Lines are collected for the list
+        TempOverdueServiceCommitments.FillOverdueServiceCommitments();
+
+        // [THEN] Only the Subscription Lines that still have something left to bill are listed
+        Assert.AreEqual(3, TempOverdueServiceCommitments.Count(), 'Subscription Lines that have been billed beyond their Subscription Line End Date should not be listed as overdue.');
+        TempOverdueServiceCommitments.SetRange("Subscription Line Description", BilledUntilEndOfTermDescriptionLbl);
+        Assert.IsTrue(TempOverdueServiceCommitments.IsEmpty(), 'The Subscription Line that has been billed beyond its Subscription Line End Date should not be listed as overdue.');
     end;
 
     [Test]
@@ -597,6 +644,139 @@ codeunit 148156 "Service Commitment Test"
         Assert.ExpectedError(RecurringDiscountCannotBeGrantedErr);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure PreventStartDateChangeOnSubscriptionLinesPageAfterBilling()
+    var
+        BillingLine: Record "Billing Line";
+        BillingTemplate: Record "Billing Template";
+        SalesHeader: Record "Sales Header";
+        SubscriptionLine: Record "Subscription Line";
+        ServiceCommitmentsPage: TestPage "Service Commitments";
+    begin
+        // [SCENARIO] The Subscription Line Start Date can no longer be changed on the Subscription Lines page after the Subscription Line has been billed
+
+        // [GIVEN] A Customer Subscription Contract with a Subscription Line for which an invoice has been posted
+        Initialize();
+        BillContractAndPostInvoice(BillingTemplate, BillingLine, SalesHeader);
+        SubscriptionLine.Get(BillingLine."Subscription Line Entry No.");
+        Assert.AreNotEqual(SubscriptionLine."Subscription Line Start Date", SubscriptionLine."Next Billing Date", 'The Subscription Line should have been billed.');
+        Commit(); // retain data after asserterror
+
+        // [WHEN] The Subscription Line Start Date is changed on the Subscription Lines page
+        ServiceCommitmentsPage.OpenEdit();
+        ServiceCommitmentsPage.GoToRecord(SubscriptionLine);
+
+        // [THEN] The change is rejected with the same error as on the contract line list
+        asserterror ServiceCommitmentsPage."Service Start Date".SetValue(GetDifferentDateAllowedByLicense(SubscriptionLine."Subscription Line Start Date"));
+        Assert.ExpectedError(BillingLineArchiveForServiceCommitmentExistErr);
+    end;
+
+    [Test]
+    procedure UT_PreventStartDateChangeWhenBilledSubscriptionLineHasZeroAmount()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] The Subscription Line Start Date can no longer be changed for a Subscription Line which has been billed at zero value
+
+        // [GIVEN] A billed Subscription Line whose archived billing lines add up to zero
+        Initialize();
+        MockBilledSubscriptionLine(SubscriptionLine);
+        MockBillingLineArchive(SubscriptionLine."Entry No.", 0);
+
+        // [WHEN] The Subscription Line Start Date is changed
+        // [THEN] The change is rejected
+        asserterror SubscriptionLine.Validate("Subscription Line Start Date", CalcDate('<+2M>', SubscriptionLine."Subscription Line Start Date"));
+        Assert.ExpectedError(BillingLineArchiveForServiceCommitmentExistErr);
+    end;
+
+    [Test]
+    procedure UT_PreventStartDateChangeWhenSubscriptionLineIsInCurrentBilling()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] The Subscription Line Start Date cannot be changed as long as the Subscription Line is part of the current billing
+
+        // [GIVEN] A Subscription Line with an open Billing Line
+        Initialize();
+        MockBilledSubscriptionLine(SubscriptionLine);
+        MockBillingLine(SubscriptionLine."Entry No.");
+
+        // [WHEN] The Subscription Line Start Date is changed
+        // [THEN] The change is rejected
+        asserterror SubscriptionLine.Validate("Subscription Line Start Date", CalcDate('<+2M>', SubscriptionLine."Subscription Line Start Date"));
+        Assert.ExpectedError(BillingLineForServiceCommitmentExistErr);
+    end;
+
+    [Test]
+    procedure UT_AllowStartDateChangeWhenNextBillingDateIsOnStartDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        NewStartDate: Date;
+    begin
+        // [SCENARIO] The Subscription Line Start Date may be corrected as long as the Next Billing Date is back on the Subscription Line Start Date
+
+        // [GIVEN] A billed Subscription Line whose Next Billing Date has been reset to the Subscription Line Start Date by a credit memo
+        Initialize();
+        MockBilledSubscriptionLine(SubscriptionLine);
+        MockBillingLineArchive(SubscriptionLine."Entry No.", LibraryRandom.RandDec(100, 2));
+        SubscriptionLine."Next Billing Date" := SubscriptionLine."Subscription Line Start Date";
+        SubscriptionLine.Modify(false);
+
+        // [WHEN] The Subscription Line Start Date is changed
+        NewStartDate := CalcDate('<+2M>', SubscriptionLine."Subscription Line Start Date");
+        SubscriptionLine.Validate("Subscription Line Start Date", NewStartDate);
+
+        // [THEN] The change is accepted and the Next Billing Date follows the new Subscription Line Start Date
+        SubscriptionLine.TestField("Subscription Line Start Date", NewStartDate);
+        SubscriptionLine.TestField("Next Billing Date", NewStartDate);
+    end;
+
+    [Test]
+    procedure UT_AllowStartDateChangeWhenSubscriptionLineHasNotBeenBilled()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        NewStartDate: Date;
+    begin
+        // [SCENARIO] The Subscription Line Start Date may be changed as long as no billing has been performed for the Subscription Line
+
+        // [GIVEN] A Subscription Line without any Billing Line and without any Billing Line Archive
+        Initialize();
+        MockBilledSubscriptionLine(SubscriptionLine);
+
+        // [WHEN] The Subscription Line Start Date is changed
+        NewStartDate := CalcDate('<+2M>', SubscriptionLine."Subscription Line Start Date");
+        SubscriptionLine.Validate("Subscription Line Start Date", NewStartDate);
+
+        // [THEN] The change is accepted and the Next Billing Date follows the new Subscription Line Start Date
+        SubscriptionLine.TestField("Subscription Line Start Date", NewStartDate);
+        SubscriptionLine.TestField("Next Billing Date", NewStartDate);
+    end;
+
+    [Test]
+    procedure UT_AllowStartDateChangeOnTemporarySubscriptionLine()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        TempSubscriptionLine: Record "Subscription Line" temporary;
+        NewStartDate: Date;
+    begin
+        // [SCENARIO] Buffering a billed Subscription Line in a temporary record, as the contract renewal does, is not blocked by the start date check
+
+        // [GIVEN] A billed Subscription Line and a temporary Subscription Line carrying its Entry No.
+        Initialize();
+        MockBilledSubscriptionLine(SubscriptionLine);
+        MockBillingLineArchive(SubscriptionLine."Entry No.", LibraryRandom.RandDec(100, 2));
+        TempSubscriptionLine.Init();
+        TempSubscriptionLine."Entry No." := SubscriptionLine."Entry No.";
+
+        // [WHEN] The Subscription Line Start Date is set on the temporary record
+        NewStartDate := CalcDate('<+2M>', SubscriptionLine."Subscription Line Start Date");
+        TempSubscriptionLine.Validate("Subscription Line Start Date", NewStartDate);
+
+        // [THEN] The value is accepted
+        TempSubscriptionLine.TestField("Subscription Line Start Date", NewStartDate);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -607,6 +787,44 @@ codeunit 148156 "Service Commitment Test"
         ClearAll();
 
         ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate);
+    end;
+
+    local procedure CreateOverdueServiceCommitments()
+    var
+        ServiceContractSetup: Record "Subscription Contract Setup";
+    begin
+        ContractTestLibrary.InitContractsApp();
+
+        ServiceContractSetup.Get();
+        Evaluate(ServiceContractSetup."Overdue Date Formula", '<1M>');
+        ServiceContractSetup.Modify(false);
+
+        // Billed beyond the Subscription Line End Date, so there is nothing left to bill
+        InsertOverdueServiceCommitment(CalcDate('<-10D>', WorkDate()), CalcDate('<-9D>', WorkDate()), false, BilledUntilEndOfTermDescriptionLbl);
+        // Already closed, so it is not overdue even though there is still something left to bill
+        InsertOverdueServiceCommitment(0D, CalcDate('<-1M>', WorkDate()), true, ClosedDescriptionLbl);
+        // No Subscription Line End Date at all
+        InsertOverdueServiceCommitment(0D, CalcDate('<-1M>', WorkDate()), false, OpenEndedDescriptionLbl);
+        // Subscription Line End Date in the future, billing is behind
+        InsertOverdueServiceCommitment(CalcDate('<6M>', WorkDate()), CalcDate('<-1M>', WorkDate()), false, EndingLaterDescriptionLbl);
+        // Next Billing Date on the Subscription Line End Date, so the last period is still to be billed
+        InsertOverdueServiceCommitment(CalcDate('<-1D>', WorkDate()), CalcDate('<-1D>', WorkDate()), false, LastPeriodDescriptionLbl);
+        // Next Billing Date exactly on the overdue date, so it is not overdue yet
+        InsertOverdueServiceCommitment(0D, CalcDate('<1M>', WorkDate()), false, OnOverdueDateDescriptionLbl);
+        // Billed past a Subscription Line End Date that lies just before the overdue date
+        InsertOverdueServiceCommitment(CalcDate('<1M-2D>', WorkDate()), CalcDate('<1M-1D>', WorkDate()), false, BilledUntilEndNearOverdueDateDescriptionLbl);
+    end;
+
+    local procedure InsertOverdueServiceCommitment(ServiceCommitmentEndDate: Date; NextBillingDate: Date; ServiceCommitmentClosed: Boolean; ServiceCommitmentDescription: Text[100])
+    begin
+        ServiceCommitment.Init();
+        ServiceCommitment."Entry No." := 0;
+        ServiceCommitment.Partner := ServiceCommitment.Partner::Customer;
+        ServiceCommitment.Description := ServiceCommitmentDescription;
+        ServiceCommitment."Subscription Line End Date" := ServiceCommitmentEndDate;
+        ServiceCommitment."Next Billing Date" := NextBillingDate;
+        ServiceCommitment.Closed := ServiceCommitmentClosed;
+        ServiceCommitment.Insert(false);
     end;
 
     local procedure InsertServiceCommitment(ServicePartner: Enum "Service Partner"; var InsertCounter: Integer)
@@ -635,6 +853,58 @@ codeunit 148156 "Service Commitment Test"
                     ContractTestLibrary.MockVendorContractDeferralLine(ServiceCommitment."Subscription Contract No.", ServiceCommitment."Subscription Contract Line No.");
             end;
         until ServiceCommitment.Next() = 0;
+    end;
+
+    local procedure BillContractAndPostInvoice(var BillingTemplate: Record "Billing Template"; var BillingLine: Record "Billing Line"; var SalesHeader: Record "Sales Header")
+    begin
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange(Partner, BillingLine.Partner::Customer);
+        Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
+        BillingLine.FindLast();
+        SalesHeader.Get(SalesHeader."Document Type"::Invoice, BillingLine."Document No.");
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+    end;
+
+    local procedure GetDifferentDateAllowedByLicense(ReferenceDate: Date) NewDate: Date
+    begin
+        // the date filter of the demo license only allows dates in November, December, January and February
+        NewDate := DMY2Date(1, 2, Date2DMY(ReferenceDate, 3));
+        if NewDate = ReferenceDate then
+            NewDate := DMY2Date(1, 1, Date2DMY(ReferenceDate, 3));
+    end;
+
+    local procedure MockBilledSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    begin
+        SubscriptionLine.Init();
+        SubscriptionLine."Entry No." := 0;
+        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
+        SubscriptionLine."Subscription Line Start Date" := WorkDate();
+        SubscriptionLine."Next Billing Date" := CalcDate('<+1M>', WorkDate());
+        SubscriptionLine.Insert(false);
+    end;
+
+    local procedure MockBillingLine(SubscriptionLineEntryNo: Integer)
+    var
+        BillingLine: Record "Billing Line";
+    begin
+        BillingLine.Init();
+        BillingLine."Entry No." := 0;
+        BillingLine."Subscription Line Entry No." := SubscriptionLineEntryNo;
+        BillingLine.Insert(false);
+    end;
+
+    local procedure MockBillingLineArchive(SubscriptionLineEntryNo: Integer; ArchivedAmount: Decimal)
+    var
+        BillingLineArchive: Record "Billing Line Archive";
+    begin
+        BillingLineArchive.Init();
+        BillingLineArchive."Entry No." := 0;
+        BillingLineArchive."Subscription Line Entry No." := SubscriptionLineEntryNo;
+        BillingLineArchive.Amount := ArchivedAmount;
+        BillingLineArchive.Insert(false);
     end;
 
     local procedure MockSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
@@ -679,6 +949,12 @@ codeunit 148156 "Service Commitment Test"
     procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure CreateCustomerBillingDocsPageHandler(var CreateCustomerBillingDocs: TestPage "Create Customer Billing Docs")
+    begin
+        CreateCustomerBillingDocs.OK().Invoke();
     end;
 
     [ModalPageHandler]

@@ -258,18 +258,6 @@ codeunit 5812 "Calculate Standard Cost"
             until TempItem.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('procedure that was implemented to throw the error has now been identified as unnecessary', '27.0')]
-    procedure CalcItemForNonInventoryValue(var Item: Record Item)
-    begin
-    end;
-
-    [Obsolete('procedure that was implemented to throw the error has now been identified as unnecessary', '27.0')]
-    procedure CalcSKUForNonInventoryValue(var SKU: Record "Stockkeeping Unit")
-    begin
-    end;
-#endif
-
     procedure CalcItemSKU(ItemNo: Code[20]; LocationCode: Code[20]; VariantCode: Code[20])
     var
         SKU: Record "Stockkeeping Unit";
@@ -940,6 +928,7 @@ codeunit 5812 "Calculate Standard Cost"
     var
         RtngLine: Record "Routing Line";
         RtngHeader: Record "Routing Header";
+        IsHandled: Boolean;
     begin
         if RtngLine.CertifiedRoutingVersionExists(RtngHeaderNo, CalculationDate) then begin
             if RtngLine."Version Code" = '' then begin
@@ -948,7 +937,10 @@ codeunit 5812 "Calculate Standard Cost"
             end;
 
             repeat
-                CalcRtngLineCostSKU(RtngLine, MfgItemQtyBase, SLCap, SLSub, SLCapOvhd);
+                IsHandled := false;
+                OnCalcRtngCostSKUOnBeforeCalcRtngLineCostSKU(RtngLine, MfgItemQtyBase, SLCap, SLSub, SLCapOvhd, IsHandled);
+                if not IsHandled then
+                    CalcRtngLineCostSKU(RtngLine, MfgItemQtyBase, SLCap, SLSub, SLCapOvhd);
             until RtngLine.Next() = 0;
         end;
     end;
@@ -1312,7 +1304,7 @@ codeunit 5812 "Calculate Standard Cost"
             IncrCost(SLCap, DirUnitCost, CostTime);
         IncrCost(SLCapOvhd, CostCalcMgt.CalcOvhdCost(DirUnitCost, IndirCostPct, OvhdRate, 1), CostTime);
 
-        OnAfterCalcRtngLineCost(RoutingLine, MfgItemQtyBase, SLCap, SLSub, SLCapOvhd, StdCostWkshName, ParentItem, CostTime);
+        OnAfterCalcRtngLineCost(RoutingLine, MfgItemQtyBase, SLCap, SLSub, SLCapOvhd, StdCostWkshName, ParentItem, CostTime, DirUnitCost);
     end;
 
     internal procedure CalcRtngLineCostSKU(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLCap: Decimal; var SLSub: Decimal; var SLCapOvhd: Decimal)
@@ -1367,7 +1359,12 @@ codeunit 5812 "Calculate Standard Cost"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLCap: Decimal; var SLSub: Decimal; var SLCapOvhd: Decimal; var StdCostWkshName: Text[50]; var ParentItem: Record Item; CostTime: Decimal)
+    local procedure OnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLCap: Decimal; var SLSub: Decimal; var SLCapOvhd: Decimal; var StdCostWkshName: Text[50]; var ParentItem: Record Item; CostTime: Decimal; var DirUnitCost: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcRtngCostSKUOnBeforeCalcRtngLineCostSKU(var RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLCap: Decimal; var SLSub: Decimal; var SLCapOvhd: Decimal; var IsHandled: Boolean)
     begin
     end;
 
@@ -1624,4 +1621,3 @@ codeunit 5812 "Calculate Standard Cost"
         end;
     end;
 }
-

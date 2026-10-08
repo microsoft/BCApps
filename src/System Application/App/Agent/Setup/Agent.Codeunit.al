@@ -61,12 +61,26 @@ codeunit 4321 Agent
     /// Archives the agent. Archiving removes the agent from active use and cannot be undone. The agent must be inactive (deactivated) before it can be archived.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <remarks>An error is raised if the agent's type does not support archiving. Call IsArchivingSupported to check before archiving.</remarks>
     procedure Archive(AgentUserSecurityID: Guid)
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.Archive(AgentUserSecurityID);
+    end;
+
+    /// <summary>
+    /// Checks if the agent type supports archiving.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <returns>True if the agent type supports archiving; otherwise false.</returns>
+    procedure IsArchivingSupported(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentImpl.IsArchivingSupported(AgentUserSecurityID));
     end;
 
     /// <summary>

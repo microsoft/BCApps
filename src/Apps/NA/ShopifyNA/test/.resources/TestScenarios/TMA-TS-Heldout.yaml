@@ -1,0 +1,266 @@
+test_setup: TMA-Setup.yaml
+
+tests:
+  - name: US-HI-Honolulu-GET
+    description: "Hawaii uses a General Excise Tax; generic state title must map to the GET jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: HIGET
+          Description: Hawaii General Excise Tax
+          Country/Region Code: US
+        - Code: HIHONSUR
+          Description: Honolulu County Surcharge
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: HI
+        city: Honolulu
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Hawaii State Tax"
+              ratePct: 4.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Honolulu County Tax"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "HIGET"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "HIHONSUR"
+
+  - name: US-NM-Albuquerque-GRT
+    description: "New Mexico's sales tax is officially a Gross Receipts Tax; state title must map to it"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NMGRT
+          Description: New Mexico Gross Receipts Tax
+          Country/Region Code: US
+        - Code: NMBERN
+          Description: Bernalillo County Gross Receipts
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NM
+        city: Albuquerque
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "New Mexico State Tax"
+              ratePct: 5.125
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Bernalillo County Tax"
+              ratePct: 1.3125
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NMGRT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "NMBERN"
+
+  - name: US-PR-SanJuan-IVU
+    description: "Puerto Rico Spanish tax abbreviation IVU must map to the Sales and Use Tax jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: PRSUT
+          Description: Puerto Rico Sales and Use Tax
+          Country/Region Code: US
+        - Code: PRMUNI
+          Description: Municipal Sales and Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: PR
+        city: San Juan
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "IVU"
+              ratePct: 10.5
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "IVU Municipal"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "PRSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "PRMUNI"
+
+  - name: US-CO-Denver-RTD
+    description: "Colorado RTD special-district tax must map to the Regional Transportation District jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: COSUT
+          Description: Colorado State Tax
+          Country/Region Code: US
+        - Code: CORTD
+          Description: Regional Transportation District Tax
+          Country/Region Code: US
+        - Code: CODEN
+          Description: City and County of Denver
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CO
+        city: Denver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Colorado State Tax"
+              ratePct: 2.9
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "RTD Tax"
+              ratePct: 1.0
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Denver City Tax"
+              ratePct: 4.81
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "COSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "CORTD"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "CODEN"
+
+  - name: US-NV-LasVegas-LSST
+    description: "Nevada Local School Support Tax component must map by name to the LSST jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSUT
+          Description: Nevada Sales and Use Tax
+          Country/Region Code: US
+        - Code: NVLSST
+          Description: Local School Support Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Nevada State Tax"
+              ratePct: 2.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Local School Support Tax"
+              ratePct: 2.6
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Clark County Tax"
+              ratePct: 1.53
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "NVLSST"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "NVCLARK"
+
+  - name: US-FL-Miami-Surtax
+    description: "Florida county tax is a Discretionary Sales Surtax; county title must map to it"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: FLSUT
+          Description: Florida State Sales Tax
+          Country/Region Code: US
+        - Code: FLMDSUR
+          Description: Miami-Dade Discretionary Sales Surtax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: FL
+        city: Miami
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Florida State Tax"
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Miami-Dade County Tax"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "FLSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "FLMDSUR"

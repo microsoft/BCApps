@@ -1,5 +1,5 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/992ee305e2c6d86d85d53e18c4fc88a5171a8cd4/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/88faf7e7845be73f3f531a58ba4289319387990c/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps NO",
     "country":  "NO",
     "appFolders":  [
@@ -56,6 +56,7 @@
                        "../../../src/Apps/W1/ExcelReports/App",
                        "../../../src/Apps/W1/ExciseTaxes/app",
                        "../../../src/Apps/W1/ExpenseAgent/app",
+                       "../../../src/Apps/W1/ExpenseAgent/demo data",
                        "../../../src/Apps/W1/ExpenseWithholdingTax/app",
                        "../../../src/Apps/W1/External File Storage - Azure Blob Service Connector/App",
                        "../../../src/Apps/W1/External File Storage - Azure File Service Connector/App",
@@ -77,6 +78,7 @@
                        "../../../src/Apps/W1/LibraryNoTransactions/app",
                        "../../../src/Apps/W1/Manufacturing/app",
                        "../../../src/Apps/W1/MasterDataManagement/app",
+                       "../../../src/Apps/W1/MicrosoftFabricMirroring/app",
                        "../../../src/Apps/W1/MicrosoftUniversalPrint/app",
                        "../../../src/Apps/W1/MSWalletPayments/app",
                        "../../../src/Apps/W1/OnboardingSignals/app",
@@ -179,6 +181,7 @@
                         "../../../src/Apps/W1/Manufacturing/test",
                         "../../../src/Apps/W1/MasterDataManagement/test",
                         "../../../src/Apps/W1/MasterDataManagement/test library",
+                        "../../../src/Apps/W1/MicrosoftFabricMirroring/test",
                         "../../../src/Apps/W1/OnboardingSignals/test",
                         "../../../src/Apps/W1/Onprem Permissions/test",
                         "../../../src/Apps/W1/PaymentPractices/Test",
@@ -210,6 +213,7 @@
                         "../../../src/Layers/W1/Tests/Bank",
                         "../../../src/Layers/W1/Tests/BCPT-SampleTests",
                         "../../../src/Layers/W1/Tests/Cash Flow",
+                        "../../../src/Layers/W1/Tests/Company Creation",
                         "../../../src/Layers/W1/Tests/Cost Accounting",
                         "../../../src/Layers/W1/Tests/CRM integration",
                         "../../../src/Layers/W1/Tests/Data Exchange",
