@@ -38,7 +38,6 @@ report 30104 "Shpfy Sync Orders from Shopify"
                     OrdersToImport2.SetRange("Shop Code", '');
                     OrdersToImport2.ModifyAll("Shop Code", Shop.Code);
                     Commit();
-
                     if GuiAllowed then begin
                         ToProcess := OrdersToImport.Count;
                         Dialog.Open(OrderTypeTxt + ProcessMsg, ToProcess);
@@ -54,14 +53,12 @@ report 30104 "Shpfy Sync Orders from Shopify"
                 begin
                     ClearLastError();
                     Commit();
-
                     if ImportOrder.Run(OrdersToImport) then
                         OrdersToImport."Has Error" := false
                     else begin
                         OrdersToImport."Has Error" := true;
                         OrdersToImport.SetErrorInfo();
                     end;
-
                     if OrdersToImport."Has Error" then
                         OrdersToImport.Modify()
                     else
@@ -72,7 +69,6 @@ report 30104 "Shpfy Sync Orders from Shopify"
                                 if Shop."Auto Create Orders" then
                                     CreateSalesDocumentForOrders(OrderHeader);
                         end;
-
                     if GuiAllowed then begin
                         ToProcess -= 1;
                         Dialog.Update();
@@ -136,6 +132,10 @@ report 30104 "Shpfy Sync Orders from Shopify"
             end else begin
                 SelectLatestVersion();
                 ShopifyOrderHeader.Get(ShopifyOrderHeader."Shopify Order Id");
+                if ShopifyOrderHeader."Has Error" then begin
+                    Commit();
+                    exit;
+                end;
                 ShopifyOrderHeader."Has Error" := false;
                 ShopifyOrderHeader."Error Message" := '';
                 ShopifyOrderHeader.Processed := true;
@@ -164,7 +164,6 @@ report 30104 "Shpfy Sync Orders from Shopify"
                 repeat
                     IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundHeader."Refund Id");
                     Commit();
-
                     if GuiAllowed then begin
                         ToProcess -= 1;
                         Dialog.Update();

@@ -8,26 +8,30 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Document;
 using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Codeunit Shpfy TMA Rate Conflict Test (ID 134720).
-/// Plain (non-AITest) unit tests for the rate-conflict lifecycle of the Shopify Tax Matching
-/// Agent: the on-approve recheck/flip of the Tax Rate Conflict flag
-/// (ReapplyFromAssignedLines), the Sales Document creation gate decision
-/// (IsSalesDocumentCreationHeld), and Undo Approval. No LLM call — these tests drive the
-/// helpers directly against records built in the test database.
+/// Plain (non-AITest) tests for the Shopify Tax Matching rate-conflict lifecycle,
+/// including the Sales Document creation recovery path. No LLM call is required.
 /// </summary>
 codeunit 134720 "Shpfy TMA Rate Conflict Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
+    EventSubscriberInstance = Manual;
     Access = Internal;
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        RateConflictTest: Codeunit "Shpfy TMA Rate Conflict Test";
         NextOrderId: BigInteger;
+        OnDemandMatchOrderId: BigInteger;
+        OnDemandTaxLineParentId: BigInteger;
         TaxLineIdTok: Label '%1-%2', Locked = true;
+        OnDemandTaxAreaErr: Label 'The on-demand tax area could not be resolved.';
 
     // RD1 / RD6 — a matched jurisdiction whose BC Tax Detail rate differs from Shopify's is
     // detected as a rate conflict; the jurisdiction stays assigned and the existing detail is
@@ -389,6 +393,76 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         BuildOrderAndShopMode(OrderHeader, Shop, Enum::"Shpfy Tax Match Review Mode"::Never, false, true, false);
         LibraryAssert.IsTrue(TMAEvents.IsSalesDocumentCreationHeld(OrderHeader, Shop),
             'A rate conflict must hold the order even in Never mode.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure CreateSalesDocumentPersistsOnDemandRateConflictForReview()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        SalesHeader: Record "Sales Header";
+        Shop: Record "Shpfy Shop";
+        TaxArea: Record "Tax Area";
+        ShopifyOrder: TestPage "Shpfy Order";
+        TaxMatchReview: TestPage "Shpfy TMA Review";
+        OrderId: BigInteger;
+        TaxLineParentId: BigInteger;
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        Shop."Tax Match Review Mode" := Shop."Tax Match Review Mode"::Never;
+        Shop."Auto Create Tax Areas" := true;
+        Shop."Tax Area Naming Pattern" := 'SHPFY-';
+        Shop.Modify();
+
+        CreateShippingScenario(OrderHeader, Shop, 20, 10);
+        OrderId := OrderHeader."Shopify Order Id";
+        TaxLineParentId := OrderId + 5000;
+        OrderHeader."Shopify Order No." := 'TMA-653452';
+        OrderHeader."Sell-to Customer No." := 'TMA-CUSTOMER';
+        OrderHeader."Bill-to Customer No." := 'TMA-CUSTOMER';
+        OrderHeader."Ship-to Country/Region Code" := 'US';
+        OrderHeader.Modify();
+        OrderTaxLine.Get(TaxLineParentId, 1);
+        OrderTaxLine."Tax Jurisdiction Code" := '';
+        OrderTaxLine.Modify();
+        Commit();
+
+        RateConflictTest.ConfigureOnDemandRateConflict(OrderId, TaxLineParentId);
+        BindSubscription(RateConflictTest);
+        OrderHeader.SetRecFilter();
+        ShopifyOrder.Trap();
+        Page.Run(Page::"Shpfy Order", OrderHeader);
+        ShopifyOrder.CreateSalesDocument.Invoke();
+        UnbindSubscription(RateConflictTest);
+        ShopifyOrder.Close();
+
+        OrderHeader.Reset();
+        OrderHeader.Get(OrderId);
+        LibraryAssert.IsTrue(OrderHeader."Has Error", 'The rate conflict must hold Sales Document creation.');
+        LibraryAssert.IsTrue(OrderHeader."Error Message".Contains('matched Shopify rate differs'), 'The order must retain the rate-conflict error.');
+        LibraryAssert.IsFalse(OrderHeader.Processed, 'The Shopify order must remain unprocessed.');
+        SalesHeader.SetRange("Shpfy Order Id", OrderId);
+        LibraryAssert.IsTrue(SalesHeader.IsEmpty(), 'The held order must not create a Sales Document.');
+        LibraryAssert.IsTrue(OrderHeader."Tax Match Applied", 'The on-demand tax match must remain applied after the processing hold.');
+        LibraryAssert.IsTrue(OrderHeader."Tax Rate Conflict", 'The rate-conflict state must remain after the processing hold.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Reviewed", 'The blocked match must remain pending review.');
+        LibraryAssert.AreNotEqual('', OrderHeader."Tax Area Code", 'The resolved Tax Area must remain after the processing hold.');
+        LibraryAssert.IsTrue(TaxArea.Get(OrderHeader."Tax Area Code"), 'The resolved Tax Area must remain available.');
+        OrderTaxLine.Get(TaxLineParentId, 1);
+        LibraryAssert.AreEqual('NYSTAX', OrderTaxLine."Tax Jurisdiction Code", 'The matched Tax Jurisdiction must remain after the processing hold.');
+
+        OrderHeader.SetRecFilter();
+        ShopifyOrder.Trap();
+        Page.Run(Page::"Shpfy Order", OrderHeader);
+        LibraryAssert.IsTrue(ShopifyOrder.ShpfyReviewAndApproveTaxMatch.Visible(), 'Review Tax Match must be available for the blocked order.');
+        TaxMatchReview.Trap();
+        ShopifyOrder.ShpfyReviewAndApproveTaxMatch.Invoke();
+        LibraryAssert.AreEqual(OrderHeader."Tax Area Code", TaxMatchReview."Tax Area Code".Value(), 'The review page must open for the persisted tax match.');
+        LibraryAssert.IsTrue(TaxMatchReview.Approve.Visible(), 'The persisted rate conflict must be available for approval.');
+        TaxMatchReview.Close();
+        ShopifyOrder.Close();
     end;
 
     // Never — an incomplete match still holds (hard safety gate).
@@ -1014,6 +1088,47 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         LibraryAssert.IsFalse(OrderHeader."Tax Rate Conflict", 'A blocked rematch must clear the stale rate-conflict state.');
         LibraryAssert.IsFalse(OrderHeader."Tax Match Incomplete", 'A blocked rematch must clear the stale incomplete state.');
         LibraryAssert.IsFalse(OrderHeader."Tax Match Low Confidence", 'A blocked rematch must clear the stale confidence state.');
+    end;
+
+    internal procedure ConfigureOnDemandRateConflict(OrderId: BigInteger; TaxLineParentId: BigInteger)
+    begin
+        OnDemandMatchOrderId := OrderId;
+        OnDemandTaxLineParentId := TaxLineParentId;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterMapShopifyOrder, '', false, false)]
+    local procedure ApplyOnDemandRateConflict(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
+    var
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        Shop: Record "Shpfy Shop";
+        TaxAreaBuilder: Codeunit "Shpfy Tax Area Builder";
+        MatchedJurisdictions: List of [Code[10]];
+        ResolvedTaxAreaCode: Code[20];
+        TaxAreaWasCreated: Boolean;
+    begin
+        if (ShopifyOrderHeader."Shopify Order Id" <> OnDemandMatchOrderId) or not Result then
+            exit;
+
+        OrderTaxLine.Get(OnDemandTaxLineParentId, 1);
+        OrderTaxLine."Tax Jurisdiction Code" := 'NYSTAX';
+        OrderTaxLine.Modify();
+
+        Shop.Get(ShopifyOrderHeader."Shop Code");
+        MatchedJurisdictions.Add('NYSTAX');
+        if not TaxAreaBuilder.FindOrCreateTaxArea(ShopifyOrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated) then
+            Error(OnDemandTaxAreaErr);
+
+        ShopifyOrderHeader."Tax Match Applied" := true;
+        ShopifyOrderHeader."Tax Match Reviewed" := false;
+        ShopifyOrderHeader."Tax Rate Conflict" := true;
+        ShopifyOrderHeader."Tax Match Incomplete" := false;
+        ShopifyOrderHeader.Modify();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     local procedure BuildOrderAndShop(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; Applied: Boolean; Reviewed: Boolean; ReviewRequired: Boolean; RateConflict: Boolean)
