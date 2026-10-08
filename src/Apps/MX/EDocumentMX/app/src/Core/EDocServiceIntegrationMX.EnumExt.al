@@ -11,7 +11,7 @@ using Microsoft.eServices.EDocument.Integration.Interfaces;
 enumextension 3352 "Service Integration MX" extends "Service Integration"
 {
 
-    value(3300; "Interfactura Service")
+    value(3352; "Interfactura Service")
     {
         Implementation =
                 IDocumentSender = "MX Interfactura Impl.",

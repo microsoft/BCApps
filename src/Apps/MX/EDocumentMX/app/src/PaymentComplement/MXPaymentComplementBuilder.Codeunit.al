@@ -122,7 +122,7 @@ codeunit 3356 "MX Payment Complement Builder"
         Dom.AddElementWithPrefix(Complement, 'Pagos', '', 'pago20', PagosNamespaceTok, Pagos);
         Helper.AddAttribute(Pagos, 'Version', '2.0');
         Dom.AddElementWithPrefix(Pagos, 'Totales', '', 'pago20', PagosNamespaceTok, Totals);
-        Helper.AddAttribute(Totals, 'MontoTotalPagos', Helper.FormatAmount(Amount));
+        Helper.AddAttribute(Totals, 'MontoTotalPagos', Helper.FormatAmount(Abs(Payment."Amount (LCY)")));
         Dom.AddElementWithPrefix(Pagos, 'Pago', '', 'pago20', PagosNamespaceTok, Pago);
         Helper.AddAttribute(Pago, 'FechaPago', FormatDateTime(Payment."Posting Date"));
         Helper.AddAttribute(Pago, 'FormaDePagoP', GetSATMethod(Payment."Payment Method Code"));
@@ -137,12 +137,12 @@ codeunit 3356 "MX Payment Complement Builder"
             if CustomerBankAccount.FindFirst() then
                 Helper.AddAttribute(Pago, 'NomBancoOrdExt', CustomerBankAccount.Name);
         end;
-        Detail.SetRange("Cust. Ledger Entry No.", Payment."Entry No.");
+        Detail.SetRange("Applied Cust. Ledger Entry No.", Payment."Entry No.");
         Detail.SetRange("Entry Type", Detail."Entry Type"::Application);
         Detail.SetRange(Unapplied, false);
         if Detail.FindSet() then
             repeat
-                if Applied.Get(Detail."Applied Cust. Ledger Entry No.") then begin
+                if Applied.Get(Detail."Cust. Ledger Entry No.") then begin
                     Applied.CalcFields(Amount);
                     Dom.AddElementWithPrefix(Pago, 'DoctoRelacionado', '', 'pago20', PagosNamespaceTok, Related);
                     Helper.AddAttribute(Related, 'IdDocumento', GetUUID(Applied, WriteBack));
@@ -195,7 +195,7 @@ codeunit 3356 "MX Payment Complement Builder"
             Dom.AddElementWithPrefix(TransfersNode, 'TrasladoDR', '', 'pago20', PagosNamespaceTok, TransferNode);
             Helper.AddAttribute(TransferNode, 'BaseDR', FormatDecimal(Base, 2));
             Helper.AddAttribute(TransferNode, 'ImpuestoDR', '002');
-            if Rate = 0 then begin
+            if (Rate = 0) and (VATEntry.Base = 0) then begin
                 Helper.AddAttribute(TransferNode, 'TipoFactorDR', 'Exento');
                 BaseExempt += Base;
             end else begin
@@ -278,7 +278,9 @@ codeunit 3356 "MX Payment Complement Builder"
     begin
         if Currency(Payment."Currency Code", LCY) = Currency(Applied."Currency Code", LCY) then
             exit(1);
-        if (Detail."Amount (LCY)" = 0) or (Payment."Original Currency Factor" = 0) then
+        if Payment."Original Currency Factor" = 0 then
+            exit(1);
+        if Detail."Amount (LCY)" = 0 then
             exit(Round(Applied."Original Currency Factor" / Payment."Original Currency Factor", 0.0000000001));
         DocumentFactor := Detail.Amount / Detail."Amount (LCY)";
         PaymentFactor := Payment."Original Currency Factor";

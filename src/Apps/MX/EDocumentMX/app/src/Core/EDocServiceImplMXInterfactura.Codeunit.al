@@ -72,7 +72,10 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
     begin
-        Success := InterfacturaProcessing.CancelEDocument(EDocument, EDocumentService, HttpRequest, HttpResponse, Status);
+        if EDocument."CFDI Cancellation ID" <> '' then
+            Success := InterfacturaProcessing.CheckCancellationStatus(EDocument, EDocumentService, HttpRequest, HttpResponse, Status)
+        else
+            Success := InterfacturaProcessing.CancelEDocument(EDocument, EDocumentService, HttpRequest, HttpResponse, Status);
         ActionContext.Status().SetStatus(Status);
         ActionContext.Http().SetHttpRequestMessage(HttpRequest);
         ActionContext.Http().SetHttpResponseMessage(HttpResponse);

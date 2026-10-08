@@ -20,6 +20,7 @@ codeunit 3370 "EDoc CFDI Email MX"
 
     procedure TrySendStampEmail(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service")
     var
+        MXConnectionSetup: Record "MX Connection Setup";
         Customer: Record Customer;
         EDocDataStorage: Record "E-Doc. Data Storage";
         Email: Codeunit Email;
@@ -33,7 +34,7 @@ codeunit 3370 "EDoc CFDI Email MX"
         CustomerEmail: Text;
         DocNo: Code[20];
     begin
-        if not EDocumentService."Send PDF Report" then
+        if not MXConnectionSetup.Get() or not MXConnectionSetup."Send PDF Report" then
             exit;
 
         if EDocument."Bill-to/Pay-to No." = '' then

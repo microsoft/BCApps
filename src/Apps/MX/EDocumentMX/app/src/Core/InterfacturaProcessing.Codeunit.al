@@ -42,6 +42,7 @@ codeunit 3355 "Interfactura Processing"
         PaymentStampFailedMsg: Label 'Payment complement stamp request failed: %1', Locked = true;
         SecurityAuditPACRejectedTxt: Label 'PAC rejected CFDI stamp request for E-Document %1: %2', Locked = true, Comment = '%1 - E-Document entry no, %2 - PAC error';
         SecurityAuditCancelRequestedTxt: Label 'CFDI cancellation request submitted for E-Document %1.', Locked = true, Comment = '%1 - E-Document entry no';
+        CheckCancellationStatusMsg: Label 'Checking cancellation status for E-Document %1.', Locked = true;
 
 
     procedure SendEDocument(var TempBlob: Codeunit "Temp Blob"; var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var SendContext: Codeunit SendContext)
@@ -57,22 +58,24 @@ codeunit 3355 "Interfactura Processing"
             exit;
         end;
         RequestType := RequestType::"Request Stamp";
-        Session.LogMessage('0000QX4', StrSubstNo(StampRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000QXF', StrSubstNo(StampRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         if not InvokeSoapRequest(EDocument, RequestTxt, RequestType, ErrorText, SendContext) then
             Error(ErrorText);
 
-        Session.LogMessage('0000QX5', StrSubstNo(StampSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000QXG', StrSubstNo(StampSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         TryProcessAdvanceReverseAfterSettle(EDocument);
         EDocCFDIEmailMX.TrySendStampEmail(EDocument, EDocumentService);
     end;
 
     internal procedure SendPaymentComplement(var TempBlob: Codeunit "Temp Blob"; MessageContext: Codeunit "E-Doc. Message Context")
     var
+        MXPaymentComplement: Record "MX Payment Complement";
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
         RequestTxt: Text;
         ResponseTxt: Text;
         ErrorText: Text;
+        UUID: Text[50];
         RequestType: Option "Request Stamp",Cancel,CancelRequest;
     begin
         RequestTxt := GetRequestText(TempBlob);
@@ -92,6 +95,13 @@ codeunit 3355 "Interfactura Processing"
             Error(ErrorText);
         end;
         Session.LogMessage('0000QX8', PaymentStampSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        if TryGetStampedUUIDFromResponse(ResponseTxt, UUID) then begin
+            MXPaymentComplement.SetRange("E-Document Message Entry No.", MessageContext.GetMessageEntryNo());
+            if MXPaymentComplement.FindFirst() then begin
+                MXPaymentComplement."Stamped UUID" := UUID;
+                MXPaymentComplement.Modify();
+            end;
+        end;
         MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
 
@@ -340,7 +350,7 @@ codeunit 3355 "Interfactura Processing"
         MXPACWebServiceDetail.TestField("Method Name");
 
         WebServiceUrl := MXPACWebServiceDetail.Address;
-        Session.LogMessage('0000QWW', StrSubstNo(BatchSoapRequestMsg, Format(RequestType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000QXE', StrSubstNo(BatchSoapRequestMsg, Format(RequestType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
 
         Commit();
 
@@ -624,6 +634,37 @@ codeunit 3355 "Interfactura Processing"
         CFDICancellationMX.ProcessCancellationResponse(ResponseTxt, EDocument, Status);
         if Status = Enum::"E-Document Service Status"::Canceled then
             Session.LogMessage('0000QXA', StrSubstNo(CancelSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        exit(true);
+    end;
+
+    procedure CheckCancellationStatus(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean
+    var
+        CFDICancellationMX: Codeunit "CFDI Cancellation MX";
+        EDocErrorHelper: Codeunit "E-Document Error Helper";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        TempBlob: Codeunit "Temp Blob";
+        RequestType: Option "Request Stamp", Cancel, CancelRequest;
+        RequestTxt, ResponseTxt, ErrorText : Text;
+    begin
+        EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);
+        Status := EDocumentServiceStatus.Status;
+
+        CFDICancellationMX.CreateCancelStatusRequestXML(EDocument."CFDI Cancellation ID", TempBlob);
+        RequestTxt := GetRequestText(TempBlob);
+        if RequestTxt = '' then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, MissingCancelRequestErr);
+            exit(false);
+        end;
+
+        RequestType := RequestType::CancelRequest;
+        Session.LogMessage('0000QXH', StrSubstNo(CheckCancellationStatusMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
+            if ErrorText <> '' then
+                EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
+            exit(false);
+        end;
+
+        CFDICancellationMX.ProcessCancellationResponse(ResponseTxt, EDocument, Status);
         exit(true);
     end;
 

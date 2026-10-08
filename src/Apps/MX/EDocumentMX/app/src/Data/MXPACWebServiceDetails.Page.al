@@ -102,7 +102,7 @@ page 3353 "MX PAC Web Service Details"
             SendMode::Test:
                 ServiceUrl := InterfacturaServiceUrlLbl;
             SendMode::Production:
-                ServiceUrl := InterfacturaServiceUrlLbl;
+                ServiceUrl := '';
         end;
 
         case RequestType of
@@ -119,16 +119,15 @@ page 3353 "MX PAC Web Service Details"
     var
         MXPACWebServiceDetail: Record "MX PAC Web Service Detail";
     begin
-        if not MXPACWebServiceDetail.Get(SetupId, RequestType) then begin
-            MXPACWebServiceDetail.Init();
-            MXPACWebServiceDetail."Setup Id" := SetupId;
-            MXPACWebServiceDetail.Type := RequestType;
-            MXPACWebServiceDetail.Insert(true);
-        end;
+        if MXPACWebServiceDetail.Get(SetupId, RequestType) then
+            exit;
 
+        MXPACWebServiceDetail.Init();
+        MXPACWebServiceDetail."Setup Id" := SetupId;
+        MXPACWebServiceDetail.Type := RequestType;
         MXPACWebServiceDetail."Method Name" := MethodName;
         MXPACWebServiceDetail.Address := Address;
-        MXPACWebServiceDetail.Modify(true);
+        MXPACWebServiceDetail.Insert(true);
     end;
 
     local procedure EditSelectedPACWebServiceDetail()

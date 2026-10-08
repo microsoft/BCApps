@@ -53,6 +53,11 @@ table 3354 "MX Payment Complement"
         {
             DataClassification = SystemMetadata;
         }
+        field(8; "Stamped UUID"; Text[50])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Stamped UUID';
+        }
     }
     keys
     {

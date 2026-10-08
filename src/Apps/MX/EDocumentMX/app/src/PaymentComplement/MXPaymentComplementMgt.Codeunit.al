@@ -91,12 +91,12 @@ codeunit 3357 "MX Payment Complement Mgt."
         SalesInvoice: Record "Sales Invoice Header";
         ServiceInvoice: Record "Service Invoice Header";
     begin
-        Detail.SetRange("Cust. Ledger Entry No.", Payment."Entry No.");
+        Detail.SetRange("Applied Cust. Ledger Entry No.", Payment."Entry No.");
         Detail.SetRange("Entry Type", Detail."Entry Type"::Application);
         Detail.SetRange(Unapplied, false);
         if Detail.FindSet() then
             repeat
-                if Applied.Get(Detail."Applied Cust. Ledger Entry No.") and (Applied."Document Type" = Applied."Document Type"::Invoice) then begin
+                if Applied.Get(Detail."Cust. Ledger Entry No.") and (Applied."Document Type" = Applied."Document Type"::Invoice) then begin
                     if SalesInvoice.Get(Applied."Document No.") then if FindClearedEDocument(SalesInvoice.RecordId(), Parent) then exit(true);
                     if ServiceInvoice.Get(Applied."Document No.") then if FindClearedEDocument(ServiceInvoice.RecordId(), Parent) then exit(true);
                 end;

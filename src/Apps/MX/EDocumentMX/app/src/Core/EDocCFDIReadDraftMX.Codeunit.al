@@ -44,7 +44,7 @@ codeunit 3369 "EDoc CFDI Read Draft MX" implements IStructuredFormatReader
         EDocumentPurchaseHeader.Total := EDocument."Amount Incl. VAT";
         EDocumentPurchaseHeader."Currency Code" := EDocument."Currency Code";
         // "Sales Invoice No." (field 5) is mapped by the framework to PurchaseHeader."Vendor Invoice No."
-        //EDocumentPurchaseHeader."Sales Invoice No." := EDocument."Incoming E-Document No.";
+        EDocumentPurchaseHeader."Sales Invoice No." := EDocument."Incoming E-Document No.";
         // MX extension field — carries the UUID to the subscriber that sets PurchaseHeader."Fiscal Invoice Number PAC"
         EDocumentPurchaseHeader."Fiscal Invoice Number PAC" := CopyStr(
             EDocument."Source Details", 1, MaxStrLen(EDocumentPurchaseHeader."Fiscal Invoice Number PAC"));
