@@ -72,7 +72,6 @@ report 94 "Close Income Statement"
                     then begin
                         if not GroupSum() then begin
                             TotalAmount += Amount;
-                            TotalAmountAddCurr += "Additional-Currency Amount";
 
                             GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                         end;
@@ -505,7 +504,6 @@ report 94 "Close Income Statement"
         ClosePerGlobalDim2: Boolean;
         ClosePerGlobalDimOnly: Boolean;
         TotalAmount: Decimal;
-        TotalAmountAddCurr: Decimal;
         ColumnDim: Text[250];
         NoOfAccounts: Integer;
         ThisAccountNo: Integer;
@@ -665,7 +663,6 @@ report 94 "Close Income Statement"
         TotalAmount += GLEntrySource.Amount;
         GLEntry.CalcSums("Additional-Currency Amount");
         GLEntrySource."Additional-Currency Amount" := GLEntry."Additional-Currency Amount";
-        TotalAmountAddCurr += GLEntrySource."Additional-Currency Amount";
     end;
 
     /// <summary>
