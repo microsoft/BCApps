@@ -1848,6 +1848,58 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
+    procedure LineTable_UpdateExpressionsInOtherInspectionLines_BlankSingleExpressionTerminates()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        TextExpressionQltyTest: Record "Qlty. Test";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 620380] A blank single-line text expression terminates without recursively evaluating itself.
+        Initialize();
+
+        // [GIVEN] An inspection template contains one text-expression line with a blank formula.
+        QltyInspectionUtility.EnsureSetupExists();
+        LibraryWarehouse.CreateFullWMSLocation(Location, 1);
+        LibraryInventory.CreateItem(Item);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(
+            ConfigurationToLoadQltyInspectionTemplateHdr, TextExpressionQltyTest, TextExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
+
+        // [GIVEN] An inspection is created from a received purchase line.
+        QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+
+        // [WHEN] The blank expression value is validated.
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionLine.SetRange("Test Code", TextExpressionQltyTest.Code);
+        QltyInspectionLine.FindFirst();
+        QltyInspectionLine.Validate("Test Value", '');
+        QltyInspectionLine.Modify(true);
+
+        // [THEN] Validation completes and the expression remains blank.
+        QltyInspectionLine.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.", QltyInspectionLine."Line No.");
+        LibraryAssert.AreEqual('', QltyInspectionLine."Test Value", 'The blank expression must remain blank.');
+
+        QltyInspectionGenRule.Delete();
+        ConfigurationToLoadQltyInspectionTemplateHdr.Delete();
+    end;
+
+    [Test]
     procedure LineTable_UpdateExpressionsInOtherInspectionLines_OnlyDependentReevaluated()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";

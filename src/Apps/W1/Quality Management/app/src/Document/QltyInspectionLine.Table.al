@@ -448,50 +448,78 @@ table 20406 "Qlty. Inspection Line"
     var
         OthersInSameQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
-        OfConsideredTestCodes: List of [Text];
+        TestCodesToProcess: List of [Text];
+        ChangedExpressionLineIds: List of [Guid];
+        QueuedTestCodes: Dictionary of [Text, Boolean];
+        EvaluatedExpressionLineIds: Dictionary of [Guid, Boolean];
+        SourceTestCode: Text;
+        ChangedExpressionLineId: Guid;
     begin
         if not GetInspection() then
             exit;
 
         EvaluateSelfIfOnlyLineIsTextExpression();
 
-        OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
-        OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
-        OthersInSameQltyInspectionLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
-        OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
-        OthersInSameQltyInspectionLine.SetAutoCalcFields("Test Value Type");
+        TestCodesToProcess.Add(Rec."Test Code");
+        QueuedTestCodes.Add(Rec."Test Code", true);
+        while TestCodesToProcess.Count() > 0 do begin
+            SourceTestCode := TestCodesToProcess.Get(1);
+            TestCodesToProcess.RemoveAt(1);
 
-        QltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
-        QltyInspectionTemplateLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
-        QltyInspectionTemplateLine.SetFilter("Test Code", '<>%1', Rec."Test Code");
-        QltyInspectionTemplateLine.SetFilter("Expression Formula", StrSubstNo('@*[%1]*', Rec."Test Code"));
-        QltyInspectionTemplateLine.SetAutoCalcFields("Test Value Type");
-        if QltyInspectionTemplateLine.FindSet() then
-            repeat
-                OthersInSameQltyInspectionLine.SetRange("Template Line No.", QltyInspectionTemplateLine."Line No.");
-                OthersInSameQltyInspectionLine.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
-                if OthersInSameQltyInspectionLine.FindSet() then
-                    repeat
-                        OfConsideredTestCodes.Add(OthersInSameQltyInspectionLine."Test Code");
-                        case OthersInSameQltyInspectionLine."Test Value Type" of
-                            OthersInSameQltyInspectionLine."Test Value Type"::"Value Type Text Expression":
-                                OthersInSameQltyInspectionLine.EvaluateTextExpression(QltyInspectionHeader);
-                        end;
-                    until OthersInSameQltyInspectionLine.Next() = 0;
-            until QltyInspectionTemplateLine.Next() = 0;
+            OthersInSameQltyInspectionLine.Reset();
+            OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
+            OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
+            OthersInSameQltyInspectionLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
+            OthersInSameQltyInspectionLine.SetAutoCalcFields("Test Value Type");
 
-        QltyResultEvaluation.GetInspectionLineConfigFilters(Rec, QltyIResultConditConf);
-        QltyIResultConditConf.SetFilter("Target Line No.", '<>%1', Rec."Line No.");
-        QltyIResultConditConf.SetFilter("Test Code", '<>%1', Rec."Test Code");
-        QltyIResultConditConf.SetFilter("Condition", StrSubstNo('@*[%1]*', Rec."Test Code"));
+            QltyInspectionTemplateLine.Reset();
+            QltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
+            QltyInspectionTemplateLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
+            QltyInspectionTemplateLine.SetFilter("Test Code", '<>%1', SourceTestCode);
+            QltyInspectionTemplateLine.SetFilter("Expression Formula", StrSubstNo('@*[%1]*', SourceTestCode));
+            QltyInspectionTemplateLine.SetAutoCalcFields("Test Value Type");
+            if QltyInspectionTemplateLine.FindSet() then
+                repeat
+                    OthersInSameQltyInspectionLine.SetRange("Template Line No.", QltyInspectionTemplateLine."Line No.");
+                    OthersInSameQltyInspectionLine.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
+                    if OthersInSameQltyInspectionLine.FindSet() then
+                        repeat
+                            if not EvaluatedExpressionLineIds.ContainsKey(OthersInSameQltyInspectionLine.SystemId) then begin
+                                EvaluatedExpressionLineIds.Add(OthersInSameQltyInspectionLine.SystemId, true);
+                                if OthersInSameQltyInspectionLine.EvaluateTextExpression(QltyInspectionHeader) then begin
+                                    ChangedExpressionLineIds.Add(OthersInSameQltyInspectionLine.SystemId);
+                                    if not QueuedTestCodes.ContainsKey(OthersInSameQltyInspectionLine."Test Code") then begin
+                                        TestCodesToProcess.Add(OthersInSameQltyInspectionLine."Test Code");
+                                        QueuedTestCodes.Add(OthersInSameQltyInspectionLine."Test Code", true);
+                                    end;
+                                end;
+                            end;
+                        until OthersInSameQltyInspectionLine.Next() = 0;
+                until QltyInspectionTemplateLine.Next() = 0;
+        end;
+
+        UpdateConditionsAndAllowableValues(Rec);
+        foreach ChangedExpressionLineId in ChangedExpressionLineIds do
+            if OthersInSameQltyInspectionLine.GetBySystemId(ChangedExpressionLineId) then
+                UpdateConditionsAndAllowableValues(OthersInSameQltyInspectionLine);
+    end;
+
+    local procedure UpdateConditionsAndAllowableValues(SourceQltyInspectionLine: Record "Qlty. Inspection Line")
+    var
+        OthersInSameQltyInspectionLine: Record "Qlty. Inspection Line";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+        OfConsideredTestCodes: List of [Text];
+    begin
+        QltyResultEvaluation.GetInspectionLineConfigFilters(SourceQltyInspectionLine, QltyIResultConditConf);
+        QltyIResultConditConf.SetFilter("Target Line No.", '<>%1', SourceQltyInspectionLine."Line No.");
+        QltyIResultConditConf.SetFilter("Test Code", '<>%1', SourceQltyInspectionLine."Test Code");
+        QltyIResultConditConf.SetFilter("Condition", StrSubstNo('@*[%1]*', SourceQltyInspectionLine."Test Code"));
         QltyIResultConditConf.SetLoadFields("Target Line No.", "Test Code");
-        OthersInSameQltyInspectionLine.Reset();
         if QltyIResultConditConf.FindSet() then
             repeat
-                OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
-                OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
+                OthersInSameQltyInspectionLine.SetRange("Inspection No.", SourceQltyInspectionLine."Inspection No.");
+                OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", SourceQltyInspectionLine."Re-inspection No.");
                 OthersInSameQltyInspectionLine.SetRange("Line No.", QltyIResultConditConf."Target Line No.");
                 OthersInSameQltyInspectionLine.SetRange("Test Code", QltyIResultConditConf."Test Code");
                 if OthersInSameQltyInspectionLine.FindFirst() then begin
@@ -501,10 +529,10 @@ table 20406 "Qlty. Inspection Line"
             until QltyIResultConditConf.Next() = 0;
 
         OthersInSameQltyInspectionLine.Reset();
-        OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
-        OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
-        OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
-        OthersInSameQltyInspectionLine.SetFilter("Allowable Values", StrSubstNo('@*[%1]*', Rec."Test Code"));
+        OthersInSameQltyInspectionLine.SetRange("Inspection No.", SourceQltyInspectionLine."Inspection No.");
+        OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", SourceQltyInspectionLine."Re-inspection No.");
+        OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', SourceQltyInspectionLine."Line No.");
+        OthersInSameQltyInspectionLine.SetFilter("Allowable Values", StrSubstNo('@*[%1]*', SourceQltyInspectionLine."Test Code"));
         if OthersInSameQltyInspectionLine.FindSet(true) then
             repeat
                 if not OfConsideredTestCodes.Contains(OthersInSameQltyInspectionLine."Test Code") then
@@ -535,7 +563,8 @@ table 20406 "Qlty. Inspection Line"
     /// Evaluates the current line's text expression against the supplied inspection header.
     /// </summary>
     /// <param name="EvaluateAgainstQltyInspectionHeader">The inspection header that supplies expression values.</param>
-    internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header")
+    /// <returns>True when evaluation changes the test value; otherwise, false.</returns>
+    internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header") ValueChanged: Boolean
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         EvaluatedValue: Text;
@@ -545,9 +574,7 @@ table 20406 "Qlty. Inspection Line"
         SkipDependentExpressionUpdate := true;
         EvaluatedValue := QltyExpressionMgmt.EvaluateTextExpression(Rec, EvaluateAgainstQltyInspectionHeader);
         SkipDependentExpressionUpdate := false;
-
-        if (EvaluatedValue <> PreviousValue) or (PreviousValue = '') then
-            UpdateExpressionsInOtherInspectionLinesInSameInspection();
+        ValueChanged := EvaluatedValue <> PreviousValue;
     end;
 
     /// <summary>
