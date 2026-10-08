@@ -311,6 +311,22 @@ page 3304 "Payables Agent Setup"
                     }
                 }
             }
+            group(BusinessCentralIQ)
+            {
+                Caption = 'Use Business Central IQ';
+                InstructionalText = 'Enable this option to let Payables Agent use Business Central IQ skills available in your environment.';
+
+                field(UseBusinessCentralIQ; Rec."Use Business Central IQ")
+                {
+                    Caption = 'Enable Business Central IQ';
+                    ToolTip = 'Specifies whether Payables Agent uses Business Central IQ skills available in this environment.';
+
+                    trigger OnValidate()
+                    begin
+                        SetupChanged := true;
+                    end;
+                }
+            }
             group(BCDocumentCreation)
             {
                 Caption = 'Document processing';

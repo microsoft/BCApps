@@ -10,13 +10,14 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Utilities;
 using System.Agents;
+using System.Agents.Internal;
 using System.AI;
 using System.Environment;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Telemetry;
 
-codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
+codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory, IAgentExperimental
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -42,6 +43,20 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     procedure GetAgentAnnotations(AgentUserId: Guid; var Annotations: Record "Agent Annotation")
     begin
         PAAnnotation.GetAgentAnnotations(AgentUserId, Annotations);
+    end;
+
+    procedure GetPageScripts(AgentUserId: Guid; var AgentTaskPageScript: Record "Agent Task Page Script")
+    begin
+    end;
+
+    procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        if Feature <> Feature::BusinessIQ then
+            exit(false);
+        PayablesAgentSetup.GetSetup();
+        exit(PayablesAgentSetup."Use Business Central IQ");
     end;
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
