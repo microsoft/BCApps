@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using System.AI;
 
-codeunit 148350 "Expense Consumption Test"
+codeunit 148299 "Expense Consumption Test"
 {
     Subtype = Test;
     TestType = UnitTest;
