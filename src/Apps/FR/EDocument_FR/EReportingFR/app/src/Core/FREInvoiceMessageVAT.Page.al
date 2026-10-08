@@ -26,6 +26,7 @@ page 10971 "FR E-Invoice Message VAT"
                 field("VAT %"; Rec."VAT %")
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     ToolTip = 'Specifies the VAT rate used to allocate the reported payment amount.';
                 }
                 field("VAT Category Code"; Rec."VAT Category Code")
