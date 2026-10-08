@@ -115,6 +115,48 @@ codeunit 148350 "Expense Consumption Test"
     end;
 
     [Test]
+    procedure ConsumptionJsonWithoutVersionUsageIsRejected()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        AiConsumptionRequestJson: JsonObject;
+        VersionJson: JsonObject;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Consumption JSON without version usage is rejected
+        Initialize();
+
+        // [GIVEN] A consumption request without usage in the version object
+        AiConsumptionRequestJson := CreateValidConsumptionJson();
+        VersionJson := AiConsumptionRequestJson.GetObject('v1');
+        VersionJson.Remove('usage');
+
+        // [WHEN] The consumption JSON is validated
+        // [THEN] The request is rejected
+        Assert.IsFalse(ExpenseConsumptionHandler.ValidateConsumptionJson(AiConsumptionRequestJson), 'A consumption request without version usage should be rejected.');
+    end;
+
+    [Test]
+    procedure ConsumptionJsonWithoutVersionUsageTypeIsRejected()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        AiConsumptionRequestJson: JsonObject;
+        VersionJson: JsonObject;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Consumption JSON without a version usage type is rejected
+        Initialize();
+
+        // [GIVEN] A consumption request without a usage type in the version object
+        AiConsumptionRequestJson := CreateValidConsumptionJson();
+        VersionJson := AiConsumptionRequestJson.GetObject('v1');
+        VersionJson.Remove('usageType');
+
+        // [WHEN] The consumption JSON is validated
+        // [THEN] The request is rejected
+        Assert.IsFalse(ExpenseConsumptionHandler.ValidateConsumptionJson(AiConsumptionRequestJson), 'A consumption request without a version usage type should be rejected.');
+    end;
+
+    [Test]
     procedure TrialQuotaIsFiftyExpenses()
     var
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
@@ -288,8 +330,6 @@ codeunit 148350 "Expense Consumption Test"
 
         AiConsumptionRequestJson.Add('model', ModelJson);
         AiConsumptionRequestJson.Add('v1', VersionJson);
-        AiConsumptionRequestJson.Add('usage', 1);
-        AiConsumptionRequestJson.Add('usageType', 'Autonomous Action');
     end;
 
     local procedure VerifyEnvironmentConsumption(

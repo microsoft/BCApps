@@ -20,11 +20,25 @@ codeunit 6969 "Expense Consumption Handler"
 
     internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
     var
+        V1Json: JsonObject;
         TempToken: JsonToken;
+        Usage: Integer;
+        CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
     begin
         if not AiConsumptionRequestJson.Get('model', TempToken) or not TempToken.IsObject() then
             exit(false);
         if not AiConsumptionRequestJson.Get('v1', TempToken) or not TempToken.IsObject() then
+            exit(false);
+        V1Json := TempToken.AsObject();
+        if not V1Json.Get('usage', TempToken) or not TempToken.IsValue() then
+            exit(false);
+        if not Evaluate(Usage, TempToken.AsValue().AsText()) then
+            exit(false);
+        if Usage < 0 then
+            exit(false);
+        if not V1Json.Get('usageType', TempToken) or not TempToken.IsValue() then
+            exit(false);
+        if not Evaluate(CopilotQuotaUsageType, TempToken.AsValue().AsText()) then
             exit(false);
 
         exit(true);
@@ -89,11 +103,13 @@ codeunit 6969 "Expense Consumption Handler"
         Operation: Code[50];
         ExpenseUserNo: Code[20]): Guid
     var
+        V1Json: JsonObject;
         Usage: Integer;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
     begin
-        Usage := AiConsumptionRequestJson.GetInteger('usage', false);
-        Evaluate(CopilotQuotaUsageType, AiConsumptionRequestJson.GetText('usageType', false));
+        V1Json := AiConsumptionRequestJson.GetObject('v1');
+        Usage := V1Json.GetInteger('usage', false);
+        Evaluate(CopilotQuotaUsageType, V1Json.GetText('usageType', false));
 
         exit(LogAIConsumption(Usage, CopilotQuotaUsageType,
             Truncate(ActionsSummary), ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo));
