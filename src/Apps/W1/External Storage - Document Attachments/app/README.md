@@ -154,7 +154,8 @@ From **External Storage Synchronize** report:
 - Test thoroughly in a sandbox environment before production use
 - Verify file accessibility after migration
 - This interim policy only prevents deletion sent by this extension. It does not protect against other storage consumers, remote administrators, unsupported metadata changes, or unrelated migration/internal-storage failures.
-- Actual-content checks establish local byte availability, not remote-object ownership or independent provider readback provenance. Integration with deferred internal cleanup must cancel pending cleanup on restore and invalidate upload provenance after local retirement in the same transaction.
+- Actual-content checks establish local byte availability, not remote-object ownership or independent provider readback provenance. This retention/local-retirement policy works independently of any deferred internal-cleanup component; it does not claim that existing internal media release is globally owner-safe.
+- If a deferred internal-cleanup component is introduced later, that separate integration must preserve its cancellation and provenance rules on restore and local retirement. Such future integration is not a prerequisite for this policy.
 
 ### Environment Changes
 - When moving between environments, use the **Migrate Files** action
@@ -163,8 +164,8 @@ From **External Storage Synchronize** report:
 - Manual cleanup of old environment folders may be required
 
 ### Feature Disable Protection
-- Cannot disable External Storage setup if files are uploaded
-- Must delete all uploaded files before disabling the feature
-- Cannot unassign External Storage scenario if files exist in external storage
+- Cannot disable External Storage setup while attachments retain external references
+- Restore with **To Internal Storage + Move**, or **Copy then Retire External Reference**, before disabling the feature
+- Once all local references are safely retired, the scenario can be changed or unassigned; remote safety copies remain retained
 
 **© 2025 Microsoft Corporation. All rights reserved.**
