@@ -17,6 +17,8 @@
         LibraryReportValidation: Codeunit "Library - Report Validation";
         LibraryRandom: Codeunit "Library - Random";
         AccScheduleExportErr: Label 'Account Schedule has not been exported.';
+        PreviewColumnDefMissingErr: Label 'Specify a column definition in the Column Definition (for Preview) field before you preview this row definition.';
+        PreviewRowDefMissingErr: Label 'Specify a row definition in the Row Definition (for Preview) field before you preview this column definition.';
         CopySuccessMsg: Label 'The new rows definition has been created successfully.';
         CopyColumnLayoutSuccessMsg: Label 'The new column layout has been created.';
         DimensionValueErr: Label 'Dimension Value record does not exist.';
@@ -43,6 +45,7 @@
         AuditLogWrittenTooEarlyErr: Label 'The audit log entry for financial report %1 must not be written before the report has finished processing.', Comment = '%1 = Financial report name';
         SheetNameTok: Label 'Sheet%1', Locked = true;
         SheetNotListedErr: Label 'The sheet selection page must list sheet %1 of the workbook.', Comment = '%1 = Sheet number';
+        LastRunByCurrentUserErr: Label 'The Your Last Run value must be calculated for the user in the User Security ID Filter flow filter.';
         IsInitialized: Boolean;
 
     [Test]
@@ -3037,6 +3040,247 @@
         VerifyTextValueAppearsOnce('Currency');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure ExportAccScheduleToExcelWithEmptyLCYCode()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        DimensionValue: array[4] of Record "Dimension Value";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        // [FEATURE] [Excel]
+        // [SCENARIO 650415] Account Schedule can be exported to Excel when the LCY Code is blank
+        Initialize();
+
+        // [GIVEN] LCY Code is blank
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := '';
+        GeneralLedgerSetup.Modify();
+
+        // [GIVEN] An Account Schedule
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryReportValidation.SetFileName(AccScheduleName.Name);
+
+        // [WHEN] Export Account Schedule to Excel
+        RunExportAccScheduleToExcel(AccScheduleName, DimensionValue);
+
+        // [THEN] Excel file is exported without error
+        Assert.IsTrue(FILE.Exists(LibraryReportValidation.GetFileName()), AccScheduleExportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreviewColumnDefRequiresPreviewRowDef()
+    var
+        ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayoutNames: TestPage "Column Layout Names";
+        ColumnLayoutPage: TestPage "Column Layout";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a column definition without a row definition for preview is blocked with an actionable error.
+        Initialize();
+
+        // [GIVEN] A column definition with no row definition for preview
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        ColumnLayoutNames.OpenEdit();
+        ColumnLayoutNames.GoToKey(ColumnLayoutName.Name);
+        ColumnLayoutPage.Trap();
+        ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
+
+        // [WHEN] The column definition is previewed
+        // [THEN] A specific error asks the user to specify a row definition for preview
+        asserterror ColumnLayoutPage.Preview.Invoke();
+        Assert.ExpectedError(PreviewRowDefMissingErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreviewColumnDefWithRowDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayout: Record "Column Layout";
+        ColumnLayoutNames: TestPage "Column Layout Names";
+        ColumnLayoutPage: TestPage "Column Layout";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a column definition opens a view-only financial report using the column definition itself and the row definition specified for preview.
+        Initialize();
+
+        // [GIVEN] A row definition with a line, and a column definition with a net change column
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithGLAcc(AccScheduleLine, AccScheduleName.Name, LibraryERM.CreateGLAccountNo(), AccScheduleLine.Show::Yes);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        CreateColumnLayoutLine(ColumnLayout, ColumnLayoutName.Name, ColumnLayout."Column Type"::"Net Change", '');
+
+        ColumnLayoutNames.OpenEdit();
+        ColumnLayoutNames.GoToKey(ColumnLayoutName.Name);
+        ColumnLayoutPage.Trap();
+        ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
+
+        // [WHEN] A row definition for preview is set
+        ColumnLayoutPage.PreviewRowDef.SetValue(AccScheduleName.Name);
+
+        // [THEN] The row definition for preview is saved
+        ColumnLayoutName.Get(ColumnLayoutName.Name);
+        Assert.AreEqual(AccScheduleName.Name, ColumnLayoutName."Preview Row Def.", 'Preview row definition was not saved.');
+
+        // [WHEN] The column definition is previewed
+        AccScheduleOverview.Trap();
+        ColumnLayoutPage.Preview.Invoke();
+
+        // [THEN] The financial report is opened with the current column definition and the row definition specified for preview
+        AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
+        AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+
+        // [THEN] It is shown as a view-only preview: preview caption and hidden financial report header fields
+        Assert.IsTrue(StrPos(AccScheduleOverview.Caption(), 'Preview:') > 0, 'The preview caption is not shown.');
+        Assert.IsFalse(AccScheduleOverview.FinancialReportName.Visible(), 'Financial report header fields should be hidden in preview.');
+
+        // [THEN] The row definition content is rendered
+        AccScheduleOverview.First();
+        AccScheduleOverview.Description.AssertEquals(AccScheduleLine.Description);
+
+        AccScheduleOverview.Close();
+        ColumnLayoutPage.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreviewRowDefRequiresPreviewColumnDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleNames: TestPage "Account Schedule Names";
+        AccountSchedule: TestPage "Account Schedule";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a row definition without a column definition for preview is blocked with an actionable error.
+        Initialize();
+
+        // [GIVEN] A row definition with no column definition for preview
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        AccScheduleNames.OpenEdit();
+        AccScheduleNames.GoToKey(AccScheduleName.Name);
+        AccountSchedule.Trap();
+        AccScheduleNames.EditAccountSchedule.Invoke();
+
+        // [WHEN] The row definition is previewed
+        // [THEN] A specific error asks the user to specify a column definition for preview
+        asserterror AccountSchedule.Preview.Invoke();
+        Assert.ExpectedError(PreviewColumnDefMissingErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreviewRowDefWithColumnDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayout: Record "Column Layout";
+        AccScheduleNames: TestPage "Account Schedule Names";
+        AccountSchedule: TestPage "Account Schedule";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a row definition opens a view-only financial report using the row definition itself and the column definition specified for preview.
+        Initialize();
+
+        // [GIVEN] A row definition with a line, and a column definition with a net change column
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithGLAcc(AccScheduleLine, AccScheduleName.Name, LibraryERM.CreateGLAccountNo(), AccScheduleLine.Show::Yes);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        CreateColumnLayoutLine(ColumnLayout, ColumnLayoutName.Name, ColumnLayout."Column Type"::"Net Change", '');
+
+        AccScheduleNames.OpenEdit();
+        AccScheduleNames.GoToKey(AccScheduleName.Name);
+        AccountSchedule.Trap();
+        AccScheduleNames.EditAccountSchedule.Invoke();
+
+        // [WHEN] A column definition for preview is set
+        AccountSchedule.PreviewColumnDef.SetValue(ColumnLayoutName.Name);
+
+        // [THEN] The column definition for preview is saved
+        AccScheduleName.Get(AccScheduleName.Name);
+        Assert.AreEqual(ColumnLayoutName.Name, AccScheduleName."Preview Column Def.", 'Preview column definition was not saved.');
+
+        // [WHEN] The row definition is previewed
+        AccScheduleOverview.Trap();
+        AccountSchedule.Preview.Invoke();
+
+        // [THEN] The financial report is opened with the current row definition and the column definition specified for preview
+        AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
+        AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+
+        // [THEN] It is shown as a view-only preview: preview caption and hidden financial report header fields
+        Assert.IsTrue(StrPos(AccScheduleOverview.Caption(), 'Preview:') > 0, 'The preview caption is not shown.');
+        Assert.IsFalse(AccScheduleOverview.FinancialReportName.Visible(), 'Financial report header fields should be hidden in preview.');
+
+        // [THEN] The row definition content is rendered
+        AccScheduleOverview.First();
+        AccScheduleOverview.Description.AssertEquals(AccScheduleLine.Description);
+
+        AccScheduleOverview.Close();
+        AccountSchedule.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeletingColumnDefClearsPreviewColumnDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Deleting a column definition clears the preview column reference on row definitions that point to it.
+        Initialize();
+
+        // [GIVEN] A row definition that uses a column definition for preview
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        AccScheduleName."Preview Column Def." := ColumnLayoutName.Name;
+        AccScheduleName.Modify();
+
+        // [WHEN] The column definition is deleted
+        ColumnLayoutName.Delete(true);
+
+        // [THEN] The preview column reference on the row definition is cleared
+        AccScheduleName.Get(AccScheduleName.Name);
+        Assert.AreEqual('', AccScheduleName."Preview Column Def.", 'Preview column definition reference was not cleared.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeletingRowDefClearsPreviewRowDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Deleting a row definition clears the preview row reference on column definitions that point to it.
+        Initialize();
+
+        // [GIVEN] A column definition that uses a row definition for preview
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        ColumnLayoutName."Preview Row Def." := AccScheduleName.Name;
+        ColumnLayoutName.Modify();
+
+        // [WHEN] The row definition is deleted
+        AccScheduleName.Delete(true);
+
+        // [THEN] The preview row reference on the column definition is cleared
+        ColumnLayoutName.Get(ColumnLayoutName.Name);
+        Assert.AreEqual('', ColumnLayoutName."Preview Row Def.", 'Preview row definition reference was not cleared.');
+    end;
+
     local procedure Initialize()
     var
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
@@ -3784,6 +4028,55 @@
         FinancialReportAuditLog.SetRange(User, UserId);
         FinancialReportAuditLog.SetRange(Format, FinancialReportAuditLog.Format::Excel);
         Assert.AreEqual(0, FinancialReportAuditLog.Count(), StrSubstNo(AuditLogWrittenTooEarlyErr, FinancialReportName));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FinRepLastRunByCurrentUserUsesUserSecurityIdFilter()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        FinancialReport: Record "Financial Report";
+        FinancialReportAuditLog: Record "Financial Report Audit Log";
+        FinancialReports: TestPage "Financial Reports";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+    begin
+        // [SCENARIO 649981] The "Your Last Run" flow field is calculated for the user in the "User Security ID Filter" flow filter
+        Initialize();
+
+        // [GIVEN] A financial report that the current user has viewed
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        FinancialReports.OpenEdit();
+        FinancialReports.Filter.SetFilter(Name, AccScheduleName.Name);
+        AccScheduleOverview.Trap();
+        FinancialReports.Overview.Invoke();
+        AccScheduleOverview.Close();
+        FinancialReports.Close();
+
+        FinancialReportAuditLog.SetRange("Report Name", AccScheduleName.Name);
+        FinancialReportAuditLog.SetRange(SystemCreatedBy, UserSecurityId());
+        FinancialReportAuditLog.FindLast();
+
+        // [WHEN] The flow field is calculated with the current user in the flow filter
+        FinancialReport.Get(AccScheduleName.Name);
+        FinancialReport.SetRange("User Security ID Filter", UserSecurityId());
+        FinancialReport.CalcFields("Last Run by Current User");
+
+        // [THEN] It returns the date-time of the audit log entry written for the current user
+        Assert.AreEqual(
+          FinancialReportAuditLog.SystemCreatedAt, FinancialReport."Last Run by Current User", LastRunByCurrentUserErr);
+
+        // [WHEN] The flow field is calculated for another user
+        FinancialReport.SetRange("User Security ID Filter", CreateGuid());
+        FinancialReport.CalcFields("Last Run by Current User");
+
+        // [THEN] It is blank, because that user has not run the report
+        Assert.AreEqual(0DT, FinancialReport."Last Run by Current User", LastRunByCurrentUserErr);
+
+        // [THEN] The Financial Reports page opens and shows the value for the current user
+        FinancialReports.OpenView();
+        FinancialReports.Filter.SetFilter(Name, AccScheduleName.Name);
+        Assert.AreNotEqual('', FinancialReports."Last Run by User".Value(), LastRunByCurrentUserErr);
+        FinancialReports.Close();
     end;
 
     local procedure InsertNameValueBufferLine(var TempNameValueBuffer: Record "Name/Value Buffer" temporary; LineNo: Integer)
