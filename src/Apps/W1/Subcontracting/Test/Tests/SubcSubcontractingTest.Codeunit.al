@@ -3401,9 +3401,9 @@ codeunit 139989 "Subc. Subcontracting Test"
     procedure TransferShipmentDataUsesPostedTransferFromAddressForReturn()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferShipmentLine: Record "Transfer Shipment Line";
         Vendor: Record Vendor;
         SubcTransferShipmentData: Codeunit "Subc. Transfer Shipment Data";
-        LibraryUtility: Codeunit "Library - Utility";
         SubcontractorAddress: array[8] of Text[100];
         SubcontractorAddressValue: Text[100];
         SubcontractorName: Text[100];
@@ -3412,9 +3412,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         // [SCENARIO 649580] A subcontracting return shipment prints the posted transfer-from vendor address.
         Initialize();
-        TransferShipmentHeader."No." :=
-            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TransferShipmentHeader."No."));
-        TransferShipmentHeader.Insert();
+        SubcontractingMgmtLibrary.CreatePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
         LibraryPurchase.CreateVendor(Vendor);
         Vendor.Address := CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor.Address)), 1, MaxStrLen(Vendor.Address));
         Vendor."Country/Region Code" :=
@@ -3462,7 +3460,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SelectSubcontractingTransferShipmentLayout();
 
         // [GIVEN] A posted transfer shipment retaining subcontracting references
-        CreateMockTransferShipment(TransferShipmentHeader, TransferShipmentLine);
+        SubcontractingMgmtLibrary.CreatePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
         LibraryPurchase.CreateVendor(Vendor);
         PostedVendorName := Vendor.Name;
         PurchaseOrderNo := CopyStr(LibraryRandom.RandText(MaxStrLen(PurchaseOrderNo)), 1, MaxStrLen(PurchaseOrderNo));
@@ -3508,7 +3506,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SelectSubcontractingTransferShipmentLayout();
 
         // [GIVEN] A posted ordinary transfer shipment
-        CreateMockTransferShipment(TransferShipmentHeader, TransferShipmentLine);
+        SubcontractingMgmtLibrary.CreatePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
         Commit();
 
         // [WHEN] The standard transfer shipment report is run
@@ -5848,24 +5846,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryInventory.CreateItemJournalLineInItemTemplate(
         ItemJournalLine, Item."No.", Location.Code, Bin.Code, Quantity);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-    end;
-
-    local procedure CreateMockTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
-    var
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        TransferShipmentHeader.Init();
-        TransferShipmentHeader."No." :=
-            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TransferShipmentHeader."No."));
-        TransferShipmentHeader.Insert();
-
-        TransferShipmentLine.Init();
-        TransferShipmentLine."Document No." := TransferShipmentHeader."No.";
-        TransferShipmentLine."Line No." := 10000;
-        TransferShipmentLine.Description :=
-            CopyStr(LibraryRandom.RandText(MaxStrLen(TransferShipmentLine.Description)), 1, MaxStrLen(TransferShipmentLine.Description));
-        TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
-        TransferShipmentLine.Insert();
     end;
 
     local procedure VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header")
