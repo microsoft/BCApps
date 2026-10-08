@@ -4850,10 +4850,11 @@
     procedure T217_PricesOverviewCaptionShowsFilteredCustomerName()
     var
         Customer: array[2] of Record Customer;
-        PriceSource: Record "Price Source";
+        TempPriceSource: Record "Price Source";
         PricesOverview: TestPage "Prices Overview";
         DistinctName: array[2] of Text[100];
         Index: Integer;
+        CustomerNameCaptionErr: Label 'Expected page caption to contain customer name "%1", but caption was: "%2"', Comment = '%1 = Customer name, %2 = Page caption';
     begin
         // [FEATURE] [Prices Overview] [Caption]
         // [SCENARIO 9101] Setting "Assign-to Type Filter" = Customer and "Assign-to Filter" = a customer No. shows that customer's Name in the page caption (not the first customer in the table).
@@ -4869,7 +4870,7 @@
 
         // [GIVEN] "Prices Overview" is open with "Assign-to Type Filter" = Customer
         PricesOverview.OpenEdit();
-        PricesOverview.SourceType.SetValue(Format(PriceSource."Source Type"::Customer));
+        PricesOverview.SourceType.SetValue(Format(TempPriceSource."Source Type"::Customer));
 
         // [WHEN] Each of the two customers is used as "Assign-to Filter" in turn
         // [THEN] The caption contains the Name of the customer that was filtered on.
@@ -4880,7 +4881,7 @@
             PricesOverview.SourceNo.SetValue(Customer[Index]."No.");
             Assert.IsTrue(
               StrPos(PricesOverview.Caption(), DistinctName[Index]) > 0,
-              StrSubstNo('Expected page caption to contain customer name "%1", but caption was: "%2"',
+              StrSubstNo(CustomerNameCaptionErr,
                 DistinctName[Index], PricesOverview.Caption()));
         end;
     end;
@@ -4889,10 +4890,11 @@
     procedure T218_PricesOverviewCaptionShowsFilteredCustomerPriceGroupDescription()
     var
         CustomerPriceGroup: array[2] of Record "Customer Price Group";
-        PriceSource: Record "Price Source";
+        TempPriceSource: Record "Price Source";
         PricesOverview: TestPage "Prices Overview";
         DistinctDesc: array[2] of Text[50];
         Index: Integer;
+        CustomerPriceGroupCaptionErr: Label 'Expected page caption to contain customer price group description "%1", but caption was: "%2"', Comment = '%1 = Customer price group description, %2 = Page caption';
     begin
         // [FEATURE] [Prices Overview] [Caption]
         // [SCENARIO 9101] Setting "Assign-to Type Filter" = Customer Price Group and "Assign-to Filter" = a group code shows that group's Description in the page caption.
@@ -4908,7 +4910,7 @@
 
         // [GIVEN] "Prices Overview" is open with "Assign-to Type Filter" = Customer Price Group
         PricesOverview.OpenEdit();
-        PricesOverview.SourceType.SetValue(Format(PriceSource."Source Type"::"Customer Price Group"));
+        PricesOverview.SourceType.SetValue(Format(TempPriceSource."Source Type"::"Customer Price Group"));
 
         // [WHEN] Each of the two customer price groups is used as "Assign-to Filter" in turn
         // [THEN] The caption contains the Description of the group that was filtered on, which an
@@ -4917,7 +4919,7 @@
             PricesOverview.SourceNo.SetValue(CustomerPriceGroup[Index].Code);
             Assert.IsTrue(
               StrPos(PricesOverview.Caption(), DistinctDesc[Index]) > 0,
-              StrSubstNo('Expected page caption to contain customer price group description "%1", but caption was: "%2"',
+              StrSubstNo(CustomerPriceGroupCaptionErr,
                 DistinctDesc[Index], PricesOverview.Caption()));
         end;
     end;
@@ -4926,10 +4928,11 @@
     procedure T219_PricesOverviewCaptionShowsFilteredCampaignDescription()
     var
         Campaign: array[2] of Record Campaign;
-        PriceSource: Record "Price Source";
+        TempPriceSource: Record "Price Source";
         PricesOverview: TestPage "Prices Overview";
         DistinctDesc: array[2] of Text[50];
         Index: Integer;
+        CampaignCaptionErr: Label 'Expected page caption to contain campaign description "%1", but caption was: "%2"', Comment = '%1 = Campaign description, %2 = Page caption';
     begin
         // [FEATURE] [Prices Overview] [Caption]
         // [SCENARIO 9101] Setting "Assign-to Type Filter" = Campaign and "Assign-to Filter" = a campaign No. shows that campaign's Description in the page caption.
@@ -4945,7 +4948,7 @@
 
         // [GIVEN] "Prices Overview" is open with "Assign-to Type Filter" = Campaign
         PricesOverview.OpenEdit();
-        PricesOverview.SourceType.SetValue(Format(PriceSource."Source Type"::Campaign));
+        PricesOverview.SourceType.SetValue(Format(TempPriceSource."Source Type"::Campaign));
 
         // [WHEN] Each of the two campaigns is used as "Assign-to Filter" in turn
         // [THEN] The caption contains the Description of the campaign that was filtered on, which an
@@ -4954,7 +4957,7 @@
             PricesOverview.SourceNo.SetValue(Campaign[Index]."No.");
             Assert.IsTrue(
               StrPos(PricesOverview.Caption(), DistinctDesc[Index]) > 0,
-              StrSubstNo('Expected page caption to contain campaign description "%1", but caption was: "%2"',
+              StrSubstNo(CampaignCaptionErr,
                 DistinctDesc[Index], PricesOverview.Caption()));
         end;
     end;
