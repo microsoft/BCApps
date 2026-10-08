@@ -113,7 +113,6 @@ codeunit 31083 "EET Management CZP"
 
     procedure CreateEETEntry(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP"): Integer
     var
-        // TempVATEntry: Record "VAT Entry" temporary;
         CashDocumentLineCZP: Record "Cash Document Line CZP";
         EETCashRegisterCZL: Record "EET Cash Register CZL";
         EETEntryCZL: Record "EET Entry CZL";
