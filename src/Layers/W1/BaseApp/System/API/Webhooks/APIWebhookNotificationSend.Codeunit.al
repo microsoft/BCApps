@@ -1169,7 +1169,7 @@ codeunit 6154 "API Webhook Notification Send"
         if not Success then begin
             if IsBlockedByEnvironment then begin
                 Reschedule := false;
-                Session.LogMessage('', StrSubstNo(NotificationBlockedByEnvironmentMsg, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+                Session.LogMessage('0000VYN', StrSubstNo(NotificationBlockedByEnvironmentMsg, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
                 LogActivity(true, NotificationBlockedByEnvironmentTitleTxt, StrSubstNo(NotificationBlockedByEnvironmentTxt, NotificationUrl));
                 exit(false);
             end;
@@ -1264,7 +1264,7 @@ codeunit 6154 "API Webhook Notification Send"
     begin
         if SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = APIWebhookSubscription."Subscription Type"::Dataverse then begin
             if HttpRequestMessage.GetRequestUri() <> RequestUri then begin
-                Session.LogMessage('', StrSubstNo(RequestUriChangedErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+                Session.LogMessage('0000VYO', StrSubstNo(RequestUriChangedErr, NotificationUrlNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
                 Error(RequestUriChangedErr, NotificationUrlNumber);
             end;
             HttpRequestMessage.GetHeaders(HttpHeaders);
