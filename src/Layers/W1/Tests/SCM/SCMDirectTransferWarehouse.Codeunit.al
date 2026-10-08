@@ -1985,6 +1985,139 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         Assert.ExpectedErrorCode('NCLCSRTS:TableErrorStr');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ToggleDirectTransferPreservesUOMDirectPosting()
+    begin
+        // [SCENARIO 652555] Disabling and enabling Direct Transfer preserves alternate and base units with Direct Transfer posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesUOM(Enum::"Direct Transfer Posting Type"::"Direct Transfer", 10, 0, 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ToggleDirectTransferPreservesUOMShipmentReceipt()
+    begin
+        // [SCENARIO 652555] Disabling and enabling Direct Transfer preserves alternate and base units with Shipment and Receipt posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesUOM(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt", 10, 0, 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ToggleDirectTransferPreservesUOMRoundingDirectPosting()
+    begin
+        // [SCENARIO 652555] Toggling Direct Transfer preserves fractional quantities and UOM rounding precisions with Direct Transfer posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesUOM(Enum::"Direct Transfer Posting Type"::"Direct Transfer", 10.5, 0.5, 0.1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ToggleDirectTransferPreservesUOMRoundingShipmentReceipt()
+    begin
+        // [SCENARIO 652555] Toggling Direct Transfer preserves fractional quantities and UOM rounding precisions with Shipment and Receipt posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesUOM(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt", 10.5, 0.5, 0.1);
+    end;
+
+    local procedure VerifyToggleDirectTransferPreservesUOM(PostingMode: Enum "Direct Transfer Posting Type"; Quantity: Decimal; BaseRoundingPrecision: Decimal; AlternateRoundingPrecision: Decimal)
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        BaseItemUnitOfMeasure: Record "Item Unit of Measure";
+        AlternateItemUnitOfMeasure: Record "Item Unit of Measure";
+        DimensionValue: Record "Dimension Value";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        BaseTransferLine: Record "Transfer Line";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        // [GIVEN] Ordinary locations and an item with an alternate UOM containing two base units.
+        SetDirectTransferPostingMode(PostingMode);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryInventory.CreateItem(Item);
+        BaseItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        BaseItemUnitOfMeasure.Validate("Qty. Rounding Precision", BaseRoundingPrecision);
+        BaseItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemUnitOfMeasureCode(AlternateItemUnitOfMeasure, Item."No.", 2);
+        AlternateItemUnitOfMeasure.Validate("Qty. Rounding Precision", AlternateRoundingPrecision);
+        AlternateItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+
+        // [GIVEN] An open, unposted, unreserved direct transfer with an alternate-UOM line and a base-UOM control line.
+        CreateDirectTransferOrder(
+            TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", ItemVariant.Code, Quantity, PostingMode);
+        TransferLine.Validate("Unit of Measure Code", AlternateItemUnitOfMeasure.Code);
+        TransferLine.Validate(
+            "Dimension Set ID", LibraryDimension.CreateDimSet(0, DimensionValue."Dimension Code", DimensionValue.Code));
+        TransferLine.Modify(true);
+        TransferLine.TestField("Qty. per Unit of Measure", 2);
+        TransferLine.TestField("Quantity (Base)", Quantity * 2);
+        LibraryInventory.CreateTransferLine(TransferHeader, BaseTransferLine, Item."No.", Quantity);
+        BaseTransferLine.TestField("Qty. per Unit of Measure", 1);
+        BaseTransferLine.TestField("Quantity (Base)", Quantity);
+        VerifyTransferUOMAfterToggle(TransferHeader, TransferLine, BaseTransferLine, true, PostingMode);
+
+        // [WHEN] Direct Transfer is disabled using the header's normal table validation.
+        TransferHeader.Validate("Direct Transfer", false);
+
+        // [THEN] Persisted lines retain their units, quantities, variant and dimensions, and are no longer direct.
+        VerifyTransferUOMAfterToggle(
+            TransferHeader, TransferLine, BaseTransferLine, false, Enum::"Direct Transfer Posting Type"::" ");
+
+        // [WHEN] Direct Transfer is enabled again.
+        TransferHeader.Validate("Direct Transfer", true);
+
+        // [THEN] The same values survive the roundtrip and both lines are direct again.
+        VerifyTransferUOMAfterToggle(TransferHeader, TransferLine, BaseTransferLine, true, PostingMode);
+    end;
+
+    local procedure VerifyTransferUOMAfterToggle(var TransferHeader: Record "Transfer Header"; ExpectedTransferLine: Record "Transfer Line"; ExpectedBaseTransferLine: Record "Transfer Line"; ExpectedDirectTransfer: Boolean; ExpectedPostingMode: Enum "Direct Transfer Posting Type")
+    begin
+        TransferHeader.Get(TransferHeader."No.");
+        TransferHeader.TestField(Status, TransferHeader.Status::Open);
+        TransferHeader.TestField("Direct Transfer", ExpectedDirectTransfer);
+        TransferHeader.TestField("Direct Transfer Posting", ExpectedPostingMode);
+        TransferHeader.TestField("In-Transit Code", '');
+        VerifyTransferLineUOMAfterToggle(ExpectedTransferLine, ExpectedDirectTransfer);
+        VerifyTransferLineUOMAfterToggle(ExpectedBaseTransferLine, ExpectedDirectTransfer);
+    end;
+
+    local procedure VerifyTransferLineUOMAfterToggle(ExpectedTransferLine: Record "Transfer Line"; ExpectedDirectTransfer: Boolean)
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.Get(ExpectedTransferLine."Document No.", ExpectedTransferLine."Line No.");
+        TransferLine.TestField("Direct Transfer", ExpectedDirectTransfer);
+        TransferLine.TestField("Item No.", ExpectedTransferLine."Item No.");
+        TransferLine.TestField("Unit of Measure Code", ExpectedTransferLine."Unit of Measure Code");
+        TransferLine.TestField("Qty. per Unit of Measure", ExpectedTransferLine."Qty. per Unit of Measure");
+        TransferLine.TestField(Quantity, ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Quantity (Base)", ExpectedTransferLine."Quantity (Base)");
+        TransferLine.TestField("Qty. Rounding Precision", ExpectedTransferLine."Qty. Rounding Precision");
+        TransferLine.TestField("Qty. Rounding Precision (Base)", ExpectedTransferLine."Qty. Rounding Precision (Base)");
+        TransferLine.TestField("Outstanding Quantity", ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Outstanding Qty. (Base)", ExpectedTransferLine."Quantity (Base)");
+        TransferLine.TestField("Qty. to Ship", ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Qty. to Ship (Base)", ExpectedTransferLine."Quantity (Base)");
+        TransferLine.TestField("Qty. to Receive", ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Qty. to Receive (Base)", ExpectedTransferLine."Quantity (Base)");
+        TransferLine.TestField("Quantity Shipped", 0);
+        TransferLine.TestField("Qty. Shipped (Base)", 0);
+        TransferLine.TestField("Quantity Received", 0);
+        TransferLine.TestField("Qty. Received (Base)", 0);
+        TransferLine.TestField("Variant Code", ExpectedTransferLine."Variant Code");
+        TransferLine.TestField("Dimension Set ID", ExpectedTransferLine."Dimension Set ID");
+        TransferLine.CalcFields("Reserved Qty. Inbnd. (Base)", "Reserved Qty. Outbnd. (Base)");
+        TransferLine.TestField("Reserved Qty. Inbnd. (Base)", 0);
+        TransferLine.TestField("Reserved Qty. Outbnd. (Base)", 0);
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";
