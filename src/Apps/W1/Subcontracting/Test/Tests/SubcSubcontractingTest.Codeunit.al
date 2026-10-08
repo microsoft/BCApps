@@ -3112,6 +3112,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('TransferShipmentRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TransferShipmentReportShowsPostedSubcontractingReferences()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
@@ -3163,6 +3164,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('TransferShipmentRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TransferShipmentReportLeavesSubcontractingReferencesBlankForOrdinaryTransfer()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
