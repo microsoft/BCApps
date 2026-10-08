@@ -525,6 +525,10 @@ table 6121 "E-Document"
         exit(EDocumentLog.FindLast());
     end;
 
+    /// <summary>
+    /// Shows e-document(s) linked to the given source document. Opens either the card if exactly one e-document exists, or the list for multiple ones. It does nothing if no e-document was found or the permissions are missing.
+    /// </summary>
+    /// <param name="EDocumentRecordId">Specifies Record ID of the source document.</param>
     procedure OpenEDocument(EDocumentRecordId: RecordId)
     var
         EDocument: Record "E-Document";
