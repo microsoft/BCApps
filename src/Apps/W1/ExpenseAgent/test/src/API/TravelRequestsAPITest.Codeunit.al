@@ -10,6 +10,12 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
+// These HTTP tests remain excluded in Expense_Agent_Tests.DisabledTest.json until the
+// authentication prerequisite provides an authenticated OData endpoint and a dedicated
+// test company with committed fixtures and disabled test isolation.
+// In-process employee filtering, traveler mapping/navigation, lifecycle, date, and scope coverage
+// in "Spend Request Test", and restrictive role coverage in "Expense Permissions Test", remain enabled.
+// Only the HTTP scenarios are excluded.
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
@@ -25,6 +31,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
 #if not CLEAN30
@@ -1284,9 +1291,7 @@ codeunit 148347 "Travel Requests API Test"
         if IsInitialized then
             exit;
 
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-
+        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Travel Requests API Test");
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();
