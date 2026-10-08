@@ -100,8 +100,10 @@ codeunit 3327 "PA BC IQ Demo Mgt."
     procedure CleanupCompany()
     var
         DemoState: Record "PA BC IQ Demo State";
+        DemoBatchMgt: Codeunit "PA BC IQ Demo Batch Mgt.";
     begin
         VerifyTargetCompany();
+        DemoBatchMgt.EnsureNoBatch();
         if not DemoState.Get(StatePrimaryKeyTok) then
             Error(NotConfiguredErr);
 

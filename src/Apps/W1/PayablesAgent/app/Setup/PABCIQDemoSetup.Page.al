@@ -51,6 +51,36 @@ page 3327 "PA BC IQ Demo Setup"
                     Editable = false;
                 }
             }
+            group(TestingTools)
+            {
+                Caption = 'Invoice testing tools';
+                InstructionalText = 'Submit the eight packaged scenario PDFs as one batch. Stop all tasks from the Agent side panel before cleaning the submitted batch.';
+
+                field(BatchMode; BatchModeText)
+                {
+                    Caption = 'Submitted Batch Mode';
+                    ToolTip = 'Specifies whether the active invoice batch was submitted with Business Central IQ enabled or disabled.';
+                    Editable = false;
+                }
+                field(BatchCount; BatchCountText)
+                {
+                    Caption = 'Submitted Invoices';
+                    ToolTip = 'Specifies how many of the eight scenario invoices were submitted.';
+                    Editable = false;
+                }
+                field(BatchSubmittedAt; BatchSubmittedAt)
+                {
+                    Caption = 'Submitted At';
+                    ToolTip = 'Specifies when the active demo invoice batch was submitted.';
+                    Editable = false;
+                }
+                field(BatchTaskStatus; BatchTaskStatusText)
+                {
+                    Caption = 'Task Status';
+                    ToolTip = 'Summarizes active, completed, stopped, and missing Agent Tasks in the submitted batch.';
+                    Editable = false;
+                }
+            }
         }
     }
 
@@ -114,6 +144,36 @@ page 3327 "PA BC IQ Demo Setup"
                     Message(BusinessCentralIQDisabledMsg);
                 end;
             }
+            action(SubmitInvoices)
+            {
+                Caption = 'Submit Invoices';
+                ToolTip = 'Create one Payables Agent task for each of the eight packaged GB scenario PDFs in the configured order.';
+                Image = SendTo;
+                Enabled = SetupConfigured and not BatchExists;
+
+                trigger OnAction()
+                begin
+                    DemoBatchMgt.SubmitInvoices();
+                    RefreshStatus();
+                    Message(InvoicesSubmittedMsg);
+                end;
+            }
+            action(CleanSubmittedInvoices)
+            {
+                Caption = 'Clean Submitted Invoices';
+                ToolTip = 'Delete the exact stopped or completed demo tasks, E-Documents, PDF blobs, drafts, and unposted purchase invoices from the active batch.';
+                Image = ClearLog;
+                Enabled = BatchExists;
+
+                trigger OnAction()
+                begin
+                    if not Confirm(CleanSubmittedInvoicesQst, false) then
+                        exit;
+                    DemoBatchMgt.CleanupSubmittedInvoices();
+                    RefreshStatus();
+                    Message(SubmittedInvoicesCleanedMsg);
+                end;
+            }
             action(CleanupCompany)
             {
                 Caption = 'Clean Up';
@@ -145,6 +205,12 @@ page 3327 "PA BC IQ Demo Setup"
             actionref(DisableBusinessCentralIQPromoted; DisableBusinessCentralIQ)
             {
             }
+            actionref(SubmitInvoicesPromoted; SubmitInvoices)
+            {
+            }
+            actionref(CleanSubmittedInvoicesPromoted; CleanSubmittedInvoices)
+            {
+            }
             actionref(CleanupCompanyPromoted; CleanupCompany)
             {
             }
@@ -162,6 +228,7 @@ page 3327 "PA BC IQ Demo Setup"
         SetupConfigured := DemoSetupMgt.IsConfigured();
         UpgradeRequired := DemoSetupMgt.NeedsUpgrade();
         BusinessCentralIQEnabled := SetupConfigured and DemoSetupMgt.IsBusinessCentralIQEnabled();
+        BatchExists := DemoBatchMgt.HasBatch();
         StatusText := DemoSetupMgt.GetStatusText();
         if not SetupConfigured then begin
             BusinessCentralIQModeText := NotAvailableLbl;
@@ -173,23 +240,36 @@ page 3327 "PA BC IQ Demo Setup"
                 BusinessCentralIQModeText := DisabledLbl;
             HistoryInvoiceStatusText := StrSubstNo(HistoryInvoiceStatusLbl, DemoSetupMgt.GetHistoryInvoiceCount());
         end;
+        BatchModeText := DemoBatchMgt.GetBatchModeText();
+        BatchCountText := DemoBatchMgt.GetBatchCountText();
+        BatchSubmittedAt := DemoBatchMgt.GetBatchSubmittedAt();
+        BatchTaskStatusText := DemoBatchMgt.GetTaskStatusText();
         CurrPage.Update(false);
     end;
 
     var
         DemoSetupMgt: Codeunit "PA BC IQ Demo Mgt.";
+        DemoBatchMgt: Codeunit "PA BC IQ Demo Batch Mgt.";
         CurrentCompanyName: Text[30];
         StatusText: Text;
         BusinessCentralIQModeText: Text;
         HistoryInvoiceStatusText: Text;
+        BatchModeText: Text;
+        BatchCountText: Text;
+        BatchTaskStatusText: Text;
+        BatchSubmittedAt: DateTime;
         SetupConfigured: Boolean;
         UpgradeRequired: Boolean;
         BusinessCentralIQEnabled: Boolean;
+        BatchExists: Boolean;
         SetupCompletedMsg: Label 'The GB Payables Agent comparison setup is ready with Business Central IQ disabled.';
         UpgradeCompletedMsg: Label 'The GB Payables Agent demo was upgraded to the comparison setup with Business Central IQ disabled.';
         CleanupCompletedMsg: Label 'The GB Payables Agent demo setup was removed and the captured vendor fields were restored.';
         BusinessCentralIQEnabledMsg: Label 'Business Central IQ is enabled for new Payables Agent tasks.';
         BusinessCentralIQDisabledMsg: Label 'Business Central IQ is disabled for new Payables Agent tasks.';
+        InvoicesSubmittedMsg: Label 'The eight GB scenario invoices were submitted to Payables Agent.';
+        SubmittedInvoicesCleanedMsg: Label 'The submitted demo invoice batch was cleaned.';
+        CleanSubmittedInvoicesQst: Label 'Clean the submitted demo invoice batch? All tracked tasks must already be stopped or completed, and generated purchase invoices must remain unposted.';
         CleanupQst: Label 'Clean up the GB Payables Agent demo setup? Cleanup stops without deleting anything if a demo record was edited, used, or posted.';
         EnabledLbl: Label 'Enabled - run policy comparison tasks';
         DisabledLbl: Label 'Disabled - run baseline tasks';
