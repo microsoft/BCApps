@@ -13,6 +13,7 @@ using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
@@ -364,6 +365,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
         if not ItemLedgerEntry.Get(ItemJournalLine."Item Shpt. Entry No.") then
             exit;
@@ -375,6 +377,40 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ValueEntry."Item Ledger Entry No." := 0;
         ValueEntry."Capacity Ledger Entry No." := CapacityLedgerEntry."Entry No.";
         ValueEntry."Item Ledger Entry Type" := ValueEntry."Item Ledger Entry Type"::" ";
+        ManufacturingSetup.Get();
+        if not ManufacturingSetup."Copy Loc. to Cap. Val. Entries" then
+            Clear(ValueEntry."Location Code");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertVarValueEntry, '', false, false)]
+    local procedure SkipTrackedSubcontractingInvoicePurchaseVariance(
+        var ValueEntry: Record "Value Entry";
+        var Item: Record Item;
+        var VarianceAmount: Decimal;
+        var VarianceAmountACY: Decimal;
+        var IsHandled: Boolean)
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        if IsHandled then
+            exit;
+        if Item."Costing Method" <> Item."Costing Method"::Standard then
+            exit;
+        if ValueEntry."Entry Type" <> ValueEntry."Entry Type"::"Direct Cost" then
+            exit;
+        if ValueEntry."Document Type" <> ValueEntry."Document Type"::"Purchase Invoice" then
+            exit;
+        if (ValueEntry."Item Ledger Entry No." <> 0) or
+           (ValueEntry."Capacity Ledger Entry No." = 0) or
+           (ValueEntry."Item Ledger Entry Type" <> ValueEntry."Item Ledger Entry Type"::" ")
+        then
+            exit;
+        if not CapacityLedgerEntry.Get(ValueEntry."Capacity Ledger Entry No.") then
+            exit;
+        if not CapacityLedgerEntry.Subcontracting then
+            exit;
+
+        IsHandled := true;
     end;
 
     local procedure SetTrackedSubcontractingCapacityEntryFilters(
