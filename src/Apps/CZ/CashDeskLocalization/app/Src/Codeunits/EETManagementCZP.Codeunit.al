@@ -6,7 +6,9 @@ namespace Microsoft.Finance.CashDesk;
 
 using Microsoft.Finance;
 using Microsoft.Finance.GeneralLedger.Posting;
+#if not CLEAN30
 using Microsoft.Finance.VAT.Ledger;
+#endif
 using Microsoft.Sales.Receivables;
 
 codeunit 31083 "EET Management CZP"
