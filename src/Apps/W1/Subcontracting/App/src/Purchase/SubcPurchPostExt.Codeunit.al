@@ -200,7 +200,9 @@ codeunit 20535 "Subc. Purch. Post Ext"
         TempItemLedgerEntry.DeleteAll();
         RemainingQuantityBase := Abs(QuantityBase);
         QuantityToSkipBase := Abs(QuantityAlreadyInvoicedBase);
-        if (RemainingQuantityBase = 0) or not ItemLedgerEntry.FindSet() then
+        if RemainingQuantityBase = 0 then
+            exit(false);
+        if not ItemLedgerEntry.FindSet() then
             exit(false);
         repeat
             EntryQuantityBase := Abs(ItemLedgerEntry.Quantity);
@@ -220,7 +222,9 @@ codeunit 20535 "Subc. Purch. Post Ext"
                 TempItemLedgerEntry."Remaining Quantity" := QuantityToCopy;
                 TempItemLedgerEntry.Insert();
             end;
-        until (ItemLedgerEntry.Next() = 0) or (RemainingQuantityBase = 0);
+            if RemainingQuantityBase = 0 then
+                break;
+        until ItemLedgerEntry.Next() = 0;
 
         TempItemLedgerEntry.Reset();
         exit((RemainingQuantityBase = 0) and not TempItemLedgerEntry.IsEmpty());
