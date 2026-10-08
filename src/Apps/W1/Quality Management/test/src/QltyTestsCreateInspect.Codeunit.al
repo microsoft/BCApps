@@ -33,8 +33,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
         ProgrammerErrNotARecordRefErr: Label 'Cannot find inspections with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
-        UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
-        UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
+        UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s). Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. The table involved is %1.', Comment = '%1=the table involved.';
+        UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s). Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
         IsInitialized: Boolean;
 
     [Test]
@@ -2483,6 +2483,174 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         asserterror QltyInspectionUtility.CreateMultipleInspectionsForMultipleRecords(ProdOrderRoutingLineRecordRef, false);
         // [THEN] An error is raised indicating unable to create an inspection for the parent or child record
         LibraryAssert.ExpectedError(StrSubstNo(UnableToCreateInspectionForParentOrChildErr, ProdOrderLine.TableName, ProdOrderRoutingLineRecordRef.Name));
+    end;
+
+    [Test]
+    procedure CreateInspection_NewInsertion_ReportedAsNewlyCreated()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProdProductionOrder: Record "Production Order";
+        Item: Record Item;
+        CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
+        ProdOrderRoutingLineRecordRef: RecordRef;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
+        IsNewlyCreated: Boolean;
+    begin
+        // [SCENARIO] When CreateInspection inserts a new inspection, IsLastInspectionNewlyCreated must report true (so the inspection-created notification is raised).
+
+        Initialize();
+
+        // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
+        SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
+
+        ProdOrderRoutingLineRecordRef.GetTable(ProdOrderRoutingLine);
+
+        // [WHEN] CreateInspection is called for the routing line for the first time
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionAndReportIfNewlyCreated(ProdOrderRoutingLineRecordRef, false, CreatedQltyInspectionHeader, IsNewlyCreated);
+
+        QltyInspectionGenRule.Delete();
+
+        // [THEN] The inspection is created and reported as newly created so the "Quality Inspection created" notification is raised
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
+        LibraryAssert.IsTrue(IsNewlyCreated, 'A newly inserted inspection must be reported as newly created so the inspection-created notification is raised.');
+    end;
+
+    [Test]
+    procedure CreateInspection_ReusedExisting_NotReportedAsNewlyCreated()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProdProductionOrder: Record "Production Order";
+        Item: Record Item;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        FirstCreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
+        SecondQltyInspectionHeader: Record "Qlty. Inspection Header";
+        ProdOrderRoutingLineRecordRef: RecordRef;
+        PreviousQltyCreateInspectBehavior: Enum "Qlty. Inspect. Creation Option";
+        ClaimedInspectionWasFoundOrCreated: Boolean;
+        IsNewlyCreated: Boolean;
+        BeforeCount: Integer;
+        AfterCount: Integer;
+    begin
+        // [SCENARIO] When CreateInspection reuses an existing inspection (Inspection Creation Option = "Use existing open inspection if available"),
+        // IsLastInspectionNewlyCreated must report false so the inspection-created notification is suppressed.
+
+        Initialize();
+
+        // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
+        SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
+
+        // [GIVEN] A first inspection is created and left open
+        ProdOrderRoutingLineRecordRef.GetTable(ProdOrderRoutingLine);
+        QltyInspectionUtility.CreateInspection(ProdOrderRoutingLineRecordRef, false, FirstCreatedQltyInspectionHeader);
+
+        // [GIVEN] The Inspection Creation Option is set to "Use existing open inspection if available"
+        QltyManagementSetup.Get();
+        PreviousQltyCreateInspectBehavior := QltyManagementSetup."Inspection Creation Option";
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Use existing open inspection if available";
+        QltyManagementSetup.Modify();
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateInspection is called again for the same routing line while the first inspection is still open
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionUtility.CreateInspectionAndReportIfNewlyCreated(ProdOrderRoutingLineRecordRef, false, SecondQltyInspectionHeader, IsNewlyCreated);
+
+        QltyManagementSetup."Inspection Creation Option" := PreviousQltyCreateInspectBehavior;
+        QltyManagementSetup.Modify();
+        QltyInspectionGenRule.Delete();
+
+        QltyInspectionHeader.Reset();
+        AfterCount := QltyInspectionHeader.Count();
+
+        // [THEN] No new inspection is inserted, the existing inspection is returned, and the call is reported as a reuse so the inspection-created notification is suppressed
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No new inspection should have been inserted when reusing.');
+        LibraryAssert.AreEqual(FirstCreatedQltyInspectionHeader."No.", SecondQltyInspectionHeader."No.", 'Should have returned the existing inspection.');
+        LibraryAssert.IsFalse(IsNewlyCreated, 'A reused inspection must not be reported as newly created so the inspection-created notification is suppressed.');
+    end;
+
+    [Test]
+    procedure CreateMultipleInspections_ReusedExisting_ExcludedFromCreatedIdsList()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempFilterQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        FirstCreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
+        FirstRoutingLineRecordRef: RecordRef;
+        AllRoutingLinesRecordRef: RecordRef;
+        CreatedQltyInspectionIds, AllResolvedQltyInspectionIds : List of [Code[20]];
+        OrdersList: List of [Code[20]];
+        ProductionOrder: Code[20];
+        PreviousQltyCreateInspectBehavior: Enum "Qlty. Inspect. Creation Option";
+        BeforeCount: Integer;
+        AfterCount: Integer;
+    begin
+        // [SCENARIO] CreateMultipleInspectionsWithoutDisplaying should only include newly inserted inspection numbers in the returned list of created inspection ids;
+        // inspections that were merely reused must not inflate the "created" list that drives the inspection-created notifications/display.
+
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+
+        // [GIVEN] 3 production orders, each with a routing line
+        QltyProdOrderGenerator.Init(100);
+        QltyProdOrderGenerator.ToggleAllSources(false);
+        QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
+        QltyProdOrderGenerator.Generate(3, OrdersList);
+
+        // [GIVEN] An inspection is pre-created for the first production order so it will be reused on the next call
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", OrdersList.Get(1));
+        ProdOrderRoutingLine.FindLast();
+        FirstRoutingLineRecordRef.GetTable(ProdOrderRoutingLine);
+        QltyInspectionUtility.CreateInspection(FirstRoutingLineRecordRef, false, FirstCreatedQltyInspectionHeader);
+
+        // [GIVEN] The Inspection Creation Option is set to "Use existing open inspection if available" so the first routing line reuses, the other two create new
+        QltyManagementSetup.Get();
+        PreviousQltyCreateInspectBehavior := QltyManagementSetup."Inspection Creation Option";
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Use existing open inspection if available";
+        QltyManagementSetup.Modify();
+
+        // [GIVEN] A RecordRef containing the routing lines of all three production orders
+        AllRoutingLinesRecordRef.Open(Database::"Prod. Order Routing Line", true);
+        foreach ProductionOrder in OrdersList do begin
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder);
+            ProdOrderRoutingLine.FindLast();
+            AllRoutingLinesRecordRef.Copy(ProdOrderRoutingLine, false);
+            AllRoutingLinesRecordRef.Insert();
+        end;
+
+        QltyInspectionHeader.Reset();
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] CreateMultipleInspectionsWithoutDisplaying is called for all three routing lines
+        QltyInspectionUtility.CreateMultipleInspectionsWithoutDisplaying(AllRoutingLinesRecordRef, false, TempFilterQltyInspectionGenRule, CreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+
+        QltyManagementSetup."Inspection Creation Option" := PreviousQltyCreateInspectBehavior;
+        QltyManagementSetup.Modify();
+        QltyInspectionGenRule.Delete();
+
+        QltyInspectionHeader.Reset();
+        AfterCount := QltyInspectionHeader.Count();
+
+        // [THEN] Only 2 new inspections were inserted (for production orders 2 and 3)
+        LibraryAssert.AreEqual((BeforeCount + 2), AfterCount, 'Only the two non-reused routing lines should have inserted new inspections.');
+        // [THEN] The returned list of created inspection ids excludes the reused inspection so the "created inspections" notification is not falsely inflated
+        LibraryAssert.AreEqual(2, CreatedQltyInspectionIds.Count(), 'The created inspection ids list must exclude reused inspections.');
+        LibraryAssert.IsFalse(CreatedQltyInspectionIds.Contains(FirstCreatedQltyInspectionHeader."No."), 'A reused inspection must not appear in the created inspection ids list.');
+        // [THEN] The all-resolved list includes both the 2 newly created inspections and the 1 reused inspection
+        LibraryAssert.AreEqual(3, AllResolvedQltyInspectionIds.Count(), 'The all-resolved list must include every inspection that was newly created or reused.');
+        LibraryAssert.IsTrue(AllResolvedQltyInspectionIds.Contains(FirstCreatedQltyInspectionHeader."No."), 'The all-resolved list must include the reused inspection.');
     end;
 
     local procedure CreateInspectionWithTracking(var PurOrdPurchaseLine: Record "Purchase Line"; var TempSpecTrackingSpecification: Record "Tracking Specification" temporary; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")

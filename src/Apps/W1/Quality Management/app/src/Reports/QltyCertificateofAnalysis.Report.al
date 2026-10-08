@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 #endif
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Telemetry;
 
 report 20401 "Qlty. Certificate of Analysis"
 {
@@ -277,6 +278,13 @@ report 20401 "Qlty. Certificate of Analysis"
         StatusLabel = 'Status';
         DateLabel = 'Date';
     }
+
+    trigger OnPreReport()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Report, Report::"Qlty. Certificate of Analysis", 'Print report Certificate of Analysis');
+    end;
 
     var
         Item: Record Item;

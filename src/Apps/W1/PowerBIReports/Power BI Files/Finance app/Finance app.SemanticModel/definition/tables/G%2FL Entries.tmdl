@@ -80,27 +80,44 @@ table 'G/L Entries'
 			VAR Endpoint = "&page=20&"
 			VAR baseLink = [Base Link] & Endpoint 
 			
-			// Build filter context
+			// Build filter context (scalar/range values only)
 			VAR ClosingEntries =
 			    VALUES ( 'Closing Entry Filter Table'[CloseIncomeSourceCodeFilter] )
-			VAR GLAccounts =
-			    VALUES ( 'G/L Account'[G/L Account No.] )
 			VAR MinGLAcc =
 			    MIN ( 'G/L Account'[G/L Account No.] )
 			VAR MaxGLAcc =
 			    MAX ( 'G/L Account'[G/L Account No.] )
-			VAR DimensionSets =
-			    CONCATENATEX ( VALUES ( 'G/L Entries'[dimensionSetID] ), [dimensionSetID], "|" ) 
-			
-			// Build URL string components
 			VAR GLAccountRange = MinGLAcc & ".." & MaxGLAcc
-			VAR GLAccountFilter = "filter='G/L Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
-			VAR GLPostingDateFilter = " AND 'G/L Entry'.'Posting Date' IS " & "'" & [Ranged]  & "'"
-			VAR SourceCodeFilter = " AND 'G/L Entry'.'Source Code' IS " & "'" & ClosingEntries & "'"
-			VAR DimensionSetFilter = " AND 'G/L Entry'.'Dimension Set ID' IS " & "'" & DimensionSets & "'"
 			
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( baseLink )
+			    + LEN ( "filter='G/L Entry'.'G/L Account No.' IS ''" ) + LEN ( GLAccountRange )
+			    + LEN ( " AND 'G/L Entry'.'Posting Date' IS ''" ) + ProjectedRangedLength
+			    + LEN ( " AND 'G/L Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'G/L Entries'[dimensionSetID] ), LEN ( 'G/L Entries'[dimensionSetID] ) + 1 )
+			    + LEN ( " AND 'G/L Entry'.'Source Code' IS ''" ) + LEN ( ClosingEntries )
 			RETURN
-			    baseLink & GLAccountFilter & GLPostingDateFilter & DimensionSetFilter & SourceCodeFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        baseLink
+			            & "filter='G/L Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
+			            & " AND 'G/L Entry'.'Posting Date' IS " & "'" & [Ranged]  & "'"
+			            & " AND 'G/L Entry'.'Dimension Set ID' IS " & "'" &
+			    CONCATENATEX ( VALUES ( 'G/L Entries'[dimensionSetID] ), [dimensionSetID], "|" ) & "'" & " AND 'G/L Entry'.'Source Code' IS " & "'" & ClosingEntries & "'",
+			    baseLink
+			    )
 			
 			```
 		displayFolder: _G/L Entry Measures\_G/L Entry Back Links
@@ -114,18 +131,38 @@ table 'G/L Entries'
 			VAR Endpoint = "&page=20&"
 			VAR baseLink = [Base Link] & Endpoint 
 			
-			// Build filter context
+			// Build filter context (scalar/range values only)
 			VAR maxdate =
 			    MAX ( 'Date'[Date] )
-			VAR GLAccounts =
-			    VALUES ( 'G/L Account'[G/L Account No.] )
 			VAR dateRange =
 			    ".." & FORMAT ( maxdate, "yyyy-mm-dd" )
 			VAR MinGLAcc =
 			    MIN ( 'G/L Account'[G/L Account No.] )
 			VAR MaxGLAcc =
 			    MAX ( 'G/L Account'[G/L Account No.] )
-			VAR DimensionSets = 
+			VAR GLAccountRange = MinGLAcc & ".." & MaxGLAcc
+			
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( baseLink )
+			    + LEN ( "filter='G/L Entry'.'G/L Account No.' IS ''" ) + LEN ( GLAccountRange )
+			    + LEN ( " AND 'G/L Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX (
+			        CALCULATETABLE (
+			            VALUES ( 'G/L Entries'[dimensionSetID] ),
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] <= MAX ( 'Date'[Date] )
+			        ),
+			        LEN ( 'G/L Entries'[dimensionSetID] ) + 1
+			    )
+			    + LEN ( " AND 'G/L Entry'.'Posting Date' IS ''" ) + LEN ( dateRange )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        baseLink
+			            & "filter='G/L Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
+			            & " AND 'G/L Entry'.'Dimension Set ID' IS " & "'" & 
 			    CONCATENATEX (
 			        CALCULATETABLE (
 			            VALUES ( 'G/L Entries'[dimensionSetID] ),
@@ -133,15 +170,9 @@ table 'G/L Entries'
 			            'Date'[Date] <= MAX ( 'Date'[Date] )
 			        ),
 			        [dimensionSetID], "|"
+			    ) & "'" & " AND 'G/L Entry'.'Posting Date' IS " & "'" & dateRange  & "'", 
+			    baseLink
 			    )
-			
-			// Build URL string components
-			VAR GLAccountRange = MinGLAcc & ".." & MaxGLAcc
-			VAR GLAccountFilter = "filter='G/L Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
-			VAR GLPostingDateFilter = " AND 'G/L Entry'.'Posting Date' IS " & "'" & dateRange  & "'"
-			VAR DimensionSetFilter = " AND 'G/L Entry'.'Dimension Set ID' IS " & "'" & DimensionSets & "'"
-			RETURN 
-			    baseLink & GLAccountFilter & DimensionSetFilter & GLPostingDateFilter
 			    
 			
 			```

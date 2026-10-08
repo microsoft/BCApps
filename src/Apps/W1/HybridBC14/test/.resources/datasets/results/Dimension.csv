@@ -1,0 +1,3 @@
+Code,Name,CodeCaption,FilterCaption,Description,Blocked,ConsolidationCode,MapToICDimensionCode
+TDIM1,Test Dim 1,Test Code 1,Test Filter 1,Test Description 1,false,,
+TDIM2,Test Dim 2,Test Code 2,Test Filter 2,Test Description 2,true,,

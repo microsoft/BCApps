@@ -101,7 +101,7 @@ table 20407 "Qlty. Inspect. Source Config."
         {
             InitValue = Inspection;
             Caption = 'To Type';
-            ToolTip = 'Specifies whether this connects to an inspection, or a chained table.';
+            ToolTip = 'Specifies the destination type for this mapping. "Inspection" maps fields directly to the quality inspection header. "Chained table" links to another table as an intermediate step, allowing you to pull data from related records (such as item attributes or customer details) for use in filters or visibility. "Item Tracking" maps to item tracking information like lot or serial numbers.';
 
             trigger OnValidate()
             begin
@@ -159,6 +159,9 @@ table 20407 "Qlty. Inspect. Source Config."
         PreventRecursion();
     end;
 
+    /// <summary>
+    /// Prevents a source configuration from reversing another configuration's table relationship.
+    /// </summary>
     local procedure PreventRecursion()
     var
         OtherQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
@@ -176,6 +179,9 @@ table 20407 "Qlty. Inspect. Source Config."
         PreventRecursion();
     end;
 
+    /// <summary>
+    /// Assigns a sort order after the current highest value when the sort order is zero or one.
+    /// </summary>
     local procedure UpdateRunOrder()
     var
         FindHighestQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
@@ -196,6 +202,9 @@ table 20407 "Qlty. Inspect. Source Config."
         QltyInspectSrcFldConf.DeleteAll();
     end;
 
+    /// <summary>
+    /// Confirms and propagates changed source and target table numbers to existing field mappings.
+    /// </summary>
     local procedure UpdateChildLines()
     var
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";

@@ -1,0 +1,711 @@
+
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Formats;
+
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Service.Document;
+using Microsoft.Service.Test;
+
+codeunit 13926 "E-Document DE Tests"
+{
+    Subtype = Test;
+    TestType = Uncategorized;
+
+    trigger OnRun();
+    begin
+        // [FEATURE] [E-Document DE]
+    end;
+
+    var
+        CompanyInformation: Record "Company Information";
+        EDocumentService: Record "E-Document Service";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryService: Codeunit "Library - Service";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryEDocDE: Codeunit "Library - E-Doc DE";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryEdocument: Codeunit "Library - E-Document";
+        LibraryUtility: Codeunit "Library - Utility";
+        ExportXRechnungFormat: Codeunit "XRechnung Format";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
+        Assert: Codeunit Assert;
+        IsInitialized: Boolean;
+        SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
+        UnsupportedMeansCodeTok: Label '48', Locked = true;
+        BankAccountNotFoundErr: Label 'Customer bank account %1 on mandate %2 does not exist.', Comment = '%1 = Bank Account Code, %2 = Mandate ID';
+        CompanyBankAccountMissingErr: Label 'Set the Company Bank Account Code on the document.';
+        CreditorNoMissingErr: Label 'Bank account %1 has no creditor identifier (Creditor No.).', Comment = '%1 = Bank Account Code';
+        MandateNotFoundErr: Label 'SEPA Direct Debit Mandate %1 does not exist.', Comment = '%1 = Mandate ID';
+        SEPADDOnCrMemoErr: Label 'Payment means code %1 (SEPA direct debit) cannot be used on a credit memo or return order.', Comment = '%1 = UNCL4461 payment means code';
+        UnsupportedPaymentMeansCodeErr: Label 'Payment means code %1 is not supported for German electronic documents.', Comment = '%1 = UNCL4461 payment means code';
+
+    #region BuyerReference
+
+    [Test]
+    procedure SalesHeaderBuyerReferenceFromCustomerWithRoutingNo()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        RoutingNo: Text[50];
+    begin
+        // [SCENARIO] When creating a Sales Invoice for a customer with E-Invoice Routing No., the Buyer Reference is set from the customer.
+
+        // [GIVEN] Customer with E-Invoice Routing No.
+        RoutingNo := LibraryEDocDE.CreateValidRoutingNo();
+        CreateCustomerWithRoutingNo(Customer, RoutingNo);
+
+        // [WHEN] Create Sales Invoice for the customer
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+
+        // [THEN] Buyer Reference is set to the customer's E-Invoice Routing No.
+        Assert.AreEqual(RoutingNo, SalesHeader."Buyer Reference", 'Buyer Reference should be set from Customer E-Invoice Routing No.');
+    end;
+
+    [Test]
+    procedure SalesHeaderBuyerReferenceBlankWhenCustomerHasNoRoutingNo()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] When creating a Sales Invoice for a customer without E-Invoice Routing No., the Buyer Reference is blank.
+
+        // [GIVEN] Customer without E-Invoice Routing No.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [WHEN] Create Sales Invoice for the customer
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+
+        // [THEN] Buyer Reference is blank
+        Assert.AreEqual('', SalesHeader."Buyer Reference", 'Buyer Reference should be blank when customer has no E-Invoice Routing No.');
+    end;
+
+    [Test]
+    procedure SalesHeaderBuyerReferenceUpdatesOnBillToChange()
+    var
+        Customer1: Record Customer;
+        Customer2: Record Customer;
+        SalesHeader: Record "Sales Header";
+        RoutingNo1: Text[50];
+        RoutingNo2: Text[50];
+    begin
+        // [SCENARIO] When changing the Bill-to Customer on a Sales Invoice, the Buyer Reference updates to the new customer's E-Invoice Routing No.
+
+        // [GIVEN] Two customers with different E-Invoice Routing No. values
+        RoutingNo1 := LibraryEDocDE.CreateValidRoutingNo();
+        RoutingNo2 := LibraryEDocDE.CreateValidRoutingNo();
+        CreateCustomerWithRoutingNo(Customer1, RoutingNo1);
+        CreateCustomerWithRoutingNo(Customer2, RoutingNo2);
+
+        // [GIVEN] Sales Invoice for Customer 1
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer1."No.");
+        Assert.AreEqual(RoutingNo1, SalesHeader."Buyer Reference", 'Initial Buyer Reference should be from Customer 1.');
+
+        // [WHEN] Change Bill-to Customer to Customer 2
+        SalesHeader.SetHideValidationDialog(true);
+        SalesHeader.Validate("Bill-to Customer No.", Customer2."No.");
+
+        // [THEN] Buyer Reference is updated to Customer 2's E-Invoice Routing No.
+        Assert.AreEqual(RoutingNo2, SalesHeader."Buyer Reference", 'Buyer Reference should update to Customer 2 E-Invoice Routing No.');
+    end;
+
+    [Test]
+    procedure ServiceHeaderBuyerReferenceFromCustomerWithRoutingNo()
+    var
+        Customer: Record Customer;
+        ServiceHeader: Record "Service Header";
+        RoutingNo: Text[50];
+    begin
+        // [SCENARIO] When creating a Service Invoice for a customer with E-Invoice Routing No., the Buyer Reference is set from the customer.
+
+        // [GIVEN] Customer with E-Invoice Routing No.
+        RoutingNo := LibraryEDocDE.CreateValidRoutingNo();
+        CreateCustomerWithRoutingNo(Customer, RoutingNo);
+
+        // [WHEN] Create Service Invoice for the customer
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
+
+        // [THEN] Buyer Reference is set to the customer's E-Invoice Routing No.
+        Assert.AreEqual(RoutingNo, ServiceHeader."Buyer Reference", 'Buyer Reference should be set from Customer E-Invoice Routing No.');
+    end;
+
+    [Test]
+    procedure ServiceHeaderBuyerReferenceBlankWhenCustomerHasNoRoutingNo()
+    var
+        Customer: Record Customer;
+        ServiceHeader: Record "Service Header";
+    begin
+        // [SCENARIO] When creating a Service Invoice for a customer without E-Invoice Routing No., the Buyer Reference is blank.
+
+        // [GIVEN] Customer without E-Invoice Routing No.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [WHEN] Create Service Invoice for the customer
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
+
+        // [THEN] Buyer Reference is blank
+        Assert.AreEqual('', ServiceHeader."Buyer Reference", 'Buyer Reference should be blank when customer has no E-Invoice Routing No.');
+    end;
+
+    [Test]
+    procedure ServiceHeaderBuyerReferenceUpdatesOnBillToChange()
+    var
+        Customer1: Record Customer;
+        Customer2: Record Customer;
+        ServiceHeader: Record "Service Header";
+        RoutingNo1: Text[50];
+        RoutingNo2: Text[50];
+    begin
+        // [SCENARIO] When changing the Bill-to Customer on a Service Invoice, the Buyer Reference updates to the new customer's E-Invoice Routing No.
+
+        // [GIVEN] Two customers with different E-Invoice Routing No. values
+        RoutingNo1 := LibraryEDocDE.CreateValidRoutingNo();
+        RoutingNo2 := LibraryEDocDE.CreateValidRoutingNo();
+        CreateCustomerWithRoutingNo(Customer1, RoutingNo1);
+        CreateCustomerWithRoutingNo(Customer2, RoutingNo2);
+
+        // [GIVEN] Service Invoice for Customer 1
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer1."No.");
+        Assert.AreEqual(RoutingNo1, ServiceHeader."Buyer Reference", 'Initial Buyer Reference should be from Customer 1.');
+
+        // [WHEN] Change Bill-to Customer to Customer 2
+        ServiceHeader.SetHideValidationDialog(true);
+        ServiceHeader.Validate("Bill-to Customer No.", Customer2."No.");
+
+        // [THEN] Buyer Reference is updated to Customer 2's E-Invoice Routing No.
+        Assert.AreEqual(RoutingNo2, ServiceHeader."Buyer Reference", 'Buyer Reference should update to Customer 2 E-Invoice Routing No.');
+    end;
+
+    #endregion
+
+    #region PaymentMeansValidation
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitOnPostedSalesCrMemoRaisesError()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Creating an e-document from a posted sales credit memo with a SEPA direct-debit payment method (code 59) raises an error.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] A Sales Credit Memo that uses that Payment Method, posted through the regular posting flow
+        CreateSalesDocumentWithPaymentMethod(SalesHeader, SalesHeader."Document Type"::"Credit Memo", PaymentMethodCode);
+        CreateSalesLine(SalesHeader);
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the payment means code
+        asserterror CheckSalesCrMemoHeader(SalesCrMemoHeader);
+        Assert.ExpectedError(StrSubstNo(SEPADDOnCrMemoErr, SEPADirectDebitMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitOnSalesCrMemoRaisesError()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Releasing a sales credit memo with a SEPA direct-debit payment method raises an error, before it is posted.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] An otherwise valid Sales Credit Memo that uses that Payment Method
+        CreateSalesDocumentWithPaymentMethod(SalesHeader, SalesHeader."Document Type"::"Credit Memo", PaymentMethodCode);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the payment means code
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(SEPADDOnCrMemoErr, SEPADirectDebitMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitOnSalesReturnOrderRaisesError()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Releasing a sales return order with a SEPA direct-debit payment method raises an error, like a credit memo.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] An otherwise valid Sales Return Order that uses that Payment Method
+        CreateSalesDocumentWithPaymentMethod(SalesHeader, SalesHeader."Document Type"::"Return Order", PaymentMethodCode);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the payment means code
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(SEPADDOnCrMemoErr, SEPADirectDebitMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitOnServiceCrMemoRaisesError()
+    var
+        ServiceHeader: Record "Service Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Releasing a service credit memo with a SEPA direct-debit payment method raises an error.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] An otherwise valid Service Credit Memo that uses that Payment Method
+        CreateServiceDocumentWithPaymentMethod(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo", PaymentMethodCode);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the payment means code
+        asserterror CheckServiceHeader(ServiceHeader);
+        Assert.ExpectedError(StrSubstNo(SEPADDOnCrMemoErr, SEPADirectDebitMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitMandateIDMissingRaisesError()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Releasing a sales invoice with a SEPA direct-debit payment method but no mandate ID raises an error.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] A Sales Invoice that uses that Payment Method, with Direct Debit Mandate ID = ''
+        CreateSalesInvoiceWithPaymentMethod(SalesHeader, PaymentMethodCode);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error is raised
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError('Direct debit mandate ID is missing');
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitMandateNotFoundRaisesError()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Releasing a sales invoice with a mandate ID that has no matching record raises an error.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] A SEPA Direct Debit Mandate
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID set
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Modify(true);
+
+        // [GIVEN] The mandate is deleted after being set on the document
+        SEPADirectDebitMandate.Delete(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the missing mandate
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(MandateNotFoundErr, SEPADirectDebitMandate.ID));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitBankAccountNotFoundRaisesError()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Releasing a sales invoice where the mandate's customer bank account was deleted raises an error.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] A SEPA Direct Debit Mandate referencing a Customer Bank Account
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+
+        // [GIVEN] The Customer Bank Account is deleted after the mandate is created
+        CustomerBankAccount.Delete(true);
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID set
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Modify(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the missing customer bank account and the mandate
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(BankAccountNotFoundErr, SEPADirectDebitMandate."Customer Bank Account Code", SEPADirectDebitMandate.ID));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitIBANMissingRaisesError()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Releasing a sales invoice where the mandate's customer bank account has no IBAN raises an error.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] A SEPA Direct Debit Mandate referencing a Customer Bank Account with IBAN = ''
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+        CustomerBankAccount.IBAN := '';
+        CustomerBankAccount.Modify(true);
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID set
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Modify(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error is raised
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError('has no IBAN');
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitCompanyBankAccountMissingRaisesError()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Releasing a direct debit sales invoice without a company bank account raises an error, because the creditor identifier (BT-90) cannot be exported.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59' and a valid SEPA Direct Debit Mandate
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID set and Company Bank Account Code = ''
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Validate("Company Bank Account Code", '');
+        SalesHeader.Modify(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error is raised
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(CompanyBankAccountMissingErr);
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitCreditorNoMissingRaisesError()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+        CompanyBankAccountCode: Code[20];
+    begin
+        // [SCENARIO] Releasing a direct debit sales invoice whose company bank account has no Creditor No. raises an error, because the creditor identifier (BT-90) cannot be exported.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59' and a valid SEPA Direct Debit Mandate
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+
+        // [GIVEN] A company bank account without a Creditor No.
+        CompanyBankAccountCode := CreateCompanyBankAccount('');
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID and that company bank account set
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Validate("Company Bank Account Code", CompanyBankAccountCode);
+        SalesHeader.Modify(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error is raised
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(CreditorNoMissingErr, CompanyBankAccountCode));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitWithCreditorNoPasses()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Releasing a direct debit sales invoice with a valid mandate and a company bank account with a Creditor No. passes the check.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59' and a valid SEPA Direct Debit Mandate
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := CreateValidCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+
+        // [GIVEN] An otherwise valid Sales Invoice with the mandate ID and a company bank account with a Creditor No. set
+        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Validate("Company Bank Account Code", CreateCompanyBankAccount(LibraryUtility.GenerateGUID()));
+        SalesHeader.Modify(true);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        CheckSalesHeader(SalesHeader);
+
+        // [THEN] No error is raised
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansUnsupportedCodeRaisesError()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] A payment means code the export builds no dependent data for is rejected before export.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '48' (bank card), which the export does not support
+        PaymentMethodCode := LibraryEDocDE.CreatePaymentMethodWithMeansCode(UnsupportedMeansCodeTok);
+
+        // [GIVEN] A Sales Invoice that uses that Payment Method
+        CreateSalesInvoiceWithPaymentMethod(SalesHeader, PaymentMethodCode);
+
+        // [WHEN] The payment data is checked
+        // [THEN] An error names the unsupported code
+        asserterror CheckPaymentDataAvailable(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(UnsupportedPaymentMeansCodeErr, UnsupportedMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansUnsupportedCodeHandledBySubscriberPasses()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMeansHandler: Codeunit "E-Doc. DE Paym. Means Handler";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] An extension that supplies the data for an otherwise unsupported code can accept it.
+        Initialize();
+
+        // [GIVEN] A Sales Invoice with a Payment Method carrying the unsupported Payment Means Code '48'
+        PaymentMethodCode := LibraryEDocDE.CreatePaymentMethodWithMeansCode(UnsupportedMeansCodeTok);
+        CreateSalesInvoiceWithPaymentMethod(SalesHeader, PaymentMethodCode);
+
+        // [GIVEN] An extension subscribes to OnBeforeCheckPaymentMeansCodeSupported and handles exactly that code
+        PaymentMeansHandler.SetExpectedPaymentMeansCode(UnsupportedMeansCodeTok);
+        BindSubscription(PaymentMeansHandler);
+
+        // [WHEN] The payment data is checked
+        // [THEN] No error is raised
+        CheckPaymentDataAvailable(SalesHeader);
+
+        UnbindSubscription(PaymentMeansHandler);
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansBlankCodeIsAccepted()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] A payment method without a payment means code keeps the '58' credit transfer fallback.
+        Initialize();
+
+        // [GIVEN] A Sales Invoice with a Payment Method that has no Payment Means Code
+        PaymentMethodCode := LibraryEDocDE.CreatePaymentMethodWithMeansCode('');
+        CreateSalesInvoiceWithPaymentMethod(SalesHeader, PaymentMethodCode);
+
+        // [WHEN] The payment data is checked
+        // [THEN] No error is raised, because the export falls back to credit transfer
+        CheckPaymentDataAvailable(SalesHeader);
+    end;
+
+    #endregion
+
+    local procedure CreateCustomerWithRoutingNo(var Customer: Record Customer; RoutingNo: Text[50])
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer."E-Invoice Routing No." := RoutingNo;
+        Customer.Modify(true);
+    end;
+
+    local procedure CreateSalesInvoiceWithPaymentMethod(var SalesHeader: Record "Sales Header"; PaymentMethodCode: Code[10])
+    begin
+        CreateSalesDocumentWithPaymentMethod(SalesHeader, SalesHeader."Document Type"::Invoice, PaymentMethodCode);
+    end;
+
+    local procedure CreateSalesDocumentWithPaymentMethod(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; PaymentMethodCode: Code[10])
+    begin
+        CreateValidSalesHeader(SalesHeader, DocumentType, CreateValidCustomer());
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Modify(true);
+    end;
+
+    local procedure CreateServiceDocumentWithPaymentMethod(var ServiceHeader: Record "Service Header"; DocumentType: Enum "Service Document Type"; PaymentMethodCode: Code[10])
+    var
+        PostCode: Record "Post Code";
+    begin
+        LibraryERM.FindPostCode(PostCode);
+        LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, CreateValidCustomer());
+        ServiceHeader.Validate("Bill-to Address", LibraryUtility.GenerateGUID());
+        ServiceHeader.Validate("Bill-to City", PostCode.City);
+        ServiceHeader.Validate("Payment Terms Code", LibraryERM.FindPaymentTermsCode());
+        ServiceHeader.Validate("Payment Method Code", PaymentMethodCode);
+        ServiceHeader.Modify(true);
+    end;
+
+    local procedure CreateSalesLine(var SalesHeader: Record "Sales Header")
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandDecInRange(10, 20, 5));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
+        SalesLine.Modify(true);
+    end;
+
+    local procedure CreateValidCustomer(): Code[20]
+    var
+        Customer: Record Customer;
+        EDocDEVATRegNoHandler: Codeunit "E-Doc. DE VAT Reg. No. Handler";
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        // The duplicate VAT registration number check is not relevant for these tests and would raise a message.
+        BindSubscription(EDocDEVATRegNoHandler);
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
+        UnbindSubscription(EDocDEVATRegNoHandler);
+        Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure CreateValidCustomerWithDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; PaymentMethodCode: Code[10]): Code[20]
+    var
+        Customer: Record Customer;
+        EDocDEVATRegNoHandler: Codeunit "E-Doc. DE VAT Reg. No. Handler";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := LibraryEDocDE.CreateCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+        Customer.Get(CustomerNo);
+        Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        // The duplicate VAT registration number check is not relevant for these tests and would raise a message.
+        BindSubscription(EDocDEVATRegNoHandler);
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
+        UnbindSubscription(EDocDEVATRegNoHandler);
+        Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
+        Customer.Modify(true);
+        exit(CustomerNo);
+    end;
+
+    local procedure CreateValidSalesHeader(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20])
+    var
+        PostCode: Record "Post Code";
+    begin
+        LibraryERM.FindPostCode(PostCode);
+        LibrarySales.CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
+        SalesHeader.Validate("Bill-to Address", LibraryUtility.GenerateGUID());
+        SalesHeader.Validate("Bill-to City", PostCode.City);
+        SalesHeader.Validate("Ship-to Address", LibraryUtility.GenerateGUID());
+        SalesHeader.Validate("Ship-to City", PostCode.City);
+        SalesHeader.Validate("Payment Terms Code", LibraryERM.FindPaymentTermsCode());
+        SalesHeader.Modify(true);
+    end;
+
+    local procedure CheckPaymentDataAvailable(SalesHeader: Record "Sales Header")
+    var
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(SalesHeader);
+        DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
+    end;
+
+    local procedure CreateCompanyBankAccount(CreditorNo: Code[35]): Code[20]
+    var
+        BankAccount: Record "Bank Account";
+    begin
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        BankAccount."Creditor No." := CreditorNo;
+        BankAccount.Modify(true);
+        exit(BankAccount."No.");
+    end;
+
+    local procedure CheckSalesHeader(SalesHeader: Record "Sales Header")
+    var
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(SalesHeader);
+        ExportXRechnungFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Release);
+    end;
+
+    local procedure CheckServiceHeader(ServiceHeader: Record "Service Header")
+    var
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(ServiceHeader);
+        ExportXRechnungFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Release);
+    end;
+
+    local procedure CheckSalesCrMemoHeader(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    var
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(SalesCrMemoHeader);
+        ExportXRechnungFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Post);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"E-Document DE Tests");
+        if IsInitialized then
+            exit;
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"E-Document DE Tests");
+        IsInitialized := true;
+
+        CompanyInformation.Get();
+        CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
+        CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
+        CompanyInformation.Modify();
+
+        EDocumentService.DeleteAll();
+        EDocumentService.Get(LibraryEdocument.CreateService("E-Document Format"::XRechnung, "Service Integration"::"No Integration"));
+        Commit();
+
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"E-Document DE Tests");
+    end;
+}

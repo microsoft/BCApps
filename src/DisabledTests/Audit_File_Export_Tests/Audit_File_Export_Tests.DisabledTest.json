@@ -1,0 +1,32 @@
+[
+  {
+    "codeunitId": 148035,
+    "codeunitName": "Audit File Export Tests",
+    "method": "CheckDataToExportPositive"
+  },
+  {
+    "codeunitId": 148035,
+    "codeunitName": "Audit File Export Tests",
+    "method": "CheckDataToExportNegative"
+  },
+  {
+    "codeunitId": 148035,
+    "codeunitName": "Audit File Export Tests",
+    "method": "CheckAuditFileExportDocumentPositive"
+  },
+  {
+    "codeunitId": 148035,
+    "codeunitName": "Audit File Export Tests",
+    "method": "CheckAuditFileExportDocumentNegative"
+  },
+  {
+    "codeunitId": 148035,
+    "codeunitName": "Audit File Export Tests",
+    "method": "ExportAuditFiles"
+  },
+  {
+    "codeunitId": 148035,
+    "codeunitName": "Audit File Export Tests",
+    "method": "ExportAuditFilesToZip"
+  }
+]

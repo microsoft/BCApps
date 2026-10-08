@@ -1,0 +1,721 @@
+cultureInfo en-GB
+	translations
+		model Model
+			table 'Sustainability Account Category'
+				caption: G/L Account Category
+				column 'Sustainability Account Category Description'
+					caption: G/L Acc. Category Description
+				column 'Sustainability Account Category Code'
+					caption: Sustainability Account Category Code
+				column 'Sustainability Account Category  Emission Scope'
+					caption: Sustainability Account Category  Emission Scope
+			table 'Dimension Sets'
+				caption: Dimension Sets
+				column 'Global Dimension 1'
+					caption: Global Dimension 1
+				column 'Global Dimension 2'
+					caption: Global Dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcut Dimension 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcut Dimension 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcut Dimension 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcut Dimension 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcut Dimension 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcut Dimension 8
+				column id
+					caption: id
+			table Date
+				caption: Date
+				column 'Week Day'
+					caption: Week Day
+				column 'Day Type'
+					caption: Day Type
+				column 'Calendar Year'
+					caption: Calendar Year
+				column 'Calendar Quarter'
+					caption: Calendar Quarter
+				column 'Calendar Quarter Year'
+					caption: Calendar Quarter Year
+				column 'Calendar Month'
+					caption: Calendar Month
+				column 'Calendar Month Year'
+					caption: Calendar Month Year
+				column 'Calendar Week'
+					caption: Calendar Week
+				column 'Calendar Week Year'
+					caption: Calendar Week Year
+				column 'Calendar RelativeWeekPos'
+					caption: Calendar RelativeWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Calendar RelativeMonthPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Calendar RelativeQuarterPos
+				column 'Calendar RelativeYearPos'
+					caption: Calendar RelativeYearPos
+				column 'Calendar StartOfMonth'
+					caption: Calendar StartOfMonth
+				column 'Calendar EndOfMonth'
+					caption: Calendar EndOfMonth
+				column 'Calendar StartOfQuarter'
+					caption: Calendar StartOfQuarter
+				column 'Calendar EndOfQuarter'
+					caption: Calendar EndOfQuarter
+				column 'Calendar StartOfYear'
+					caption: Calendar StartOfYear
+				column 'Calendar EndOfYear'
+					caption: Calendar EndOfYear
+				column 'Calendar MonthDays'
+					caption: Calendar MonthDays
+				column 'Calendar QuarterDays'
+					caption: Calendar QuarterDays
+				column 'Calendar YearDays'
+					caption: Calendar YearDays
+				column 'Calendar DayOfMonthNumber'
+					caption: Calendar DayOfMonthNumber
+				column 'Calendar DayOfQuarterNumber'
+					caption: Calendar DayOfQuarterNumber
+				column 'Calendar DayOfYearNumber'
+					caption: Calendar DayOfYearNumber
+				column 'Calendar DatePreviousWeek'
+					caption: Calendar DatePreviousWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Calendar DatePreviousMonth
+				column 'Calendar DatePreviousQuarter'
+					caption: Calendar DatePreviousQuarter
+				column 'Calendar DatePreviousYear'
+					caption: Calendar DatePreviousYear
+				column 'Fiscal Year'
+					caption: Fiscal Year
+				column 'Fiscal Quarter'
+					caption: Fiscal Quarter
+				column 'Fiscal Quarter Year'
+					caption: Fiscal Quarter Year
+				column 'Fiscal Month'
+					caption: Fiscal Month
+				column 'Fiscal Month Year'
+					caption: Fiscal Month Year
+				column 'Fiscal Week'
+					caption: Fiscal Week
+				column 'Fiscal Week Year'
+					caption: Fiscal Week Year
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscal RelativeWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscal RelativeMonthPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscal RelativeQuarterPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscal RelativeYearPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscal StartOfMonth
+				column 'Fiscal EndOfMonth'
+					caption: Fiscal EndOfMonth
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscal StartOfQuarter
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscal EndOfQuarter
+				column 'Fiscal StartOfYear'
+					caption: Fiscal StartOfYear
+				column 'Fiscal EndOfYear'
+					caption: Fiscal EndOfYear
+				column 'Fiscal MonthDays'
+					caption: Fiscal MonthDays
+				column 'Fiscal QuarterDays'
+					caption: Fiscal QuarterDays
+				column 'Fiscal YearDays'
+					caption: Fiscal YearDays
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscal DayOfMonthNumber
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscal DayOfQuarterNumber
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscal DayOfYearNumber
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscal DatePreviousWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscal DatePreviousMonth
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscal DatePreviousQuarter
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscal DatePreviousYear
+				column 'FW Year'
+					caption: FW Year
+				column 'FW Quarter'
+					caption: FW Quarter
+				column 'FW Quarter Year'
+					caption: FW Quarter Year
+				column 'FW Month'
+					caption: FW Month
+				column 'FW Month Year'
+					caption: FW Month Year
+				column 'FW Week'
+					caption: FW Week
+				column 'FW Period'
+					caption: FW Period
+				column 'FW Week Year'
+					caption: FW Week Year
+				column 'FW StartOfWeek'
+					caption: FW StartOfWeek
+				column 'FW EndOfWeek'
+					caption: FW EndOfWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelativeWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelativeMonthPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelativeQuarterPos
+				column 'FW RelativeYearPos'
+					caption: FW RelativeYearPos
+				column 'FW StartOfMonth'
+					caption: FW StartOfMonth
+				column 'FW EndOfMonth'
+					caption: FW EndOfMonth
+				column 'FW StartOfQuarter'
+					caption: FW StartOfQuarter
+				column 'FW EndOfQuarter'
+					caption: FW EndOfQuarter
+				column 'FW StartOfYear'
+					caption: FW StartOfYear
+				column 'FW EndOfYear'
+					caption: FW EndOfYear
+				column 'FW MonthDays'
+					caption: FW MonthDays
+				column 'FW QuarterDays'
+					caption: FW QuarterDays
+				column 'FW YearDays'
+					caption: FW YearDays
+				column 'FW DayOfMonthNumber'
+					caption: FW DayOfMonthNumber
+				column 'FW DayOfQuarterNumber'
+					caption: FW DayOfQuarterNumber
+				column 'FW DayOfYearNumber'
+					caption: FW DayOfYearNumber
+				column 'FW DatePreviousWeek'
+					caption: FW DatePreviousWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatePreviousMonth
+				column 'FW DatePreviousQuarter'
+					caption: FW DatePreviousQuarter
+				column 'FW DatePreviousYear'
+					caption: FW DatePreviousYear
+				column 'Relative Day'
+					caption: Relative Day
+				column Sequential365DayNumber
+					caption: Sequential 365 DayNumber
+				measure 'No. of Days'
+					caption: No. of Days
+				measure 'Working Days'
+					caption: Working Days
+				measure Ranged
+					caption: Ranged
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiscal Year-Quarter-Month-Week
+					level 'Fiscal Year'
+						caption: Fiscal Year
+					level 'Fiscal Quarter Year'
+						caption: Fiscal Quarter Year
+					level 'Fiscal Month Year'
+						caption: Fiscal Month Year
+					level 'Fiscal Week Year'
+						caption: Fiscal Week Year
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Calendar Year-Quarter-Month-Week
+					level 'Calendar Year'
+						caption: Calendar Year
+					level 'Calendar Quarter Year'
+						caption: Calendar Quarter Year
+					level 'Calendar Month Year'
+						caption: Calendar Month Year
+					level 'Calendar Week Year'
+						caption: Calendar Week Year
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: FW Year-Quarter-Month-Week
+					level 'FW Year'
+						caption: FW Year
+					level 'FW Quarter Year'
+						caption: FW Quarter Year
+					level 'FW Month Year'
+						caption: FW Month Year
+					level 'FW Week Year'
+						caption: FW Week Year
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiscal Year-Month
+					level 'Fiscal Year'
+						caption: Fiscal Year
+					level 'Fiscal Month Year'
+						caption: Fiscal Month Year
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiscal Year-Month-Week
+					level 'Fiscal Year'
+						caption: Fiscal Year
+					level 'Fiscal Month Year'
+						caption: Fiscal Month Year
+					level 'Fiscal Week Year'
+						caption: Fiscal Week Year
+				hierarchy 'Calendar Year-Month'
+					caption: Calendar Year-Month
+					level 'Calendar Year'
+						caption: Calendar Year
+					level 'Calendar Month Year'
+						caption: Calendar Month Year
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Calendar Year-Month-Week
+					level 'Calendar Year'
+						caption: Calendar Year
+					level 'Calendar Month Year'
+						caption: Calendar Month Year
+					level 'Calendar Week Year'
+						caption: Calendar Week Year
+				hierarchy 'FW Year-Month-Week'
+					caption: FW Year-Month-Week
+					level 'FW Year'
+						caption: FW Year
+					level 'FW Month Year'
+						caption: FW Month Year
+					level 'FW Week Year'
+						caption: FW Week Year
+				hierarchy 'FW Year-Quarter-Week'
+					caption: FW Year-Quarter-Week
+					level 'FW Year'
+						caption: FW Year
+					level 'FW Quarter Year'
+						caption: FW Quarter Year
+					level 'FW Week Year'
+						caption: FW Week Year
+				hierarchy 'FW Year-Week'
+					caption: FW Year-Week
+					level 'FW Year'
+						caption: FW Year
+					level 'FW Week Year'
+						caption: FW Week Year
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: My Report Title
+				measure 'My Button Caption'
+					caption: My Button Caption
+				measure 'My Visual Title'
+					caption: My Visual Title
+				measure 'Inactive Employees'
+					caption: Inactive Employees
+				measure 'Terminated Employees'
+					caption: Terminated Employees
+				measure 'Employees in Unions'
+					caption: Employees in Unions
+				measure 'Social Analysis'
+					caption: Social Analysis
+				measure 'Gender Distribution'
+					caption: Gender Distribution
+				measure 'Age Distribution'
+					caption: Age Distribution
+				measure 'Employees Qualifications'
+					caption: Employees Qualifications
+				measure 'Realized Emissions vs Target'
+					caption: Realised Emissions vs Target
+				measure 'CO2e Emissions by Scope'
+					caption: CO2e Emissions by Scope
+				measure 'Gas Emissions by Category'
+					caption: Gas Emissions by Category
+				measure 'Realized Emissions vs Baseline'
+					caption: Realised Emissions vs Baseline
+				measure 'CO2e Emissions vs Baseline'
+					caption: CO2e Emissions vs Baseline
+				measure 'CO2e Emissions by Account'
+					caption: CO2e Emissions by Account
+				measure 'Water and Waste Analysis'
+					caption: Water and Waste Analysis
+				measure 'Water by Facility Location'
+					caption: Water by Facility Location
+				measure 'Water by Facility Capacity'
+					caption: Water by Facility Capacity
+				measure 'Water and Waste by Type'
+					caption: Water and Waste by Type
+				measure 'Water and Waste Intensity by Type'
+					caption: Water and Waste Intensity by Type
+				measure 'Water and Waste Intensity by Facility'
+					caption: Water and Waste Intensity by Facility
+				measure 'Emissions by Category and Scope'
+					caption: Emissions by Category and Scope
+				measure 'Emissions by Category'
+					caption: Emissions by Category
+				measure 'Emissions by Scope'
+					caption: Emissions by Scope
+				measure 'CO2e Analysis'
+					caption: CO2e Analysis
+				measure 'CO2e Emissions by Category'
+					caption: CO2e Emissions by Category
+				measure 'Carbon Credit by Month'
+					caption: Carbon Credit by Month
+				measure 'CO2e Equivalent Emission by Month and Revenue'
+					caption: CO2e Equivalent Emission by Month and Revenue
+				measure 'Employee Entries Drillthrough'
+					caption: Employee Entries Drillthrough
+				measure 'Employee Ledger Entries'
+					caption: Employee Ledger Entries
+				measure 'Sustainability Ledger Entries'
+					caption: Sustainability Ledger Entries
+				measure 'Sustainability Ledger Entries Drillthrough'
+					caption: Sustainability Ledger Entries Drillthrough
+				measure 'Employee Ledger Entries Drillthrough'
+					caption: Employee Ledger Entries Drillthrough
+				measure 'Sustainability Overview'
+					caption: Sustainability Overview
+				measure 'Sustainability Analytics'
+					caption: Sustainability Analytics
+				measure 'CO2e Emissions by Month'
+					caption: CO2e Emissions by Month
+				measure 'Scopes 1 and 2 Analysis by Categories Per Year'
+					caption: Scopes 1 and 2 Analysis by Categories Per Year
+				measure 'CO2e Emissions by Department'
+					caption: CO2e Emissions by Department
+				measure 'Journey to Net-Zero Carbon'
+					caption: Journey to Net-Zero Carbon
+				measure 'CO2e Emissions by Business Group'
+					caption: CO2e Emissions by Business Group
+				measure 'Renewable Energy Usage'
+					caption: Renewable Energy Usage
+				measure 'CO2e Emissions Over Time'
+					caption: CO2e Emissions Over Time
+				measure 'CO2e Smart Review'
+					caption: CO2e Smart Review
+				measure 'CO2e Emissions by Global Dimension One'
+					caption: CO2e Emissions by Global Dimension One
+				measure 'CO2e Emissions by Global Dimension Two'
+					caption: CO2e Emissions by Global Dimension Two
+				measure 'CO2e Equivalent Emissions by Month'
+					caption: CO2e Equivalent Emissions by Month
+				measure 'Company Name'
+					caption: Company Name
+				measure 'Last Refreshed'
+					caption: Last Refreshed
+				measure 'Released Employees'
+					caption: Released Employees
+				measure 'CO2e Decomposition Tree'
+					caption: CO2e Decomposition Tree
+				measure 'CO2e Key Influences'
+					caption: CO2e Key Influences
+				measure 'Water and Waste Yearly and Daily Change'
+					caption: Water and Waste Yearly and Daily Change
+			table COMPANY
+				caption: COMPANY
+				measure 'Company Label'
+					caption: Company Label
+			table 'Sustainability Ledger Entries'
+				caption: Sustainability Ledger Entries
+				column 'Entry No.'
+					caption: Entry No.
+				column Description
+					caption: Description
+				column 'Wat. Intensity'
+					caption: Wat. Intensity
+				column 'Water Type'
+					caption: Water Type
+				column 'Wate/Waste Intensity Type'
+					caption: Wate/Waste Intensity Type
+				column 'Document Type'
+					caption: Document Type
+				measure 'CO2 Emissions'
+					caption: CO2 Emissions
+				measure 'CH4 Emissions'
+					caption: CH4 Emissions
+				measure 'CO2 Emissions Balance'
+					caption: CO2 Emissions Balance
+				measure 'CO2 Emissions Balance at Date'
+					caption: CO2 Emissions Balance at Date
+				measure 'N2O Emissions'
+					caption: N2O Emissions
+				measure 'CO2e Emissions'
+					caption: CO2e Emissions
+				measure 'CH4 Emissions Balance at Date'
+					caption: CH4 Emissions Balance at Date
+				measure 'CH4 Emissions Balance'
+					caption: CH4 Emissions Balance
+				measure 'Water Intensity'
+					caption: Water Intensity
+				measure 'Waste Intensity'
+					caption: Waste Intensity
+				measure 'Discharged Into Water'
+					caption: Discharged Into Water
+				measure 'CO2e Emissions Balance'
+					caption: CO2e Emissions Balance
+				measure 'CO2e Emissions Balance at Date'
+					caption: CO2e Emissions Balance at Date
+				measure 'Discharged Into Water Balance at Date'
+					caption: Discharged Into Water Balance at Date
+				measure 'Discharged Into Water Balance'
+					caption: Discharged Into Water Balance
+				measure 'N2O Emissions Balance'
+					caption: N2O Emissions Balance
+				measure 'N2O Emissions Balance at Date'
+					caption: N2O Emissions Balance at Date
+				measure 'Waste Intensity Balance at Date'
+					caption: Balance at Date Waste Intensity
+				measure 'Waste Intensity Balance'
+					caption: Balance Waste Intensity
+				measure 'Water Intensity Balance'
+					caption: Water Intensity Balance
+				measure 'Water Intensity Balance at Date'
+					caption: Water Intensity Balance at Date
+				measure 'CO2 Baseline'
+					caption: CO2 Baseline
+				measure 'CH4 Baseline'
+					caption: CH4 Baseline
+				measure 'CH4 vs Baseline (%)'
+					caption: CH4 vs Baseline (%)
+				measure 'N2O Baseline'
+					caption: N2O Baseline
+				measure 'N2O vs Baseline (%)'
+					caption: N2O vs Baseline (%)
+				measure 'CO2 vs Baseline (%)'
+					caption: CO2 vs Baseline (%)
+				measure 'Water Baseline'
+					caption: Water Baseline
+				measure 'Waste Baseline'
+					caption: Waste Baseline
+				measure 'Water vs Baseline (%)'
+					caption: Water vs Baseline (%)
+				measure 'Waste vs Baseline (%)'
+					caption: Waste vs Baseline (%)
+				measure 'CO2e Baseline'
+					caption: CO2e Baseline
+				measure 'CO2e vs Baseline (%)'
+					caption: CO2e vs Baseline (%)
+				measure 'Purchased Carbon Credits'
+					caption: Purchased Carbon Credits
+				measure 'Discharged Into Water Baseline'
+					caption: Water Dishcarged Baseline
+				measure 'Discharged Into Water vs Baseline (%)'
+					caption: Water Dish vs Baseline (%)
+				measure 'CO2e Emissions (Excl Credits)'
+					caption: CO2e Emissions (Excl Credits)
+				measure 'Water Intensity PY'
+					caption: Water Intensity PY
+				measure 'Water Intensity YOY'
+					caption: Water Change YOY
+				measure 'Waste Intensity PY'
+					caption: Waste PY
+				measure 'Waste Intensity YOY'
+					caption: Waste Change YOY
+				measure 'Discharged Into Water PY'
+					caption: Discharged Into Water PY
+				measure 'Discharged Into Water YOY'
+					caption: Discharged Into Water YOY
+				measure 'Discharged Into Water PD'
+					caption: Discharged Into Water PD
+				measure 'Waste Intensity PD'
+					caption: Waste PD
+				measure 'Water Intensity PD'
+					caption: Water Intensity PD
+				measure 'Water Intensity DOD'
+					caption: Water Change DOD
+				measure 'Waste Intensity DOD'
+					caption: Waste Change DOD
+				measure 'Discharged Into Water DOD'
+					caption: Discharged Into Water DOD
+				measure 'Base Link'
+					caption: Base Link
+				measure 'Sustainability Ledger Entries Link'
+					caption: Sustainability Ledger Entries Link
+				measure 'Months in Context'
+					caption: Months in Context
+			table 'Sustainability Accounts'
+				caption: Sustainability Accounts
+				column 'Sustainability Account No.'
+					caption: Sustainability Account No.
+				column 'Sustainability Account Name'
+					caption: Sustainability Account Name
+				column 'Sustainability Account Category'
+					caption: Sustainability Account Category
+				column 'Sustainability Account Sub-Category'
+					caption: Sustainability Account Sub-Category
+			table Country/Region
+				caption: Country/Region
+				column 'Country Region Code'
+					caption: Country Region Code
+				column 'Country Region Name'
+					caption: Country Region Name
+			table 'Responsibility Centre'
+				caption: Responsibility Centre
+				column 'Responsibility Centre Code'
+					caption: Responsibility Centre Code
+				column 'Responsibility Centre Name'
+					caption: Responsibility Centre Name
+				measure 'Facility Capacity'
+					caption: Facility Capacity
+			table 'Sustainability Goals'
+				caption: Sustainability Goals
+				column 'Score Card No.'
+					caption: Score Card No.
+				column 'No.'
+					caption: No.
+				column Name
+					caption: Name
+				column Owner
+					caption: Owner
+				column 'Target Value For CO2'
+					caption: Target Value For CO2
+				column 'Target Value For CH4'
+					caption: Target Value For CH4
+				column 'Target Value For N2O'
+					caption: Target Value For N2O
+				column 'Target Value For Water Intensity'
+					caption: Target Value For Water Intensity
+				column 'Target Value For Waste Intensity'
+					caption: Target Value For Waste Intensity
+				column 'Main Goal'
+					caption: Main Goal
+				column 'Start Date'
+					caption: Start Date
+				column 'End Date'
+					caption: End Date
+				column 'Baseline Start Date'
+					caption: Baseline Start Date
+				column 'Baseline End Date'
+					caption: Baseline End Date
+				measure 'CO2 Target'
+					caption: CO2 Target
+				measure 'CO2 Realized (%)'
+					caption: CO2 Realised (%)
+				measure 'CH4 Target'
+					caption: CH4 Target
+				measure 'N2O Target'
+					caption: N2O Target
+				measure 'CH4 Realized (%)'
+					caption: CH4 Realised (%)
+				measure 'N2O Realized (%)'
+					caption: N2O Realised (%)
+				measure 'Water Target'
+					caption: Water Target
+				measure 'Waste Target'
+					caption: Waste Target
+				measure 'Water Realized (%)'
+					caption: Water Realised (%)
+				measure 'Waste Realized (%)'
+					caption: Waste Realised (%)
+				measure 'CO2e Realized (%)'
+					caption: CO2e Realised (%)
+				measure 'CO2 Current Value'
+					caption: CO2 Current Value
+				measure 'CH4 Current Value'
+					caption: CH4 Current Value
+				measure 'N2O Current Value'
+					caption: N2O Current Value
+				measure 'CO2e Current Value'
+					caption: CO2e Current Value
+			table 'Employee Ledger Entries'
+				caption: Employee Ledger Entries
+				column 'Entry No.'
+					caption: Entry No.
+				column 'Document Type'
+					caption: Document Type
+				column 'Document No.'
+					caption: Document No.
+				column Description
+					caption: Description
+				measure 'Employee Amount'
+					caption: Amount
+				measure 'Employee Ledger Entries Link'
+					caption: Employee Ledger Entries Link
+			table 'Employee Qualifications'
+				caption: Employee Qualifications
+				column 'Employee Qualification Codes'
+					caption: Employee Qualification Codes
+				measure 'Employee Qualifications'
+					caption: Count Employee Qualifications
+			table 'Emission Fees'
+				caption: Emission Fees
+				column 'Emission Type'
+					caption: Emission Type
+				column 'Scope Type'
+					caption: Scope Type
+				column 'Starting Date'
+					caption: Starting Date
+				column 'Ending Date'
+					caption: Ending Date
+				column 'Country Region Code'
+					caption: Country Region Code
+				column 'Responsibility Centre'
+					caption: Responsibility Centre
+				column 'Carbon Fee'
+					caption: Carbon Fee
+				column 'Carbon Equivalent Factor'
+					caption: Carbon Equivalent Factor
+				measure 'CO2e Target'
+					caption: CO2e Target
+				measure 'CO2 Carbon Equivalent'
+					caption: CO2 Carbon Equivilent
+				measure 'CH4 Carbon Equivalent'
+					caption: CH4 Carbon Equivilent
+				measure 'N2O Carbon Equivalent'
+					caption: N20 Carbon Equivilent
+			table 'Employee Absences'
+				caption: Employee Absences
+				column 'Entry No'
+					caption: Entry No
+				column 'From Date'
+					caption: From Date
+				column 'To Date'
+					caption: To Date
+				column 'Cause of Absence'
+					caption: Cause of Absence
+				column Description
+					caption: Description
+				measure 'Employee Absences'
+					caption: Quantity
+				measure 'Absence Hours (%)'
+					caption: Absence Hours (%)
+			table 'Sustainability Sub-Account Categories'
+				caption: Sustainability Sub-Account Categories
+				column 'Sub-Category Description'
+					caption: Sub-Category Description
+				column 'Renewable Energy'
+					caption: Renewable Energy
+			table Employees
+				caption: Employees
+				column 'Employee No.'
+					caption: Employee No.
+				column 'Employee Full Name'
+					caption: Employee Full Name
+				column 'Employee First Name'
+					caption: Employee First Name
+				column 'Employee Last Name'
+					caption: Employee Last Name
+				column 'Employee Gender'
+					caption: Employee Gender
+				column 'Employee Union Code'
+					caption: Employee Union Code
+				column 'Employee Status'
+					caption: Employee Status
+				column 'Employee Cause of Inactivity'
+					caption: Employee Cause of Inactivity
+				column 'Employee Inactive Date'
+					caption: Employee Inactive Date
+				column 'Employee Grounds for Termination'
+					caption: Employee Grounds for Termination
+				column 'Employee Date of Birth'
+					caption: Employee Date of Birth
+				column Age
+					caption: Age
+				column 'Age Distribution'
+					caption: Age Distribution
+				measure 'No. of Employees'
+					caption: No. of Employees
+				measure 'No. of Male Employees'
+					caption: No. of Male Employees
+				measure 'No. of Female Employees'
+					caption: No. of Female Employees
+				measure 'No. of Other Employees'
+					caption: No. of Other Employees
+				measure 'Male Employees (%)'
+					caption: Male Employees (%)
+				measure 'Female Employees (%)'
+					caption: Female Employees (%)
+				measure 'Other Employees (%)'
+					caption: Other Employees (%)
+			table ENVIRONMENT
+				caption: ENVIRONMENT
+

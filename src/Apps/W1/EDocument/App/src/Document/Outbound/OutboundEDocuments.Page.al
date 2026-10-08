@@ -16,7 +16,7 @@ page 6106 "Outbound E-Documents"
     PageType = List;
     RefreshOnActivate = true;
     Editable = false;
-    DeleteAllowed = false;
+    DeleteAllowed = true;
     InsertAllowed = false;
     SourceTableView = sorting("Entry No") order(descending) where(Direction = const(Direction::Outgoing));
 

@@ -1,0 +1,67 @@
+[
+  {
+    "codeunitId": 137451,
+    "codeunitName": "Phys. Invt. Order PAG UT",
+    "method": "DimensionPostedPhysInvtOrderSubform"
+  },
+  {
+    "codeunitId": 137451,
+    "codeunitName": "Phys. Invt. Order PAG UT",
+    "method": "FindRecordsPhysInvtLedgEntryOnNavigate"
+  },
+  {
+    "codeunitId": 137451,
+    "codeunitName": "Phys. Invt. Order PAG UT",
+    "method": "ShowRecordsPhysInvtLedgEntryOnNavigate"
+  },
+  {
+    "codeunitId": 137452,
+    "codeunitName": "Phys. Invt. Order Line TAB UT",
+    "method": "ShowPhysInvtLedgerEntriesPhysInvtOrderLine"
+  },
+  {
+    "codeunitId": 137453,
+    "codeunitName": "Phys. Invt. Order-Test UT REP",
+    "method": "OnAfterGetRecordLineDimLoop"
+  },
+  {
+    "codeunitId": 137453,
+    "codeunitName": "Phys. Invt. Order-Test UT REP",
+    "method": "OnAfterGetRecordLineDimLoopWithOldDimSetID"
+  },
+  {
+    "codeunitId": 137454,
+    "codeunitName": "Phys. Invt. Order Diff. UT REP",
+    "method": "LineDimensionLoopOnAfterGetRecordMultipleDimensions"
+  },
+  {
+    "codeunitId": 137454,
+    "codeunitName": "Phys. Invt. Order Diff. UT REP",
+    "method": "LineDimensionLoopOnAfterGetRecordSingleDimension"
+  },
+  {
+    "codeunitId": 137456,
+    "codeunitName": "Phys. Invt. Recording UT REP",
+    "method": "PhysInvtRecordingNotThrowAnyErrorWhenImportingTxtFile"
+  },
+  {
+    "codeunitId": 137457,
+    "codeunitName": "PostedPhyInvtOrderDiff UT REP",
+    "method": "LineDimensionLoopOnAfterGetRecordMultipleDimensions"
+  },
+  {
+    "codeunitId": 137457,
+    "codeunitName": "PostedPhyInvtOrderDiff UT REP",
+    "method": "LineDimensionLoopOnAfterGetRecordSingleDimension"
+  },
+  {
+    "codeunitId": 137460,
+    "codeunitName": "Phys. Invt. Item Tracking",
+    "method": "CalcPhysInvtOrderLinesFilterServiceAndNonInventoryItems"
+  },
+  {
+    "codeunitId": 137462,
+    "codeunitName": "Phys. Invt. Order Subform UT",
+    "method": "ShowDimensionPhysInventoryOrderSubform"
+  }
+]

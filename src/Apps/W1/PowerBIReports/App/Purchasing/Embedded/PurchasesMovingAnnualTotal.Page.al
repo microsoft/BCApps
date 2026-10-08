@@ -11,8 +11,8 @@ page 37013 "Purchases Moving Annual Total"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Moving Annual Total';
-    AboutTitle = 'About Purchases Moving Annual Total';
+    Caption = 'Purchases Moving Annual Total (Power BI)';
+    AboutTitle = 'About Purchases Moving Annual Total (Power BI)';
     AboutText = 'The Purchases Moving Annual Total report provides a rolling 12-month view of procurement figures, tracking current year to the previous year''s performance. ';
 
     layout

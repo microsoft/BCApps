@@ -1,3 +1,4 @@
+#if not CLEAN29
 namespace Microsoft.eServices.EDocument.OrderMatch.Copilot;
 
 using Microsoft.eServices.EDocument;
@@ -14,6 +15,9 @@ codeunit 6163 "E-Doc. PO Copilot Matching"
     Access = Internal;
     InherentPermissions = X;
     InherentEntitlements = X;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+    ObsoleteTag = '29.0';
 
     var
         EDocAIMatchingFunction: Codeunit "E-Doc. PO AOAI Function";
@@ -329,3 +333,4 @@ codeunit 6163 "E-Doc. PO Copilot Matching"
         RegisterAICapability();
     end;
 }
+#endif

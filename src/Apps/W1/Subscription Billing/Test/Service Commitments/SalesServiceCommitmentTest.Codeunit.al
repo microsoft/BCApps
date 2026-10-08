@@ -63,12 +63,138 @@ codeunit 139915 "Sales Service Commitment Test"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SerialNo: array[10] of Code[50];
+        AssignSubscriptionLinesOpenedCount: Integer;
         NoOfServiceObjects: Integer;
+        AssignSubscriptionLinesNotOfferedErr: Label 'The Assign Subscription Lines page must be opened for a Sales Line that is created after Explode BOM.', Locked = true;
+        AssignSubscriptionLinesOpenedPerComponentErr: Label 'The Assign Subscription Lines page must be opened exactly once per exploded BOM component.', Locked = true;
+        AssignSubscriptionLinesTok: Label 'Assign Subscription Lines', Locked = true;
+        CaptionDoesNotContainErr: Label 'The caption ''%1'' of the Assign Subscription Lines page does not contain ''%2''.', Locked = true;
+        CaptionNotCorrectErr: Label 'The caption of the Assign Subscription Lines page is not correct.', Locked = true;
         NotCreatedProperlyErr: Label 'Subscription Lines are not created properly.', Locked = true;
+        SalesLineCaptionTok: Label '%1 · %2', Locked = true;
         SalesServiceCommitmentCannotBeDeletedErr: Label 'The Sales Subscription Line cannot be deleted, because it is the last line with Process Contract Renewal. Please delete the Sales line in order to delete the Sales Subscription Line.', Locked = true;
         NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption', Locked = true;
+        SalesOrderNotDeletedErr: Label 'The Sales Order was not deleted by the Delete Invoiced Sales Orders batch job.', Locked = true;
+        BlanketSalesOrderNotDeletedErr: Label 'The Blanket Sales Order was not deleted by the Delete Invoiced Blanket Sales Orders batch job.', Locked = true;
 
     #region Tests
+
+    [Test]
+    [HandlerFunctions('AssignServiceCommitmentsCaptureCaptionModalPageHandler')]
+    procedure AssignSubscriptionLinesCaptionIdentifiesSalesLine()
+    var
+        SalesItem: Record Item;
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
+        ActualCaption: Text;
+    begin
+        // [SCENARIO] The Assign Subscription Lines page identifies the Sales Line it has been opened for
+
+        // [GIVEN] Sales Line for an Item with a Subscription Package assigned to it
+        Initialize();
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(SalesItem, Enum::"Item Service Commitment Type"::"Sales with Service Commitment");
+        SalesItem.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        SalesItem.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, SalesItem."No.", LibraryRandom.RandIntInRange(1, 100));
+        SalesLine.Description := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine.Description));
+        SalesLine.Modify(false);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(SalesItem, ServiceCommitmentPackage.Code, false);
+
+        // [WHEN] Assign Subscription Lines page is opened for the Sales Line
+        SalesServiceCommMgmt.AddAdditionalSalesServiceCommitmentsForSalesLine(SalesLine);
+
+        // [THEN] The caption of the page contains the page name, the No. and the Description of the Sales Line
+        ActualCaption := LibraryVariableStorage.DequeueText();
+        Assert.IsTrue(StrPos(ActualCaption, AssignSubscriptionLinesTok) > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, AssignSubscriptionLinesTok));
+        Assert.IsTrue(StrPos(ActualCaption, SalesLine."No.") > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, SalesLine."No."));
+        Assert.IsTrue(StrPos(ActualCaption, SalesLine.Description) > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, SalesLine.Description));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure AssignSubscriptionLinesCaptionIsEmptyWhenNotOpenedFromSalesLine()
+    var
+        SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
+    begin
+        // [SCENARIO] No Sales Line caption is provided if the Assign Subscription Lines page has not been opened from a Sales Line
+
+        // [GIVEN] Sales Line with No. and Description
+        Initialize();
+        SalesLine.Init();
+        SalesLine.Type := SalesLine.Type::Item;
+        SalesLine."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine."No."));
+        SalesLine.Description := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine.Description));
+
+        // [WHEN] The caption is fetched for a page that has not been opened from a Sales Line
+        // [THEN] The caption is empty
+        Assert.AreEqual('', SalesServiceCommMgmt.GetAssignSubscriptionLinesCaption(SalesLine, ServiceObject, false), CaptionNotCorrectErr);
+    end;
+
+    [Test]
+    procedure AssignSubscriptionLinesCaptionShowsSubscriptionPackageWhenNotOpenedFromSalesLine()
+    var
+        AssignServiceCommitments: TestPage "Assign Service Commitments";
+        ActualCaption: Text;
+    begin
+        // [SCENARIO] The caption of the Assign Subscription Lines page keeps identifying the Subscription Package if the page has not been opened from a Sales Line
+
+        // [GIVEN] Subscription Package
+        Initialize();
+
+        // [WHEN] Assign Subscription Lines page is opened without a Sales Line
+        AssignServiceCommitments.OpenView();
+        AssignServiceCommitments.GoToRecord(ServiceCommitmentPackage);
+
+        // [THEN] The caption of the page contains the page name and the Code of the Subscription Package
+        ActualCaption := AssignServiceCommitments.Caption();
+        AssignServiceCommitments.Close();
+        Assert.IsTrue(StrPos(ActualCaption, AssignSubscriptionLinesTok) > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, AssignSubscriptionLinesTok));
+        Assert.IsTrue(StrPos(ActualCaption, ServiceCommitmentPackage.Code) > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, ServiceCommitmentPackage.Code));
+    end;
+
+    [Test]
+    procedure AssignSubscriptionLinesCaptionSkipsEmptySalesLineDescription()
+    var
+        SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
+    begin
+        // [SCENARIO] The caption of the Assign Subscription Lines page contains no separator if the Sales Line has no Description
+
+        // [GIVEN] Sales Line with No. but without Description
+        Initialize();
+        SalesLine.Init();
+        SalesLine.Type := SalesLine.Type::Item;
+        SalesLine."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine."No."));
+
+        // [WHEN] The caption is fetched for a page that has been opened from the Sales Line
+        // [THEN] The caption consists of the No. of the Sales Line only
+        Assert.AreEqual(SalesLine."No.", SalesServiceCommMgmt.GetAssignSubscriptionLinesCaption(SalesLine, ServiceObject, true), CaptionNotCorrectErr);
+    end;
+
+    [Test]
+    procedure AssignSubscriptionLinesCaptionUsesSalesLineNoAndDescription()
+    var
+        SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
+    begin
+        // [SCENARIO] The caption of the Assign Subscription Lines page consists of the No. and the Description of the Sales Line
+
+        // [GIVEN] Sales Line with No. and Description
+        Initialize();
+        SalesLine.Init();
+        SalesLine.Type := SalesLine.Type::Item;
+        SalesLine."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine."No."));
+        SalesLine.Description := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine.Description));
+
+        // [WHEN] The caption is fetched for a page that has been opened from the Sales Line
+        // [THEN] The caption consists of the No. and the Description of the Sales Line
+        Assert.AreEqual(
+            StrSubstNo(SalesLineCaptionTok, SalesLine."No.", SalesLine.Description),
+            SalesServiceCommMgmt.GetAssignSubscriptionLinesCaption(SalesLine, ServiceObject, true), CaptionNotCorrectErr);
+    end;
 
     [Test]
     procedure CheckCopySalesServiceCommitmentFromSalesDocument()
@@ -228,6 +354,69 @@ codeunit 139915 "Sales Service Commitment Test"
         CreateAndPostSalesDocumentWithSerialNo(true, true);
         TestServiceObjectWithSerialNoExpectedCount();
         TestServiceObjectWithSerialNoExists();
+    end;
+
+    [Test]
+    procedure CheckCreateServiceObjectOnDropShipment()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        RequisitionLine: Record "Requisition Line";
+        Vendor: Record Vendor;
+        ExpectedQuantity: Decimal;
+    begin
+        // [SCENARIO] The Subscription created for a drop shipped non-serialized Subscription Item carries the posted quantity, not zero.
+        Initialize();
+
+        // [GIVEN] A released drop shipment sales order for a non-serialized Subscription Item
+        CreateAndReleaseSalesDocumentForDropShipment();
+        ExpectedQuantity := SalesLine.Quantity;
+
+        CreateVendorForDropShipmentItem(Vendor);
+
+        // [WHEN] The linked purchase order is created from the sales order and received
+        RunGetSalesOrders(RequisitionLine, SalesHeader);
+        ReqWkshCarryOutActionMessage(RequisitionLine);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseHeader.FindLast();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] A single Subscription is created with the posted quantity (Qty. to Ship on the sales line is 0 for a drop shipment)
+        ServiceObject.Reset();
+        ServiceObject.FilterOnItemNo(Item."No.");
+        Assert.RecordCount(ServiceObject, 1);
+        ServiceObject.FindFirst();
+        ServiceObject.TestField(Quantity, ExpectedQuantity);
+    end;
+
+    [Test]
+    procedure CheckSalesOrderLineClosedAfterDropShipment()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        FetchSalesLine: Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] After a drop shipment receipt the Subscription Item sales line is treated as fully invoiced, so the sales order can be completed.
+        Initialize();
+
+        // [GIVEN] A released drop shipment sales order for a non-serialized Subscription Item
+        CreateAndReleaseSalesDocumentForDropShipment();
+
+        CreateVendorForDropShipmentItem(Vendor);
+
+        // [WHEN] The linked purchase order is created from the sales order and received
+        RunGetSalesOrders(RequisitionLine, SalesHeader);
+        ReqWkshCarryOutActionMessage(RequisitionLine);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseHeader.FindLast();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] The sales line is fully shipped and marked as fully invoiced, with nothing left shipped not invoiced.
+        // This is what lets the order be completed: Qty. Shipped Not Invoiced = 0 makes Sales Line CheckNotInvoicedQty pass on delete.
+        FetchSalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        FetchSalesLine.TestField("Quantity Shipped", SalesLine.Quantity);
+        FetchSalesLine.TestField("Quantity Invoiced", FetchSalesLine."Quantity Shipped");
+        FetchSalesLine.TestField("Qty. Shipped Not Invoiced", 0);
     end;
 
     [Test]
@@ -427,15 +616,15 @@ codeunit 139915 "Sales Service Commitment Test"
     begin
         Initialize();
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
-        SetupSalesLineForTotalAndVatCalculation(Item, true, 19);
+        SetupSalesLineForTotalAndVatCalculation(Item, true);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate(Quantity, 1);
         SalesLine.Modify(false);
-        SetupSalesLineForTotalAndVatCalculation(Item2, false, 19);
+        SetupSalesLineForTotalAndVatCalculation(Item2, false);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate(Quantity, 1);
         SalesLine.Modify(false);
-        SetupSalesLineForTotalAndVatCalculation(Item3, false, 19);
+        SetupSalesLineForTotalAndVatCalculation(Item3, false);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate(Quantity, 1);
         SalesLine.Validate("Line Discount %", 50);
@@ -885,6 +1074,150 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    procedure CheckCalculationBaseAmountEqualsSalesLineUnitPriceIncludingVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        CalcBaseAmtMustEqualUnitPriceWithVATErr: Label 'Calculation Base Amount must equal the unit price when Prices Including VAT is enabled.', Locked = true;
+    begin
+        // [SCENARIO] When Prices Including VAT is enabled on the Sales Header, the Calculation Base Amount
+        // on the Sales Subscription Line stores the VAT-inclusive unit price as-is (same as Sales Line Unit Price).
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = true
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        SetupItemCustomerAndSalesHeaderWithVAT(VATPostingSetup);
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [WHEN] A sales line is created with the subscription item
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Calculation Base Amount equals the unit price as stored on the sales line (VAT-inclusive)
+        FindCustomerDocumentPriceSalesServiceCommitment();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            CalcBaseAmtMustEqualUnitPriceWithVATErr);
+    end;
+
+    [Test]
+    procedure CheckCalculationBaseAmountEqualsSalesLineUnitPriceExcludingVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        CalcBaseAmtMustEqualUnitPriceNoVATErr: Label 'Calculation Base Amount must equal unit price when Prices Including VAT is disabled.', Locked = true;
+    begin
+        // [SCENARIO] When Prices Including VAT is disabled (default), the Calculation Base Amount on the
+        // Sales Subscription Line equals the unit price directly, with no VAT adjustment.
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = false
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        SetupItemCustomerAndSalesHeaderWithVAT(VATPostingSetup);
+
+        // [WHEN] A sales line is created with the subscription item (Prices Including VAT = false by default)
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Calculation Base Amount equals the unit price without any VAT adjustment
+        FindCustomerDocumentPriceSalesServiceCommitment();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            CalcBaseAmtMustEqualUnitPriceNoVATErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure CheckCalculationBaseAmountRecalculatedOnPricesIncludingVATChange()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        InitCalcBaseAmtMustEqualUnitPriceErr: Label 'Initial Calculation Base Amount must equal unit price when Prices Including VAT is disabled.', Locked = true;
+        CalcBaseAmtMustEqualUpdatedUnitPriceErr: Label 'Calculation Base Amount must equal the updated unit price when Prices Including VAT is toggled on.', Locked = true;
+        CalcBaseAmtMustRevertToUnitPriceErr: Label 'Calculation Base Amount must revert to unit price when Prices Including VAT is toggled off.', Locked = true;
+    begin
+        // [SCENARIO] Toggling Prices Including VAT on a Sales Header triggers recalculation of the
+        // Calculation Base Amount on all existing Sales Subscription Lines using the VAT factor,
+        // preserving any manual edits rather than recalculating from scratch.
+
+        // [GIVEN] A Sales Order with Prices Including VAT = false and an existing subscription line
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        SetupItemCustomerAndSalesHeaderWithVAT(VATPostingSetup);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+        FindCustomerDocumentPriceSalesServiceCommitment();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            InitCalcBaseAmtMustEqualUnitPriceErr);
+
+        // [WHEN] Prices Including VAT is toggled to true on the Sales Header
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [THEN] Calculation Base Amount is updated to match the new VAT-inclusive unit price
+        SalesLine.Find();
+        SalesServiceCommitment.Find();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            CalcBaseAmtMustEqualUpdatedUnitPriceErr);
+
+        // [WHEN] Prices Including VAT is toggled back to false
+        SalesHeader.Validate("Prices Including VAT", false);
+        SalesHeader.Modify(true);
+
+        // [THEN] Calculation Base Amount reverts to the VAT-exclusive unit price
+        SalesLine.Find();
+        SalesServiceCommitment.Find();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            CalcBaseAmtMustRevertToUnitPriceErr);
+    end;
+
+    [Test]
+    procedure CheckSubscriptionLineCalculationBaseAmountExcludesVATAfterPosting()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExpectedNetBaseAmount: Decimal;
+        PostedSubLineCalcBaseAmtMustBeNetErr: Label 'Posted Subscription Line Calculation Base Amount must be the net (VAT-exclusive) amount when Prices Including VAT was enabled.', Locked = true;
+    begin
+        // [SCENARIO] When a Sales Order with Prices Including VAT is posted, the resulting Subscription Line
+        // Calculation Base Amount must be the VAT-exclusive (net) amount.
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = true
+        Initialize();
+        // Use the single package line from Initialize: set Calculation Base Type = Document Price and Calculation Base % = 100
+        // so that Calculation Base Amount exactly equals the Sales Line Unit Price (no scaling).
+        ServiceCommPackageLine."Calculation Base Type" := Enum::"Calculation Base Type"::"Document Price";
+        ServiceCommPackageLine."Calculation Base %" := 100;
+        ServiceCommPackageLine.Modify(false);
+        SetupItemCustomerAndSalesHeaderWithVAT(VATPostingSetup);
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [WHEN] A sales line is created, the unit price is set, and the order is posted (shipped)
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+        Currency.InitRoundingPrecision();
+        ExpectedNetBaseAmount := Round(
+            SalesLine."Unit Price" / (1 + VATPostingSetup."VAT %" / 100),
+            Currency."Unit-Amount Rounding Precision");
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] The posted Subscription Line Calculation Base Amount is the net (VAT-exclusive) amount
+        ServiceObject.FilterOnItemNo(Item."No.");
+        ServiceObject.FindFirst();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        ServiceCommitment.FindFirst();
+        Assert.AreEqual(
+            ExpectedNetBaseAmount,
+            ServiceCommitment."Calculation Base Amount",
+            PostedSubLineCalcBaseAmtMustBeNetErr);
+    end;
+
+    [Test]
     procedure CheckSalesServiceCommitmentDiscountCalculation()
     var
         DiscountAmount: Decimal;
@@ -1113,8 +1446,19 @@ codeunit 139915 "Sales Service Commitment Test"
         Item4: Record Item;
         TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
         ExpectedVATAmount: Decimal;
+        ItemVATPercent: Decimal;
         UniqueRhythmDictionary: Dictionary of [Code[20], Text];
     begin
+        // [SCENARIO] CalcVATAmountLines correctly prorates subscription amounts by billing rhythm/period
+        // and groups buffer rows by (rhythm + base period + VAT rate). The expected VAT is calculated
+        // manually using the proration formula: Amount / (BasePeriodMonths / RhythmMonths) * VAT%.
+
+        // [GIVEN] A Sales Order with four subscription lines covering three rhythm/period combinations:
+        //   - Item  (VAT rate A): Billing Rhythm <1M>, Billing Base Period <12M>  → prorated as Amount/12*1
+        //   - Item4 (VAT rate B): Billing Rhythm <1M>, Billing Base Period <12M>  → same rhythm, different VAT rate
+        //                         (produces a second buffer row for the same rhythm combination)
+        //   - Item2 (VAT rate A): Billing Rhythm <3M>, Billing Base Period <12M>  → prorated as Amount/12*3
+        //   - Item3 (VAT rate A): Billing Rhythm <3M>, Billing Base Period <2Y>   → prorated as Amount/24*3
         Initialize();
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
         if SalesHeader."Currency Code" = '' then
@@ -1123,28 +1467,30 @@ codeunit 139915 "Sales Service Commitment Test"
             Currency.Get(SalesHeader."Currency Code");
         ExpectedVATAmount := 0;
 
-        // "Billing Rhythm" = '<1M>', "Billing Base Period" = '<12M>'
-        SetupSalesLineForTotalAndVatCalculation(Item, true, 0);
+        // Item — Billing Rhythm <1M>, Billing Base Period <12M>, VAT rate A
+        SetupSalesLineForTotalAndVatCalculation(Item, true);
         SalesServiceCommitment.FilterOnSalesLine(SalesLine);
         SalesServiceCommitment.FindFirst();
         ExpectedVATAmount += Round((SalesServiceCommitment.Amount / 12 * 1) * SalesLine."VAT %" / 100, Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
 
-        // Item with different VAT for same Billing Rhythm
-        SetupSalesLineForTotalAndVatCalculation(Item4, true, SalesLine."VAT %");
+        // Item4 — same rhythm <1M>/<12M> but a different VAT rate (B), so it lands in a separate buffer row
+        ItemVATPercent := SalesLine."VAT %";
+        SetupSalesLineForTotalAndVatCalculation(Item4, true);
+        ReassignSalesLineToDifferentVATGroup(ItemVATPercent);
         SalesServiceCommitment.FilterOnSalesLine(SalesLine);
         SalesServiceCommitment.FindFirst();
         ExpectedVATAmount += Round((SalesServiceCommitment.Amount / 12 * 1) * SalesLine."VAT %" / 100, Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
 
-        // "Billing Rhythm" = '<3M>', "Billing Base Period" = '<12M>'
-        SetupSalesLineForTotalAndVatCalculation(Item2, true, 0);
+        // Item2 — Billing Rhythm <3M>, Billing Base Period <12M>
+        SetupSalesLineForTotalAndVatCalculation(Item2, true);
         SalesServiceCommitment.FilterOnSalesLine(SalesLine);
         SalesServiceCommitment.FindFirst();
         Evaluate(SalesServiceCommitment."Billing Rhythm", '3M');
         SalesServiceCommitment.Modify(false);
         ExpectedVATAmount += (SalesServiceCommitment.Amount / 12 * 3) * SalesLine."VAT %" / 100;
 
-        // "Billing Rhythm" = '<3M>', "Billing Base Period" = '<2Y>'
-        SetupSalesLineForTotalAndVatCalculation(Item3, true, 0);
+        // Item3 — Billing Rhythm <3M>, Billing Base Period <2Y>
+        SetupSalesLineForTotalAndVatCalculation(Item3, true);
         SalesServiceCommitment.FilterOnSalesLine(SalesLine);
         SalesServiceCommitment.FindFirst();
         Evaluate(SalesServiceCommitment."Billing Base Period", '<2Y>');
@@ -1153,9 +1499,14 @@ codeunit 139915 "Sales Service Commitment Test"
         ExpectedVATAmount += (SalesServiceCommitment.Amount / 24 * 3) * SalesLine."VAT %" / 100;
         ExpectedVATAmount := Round(ExpectedVATAmount, Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
 
+        // [WHEN] VAT amount lines are calculated for the Sales Order
         SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
 
+        // [THEN] The buffer contains one row per unique (rhythm + base period + VAT rate) combination.
+        // There are 3 unique rhythm/period combinations (UniqueRhythmDictionary.Count), but the <1M>/<12M>
+        // combination has two VAT rates (A and B), producing one extra row → Count + 1 rows in total.
         Assert.RecordCount(TempSalesServiceCommitmentBuff, UniqueRhythmDictionary.Count + 1);
+        // [THEN] The summed VAT amount across all buffer rows matches the manually prorated expected amount.
         TempSalesServiceCommitmentBuff.CalcSums("VAT Amount");
         Assert.AreEqual(ExpectedVATAmount, TempSalesServiceCommitmentBuff."VAT Amount", 'Service Items VAT Amount not calculated properly.');
     end;
@@ -1310,6 +1661,45 @@ codeunit 139915 "Sales Service Commitment Test"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
         SalesServiceCommitment.Price := LibraryRandom.RandDec(1000, 2);
         asserterror SalesServiceCommitment.Modify(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('AssignServiceCommitmentsCountingModalPageHandler,StrMenuHandler')]
+    procedure ExplodeBOMOffersSubscriptionPackagesOncePerComponent()
+    var
+        BOMItem: Record Item;
+        ComponentItem1: Record Item;
+        ComponentItem2: Record Item;
+        ComponentSalesLine: Record "Sales Line";
+        StandardPackageCode1: Code[20];
+        StandardPackageCode2: Code[20];
+    begin
+        // [SCENARIO] Exploding the BOM of an Item offers the Subscription Packages exactly once per exploded component
+
+        // [GIVEN] Assembly Item with two components, each with a standard and an additional Subscription Package
+        Initialize();
+        LibraryAssembly.CreateItem(BOMItem, Item."Costing Method"::Standard, Item."Replenishment System"::Assembly, '', '');
+        CreateComponentItemWithAdditionalServiceCommPackage(BOMItem."No.", ComponentItem1, StandardPackageCode1);
+        CreateComponentItemWithAdditionalServiceCommPackage(BOMItem."No.", ComponentItem2, StandardPackageCode2);
+
+        // [GIVEN] Sales Order with a Sales Line for the Assembly Item
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, BOMItem."No.", WorkDate(), LibraryRandom.RandIntInRange(1, 10));
+
+        // [WHEN] The BOM is exploded
+        Codeunit.Run(Codeunit::"Sales-Explode BOM", SalesLine);
+
+        // [THEN] The Assign Subscription Lines page has been opened exactly once per component
+        Assert.AreEqual(2, AssignSubscriptionLinesOpenedCount, AssignSubscriptionLinesOpenedPerComponentErr);
+
+        // [THEN] Every component Sales Line holds the Subscription Lines of its standard Subscription Package only
+        VerifySalesSubscriptionLinesFromStandardPackageOnly(ComponentItem1."No.", StandardPackageCode1);
+        VerifySalesSubscriptionLinesFromStandardPackageOnly(ComponentItem2."No.", StandardPackageCode2);
+        ComponentSalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        ComponentSalesLine.SetRange("Document No.", SalesHeader."No.");
+        ComponentSalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
+        ComponentSalesLine.SetFilter("No.", '%1|%2', ComponentItem1."No.", ComponentItem2."No.");
+        Assert.RecordCount(ComponentSalesLine, 2);
     end;
 
     [Test]
@@ -1630,6 +2020,38 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    [HandlerFunctions('AssignServiceCommitmentsCountingModalPageHandler,StrMenuHandler')]
+    procedure SubscriptionPackagesAreOfferedForSalesLineCreatedAfterExplodeBOM()
+    var
+        BOMItem: Record Item;
+        ComponentItem: Record Item;
+        SalesItem: Record Item;
+        ComponentStandardPackageCode: Code[20];
+        SalesItemStandardPackageCode: Code[20];
+    begin
+        // [SCENARIO] The Subscription Packages are offered again for a Sales Line that is created after a BOM has been exploded
+
+        // [GIVEN] Sales Order in which the BOM of an Assembly Item with one component has been exploded
+        Initialize();
+        LibraryAssembly.CreateItem(BOMItem, Item."Costing Method"::Standard, Item."Replenishment System"::Assembly, '', '');
+        CreateComponentItemWithAdditionalServiceCommPackage(BOMItem."No.", ComponentItem, ComponentStandardPackageCode);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, BOMItem."No.", WorkDate(), LibraryRandom.RandIntInRange(1, 10));
+        Codeunit.Run(Codeunit::"Sales-Explode BOM", SalesLine);
+        Assert.AreEqual(1, AssignSubscriptionLinesOpenedCount, AssignSubscriptionLinesOpenedPerComponentErr);
+
+        // [WHEN] A Sales Line is created for another Item with Subscription Packages
+        CreateItemWithStandardAndAdditionalServiceCommPackage(SalesItem, SalesItemStandardPackageCode);
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, SalesItem."No.", WorkDate(), LibraryRandom.RandIntInRange(1, 10));
+
+        // [THEN] The Subscription Packages are offered for the new Sales Line
+        Assert.AreEqual(2, AssignSubscriptionLinesOpenedCount, AssignSubscriptionLinesNotOfferedErr);
+
+        // [THEN] The Subscription Lines of the standard Subscription Package are created for the new Sales Line
+        VerifySalesSubscriptionLinesFromStandardPackageOnly(SalesItem."No.", SalesItemStandardPackageCode);
+    end;
+
+    [Test]
     procedure TestSalesInvoiceLineOnPostSalesOrder()
     var
         Item2: Record Item;
@@ -1921,9 +2343,252 @@ codeunit 139915 "Sales Service Commitment Test"
         Assert.AreEqual(SalespersonPurchaser.Code, ServiceObject."Salesperson Code", 'Salesperson Code should be populated from Customer');
     end;
 
+    [Test]
+    procedure CheckSubscriptionLineEndDateNotSetWhenSubsequentTermIsUsed()
+    begin
+        // [SCENARIO] When posting a Sales Order for an item with both Initial Term and Subsequent Term,
+        // the resulting Subscription Line End Date must remain empty (contract auto-renews indefinitely)
+        Initialize();
+
+        // [GIVEN] A Sales Service Commitment Item with a package having Initial Term <12M> and Subsequent Term <12M>
+        // Note: InitServiceCommitmentPackageLineFields (called in Initialize) already sets both terms
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+
+        // [GIVEN] A Sales Order for the item
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 1);
+
+        // [WHEN] The Sales Order is posted
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The resulting Subscription Line End Date is empty because a Subsequent Term is defined
+        ServiceObject.FilterOnItemNo(Item."No.");
+        ServiceObject.FindFirst();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindFirst();
+        ServiceCommitment.TestField("Subscription Line End Date", 0D);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CheckDeleteSalesServiceCommitmentOnDeleteInvoicedSalesOrders()
+    var
+        FetchSalesHeader: Record "Sales Header";
+        OtherSalesHeader: Record "Sales Header";
+        OtherSalesLine: Record "Sales Line";
+        SalesOrderNo: Code[20];
+    begin
+        // [SCENARIO] Report "Delete Invoiced Sales Orders" deletes the Sales Subscription Lines of the removed Sales Order
+        Initialize();
+
+        // [GIVEN] A Sales Order with a Subscription Item that has Sales Subscription Lines
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item", ServiceCommitmentPackage.Code);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        SalesOrderNo := SalesHeader."No.";
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [GIVEN] A second, untouched Sales Order with Sales Subscription Lines
+        LibrarySales.CreateSalesHeader(OtherSalesHeader, OtherSalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(OtherSalesLine, OtherSalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(OtherSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [GIVEN] The Sales Order is fully shipped and invoiced, but not removed by posting
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        FetchSalesHeader.Get(SalesHeader."Document Type"::Order, SalesOrderNo);
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type"::Order, SalesOrderNo);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [WHEN] Running report "Delete Invoiced Sales Orders" for the Sales Order
+        RunDeleteInvoicedSalesOrders(SalesOrderNo);
+
+        // [THEN] The Sales Order is deleted
+        Assert.IsFalse(FetchSalesHeader.Get(SalesHeader."Document Type"::Order, SalesOrderNo), SalesOrderNotDeletedErr);
+
+        // [THEN] No Sales Subscription Line of the deleted Sales Order is left behind
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type"::Order, SalesOrderNo);
+        Assert.RecordIsEmpty(SalesServiceCommitment);
+
+        // [THEN] The Sales Subscription Lines of the second Sales Order are untouched
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(OtherSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CheckDeleteSalesServiceCommitmentOnDeleteInvdBlnktSalesOrders()
+    var
+        FetchSalesHeader: Record "Sales Header";
+        OtherSalesHeader: Record "Sales Header";
+        OtherSalesLine: Record "Sales Line";
+        SalesOrder: Record "Sales Header";
+        SecondSalesLine: Record "Sales Line";
+        BlanketSalesOrderToOrder: Codeunit "Blanket Sales Order to Order";
+        BlanketOrderNo: Code[20];
+    begin
+        // [SCENARIO] Report "Delete Invd Blnkt Sales Orders" deletes the Sales Subscription Lines of the removed Blanket Sales Order
+        Initialize();
+
+        // [GIVEN] A Blanket Sales Order with two lines that both have Sales Subscription Lines
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Blanket Order", '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        LibrarySales.CreateSalesLineWithShipmentDate(SecondSalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        BlanketOrderNo := SalesHeader."No.";
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(SecondSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [GIVEN] A second, untouched Blanket Sales Order with Sales Subscription Lines
+        LibrarySales.CreateSalesHeader(OtherSalesHeader, OtherSalesHeader."Document Type"::"Blanket Order", '');
+        LibrarySales.CreateSalesLineWithShipmentDate(OtherSalesLine, OtherSalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(OtherSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [GIVEN] The Blanket Sales Order is fully converted into a Sales Order, which is then fully shipped and invoiced
+        Clear(BlanketSalesOrderToOrder);
+        BlanketSalesOrderToOrder.SetHideValidationDialog(true);
+        BlanketSalesOrderToOrder.Run(SalesHeader);
+        BlanketSalesOrderToOrder.GetSalesOrderHeader(SalesOrder);
+        LibrarySales.PostSalesDocument(SalesOrder, true, true);
+
+        FetchSalesHeader.Get(SalesHeader."Document Type"::"Blanket Order", BlanketOrderNo);
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type"::"Blanket Order", BlanketOrderNo);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [WHEN] Running report "Delete Invd Blnkt Sales Orders" for the Blanket Sales Order
+        RunDeleteInvdBlnktSalesOrders(BlanketOrderNo);
+
+        // [THEN] The Blanket Sales Order is deleted
+        Assert.IsFalse(FetchSalesHeader.Get(SalesHeader."Document Type"::"Blanket Order", BlanketOrderNo), BlanketSalesOrderNotDeletedErr);
+
+        // [THEN] No Sales Subscription Line of the deleted Blanket Sales Order is left behind
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type"::"Blanket Order", BlanketOrderNo);
+        Assert.RecordIsEmpty(SalesServiceCommitment);
+
+        // [THEN] The Sales Subscription Lines of the second Blanket Sales Order are untouched
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(OtherSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+    end;
+
+    [Test]
+    procedure CheckDeleteSalesServiceCommitmentOnPostSalesInvoiceCopiedFromSalesOrder()
+    var
+        SalesInvoiceHeader2: Record "Sales Header";
+        CopyDocMgt: Codeunit "Copy Document Mgt.";
+        SalesInvoiceNo: Code[20];
+    begin
+        // [SCENARIO] Posting a Sales Invoice that carries Sales Subscription Lines copied from a Sales Order deletes them
+        Initialize();
+
+        // [GIVEN] A Sales Order with an Item with Subscription Lines
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+
+        // [GIVEN] A Sales Invoice copied from that Sales Order, which carries over the Sales Subscription Lines
+        LibrarySales.CreateSalesHeader(SalesInvoiceHeader2, SalesInvoiceHeader2."Document Type"::Invoice, SalesHeader."Sell-to Customer No.");
+        SalesInvoiceNo := SalesInvoiceHeader2."No.";
+        CopyDocMgt.CopySalesDoc(Enum::"Sales Document Type From"::Order, SalesHeader."No.", SalesInvoiceHeader2);
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesInvoiceHeader2."Document Type"::Invoice, SalesInvoiceNo);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [WHEN] Posting the Sales Invoice
+        ResetSalesPostingNoSeriesDateUsage();
+        LibrarySales.PostSalesDocument(SalesInvoiceHeader2, true, true);
+
+        // [THEN] No Sales Subscription Line of the posted Sales Invoice is left behind
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesInvoiceHeader2."Document Type"::Invoice, SalesInvoiceNo);
+        Assert.RecordIsEmpty(SalesServiceCommitment);
+    end;
+
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    procedure TestTransferSalesServiceCommitmentsOnExplodeBOMForFCYCustomer()
+    var
+        Item2: Record Item;
+        Currency2: Record Currency;
+    begin
+        // [SCENARIO 649784] Exploding an Assembly BOM on a sales order for a foreign-currency
+        // customer creates the Sales Subscription Line without a "Sales Line does not exist" error.
+
+        // [GIVEN] An Assembly item with a sales service commitment BOM component
+        Initialize();
+
+        LibraryAssembly.CreateItem(Item2, Item."Costing Method"::Standard, Item."Replenishment System"::Assembly, '', '');
+        CreateComponentItemWithSalesServiceCommitments(Item2."No.");
+
+        // [GIVEN] A foreign currency with an exchange rate
+        LibraryERM.CreateCurrency(Currency2);
+        LibraryERM.CreateRandomExchangeRate(Currency2.Code);
+
+        // [GIVEN] A customer using the foreign currency
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Currency Code", Currency2.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] A sales order for the foreign-currency customer
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [GIVEN] The Assembly item is added to the sales order
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item2."No.", WorkDate(), LibraryRandom.RandInt(100));
+
+        // [WHEN] The BOM is exploded
+        Codeunit.Run(Codeunit::"Sales-Explode BOM", SalesLine);
+
+        // [THEN] The BOM component Sales Line is created
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
+        SalesLine.SetRange("No.", Item."No.");
+        SalesLine.FindLast();
+
+        // [THEN] A Sales Subscription Line is created for the BOM component
+        SalesLine.CalcFields("Subscription Lines");
+        SalesLine.TestField("Subscription Lines");
+    end;
+
     #endregion Tests
 
     #region Procedures
+
+    local procedure RunDeleteInvdBlnktSalesOrders(BlanketOrderNo: Code[20])
+    var
+        FilterSalesHeader: Record "Sales Header";
+        DeleteInvdBlnktSalesOrders: Report "Delete Invd Blnkt Sales Orders";
+    begin
+        FilterSalesHeader.SetRange("Document Type", FilterSalesHeader."Document Type"::"Blanket Order");
+        FilterSalesHeader.SetRange("No.", BlanketOrderNo);
+        DeleteInvdBlnktSalesOrders.SetTableView(FilterSalesHeader);
+        DeleteInvdBlnktSalesOrders.UseRequestPage(false);
+        DeleteInvdBlnktSalesOrders.Run();
+    end;
+
+    local procedure RunDeleteInvoicedSalesOrders(SalesOrderNo: Code[20])
+    var
+        FilterSalesHeader: Record "Sales Header";
+        DeleteInvoicedSalesOrders: Report "Delete Invoiced Sales Orders";
+    begin
+        FilterSalesHeader.SetRange("Document Type", FilterSalesHeader."Document Type"::Order);
+        FilterSalesHeader.SetRange("No.", SalesOrderNo);
+        DeleteInvoicedSalesOrders.SetTableView(FilterSalesHeader);
+        DeleteInvoicedSalesOrders.UseRequestPage(false);
+        DeleteInvoicedSalesOrders.Run();
+    end;
 
     local procedure Initialize()
     begin
@@ -2002,6 +2667,34 @@ codeunit 139915 "Sales Service Commitment Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
     end;
 
+    local procedure CreateAndReleaseSalesDocumentForDropShipment()
+    var
+        Purchasing: Record Purchasing;
+        VATPostingSetup: Record "VAT Posting Setup";
+        Quantity: Decimal;
+    begin
+        LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code, true);
+
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, Customer."No.");
+        Quantity := LibraryRandom.RandInt(10);
+        NoOfServiceObjects := Quantity;
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", Quantity);
+
+        SalesLine.Validate("Purchasing Code", Purchasing.Code);
+        SalesLine.Modify(true);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+    end;
+
     local procedure CreateAndReleaseSalesDocumentWithSerialNoForDropShipment()
     var
         Purchasing: Record Purchasing;
@@ -2024,6 +2717,23 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesHeader.Modify(false);
         LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 1);
         LibrarySales.ReleaseSalesDocument(SalesHeader);
+    end;
+
+    local procedure CreateComponentItemWithAdditionalServiceCommPackage(BOMItemNo: Code[20]; var ComponentItem: Record Item; var StandardPackageCode: Code[20])
+    begin
+        CreateItemWithStandardAndAdditionalServiceCommPackage(ComponentItem, StandardPackageCode);
+        ContractTestLibrary.CreateBOMComponentForItem(BOMItemNo, ComponentItem."No.", 1, ComponentItem."Base Unit of Measure");
+    end;
+
+    local procedure CreateItemWithStandardAndAdditionalServiceCommPackage(var NewItem: Record Item; var StandardPackageCode: Code[20])
+    begin
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.InitServiceCommitmentPackageLineFields(ServiceCommPackageLine);
+        StandardPackageCode := ServiceCommitmentPackage.Code;
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(NewItem, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", StandardPackageCode);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.InitServiceCommitmentPackageLineFields(ServiceCommPackageLine);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(NewItem, ServiceCommitmentPackage.Code, false);
     end;
 
     local procedure CreateComponentItemWithSalesServiceCommitments(Item2No: Code[20])
@@ -2104,6 +2814,16 @@ codeunit 139915 "Sales Service Commitment Test"
         ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code, true);
     end;
 
+    local procedure CreateVendorForDropShipmentItem(var Vendor: Record Vendor)
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("VAT Bus. Posting Group", Customer."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+
+        Item."Vendor No." := Vendor."No.";
+        Item.Modify(false);
+    end;
+
     local procedure FilterSalesServiceCommForLineDisc(ExpectedCalculationBaseAmount: Decimal)
     begin
         SalesServiceCommitment.SetRange("Calculation Base Type", Enum::"Calculation Base Type"::"Document Price And Discount");
@@ -2124,6 +2844,34 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesHeaderArchive.SetRange("Document Type", SourceSalesHeader."Document Type");
         SalesHeaderArchive.SetRange("No.", SourceSalesHeader."No.");
         SalesHeaderArchive.FindFirst();
+    end;
+
+    local procedure FindCustomerDocumentPriceSalesServiceCommitment()
+    begin
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        SalesServiceCommitment.SetRange("Calculation Base Type", Enum::"Calculation Base Type"::"Document Price");
+        SalesServiceCommitment.FindFirst();
+    end;
+
+    local procedure FindNonZeroVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup")
+    begin
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        if VATPostingSetup."VAT %" = 0 then begin
+            VATPostingSetup."VAT %" := LibraryRandom.RandDecInRange(10, 25, 0);
+            VATPostingSetup.Modify(false);
+        end;
+    end;
+
+    local procedure ReassignSalesLineToDifferentVATGroup(ExcludeVATPct: Decimal)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        VATPostingSetup.SetFilter("VAT %", '<>%1', ExcludeVATPct);
+        VATPostingSetup.FindFirst();
+        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        SalesLine.Modify(true);
     end;
 
     local procedure FindWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; SourceType: Integer; SourceNo: Code[20]; ActivityType: Enum "Warehouse Activity Type")
@@ -2170,6 +2918,18 @@ codeunit 139915 "Sales Service Commitment Test"
 
         CarryOutActionMessage.UseRequestPage(false);
         CarryOutActionMessage.RunModal();
+    end;
+
+    local procedure ResetSalesPostingNoSeriesDateUsage()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        SalesReceivablesSetup.Get();
+        NoSeriesLine.SetFilter(
+            "Series Code", '%1|%2',
+            SalesReceivablesSetup."Posted Shipment Nos.", SalesReceivablesSetup."Posted Invoice Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
     end;
 
     local procedure RunGetSalesOrders(var NewRequisitionLine: Record "Requisition Line"; SourceSalesHeader: Record "Sales Header")
@@ -2219,6 +2979,19 @@ codeunit 139915 "Sales Service Commitment Test"
         SetupAdditionalServiceCommPackageLine(ServicePartner);
         ServiceCommPackageLine."Calculation Base Type" := CalculationBaseType;
         ServiceCommPackageLine.Modify(false);
+    end;
+
+    local procedure SetupItemCustomerAndSalesHeaderWithVAT(var VATPostingSetup: Record "VAT Posting Setup")
+    begin
+        FindNonZeroVATPostingSetup(VATPostingSetup);
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(
+            Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
     end;
 
     local procedure SetupForInventoryPick()
@@ -2271,22 +3044,16 @@ codeunit 139915 "Sales Service Commitment Test"
         Location.Modify(true);
     end;
 
-    local procedure SetupSalesLineForTotalAndVatCalculation(var NewItem: Record Item; SetupServiceItemWithPackage: Boolean; ReferentVatPercent: Decimal)
+    local procedure SetupSalesLineForTotalAndVatCalculation(var NewItem: Record Item; SetupServiceItemWithPackage: Boolean)
     var
         VATPostingSetup: Record "VAT Posting Setup";
-
     begin
         if SetupServiceItemWithPackage then
             ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(NewItem, Enum::"Item Service Commitment Type"::"Service Commitment Item", ServiceCommitmentPackage.Code)
         else
             ContractTestLibrary.CreateInventoryItem(NewItem);
-        if ReferentVatPercent <> 0 then begin
-            LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
-            VATPostingSetup.SetFilter("VAT Prod. Posting Group", '<>%1', NewItem."VAT Prod. Posting Group");
-            VATPostingSetup.SetFilter("VAT %", '<>%1', ReferentVatPercent);
-            VATPostingSetup.FindFirst();
-            NewItem.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        end;
+        FindNonZeroVATPostingSetup(VATPostingSetup);
+        NewItem.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         ContractTestLibrary.UpdateItemUnitCostAndPrice(NewItem, LibraryRandom.RandDec(10000, 2), LibraryRandom.RandDec(10000, 2), false);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, NewItem."No.", LibraryRandom.RandInt(100));
     end;
@@ -2471,6 +3238,26 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesReceivablesSetup.Modify(true);
     end;
 
+    local procedure VerifySalesSubscriptionLinesFromStandardPackageOnly(ItemNo: Code[20]; StandardPackageCode: Code[20])
+    var
+        ItemSalesLine: Record "Sales Line";
+        SalesSubscriptionLine: Record "Sales Subscription Line";
+        SubscriptionPackageLine: Record "Subscription Package Line";
+    begin
+        ItemSalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        ItemSalesLine.SetRange("Document No.", SalesHeader."No.");
+        ItemSalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
+        ItemSalesLine.SetRange("No.", ItemNo);
+        ItemSalesLine.FindFirst();
+
+        SubscriptionPackageLine.SetRange("Subscription Package Code", StandardPackageCode);
+        SalesSubscriptionLine.FilterOnSalesLine(ItemSalesLine);
+        Assert.RecordCount(SalesSubscriptionLine, SubscriptionPackageLine.Count());
+
+        SalesSubscriptionLine.SetFilter("Subscription Package Code", '<>%1', StandardPackageCode);
+        Assert.RecordIsEmpty(SalesSubscriptionLine);
+    end;
+
     local procedure VerifyServiceCommitmentUnitCostFromSalesServiceCommitment(ServiceCommitmentParam: Record "Subscription Line"; var TempSalesServiceCommitment: Record "Sales Subscription Line" temporary)
     var
         ValueNotCorrectTok: Label '%1 value is not correct.', Locked = true;
@@ -2483,6 +3270,20 @@ codeunit 139915 "Sales Service Commitment Test"
     #endregion Procedures
 
     #region Handlers
+
+    [ModalPageHandler]
+    procedure AssignServiceCommitmentsCaptureCaptionModalPageHandler(var AssignServiceCommitments: TestPage "Assign Service Commitments")
+    begin
+        LibraryVariableStorage.Enqueue(AssignServiceCommitments.Caption());
+        AssignServiceCommitments.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure AssignServiceCommitmentsCountingModalPageHandler(var AssignServiceCommitments: TestPage "Assign Service Commitments")
+    begin
+        AssignSubscriptionLinesOpenedCount += 1;
+        AssignServiceCommitments.Cancel().Invoke();
+    end;
 
     [ModalPageHandler]
     procedure AssignServiceCommitmentsModalPageHandler(var AssignServiceCommitments: TestPage "Assign Service Commitments")

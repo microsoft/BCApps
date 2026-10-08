@@ -70,9 +70,11 @@ report 20412 "Qlty. Schedule Inspection"
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ShowWarningIfCreateInspection: Boolean;
-        CreatedQltyInspectionIds: List of [Code[20]];
-        ZeroInspectionsCreatedMsg: Label 'No inspections were created.';
-        SomeInspectionsWereCreatedQst: Label '%1 inspections were created. Do you want to see them?', Comment = '%1=the count of inspections that were created.';
+        NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds : List of [Code[20]];
+        ZeroInspectionsCreatedOrMatchedMsg: Label 'No inspections were created or existing inspections matched.';
+        SomeInspectionsCreatedQst: Label '%1 inspections were created. Do you want to see them?', Comment = '%1=the count of inspections that were newly created.';
+        SomeInspectionsMatchedQst: Label 'No new inspections were created, but %1 existing inspections matched. Do you want to see them?', Comment = '%1=the count of existing inspections that were matched (reused).';
+        SomeInspectionsCreatedOrMatchedQst: Label '%1 inspections were created and %2 existing inspections matched. Do you want to see all of them?', Comment = '%1=the count of newly created inspections, %2=the count of existing inspections that were matched (reused).';
         NoSourceConfigForScheduleErr: Label 'Cannot schedule inspections because no enabled source configuration with a table filter exists for source table %1. Navigate to the Quality Inspection Source Configuration page and ensure at least one enabled configuration exists for this table with a From Table Filter defined.', Comment = '%1=the source table number';
 
     trigger OnInitReport()
@@ -85,23 +87,45 @@ report 20412 "Qlty. Schedule Inspection"
     trigger OnPreReport()
     begin
         Clear(QltyInspectionCreate);
-        Clear(CreatedQltyInspectionIds);
+        Clear(NewlyCreatedQltyInspectionIds);
+        Clear(AllResolvedQltyInspectionIds);
     end;
 
     trigger OnPostReport()
+    var
+        NewlyCreatedCount, ExistingMatchedCount : Integer;
+        ShouldDisplay: Boolean;
     begin
-        if GuiAllowed() then
-            if CreatedQltyInspectionIds.Count() = 0 then
-                Message(ZeroInspectionsCreatedMsg)
+        if not GuiAllowed() then
+            exit;
+
+        if AllResolvedQltyInspectionIds.Count() = 0 then begin
+            Message(ZeroInspectionsCreatedOrMatchedMsg);
+            exit;
+        end;
+
+        NewlyCreatedCount := NewlyCreatedQltyInspectionIds.Count();
+        ExistingMatchedCount := AllResolvedQltyInspectionIds.Count() - NewlyCreatedCount;
+        if ExistingMatchedCount < 0 then
+            ExistingMatchedCount := 0;
+
+        case true of
+            (NewlyCreatedCount > 0) and (ExistingMatchedCount > 0):
+                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsCreatedOrMatchedQst, NewlyCreatedCount, ExistingMatchedCount), true);
+            NewlyCreatedCount > 0:
+                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsCreatedQst, NewlyCreatedCount), true);
             else
-                if Confirm(StrSubstNo(SomeInspectionsWereCreatedQst, CreatedQltyInspectionIds.Count())) then
-                    QltyInspectionCreate.DisplayInspectionsIfConfigured(true, CreatedQltyInspectionIds);
+                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsMatchedQst, ExistingMatchedCount), true);
+        end;
+
+        if ShouldDisplay then
+            QltyInspectionCreate.DisplayInspectionsIfConfigured(true, AllResolvedQltyInspectionIds);
     end;
 
     /// <summary>
-    /// This will use the generation rule, and create inspections that match the records found with that rule.
+    /// Creates or matches inspections for records selected by an enabled, schedulable generation rule.
     /// </summary>
-    /// <param name="QltyInspectionGenRule"></param>
+    /// <param name="QltyInspectionGenRule">The generation rule that selects the source records and inspection template.</param>
     procedure CreateInspectionsThatMatchRule(QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
@@ -119,6 +143,10 @@ report 20412 "Qlty. Schedule Inspection"
         CreateInspectionsPerSourceConfigFilter(QltyInspectionGenRule);
     end;
 
+    /// <summary>
+    /// Creates inspections for source records that satisfy each enabled source configuration filter for the generation rule.
+    /// </summary>
+    /// <param name="QltyInspectionGenRule">The generation rule whose source table and condition filter select records.</param>
     local procedure CreateInspectionsPerSourceConfigFilter(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
@@ -140,7 +168,7 @@ report 20412 "Qlty. Schedule Inspection"
             SourceRecordRef.SetView(QltyInspectSourceConfig."From Table Filter");
             SourceRecordRef.FilterGroup(0);
             if SourceRecordRef.FindSet() then
-                QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInspectionGenRule, CreatedQltyInspectionIds);
+                QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInspectionGenRule, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
         until QltyInspectSourceConfig.Next() = 0;
     end;
 }

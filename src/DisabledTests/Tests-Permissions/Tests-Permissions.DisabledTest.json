@@ -1,0 +1,257 @@
+[
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "IsaacIdentifiedPermissionSetsToBeNonEditable"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanCopyPermissionSetsToNewTenantPermissionSets"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanCopyPermissionSetsToNewTenantPermissionSetsWithoutCopyingLink"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanDeleteCopiedApplicationPermissionSets"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCannotCopyMultiplePermissionSetsSimultaneously"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanGetsNotifiedWhenHashOfPermissionSetChanges"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanHasToSpecifyNewNameForCopiedPermissionSet"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanHasToUseUniqueNameForCopiedPermissionSet"
+  },
+  {
+    "codeunitId": 135404,
+    "codeunitName": "Sales Document Plan-based E2E",
+    "method": "TestCustomerOnSalesQuoteWithAssemblyItemTeamMember"
+  },
+  {
+    "codeunitId": 135410,
+    "codeunitName": "Cost Accounting Plan-based E2E",
+    "method": "UsingCostAccountingAsTeamMember"
+  },
+  {
+    "codeunitId": 135410,
+    "codeunitName": "Cost Accounting Plan-based E2E",
+    "method": "UsingCostAccountingAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135412,
+    "codeunitName": "Budgets & Analysis Reports E2E",
+    "method": "UsingPurchaseBudgetsAndAnalysisReportsAsTeamMember"
+  },
+  {
+    "codeunitId": 135412,
+    "codeunitName": "Budgets & Analysis Reports E2E",
+    "method": "UsingSalesBudgetsAndAnalysisReportsAsTeamMember"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsBusinessManager"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsPremiumISVEmbUser"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsPremiumUser"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsTeamMember"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsViralSignup"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestSignAndCreateServiceContractAsBusinessManager"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestSignAndCreateServiceContractAsDeviceISVEmb"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestSignAndCreateServiceContractAsEssentialISVEmb"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestSignAndCreateServiceContractAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestSignAndCreateServiceContractAsTeamMember"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestSignAndCreateServiceContractAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestSignAndCreateServiceContractAsViralSignup"
+  },
+  {
+    "codeunitId": 136505,
+    "codeunitName": "Time Sheets Permissions",
+    "method": "TestCreateTimeSheetsAddSetupSuccess"
+  },
+  {
+    "codeunitId": 136505,
+    "codeunitName": "Time Sheets Permissions",
+    "method": "TestCreateTimeSheetsAlreadyTimesheetAdminSuccess"
+  },
+  {
+    "codeunitId": 139451,
+    "codeunitName": "O365 Item Permission Test",
+    "method": "TestO365ItemView"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedPurchCrMemoUpdateFromCard"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedPurchCrMemoUpdateFromList"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedPurchInvoiceUpdateFromCard"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedPurchInvoiceUpdateFromList"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedReturnShptUpdateFromCard"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedReturnShptUpdateFromList"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "TestO365VendorView"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedReturnReceiptUpdateFromCard"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedReturnReceiptUpdateFromList"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedSalesCrMemoUpdateFromCard"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedSalesCrMemoUpdateFromList"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedSalesShipmentUpdateFromCard"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedSalesShipmentUpdateFromList"
+  },
+  {
+    "method": "StanCanCreateNewTenantPermissionSets",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "StanCanCopyExtensionPermissionSetsToNewTenantPermissionSets",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "StanCanDeleteNewlyCreatedTenantPermissionSets",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "StanCanDeleteCopiedExtensionPermissionSets",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "RenameUserDefinedPermissionSet",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "RenameUserDefinedPermissionSetUsedUsersSettings",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  }
+]

@@ -13,10 +13,13 @@ flowchart TD
     D -- yes --> E[ShpfyUpdateCustomer]
     D -- no --> F[Done]
     C -- no --> G{Auto Create Unknown Customers?}
-    G -- yes --> H[Find default address]
+    G -- yes --> H[Find default address or first address]
     H --> I[ShpfyCreateCustomer]
     G -- no --> J[Skip]
 ```
+
+*Updated: 2026-07-29 -- customer creation and update fall back to a
+non-default address when Shopify has no default address*
 
 `FindMapping` in `ShpfyCustomerMapping` first checks whether the Shopify Customer
 already has a `Customer SystemId` that resolves to a valid BC Customer. If the
@@ -35,6 +38,12 @@ using the address's country code. The `Shpfy Customer Template` table maps
 template exists, a new empty row is inserted (for future configuration) and the
 Shop's default template is used. The `OnBeforeFindCustomerTemplate` event can
 override this entirely.
+
+For order-time by-email/phone mapping, `ShpfyCustByEmailPhone` now uses the
+default Shopify address when one exists and otherwise uses the first address for
+that Shopify customer. `ShpfyUpdateCustomer` uses the same fallback when
+updating an existing BC Customer. If there are no addresses at all, creation
+still exits without a BC Customer and update raises an error.
 
 ## Export flow
 
@@ -60,7 +69,12 @@ and Customer Address records. Name splitting respects three configurable sources
 (Name, Name 2, Contact) and each source can be parsed as FirstAndLastName,
 LastAndFirstName, or CompanyName. County mapping uses the `Shpfy Tax Area` table
 to resolve between province codes and names based on the Shop's "County Source"
-setting (Code or Name).
+setting (Code or Name). The Tax Area lookup uses the ISO code from
+`Country/Region`.`ISO Code`, not the BC country/region code itself, and the
+same ISO code is written to the Shopify customer address.
+
+*Updated: 2026-07-29 -- customer export tax-area filtering now uses ISO
+country codes*
 
 The export uses a diff check (`HasDiff`) comparing every field of the customer
 and address records before and after filling. Only when something changed does

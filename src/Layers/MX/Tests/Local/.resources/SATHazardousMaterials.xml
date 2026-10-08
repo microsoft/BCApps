@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<data-set-MaterialPeligroso xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<c_MaterialsPeligroso>
+		<Code>0004</Code>
+		<Descripcion>PICRATO AMÓNICO seco o humedecido con menos del 10%, en masa, de agua</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>0005</Code>
+		<Descripcion>CARTUCHOS PARA ARMAS, con carga explosiva</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>0006</Code>
+		<Descripcion>CARTUCHOS PARA ARMAS, con carga explosiva</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>0007</Code>
+		<Descripcion>CARTUCHOS PARA ARMAS, con carga explosiva</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>0009</Code>
+		<Descripcion>MUNICIONES INCENDIARIAS con o sin carga dispersora, carga expulsora o carga propulsora</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>0010</Code>
+		<Descripcion>MUNICIONES INCENDIARIAS con o sin carga dispersora, carga expulsora o carga propulsora</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>0012</Code>
+		<Descripcion>CARTUCHOS PARA ARMAS, CON PROYECTIL INERTE, o CARTUCHOS PARA ARMAS DE PEQUEÑO CALIBRE</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>3547</Code>
+		<Descripcion>ARTÍCULOS QUE CONTIENEN SUBSTANCIAS CORROSIVAS, N.E.P.</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>3548</Code>
+		<Descripcion>ARTÍCULOS QUE CONTIENEN MERCANCÍAS PELIGROSAS DIVERSAS, N.E.P.</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>3549</Code>
+		<Descripcion>DESECHOS MÉDICOS, DE CATEGORÍA A, QUE AFECTAN A LAS PERSONAS, sólidos o DESECHOS MÉDICOS DE CATEGORÍA A, QUE AFECTAN A LOS ANIMALES únicamente, sólidos</Descripcion>
+	</c_MaterialsPeligroso>
+	<c_MaterialsPeligroso>
+		<Code>3550</Code>
+		<Descripcion>POLVO DE DIHIDRÓXIDO DE COBALTO, que contenga no menos del 10% de partículas respirables</Descripcion>
+	</c_MaterialsPeligroso>
+</data-set-MaterialPeligroso>

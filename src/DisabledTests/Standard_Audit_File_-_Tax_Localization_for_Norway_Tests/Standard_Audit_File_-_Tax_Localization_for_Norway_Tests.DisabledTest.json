@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 148103,
+    "codeunitName": "SAF-T XML Tests",
+    "method": "MasterFile"
+  },
+  {
+    "codeunitId": 148110,
+    "codeunitName": "SAF-T XML Tests 1.3",
+    "method": "MasterFile"
+  }
+]

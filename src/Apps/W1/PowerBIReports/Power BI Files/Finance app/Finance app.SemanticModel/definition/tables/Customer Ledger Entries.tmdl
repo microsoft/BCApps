@@ -237,17 +237,31 @@ table 'Customer Ledger Entries'
 			VAR USEDOCUMENTDATE = CALCULATE(
 			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
 			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ASATDATE))
+			VAR USEDUEDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ASATDATE))
+			VAR USEPOSTINGDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ASATDATE))
+			VAR USEDOCUMENTDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ASATDATE))
+			VAR AgingParam = VALUES('Aging Date Parameter'[AGING PARAMETER])
+			// Project the URL length; only the selected Document No. list is measured, then built if it fits
+			VAR ProjectedLength =
+			    LEN ( [Base Link] ) + LEN ( "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '" )
+			    + SUMX ( VALUES ( 'Customer Ledger Entries'[Document Type] ), LEN ( 'Customer Ledger Entries'[Document Type] ) + 1 )
+			    + LEN ( "' AND 'Document No.' IS '" )
+			    + SWITCH ( AgingParam, "Due Date", USEDUEDATELEN, "Posting Date", USEPOSTINGDATELEN, "Document Date", USEDOCUMENTDATELEN )
+			    + LEN ( "'" )
 			
 			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
 			    [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
-			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
-			                AND 'Document No.' IS '"
-			                    & SWITCH(
-			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' AND 'Document No.' IS '"
+			                    & SWITCH( AgingParam,
 			                        "Due Date", USEDUEDATE,
 			                        "Posting Date",USEPOSTINGDATE,
 			                        "Document Date",USEDOCUMENTDATE
-			                    ) & "'"
+			                    ) & "'",
+			        [Base Link] & "&page=25"
+			    )
 			```
 		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
 		lineageTag: e12e614f-24d7-4361-9aab-d726e93ca806
@@ -277,17 +291,29 @@ table 'Customer Ledger Entries'
 			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
 			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
 			
-			VAR RESULT = [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
-			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
-			                AND 'Document No.' IS '"
-			                    & SWITCH(
-			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			VAR USEDUEDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ENDDATE))
+			VAR USEPOSTINGDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			VAR USEDOCUMENTDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			VAR AgingParam = VALUES('Aging Date Parameter'[AGING PARAMETER])
+			// Project the URL length; only the selected Document No. list is measured, then built if it fits
+			VAR ProjectedLength =
+			    LEN ( [Base Link] ) + LEN ( "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '" )
+			    + SUMX ( VALUES ( 'Customer Ledger Entries'[Document Type] ), LEN ( 'Customer Ledger Entries'[Document Type] ) + 1 )
+			    + LEN ( "' AND 'Document No.' IS '" )
+			    + SWITCH ( AgingParam, "Due Date", USEDUEDATELEN, "Posting Date", USEPOSTINGDATELEN, "Document Date", USEDOCUMENTDATELEN )
+			    + LEN ( "'" )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000, [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' AND 'Document No.' IS '"
+			                    & SWITCH( AgingParam,
 			                        "Due Date", USEDUEDATE,
 			                        "Posting Date",USEPOSTINGDATE,
 			                        "Document Date",USEDOCUMENTDATE
-			                    ) & "'"
-			
-			RETURN RESULT
+			                    ) & "'",
+			        [Base Link] & "&page=25"
+			    )
 			```
 		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
 		lineageTag: 4ccffb1b-2e9c-4908-a8ac-c51a8f43c1eb
@@ -316,17 +342,29 @@ table 'Customer Ledger Entries'
 			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
 			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
 			
-			VAR RESULT =  [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
-			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
-			                AND 'Document No.' IS '"
-			                    & SWITCH(
-			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			VAR USEDUEDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ENDDATE))
+			VAR USEPOSTINGDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			VAR USEDOCUMENTDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			VAR AgingParam = VALUES('Aging Date Parameter'[AGING PARAMETER])
+			// Project the URL length; only the selected Document No. list is measured, then built if it fits
+			VAR ProjectedLength =
+			    LEN ( [Base Link] ) + LEN ( "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '" )
+			    + SUMX ( VALUES ( 'Customer Ledger Entries'[Document Type] ), LEN ( 'Customer Ledger Entries'[Document Type] ) + 1 )
+			    + LEN ( "' AND 'Document No.' IS '" )
+			    + SWITCH ( AgingParam, "Due Date", USEDUEDATELEN, "Posting Date", USEPOSTINGDATELEN, "Document Date", USEDOCUMENTDATELEN )
+			    + LEN ( "'" )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,  [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' AND 'Document No.' IS '"
+			                    & SWITCH( AgingParam,
 			                        "Due Date", USEDUEDATE,
 			                        "Posting Date",USEPOSTINGDATE,
 			                        "Document Date",USEDOCUMENTDATE
-			                    ) & "'"
-			
-			RETURN RESULT
+			                    ) & "'",
+			        [Base Link] & "&page=25"
+			    )
 			```
 		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
 		lineageTag: 7df05800-f60d-4e79-8d8a-c0c631a8a6bc
@@ -353,17 +391,29 @@ table 'Customer Ledger Entries'
 			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
 			    'Customer Ledger Entries'[Document Date (Calculated)] < ENDDATE)
 			
-			VAR RESULT =     [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
-			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
-			                AND 'Document No.' IS '"
-			                    & SWITCH(
-			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			VAR USEDUEDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), 'Customer Ledger Entries'[CLE Due Date] < ENDDATE)
+			VAR USEPOSTINGDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), 'Customer Ledger Entries'[Posting Date (Calculated)] < ENDDATE)
+			VAR USEDOCUMENTDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), 'Customer Ledger Entries'[Document Date (Calculated)] < ENDDATE)
+			VAR AgingParam = VALUES('Aging Date Parameter'[AGING PARAMETER])
+			// Project the URL length; only the selected Document No. list is measured, then built if it fits
+			VAR ProjectedLength =
+			    LEN ( [Base Link] ) + LEN ( "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '" )
+			    + SUMX ( VALUES ( 'Customer Ledger Entries'[Document Type] ), LEN ( 'Customer Ledger Entries'[Document Type] ) + 1 )
+			    + LEN ( "' AND 'Document No.' IS '" )
+			    + SWITCH ( AgingParam, "Due Date", USEDUEDATELEN, "Posting Date", USEPOSTINGDATELEN, "Document Date", USEDOCUMENTDATELEN )
+			    + LEN ( "'" )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,     [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' AND 'Document No.' IS '"
+			                    & SWITCH( AgingParam,
 			                        "Due Date", USEDUEDATE,
 			                        "Posting Date",USEPOSTINGDATE,
 			                        "Document Date",USEDOCUMENTDATE
-			                    ) & "'"
-			
-			RETURN RESULT
+			                    ) & "'",
+			        [Base Link] & "&page=25"
+			    )
 			```
 		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
 		lineageTag: dc890c9e-fd68-484e-9680-218a516a053b
@@ -386,17 +436,29 @@ table 'Customer Ledger Entries'
 			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
 			    'Customer Ledger Entries'[Document Date (Calculated)] >= STARTDATE )    
 			
-			VAR RESULT =  [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
-			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
-			                AND 'Document No.' IS '"
-			                    & SWITCH(
-			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			VAR USEDUEDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), 'Customer Ledger Entries'[CLE Due Date] >= STARTDATE)
+			VAR USEPOSTINGDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), 'Customer Ledger Entries'[Posting Date (Calculated)] >= STARTDATE)
+			VAR USEDOCUMENTDATELEN = CALCULATE(SUMX(VALUES('Customer Ledger Entries'[Document No.]), LEN('Customer Ledger Entries'[Document No.]) + 1), 'Customer Ledger Entries'[Document Date (Calculated)] >= STARTDATE)
+			VAR AgingParam = VALUES('Aging Date Parameter'[AGING PARAMETER])
+			// Project the URL length; only the selected Document No. list is measured, then built if it fits
+			VAR ProjectedLength =
+			    LEN ( [Base Link] ) + LEN ( "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '" )
+			    + SUMX ( VALUES ( 'Customer Ledger Entries'[Document Type] ), LEN ( 'Customer Ledger Entries'[Document Type] ) + 1 )
+			    + LEN ( "' AND 'Document No.' IS '" )
+			    + SWITCH ( AgingParam, "Due Date", USEDUEDATELEN, "Posting Date", USEPOSTINGDATELEN, "Document Date", USEDOCUMENTDATELEN )
+			    + LEN ( "'" )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,  [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' AND 'Document No.' IS '"
+			                    & SWITCH( AgingParam,
 			                        "Due Date", USEDUEDATE,
 			                        "Posting Date",USEPOSTINGDATE,
 			                        "Document Date",USEDOCUMENTDATE
-			                    ) & "'"
-			    
-			RETURN RESULT
+			                    ) & "'",
+			        [Base Link] & "&page=25"
+			    )
 			```
 		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
 		lineageTag: 5833c2e9-c725-4221-86e5-d53ff08d9e13
@@ -417,16 +479,30 @@ table 'Customer Ledger Entries'
 			            'Date'[Date] <= MAX ( 'Date'[Date] )
 			        )
 			    )
-			VAR RESULT =
+			VAR DocumentsLength =
+			    CALCULATE (
+			        SUMX ( VALUES ( 'Customer Ledger Entries'[Document No.] ), LEN ( 'Customer Ledger Entries'[Document No.] ) + 1 ),
+			        FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			    )
+			// Project the URL length without building the (possibly huge) Document No. list
+			VAR ProjectedLength =
+			    LEN ( [Base Link] ) + LEN ( "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '" )
+			    + SUMX ( VALUES ( 'Customer Ledger Entries'[Document Type] ), LEN ( 'Customer Ledger Entries'[Document Type] ) + 1 )
+			    + LEN ( "' AND 'Document No.' IS '" )
+			    + DocumentsLength
+			    + LEN ( "'" )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
 			    [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
 			        & CONCATENATEX (
 			            VALUES ( 'Customer Ledger Entries'[Document Type] ),
 			            'Customer Ledger Entries'[Document Type],
 			            "|"
-			        ) & "' 
-			                AND 'Document No.' IS '" & DocumentsInContext & "'"
-			RETURN
-			    RESULT
+			        ) & "' AND 'Document No.' IS '" & DocumentsInContext & "'",
+			        [Base Link] & "&page=25"
+			    )
 			
 			```
 		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links

@@ -1,0 +1,872 @@
+﻿[
+    {
+        "codeunitId":  137100,
+        "codeunitName":  "CAL Costing suite",
+        "method":  "TstPurchasePricing"
+    },
+    {
+        "codeunitId":  137100,
+        "codeunitName":  "CAL Costing suite",
+        "method":  "TstPurchLineDiscounting"
+    },
+    {
+        "codeunitId":  137100,
+        "codeunitName":  "CAL Costing suite",
+        "method":  "TstSalesLineDiscounting"
+    },
+    {
+        "codeunitId":  137100,
+        "codeunitName":  "CAL Costing suite",
+        "method":  "TstSalesPricing"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC1"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC10"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC11"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC12"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC13"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC14"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC15"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC16"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC17"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC18"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC19"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC2"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC20"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC21"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC22"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC23"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC24"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC25"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC26"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC27"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC28"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC29"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC3"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC30"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC31"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC32"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC33"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC34"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC35"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC36"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC37"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC38"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC39"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC4"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC40"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC42"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC43"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC44"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC45"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC46"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC47"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC48"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC49"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC5"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC50"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC51"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC52"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC53"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC54"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC55"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC56"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC57"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC58"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC59"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC6"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC60"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC61"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC62"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC65"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC66"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC7"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC71"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC72"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC8"
+    },
+    {
+        "codeunitId":  137180,
+        "codeunitName":  "Costing WMS",
+        "method":  "WMSTC9"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC1"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC10"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC11"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC12"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC13"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC14"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC15"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC16"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC17"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC18"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC19"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC2"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC20"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC21"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC22"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC23"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC24"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC25"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC26"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC27"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC28"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC29"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC3"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC30"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC31"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC32"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC33"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC34"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC35"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC36"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC37"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC38"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC39"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC4"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC40"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC41"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC42"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC43"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC44"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC45"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC5"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC6"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC7"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC8"
+    },
+    {
+        "codeunitId":  137181,
+        "codeunitName":  "Costing BW",
+        "method":  "BWTC9"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC1_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC1_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC1_3"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC1_4"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC1_5"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC1_6"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC2_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC3_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC4_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_AdjCostCOGSTC5"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ClosingInvPerTC2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ClosingInvPerTC5_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ClosingInvPerTC5_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ClosingInvPerTC6"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ClosingInvPerTC7_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC1_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC1_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC1_3"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC2_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC2_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC3_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC3_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC4"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC5"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC6"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC7"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC9_1_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC9_1_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC9_1_5"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC9_1_6"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC9_2_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC9_2_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC9_2_4"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ResiliencyTC9_2_5"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_TracingCostTC1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_TracingCostTC3_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_TracingCostTC3_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_TracingCostTC3_3"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_TracingCostTC4_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_TracingCostTC4_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_TracingCostTC4_3"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC10"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC11"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC12"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC13"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC3"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC4"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC5"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC7"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_UpdateSalesStatTC9"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ValInvAvgCostTC1_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ValInvAvgCostTC1_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ValInvAvgCostTC1_3"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ValInvAvgCostTC1_4"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ValInvAvgCostTC2_1"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ValInvAvgCostTC2_2"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ValInvAvgCostTC2_3"
+    },
+    {
+        "codeunitId":  137182,
+        "codeunitName":  "Costing Corsica Features",
+        "method":  "Corsica_ValInvAvgCostTC3_1"
+    }
+]

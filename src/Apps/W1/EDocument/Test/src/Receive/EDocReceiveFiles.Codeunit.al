@@ -11,4 +11,9 @@ codeunit 139635 "E-Doc. Receive Files"
         exit(NavApp.GetResourceAsText('peppol/PEPPOL1.xml'));
     end;
 
+    procedure GetLineRoundingDocument(): Text
+    begin
+        exit(NavApp.GetResourceAsText('peppol/PEPPOL_LineRounding.xml'));
+    end;
+
 }

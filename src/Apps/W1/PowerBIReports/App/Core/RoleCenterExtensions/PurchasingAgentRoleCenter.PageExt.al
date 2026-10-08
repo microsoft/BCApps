@@ -71,7 +71,7 @@ pageextension 36955 "Purchasing Agent Role Center" extends "Purchasing Agent Rol
                     Caption = 'Purchases Period-Over-Period';
                     Image = "PowerBI";
                     RunObject = page "Purchases Period-Over-Period";
-                    Tooltip = 'Open a Power BI Report that compares procurement performance across different periods, such as month-over-month or year-over-year. Completed up to here';
+                    Tooltip = 'Open a Power BI Report that compares procurement performance across different periods, such as month-over-month or year-over-year.';
                 }
                 action("Purchases Year-Over-Year")
                 {

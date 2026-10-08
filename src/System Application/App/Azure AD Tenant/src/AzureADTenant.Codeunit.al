@@ -63,6 +63,19 @@ codeunit 433 "Azure AD Tenant"
     end;
 
     /// <summary>
+    /// Checks whether a domain is registered as verified on the current Microsoft Entra tenant.
+    /// If the Microsoft Graph API cannot be reached, the error is displayed.
+    /// </summary>
+    /// <param name="Domain">The domain name to check.</param>
+    /// <returns>True if the domain is verified; otherwise, false.</returns>
+    /// <error>Failed to retrieve the Microsoft Entra tenant verified domains.</error>
+    [Scope('OnPrem')]
+    procedure IsVerifiedDomain(Domain: Text): Boolean
+    begin
+        exit(AzureADTenantImpl.IsVerifiedDomain(Domain));
+    end;
+
+    /// <summary>
     /// Gets the Power Platform tenant URL.
     /// </summary>
     /// <returns>The Power Platform tenant URL. If AzureADTenantID is empty, it returns an empty string.</returns>

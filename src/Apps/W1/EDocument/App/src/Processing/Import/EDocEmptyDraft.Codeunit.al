@@ -51,4 +51,5 @@ codeunit 6193 "E-Doc. Empty Draft" implements IStructureReceivedEDocument, IStru
     begin
         Error(NoDataErr);
     end;
+
 }

@@ -1,8 +1,8 @@
 function Get-BaseFolder() {
     if ($ENV:GITHUB_WORKSPACE) {
-        return $ENV:GITHUB_WORKSPACE
+        return (Resolve-Path $ENV:GITHUB_WORKSPACE).Path
     }
-    return git rev-parse --show-toplevel
+    return (Resolve-Path (git rev-parse --show-toplevel)).Path
 }
 
 function Get-BaseFolderForPath($Path) {
@@ -29,6 +29,9 @@ function Get-BuildMode() {
 }
 
 function Get-CurrentBranch() {
+    if ($ENV:GITHUB_REF_NAME) {
+        return $ENV:GITHUB_REF_NAME
+    }
     return git rev-parse --abbrev-ref HEAD
 }
 
@@ -204,13 +207,19 @@ function Set-ConfigValue() {
     For example, if the repo version is 1.2, the function will look for the latest version of the package that has major.minor = 1.2.
 .Parameter PackageName
     The name of the package
+.Parameter Branch
+    The branch the package version is being updated for (e.g. "main" or "releases/28.0").
+    Used to decide which storage account to use for BCArtifacts baselines. When not provided,
+    it falls back to Get-CurrentBranch.
 .Returns
     The latest version of the package
 #>
 function Get-PackageLatestVersion() {
     param(
         [Parameter(Mandatory=$true)]
-        [string] $PackageName
+        [string] $PackageName,
+        [Parameter(Mandatory=$false)]
+        [string] $Branch
     )
 
     $package = Get-ConfigValue -Key $PackageName -ConfigType Packages
@@ -243,7 +252,15 @@ function Get-PackageLatestVersion() {
                 }
             }
 
-            $currentBranch = Get-CurrentBranch
+            # Determine the branch this update is running for. The automation is triggered from a
+            # single workflow (running on 'main') that updates every release branch via a matrix, so
+            # Get-CurrentBranch (which returns $GITHUB_REF_NAME) reports 'main' for every job and
+            # cannot be used to pick the storage account. Prefer the explicit target branch passed in
+            # by the automation and only fall back to Get-CurrentBranch when it is not available.
+            $currentBranch = $Branch
+            if (-not $currentBranch) {
+                $currentBranch = Get-CurrentBranch
+            }
             Write-Host "Current branch: $currentBranch"
             $storageAccountOrder = @("bcartifacts", "bcinsider")
             if($currentBranch -eq "main") {
@@ -257,6 +274,20 @@ function Get-PackageLatestVersion() {
                 $latestVersion = $Matches[0]
             } else {
                 throw "Could not find BCArtifact version (for min version: $minimumVersion)"
+            }
+
+            return $latestVersion
+        }
+        'BCPlatform' {
+            Import-Module $PSScriptRoot\PlatformHelper.psm1 -DisableNameChecking
+
+            # Use the major.minor of the currently configured platform version, not repoVersion
+            [System.Version] $currentPlatformVersion = $package.Version
+            $majorMinor = "$($currentPlatformVersion.Major).$($currentPlatformVersion.Minor)"
+            $latestVersion = Get-LatestPlatformVersion -MajorMinor $majorMinor
+
+            if (-not $latestVersion) {
+                throw "Could not find platform version (for major.minor: $majorMinor)"
             }
 
             return $latestVersion
@@ -380,13 +411,18 @@ function Update-BCArtifactVersion {
     Updates the version of a package in the Packages config file to the latest version available.
 .Parameter PackageName
     The name of the package to update
+.Parameter Branch
+    The branch the package version is being updated for (e.g. "main" or "releases/28.0").
+    Forwarded to Get-PackageLatestVersion to select the correct BCArtifacts baseline storage account.
 .Returns
     The new version of the package, if it was updated
 #>
 function Update-PackageVersion
 (
     [Parameter(Mandatory=$true)]
-    [string] $PackageName
+    [string] $PackageName,
+    [Parameter(Mandatory=$false)]
+    [string] $Branch
 )
 {
     $currentPackage = Get-ConfigValue -Key $PackageName -ConfigType Packages
@@ -398,7 +434,13 @@ function Update-PackageVersion
     $currentVersion = $currentPackage.Version
     Write-Host "Current $PackageName version: $currentVersion"
 
-    $latestVersion = Get-PackageLatestVersion -PackageName $PackageName
+    # If the current version is a major.minor pattern (e.g. "28.0"), it is intentionally pinned and should not be overwritten with a full version
+    if ($currentVersion.Split('.').Count -eq 2) {
+        Write-Host "$PackageName is pinned to the major.minor pattern '$currentVersion'. Skipping update."
+        return $null
+    }
+
+    $latestVersion = Get-PackageLatestVersion -PackageName $PackageName -Branch $Branch
     Write-Host "Latest $PackageName version found: $latestVersion"
 
     $result = $null

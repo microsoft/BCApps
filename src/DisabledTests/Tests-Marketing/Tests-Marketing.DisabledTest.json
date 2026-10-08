@@ -1,0 +1,772 @@
+[
+  {
+    "codeunitId": 134626,
+    "codeunitName": "Person and Company Contacts",
+    "method": "UpdateQuotesOnlyUpdatesForCorrectContact"
+  },
+  {
+    "codeunitId": 134640,
+    "codeunitName": "Sales E2E",
+    "method": "SalesFromContactToPayment"
+  },
+  {
+    "codeunitId": 134640,
+    "codeunitName": "Sales E2E",
+    "method": "TestCustomerLastStatementNo"
+  },
+  {
+    "codeunitId": 134837,
+    "codeunitName": "Test Contact Lookup",
+    "method": "BillToContactLookupOnSalesDocTest"
+  },
+  {
+    "codeunitId": 134837,
+    "codeunitName": "Test Contact Lookup",
+    "method": "CheckBillToContactWhenUpdateBillToContactToAnotherContact"
+  },
+  {
+    "codeunitId": 134837,
+    "codeunitName": "Test Contact Lookup",
+    "method": "CheckBillToContactWhenUpdateBillToContactToCompanyContact"
+  },
+  {
+    "codeunitId": 134837,
+    "codeunitName": "Test Contact Lookup",
+    "method": "CheckSelllToContactWhenUpdateSellToContactToAnotherContact"
+  },
+  {
+    "codeunitId": 134837,
+    "codeunitName": "Test Contact Lookup",
+    "method": "CheckSelllToContactWhenUpdateSellToContactToCompanyContact"
+  },
+  {
+    "codeunitId": 134837,
+    "codeunitName": "Test Contact Lookup",
+    "method": "SellToContactLookupOnSalesDocTest"
+  },
+  {
+    "codeunitId": 134837,
+    "codeunitName": "Test Contact Lookup",
+    "method": "ShipToAddressWhenSetBlankSellToContactOnSalesDocument"
+  },
+  {
+    "codeunitId": 134837,
+    "codeunitName": "Test Contact Lookup",
+    "method": "ShipToAddressWhenSetNonBlankSellToContactOnSalesDocument"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "CampaignEntryCreatedWhenPostSalesOrderWithActivatedCampaign"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "CampaignEntryNotCreatedWhenPostSalesOrderWithActivatedCampaignOutsidePostingDate"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "CampaignEntryNotCreatedWhenPostSalesOrderWithDeactivatedCampaign"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "CampaignSalesPriceActivation"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "CampaignSalesPriceDeactivation"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "CreateCampaignFromCardDetails"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "InteractionTemplateVerificationWhenPostSalesOrderWithActivatedCampaign"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "UT_CampaignEntryNotCreatedIfInteractionLogEntryAlreadyExist"
+  },
+  {
+    "codeunitId": 136201,
+    "codeunitName": "Marketing Contacts",
+    "method": "CreateDuplicateContactFromBankAcc"
+  },
+  {
+    "codeunitId": 136201,
+    "codeunitName": "Marketing Contacts",
+    "method": "CreateDuplicateContactFromCustomer"
+  },
+  {
+    "codeunitId": 136201,
+    "codeunitName": "Marketing Contacts",
+    "method": "CreateDuplicateContactFromVendor"
+  },
+  {
+    "codeunitId": 136201,
+    "codeunitName": "Marketing Contacts",
+    "method": "DrillDownOnToDosContactName"
+  },
+  {
+    "codeunitId": 136201,
+    "codeunitName": "Marketing Contacts",
+    "method": "TaskListPageHasFixedSystemTaskTypeFilterAsOrganiserOrContactAttendee"
+  },
+  {
+    "codeunitId": 136201,
+    "codeunitName": "Marketing Contacts",
+    "method": "VerifyOneRecordIsCreatedForNonMeetingTaskCreatedFromTaskListForContact"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveDocumentOnMakeOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveDocumentOnShipOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchivedSalesOrderReport"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchivedSalesQuoteReport"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchivedSalesQuoteReportWithVAT"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchivedSalesReturnOrderReport"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchivedSalesReturnOrderReportWithVAT"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveOrderTwice"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveQuote"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveQuoteOnMakeInvoice"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveQuoteTwice"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveReturnOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "ArchiveReturnOrderTwice"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "CheckCommentsOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "CheckCommentsQuote"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "CheckCommentsReturnOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "InteractionLogEntryQuote"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "NoArchiveDocumentOnMakeOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "NoArchiveDocumentOnShipOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "PostedSalesInvoicePrintReportWithInteractionLogEntryAccRecPerm"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "PostedSalesInvoicePrintReportWithInteractionLogEntrySalesDocPostPerm"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "RestoreOrderFromOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "RestoreQuoteFromQuote"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "RestoreReturnOrderFromOrder"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "RestoreSalesOrderWithDifferentLocation"
+  },
+  {
+    "codeunitId": 136202,
+    "codeunitName": "Marketing Document Logging",
+    "method": "VerifyArchivedSalesOrderReportExecutedWithDifferentDocNoOccurence"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "AssignActivityOnContact"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "CanceledRecurringTask"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "CanceledTaskRecurringFalse"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "ClosedRecurringTask"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "ClosedTaskRecurringFalse"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "DeleteTaskTeamTypeBlank"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "NonRecurringTaskTypeBlank"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "NonRecurringTaskTypeMeeting"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "NonRecurringTaskTypePhoneCall"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "PageMakePhoneCallCanChangeDateTimeOfInteraction"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "ReassignTaskTypeBlank"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "ReassignTaskTypeMeeting"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "ReassignTaskTypePhoneCall"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "ReassignTeamTaskTypeBlank"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "ReassignTeamTaskTypeMeeting"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "ReassignTeamTaskTypePhoneCall"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "RecurringTaskTypeBlank"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "RecurringTaskTypeMeeting"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "RecurringTaskTypePhoneCall"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "TaskSegmentTypeBlank"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "TaskSegmentTypePhoneCall"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "TaskTeamTypeBlank"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "TaskWithoutEMailTeam"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "TeamTaskSegmentTypeBlank"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "TeamTaskSegmentTypeMeeting"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "TeamTaskSegmentTypePhoneCall"
+  },
+  {
+    "codeunitId": 136204,
+    "codeunitName": "Marketing Quotations Contacts",
+    "method": "CreatingSalesQuoteOpportunityForPersonAndNoCustomer"
+  },
+  {
+    "codeunitId": 136206,
+    "codeunitName": "Marketing Profiling",
+    "method": "QuestionnairesClassificationMethodPercentageOfValue"
+  },
+  {
+    "codeunitId": 136206,
+    "codeunitName": "Marketing Profiling",
+    "method": "QuestionnairesVendorPurchaseLCY"
+  },
+  {
+    "codeunitId": 136207,
+    "codeunitName": "Marketing Batch Jobs",
+    "method": "CanceledTeamTask"
+  },
+  {
+    "codeunitId": 136207,
+    "codeunitName": "Marketing Batch Jobs",
+    "method": "DeleteTask"
+  },
+  {
+    "codeunitId": 136207,
+    "codeunitName": "Marketing Batch Jobs",
+    "method": "GenerateDuplicateConactSearchString"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "CommentsForMakePhoneCallPage"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "ContactInteractionSubformShowDocument"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "ContactInteractionSubformShowDocumentFromTitle"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "CreateInteractionFromInteractionLogEntriesPageWithComments"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "CreateInteractionLogWithCommentsForOpportunity"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "CreateInteractionLogWithCommentsForTask"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "EmailDraftInteractionLogEntryFromPurchOrder"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "EmailDraftInteractionLogEntryFromSalesOrder"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "LogDocumentNoEmail"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "SalesOrderShowInteractionLogEntriesBasicAppArea"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "SalesOrderShowInteractionLogEntriesSuiteAppArea"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "SalesQuoteShowInteractionLogEntriesBasicAppArea"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "SalesQuoteShowInteractionLogEntriesSuiteAppArea"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "AssignSalesQuoteToOpportunity"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "CloseOpportunityOnSalesQuoteToOrder"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "CloseOpportunityWithWon"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "CreateOpportunityTask"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "DeleteCloseOpportunity"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "DeleteOpenOpportunity"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "DeleteOpportunityTask"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "FirstStageActivationOfOpportunityCreatedFromSegmentCountTasks"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "MakeOrderFromQuote"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "ModifyOpportunityTask"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "OpportunityAssignSalesQuoteEnabledDisabled"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "OpportunityAssignSalesQuoteWithCustTemplateWithNewCustomer"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "OpportunityAssignSalesQuoteWithCustTemplateWithNoNewCustomer"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "OpportunityAssignSalesQuoteWithCustTemplateWithNoNewCustomerWhenTemplateSelectionCancel"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "OpportunityAssignSalesQuoteWithNoCustTemplateWithNoNewCustomer"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "OpportunityStatisticsFactBox"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "OpportunityWOSalesQuote"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "SalesCycleProbabilityAdd"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "SalesCycleProbabilityChances"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "SalesCycleProbabilityCompleted"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "SalesCycleStageWithOnlyOneActivityStepOfTypePhoneCallCreatesOnlyOneTask"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "SalesCycleStatisticsFactBox"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "SalesQuoteToCloseOpportunity"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "SameOpportunityAssignToNewSalesQuote"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "StatisticsCloseOpportunity"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "StatisticsOpenOpportunity"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "UpdateOpportunitySalesCycle"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "UpdateOpportunityTwice"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "UpdateOpportunityWOSalesQuote"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "UpdateOppotunityPageFieldSalesCycleDescription"
+  },
+  {
+    "codeunitId": 136209,
+    "codeunitName": "Marketing Opportunity Mgmt",
+    "method": "VerifySalesCycleStageDescOnOppEntry"
+  },
+  {
+    "codeunitId": 136210,
+    "codeunitName": "Contact Employee",
+    "method": "LinkContactFromBusinessRelationInSalesDocument"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "CheckContactNumberOnTaskMatrix"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithCampaign"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithIncludeClosedTrue"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithSalesperson"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithStatusCompleted"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithStatusInProgress"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithStatusNotStarted"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithStatusPostponed"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithStatusWaiting"
+  },
+  {
+    "codeunitId": 136211,
+    "codeunitName": "Marketing Matrix Management",
+    "method": "TaskWithTeam"
+  },
+  {
+    "codeunitId": 136212,
+    "codeunitName": "Marketing Contacts Search II",
+    "method": "CompanyContactDuplicatesFalse"
+  },
+  {
+    "codeunitId": 136212,
+    "codeunitName": "Marketing Contacts Search II",
+    "method": "CompanyContactDuplicatesTrue"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "CampaignSalesLineDiscountDateChangeError"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "CampaignSalesPriceDateChangeError"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "ChangeDateOnSalesPriceAndLineDiscount"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "ChangeDateOnSalesPricesAndLineDiscount"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "SalesPricesItemNoCanBeValidatedInCaseOfBlankedItemFilter"
+  },
+  {
+    "codeunitId": 136216,
+    "codeunitName": "Marketing Cues",
+    "method": "ContactsDuplicate"
+  },
+  {
+    "codeunitId": 136901,
+    "codeunitName": "Marketing Reports",
+    "method": "ContactListReport"
+  },
+  {
+    "codeunitId": 136901,
+    "codeunitName": "Marketing Reports",
+    "method": "ContactPersonSummary"
+  },
+  {
+    "codeunitId": 136901,
+    "codeunitName": "Marketing Reports",
+    "method": "OpportunityListReport"
+  },
+  {
+    "codeunitId": 136901,
+    "codeunitName": "Marketing Reports",
+    "method": "SalesCycleAnalysisReport"
+  },
+  {
+    "codeunitId": 136901,
+    "codeunitName": "Marketing Reports",
+    "method": "SalespersonOpportunitiesReport"
+  },
+  {
+    "codeunitId": 136901,
+    "codeunitName": "Marketing Reports",
+    "method": "SalespersonTasksReport"
+  },
+  {
+    "codeunitId": 136901,
+    "codeunitName": "Marketing Reports",
+    "method": "TeamTasksReport"
+  }
+]

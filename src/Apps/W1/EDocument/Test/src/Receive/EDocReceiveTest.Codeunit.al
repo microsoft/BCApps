@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
@@ -60,6 +61,7 @@ codeunit 139628 "E-Doc. Receive Test"
         VATRegistrationLbl: Label 'GB123456789';
         ImportDataExchDefLbl: Label 'EDOCPEPPOLINVIMP';
         EndpointPathLbl: label '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID';
+        SubTotalMismatchErr: Label 'Sub Total should be %1 from XML LineExtensionAmount, not %2 (Qty*Price)', Comment = '%1 = expected Sub Total, %2 = actual Qty*Price', Locked = true;
 
     [Test]
     procedure ReceiveSinglePurchaseInvoice()
@@ -256,6 +258,64 @@ codeunit 139628 "E-Doc. Receive Test"
         DocumentAttachment.SetRange("No.", CreatedPurchaseHeader."No.");
         DocumentAttachment.SetRange("Table ID", Database::"Purchase Header");
         Assert.RecordCount(DocumentAttachment, 2);
+    end;
+
+    [Test]
+    procedure ReceivePeppolInvoice_LineSubTotalFromXml()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocServicePage: TestPage "E-Document Service";
+        ExpectedSubTotal: Decimal;
+    begin
+        // [SCENARIO] V1 PEPPOL import stores LineExtensionAmount as Sub Total, not recalculated Qty*Price
+        // Regression for: Qty=1.65, Price=6.79, LineExtensionAmount=11.20 -> was stored as 1.65*6.79=11.2035
+        Initialize();
+        BindSubscription(EDocImplState);
+
+        // [GIVEN] E-Document service with PEPPOL BIS 3.0 format and V1 import, all item lookups disabled
+        LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"Service Integration"::"Mock");
+        EDocService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
+        EDocService."Lookup Account Mapping" := false;
+        EDocService."Lookup Item GTIN" := false;
+        EDocService."Lookup Item Reference" := false;
+        EDocService."Resolve Unit Of Measure" := false;
+        EDocService."Validate Line Discount" := false;
+        EDocService."Verify Totals" := false;
+        EDocService."Validate Receiving Company" := false;
+        EDocService."Use Batch Processing" := false;
+        EDocService.Modify();
+
+        // [GIVEN] Vendor matching the XML supplier VAT registration
+        LibraryPurchase.CreateVendorWithVATRegNo(Vendor);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        Vendor."VAT Registration No." := VATRegistrationLbl;
+        Vendor."Receive E-Document To" := Vendor."Receive E-Document To"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor.Modify();
+
+        // [GIVEN] PEPPOL XML: Qty=1.65, PriceAmount=6.79, LineExtensionAmount=11.20 (vendor-rounded value)
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(EDocReceiveFiles.GetLineRoundingDocument());
+        LibraryVariableStorage.Enqueue(1);
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [WHEN] Receive is invoked
+        EDocServicePage.OpenView();
+        EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicePage.Receive.Invoke();
+
+        // [THEN] EDocumentPurchaseLine."Sub Total" = 11.20 (from XML LineExtensionAmount), not 11.2035 (Qty*Price)
+        EDocument.FindLast();
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.IsTrue(EDocumentPurchaseLine.FindFirst(), 'Expected at least one E-Document purchase line');
+        ExpectedSubTotal := 11.20;
+        Assert.AreEqual(ExpectedSubTotal, EDocumentPurchaseLine."Sub Total",
+            StrSubstNo(SubTotalMismatchErr,
+                ExpectedSubTotal, EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price"));
     end;
 
     [Test]

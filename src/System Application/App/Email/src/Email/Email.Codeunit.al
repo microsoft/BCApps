@@ -336,6 +336,18 @@ codeunit 8901 Email
         EmailImpl.GetMailFolders(EmailAccountId, EmailConnector, EmailFolders);
     end;
 
+    /// <summary>
+    /// Finds an email that was previously retrieved into the email inbox for the given account.
+    /// </summary>
+    /// <param name="EmailAccountId">The ID of the email account the email was retrieved for.</param>
+    /// <param name="ExternalMessageId">The ID that the email provider uses to identify the email.</param>
+    /// <param name="EmailInbox">The record that collects the retrieved emails. Marks are set to the email that was found.</param>
+    /// <returns>Whether the email had already been retrieved.</returns>
+    procedure FindRetrievedEmail(EmailAccountId: Guid; ExternalMessageId: Text; var EmailInbox: Record "Email Inbox"): Boolean
+    begin
+        exit(EmailImpl.FindRetrievedEmail(EmailAccountId, ExternalMessageId, EmailInbox));
+    end;
+
     #endregion
 
     #region MarkAsRead
@@ -648,6 +660,15 @@ codeunit 8901 Email
     /// <param name="IsHandled">Out parameter to set if the event was handled.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnShowSource(SourceTableId: Integer; SourceSystemId: Guid; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event that allows applying additional filtering to related source records before they are shown.
+    /// </summary>
+    /// <param name="EmailRelatedRecord">The related source records to filter. Subscribers can apply additional filters.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeFilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record")
     begin
     end;
 

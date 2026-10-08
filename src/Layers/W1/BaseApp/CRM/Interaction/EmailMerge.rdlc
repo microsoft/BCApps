@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:SecurityType>None</rd:SecurityType>
+      <rd:DataSourceID>88eed6dc-bb02-4b0c-aca4-63bda3560f13</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <Height>2in</Height>
+        <Style />
+      </Body>
+      <Width>6.5in</Width>
+      <Page>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <Code>Public Function BlankZero(ByVal Value As Decimal)
+    if Value = 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankPos(ByVal Value As Decimal)
+    if Value &gt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankZeroAndPos(ByVal Value As Decimal)
+    if Value &gt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNeg(ByVal Value As Decimal)
+    if Value &lt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNegAndZero(ByVal Value As Decimal)
+    if Value &lt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+</Code>
+  <Language>=User!Language</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Inch</rd:ReportUnitType>
+  <rd:ReportID>0eeb6585-38ae-40f1-885b-8d50088d51b4</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="Company_Information_Picture">
+          <DataField>Company_Information_Picture</DataField>
+        </Field>
+        <Field Name="Company_Information_Name">
+          <DataField>Company_Information_Name</DataField>
+        </Field>
+        <Field Name="Company_Information_Address">
+          <DataField>Company_Information_Address</DataField>
+        </Field>
+        <Field Name="Company_Information_Address_2">
+          <DataField>Company_Information_Address_2</DataField>
+        </Field>
+        <Field Name="Company_Information_Post_Code">
+          <DataField>Company_Information_Post_Code</DataField>
+        </Field>
+        <Field Name="Company_Information_City">
+          <DataField>Company_Information_City</DataField>
+        </Field>
+        <Field Name="SalespersonPurchaser_Name">
+          <DataField>SalespersonPurchaser_Name</DataField>
+        </Field>
+        <Field Name="SalespersonPurchaser_Job_Title">
+          <DataField>SalespersonPurchaser_Job_Title</DataField>
+        </Field>
+        <Field Name="Content">
+          <DataField>Content</DataField>
+        </Field>
+        <Field Name="Contact_Mail_Address">
+          <DataField>Contact_Mail_Address</DataField>
+        </Field>
+        <Field Name="Formal_Salutation">
+          <DataField>Formal_Salutation</DataField>
+        </Field>
+        <Field Name="Informal_Salutation">
+          <DataField>Informal_Salutation</DataField>
+        </Field>
+        <Field Name="Document_Date">
+          <DataField>Document_Date</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>

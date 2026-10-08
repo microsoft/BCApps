@@ -1,0 +1,13 @@
+name: Verify Miapp Sync
+author: Microsoft Corporation
+description: Verifies that all Miapp-dependent files are synchronized using Invoke-MiSnapApp.
+runs:
+  using: composite
+  steps:
+    - name: Verify Miapp sync
+      shell: pwsh
+      run: |
+        ${{ github.action_path }}/action.ps1
+branding:
+  icon: terminal
+  color: blue

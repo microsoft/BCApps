@@ -1,0 +1,357 @@
+[
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckCountryOfOriginFromItemCard"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckCountryOfOriginFromLotInfoAuto"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckCountryOfOriginFromLotInfoManual"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckCountryOfOriginFromPackInfoManual"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckCountryOfOriginFromSerialInfoAuto"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckCountryOfOriginFromSerialInfoManual"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryShipmentMethodOnServiceDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryShipmentMethodOnTransferDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransactionSpecificationOnTransferDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransactionSpecOnServiceDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransactionTypeOnServiceDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransactionTypeOnTransferDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransportMethodOnServiceDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransportMethodOnTransferDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "E2EErrorHandlingOfIntrastatReport"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "E2EIntrastatReportFileCreation"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "E2EIntrastatReportNoSplitFileCreation"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "E2EIntrastatReportSplitFileCreation"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfFixedAssetPurchase"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfFixedAssetSale"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfPurchaseCrMemo"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfPurchaseInvoice"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfPurchaseReceipt"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfPurchaseRetShpmt"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfSalesCrMemo"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfSalesInvoice"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfSalesReturnReceipt"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfSalesShipment"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfServiceCrMemo"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfServiceInvoice"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfServiceShipment"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfTransferReceipt"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "GetPartnerIDFromVATRegNoOfTransferShipment"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntraCommunityEUPurchase"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntraCommunityEUSales"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatGetEntriesUndoReceiptSameItem"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatGetEntriesUndoReturnReceiptSameItem"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatGetEntriesUndoReturnShipmentSameItem"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatGetEntriesUndoShipmentSameItem"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatLineAfterUndoSales"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatLineForSales"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportGetEntriesProcessesLinesWithoutLocation"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportLineForFixedAssetPurchase"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportLineForFixedAssetSale"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportLineForPurchase"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportLineUsesIntrastatCode"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportWithItemChargeAssignmentAfterPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportWithItemChargeAssignmentAfterSalesCreditMemo"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportWithPurchaseOrder"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportWithSalesOrder"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "NoIntrastatLineForSales"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "ShptMethodCodeJobJournal"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestBillToCountry"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestEmptyCountryCodeIsBlocking"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestEmptyCountryOfOriginIsBlocking"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestEmptyNonEmptyCountryOfOriginConflict"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestEmptyPartnerVATIDIsBlocking"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestEmptyQtyIsBlocking"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestEmptyTariffNoIsBlocking"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestEmptyTotalWeightIsBlocking"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestEmptyTransactionTypeIsBlocking"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestNonEmptyCountryOfOriginIsBlockingReceipts"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestSellToCountry"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "TestShipToCountry"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "VerifyIntrastatRcptInDirectTransfer"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "VerifyIntrastatRcptInDirectTransferRcptAndShpt"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "VerifyIntrastatRcptInTransferRcptAndShpt"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "VerifyIntrastatShptInDirectTransfer"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "VerifyIntrastatShptInDirectTransferRcptAndShpt"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "VerifyIntrastatShptInTransferRcptAndShpt"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "VerifyNoIntraLinesCreatedForCrossedBoardItemChargeInNextPeriod"
+  }
+]

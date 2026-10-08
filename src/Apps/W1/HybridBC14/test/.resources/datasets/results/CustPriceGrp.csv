@@ -1,0 +1,3 @@
+Code,Description,AllowInvoiceDisc,PriceIncludesVAT,VATBusPostingGrPrice,AllowLineDisc
+TCPG1,Test Cust Price Grp 1,true,false,,true
+TCPG2,Test Cust Price Grp 2,false,false,,false

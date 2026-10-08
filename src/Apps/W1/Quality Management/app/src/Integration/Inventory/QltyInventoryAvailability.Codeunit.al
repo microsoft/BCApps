@@ -24,6 +24,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         NoSamplesToMoveErr: Label 'No samples meet the condition specified.', Locked = true;
         SerialQuantityGreaterThanOneErr: Label '%1 (%2) cannot be greater than 1 when New Serial No. is requested.', Comment = '%1=quantity behavior, %2=quantity';
         ZeroQuantityErr: Label 'Unable to use the disposition %1 on the inspection %2 for the item %3 because the quantity is zero.', Comment = '%1=the inspection, %2=the inspection, %3=the item';
+        InsufficientInventoryToAllocateErr: Label 'Unable to move the entire requested quantity for inspection %1 for item %2. There is not enough inventory available in eligible bins (short by %3). Put the remaining inventory away or reduce the quantity, and then try again.', Comment = '%1=the inspection, %2=the item, %3=the missing quantity';
         SupplyFromLocationCodeNameLbl: Label 'Supply-from Location Code', Locked = true;
         FromLocationCodeNameLbl: Label 'From Location Code', Locked = true;
         LocationCodeNameLbl: Label 'Location Code', Locked = true;
@@ -37,14 +38,15 @@ codeunit 20445 "Qlty. Inventory Availability"
         QtyToReceiveNameLbl: Label 'Qty. to Receive', Locked = true;
         QtyToHandleBaseNameLbl: Label 'Qty. to Handle (Base)', Locked = true;
         QuantityToHandleNameLbl: Label 'Quantity to Handle', Locked = true;
+        CannotMoveFromReceiveBinErr: Label 'The items for inspection %1 are still in the receiving bin %2 at location %3 and cannot be moved yet. Put the items away first by using a Put-Away, and then move the inventory.', Comment = '%1=the inspection, %2=from bin code, %3=from location code';
 
     /// <summary>
-    /// GetCurrentLocationOfTrackedInventory gets the current location of the Item+Item tracking defined on the inspection.
-    /// If multiple locations/bins are determined then those multiple locations/bins are supplied in TempBinContent
+    /// Finds locations and bins containing positive inventory for the item-tracking values on an inspection.
+    /// If multiple locations/bins are determined then those multiple locations/bins are supplied in TempBinContent.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Record "Qlty. Inspection Header".</param>
-    /// <param name="TempBinContent">Temporary var Record "Bin Content".   Multiple bin locations could be available.</param>
-    /// <returns>Return variable of type Boolean.</returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and item-tracking values.</param>
+    /// <param name="TempBinContent">The temporary buffer populated with matching locations, bins, and quantities.</param>
+    /// <returns>True if matching inventory was found; otherwise, false.</returns>
     internal procedure GetCurrentLocationOfTrackedInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
     begin
         if (QltyInspectionHeader."Source Lot No." = '') and (QltyInspectionHeader."Source Serial No." = '') and (QltyInspectionHeader."Source Package No." = '') then
@@ -65,6 +67,11 @@ codeunit 20445 "Qlty. Inventory Availability"
         exit(not TempBinContent.IsEmpty());
     end;
 
+    /// <summary>
+    /// Adds positive bin content matching the inspection item and tracking values at bin-mandatory locations.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that supplies item and item-tracking filters.</param>
+    /// <param name="TempBinContent">The temporary bin content buffer to populate.</param>
     local procedure ProcessBinMandatoryLocations(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary)
     var
         BinContent: Record "Bin Content";
@@ -90,6 +97,11 @@ codeunit 20445 "Qlty. Inventory Availability"
             until BinContent.Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds available quantities matching the inspection at locations where bins are not mandatory.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that supplies item and item-tracking filters.</param>
+    /// <param name="TempBinContent">The temporary buffer to populate with location quantities.</param>
     local procedure ProcessNonBinMandatoryLocations(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary)
     var
         QltyItemLedgerByLocationQuery: Query "Qlty. Item Ledger By Location";
@@ -126,6 +138,11 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
+    /// <summary>
+    /// Resolves source locations, bins, and quantities from the inspection's related records into a temporary buffer.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection whose source records are examined.</param>
+    /// <param name="TempToMoveBinContent">The temporary buffer populated with source location, bin, and quantity details.</param>
     internal procedure GetFromDetailsFromInspectionSource(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempToMoveBinContent: Record "Bin Content" temporary)
     var
         RecordRefToSearch: RecordRef;
@@ -161,19 +178,20 @@ codeunit 20445 "Qlty. Inventory Availability"
             if RecordRefToSearch.FindFirst() then begin
                 LocationCode := QltyInspectionHeader."Location Code";
                 GetFromLocationAndBinBasedOnNamingConventions(RecordRefToSearch, LocationCode, BinCode, QuantityBaseValue);
-                if LocationCode <> '' then begin
-                    TempToMoveBinContent.Reset();
-                    TempToMoveBinContent.SetRange("Location Code", LocationCode);
-                    if BinCode <> '' then
-                        TempToMoveBinContent.SetRange("Bin Code", BinCode);
-                    if not TempToMoveBinContent.FindFirst() then begin
-                        TempToMoveBinContent.Init();
-                        TempToMoveBinContent."Location Code" := LocationCode;
-                        TempToMoveBinContent."Bin Code" := BinCode;
-                        TempToMoveBinContent."Min. Qty." := QuantityBaseValue;
-                        TempToMoveBinContent.Insert(false);
+                if LocationCode <> '' then
+                    if not ResolveBinsFromBinContent(QltyInspectionHeader, LocationCode, TempToMoveBinContent) then begin
+                        TempToMoveBinContent.Reset();
+                        TempToMoveBinContent.SetRange("Location Code", LocationCode);
+                        if BinCode <> '' then
+                            TempToMoveBinContent.SetRange("Bin Code", BinCode);
+                        if not TempToMoveBinContent.FindFirst() then begin
+                            TempToMoveBinContent.Init();
+                            TempToMoveBinContent."Location Code" := LocationCode;
+                            TempToMoveBinContent."Bin Code" := BinCode;
+                            TempToMoveBinContent."Min. Qty." := QuantityBaseValue;
+                            TempToMoveBinContent.Insert(false);
+                        end;
                     end;
-                end;
             end;
         end;
 
@@ -186,6 +204,62 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
+    /// <summary>
+    /// Adds positive, non-receive bin content matching the inspection at a bin-mandatory location.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that supplies item and item-tracking filters.</param>
+    /// <param name="LocationCode">The location whose bins are searched.</param>
+    /// <param name="TempToMoveBinContent">The temporary bin content buffer to populate.</param>
+    /// <returns>True if eligible bin content was found; otherwise, false.</returns>
+    local procedure ResolveBinsFromBinContent(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]; var TempToMoveBinContent: Record "Bin Content" temporary): Boolean
+    var
+        Location: Record Location;
+        BinContent: Record "Bin Content";
+        Added: Boolean;
+    begin
+        if (LocationCode = '') or (QltyInspectionHeader."Source Item No." = '') then
+            exit(false);
+        if not Location.Get(LocationCode) then
+            exit(false);
+        if not Location."Bin Mandatory" then
+            exit(false);
+
+        BinContent.SetRange("Location Code", LocationCode);
+        BinContent.SetRange("Item No.", QltyInspectionHeader."Source Item No.");
+        BinContent.SetRange("Variant Code", QltyInspectionHeader."Source Variant Code");
+        if QltyInspectionHeader."Source Lot No." <> '' then
+            BinContent.SetRange("Lot No. Filter", QltyInspectionHeader."Source Lot No.");
+        if QltyInspectionHeader."Source Serial No." <> '' then
+            BinContent.SetRange("Serial No. Filter", QltyInspectionHeader."Source Serial No.");
+        if QltyInspectionHeader."Source Package No." <> '' then
+            BinContent.SetRange("Package No. Filter", QltyInspectionHeader."Source Package No.");
+        if Location."Adjustment Bin Code" <> '' then
+            BinContent.SetFilter("Bin Code", '<>%1', Location."Adjustment Bin Code");
+        BinContent.SetFilter("Quantity (Base)", '>%1', 0);
+        BinContent.SetAutoCalcFields("Quantity (Base)");
+        if BinContent.FindSet() then
+            repeat
+                if not IsReceiveBin(BinContent."Location Code", BinContent."Bin Code") then begin
+                    Added := true;
+                    if not TempToMoveBinContent.Get(BinContent."Location Code", BinContent."Bin Code", BinContent."Item No.", BinContent."Variant Code", BinContent."Unit of Measure Code") then begin
+                        TempToMoveBinContent.Init();
+                        TempToMoveBinContent := BinContent;
+                        TempToMoveBinContent."Min. Qty." := BinContent."Quantity (Base)";
+                        TempToMoveBinContent.Insert(false);
+                    end;
+                end;
+            until BinContent.Next() = 0;
+
+        exit(Added);
+    end;
+
+    /// <summary>
+    /// Resolves source location, bin, and quantity values from a record using supported fields and naming conventions.
+    /// </summary>
+    /// <param name="RecordRef">The source record to inspect.</param>
+    /// <param name="LocationCode">The resolved location code, preserving an existing value when supplied.</param>
+    /// <param name="BinCode">The resolved bin code, preserving an existing value when supplied.</param>
+    /// <param name="QuantityBase">The resolved base quantity, preserving a nonzero existing value.</param>
     local procedure GetFromLocationAndBinBasedOnNamingConventions(var RecordRef: RecordRef; var LocationCode: Code[10]; var BinCode: Code[20]; var QuantityBase: Decimal)
     var
         Location: Record Location;
@@ -303,6 +377,15 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
+    /// <summary>
+    /// Determines whether a location-only buffer entry should be skipped when specific bins exist at the same location.
+    /// </summary>
+    /// <param name="TempExistingBinContent">The current inventory buffer entry.</param>
+    /// <param name="TempCopyBinContent">A copy of available inventory used to search for specific bins.</param>
+    /// <param name="QltyQuantityBehavior">The quantity behavior being applied.</param>
+    /// <param name="MultipleBins">Indicates whether inventory spans multiple buffer entries.</param>
+    /// <param name="BinMandatory">Indicates whether the location requires bins.</param>
+    /// <returns>True if the current location-only entry should be skipped; otherwise, false.</returns>
     local procedure CheckIfShouldSkipBinContent(var TempExistingBinContent: Record "Bin Content" temporary; var TempCopyBinContent: Record "Bin Content" temporary; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; MultipleBins: Boolean; BinMandatory: Boolean): Boolean
     begin
         if MultipleBins and BinMandatory and (QltyQuantityBehavior <> QltyQuantityBehavior::"Item Tracked Quantity") and (TempExistingBinContent."Bin Code" = '') then begin
@@ -312,6 +395,15 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
+    /// <summary>
+    /// Verifies that the inspection contains the item and requested item-tracking values.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection to validate.</param>
+    /// <param name="CurrentError">Indicates whether missing details raise an error.</param>
+    /// <param name="CheckLot">Indicates whether a lot number is required.</param>
+    /// <param name="CheckSerial">Indicates whether a serial number is required.</param>
+    /// <param name="CheckPackage">Indicates whether a package number is required.</param>
+    /// <returns>True if all requested item details are present; otherwise, false.</returns>
     local procedure InspectionHasSufficientItemDetails(QltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentError: Boolean; CheckLot: Boolean; CheckSerial: Boolean; CheckPackage: Boolean): Boolean
     begin
         if (QltyInspectionHeader."Source Item No." = '') or
@@ -327,6 +419,14 @@ codeunit 20445 "Qlty. Inventory Availability"
         exit(true);
     end;
 
+    /// <summary>
+    /// Calculates the base quantity to handle from the configured quantity behavior and available inventory.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection supplying source, sample, pass, and fail quantities.</param>
+    /// <param name="QltyQuantityBehavior">The rule used to select the quantity.</param>
+    /// <param name="OptionalSpecificQuantity">The specific quantity, defaulting to the inspection source quantity when zero.</param>
+    /// <param name="TempExistingInventoryBinContent">The current inventory entry supplying the tracked quantity.</param>
+    /// <returns>The calculated base quantity to handle.</returns>
     local procedure GetQuantityToHandleFromInspection(QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; TempExistingInventoryBinContent: Record "Bin Content" temporary) ResultQuantity: Decimal
     begin
         if OptionalSpecificQuantity = 0 then
@@ -350,13 +450,14 @@ codeunit 20445 "Qlty. Inventory Availability"
     end;
 
     /// <summary>
-    /// Looks at sampling tests to determine number of passed or failed samples. This can exceed the sample size to allow for oversampling.
+    /// Gets the inspection's passed or failed sample quantity and rejects nonpositive results.
+    /// This can exceed the sample size to allow for oversampling.
     /// Pass Conditions: the samples must have passed all sampling test measurements
     /// Fail Conditions: One or more fail results for a sample designates it as failed.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="QuantityBehavior"></param>
-    /// <returns>either the pass quantity or fail quantity.</returns>
+    /// <param name="QltyInspectionHeader">The inspection supplying pass and fail quantities.</param>
+    /// <param name="QltyQuantityBehavior">Specifies whether the passed or failed quantity is requested.</param>
+    /// <returns>The requested pass or fail quantity.</returns>
     internal procedure GetPassOrFailSamplesCount(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") PassOrFailQuantity: Decimal
     begin
         case QltyQuantityBehavior of
@@ -371,12 +472,11 @@ codeunit 20445 "Qlty. Inventory Availability"
     end;
 
     /// <summary>
-    /// Populates the quantity buffer in TempQuantityQltyDispositionBuffer.
+    /// Allocates the disposition quantity across eligible inventory locations and bins.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="TempQuantityQltyDispositionBuffer">The result.</param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the source inventory and quantities.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instruction containing quantity and location rules.</param>
+    /// <param name="TempQuantityQltyDispositionBuffer">The temporary buffer populated with allocated quantities by location and bin.</param>
     internal procedure PopulateQuantityBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary)
     var
         Location: Record Location;
@@ -385,7 +485,10 @@ codeunit 20445 "Qlty. Inventory Availability"
         MultipleBins: Boolean;
         SkipBinContent: Boolean;
         IsHandled: Boolean;
+        AllocateAcrossBins: Boolean;
         BufferEntryCounter: Integer;
+        RemainingQuantityToAllocate: Decimal;
+        QuantityToHandle: Decimal;
     begin
         TempQuantityQltyDispositionBuffer.Reset();
         TempQuantityQltyDispositionBuffer.DeleteAll();
@@ -416,6 +519,18 @@ codeunit 20445 "Qlty. Inventory Availability"
                 TempExistingInventoryBinContent.FindSet();
             end;
 
+            AllocateAcrossBins := MultipleBins and (TempInstructionQltyDispositionBuffer."Quantity Behavior" in [
+                TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity",
+                TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Sample Quantity",
+                TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Failed Quantity",
+                TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Passed Quantity"]);
+            if AllocateAcrossBins then
+                RemainingQuantityToAllocate := GetQuantityToHandleFromInspection(
+                    QltyInspectionHeader,
+                    TempInstructionQltyDispositionBuffer."Quantity Behavior",
+                    TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
+                    TempExistingInventoryBinContent);
+
             repeat
                 SkipBinContent := false;
                 if TempExistingInventoryBinContent."Location Code" <> '' then
@@ -430,17 +545,30 @@ codeunit 20445 "Qlty. Inventory Availability"
                                 Location."Bin Mandatory");
                     end;
 
+                if not SkipBinContent then
+                    if AllocateAcrossBins then begin
+                        if TempExistingInventoryBinContent."Min. Qty." <= 0 then
+                            QuantityToHandle := 0
+                        else
+                            if TempExistingInventoryBinContent."Min. Qty." < RemainingQuantityToAllocate then
+                                QuantityToHandle := TempExistingInventoryBinContent."Min. Qty."
+                            else
+                                QuantityToHandle := RemainingQuantityToAllocate;
+                        SkipBinContent := QuantityToHandle <= 0;
+                    end else
+                        QuantityToHandle := GetQuantityToHandleFromInspection(
+                            QltyInspectionHeader,
+                            TempInstructionQltyDispositionBuffer."Quantity Behavior",
+                            TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
+                            TempExistingInventoryBinContent);
+
                 if not SkipBinContent then begin
                     BufferEntryCounter += 1;
                     TempQuantityQltyDispositionBuffer := TempInstructionQltyDispositionBuffer;
                     TempQuantityQltyDispositionBuffer."Buffer Entry No." := BufferEntryCounter;
                     TempQuantityQltyDispositionBuffer."Location Filter" := TempExistingInventoryBinContent."Location Code";
                     TempQuantityQltyDispositionBuffer."Bin Filter" := TempExistingInventoryBinContent."Bin Code";
-                    TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" := GetQuantityToHandleFromInspection(
-                        QltyInspectionHeader,
-                        TempInstructionQltyDispositionBuffer."Quantity Behavior",
-                        TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
-                        TempExistingInventoryBinContent);
+                    TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" := QuantityToHandle;
 
                     if TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" = 0 then
                         Error(ZeroQuantityErr, TempInstructionQltyDispositionBuffer."Disposition Action", QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.");
@@ -448,19 +576,72 @@ codeunit 20445 "Qlty. Inventory Availability"
                     if (TempQuantityQltyDispositionBuffer."New Serial No." <> '') and (TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" > 1) then
                         Error(SerialQuantityGreaterThanOneErr, TempInstructionQltyDispositionBuffer."Entry Behavior", TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)");
 
+                    if AllocateAcrossBins then
+                        RemainingQuantityToAllocate -= TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)";
+
                     TempQuantityQltyDispositionBuffer.Insert(false);
                 end;
             until TempExistingInventoryBinContent.Next() = 0;
+
+            if AllocateAcrossBins and (RemainingQuantityToAllocate > 0) then
+                Error(InsufficientInventoryToAllocateErr, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", RemainingQuantityToAllocate);
         end;
 
         OnAfterPopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent);
     end;
 
+    /// <summary>
+    /// Raises an error if the inventory would be moved from a receiving bin, which is not allowed in directed put-away and pick locations until the items have been put away.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection the inventory move relates to.</param>
+    /// <param name="FromLocationCode">The location code the inventory is being moved from.</param>
+    /// <param name="FromBinCode">The bin code the inventory is being moved from.</param>
+    internal procedure ErrorIfFromBinIsReceiveBin(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20])
+    begin
+        if IsReceiveBin(FromLocationCode, FromBinCode) then
+            Error(CannotMoveFromReceiveBinErr, QltyInspectionHeader.GetFriendlyIdentifier(), FromBinCode, FromLocationCode);
+    end;
+
+    /// <summary>
+    /// Determines whether a bin is configured as a receive bin.
+    /// </summary>
+    /// <param name="FromLocationCode">The location code of the bin.</param>
+    /// <param name="FromBinCode">The bin code to inspect.</param>
+    /// <returns>True if the bin type is marked for receiving; otherwise, false.</returns>
+    local procedure IsReceiveBin(FromLocationCode: Code[10]; FromBinCode: Code[20]): Boolean
+    var
+        FromBin: Record Bin;
+        BinType: Record "Bin Type";
+    begin
+        if (FromLocationCode = '') or (FromBinCode = '') then
+            exit(false);
+        if not FromBin.Get(FromLocationCode, FromBinCode) then
+            exit(false);
+        if not BinType.Get(FromBin."Bin Type Code") then
+            exit(false);
+        exit(BinType.Receive);
+    end;
+
+    /// <summary>
+    /// Notifies subscribers before disposition quantities are allocated to inventory locations and bins.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection being processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instruction being applied.</param>
+    /// <param name="TempQuantityQltyDispositionBuffer">The quantity allocation buffer that subscribers can populate.</param>
+    /// <param name="TempExistingInventoryBinContent">The inventory buffer that subscribers can populate.</param>
+    /// <param name="IsHandled">Set to true to skip the standard allocation.</param>
     [IntegrationEvent(false, false)]
     procedure OnBeforePopulateBinContentBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Notifies subscribers after disposition quantities are allocated to inventory locations and bins.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that was processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The applied disposition instruction.</param>
+    /// <param name="TempQuantityQltyDispositionBuffer">The populated quantity allocation buffer.</param>
+    /// <param name="TempExistingInventoryBinContent">The inventory buffer used during allocation.</param>
     [IntegrationEvent(false, false)]
     procedure OnAfterPopulateBinContentBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary)
     begin

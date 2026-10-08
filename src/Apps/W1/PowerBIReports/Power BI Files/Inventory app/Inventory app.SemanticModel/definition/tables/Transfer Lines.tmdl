@@ -67,18 +67,35 @@ table 'Transfer Lines'
 			
 			VAR Endpoint = "&page=5749&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Transfer Lines'[itemNo]),'Transfer Lines'[itemNo], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Transfer Lines'[dimensionSetID]), 'Transfer Lines'[dimensionSetID], "|")
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
 			VAR Location = SELECTEDVALUE('Transfer Lines'[Transfer From Location Code])
-			
-			VAR ItemFilter = "filter='Transfer Line'.'Item No.' IS '" & Items & "'"
-			VAR DateFilter = " AND 'Transfer Line'.'Shipment Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Transfer Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
-			VAR LocationFilter = " AND 'Transfer Line'.'Transfer-from Code' IS '" & Location & "'"
-			
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Transfer Line'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Transfer Lines'[itemNo] ), LEN ( 'Transfer Lines'[itemNo] ) + 1 )
+			    + LEN ( " AND 'Transfer Line'.'Shipment Date' IS ''" ) + ProjectedRangedLength
+			    + LEN ( " AND 'Transfer Line'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Transfer Lines'[dimensionSetID] ), LEN ( 'Transfer Lines'[dimensionSetID] ) + 1 )
+			    + LEN ( " AND 'Transfer Line'.'Transfer-from Code' IS ''" ) + LEN ( Location )
 			RETURN
-			BaseLink & ItemFilter & DateFilter & DimensionFilter & LocationFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Transfer Line'.'Item No.' IS '" & CONCATENATEX(VALUES('Transfer Lines'[itemNo]),'Transfer Lines'[itemNo], "|") & "'"
+			            & " AND 'Transfer Line'.'Shipment Date' IS '" & [Ranged] & "'"
+			            & " AND 'Transfer Line'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Transfer Lines'[dimensionSetID]), 'Transfer Lines'[dimensionSetID], "|") & "'" & " AND 'Transfer Line'.'Transfer-from Code' IS '" & Location & "'",
+			BaseLink
+			    )
 		displayFolder: _Back Link
 		lineageTag: 68ec7ae9-c366-436b-98d3-8638a543c464
 

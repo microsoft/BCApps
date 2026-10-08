@@ -62,7 +62,9 @@ flowchart TD
 
 There are two distinct patterns for building mock responses:
 
-**Resource-based responses** are used when the response structure is stable and complex. The bulk operations tests load responses from `.resources/Bulk Operations/StagedUploadResult.txt`, `.resources/Bulk Operations/BulkMutationResponse.txt`, etc. These files contain JSON templates with `%1`, `%2` placeholders that are filled via `StrSubstNo`. This keeps large JSON payloads out of AL code.
+**Resource-based responses** are used when the response structure is stable and complex. The bulk operations tests load responses from `.resources/Bulk Operations/StagedUploadResult.txt`, `.resources/Bulk Operations/BulkMutationResponse.txt`, etc. Product export and variant retrieval tests load product update and variant detail responses from `.resources/Products/`, and shipping tests load market feature and market-method responses from `.resources/Shipping/`. These files contain JSON templates with placeholders that are filled via `StrSubstNo` or token replacement. This keeps large JSON payloads out of AL code.
+
+*Updated: 2026-07-29 -- Resource-based mocks now include product variant, product update, and shipping market responses*
 
 **Programmatic responses** are used when the response content depends on test parameters. `ShpfyOrderHandlingHelper.CreateShopifyOrderAsJson()` builds an entire order JSON structure in AL, computing prices, tax, and discount amounts based on the order amount from `OrdersToImport`. Similarly, `ShpfyCustomerInitTest.DummyJsonCustomerObjectFromShopify()` builds customer JSON with parameterized IDs and today's date.
 
@@ -98,6 +100,25 @@ flowchart TD
 ```
 
 This two-phase approach (extract-then-import) mirrors how the real connector works: it first gets a lightweight list of orders to import, then fetches full details for each one. The test helper preserves this separation so the connector's actual import codeunits are exercised.
+
+## Transaction import test flow
+
+`ShpfyTransactionsTest` is a small area, so it is documented at the app level. It verifies how the transaction importer maps Shopify `shopMoney` and `presentmentMoney` into BC transaction fields, and how currency codes are resolved. LCY is represented by an empty BC currency code, ISO Code matches take precedence, Code matches are the fallback, and a resolved LCY currency also returns blank.
+
+```mermaid
+flowchart TD
+    A[Test creates order header with unique Shopify order id] --> B[Enqueue shop and presentment money values]
+    B --> C[Transactions.UpdateTransactionInfos]
+    C --> D[HttpClientHandler returns one transaction JSON]
+    D --> E[Importer translates currency codes]
+    E --> F{Resolved currency equals LCY?}
+    F -->|Yes| G[Store blank BC currency code]
+    F -->|No| H[Store resolved Currency.Code]
+    G --> I[Assert amount and presentment fields]
+    H --> I
+```
+
+*Updated: 2026-07-29 -- Added Transactions test flow for currency and amount mapping*
 
 ## Access token registration
 

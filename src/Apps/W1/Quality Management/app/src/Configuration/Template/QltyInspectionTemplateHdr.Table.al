@@ -18,7 +18,9 @@ table 20402 "Qlty. Inspection Template Hdr."
     DrillDownPageId = "Qlty. Inspection Template List";
     LookupPageId = "Qlty. Inspection Template List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Template Line" = d;
+    Permissions = tabledata "Qlty. Inspection Template Line" = d,
+                  tabledata "Qlty. Inspection Gen. Rule" = d,
+                  tabledata "Qlty. Inspection Line" = m;
 
     fields
     {
@@ -94,24 +96,31 @@ table 20402 "Qlty. Inspection Template Hdr."
         end;
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Adds the supplied test to the template if it does not already exist.
     /// If it already exists then it will not add the test.
     /// </summary>
-    /// <param name="TestCode"></param>
+    /// <param name="TestCode">The test code to add.</param>
+    /// <returns>True if a new template line is inserted.</returns>
+    [Obsolete('Replaced by SelectMultipleTests() / AddSelectedTests() on "Qlty. Inspection Template Line".', '29.0')]
     procedure AddTestToTemplate(TestCode: Code[20]): Boolean
     var
         DummyQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
+#pragma warning disable AL0432
         exit(AddTestToTemplate(TestCode, DummyQltyInspectionTemplateLine));
+#pragma warning restore AL0432
     end;
 
     /// <summary>
     /// Adds the supplied test to the template if it does not already exist.
     /// If it already exists then it will not add the test and it will simply find it.
     /// </summary>
-    /// <param name="TestCode"></param>
-    /// <param name="QltyInspectionTemplateLine">the template line</param>
+    /// <param name="TestCode">The test code to add.</param>
+    /// <param name="QltyInspectionTemplateLine">The existing or newly inserted template line.</param>
+    /// <returns>True if a new template line is inserted.</returns>
+    [Obsolete('Replaced by SelectMultipleTests() / AddSelectedTests() on "Qlty. Inspection Template Line".', '29.0')]
     procedure AddTestToTemplate(TestCode: Code[20]; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"): Boolean
     begin
         QltyInspectionTemplateLine.Reset();
@@ -131,4 +140,5 @@ table 20402 "Qlty. Inspection Template Hdr."
 
         exit(false);
     end;
+#endif
 }

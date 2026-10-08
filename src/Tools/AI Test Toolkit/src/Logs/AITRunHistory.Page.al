@@ -245,6 +245,6 @@ page 149032 "AIT Run History"
             LineNo := 0;
 
         AITRunHistory.GetHistory(TestSuiteCode, LineNo, ViewBy, Rec);
-        CurrPage.Update();
+        CurrPage.Update(false);
     end;
 }

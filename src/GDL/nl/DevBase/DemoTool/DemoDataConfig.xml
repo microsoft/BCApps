@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<DemoDataSetup>
+	<StartingYear>2008</StartingYear>
+	<CompanyType>VAT</CompanyType>
+	<AdvancedSetup>FALSE</AdvancedSetup>
+	<AdjustForPaymentDiscount>FALSE</AdjustForPaymentDiscount>
+	<DataLanguageID>1043</DataLanguageID>
+	<CountryCode>NL</CountryCode>
+	<CurrencyCode>EUR</CurrencyCode>
+	<AdditionalCurrency/>
+	<RemoveCountryPrefix>TRUE</RemoveCountryPrefix>
+	<DataType>Extended</DataType>
+	<SetupFinancials>TRUE</SetupFinancials>
+	<SetupRelationshipMgt>TRUE</SetupRelationshipMgt>
+	<SetupServiceMgt>TRUE</SetupServiceMgt>
+	<SetupDistribution>TRUE</SetupDistribution>
+	<SetupManufacturing>TRUE</SetupManufacturing>
+	<SetupADCS>TRUE</SetupADCS>
+	<TestDemonstrationCompany>FALSE</TestDemonstrationCompany>
+	<RapidStartCountry></RapidStartCountry>
+</DemoDataSetup>

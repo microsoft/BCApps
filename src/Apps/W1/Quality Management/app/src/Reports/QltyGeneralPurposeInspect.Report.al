@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 #endif
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Telemetry;
 
 report 20405 "Qlty. General Purpose Inspect."
 {
@@ -314,6 +315,13 @@ report 20405 "Qlty. General Purpose Inspect."
         DateLabel = 'Date';
         LastModifiedByLabel = 'Last modified by';
     }
+
+    trigger OnPreReport()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Report, Report::"Qlty. General Purpose Inspect.", 'Print report General Purpose Inspection');
+    end;
 
     var
         Item: Record Item;

@@ -1,0 +1,42 @@
+[
+  {
+    "codeunitId": 133522,
+    "codeunitName": "Load Suggestions from csv",
+    "method": "TestHandlingOfCsvFileData"
+  },
+  {
+    "codeunitId": 133524,
+    "codeunitName": "Red Teaming Tests",
+    "method": "InstructionsAsInputData"
+  },
+  {
+    "codeunitId": 133524,
+    "codeunitName": "Red Teaming Tests",
+    "method": "InstructionsInColumnName"
+  },
+  {
+    "codeunitId": 133524,
+    "codeunitName": "Red Teaming Tests",
+    "method": "InstructionsInColumnValue"
+  },
+  {
+    "codeunitId": 133525,
+    "codeunitName": "RedT XPIA Tests",
+    "method": "PromptInjectionInColumnHeader"
+  },
+  {
+    "codeunitId": 133525,
+    "codeunitName": "RedT XPIA Tests",
+    "method": "PromptInjectionInColumnValue"
+  },
+  {
+    "codeunitId": 133525,
+    "codeunitName": "RedT XPIA Tests",
+    "method": "PromptInjectionInFullColumnHeader"
+  },
+  {
+    "codeunitId": 133525,
+    "codeunitName": "RedT XPIA Tests",
+    "method": "PromptInjectionInInput"
+  }
+]

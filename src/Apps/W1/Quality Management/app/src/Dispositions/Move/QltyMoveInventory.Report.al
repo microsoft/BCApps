@@ -250,6 +250,7 @@ report 20404 "Qlty. Move Inventory"
                         Caption = 'Location';
                         ToolTip = 'Specifies the destination location to move the inventory to.';
                         ShowMandatory = true;
+                        Editable = IsDestinationLocationEditable;
 
                         trigger OnValidate()
                         var
@@ -258,17 +259,47 @@ report 20404 "Qlty. Move Inventory"
                             ShowBinCode := true;
                             if DestinationLocation.Get(DestinationLocationCode) then
                                 ShowBinCode := DestinationLocation."Bin Mandatory";
+                            DestinationBinCode := '';
                         end;
                     }
 
                     field(ChooseDestinationBin; DestinationBinCode)
                     {
                         ApplicationArea = All;
-                        TableRelation = Bin.Code;
                         Caption = 'Bin';
                         ToolTip = 'Specifies the destination bin to move the inventory to.';
                         ShowMandatory = true;
                         Enabled = ShowBinCode;
+
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            DestinationBin: Record Bin;
+                            BinList: Page "Bin List";
+                        begin
+                            if DestinationLocationCode = '' then
+                                exit(false);
+
+                            DestinationBin.SetRange("Location Code", DestinationLocationCode);
+                            BinList.SetTableView(DestinationBin);
+                            BinList.LookupMode(true);
+                            if BinList.RunModal() = Action::LookupOK then begin
+                                BinList.GetRecord(DestinationBin);
+                                Text := DestinationBin.Code;
+                                exit(true);
+                            end;
+                            exit(false);
+                        end;
+
+                        trigger OnValidate()
+                        var
+                            DestinationBin: Record Bin;
+                        begin
+                            if DestinationBinCode = '' then
+                                exit;
+                            if DestinationLocationCode = '' then
+                                exit;
+                            DestinationBin.Get(DestinationLocationCode, DestinationBinCode);
+                        end;
                     }
                 }
                 group(PostImmediately)
@@ -300,6 +331,28 @@ report 20404 "Qlty. Move Inventory"
                 }
             }
         }
+
+        trigger OnOpenPage()
+        var
+            QltyInspectionHeader: Record "Qlty. Inspection Header";
+            DestinationLocation: Record Location;
+        begin
+            QltyInspectionHeader.CopyFilters(CurrentInspection);
+            if not QltyInspectionHeader.FindSet() then
+                exit;
+            if QltyInspectionHeader.Next() <> 0 then
+                exit;
+
+            if QltyInspectionHeader."Location Code" = '' then
+                exit;
+
+            DestinationLocationCode := QltyInspectionHeader."Location Code";
+            IsDestinationLocationEditable := false;
+
+            ShowBinCode := false;
+            if DestinationLocation.Get(DestinationLocationCode) then
+                ShowBinCode := DestinationLocation."Bin Mandatory";
+        end;
     }
 
     var
@@ -313,6 +366,7 @@ report 20404 "Qlty. Move Inventory"
         ShouldPostImmediately: Boolean;
         ShouldPostLater: Boolean;
         ShowBinCode: Boolean;
+        IsDestinationLocationEditable: Boolean;
         UseMovement: Boolean;
         UseReclass: Boolean;
         IsMoveSpecific: Boolean;
@@ -327,5 +381,6 @@ report 20404 "Qlty. Move Inventory"
         ShouldPostLater := not ShouldPostImmediately;
         UseReclass := not UseMovement;
         IsMoveSpecific := true;
+        IsDestinationLocationEditable := true;
     end;
 }

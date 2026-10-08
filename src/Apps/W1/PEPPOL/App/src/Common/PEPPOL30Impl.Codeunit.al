@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
+using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
@@ -17,6 +18,9 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -49,6 +53,58 @@ codeunit 37201 "PEPPOL30 Impl."
         VATTxt: Label 'VAT', Locked = true;
         PaymentDisAmtTxt: Label 'Payment Discount Amount';
         AllowanceChargePaymentDiscountReasonCodeTxt: Label '95', Locked = true;
+        FileNameTok: Label '%1_%2.pdf', Comment = '1: Document Type, 2: Document No', Locked = true;
+        GLNSchemeIDTxt: Label '0088', Locked = true;
+        CreditTransferPaymentMeansCodeTxt: Label '31', Locked = true;
+        CheckPaymentMeansCodeTxt: Label '20', Locked = true;
+        MissingCompanyPartyIdentificationErr: Label 'You must specify %1 in %2, or specify %3 and enable %4.', Comment = '%1 - VAT Registration No. field caption, %2 - Company Information table caption, %3 - GLN field caption, %4 - Use GLN in Electronic Documents field caption';
+        MissingCustomerPartyIdentificationErr: Label 'You must specify %1 for Customer %2, or specify %3 and enable %4.', Comment = '%1 - VAT Registration No. field caption, %2 - Customer No., %3 - GLN field caption, %4 - Use GLN in Electronic Documents field caption';
+
+    procedure GetPayeePartyInfo(Vendor: Record Vendor; var PayeeEndpointID: Text; var PayeeSchemeID: Text; var PayeePartyName: Text)
+    begin
+        if Vendor.GLN <> '' then begin
+            PayeeEndpointID := Vendor.GLN;
+            PayeeSchemeID := GLNSchemeIDTxt;
+        end else begin
+            PayeeEndpointID := Vendor."VAT Registration No.";
+            PayeeSchemeID := '';
+        end;
+        PayeePartyName := Vendor.Name;
+    end;
+
+    procedure GetPaymentMeansInfo(RemitAdviceBuffer: Record "Remit. Advice Buffer" temporary; var PaymentMeansCode: Text; var PayeeFinancialAccountID: Text)
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+    begin
+        case RemitAdviceBuffer."Bank Payment Type" of
+            RemitAdviceBuffer."Bank Payment Type"::"Electronic Payment", RemitAdviceBuffer."Bank Payment Type"::"Electronic Payment-IAT":
+                PaymentMeansCode := CreditTransferPaymentMeansCodeTxt;
+            RemitAdviceBuffer."Bank Payment Type"::"Computer Check", RemitAdviceBuffer."Bank Payment Type"::"Manual Check":
+                PaymentMeansCode := CheckPaymentMeansCodeTxt;
+            else
+                PaymentMeansCode := '';
+        end;
+
+        PayeeFinancialAccountID := '';
+        if PaymentMeansCode = '' then
+            exit;
+
+        if RemitAdviceBuffer."Recipient Bank Account" = '' then
+            exit;
+        if not VendorBankAccount.Get(RemitAdviceBuffer."Vendor No.", RemitAdviceBuffer."Recipient Bank Account") then
+            exit;
+
+        if VendorBankAccount.IBAN <> '' then
+            PayeeFinancialAccountID := VendorBankAccount.IBAN
+        else
+            PayeeFinancialAccountID := VendorBankAccount."Bank Account No.";
+    end;
+
+    procedure GetDocumentIdentification(var CustomizationID: Text; var ProfileID: Text)
+    begin
+        CustomizationID := '';
+        ProfileID := '';
+    end;
 
     procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
     var
@@ -186,7 +242,6 @@ codeunit 37201 "PEPPOL30 Impl."
     var
         Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
-        FileNameTok: Label '%1_%2.pdf', Comment = '1: Document Type, 2: Document No', Locked = true;
     begin
         AdditionalDocumentReferenceID := '';
         AdditionalDocRefDocumentType := '';
@@ -230,6 +285,42 @@ codeunit 37201 "PEPPOL30 Impl."
         exit(TempBlob.HasValue());
     end;
 
+    local procedure GeneratePDFAsTempBlob(PurchaseHeader: Record "Purchase Header"; var TempBlob: Codeunit "Temp Blob"): Boolean
+    var
+        ReportSelections: Record "Report Selections";
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        case PurchaseHeader."Document Type" of
+            PurchaseHeader."Document Type"::Order:
+                begin
+                    PurchaseHeader.SetRecFilter();
+                    if PurchaseHeader.IsEmpty() then
+                        exit(false);
+                    ReportSelections.GetPdfReportForVend(TempBlob, "Report Selection Usage"::"P.Order", PurchaseHeader, PurchaseHeader."Buy-from Vendor No.");
+                end;
+            PurchaseHeader."Document Type"::Invoice:
+                begin
+                    PurchInvHeader.SetRange("No.", PurchaseHeader."No.");
+                    if PurchInvHeader.IsEmpty() then
+                        exit(false);
+                    if PurchaseHeader."Self-Billing Invoice" then
+                        ReportSelections.GetPdfReportForVend(TempBlob, "Report Selection Usage"::"P.Self Billing Invoice", PurchInvHeader, PurchaseHeader."Buy-from Vendor No.")
+                    else
+                        ReportSelections.GetPdfReportForVend(TempBlob, "Report Selection Usage"::"P.Invoice", PurchInvHeader, PurchaseHeader."Buy-from Vendor No.");
+                end;
+            PurchaseHeader."Document Type"::"Credit Memo":
+                begin
+                    PurchCrMemoHdr.SetRange("No.", PurchaseHeader."No.");
+                    if PurchCrMemoHdr.IsEmpty() then
+                        exit(false);
+                    ReportSelections.GetPdfReportForVend(TempBlob, "Report Selection Usage"::"P.Cr.Memo", PurchCrMemoHdr, PurchaseHeader."Buy-from Vendor No.");
+                end;
+        end;
+
+        exit(TempBlob.HasValue());
+    end;
+
     procedure GetAccountingSupplierPartyInfo(var SupplierEndpointID: Text; var SupplierSchemeID: Text; var SupplierName: Text)
     begin
         GetAccountingSupplierPartyInfoByFormat(SupplierEndpointID, SupplierSchemeID, SupplierName, false);
@@ -238,6 +329,20 @@ codeunit 37201 "PEPPOL30 Impl."
     procedure GetAccountingSupplierPartyInfoBIS(var SupplierEndpointID: Text; var SupplierSchemeID: Text; var SupplierName: Text)
     begin
         GetAccountingSupplierPartyInfoByFormat(SupplierEndpointID, SupplierSchemeID, SupplierName, true);
+    end;
+
+    procedure CheckCompanyPartyIdentification(SupplierEndpointID: Text)
+    var
+        CompanyInfo: Record "Company Information";
+    begin
+        if SupplierEndpointID <> '' then
+            exit;
+
+        CompanyInfo.Get();
+        Error(
+          MissingCompanyPartyIdentificationErr,
+          CompanyInfo.FieldCaption("VAT Registration No."), CompanyInfo.TableCaption(),
+          CompanyInfo.FieldCaption(GLN), CompanyInfo.FieldCaption("Use GLN in Electronic Document"));
     end;
 
     local procedure GetAccountingSupplierPartyInfoByFormat(var SupplierEndpointID: Text; var SupplierSchemeID: Text; var SupplierName: Text; IsBISBilling: Boolean)
@@ -296,6 +401,66 @@ codeunit 37201 "PEPPOL30 Impl."
         CompanyID := CompanyInfo.FormatVATRegistrationNo(CompanyInfo.GetVATRegistrationNumber(), CompanyInfo."Country/Region Code");
         CompanyIDSchemeID := GetVATScheme(CompanyInfo."Country/Region Code");
         TaxSchemeID := VATTxt;
+    end;
+
+    /// <summary>
+    /// Gets seller supplier (vendor) party tax scheme information from the purchase header.
+    /// Used for self-billed invoices, where the vendor is the accounting supplier and its VAT
+    /// registration must be declared — unlike Purchase Order export, which never needed this.
+    /// Deliberately not routed through the local FormatVATRegistrationNo helper: that helper
+    /// ignores its own parameters and always returns the Company Information's own VAT number,
+    /// which would be wrong here (it would misreport our own VAT ID as the vendor's).
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record.</param>
+    /// <param name="CompanyID">Returns the vendor's VAT registration ID.</param>
+    /// <param name="CompanyIDSchemeID">Returns the VAT scheme ID.</param>
+    /// <param name="TaxSchemeID">Returns the tax scheme ID.</param>
+    procedure GetSellerSupplierPartyTaxScheme(PurchaseHeader: Record "Purchase Header"; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
+    begin
+        CompanyID := FormatSelfBilledVendorVATRegistrationNo(PurchaseHeader."VAT Registration No.", PurchaseHeader."Buy-from Country/Region Code");
+        CompanyIDSchemeID := GetVATSchemeByFormat(PurchaseHeader."Buy-from Country/Region Code", true);
+        TaxSchemeID := VATTxt;
+    end;
+
+    /// <summary>
+    /// cac:TaxTotal rendering for a self-billed (purchase-sourced) document — a Purchase-Header-typed
+    /// twin of <see cref="GetTaxTotalInfo"/>, which only exists Sales-typed. Avoids synthesizing a
+    /// fake Sales Header for a document that is genuinely a purchase document; only reads
+    /// currency/date context, the same fields <see cref="GetTaxTotalInfo"/> reads off Sales Header.
+    /// </summary>
+    procedure GetTaxTotalInfo(PurchaseHeader: Record "Purchase Header"; var VATAmtLine: Record "VAT Amount Line"; var TaxAmount: Text; var TaxTotalCurrencyID: Text)
+    begin
+        VATAmtLine.CalcSums(VATAmtLine."VAT Amount");
+        TaxAmount := Format(VATAmtLine."VAT Amount", 0, 9);
+        TaxTotalCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+    end;
+
+    /// <summary>
+    /// cac:TaxSubtotal rendering for a self-billed (purchase-sourced) document — a Purchase-Header-typed
+    /// twin of <see cref="GetTaxSubtotalInfo"/>. See <see cref="GetTaxTotalInfo"/> for why.
+    /// </summary>
+    procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; PurchaseHeader: Record "Purchase Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var schemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text)
+    var
+        GLSetup: Record "General Ledger Setup";
+    begin
+        TaxableAmount := Format(VATAmtLine."VAT Base" - VATAmtLine."Pmt. Discount Amount", 0, 9);
+        TaxAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+        SubtotalTaxAmount := Format(VATAmtLine."VAT Amount", 0, 9);
+        TaxSubtotalCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+        GLSetup.Get();
+        if GLSetup."LCY Code" <> GetPurchaseDocCurrencyCode(PurchaseHeader) then begin
+            TransactionCurrencyTaxAmount :=
+              Format(
+                VATAmtLine.GetAmountLCY(
+                  PurchaseHeader."Posting Date",
+                  GetPurchaseDocCurrencyCode(PurchaseHeader),
+                  PurchaseHeader."Currency Factor"), 0, 9);
+            TransCurrTaxAmtCurrencyID := GLSetup."LCY Code";
+        end;
+        TaxTotalTaxCategoryID := VATAmtLine."Tax Category";
+        schemeID := '';
+        TaxCategoryPercent := Format(VATAmtLine."VAT %", 0, 9);
+        TaxTotalTaxSchemeID := VATTxt;
     end;
 
     procedure GetAccountingSupplierPartyTaxSchemeBIS(var VATAmtLine: Record "VAT Amount Line"; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
@@ -379,6 +544,19 @@ codeunit 37201 "PEPPOL30 Impl."
         GetAccountingCustomerPartyInfoByFormat(
           SalesHeader, CustomerEndpointID, CustomerSchemeID,
           CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName, true);
+    end;
+
+    procedure CheckCustomerPartyIdentification(CustomerEndpointID: Text; CustomerNo: Code[20])
+    var
+        Cust: Record Customer;
+    begin
+        if CustomerEndpointID <> '' then
+            exit;
+
+        Error(
+          MissingCustomerPartyIdentificationErr,
+          Cust.FieldCaption("VAT Registration No."), CustomerNo,
+          Cust.FieldCaption(GLN), Cust.FieldCaption("Use GLN in Electronic Document"));
     end;
 
     local procedure GetAccountingCustomerPartyInfoByFormat(SalesHeader: Record "Sales Header"; var CustomerEndpointID: Text; var CustomerSchemeID: Text; var CustomerPartyIdentificationID: Text; var CustomerPartyIDSchemeID: Text; var CustomerName: Text; IsBISBilling: Boolean)
@@ -643,6 +821,20 @@ codeunit 37201 "PEPPOL30 Impl."
         PaymentTermsNote := PmtTerms.Description;
     end;
 
+    procedure GetPaymentTermsInfo(PurchaseHeader: Record "Purchase Header"; var PaymentTermsNote: Text)
+    var
+        PmtTerms: Record "Payment Terms";
+    begin
+        if PurchaseHeader."Payment Terms Code" = '' then
+            PmtTerms.Init()
+        else begin
+            PmtTerms.Get(PurchaseHeader."Payment Terms Code");
+            PmtTerms.TranslateDescription(PmtTerms, PurchaseHeader."Language Code");
+        end;
+
+        PaymentTermsNote := PmtTerms.Description;
+    end;
+
     procedure GetAllowanceChargeInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
     begin
         if VATAmtLine."Invoice Discount Amount" = 0 then begin
@@ -771,6 +963,35 @@ codeunit 37201 "PEPPOL30 Impl."
         end;
     end;
 
+    procedure GetLegalMonetaryInfo(PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text; var PrepaidAmount: Text; var PrepaidCurrencyID: Text; var PayableRoundingAmount: Text; var PayableRndingAmountCurrencyID: Text; var PayableAmount: Text; var PayableAmountCurrencyID: Text)
+    begin
+        VATAmtLine.Reset();
+        VATAmtLine.CalcSums("Line Amount", "VAT Base", "Amount Including VAT", "Invoice Discount Amount");
+
+        GetLegalMonetaryDocAmounts(
+                PurchaseHeader, VATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID,
+                TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID,
+                AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID);
+
+        PrepaidAmount := '0.00';
+        PrepaidCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+
+        if TempPurchaseLine."Line No." = 0 then begin
+            PayableRoundingAmount :=
+              Format(VATAmtLine."Amount Including VAT" - Round(VATAmtLine."Amount Including VAT", 0.01), 0, 9);
+            PayableRndingAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+
+            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
+            PayableAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+        end else begin
+            PayableRoundingAmount := Format(TempPurchaseLine."Amount Including VAT", 0, 9);
+            PayableRndingAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+
+            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" + TempPurchaseLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
+            PayableAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+        end;
+    end;
+
     procedure GetLegalMonetaryDocAmounts(SalesHeader: Record "Sales Header"; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text)
     begin
         LineExtensionAmount := Format(Round(VATAmtLine."VAT Base", 0.01) + Round(VATAmtLine."Invoice Discount Amount", 0.01), 0, 9);
@@ -790,6 +1011,24 @@ codeunit 37201 "PEPPOL30 Impl."
         ChargeTotalAmountCurrencyID := '';
     end;
 
+    procedure GetLegalMonetaryDocAmounts(PurchaseHeader: Record "Purchase Header"; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text)
+    begin
+        LineExtensionAmount := Format(Round(VATAmtLine."VAT Base", 0.01) + Round(VATAmtLine."Invoice Discount Amount", 0.01), 0, 9);
+        LegalMonetaryTotalCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+
+        TaxExclusiveAmount := Format(Round(VATAmtLine."VAT Base" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
+        TaxExclusiveAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+
+        TaxInclusiveAmount := Format(Round(VATAmtLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01, '>'), 0, 9); // Should be two decimal places
+        TaxInclusiveAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+
+        AllowanceTotalAmount := Format(Round(VATAmtLine."Invoice Discount Amount" + VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
+        AllowanceTotalAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+
+        ChargeTotalAmount := '';
+        ChargeTotalAmountCurrencyID := '';
+    end;
+
     procedure GetLineGeneralInfo(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var InvoiceLineID: Text; var InvoiceLineNote: Text; var InvoicedQuantity: Text; var InvoiceLineExtensionAmount: Text; var LineExtensionAmountCurrencyID: Text; var InvoiceLineAccountingCost: Text)
     var
         SalesLineLineAmount: Decimal;
@@ -803,6 +1042,28 @@ codeunit 37201 "PEPPOL30 Impl."
         InvoiceLineExtensionAmount := Format(SalesLineLineAmount, 0, 9);
         LineExtensionAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         InvoiceLineAccountingCost := '';
+    end;
+
+    procedure GetLineGeneralInfo(PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var InvoiceLineID: Text; var InvoiceLineNote: Text; var InvoicedQuantity: Text; var InvoiceLineExtensionAmount: Text; var LineExtensionAmountCurrencyID: Text; var InvoiceLineAccountingCost: Text)
+    var
+        PurchaseLineLineAmount: Decimal;
+    begin
+        InvoiceLineID := Format(PurchaseLine."Line No.", 0, 9);
+        InvoiceLineNote := DelChr(Format(PurchaseLine.Type), '<>');
+        InvoicedQuantity := Format(PurchaseLine.Quantity, 0, 9);
+        PurchaseLineLineAmount := PurchaseLine."Line Amount";
+        InvoiceLineExtensionAmount := Format(PurchaseLineLineAmount, 0, 9);
+        LineExtensionAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+        InvoiceLineAccountingCost := '';
+    end;
+
+    procedure GetLineRequestedDeliveryPeriod(PurchaseLine: Record "Purchase Line"; var StartDate: Text; var EndDate: Text)
+    begin
+        if PurchaseLine."Requested Receipt Date" = 0D then
+            exit;
+
+        StartDate := Format(PurchaseLine."Requested Receipt Date", 0, 9);
+        EndDate := StartDate;
     end;
 
     procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var UnitCode: Text; var UnitCodeListID: Text)
@@ -825,6 +1086,32 @@ codeunit 37201 "PEPPOL30 Impl."
                     Error(NoUnitOfMeasureErr, SalesLine."Document Type", SalesLine."Document No.", SalesLine.FieldCaption("Unit of Measure Code"));
             SalesLine.Type::"G/L Account", SalesLine.Type::"Fixed Asset", SalesLine.Type::"Charge (Item)":
                 if UOM.Get(SalesLine."Unit of Measure Code") then
+                    UnitCode := UOM."International Standard Code"
+                else
+                    UnitCode := UoMforPieceINUNECERec20ListIDTxt;
+        end;
+    end;
+
+    procedure GetLineUnitCodeInfo(PurchaseLine: Record "Purchase Line"; var UnitCode: Text; var UnitCodeListID: Text)
+    var
+        UOM: Record "Unit of Measure";
+    begin
+        UnitCode := '';
+        UnitCodeListID := GetUNECERec20ListID();
+
+        if PurchaseLine.Quantity = 0 then begin
+            UnitCode := UoMforPieceINUNECERec20ListIDTxt; // unitCode is required
+            exit;
+        end;
+
+        case PurchaseLine.Type of
+            PurchaseLine.Type::Item, PurchaseLine.Type::Resource:
+                if UOM.Get(PurchaseLine."Unit of Measure Code") then
+                    UnitCode := UOM."International Standard Code"
+                else
+                    Error(NoUnitOfMeasureErr, PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine.FieldCaption("Unit of Measure Code"));
+            PurchaseLine.Type::"G/L Account", PurchaseLine.Type::"Fixed Asset", PurchaseLine.Type::"Charge (Item)":
+                if UOM.Get(PurchaseLine."Unit of Measure Code") then
                     UnitCode := UOM."International Standard Code"
                 else
                     UnitCode := UoMforPieceINUNECERec20ListIDTxt;
@@ -907,6 +1194,29 @@ codeunit 37201 "PEPPOL30 Impl."
             OriginCountryIdCodeListID := GetISO3166_1Alpha2();
     end;
 
+    procedure GetLineItemInfo(PurchaseLine: Record "Purchase Line"; var Description: Text; var Name: Text; var SellersItemIdentificationID: Text; var StandardItemIdentificationID: Text; var StdItemIdIDSchemeID: Text; var OriginCountryIdCode: Text; var OriginCountryIdCodeListID: Text)
+    var
+        Item: Record Item;
+    begin
+        Name := PurchaseLine.Description;
+        Description := PurchaseLine."Description 2";
+
+        if (PurchaseLine.Type = PurchaseLine.Type::Item) and Item.Get(PurchaseLine."No.") then begin
+            SellersItemIdentificationID := PurchaseLine."No.";
+            StandardItemIdentificationID := Item.GTIN;
+            StdItemIdIDSchemeID := GTINTxt;
+        end else begin
+            SellersItemIdentificationID := '';
+            StandardItemIdentificationID := '';
+            StdItemIdIDSchemeID := '';
+        end;
+
+        OriginCountryIdCode := '';
+        OriginCountryIdCodeListID := '';
+        if PurchaseLine.Type <> PurchaseLine.Type::" " then
+            OriginCountryIdCodeListID := GetISO3166_1Alpha2();
+    end;
+
     procedure GetLineItemCommodityClassificationInfo(var CommodityCode: Text; var CommodityCodeListID: Text; var ItemClassificationCode: Text; var ItemClassificationCodeListID: Text)
     begin
         CommodityCode := '';
@@ -934,10 +1244,36 @@ codeunit 37201 "PEPPOL30 Impl."
         ClassifiedTaxCategorySchemeID := VATTxt;
     end;
 
+    procedure GetLineItemClassifiedTaxCategory(PurchaseLine: Record "Purchase Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        if VATPostingSetup.Get(PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group") then begin
+            ClassifiedTaxCategoryID := VATPostingSetup."Tax Category";
+            InvoiceLineTaxPercent := Format(PurchaseLine."VAT %", 0, 9);
+        end;
+
+        if ClassifiedTaxCategoryID = '' then begin
+            ClassifiedTaxCategoryID := GetTaxCategoryE();
+            InvoiceLineTaxPercent := '0';
+        end;
+
+        ItemSchemeID := '';
+        ClassifiedTaxCategorySchemeID := VATTxt;
+    end;
+
     procedure GetLineItemClassifiedTaxCategoryBIS(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
     begin
         GetLineItemClassifiedTaxCategory(
           SalesLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
+        if ClassifiedTaxCategoryID = GetTaxCategoryO() then
+            InvoiceLineTaxPercent := '';
+    end;
+
+    procedure GetLineItemClassifiedTaxCategoryBIS(PurchaseLine: Record "Purchase Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    begin
+        GetLineItemClassifiedTaxCategory(
+          PurchaseLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
         if ClassifiedTaxCategoryID = GetTaxCategoryO() then
             InvoiceLineTaxPercent := '';
     end;
@@ -975,6 +1311,21 @@ codeunit 37201 "PEPPOL30 Impl."
         GetLineUnitCodeInfo(SalesLine, UnitCode, unitCodeListID);
     end;
 
+    procedure GetLinePriceInfo(PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var InvoiceLinePriceAmount: Text; var InvLinePriceAmountCurrencyID: Text; var BaseQuantity: Text; var UnitCode: Text)
+    var
+        VATBaseIdx: Decimal;
+        unitCodeListID: Text;
+    begin
+        if PurchaseHeader."Prices Including VAT" then begin
+            VATBaseIdx := 1 + PurchaseLine."VAT %" / 100;
+            InvoiceLinePriceAmount := Format(Round(PurchaseLine."Unit Cost" / VATBaseIdx), 0, 9)
+        end else
+            InvoiceLinePriceAmount := Format(PurchaseLine."Unit Cost", 0, 9);
+        InvLinePriceAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
+        BaseQuantity := '1';
+        GetLineUnitCodeInfo(PurchaseLine, UnitCode, unitCodeListID);
+    end;
+
     procedure GetLinePriceAllowanceChargeInfo(var PriceChargeIndicator: Text; var PriceAllowanceChargeAmount: Text; var PriceAllowanceAmountCurrencyID: Text; var PriceAllowanceChargeBaseAmount: Text; var PriceAllowChargeBaseAmtCurrID: Text)
     begin
         PriceChargeIndicator := '';
@@ -996,12 +1347,40 @@ codeunit 37201 "PEPPOL30 Impl."
         exit(SalesHeader."Currency Code");
     end;
 
+    local procedure GetPurchaseDocCurrencyCode(PurchaseHeader: Record "Purchase Header"): Code[10]
+    var
+        GLSetup: Record "General Ledger Setup";
+    begin
+        if PurchaseHeader."Currency Code" = '' then begin
+            GLSetup.Get();
+            GLSetup.TestField("LCY Code");
+            exit(GLSetup."LCY Code");
+        end;
+        exit(PurchaseHeader."Currency Code");
+    end;
+
     local procedure GetSalesperson(SalesHeader: Record "Sales Header"; var Salesperson: Record "Salesperson/Purchaser")
     begin
         if SalesHeader."Salesperson Code" = '' then
             Salesperson.Init()
         else
             Salesperson.Get(SalesHeader."Salesperson Code");
+    end;
+
+    local procedure GetContact(PurchaseHeader: Record "Purchase Header"; var Contact: Record Contact)
+    begin
+        if PurchaseHeader."Buy-from Contact No." = '' then
+            Contact.Init()
+        else
+            Contact.Get(PurchaseHeader."Buy-from Contact No.");
+    end;
+
+    local procedure GetSalesperson(PurchaseHeader: Record "Purchase Header"; var SalespersonPurchaser: Record "Salesperson/Purchaser")
+    begin
+        if PurchaseHeader."Purchaser Code" = '' then
+            SalespersonPurchaser.Init()
+        else
+            SalespersonPurchaser.Get(PurchaseHeader."Purchaser Code");
     end;
 
     procedure GetCrMemoBillingReferenceInfo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var InvoiceDocRefID: Text; var InvoiceDocRefIssueDate: Text)
@@ -1046,7 +1425,34 @@ codeunit 37201 "PEPPOL30 Impl."
         if VATAmtLine.InsertLine() then begin
             VATAmtLine."Line Amount" += SalesLine."Line Amount";
             VATAmtLine.Modify();
-        end;
+        end else
+            InsertZeroAmountVATAmtLine(VATAmtLine, SalesLine."Line Amount");
+    end;
+
+    procedure GetTaxTotals(PurchaseLine: Record "Purchase Line"; var VATAmtLine: Record "VAT Amount Line")
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        if not VATPostingSetup.Get(PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group") then
+            VATPostingSetup.Init();
+        VATAmtLine.Init();
+        VATAmtLine."VAT Identifier" := FORMAT(PurchaseLine."VAT %");
+        VATAmtLine."VAT Calculation Type" := PurchaseLine."VAT Calculation Type";
+        VATAmtLine."Tax Group Code" := PurchaseLine."Tax Group Code";
+        VATAmtLine."Tax Category" := VATPostingSetup."Tax Category";
+        VATAmtLine."VAT %" := PurchaseLine."VAT %";
+        VATAmtLine."VAT Base" := PurchaseLine.Amount;
+        VATAmtLine."Amount Including VAT" := PurchaseLine."Amount Including VAT";
+        if PurchaseLine."Allow Invoice Disc." then
+            VATAmtLine."Inv. Disc. Base Amount" := PurchaseLine."Line Amount";
+        VATAmtLine."Invoice Discount Amount" := PurchaseLine."Inv. Discount Amount";
+        VATAmtLine."Pmt. Discount Amount" += PurchaseLine."Pmt. Discount Amount";
+
+        if VATAmtLine.InsertLine() then begin
+            VATAmtLine."Line Amount" += PurchaseLine."Line Amount";
+            VATAmtLine.Modify();
+        end else
+            InsertZeroAmountVATAmtLine(VATAmtLine, PurchaseLine."Line Amount");
     end;
 
     procedure GetTaxCategories(SalesLine: Record "Sales Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
@@ -1065,6 +1471,22 @@ codeunit 37201 "PEPPOL30 Impl."
         if VATProductPostingGroupCategory.Insert() then;
     end;
 
+    procedure GetTaxCategories(PurchaseLine: Record "Purchase Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        if not VATPostingSetup.Get(PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group") then
+            VATPostingSetup.Init();
+        if not VATProductPostingGroup.Get(PurchaseLine."VAT Prod. Posting Group") then
+            VATProductPostingGroup.Init();
+
+        VATProductPostingGroupCategory.Init();
+        VATProductPostingGroupCategory.Code := VATPostingSetup."Tax Category";
+        VATProductPostingGroupCategory.Description := VATProductPostingGroup.Description;
+        if VATProductPostingGroupCategory.Insert() then;
+    end;
+
     procedure GetInvoiceRoundingLine(var TempSalesLine: Record "Sales Line" temporary; SalesLine: Record "Sales Line")
     begin
         if TempSalesLine."Line No." <> 0 then
@@ -1073,6 +1495,17 @@ codeunit 37201 "PEPPOL30 Impl."
         if IsRoundingLine(SalesLine, SalesLine."Bill-to Customer No.") then begin
             TempSalesLine.TransferFields(SalesLine);
             TempSalesLine.Insert();
+        end;
+    end;
+
+    procedure GetInvoiceRoundingLine(var TempPurchaseLine: Record "Purchase Line" temporary; PurchaseLine: Record "Purchase Line")
+    begin
+        if TempPurchaseLine."Line No." <> 0 then
+            exit;
+
+        if IsRoundingLine(PurchaseLine, PurchaseLine."Pay-to Vendor No.") then begin
+            TempPurchaseLine.TransferFields(PurchaseLine);
+            TempPurchaseLine.Insert();
         end;
     end;
 
@@ -1298,6 +1731,21 @@ codeunit 37201 "PEPPOL30 Impl."
         exit(false);
     end;
 
+    procedure IsRoundingLine(PurchaseLine: Record "Purchase Line"; VendorNo: Code[20]): Boolean;
+    var
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        if PurchaseLine.Type = PurchaseLine.Type::"G/L Account" then begin
+            Vendor.Get(VendorNo);
+            VendorPostingGroup.SetFilter(Code, Vendor."Vendor Posting Group");
+            if VendorPostingGroup.FindFirst() then
+                if PurchaseLine."No." = VendorPostingGroup."Invoice Rounding Account" then
+                    exit(true);
+        end;
+        exit(false);
+    end;
+
     procedure TransferHeaderToSalesHeader(FromRecord: Variant; var ToSalesHeader: Record "Sales Header")
     var
         ToRecord: Variant;
@@ -1383,5 +1831,197 @@ codeunit 37201 "PEPPOL30 Impl."
         TaxCategorySchemeID := '';
         Percent := Format(VATAmtLine."VAT %", 0, 9);
         AllowanceChargeTaxSchemeID := VATTxt;
+    end;
+
+    procedure GetBuyerCustomerPartyPostalAddr(PurchaseHeader: Record "Purchase Header"; var StreetName: Text; var BuyerCustomerAdditionalStreetName: Text; var CityName: Text; var PostalZone: Text; var CountrySubentity: Text; var IdentificationCode: Text; var ListID: Text)
+    var
+        CompanyInfo: Record "Company Information";
+        RespCenter: Record "Responsibility Center";
+    begin
+        CompanyInfo.Get();
+        if RespCenter.Get(PurchaseHeader."Responsibility Center") then begin
+            CompanyInfo.Address := RespCenter.Address;
+            CompanyInfo."Address 2" := RespCenter."Address 2";
+            CompanyInfo.City := RespCenter.City;
+            CompanyInfo."Post Code" := RespCenter."Post Code";
+            CompanyInfo.County := RespCenter.County;
+            CompanyInfo."Country/Region Code" := RespCenter."Country/Region Code";
+            CompanyInfo."Phone No." := RespCenter."Phone No.";
+            CompanyInfo."Fax No." := RespCenter."Fax No.";
+        end;
+
+        StreetName := CompanyInfo.Address;
+        BuyerCustomerAdditionalStreetName := CompanyInfo."Address 2";
+        CityName := CompanyInfo.City;
+        PostalZone := CompanyInfo."Post Code";
+        CountrySubentity := CompanyInfo.County;
+        IdentificationCode := GetCountryISOCode(CompanyInfo."Country/Region Code");
+        ListID := GetISO3166_1Alpha2();
+    end;
+
+    procedure GetSellerSupplierPartyContact(PurchaseHeader: Record "Purchase Header"; var ContactName: Text; var ContactPhone: Text; var ContactTelefax: Text; var ContactEmail: Text)
+    var
+        Contact: Record Contact;
+    begin
+        GetContact(PurchaseHeader, Contact);
+        ContactName := Contact.Name;
+        ContactPhone := Contact."Phone No.";
+        ContactTelefax := Contact."Telex No.";
+        ContactEmail := Contact."E-Mail";
+    end;
+
+#pragma warning disable AA0150
+    procedure GetGeneralInfoBIS(PurchaseHeader: Record "Purchase Header"; var ID: Text; var SalesOrderID: Text; var IssueDate: Text; var OrderTypeCode: Text; var Note: Text; var DocumentCurrencyCode: Text; var AccountingCost: Text; var CustomerReference: Text)
+#pragma warning restore AA0150
+    begin
+        ID := PurchaseHeader."No.";
+        SalesOrderID := PurchaseHeader."Vendor Order No.";
+        IssueDate := Format(PurchaseHeader."Document Date", 0, 9);
+        OrderTypeCode := '220';
+        Note := '';
+        DocumentCurrencyCode := GetPurchaseDocCurrencyCode(PurchaseHeader);
+        CustomerReference := PurchaseHeader."Your Reference";
+    end;
+
+    procedure GeneratePDFAttachmentAsAdditionalDocRef(PurchaseHeader: Record "Purchase Header"; var AdditionalDocumentReferenceID: Text; var AdditionalDocRefDocumentType: Text; var URI: Text; var Filename: Text; var MimeCode: Text; var EmbeddedDocumentBinaryObject: Text)
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        AdditionalDocumentReferenceID := '';
+        AdditionalDocRefDocumentType := '';
+        URI := '';
+        MimeCode := '';
+        EmbeddedDocumentBinaryObject := '';
+        Filename := '';
+
+        if not GeneratePDFAsTempBlob(PurchaseHeader, TempBlob) then
+            exit;
+
+        Filename := StrSubstNo(FileNameTok, PurchaseHeader."Document Type", PurchaseHeader."No.");
+        AdditionalDocumentReferenceID := PurchaseHeader."No.";
+        EmbeddedDocumentBinaryObject := Base64Convert.ToBase64(TempBlob.CreateInStream());
+        MimeCode := 'application/pdf';
+    end;
+
+    procedure GetBuyerCustomerPartyContact(PurchaseHeader: Record "Purchase Header"; var SalespersonPurchaserName: Text; var SalespersonPurchaserPhone: Text; var SalespersonPurchaserEmail: Text)
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        GetSalesperson(PurchaseHeader, SalespersonPurchaser);
+        SalespersonPurchaserName := SalespersonPurchaser.Name;
+        SalespersonPurchaserPhone := SalespersonPurchaser."Phone No.";
+        SalespersonPurchaserEmail := SalespersonPurchaser."E-Mail";
+    end;
+
+    procedure GetSellerSupplierPartyInfoBIS(PurchaseHeader: Record "Purchase Header"; var EndpointId: Text; var SchemeID: Text; var Name: Text)
+    var
+        Vendor: Record Vendor;
+    begin
+        if Vendor.Get(PurchaseHeader."Buy-from Vendor No.") then begin
+            Name := Vendor.Name;
+            if (Vendor.GLN <> '') then begin
+                EndpointId := Vendor.GLN;
+                SchemeID := GetGLNSchemeIDByFormat(true);
+            end else begin
+                EndpointId :=
+                  FormatVATRegistrationNo(
+                    PurchaseHeader."VAT Registration No.", PurchaseHeader."Buy-from Country/Region Code", true, false);
+                SchemeID := GetVATSchemeByFormat(PurchaseHeader."Buy-from Country/Region Code", true);
+            end;
+        end;
+    end;
+
+    /// <summary>
+    /// Self-billing-only twin of <see cref="GetSellerSupplierPartyInfoBIS"/>. That procedure's
+    /// VAT-based fallback (used whenever the vendor has no GLN) calls the local
+    /// FormatVATRegistrationNo helper, which ignores its own VATRegistrationNo/CountryCode
+    /// parameters and substitutes Company Information's own VAT number instead — a real,
+    /// pre-existing bug (also present in the ORDERS export path this codeunit otherwise serves).
+    /// Deliberately NOT fixed at the source: that would change ORDERS export's existing behavior
+    /// too, which is out of scope here. Instead, self-billing uses this corrected copy, which
+    /// calls the vendor's OWN VAT registration no. through the safe, parameter-driven
+    /// CompanyInfo.FormatVATRegistrationNo(RegNo, CountryCode) table method — the same fix already
+    /// applied for GetSellerSupplierPartyTaxScheme.
+    /// </summary>
+    procedure GetSelfBilledSellerSupplierPartyInfo(PurchaseHeader: Record "Purchase Header"; var EndpointId: Text; var SchemeID: Text; var Name: Text)
+    var
+        Vendor: Record Vendor;
+    begin
+        if Vendor.Get(PurchaseHeader."Buy-from Vendor No.") then begin
+            Name := Vendor.Name;
+            if (Vendor.GLN <> '') then begin
+                EndpointId := Vendor.GLN;
+                SchemeID := GetGLNSchemeIDByFormat(true);
+            end else begin
+                EndpointId := FormatSelfBilledVendorVATRegistrationNo(PurchaseHeader."VAT Registration No.", PurchaseHeader."Buy-from Country/Region Code");
+                SchemeID := GetVATSchemeByFormat(PurchaseHeader."Buy-from Country/Region Code", true);
+            end;
+        end;
+    end;
+
+    /// <summary>
+    /// Self-billing-only corrected replacement for the local FormatVATRegistrationNo helper above,
+    /// which ignores its own VATRegistrationNo/CountryCode parameters and substitutes Company
+    /// Information's own VAT number/country instead — the underlying cause of an empty vendor
+    /// EndpointID observed in a real export (vendor had no GLN, and Company Information's own VAT
+    /// number happened to be blank in that company). Mirrors that helper's IsBISBilling=true
+    /// branch exactly (DelChr, then — only for Denmark — CompanyInfo.FormatVATRegistrationNo for
+    /// country-specific reformatting), but is parameter-driven throughout: the vendor's own VAT
+    /// registration no./country never gets swapped for the company's. For every non-Danish vendor
+    /// (the common case) this never touches Company Information at all.
+    /// </summary>
+    local procedure FormatSelfBilledVendorVATRegistrationNo(VATRegistrationNo: Text; CountryCode: Code[10]): Text
+    var
+        CompanyInfo: Record "Company Information";
+    begin
+        VATRegistrationNo := DelChr(VATRegistrationNo);
+        if UseVATSchemeID(CountryCode) then
+            VATRegistrationNo := CompanyInfo.FormatVATRegistrationNo(VATRegistrationNo, CountryCode);
+        exit(VATRegistrationNo);
+    end;
+
+    procedure GetSellerSupplierPartyPostalAddr(PurchaseHeader: Record "Purchase Header"; var StreetName: Text; var AdditionalStreetName: Text; var CityName: Text; var PostalZone: Text; var CountrySubentity: Text; var IdentificationCode: Text; var ListID: Text)
+    begin
+        StreetName := PurchaseHeader."Buy-from Address";
+        AdditionalStreetName := PurchaseHeader."Buy-from Address 2";
+        CityName := PurchaseHeader."Buy-from City";
+        PostalZone := PurchaseHeader."Buy-from Post Code";
+        CountrySubentity := PurchaseHeader."Buy-from County";
+        IdentificationCode := GetCountryISOCode(PurchaseHeader."Buy-from Country/Region Code");
+        ListID := GetISO3166_1Alpha2();
+    end;
+
+    procedure GetDeliveryAddress(PurchaseHeader: Record "Purchase Header"; var StreetName: Text; var AdditionalStreetName: Text; var CityName: Text; var PostalZone: Text; var CountrySubentity: Text; var IdentificationCode: Text; var ListID: Text)
+    begin
+        StreetName := PurchaseHeader."Ship-to Address";
+        AdditionalStreetName := PurchaseHeader."Ship-to Address 2";
+        CityName := PurchaseHeader."Ship-to City";
+        PostalZone := PurchaseHeader."Ship-to Post Code";
+        CountrySubentity := PurchaseHeader."Ship-to County";
+        IdentificationCode := GetCountryISOCode(PurchaseHeader."Ship-to Country/Region Code");
+        ListID := GetISO3166_1Alpha2();
+    end;
+
+    procedure GetRequestedDeliveryPeriod(PurchaseHeader: Record "Purchase Header"; var StartDate: Text; var EndDate: Text)
+    begin
+        if PurchaseHeader."Requested Receipt Date" = 0D then
+            exit;
+
+        StartDate := Format(PurchaseHeader."Requested Receipt Date", 0, 9);
+        EndDate := StartDate;
+    end;
+
+    local procedure InsertZeroAmountVATAmtLine(var VATAmtLine: Record "VAT Amount Line"; LineAmount: Decimal)
+    begin
+        VATAmtLine.Validate(Positive, LineAmount >= 0);
+        if VATAmtLine.Find() then begin
+            VATAmtLine."Line Amount" += LineAmount;
+            VATAmtLine.Modify();
+        end else begin
+            VATAmtLine."VAT Amount" := VATAmtLine."Amount Including VAT" - VATAmtLine."VAT Base";
+            VATAmtLine."Line Amount" += LineAmount;
+            VATAmtLine.Insert();
+        end;
     end;
 }

@@ -2,12 +2,17 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.EServices.EDocument.Format;
+using Microsoft.eServices.EDocument.RemittanceAdvice;
+using Microsoft.eServices.EDocument.Service.Participant;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Peppol;
 using Microsoft.Sales.Reminder;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
@@ -25,35 +30,43 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ReminderHeader: Record "Reminder Header";
         FinChargeMemoHeader: Record "Finance Charge Memo Header";
-        PEPPOLValidation: Codeunit "PEPPOL Validation";
-        PEPPOLServiceValidation: Codeunit "PEPPOL Service Validation";
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PurchaseHeader: Record "Purchase Header";
         EDocPEPPOLValidation: Codeunit "E-Doc. PEPPOL Validation";
+        EDocRemittanceAdviceMgt: Codeunit "E-Doc. Remittance Advice Mgt.";
+        SalesValidation: Interface "PEPPOL30 Validation";
+        ServiceValidation: Interface "PEPPOL30 Validation";
     begin
+        SalesValidation := GetSalesFormat();
+        ServiceValidation := GetServiceFormat();
+
         case SourceDocumentHeader.Number of
             Database::"Sales Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesHeader);
-                    PEPPOLValidation.Run(SalesHeader);
+                    SalesValidation.ValidateDocument(SalesHeader);
+                    SalesValidation.ValidateDocumentLines(SalesHeader);
                 end;
             Database::"Sales Invoice Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesInvoiceHeader);
-                    PEPPOLValidation.CheckSalesInvoice(SalesInvoiceHeader);
+                    SalesValidation.ValidatePostedDocument(SalesInvoiceHeader);
                 end;
             Database::"Sales Cr.Memo Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesCrMemoHeader);
-                    PEPPOLValidation.CheckSalesCreditMemo(SalesCrMemoHeader);
+                    SalesValidation.ValidatePostedDocument(SalesCrMemoHeader);
                 end;
             Database::"Service Invoice Header":
                 begin
                     SourceDocumentHeader.SetTable(ServiceInvoiceHeader);
-                    PEPPOLServiceValidation.CheckServiceInvoice(ServiceInvoiceHeader);
+                    ServiceValidation.ValidatePostedDocument(ServiceInvoiceHeader);
                 end;
             Database::"Service Cr.Memo Header":
                 begin
                     SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
-                    PEPPOLServiceValidation.CheckServiceCreditMemo(ServiceCrMemoHeader);
+                    ServiceValidation.ValidatePostedDocument(ServiceCrMemoHeader);
                 end;
             Database::"Reminder Header":
                 begin
@@ -68,7 +81,25 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
             Database::"Service Header":
                 begin
                     SourceDocumentHeader.SetTable(ServiceHeader);
-                    PEPPOLServiceValidation.CheckServiceHeader(ServiceHeader);
+                    ServiceValidation.ValidateDocument(ServiceHeader);
+                    ServiceValidation.ValidateDocumentLines(ServiceHeader);
+                end;
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    EDocPEPPOLValidation.CheckPurchaseOrder(PurchaseHeader, EDocumentProcessingPhase);
+                end;
+            Database::"Gen. Journal Line":
+                begin
+                    SourceDocumentHeader.SetTable(GenJournalLine);
+                    EDocRemittanceAdviceMgt.CheckJournalPayment(GenJournalLine);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(GenJournalLine);
+                end;
+            Database::"Vendor Ledger Entry":
+                begin
+                    SourceDocumentHeader.SetTable(VendorLedgerEntry);
+                    EDocRemittanceAdviceMgt.CheckPostedPayment(VendorLedgerEntry);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(VendorLedgerEntry);
                 end;
         end;
     end;
@@ -80,16 +111,27 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     begin
         TempBlob.CreateOutStream(DocOutStream);
         case EDocument."Document Type" of
-            EDocument."Document Type"::"Sales Invoice", EDocument."Document Type"::"Service Invoice":
-                GenerateInvoiceXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
-            EDocument."Document Type"::"Sales Credit Memo", EDocument."Document Type"::"Service Credit Memo":
-                GenerateCrMemoXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
+            EDocument."Document Type"::"Sales Invoice":
+                GenerateInvoiceXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export", GetSalesFormat());
+            EDocument."Document Type"::"Service Invoice":
+                GenerateInvoiceXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export", GetServiceFormat());
+            EDocument."Document Type"::"Sales Credit Memo":
+                GenerateCrMemoXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export", GetSalesFormat());
+            EDocument."Document Type"::"Service Credit Memo":
+                GenerateCrMemoXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export", GetServiceFormat());
             EDocument."Document Type"::"Issued Reminder", EDocument."Document Type"::"Issued Finance Charge Memo":
                 GenerateFinancialResultsXMLFile(SourceDocumentHeader, DocOutStream);
             EDocument."Document Type"::"Sales Shipment":
                 GenerateShipmentXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
             EDocument."Document Type"::"Transfer Shipment":
                 GenerateTransferShipmentXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
+            EDocument."Document Type"::"Purchase Order":
+                GeneratePurchaseOrderXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
+            EDocument."Document Type"::"Self-Billed Purchase Invoice", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo":
+                if ValidateSelfBilledDocument(EDocument, EDocErrorHelper) then
+                    GenerateSelfBilledXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
+            EDocument."Document Type"::"Remittance Advice":
+                GenerateRemittanceAdviceXMLFile(SourceDocumentHeader, DocOutStream);
             else
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocumentTypeNotSupportedErr, EDocument.FieldCaption("Document Type"), EDocument."Document Type"));
         end;
@@ -119,24 +161,40 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         CreatedDocumentLines.GetTable(TempPurchaseLine);
     end;
 
-    local procedure GenerateInvoiceXMLFile(VariantRec: Variant; var OutStr: OutStream; GeneratePDF: Boolean)
+    local procedure GenerateInvoiceXMLFile(VariantRec: Variant; var OutStr: OutStream; GeneratePDF: Boolean; PEPPOLFormat: Enum "PEPPOL 3.0 Format")
     var
-        SalesInvoicePEPPOLBIS30: XMLport "Sales Invoice - PEPPOL BIS 3.0";
+        SalesInvoicePEPPOL30: XMLport "Sales Invoice - PEPPOL30";
     begin
-        SalesInvoicePEPPOLBIS30.Initialize(VariantRec);
-        SalesInvoicePEPPOLBIS30.SetGeneratePDF(GeneratePDF);
-        SalesInvoicePEPPOLBIS30.SetDestination(OutStr);
-        SalesInvoicePEPPOLBIS30.Export();
+        SalesInvoicePEPPOL30.Initialize(VariantRec, PEPPOLFormat);
+        SalesInvoicePEPPOL30.SetGeneratePDF(GeneratePDF);
+        SalesInvoicePEPPOL30.SetDestination(OutStr);
+        SalesInvoicePEPPOL30.Export();
     end;
 
-    local procedure GenerateCrMemoXMLFile(VariantRec: Variant; var OutStr: OutStream; GeneratePDF: Boolean)
+    local procedure GenerateCrMemoXMLFile(VariantRec: Variant; var OutStr: OutStream; GeneratePDF: Boolean; PEPPOLFormat: Enum "PEPPOL 3.0 Format")
     var
-        SalesCrMemoPEPPOLBIS30: XMLport "Sales Cr.Memo - PEPPOL BIS 3.0";
+        SalesCrMemoPEPPOL30: XMLport "Sales Cr.Memo - PEPPOL30";
     begin
-        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec);
-        SalesCrMemoPEPPOLBIS30.SetGeneratePDF(GeneratePDF);
-        SalesCrMemoPEPPOLBIS30.SetDestination(OutStr);
-        SalesCrMemoPEPPOLBIS30.Export();
+        SalesCrMemoPEPPOL30.Initialize(VariantRec, PEPPOLFormat);
+        SalesCrMemoPEPPOL30.SetGeneratePDF(GeneratePDF);
+        SalesCrMemoPEPPOL30.SetDestination(OutStr);
+        SalesCrMemoPEPPOL30.Export();
+    end;
+
+    local procedure GetSalesFormat(): Enum "PEPPOL 3.0 Format"
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+    begin
+        PeppolSetup.GetSetup();
+        exit(PeppolSetup."PEPPOL 3.0 Sales Format");
+    end;
+
+    local procedure GetServiceFormat(): Enum "PEPPOL 3.0 Format"
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+    begin
+        PeppolSetup.GetSetup();
+        exit(PeppolSetup."PEPPOL 3.0 Service Format");
     end;
 
     local procedure GenerateFinancialResultsXMLFile(VariantRec: Variant; var OutStr: OutStream)
@@ -174,29 +232,114 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         CopyStream(DocOutStream, TempBlob.CreateInStream());
     end;
 
+    local procedure GeneratePurchaseOrderXMLFile(var SourceDocumentHeader: RecordRef; DocOutStream: OutStream; GeneratePDF: Boolean)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        PurchaseOrderExport: Codeunit "Export Purchase Order PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        PeppolSetup.GetSetup();
+        SourceDocumentHeader.SetTable(PurchaseHeader);
+        PurchaseOrderExport.SetFormat(PeppolSetup."PEPPOL 3.0 Purchase Format");
+        PurchaseOrderExport.SetGeneratePDF(GeneratePDF);
+        PurchaseOrderExport.Run(PurchaseHeader);
+        PurchaseOrderExport.GetPurchaseOrderXML(TempBlob);
+        CopyStream(DocOutStream, TempBlob.CreateInStream());
+    end;
+
+    local procedure GenerateSelfBilledXMLFile(var SourceDocumentHeader: RecordRef; DocOutStream: OutStream; GeneratePDF: Boolean)
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        SelfBilledExport: Codeunit "Export Self-Billed PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        PeppolSetup.GetSetup();
+        SelfBilledExport.SetFormat(PeppolSetup."PEPPOL 3.0 Purchase Format");
+        SelfBilledExport.SetGeneratePDF(GeneratePDF);
+        SelfBilledExport.GenerateXML(SourceDocumentHeader);
+        SelfBilledExport.GetXML(TempBlob);
+        CopyStream(DocOutStream, TempBlob.CreateInStream());
+    end;
+
+    local procedure ValidateSelfBilledDocument(var EDocument: Record "E-Document"; EDocErrorHelper: Codeunit "E-Document Error Helper") IsValid: Boolean
+    var
+        Vendor: Record Vendor;
+        ServiceParticipant: Codeunit "Service Participant";
+    begin
+        IsValid := true;
+
+        if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Company, '') = 0 then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, SelfBilledMissingCompanyParticipantErr);
+            IsValid := false;
+        end;
+
+        if not Vendor.Get(EDocument."Bill-to/Pay-to No.") then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledVendorNotFoundErr, EDocument."Bill-to/Pay-to No."));
+            IsValid := false;
+        end else begin
+            if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Vendor, Vendor."No.") = 0 then begin
+                EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledMissingParticipantErr, Vendor."No."));
+                IsValid := false;
+            end;
+
+            if Vendor."VAT Registration No." = '' then begin
+                EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledMissingVendorVATRegNoErr, Vendor."No."));
+                IsValid := false;
+            end;
+        end;
+    end;
+
+    local procedure GenerateRemittanceAdviceXMLFile(SourceDocumentHeader: RecordRef; DocOutStream: OutStream)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        TempRemitAdviceBuffer: Record "Remit. Advice Buffer" temporary;
+        RemitAdviceBufferMgt: Codeunit "Remit. Advice Buffer Mgt.";
+        ExportRemitAdvicePEPPOL30: Codeunit "Export Remit. Advice PEPPOL30";
+        EDocPEPPOLValidation: Codeunit "E-Doc. PEPPOL Validation";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        case SourceDocumentHeader.Number of
+            Database::"Gen. Journal Line":
+                begin
+                    SourceDocumentHeader.SetTable(GenJournalLine);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(GenJournalLine);
+                    RemitAdviceBufferMgt.BuildFromJournalPayment(GenJournalLine, TempRemitAdviceBuffer);
+                end;
+            Database::"Vendor Ledger Entry":
+                begin
+                    SourceDocumentHeader.SetTable(VendorLedgerEntry);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(VendorLedgerEntry);
+                    RemitAdviceBufferMgt.BuildFromPostedPayment(VendorLedgerEntry, TempRemitAdviceBuffer);
+                end;
+            else
+                exit;
+        end;
+
+        ExportRemitAdvicePEPPOL30.GenerateXml(TempRemitAdviceBuffer, TempBlob);
+        CopyStream(DocOutStream, TempBlob.CreateInStream());
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
-        if Rec."Document Format" = Rec."Document Format"::"PEPPOL BIS 3.0" then begin
-            EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
-            if EDocServiceSupportedType.IsEmpty() then begin
-                EDocServiceSupportedType.Init();
-                EDocServiceSupportedType."E-Document Service Code" := Rec.Code;
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Invoice";
-                EDocServiceSupportedType.Insert();
+        if Rec."Document Format" <> Rec."Document Format"::"PEPPOL BIS 3.0" then
+            exit;
 
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Credit Memo";
-                EDocServiceSupportedType.Insert();
+        EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
+        if not EDocServiceSupportedType.IsEmpty() then
+            exit;
 
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Invoice";
-                EDocServiceSupportedType.Insert();
-
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Credit Memo";
-                EDocServiceSupportedType.Insert();
-            end;
-        end;
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Sales Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Sales Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Remittance Advice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Self-Billed Purchase Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
     end;
 
     [IntegrationEvent(false, false)]
@@ -207,4 +350,8 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     var
         ImportPeppol: Codeunit "EDoc Import PEPPOL BIS 3.0";
         DocumentTypeNotSupportedErr: Label '%1 %2 is not supported by PEPPOL BIS30 Format', Comment = '%1 - Document Type caption, %2 - Document Type';
+        SelfBilledVendorNotFoundErr: Label 'Vendor %1 for this self-billed document could not be found.', Comment = '%1 - Vendor No.';
+        SelfBilledMissingParticipantErr: Label 'Vendor %1 has no registered E-Document Service Participation. Self-billed export requires a receiver Participant ID for the vendor.', Comment = '%1 - Vendor No.';
+        SelfBilledMissingCompanyParticipantErr: Label 'The company has no registered E-Document Service Participation. Self-billed export requires a sender Participant ID for the company.';
+        SelfBilledMissingVendorVATRegNoErr: Label 'Vendor %1 has no VAT Registration No. Self-billed invoices require the vendor''s VAT registration number.', Comment = '%1 - Vendor No.';
 }

@@ -94,13 +94,13 @@ table 30105 "Shpfy Customer"
 
         field(13; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = CustomerContent;
         }
 
         field(14; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = CustomerContent;
         }
         field(15; "Last Updated by BC"; DateTime)

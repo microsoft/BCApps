@@ -765,7 +765,12 @@ codeunit 9018 "Azure AD Plan Impl."
                         Session.LogMessage('0000GYC', ClearPersonalizationTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
                 end;
 
-                ShouldRemoveSuper := not PlanConfigurationContainsSuper
+                // Internal tenant administrators (Global Admin, D365 Admin, BC Admin) must never lose SUPER during
+                // provisioning, even when the assigned plan configuration is customized and omits SUPER - otherwise
+                // they could be locked out of the environment. Everyone else follows the customized configuration:
+                // SUPER is removed unless the configuration explicitly grants it. Delegated (partner) admins are
+                // intentionally not exempted here; their SUPER is governed separately in AssignPlanToUserWithDelegatedRole.
+                ShouldRemoveSuper := (not PlanConfigurationContainsSuper) and (not IsUserInternalAdmin(UserSecurityID))
             end else
                 ShouldRemoveSuper := not IsUserAdmin(UserSecurityID);
 
@@ -803,10 +808,25 @@ codeunit 9018 "Azure AD Plan Impl."
     var
         PlanIds: Codeunit "Plan Ids";
     begin
+        // Note: this also treats delegated (partner) admins as admins. Use IsUserInternalAdmin when only
+        // internal tenant administrators should be considered (e.g. the SUPER guard for customized plans).
         exit(
             IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId(), SecurityID)
             or IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), SecurityID)
             or IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId(), SecurityID));
+    end;
+
+    [NonDebuggable]
+    local procedure IsUserInternalAdmin(SecurityID: Guid): Boolean
+    var
+        PlanIds: Codeunit "Plan Ids";
+    begin
+        // Internal tenant administrator plans only. Delegated (partner) admin/helpdesk roles are intentionally
+        // excluded: their SUPER handling is governed separately in AssignPlanToUserWithDelegatedRole.
+        exit(
+            IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId(), SecurityID)
+            or IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId(), SecurityID)
+            or IsPlanAssignedToUser(PlanIds.GetBCAdminPlanId(), SecurityID));
     end;
 
     [NonDebuggable]

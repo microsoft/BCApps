@@ -1,0 +1,18 @@
+{
+    "items": [
+        {
+            "id": "5555555555",
+            "fileId": "1234567890",
+            "status": "Error",
+            "error": {
+                "description": [
+                    "The document could not be processed by the receiver."
+                ]
+            }
+        }
+    ],
+    "meta": {
+        "offset": 0,
+        "total": 1
+    }
+}

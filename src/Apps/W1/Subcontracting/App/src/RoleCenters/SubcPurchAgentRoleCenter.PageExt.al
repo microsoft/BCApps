@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Purchases.RoleCenters;
 
-pageextension 99001541 "Subc. Purch. Agent Role Center" extends "Purchasing Agent Role Center"
+pageextension 20541 "Subc. Purch. Agent Role Center" extends "Purchasing Agent Role Center"
 {
     actions
     {
@@ -15,7 +15,7 @@ pageextension 99001541 "Subc. Purch. Agent Role Center" extends "Purchasing Agen
         {
             action("Subc. Subcontracting Worksheets")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Worksheets';
                 RunObject = Page "Req. Wksh. Names";
                 RunPageView = where("Template Type" = const(Subcontracting),

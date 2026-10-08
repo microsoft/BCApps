@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Sustainability app"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "17ba60df-5d0a-4cca-aeaa-09f22fc7e09f"
+  }
+}

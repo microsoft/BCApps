@@ -72,7 +72,7 @@ table 9016 "Permission Set In Plan Buffer"
 
     keys
     {
-        key(UniqueKey; "Plan ID", "Role ID", Scope, "App ID")
+        key(UniqueKey; "Plan ID", "Role ID", "Company Name", Scope, "App ID")
         {
             Clustered = true;
         }

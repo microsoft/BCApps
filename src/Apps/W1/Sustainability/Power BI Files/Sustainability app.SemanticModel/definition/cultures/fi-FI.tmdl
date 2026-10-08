@@ -1,0 +1,721 @@
+cultureInfo fi-FI
+	translations
+		model Model
+			table 'Sustainability Account Category'
+				caption: KP-tilin luokka
+				column 'Sustainability Account Category Description'
+					caption: KP-tililuokan kuvaus
+				column 'Sustainability Account Category Code'
+					caption: Vastuullisuustilin luokan koodi
+				column 'Sustainability Account Category  Emission Scope'
+					caption: Vastuullisuustilin luokka – Päästöjen laajuus
+			table 'Dimension Sets'
+				caption: Dimensioyhdistelmät
+				column 'Global Dimension 1'
+					caption: Yleinen dimensio 1
+				column 'Global Dimension 2'
+					caption: Yleinen dimensio 2
+				column 'Shortcut Dimension 3'
+					caption: Pikadimensio 3
+				column 'Shortcut Dimension 4'
+					caption: Pikadimensio 4
+				column 'Shortcut Dimension 5'
+					caption: Pikadimensio 5
+				column 'Shortcut Dimension 6'
+					caption: Pikadimensio 6
+				column 'Shortcut Dimension 7'
+					caption: Pikadimensio 7
+				column 'Shortcut Dimension 8'
+					caption: Pikadimensio 8
+				column id
+					caption: tunnus
+			table Date
+				caption: Pvm
+				column 'Week Day'
+					caption: Viikonpäivä
+				column 'Day Type'
+					caption: Päivän tyyppi
+				column 'Calendar Year'
+					caption: Kalenterivuosi
+				column 'Calendar Quarter'
+					caption: Kalenterin vuosineljännes
+				column 'Calendar Quarter Year'
+					caption: Kalenteri – Neljännesvuosi
+				column 'Calendar Month'
+					caption: Kalenterikuukausi
+				column 'Calendar Month Year'
+					caption: Kalenterikuukausi – Vuosi
+				column 'Calendar Week'
+					caption: Kalenteriviikko
+				column 'Calendar Week Year'
+					caption: Kalenteriviikko – Vuosi
+				column 'Calendar RelativeWeekPos'
+					caption: Kalenteri – SuhteellisenViikonSijainti
+				column 'Calendar RelativeMonthPos'
+					caption: Kalenteri – SuhteellisenKuukaudenSijainti
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalenteri – SuhteellisenVuosineljänneksenSijainti
+				column 'Calendar RelativeYearPos'
+					caption: Kalenteri – SuhteellisenVuodenSijainti
+				column 'Calendar StartOfMonth'
+					caption: Kalenteri – KuukausiAlkaa
+				column 'Calendar EndOfMonth'
+					caption: Kalenteri – KuukausiPäättyy
+				column 'Calendar StartOfQuarter'
+					caption: Kalenteri – VuosineljännesAlkaa
+				column 'Calendar EndOfQuarter'
+					caption: Kalenteri – VuosineljännesPäättyy
+				column 'Calendar StartOfYear'
+					caption: Kalenteri – VuosiAlkaa
+				column 'Calendar EndOfYear'
+					caption: Kalenteri – VuosiPäättyy
+				column 'Calendar MonthDays'
+					caption: Kalenteri – KuukaudenPäivät
+				column 'Calendar QuarterDays'
+					caption: Kalenteri – VuosineljänneksenPäivät
+				column 'Calendar YearDays'
+					caption: Kalenteri – VuodenPäivät
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalenteri – KuukaudenPäivänNumero
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalenteri – VuosineljänneksenPäivänNumero
+				column 'Calendar DayOfYearNumber'
+					caption: Kalenteri – VuodenPäivänNumero
+				column 'Calendar DatePreviousWeek'
+					caption: Kalenteri – PäivämääräEdellinenViikko
+				column 'Calendar DatePreviousMonth'
+					caption: Kalenteri – PäivämääräEdellinenKuukausi
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalenteri – PäivämääräEdellinenVuosineljännes
+				column 'Calendar DatePreviousYear'
+					caption: Kalenteri – PäivämääräEdellinenVuosi
+				column 'Fiscal Year'
+					caption: Tilikausi
+				column 'Fiscal Quarter'
+					caption: Kirjanpidon vuosineljännes
+				column 'Fiscal Quarter Year'
+					caption: Kirjanpito – Neljännesvuosi
+				column 'Fiscal Month'
+					caption: Kirjanpitokuukausi
+				column 'Fiscal Month Year'
+					caption: Kirjanpidon kuukausi, vuosi
+				column 'Fiscal Week'
+					caption: Kirjanpitoviikko
+				column 'Fiscal Week Year'
+					caption: Kirjanpitoviikko, vuosi
+				column 'Fiscal RelativeWeekPos'
+					caption: Kirjanpito – SuhteellisenViikonSijainti
+				column 'Fiscal RelativeMonthPos'
+					caption: Kirjanpito – SuhteellisenKuukaudenSijainti
+				column 'Fiscal RelativeQuarterPos'
+					caption: Kirjanpito – SuhteellisenVuosineljänneksenSijainti
+				column 'Fiscal RelativeYearPos'
+					caption: Kirjanpito – SuhteellisenVuodenSijainti
+				column 'Fiscal StartOfMonth'
+					caption: Kirjanpito – KuukausiAlkaa
+				column 'Fiscal EndOfMonth'
+					caption: Kirjanpito – KuukausiPäättyy
+				column 'Fiscal StartOfQuarter'
+					caption: Kirjanpito – VuosineljännesAlkaa
+				column 'Fiscal EndOfQuarter'
+					caption: Kirjanpito – VuosineljännesPäättyy
+				column 'Fiscal StartOfYear'
+					caption: Kirjanpito – VuosiAlkaa
+				column 'Fiscal EndOfYear'
+					caption: Kirjanpito – VuosiPäättyy
+				column 'Fiscal MonthDays'
+					caption: Kirjanpito – KuukaudenPäivät
+				column 'Fiscal QuarterDays'
+					caption: Kirjanpito – VuosineljänneksenPäivät
+				column 'Fiscal YearDays'
+					caption: Kirjanpito – VuodenPäivät
+				column 'Fiscal DayOfMonthNumber'
+					caption: Kirjanpito – KuukaudenPäivänNumero
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Kirjanpito – VuosineljänneksenPäivänNumero
+				column 'Fiscal DayOfYearNumber'
+					caption: Kirjanpito – VuodenPäivänNumero
+				column 'Fiscal DatePreviousWeek'
+					caption: Kirjanpito – PäivämääräEdellinenViikko
+				column 'Fiscal DatePreviousMonth'
+					caption: Kirjanpito – PäivämääräEdellinenKuukausi
+				column 'Fiscal DatePreviousQuarter'
+					caption: Kirjanpito – PäivämääräEdellinenVuosineljännes
+				column 'Fiscal DatePreviousYear'
+					caption: Kirjanpito – PäivämääräEdellinenVuosi
+				column 'FW Year'
+					caption: KV – Vuosi
+				column 'FW Quarter'
+					caption: KV – Vuosineljännes
+				column 'FW Quarter Year'
+					caption: KV – Neljännesvuosi
+				column 'FW Month'
+					caption: KV – Kuukausi
+				column 'FW Month Year'
+					caption: KV – Kuukausi, vuosi
+				column 'FW Week'
+					caption: KV – Viikko
+				column 'FW Period'
+					caption: KV – Kausi
+				column 'FW Week Year'
+					caption: KV – Viikko, vuosi
+				column 'FW StartOfWeek'
+					caption: KV – ViikkoAlkaa
+				column 'FW EndOfWeek'
+					caption: KV – ViikkoPäättyy
+				column 'FW RelativeWeekPos'
+					caption: KV – SuhteellisenViikonSijainti
+				column 'FW RelativeMonthPos'
+					caption: KV – SuhteellisenKuukaudenSijainti
+				column 'FW RelativeQuarterPos'
+					caption: KV – SuhteellisenVuosineljänneksenSijainti
+				column 'FW RelativeYearPos'
+					caption: KV – SuhteellisenVuodenSijainti
+				column 'FW StartOfMonth'
+					caption: KV – KuukausiAlkaa
+				column 'FW EndOfMonth'
+					caption: KV – KuukausiPäättyy
+				column 'FW StartOfQuarter'
+					caption: KV – VuosineljännesAlkaa
+				column 'FW EndOfQuarter'
+					caption: KV – VuosineljännesPäättyy
+				column 'FW StartOfYear'
+					caption: KV – VuosiAlkaa
+				column 'FW EndOfYear'
+					caption: KV – VuosiPäättyy
+				column 'FW MonthDays'
+					caption: KV – KuukaudenPäivät
+				column 'FW QuarterDays'
+					caption: KV – VuosineljänneksenPäivät
+				column 'FW YearDays'
+					caption: KV – VuodenPäivät
+				column 'FW DayOfMonthNumber'
+					caption: KV – KuukaudenPäivänNumero
+				column 'FW DayOfQuarterNumber'
+					caption: KV – VuosineljänneksenPäivänNumero
+				column 'FW DayOfYearNumber'
+					caption: KV – VuodenPäivänNumero
+				column 'FW DatePreviousWeek'
+					caption: KV – PäivämääräEdellinenViikko
+				column 'FW DatePreviousMonth'
+					caption: KV – PäivämääräEdellinenKuukausi
+				column 'FW DatePreviousQuarter'
+					caption: KV – PäivämääräEdellinenVuosineljännes
+				column 'FW DatePreviousYear'
+					caption: KV – PäivämääräEdellinenVuosi
+				column 'Relative Day'
+					caption: Suhteellinen päivämäärä
+				column Sequential365DayNumber
+					caption: Järjestys 365 PäiväNumero
+				measure 'No. of Days'
+					caption: Päivien määrä
+				measure 'Working Days'
+					caption: Työpäivät
+				measure Ranged
+					caption: Järjestetty
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Kirjanpito – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Quarter Year'
+						caption: Kirjanpito – Neljännesvuosi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalenteri – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Quarter Year'
+						caption: Kalenteri – Neljännesvuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi – Vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko – Vuosi
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: KV – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Neljännesvuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'Fiscal Year-Month'
+					caption: Kirjanpito – Vuosi-Kuukausi
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Kirjanpito – Vuosi-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Month'
+					caption: Kalenteri – Vuosi-Kuukausi
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi – Vuosi
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalenteri – Vuosi-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi – Vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko – Vuosi
+				hierarchy 'FW Year-Month-Week'
+					caption: KV – Vuosi-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Week'
+					caption: KV – Vuosi-Vuosineljännes-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Neljännesvuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Week'
+					caption: KV – Vuosi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Oman raportin otsikko
+				measure 'My Button Caption'
+					caption: Oma painikkeen otsikko
+				measure 'My Visual Title'
+					caption: Oma visuaalinen otsikko
+				measure 'Inactive Employees'
+					caption: Passiiviset työntekijät
+				measure 'Terminated Employees'
+					caption: Työntekijät, joiden työsuhde päättynyt
+				measure 'Employees in Unions'
+					caption: Työntekijät ammattiyhdistyksissä
+				measure 'Social Analysis'
+					caption: Sosiaalinen analyysi
+				measure 'Gender Distribution'
+					caption: Sukupuolijakauma
+				measure 'Age Distribution'
+					caption: Ikäjakauma
+				measure 'Employees Qualifications'
+					caption: Työntekijöiden pätevyydet
+				measure 'Realized Emissions vs Target'
+					caption: Toteutuneet päästöt vrt. tavoite
+				measure 'CO2e Emissions by Scope'
+					caption: CO2e-päästöt laajuuksittain
+				measure 'Gas Emissions by Category'
+					caption: Kaasupäästöt luokittain
+				measure 'Realized Emissions vs Baseline'
+					caption: Toteutuneet päästöt vrt. perustaso
+				measure 'CO2e Emissions vs Baseline'
+					caption: CO2e-päästöt vrt. perustaso
+				measure 'CO2e Emissions by Account'
+					caption: CO2e-päästöt tileittäin
+				measure 'Water and Waste Analysis'
+					caption: Vesi- ja jäteanalyysi
+				measure 'Water by Facility Location'
+					caption: Vesi laitoksen sijainnin mukaan
+				measure 'Water by Facility Capacity'
+					caption: Vesi laitoksen kapasiteetin mukaan
+				measure 'Water and Waste by Type'
+					caption: Vesi- ja jäte tyypeittäin
+				measure 'Water and Waste Intensity by Type'
+					caption: Vesi- ja jäteintensiteetti tyypeittäin
+				measure 'Water and Waste Intensity by Facility'
+					caption: Vesi- ja jäteintensiteetti laitoksittain
+				measure 'Emissions by Category and Scope'
+					caption: Päästöt luokittain ja laajuuksittain
+				measure 'Emissions by Category'
+					caption: Päästöt luokittain
+				measure 'Emissions by Scope'
+					caption: Päästöt laajuuksittain
+				measure 'CO2e Analysis'
+					caption: CO2e-analyysi
+				measure 'CO2e Emissions by Category'
+					caption: CO2e-päästöt luokittain
+				measure 'Carbon Credit by Month'
+					caption: Hiilihyvitys kuukausittain
+				measure 'CO2e Equivalent Emission by Month and Revenue'
+					caption: CO2e-ekvivalenttipäästöt kuukausittain ja tuotoittain
+				measure 'Employee Entries Drillthrough'
+					caption: Työntekijätapahtumiin porautuminen
+				measure 'Employee Ledger Entries'
+					caption: Työntekijätapahtumat
+				measure 'Sustainability Ledger Entries'
+					caption: Vastuullisuustapahtumat
+				measure 'Sustainability Ledger Entries Drillthrough'
+					caption: Vastuullisuustapahtumiin porautuminen
+				measure 'Employee Ledger Entries Drillthrough'
+					caption: Työntekijätapahtumiin porautuminen
+				measure 'Sustainability Overview'
+					caption: Vastuullisuus – Yleiskuvaus
+				measure 'Sustainability Analytics'
+					caption: Vastuullisuusanalytiikka
+				measure 'CO2e Emissions by Month'
+					caption: CO2e-päästöt kuukausittain
+				measure 'Scopes 1 and 2 Analysis by Categories Per Year'
+					caption: Laajuuksien 1 ja 2 analyysi luokittain per vuosi
+				measure 'CO2e Emissions by Department'
+					caption: CO2e-päästöt osastoittain
+				measure 'Journey to Net-Zero Carbon'
+					caption: Matka kohti hiilineutraaliutta
+				measure 'CO2e Emissions by Business Group'
+					caption: CO2e-päästöt liiketoimintaryhmittäin
+				measure 'Renewable Energy Usage'
+					caption: Uusiutuvan energian käyttö
+				measure 'CO2e Emissions Over Time'
+					caption: CO2e-päästöt ajan myötä
+				measure 'CO2e Smart Review'
+					caption: Älykäs CO2e-arviointi
+				measure 'CO2e Emissions by Global Dimension One'
+					caption: CO2e-päästöt yleisen dimension yksi mukaan
+				measure 'CO2e Emissions by Global Dimension Two'
+					caption: CO2e-päästöt yleisen dimension kaksi mukaan
+				measure 'CO2e Equivalent Emissions by Month'
+					caption: CO2e-ekvivalenttipäästöt kuukausittain
+				measure 'Company Name'
+					caption: Yrityksen nimi
+				measure 'Last Refreshed'
+					caption: Päivitetty viimeksi
+				measure 'Released Employees'
+					caption: Vapautetut työntekijät
+				measure 'CO2e Decomposition Tree'
+					caption: CO2e-hajautuspuu
+				measure 'CO2e Key Influences'
+					caption: Tärkeimmät CO2e-vaikutukset
+				measure 'Water and Waste Yearly and Daily Change'
+					caption: Veden ja jätteiden vuosittainen ja päivittäinen muutos
+			table COMPANY
+				caption: YRITYS
+				measure 'Company Label'
+					caption: Yrityksen selite
+			table 'Sustainability Ledger Entries'
+				caption: Vastuullisuustapahtumat
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column Description
+					caption: Kuvaus
+				column 'Wat. Intensity'
+					caption: Vesi-intensiteetti
+				column 'Water Type'
+					caption: Vesityyppi
+				column 'Wate/Waste Intensity Type'
+					caption: Vesi-/jäteintensiteetin tyyppi
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				measure 'CO2 Emissions'
+					caption: CO2-päästöt
+				measure 'CH4 Emissions'
+					caption: CH4-päästöt
+				measure 'CO2 Emissions Balance'
+					caption: CO2-päästöt, saldo
+				measure 'CO2 Emissions Balance at Date'
+					caption: CO2-päästöt, saldo pvm:ttäin
+				measure 'N2O Emissions'
+					caption: N2O-päästöt
+				measure 'CO2e Emissions'
+					caption: CO2e-päästöt
+				measure 'CH4 Emissions Balance at Date'
+					caption: CH4-päästöt, saldo pvm:ttäin
+				measure 'CH4 Emissions Balance'
+					caption: CH4-päästöt, saldo
+				measure 'Water Intensity'
+					caption: Vesi-intensiteetti
+				measure 'Waste Intensity'
+					caption: Jäteintensiteetti
+				measure 'Discharged Into Water'
+					caption: Vesipäästö
+				measure 'CO2e Emissions Balance'
+					caption: CO2e-päästöt, saldo
+				measure 'CO2e Emissions Balance at Date'
+					caption: CO2e-päästöt, saldo pvm:ttäin
+				measure 'Discharged Into Water Balance at Date'
+					caption: Vesipäästö, saldo pvm:ttäin
+				measure 'Discharged Into Water Balance'
+					caption: Vesipäästö, saldo
+				measure 'N2O Emissions Balance'
+					caption: N2O-päästöt, saldo
+				measure 'N2O Emissions Balance at Date'
+					caption: N2O-päästöt, saldo pvm:ttäin
+				measure 'Waste Intensity Balance at Date'
+					caption: Saldo pvm:ttäin, jäteintensiteetti
+				measure 'Waste Intensity Balance'
+					caption: Saldo, jäteintensiteetti
+				measure 'Water Intensity Balance'
+					caption: Vesi-intensiteetti, saldo
+				measure 'Water Intensity Balance at Date'
+					caption: Vesi-intensiteetti, saldo pvm:ttäin
+				measure 'CO2 Baseline'
+					caption: CO2-perustaso
+				measure 'CH4 Baseline'
+					caption: CH4-perustaso
+				measure 'CH4 vs Baseline (%)'
+					caption: CH4 vrt. perustaso (%)
+				measure 'N2O Baseline'
+					caption: N2O-perustaso
+				measure 'N2O vs Baseline (%)'
+					caption: N2O vrt. perustaso (%)
+				measure 'CO2 vs Baseline (%)'
+					caption: CO2 vrt. perustaso (%)
+				measure 'Water Baseline'
+					caption: Vesi, perustaso
+				measure 'Waste Baseline'
+					caption: Jäte, perustaso
+				measure 'Water vs Baseline (%)'
+					caption: Vesi vrt. perustaso (%)
+				measure 'Waste vs Baseline (%)'
+					caption: Jäte vrt. perustaso (%)
+				measure 'CO2e Baseline'
+					caption: CO2e-perustaso
+				measure 'CO2e vs Baseline (%)'
+					caption: CO2e vrt. perustaso (%)
+				measure 'Purchased Carbon Credits'
+					caption: Ostetut hiilihyvitykset
+				measure 'Discharged Into Water Baseline'
+					caption: Vesipäästö, perustaso
+				measure 'Discharged Into Water vs Baseline (%)'
+					caption: Vesipäästö vrt. perustaso (%)
+				measure 'CO2e Emissions (Excl Credits)'
+					caption: CO2e-päästöt (ilman hyvityksiä)
+				measure 'Water Intensity PY'
+					caption: Vesi-intensiteetti, EDV
+				measure 'Water Intensity YOY'
+					caption: Vesi, muutos, VV
+				measure 'Waste Intensity PY'
+					caption: Jäte, EDV
+				measure 'Waste Intensity YOY'
+					caption: Jäte, muutos, VV
+				measure 'Discharged Into Water PY'
+					caption: Vesipäästö, EDV
+				measure 'Discharged Into Water YOY'
+					caption: Vesipäästö, VV
+				measure 'Discharged Into Water PD'
+					caption: Vesipäästö, tuotantotiedot
+				measure 'Waste Intensity PD'
+					caption: Jäte, tuotantotiedot
+				measure 'Water Intensity PD'
+					caption: Vesi-intensiteetti, tuotantotiedot
+				measure 'Water Intensity DOD'
+					caption: Vesi, muutos, päivittäinen
+				measure 'Waste Intensity DOD'
+					caption: Jäte, muutos, päivittäinen
+				measure 'Discharged Into Water DOD'
+					caption: Vesipäästö, päivittäinen
+				measure 'Base Link'
+					caption: Perus, linkki
+				measure 'Sustainability Ledger Entries Link'
+					caption: Vastuullisuustapahtumat, linkki
+				measure 'Months in Context'
+					caption: Kuukaudet kontekstissa
+			table 'Sustainability Accounts'
+				caption: Vastuullisuustilit
+				column 'Sustainability Account No.'
+					caption: Vastuullisuustilin nro
+				column 'Sustainability Account Name'
+					caption: Vastuullisuustilin nimi
+				column 'Sustainability Account Category'
+					caption: Vastuullisuustilin luokka
+				column 'Sustainability Account Sub-Category'
+					caption: Vastuullisuustilin aliluokka
+			table Country/Region
+				caption: Maa tai alue
+				column 'Country Region Code'
+					caption: Maa- tai aluekoodi
+				column 'Country Region Name'
+					caption: Maan/alueen nimi
+			table 'Responsibility Centre'
+				caption: Vastuupaikka
+				column 'Responsibility Centre Code'
+					caption: Vastuupaikan koodi
+				column 'Responsibility Centre Name'
+					caption: Vastuupaikan nimi
+				measure 'Facility Capacity'
+					caption: Laitoksen kapasiteetti
+			table 'Sustainability Goals'
+				caption: Vastuullisuustavoitteet
+				column 'Score Card No.'
+					caption: Tuloskortin nro
+				column 'No.'
+					caption: Nro
+				column Name
+					caption: Nimi
+				column Owner
+					caption: Omistaja
+				column 'Target Value For CO2'
+					caption: CO2-tavoitearvo
+				column 'Target Value For CH4'
+					caption: CH4-tavoitearvo
+				column 'Target Value For N2O'
+					caption: N2O-tavoitearvo
+				column 'Target Value For Water Intensity'
+					caption: Vesi-intensiteetin tavoitearvo
+				column 'Target Value For Waste Intensity'
+					caption: Jäteintensiteetin tavoitearvo
+				column 'Main Goal'
+					caption: Päätavoite
+				column 'Start Date'
+					caption: Alkamispäivä
+				column 'End Date'
+					caption: Päättymispäivä
+				column 'Baseline Start Date'
+					caption: Perustason alkamispäivämäärä
+				column 'Baseline End Date'
+					caption: Perustason päättymispäivämäärä
+				measure 'CO2 Target'
+					caption: CO2-tavoite
+				measure 'CO2 Realized (%)'
+					caption: Toteutunut CO2 (%)
+				measure 'CH4 Target'
+					caption: CH4-tavoite
+				measure 'N2O Target'
+					caption: N2O-tavoite
+				measure 'CH4 Realized (%)'
+					caption: Toteutunut CH4 (%)
+				measure 'N2O Realized (%)'
+					caption: Toteutunut N2O (%)
+				measure 'Water Target'
+					caption: Vesitavoite
+				measure 'Waste Target'
+					caption: Jätetavoite
+				measure 'Water Realized (%)'
+					caption: Toteutunut vesi (%)
+				measure 'Waste Realized (%)'
+					caption: Toteutunut jäte (%)
+				measure 'CO2e Realized (%)'
+					caption: Toteutunut CO2e (%)
+				measure 'CO2 Current Value'
+					caption: Nykyinen CO2-arvo
+				measure 'CH4 Current Value'
+					caption: Nykyinen CH4-arvo
+				measure 'N2O Current Value'
+					caption: Nykyinen N2O-arvo
+				measure 'CO2e Current Value'
+					caption: Nykyinen CO2e-arvo
+			table 'Employee Ledger Entries'
+				caption: Työntekijätapahtumat
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column Description
+					caption: Kuvaus
+				measure 'Employee Amount'
+					caption: Summa
+				measure 'Employee Ledger Entries Link'
+					caption: Työntekijätapahtumat – Linkki
+			table 'Employee Qualifications'
+				caption: Työntekijän pätevyydet
+				column 'Employee Qualification Codes'
+					caption: Työntekijän pätevyyskoodit
+				measure 'Employee Qualifications'
+					caption: Työntekijän pätevyyksien määrä
+			table 'Emission Fees'
+				caption: Päästömaksut
+				column 'Emission Type'
+					caption: Päästötyyppi
+				column 'Scope Type'
+					caption: Laajuuden tyyppi
+				column 'Starting Date'
+					caption: Aloituspäivämäärä
+				column 'Ending Date'
+					caption: Lopetuspäivämäärä
+				column 'Country Region Code'
+					caption: Maa- tai aluekoodi
+				column 'Responsibility Centre'
+					caption: Vastuupaikka
+				column 'Carbon Fee'
+					caption: Hiilimaksu
+				column 'Carbon Equivalent Factor'
+					caption: Hiiliekvivalenttikerroin
+				measure 'CO2e Target'
+					caption: CO2e-tavoite
+				measure 'CO2 Carbon Equivalent'
+					caption: CO2-hiiliekvivalentti
+				measure 'CH4 Carbon Equivalent'
+					caption: CH4-hiiliekvivalentti
+				measure 'N2O Carbon Equivalent'
+					caption: N2O-hiiliekvivalentti
+			table 'Employee Absences'
+				caption: Työntekijän poissaolot
+				column 'Entry No'
+					caption: Tapahtumanro
+				column 'From Date'
+					caption: Alkaen pvm:stä
+				column 'To Date'
+					caption: Pvm:ään asti
+				column 'Cause of Absence'
+					caption: Poissaolon syy
+				column Description
+					caption: Kuvaus
+				measure 'Employee Absences'
+					caption: Määrä
+				measure 'Absence Hours (%)'
+					caption: Poissaolotunnit (%)
+			table 'Sustainability Sub-Account Categories'
+				caption: Vastuullisuustilin alaluokat
+				column 'Sub-Category Description'
+					caption: Alaluokan kuvaus
+				column 'Renewable Energy'
+					caption: Uusiutuva energia
+			table Employees
+				caption: Työntekijät
+				column 'Employee No.'
+					caption: Työntekijänro
+				column 'Employee Full Name'
+					caption: Työntekijän koko nimi
+				column 'Employee First Name'
+					caption: Työntekijän etunimi
+				column 'Employee Last Name'
+					caption: Työntekijän sukunimi
+				column 'Employee Gender'
+					caption: Työntekijän sukupuoli
+				column 'Employee Union Code'
+					caption: Työntekijän ammattiyhdistyksen koodi
+				column 'Employee Status'
+					caption: Työntekijän tila
+				column 'Employee Cause of Inactivity'
+					caption: Työntekijän toimettomuuden syy
+				column 'Employee Inactive Date'
+					caption: Työntekijän passiivisuuden pvm
+				column 'Employee Grounds for Termination'
+					caption: Työntekijän työsuhteen päättymisen syyt
+				column 'Employee Date of Birth'
+					caption: Työntekijän syntymäpäivä
+				column Age
+					caption: Ikä
+				column 'Age Distribution'
+					caption: Ikäjakauma
+				measure 'No. of Employees'
+					caption: Työntekijöiden määrä
+				measure 'No. of Male Employees'
+					caption: Miespuolisten työntekijöiden määrä
+				measure 'No. of Female Employees'
+					caption: Naispuolisten työntekijöiden määrä
+				measure 'No. of Other Employees'
+					caption: Muiden työntekijöiden määrä
+				measure 'Male Employees (%)'
+					caption: Miespuoliset työntekijät (%)
+				measure 'Female Employees (%)'
+					caption: Naispuoliset työntekijät (%)
+				measure 'Other Employees (%)'
+					caption: Muut työntekijät (%)
+			table ENVIRONMENT
+				caption: YMPÄRISTÖ
+

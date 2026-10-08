@@ -131,7 +131,7 @@ codeunit 6371 "Avalara Document Management"
     local procedure InsertDocumentBuffer(var TempDocumentBuffer: Record "Avalara Document Buffer" temporary): Boolean
     begin
         if not TempDocumentBuffer.Insert(true) then begin
-            Session.LogMessage('', 'Failed to insert Avalara Document Buffer', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Parser');
+            Session.LogMessage('0000UW1', 'Failed to insert Avalara Document Buffer', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Parser');
             exit(false);
         end;
 
@@ -251,7 +251,7 @@ codeunit 6371 "Avalara Document Management"
     begin
         // Validate inputs
         if DocumentID = '' then begin
-            Session.LogMessage('', 'Document ID is required for download', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('0000UW2', 'Document ID is required for download', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
@@ -260,7 +260,7 @@ codeunit 6371 "Avalara Document Management"
 
         // Try to download - if it fails (e.g., 404 not found), return false without rollback
         if not TryDownloadFromApi(DocumentID, MediaType, TempBlob) then begin
-            Session.LogMessage('', StrSubstNo(FailedToDownloadDocumentMsg, DocumentID, MediaType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('0000UW3', StrSubstNo(FailedToDownloadDocumentMsg, DocumentID, MediaType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
@@ -268,11 +268,11 @@ codeunit 6371 "Avalara Document Management"
         FileName := GetFileNameForMediaType(DocumentID, MediaType);
 
         if not AttachToEDocument(EDocument, TempBlob, FileName) then begin
-            Session.LogMessage('', StrSubstNo(FailedToAttachDocumentMsg, DocumentID), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('0000UW4', StrSubstNo(FailedToAttachDocumentMsg, DocumentID), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
-        Session.LogMessage('', StrSubstNo(SuccessfullyDownloadedMsg, DocumentID, MediaType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+        Session.LogMessage('0000UW5', StrSubstNo(SuccessfullyDownloadedMsg, DocumentID, MediaType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
         exit(true);
     end;
 

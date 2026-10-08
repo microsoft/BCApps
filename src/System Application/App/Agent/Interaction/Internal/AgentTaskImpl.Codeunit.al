@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.Agents.TaskPane;
 using System.Agents.Troubleshooting;
 using System.Environment;
 using System.Integration;
@@ -14,6 +15,14 @@ codeunit 4300 "Agent Task Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    procedure GetStepsDoneCount(AgentTaskID: BigInteger): Integer
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        AgentTask.Get(AgentTaskID);
+        exit(GetStepsDoneCount(AgentTask));
+    end;
 
     procedure GetStepsDoneCount(var AgentTask: Record "Agent Task"): Integer
     var
@@ -35,12 +44,33 @@ codeunit 4300 "Agent Task Impl."
         exit(ContentText);
     end;
 
+    procedure ShowTaskLogEntries(AgentTaskID: BigInteger)
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        AgentTask.Get(AgentTaskID);
+        ShowTaskLogEntries(AgentTask);
+    end;
+
     procedure ShowTaskLogEntries(var AgentTask: Record "Agent Task")
     var
         AgentTaskLogEntry: Record "Agent Task Log Entry";
     begin
         AgentTaskLogEntry.SetRange("Task ID", AgentTask.ID);
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
+    end;
+
+    procedure ShowTask(var AgentTask: Record "Agent Task")
+    var
+        TaskPane: Codeunit "Task Pane";
+    begin
+        // Route archived agents' tasks to the task log entries card, which keeps it reachable for auditing.
+        if AgentTask."Agent Substate" = AgentTask."Agent Substate"::Archived then begin
+            ShowTaskLogEntries(AgentTask);
+            exit;
+        end;
+
+        TaskPane.ShowTask(AgentTask);
     end;
 
     procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; BillingContext: Enum "Agent Task Billing Context"; ModelId: Code[30]; var NewAgentTask: Record "Agent Task")

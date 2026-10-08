@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Invoice xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+    xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
+    <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
+    <cbc:ID>INV-ROUNDING-001</cbc:ID>
+    <cbc:IssueDate>2026-01-22</cbc:IssueDate>
+    <cbc:DueDate>2026-02-22</cbc:DueDate>
+    <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+    <cbc:DocumentCurrencyCode>GBP</cbc:DocumentCurrencyCode>
+    <cac:AccountingSupplierParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="9925">GB123456789</cbc:EndpointID>
+            <cac:PartyName>
+                <cbc:Name>Test Supplier</cbc:Name>
+            </cac:PartyName>
+            <cac:PostalAddress>
+                <cbc:StreetName>1 Test Street</cbc:StreetName>
+                <cbc:CityName>London</cbc:CityName>
+                <cbc:CountrySubentity>England</cbc:CountrySubentity>
+                <cac:Country>
+                    <cbc:IdentificationCode>GB</cbc:IdentificationCode>
+                </cac:Country>
+            </cac:PostalAddress>
+            <cac:PartyTaxScheme>
+                <cbc:CompanyID>GB123456789</cbc:CompanyID>
+                <cac:TaxScheme>
+                    <cbc:ID>VAT</cbc:ID>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName>Test Supplier Ltd</cbc:RegistrationName>
+                <cbc:CompanyID>12345678</cbc:CompanyID>
+            </cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:AccountingSupplierParty>
+    <cac:AccountingCustomerParty>
+        <cac:Party>
+            <cac:PartyName>
+                <cbc:Name>Test Customer</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:AccountingCustomerParty>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="GBP">2.35</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+            <cbc:TaxableAmount currencyID="GBP">11.20</cbc:TaxableAmount>
+            <cbc:TaxAmount currencyID="GBP">2.35</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cbc:ID>S</cbc:ID>
+                <cbc:Percent>21.00</cbc:Percent>
+                <cac:TaxScheme>
+                    <cbc:ID>VAT</cbc:ID>
+                </cac:TaxScheme>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="GBP">11.20</cbc:LineExtensionAmount>
+        <cbc:TaxExclusiveAmount currencyID="GBP">11.20</cbc:TaxExclusiveAmount>
+        <cbc:TaxInclusiveAmount currencyID="GBP">13.55</cbc:TaxInclusiveAmount>
+        <cbc:PrepaidAmount currencyID="GBP">0.00</cbc:PrepaidAmount>
+        <cbc:PayableAmount currencyID="GBP">13.55</cbc:PayableAmount>
+    </cac:LegalMonetaryTotal>
+    <cac:InvoiceLine>
+        <cbc:ID>1</cbc:ID>
+        <cbc:InvoicedQuantity unitCode="NAR">1.65000</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount currencyID="GBP">11.20</cbc:LineExtensionAmount>
+        <cac:Item>
+            <cbc:Description>RECDN2550</cbc:Description>
+            <cbc:Name>REMOVAL SERVICE</cbc:Name>
+            <cac:SellersItemIdentification>
+                <cbc:ID>RECDN2550</cbc:ID>
+            </cac:SellersItemIdentification>
+            <cac:ClassifiedTaxCategory>
+                <cbc:ID>S</cbc:ID>
+                <cbc:Percent>21.00</cbc:Percent>
+                <cac:TaxScheme>
+                    <cbc:ID>VAT</cbc:ID>
+                </cac:TaxScheme>
+            </cac:ClassifiedTaxCategory>
+        </cac:Item>
+        <cac:Price>
+            <cbc:PriceAmount currencyID="GBP">6.79000</cbc:PriceAmount>
+            <cbc:BaseQuantity>1</cbc:BaseQuantity>
+        </cac:Price>
+    </cac:InvoiceLine>
+</Invoice>
