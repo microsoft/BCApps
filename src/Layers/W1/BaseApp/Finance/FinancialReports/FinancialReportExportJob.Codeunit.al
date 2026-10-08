@@ -301,7 +301,6 @@ codeunit 8361 "Financial Report Export Job"
             until FinReportPackageReport.Next() = 0;
         AccountSchedule.SetRunForExport();
         TempBlob.CreateOutStream(OutStr);
-        AccScheduleParam := FinRepPackage.Code;
         isHandled := false;
         OnBeforeSaveAccountSchedule(FinRepPackageSchedule, FinReportPackageReport, AccScheduleParam, AccountSchedule, OutStr, IsHandled);
         if not IsHandled then begin
