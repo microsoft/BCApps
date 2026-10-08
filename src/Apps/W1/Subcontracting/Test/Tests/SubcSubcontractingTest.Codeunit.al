@@ -3033,6 +3033,81 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure OutboundSubcontractingTransferUsesVendorCountryOnTransferTo()
+    var
+        Item: Record Item;
+        ProductionLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+        TransferHeader: Record "Transfer Header";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 649580] An outbound subcontracting transfer stores the vendor country on the transfer-to address.
+        SetupSubcontractingForTransferOrderTests(Item, WorkCenter, ProductionLocation);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Country/Region Code" :=
+            CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor."Country/Region Code")), 1, MaxStrLen(Vendor."Country/Region Code"));
+        Vendor.Modify();
+
+        TransferHeader.Get(
+            CreateProductionOrderWithSubcTransferOrder(
+                Item, WorkCenter, ProductionLocation.Code, true, ProductionOrder));
+        Assert.AreEqual(
+            'A purchase order was created.\\Do you want to view it?', LibraryVariableStorage.DequeueText(),
+            'Expected the subcontracting purchase order creation confirmation.');
+
+        Assert.AreEqual(
+            Vendor."Country/Region Code", TransferHeader."Trsf.-to Country/Region Code",
+            'The outbound transfer-to country must use the subcontractor country.');
+    end;
+
+    [Test]
+    procedure TransferShipmentDataUsesPostedTransferFromAddressForReturn()
+    var
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        Vendor: Record Vendor;
+        SubcTransferShipmentData: Codeunit "Subc. Transfer Shipment Data";
+        SubcontractorAddress: array[8] of Text[100];
+        SubcontractorAddressValue: Text[100];
+        SubcontractorName: Text[100];
+        SubcontractorNo: Code[20];
+        SubcontractPurchaseOrderNo: Code[20];
+    begin
+        // [SCENARIO 649580] A subcontracting return shipment prints the posted transfer-from vendor address.
+        Initialize();
+        CreateAndPostOrdinaryTransferShipment(TransferShipmentHeader);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Address := CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor.Address)), 1, MaxStrLen(Vendor.Address));
+        Vendor."Country/Region Code" :=
+            CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor."Country/Region Code")), 1, MaxStrLen(Vendor."Country/Region Code"));
+        Vendor.Modify();
+        TransferShipmentHeader."Subc. Source Type" := TransferShipmentHeader."Subc. Source Type"::Subcontracting;
+        TransferShipmentHeader."Source ID" := Vendor."No.";
+        TransferShipmentHeader."Subc. Return Order" := true;
+        TransferShipmentHeader."Transfer-from Name" := Vendor.Name;
+        TransferShipmentHeader."Transfer-from Address" := Vendor.Address;
+        TransferShipmentHeader."Trsf.-from Country/Region Code" := Vendor."Country/Region Code";
+        TransferShipmentHeader."Transfer-to Name" :=
+            CopyStr(
+                LibraryRandom.RandText(MaxStrLen(TransferShipmentHeader."Transfer-to Name")), 1,
+                MaxStrLen(TransferShipmentHeader."Transfer-to Name"));
+        TransferShipmentHeader.Modify();
+
+        SubcTransferShipmentData.GetHeaderData(
+            TransferShipmentHeader, SubcontractorNo, SubcontractorName, SubcontractorAddressValue,
+            SubcontractorAddress, SubcontractPurchaseOrderNo);
+
+        Assert.AreEqual(Vendor."No.", SubcontractorNo, 'The report data must use the posted subcontractor number.');
+        Assert.AreEqual(Vendor.Name, SubcontractorName, 'The return report data must use the posted transfer-from name.');
+        Assert.AreEqual(Vendor.Address, SubcontractorAddressValue, 'The return report data must use the posted transfer-from address.');
+        Assert.AreEqual(
+            Vendor."Country/Region Code", SubcontractorAddress[6],
+            'The return report data must use the posted transfer-from country.');
+    end;
+
+    [Test]
     [HandlerFunctions('TransferShipmentRequestPageHandler')]
     procedure TransferShipmentReportShowsPostedSubcontractingReferences()
     var
