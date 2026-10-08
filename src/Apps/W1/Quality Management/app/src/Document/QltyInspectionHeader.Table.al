@@ -120,7 +120,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Pass Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that passed quality inspection. When the inspection is finished with acceptable results, this value is automatically derived from sample size or source quantity. It is reset to zero when the inspection is reopened. Only users with the Quality Admin & Supervisor role are allowed to manually change this value.';
+            ToolTip = 'Specifies the quantity that passed the inspection. When the inspection is finished, the system uses Sample Size if it is greater than 0; otherwise, it uses Quantity (Base). Reopening the inspection resets this value to 0. Only users with the Quality Admin & Supervisor role can change it manually.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -139,7 +139,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Fail Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that failed quality inspection. When the inspection is finished with non-acceptable results, this value is automatically derived from sample size or source quantity. It is reset to zero when the inspection is reopened. Only users with the Quality Admin & Supervisor role are allowed to manually change this value.';
+            ToolTip = 'Specifies the quantity that failed the inspection. When the inspection is finished, the system uses Sample Size if it is greater than 0; otherwise, it uses Quantity (Base). Reopening the inspection resets this value to 0. Only users with the Quality Admin & Supervisor role can change it manually.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
