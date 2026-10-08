@@ -1778,12 +1778,18 @@ codeunit 139204 "FS Integration Test"
     var
         ServiceMgtSetup: Record "Service Mgt. Setup";
         GenJournalTemplate: Record "Gen. Journal Template";
+        LibraryERM: Codeunit "Library - ERM";
     begin
         if not GenJournalTemplate.Get('DEFAULT') then begin
             GenJournalTemplate.Init();
             GenJournalTemplate.Name := 'DEFAULT';
             GenJournalTemplate.Type := GenJournalTemplate.Type::Sales;
             GenJournalTemplate.Insert();
+        end;
+
+        if GenJournalTemplate."Posting No. Series" = '' then begin
+            GenJournalTemplate.Validate("Posting No. Series", LibraryERM.CreateNoSeriesCode());
+            GenJournalTemplate.Modify();
         end;
 
         if not ServiceMgtSetup.Get() then begin
