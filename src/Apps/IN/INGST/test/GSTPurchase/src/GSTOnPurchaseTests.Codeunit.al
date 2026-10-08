@@ -122,6 +122,7 @@ codeunit 18131 "GST On Purchase Tests"
 
         // [GIVEN] An import purchase order with custom duty is partially received.
         InitializeShareStep(true, false, false);
+        EnsureGSTSetup();
         CreateGSTSetup(GSTVendorType::Import, GSTGroupType::Goods, false, true);
         SetupCustomDutyComponent();
         Storage.Set(NoOfLineLbl, '1');
@@ -163,6 +164,7 @@ codeunit 18131 "GST On Purchase Tests"
 
         // [GIVEN] An import purchase order with custom duty is received in two postings.
         InitializeShareStep(true, false, false);
+        EnsureGSTSetup();
         CreateGSTSetup(GSTVendorType::Import, GSTGroupType::Goods, false, true);
         SetupCustomDutyComponent();
         Storage.Set(NoOfLineLbl, '1');
@@ -1859,6 +1861,34 @@ codeunit 18131 "GST On Purchase Tests"
         PostedPurchInvoice.OpenEdit();
         PostedPurchInvoice.GoToRecord(PurchInvHeader);
         PostedPurchInvoice.CancelInvoice.Invoke();
+    end;
+
+    local procedure EnsureGSTSetup()
+    var
+        GSTSetup: Record "GST Setup";
+        TaxType: Record "Tax Type";
+        TaxEngineAssistedSetup: Codeunit "Tax Engine Assisted Setup";
+        GSTTaxTypeLbl: Label 'GST', Locked = true;
+        GSTCessTaxTypeLbl: Label 'GST CESS', Locked = true;
+    begin
+        if GSTSetup.Get() then
+            if GSTSetup."GST Tax Type" <> '' then
+                if TaxType.Get(GSTSetup."GST Tax Type") then
+                    exit;
+
+        if not TaxType.Get(GSTTaxTypeLbl) then
+            TaxEngineAssistedSetup.SetupTaxEngine();
+        TaxType.Get(GSTTaxTypeLbl);
+
+        if not GSTSetup.Get() then begin
+            GSTSetup.Init();
+            GSTSetup.Insert();
+        end;
+
+        GSTSetup."GST Tax Type" := GSTTaxTypeLbl;
+        if (GSTSetup."Cess Tax Type" = '') and TaxType.Get(GSTCessTaxTypeLbl) then
+            GSTSetup."Cess Tax Type" := GSTCessTaxTypeLbl;
+        GSTSetup.Modify();
     end;
 
     local procedure SetupCustomDutyComponent()
