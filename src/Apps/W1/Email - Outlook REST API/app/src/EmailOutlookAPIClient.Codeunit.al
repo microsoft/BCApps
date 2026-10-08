@@ -21,6 +21,7 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
         SendEmailErr: Label 'Could not send the email message. Try again later.';
         SendEmailCodeErr: Label 'Failed to send email with status code %1.', Comment = '%1 - Http status code', Locked = true;
         SendEmailMessageErr: Label 'Failed to send email. Error:\\%1', Comment = '%1 = Error message';
+        InvalidSenderAddressErr: Label 'Could not send the email, because the sender email address of the account is missing or invalid.';
         SendEmailExternalUserErr: Label 'Could not send the email, because the user is delegated or external.';
         EmailSentTxt: Label 'Email sent.', Locked = true;
         DraftEmailCreatedTxt: Label 'Draft email created.', Locked = true;
@@ -157,20 +158,30 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
         MessageToken: JsonToken;
         AddressToken: JsonToken;
         MessageObject: JsonObject;
+        SenderAddress: Text[250];
     begin
         MessageObject := MessageJson;
         if MessageJson.Get('message', MessageToken) then
             if MessageToken.IsObject() then
                 MessageObject := MessageToken.AsObject();
 
-        if not MessageObject.SelectToken('from.emailAddress.address', AddressToken) then
-            exit('');
-        if not AddressToken.IsValue() then
-            exit('');
-        if AddressToken.AsValue().IsNull() then
+        // No sender requested: send through the signed-in user's mailbox.
+        if not MessageObject.Contains('from') then
             exit('');
 
-        exit(CopyStr(AddressToken.AsValue().AsText(), 1, 250));
+        // A sender was requested, so never silently fall back to the signed-in user's mailbox.
+        if not MessageObject.SelectToken('from.emailAddress.address', AddressToken) then
+            Error(InvalidSenderAddressErr);
+        if not AddressToken.IsValue() then
+            Error(InvalidSenderAddressErr);
+        if AddressToken.AsValue().IsNull() then
+            Error(InvalidSenderAddressErr);
+
+        SenderAddress := CopyStr(AddressToken.AsValue().AsText().Trim(), 1, MaxStrLen(SenderAddress));
+        if SenderAddress = '' then
+            Error(InvalidSenderAddressErr);
+
+        exit(SenderAddress);
     end;
 
     procedure GetMailboxFolders(AccessToken: SecretText; OutlookAccount: Record "Email - Outlook Account"): JsonArray
