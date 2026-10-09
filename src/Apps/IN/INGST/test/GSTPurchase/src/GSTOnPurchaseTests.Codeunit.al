@@ -108,6 +108,100 @@ codeunit 18131 "GST On Purchase Tests"
 
     [Test]
     [HandlerFunctions('TaxRatePageHandler')]
+    procedure UpdateQtyToInvoiceAfterPartialReceiptForImportPurchaseOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GSTGroupType: Enum "GST Group Type";
+        GSTVendorType: Enum "GST Vendor Type";
+        DocumentType: Enum "Purchase Document Type";
+        LineType: Enum "Purchase Line Type";
+        QtyToReceive: Decimal;
+    begin
+        // [SCENARIO] Qty. to Invoice is limited to the received quantity when an import purchase order is initialized.
+
+        // [GIVEN] An import purchase order with custom duty is partially received.
+        InitializeShareStep(true, false, false);
+        EnsureGSTSetup();
+        CreateGSTSetup(GSTVendorType::Import, GSTGroupType::Goods, false, true);
+        SetupCustomDutyComponent();
+        Storage.Set(NoOfLineLbl, '1');
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, LineType::Item, DocumentType::Order);
+        QtyToReceive := PurchaseLine.Quantity / 2;
+        PurchaseLine.Validate("Qty. to Receive", QtyToReceive);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Quantities are initialized for the remaining purchase order.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.InitQtyToReceive2();
+
+        // [THEN] Only the received quantity is selected for invoicing and GST calculation.
+        LibraryAssert.AreEqual(
+            PurchaseLine."Qty. Rcd. Not Invoiced",
+            PurchaseLine."Qty. to Invoice",
+            'Qty. to Invoice must equal Qty. Rcd. Not Invoiced.');
+        LibraryAssert.AreEqual(
+            PurchaseLine."Qty. Rcd. Not Invoiced (Base)",
+            PurchaseLine."Qty. to Invoice (Base)",
+            'Qty. to Invoice (Base) must equal Qty. Rcd. Not Invoiced (Base).');
+    end;
+
+    [Test]
+    [HandlerFunctions('TaxRatePageHandler,ConfirmationHandler')]
+    procedure UpdateQtyToInvoiceAfterUndoReceiptForImportPurchaseOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        GSTGroupType: Enum "GST Group Type";
+        GSTVendorType: Enum "GST Vendor Type";
+        DocumentType: Enum "Purchase Document Type";
+        LineType: Enum "Purchase Line Type";
+        QtyToReceive: Decimal;
+    begin
+        // [SCENARIO] Qty. to Invoice is updated after undoing the latest receipt of an import purchase order.
+
+        // [GIVEN] An import purchase order with custom duty is received in two postings.
+        InitializeShareStep(true, false, false);
+        EnsureGSTSetup();
+        CreateGSTSetup(GSTVendorType::Import, GSTGroupType::Goods, false, true);
+        SetupCustomDutyComponent();
+        Storage.Set(NoOfLineLbl, '1');
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, LineType::Item, DocumentType::Order);
+        QtyToReceive := PurchaseLine.Quantity / 2;
+        PurchaseLine.Validate("Qty. to Receive", QtyToReceive);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", PurchaseLine."Outstanding Quantity");
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchRcptLine.SetCurrentKey("Order No.", "Order Line No.", "Posting Date");
+        PurchRcptLine.SetRange("Order No.", PurchaseLine."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindLast();
+
+        // [WHEN] The latest purchase receipt is undone.
+        LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
+
+        // [THEN] Only the quantity from the remaining receipt is selected for invoicing and GST calculation.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        LibraryAssert.AreEqual(
+            PurchaseLine."Qty. Rcd. Not Invoiced",
+            PurchaseLine."Qty. to Invoice",
+            'Qty. to Invoice must equal Qty. Rcd. Not Invoiced after undoing a receipt.');
+        LibraryAssert.AreEqual(
+            PurchaseLine."Qty. Rcd. Not Invoiced (Base)",
+            PurchaseLine."Qty. to Invoice (Base)",
+            'Qty. to Invoice (Base) must equal Qty. Rcd. Not Invoiced (Base) after undoing a receipt.');
+    end;
+
+    [Test]
+    [HandlerFunctions('TaxRatePageHandler')]
     procedure PostFromIntraStatePurchInvServicesForRegVendorWithAdvPayment()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1767,6 +1861,48 @@ codeunit 18131 "GST On Purchase Tests"
         PostedPurchInvoice.OpenEdit();
         PostedPurchInvoice.GoToRecord(PurchInvHeader);
         PostedPurchInvoice.CancelInvoice.Invoke();
+    end;
+
+    local procedure EnsureGSTSetup()
+    var
+        GSTSetup: Record "GST Setup";
+        TaxType: Record "Tax Type";
+        TaxEngineAssistedSetup: Codeunit "Tax Engine Assisted Setup";
+        GSTTaxTypeLbl: Label 'GST', Locked = true;
+        GSTCessTaxTypeLbl: Label 'GST CESS', Locked = true;
+    begin
+        if GSTSetup.Get() then
+            if GSTSetup."GST Tax Type" <> '' then
+                if TaxType.Get(GSTSetup."GST Tax Type") then
+                    exit;
+
+        if not TaxType.Get(GSTTaxTypeLbl) then
+            TaxEngineAssistedSetup.OnImportTaxTypeFromLibrary(GSTTaxTypeLbl);
+        TaxType.Get(GSTTaxTypeLbl);
+
+        if not GSTSetup.Get() then begin
+            GSTSetup.Init();
+            GSTSetup.Insert();
+        end;
+
+        GSTSetup."GST Tax Type" := GSTTaxTypeLbl;
+        if (GSTSetup."Cess Tax Type" = '') and TaxType.Get(GSTCessTaxTypeLbl) then
+            GSTSetup."Cess Tax Type" := GSTCessTaxTypeLbl;
+        GSTSetup.Modify();
+    end;
+
+    local procedure SetupCustomDutyComponent()
+    var
+        GSTSetup: Record "GST Setup";
+        TaxComponent: Record "Tax Component";
+        CustomDutyComponentLbl: Label 'Custom Duty', Locked = true;
+    begin
+        GSTSetup.Get();
+        GSTSetup.TestField("GST Tax Type");
+        LibraryGST.CreateGSTComponent(TaxComponent, CustomDutyComponentLbl);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Custom Duty Component Code", TaxComponent.Name);
+        GeneralLedgerSetup.Modify(true);
     end;
 
     local procedure InitializeShareStep(InputCreditAvailment: Boolean; Exempted: Boolean; LineDiscount: Boolean)

@@ -10,6 +10,7 @@ using Microsoft.Finance.GST.Base;
 using Microsoft.Finance.TaxBase;
 using Microsoft.Finance.TaxEngine.TaxTypeHandler;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Projects.Resources.Resource;
@@ -530,6 +531,41 @@ codeunit 18080 "GST Purchase Subscribers"
         GSTStatistics.GetStatisticsPostedPurchInvAmount(PurchInvHeader, GSTAmount);
         PurchInvHeader.CalcFields("Amount Including VAT", "Remaining Amount");
         FullyOpen := (PurchInvHeader."Amount Including VAT" + GSTAmount) = PurchInvHeader."Remaining Amount";
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnInitQtyToReceive2OnBeforeCalcInvDiscToInvoice, '', false, false)]
+    local procedure UpdateInvoicedQty(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line")
+    begin
+        SetQtyToInvoiceToRecvdQty(PurchaseLine);
+
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", OnUpdatePurchLineOnBeforePurchLineModify, '', false, false)]
+    local procedure UpdateInvoicedQtyOnUndoReceipt(var PurchLine: Record "Purchase Line")
+    begin
+
+        if not SetQtyToInvoiceToRecvdQty(PurchLine) then
+            exit;
+
+        PurchLine.CalcInvDiscToInvoice();
+        PurchLine.CalcPrepaymentToDeduct();
+
+    end;
+
+    local procedure SetQtyToInvoiceToRecvdQty(var PurchaseLine: Record "Purchase Line"): Boolean
+
+    begin
+
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit(false);
+
+        if PurchaseLine."Qty. Rcd. Not Invoiced" <= 0 then
+            exit(false);
+
+        PurchaseLine."Qty. to Invoice" := PurchaseLine."Qty. Rcd. Not Invoiced";
+        PurchaseLine."Qty. to Invoice (Base)" := PurchaseLine."Qty. Rcd. Not Invoiced (Base)";
+        exit(true);
+
     end;
 
     local procedure CalculateTaxOnPurchase(PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line")
