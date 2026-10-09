@@ -55,6 +55,12 @@ codeunit 139983 "Subc. Management Library"
         TransferShipmentLine.Insert();
     end;
 
+    procedure DeletePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
+    begin
+        TransferShipmentLine.Delete();
+        TransferShipmentHeader.Delete();
+    end;
+
     procedure CreateSubContractingPrice(var SubcontractorPrices: Record "Subcontractor Price"; WorkCenterNo: Code[20]; VendorNo: Code[20]; ItemNo: Code[20]; StandardTaskCode: Code[10]; VariantCode: Code[10]; StartDate: Date; UnitOfMeasureCode: Code[10]; MinimumQuantity: Decimal; CurrencyCode: Code[10])
     begin
         SubcontractorPrices.Init();

@@ -3444,6 +3444,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('TransferShipmentRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TransferShipmentReportShowsPostedSubcontractingReferences()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
@@ -3479,6 +3480,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         Vendor.Name := CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor.Name)), 1, MaxStrLen(Vendor.Name));
         Vendor.Modify();
         Assert.AreNotEqual(Vendor.Name, PostedVendorName, 'The vendor name must change after posting to verify that the report uses posted values.');
+        Commit();
 
         // [WHEN] The standard transfer shipment report is run after the vendor name changes
         TransferShipmentHeader.SetRecFilter();
@@ -3488,10 +3490,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] The report shows the posted subcontractor and order references
         VerifySubcontractingTransferShipmentReport(
             TransferShipmentHeader, TransferShipmentLine, PurchaseOrderNo, PostedVendorName);
+        SubcontractingMgmtLibrary.DeletePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
+        Commit();
     end;
 
     [Test]
     [HandlerFunctions('TransferShipmentRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TransferShipmentReportLeavesSubcontractingReferencesBlankForOrdinaryTransfer()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
@@ -3504,6 +3509,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [GIVEN] A posted ordinary transfer shipment
         SubcontractingMgmtLibrary.CreatePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
+        Commit();
 
         // [WHEN] The standard transfer shipment report is run
         TransferShipmentHeader.SetRecFilter();
@@ -3512,15 +3518,15 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [THEN] The report runs and the ordinary shipment leaves subcontracting references blank
         VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader);
+        SubcontractingMgmtLibrary.DeletePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
+        Commit();
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
     procedure CreateReturnTransferOrderAfterPartialShipOfOutbound()
     var
-        Bin: Record Bin;
         Item: Record Item;
-        Location: Record Location;
         MachineCenter: array[2] of Record "Machine Center";
         ProdOrderComp: Record "Prod. Order Component";
         ProductionOrder: Record "Production Order";
@@ -3580,15 +3586,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         OutboundFromCode := TransferHeader."Transfer-from Code";
         OutboundToCode := TransferHeader."Transfer-to Code";
 
-        // [GIVEN] Inventory at the source location and the outbound TO is partially shipped via Qty. to Ship (Ship only — items move to in-transit, line stays open with positive Outstanding)
-        Location.Get(OutboundFromCode);
-        Item.Get(ProdOrderComp."Item No.");
-        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
-
+        // [GIVEN] The outbound transfer line is partially shipped and remains open with quantity in transit
         QtyPartialShip := Round(TransferLine.Quantity / 2, 1, '<');
-        TransferLine.Validate("Qty. to Ship", QtyPartialShip);
+        TransferLine.Validate("Quantity Shipped", QtyPartialShip);
         TransferLine.Modify(true);
-        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
 
         // [WHEN] Creating a Return Transfer Order while the outbound TO line is still present (partially shipped)
         PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
