@@ -143,6 +143,7 @@ codeunit 1299 "Web Request Helper"
     local procedure GetResponseTextInternal(Method: Text; Url: Text; AccessToken: SecretText; var ResponseText: Text; IgnoreCharSet: Boolean)
     var
         TempBlob: Codeunit "Temp Blob";
+        Uri: Codeunit Uri;
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
@@ -150,13 +151,12 @@ codeunit 1299 "Web Request Helper"
         ResponseContentInStream: InStream;
         ResponseInputStream: InStream;
         ResponseOutStream: OutStream;
-        Uri: DotNet Uri;
         TextEncodingVar: TextEncoding;
         ChunkText: Text;
     begin
         IsValidUri(Url);
-        Uri := Uri.Uri(Url);
-        if Uri.Scheme = 'file' then
+        Uri.Init(Url);
+        if Uri.GetScheme() = 'file' then
             Error(FileSchemeNotAllowedErr);
 
         HttpRequestMessage.Method(Method);
