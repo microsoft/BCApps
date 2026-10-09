@@ -5,8 +5,8 @@
 namespace Microsoft.Foundation.Address.IdealPostcodes.Test;
 
 using Microsoft.Foundation.Address;
-using Microsoft.Utilities;
 using Microsoft.Foundation.Address.IdealPostcodes;
+using Microsoft.Utilities;
 using System.TestLibraries.Utilities;
 
 codeunit 148119 "Test Negative Outcomes"
@@ -150,8 +150,7 @@ codeunit 148119 "Test Negative Outcomes"
 
         // [GIVEN] The service key stored the way the configuration page stores it: the discovered row's Name
         PostcodeServiceManager.DiscoverPostcodeServices(TempServiceListNameValueBuffer);
-        TempServiceListNameValueBuffer.SetRange(Value, MyServiceKeyTok);
-        TempServiceListNameValueBuffer.FindFirst();
+        FindDiscoveredService(TempServiceListNameValueBuffer);
         PostcodeServiceConfig.FindFirst();
         PostcodeServiceConfig.SaveServiceKey(TempServiceListNameValueBuffer.Name);
 
@@ -187,6 +186,17 @@ codeunit 148119 "Test Negative Outcomes"
         end;
 
         // Active service in Postcode Service Manager
+    end;
+
+    local procedure FindDiscoveredService(var TempServiceListNameValueBuffer: Record "Name/Value Buffer" temporary)
+    begin
+        // Name/Value Buffer has no key on Value, so read through the rows instead of filtering on it
+        TempServiceListNameValueBuffer.FindSet();
+        repeat
+            if TempServiceListNameValueBuffer.Value = MyServiceKeyTok then
+                exit;
+        until TempServiceListNameValueBuffer.Next() = 0;
+        Assert.Fail('IdealPostcodes should be discovered as a postcode service.');
     end;
 
     [ModalPageHandler]

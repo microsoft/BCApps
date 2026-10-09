@@ -45,8 +45,7 @@ codeunit 148120 "Test IPC Provider Lookup"
         Assert.AreEqual(2, TempAddressListNameValueBuffer.Count(), 'Both addresses of the postcode should be listed.');
 
         // [WHEN] The user selects the second address
-        TempAddressListNameValueBuffer.SetRange(Name, '2');
-        TempAddressListNameValueBuffer.FindFirst();
+        FindListedAddress(TempAddressListNameValueBuffer, '2');
         Assert.IsTrue(PostcodeServiceManager.GetAddress(TempAddressListNameValueBuffer, TempEnteredAutocompleteAddress, TempAutocompleteAddress), 'The selected address should be retrieved.');
 
         // [THEN] The selected address is returned from the search result
@@ -135,8 +134,7 @@ codeunit 148120 "Test IPC Provider Lookup"
 
         // IdealPostcodes is the selected provider, stored the way page 9143 stores it: the discovered row's Name
         PostcodeServiceManager.DiscoverPostcodeServices(TempServiceListNameValueBuffer);
-        TempServiceListNameValueBuffer.SetRange(Value, MyServiceKeyTok);
-        TempServiceListNameValueBuffer.FindFirst();
+        FindDiscoveredService(TempServiceListNameValueBuffer);
         PostcodeServiceConfig.DeleteAll();
         PostcodeServiceConfig.Init();
         PostcodeServiceConfig.Insert();
@@ -152,6 +150,28 @@ codeunit 148120 "Test IPC Provider Lookup"
         IPCConfig."API Key" := ApiKeyGuid;
         IPCConfig.Modify();
         Commit();
+    end;
+
+    local procedure FindDiscoveredService(var TempServiceListNameValueBuffer: Record "Name/Value Buffer" temporary)
+    begin
+        // Name/Value Buffer has no key on Value, so read through the rows instead of filtering on it
+        TempServiceListNameValueBuffer.FindSet();
+        repeat
+            if TempServiceListNameValueBuffer.Value = MyServiceKeyTok then
+                exit;
+        until TempServiceListNameValueBuffer.Next() = 0;
+        Assert.Fail('IdealPostcodes should be discovered as a postcode service.');
+    end;
+
+    local procedure FindListedAddress(var TempAddressListNameValueBuffer: Record "Name/Value Buffer" temporary; AddressName: Text)
+    begin
+        // Name/Value Buffer has no key on Name, so read through the rows instead of filtering on it
+        TempAddressListNameValueBuffer.FindSet();
+        repeat
+            if TempAddressListNameValueBuffer.Name = AddressName then
+                exit;
+        until TempAddressListNameValueBuffer.Next() = 0;
+        Assert.Fail('The address to select should be listed.');
     end;
 
     [HttpClientHandler]
