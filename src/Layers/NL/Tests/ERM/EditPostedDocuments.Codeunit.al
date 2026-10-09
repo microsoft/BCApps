@@ -1271,7 +1271,6 @@ codeunit 134658 "Edit Posted Documents"
     var
         GenJnlBatch: Record "Gen. Journal Batch";
         GenJnlLine: Record "Gen. Journal Line";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
         LibraryERM.SelectGenJnlBatch(GenJnlBatch);
         LibraryERM.ClearGenJournalLines(GenJnlBatch);
