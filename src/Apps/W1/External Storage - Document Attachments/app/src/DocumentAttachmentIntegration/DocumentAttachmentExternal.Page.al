@@ -37,6 +37,12 @@ page 8751 "Document Attachment - External"
                     StyleExpr = true;
                     ToolTip = 'Shows the percentage of files uploaded to external storage.';
                 }
+                field(ExternalCleanupStatus; ExternalCleanupStatus)
+                {
+                    Caption = 'External Cleanup Status';
+                    Editable = false;
+                    ToolTip = 'Specifies why external files and attachment metadata are retained instead of deleted.';
+                }
             }
             repeater(General)
             {
@@ -278,6 +284,7 @@ page 8751 "Document Attachment - External"
         ExternalStorageStatsTxt: Label '%1% (%2/%3) files are uploaded to external storage', Comment = '%1 = Percentage, %2 = External count, %3 = Total count';
         UploadActionEnabled: Boolean;
         ExternalStorageStatsText: Text;
+        ExternalCleanupStatus: Text;
 
     trigger OnAfterGetRecord()
     var
@@ -287,7 +294,10 @@ page 8751 "Document Attachment - External"
     end;
 
     trigger OnOpenPage()
+    var
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
+        ExternalCleanupStatus := ExternalStorageImpl.GetExternalDeletionBlockedMessage();
         UpdateExternalStorageStats();
     end;
 
