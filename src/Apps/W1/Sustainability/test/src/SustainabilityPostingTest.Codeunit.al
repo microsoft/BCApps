@@ -5711,6 +5711,31 @@ codeunit 148184 "Sustainability Posting Test"
     end;
 
     [Test]
+    procedure VerifyTemporaryPostedValueEntriesKeepPostedEntryActions()
+    var
+        TempSustainabilityValueEntry: Record "Sustainability Value Entry" temporary;
+        SustainabilityValueEntries: TestPage "Sustainability Value Entries";
+    begin
+        // [SCENARIO 651047] A temporary buffer that shows a posted value entry must keep the posted entry actions even when the document number matches the preview mask.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] A temporary buffer holds a posted value entry with a positive key that carries the document number posting preview also uses.
+        TempSustainabilityValueEntry.Init();
+        TempSustainabilityValueEntry."Entry No." := 1;
+        TempSustainabilityValueEntry."Document No." := '***';
+        TempSustainabilityValueEntry.Insert();
+
+        // [WHEN] The value entries page is opened with that temporary buffer.
+        SustainabilityValueEntries.Trap();
+        Page.Run(Page::"Sustainability Value Entries", TempSustainabilityValueEntry);
+
+        // [THEN] The action that acts on posted entries is still offered.
+        Assert.IsTrue(SustainabilityValueEntries.First(), EntryShouldBeShownErr);
+        Assert.IsTrue(SustainabilityValueEntries."&Navigate".Visible(), PostedEntryActionShouldBeVisibleErr);
+        SustainabilityValueEntries.Close();
+    end;
+
+    [Test]
     procedure VerifySpecificCarbonTrackingUsesLotEmissionAfterTransfer()
     var
         Item: Record Item;
@@ -6649,6 +6674,7 @@ codeunit 148184 "Sustainability Posting Test"
         SustainabilityValueEntries.Trap();
         GLPostingPreview."No. of Records".DrillDown();
         Assert.IsTrue(SustainabilityValueEntries.First(), EntryShouldBeShownErr);
+        Assert.IsTrue(SustainabilityValueEntries."Entry No.".AsInteger() < 0, PreviewKeyShouldBeNegativeErr);
         Assert.IsFalse(SustainabilityValueEntries."&Navigate".Visible(), PreviewActionShouldBeHiddenErr);
         SustainabilityValueEntries.Close();
 
