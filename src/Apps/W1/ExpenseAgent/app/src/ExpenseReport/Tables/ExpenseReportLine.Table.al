@@ -1466,12 +1466,10 @@ table 6907 "Expense Report Line"
         ExpenseReportLineItemization: Record "Expense Report Line Item";
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
     begin
-        if Rec.IsItemizationRequired() then begin
-            ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
-            ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
-            if not ExpenseReportLineItemization.IsEmpty() then
-                exit(true);
-        end;
+        ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
+        ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
+        if not ExpenseReportLineItemization.IsEmpty() then
+            exit(true);
 
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
