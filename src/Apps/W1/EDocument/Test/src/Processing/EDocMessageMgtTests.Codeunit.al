@@ -575,6 +575,45 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
+    procedure FailedManualPaymentOccurrenceRetryPreservesAutomaticRetryBudget()
+    var
+        Customer: Record Customer;
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A failed manual retry preserves the remaining automatic retry budget
+        Initialize(Customer);
+
+        // [GIVEN] A retry-pending payment occurrence with automatic attempts remaining
+        CreatePaymentOccurrenceScenario(EDocument, DetailedCustLedgEntry);
+        EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.FindFirst();
+        EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::"Retry Pending";
+        EDocPaymentOccurrence."Retry Count" := 1;
+        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + 1800000;
+        EDocPaymentOccurrence.Modify();
+        EDocImplState.SetThrowPaymentOccurrenceProcessingError();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] The occurrence is retried manually before its scheduled attempt
+        EDocPaymentOccurrenceMgt.RetryPaymentOccurrence(EDocPaymentOccurrence."Entry No.");
+
+        UnbindSubscription(EDocImplState);
+
+        // [THEN] The failed attempt remains pending for the next automatic retry
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        Assert.AreEqual(EDocPaymentOccurrence.Status::"Retry Pending", EDocPaymentOccurrence.Status, 'A failed manual retry must preserve remaining automatic retries.');
+        Assert.AreEqual(2, EDocPaymentOccurrence."Retry Count", 'A failed manual retry must be included in failure history.');
+        Assert.IsTrue(EDocPaymentOccurrence."Next Attempt At" > EDocPaymentOccurrence."Last Attempt At", 'A failed manual retry must schedule the next automatic attempt.');
+        Assert.AreNotEqual('', EDocPaymentOccurrence."Last Error", 'A failed manual retry must retain the processing error.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FailedManualPaymentOccurrenceRetryRemainsActionRequired()
     var
         Customer: Record Customer;
