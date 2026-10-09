@@ -3,7 +3,6 @@ namespace System.Automation;
 using System;
 using System.Reflection;
 using System.Utilities;
-using System.Xml;
 
 codeunit 1530 "Request Page Parameters Helper"
 {
@@ -90,7 +89,7 @@ codeunit 1530 "Request Page Parameters Helper"
     procedure ConvertParametersToFilters(RecRef: RecordRef; TempBlob: Codeunit "Temp Blob"; Encoding: TextEncoding): Boolean
     var
         TableMetadata: Record "Table Metadata";
-        FoundXmlNodeList: DotNet XmlNodeList;
+        FoundXmlNodeList: XmlNodeList;
     begin
         if not TableMetadata.Get(RecRef.Number) then
             exit(false);
@@ -111,40 +110,107 @@ codeunit 1530 "Request Page Parameters Helper"
         end;
     end;
 
-    local procedure FindNodes(var FoundXmlNodeList: DotNet XmlNodeList; Parameters: Text; NodePath: Text) Result: Boolean
+    local procedure FindNodes(var FoundXmlNodeList: XmlNodeList; Parameters: Text; NodePath: Text) Result: Boolean
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        ParametersXmlDoc: DotNet XmlDocument;
+        ParametersXmlDoc: XmlDocument;
+        DocumentElement: XmlElement;
         ShowNotFoundError: Boolean;
     begin
-        if not XMLDOMMgt.LoadXMLDocumentFromText(Parameters, ParametersXmlDoc) then
+        RemoveByteOrderMark(Parameters);
+        if not XmlDocument.ReadFrom(Parameters, ParametersXmlDoc) then
             exit(false);
 
-        if IsNull(ParametersXmlDoc.DocumentElement) then
+        if not ParametersXmlDoc.GetRoot(DocumentElement) then
             exit(false);
 
-        ShowNotFoundError := not XMLDOMMgt.FindNodes(ParametersXmlDoc.DocumentElement, NodePath, FoundXmlNodeList);
+        ShowNotFoundError := true;
+        if DocumentElement.SelectNodes(NodePath, FoundXmlNodeList) then
+            ShowNotFoundError := FoundXmlNodeList.Count() = 0;
         OnFindNodesOnAfterCalcShowNotFoundError(ShowNotFoundError);
         if ShowNotFoundError then
-            Error(XmlNodesNotFoundErr, NodePath, ParametersXmlDoc.DocumentElement.InnerXml);
+            Error(XmlNodesNotFoundErr, NodePath, GetInnerXml(DocumentElement));
 
         Result := true;
         OnAfterFindNodes(Result);
     end;
 
-    local procedure GetFiltersForTable(RecRef: RecordRef; FoundXmlNodeList: DotNet XmlNodeList): Boolean
+    local procedure RemoveByteOrderMark(var XmlText: Text)
     var
-        FoundXmlNode: DotNet XmlNode;
+        ByteOrderMark: Char;
+    begin
+        ByteOrderMark := 65279;
+        if XmlText <> '' then
+            if XmlText[1] = ByteOrderMark then
+                XmlText := CopyStr(XmlText, 2);
+    end;
+
+    local procedure GetInnerXml(ParentXmlElement: XmlElement) InnerXml: Text
+    var
+        ChildXmlNode: XmlNode;
+        UnformattedXmlWriteOptions: XmlWriteOptions;
+        ChildXml: Text;
+    begin
+        RemoveWhitespaceXmlText(ParentXmlElement);
+        UnformattedXmlWriteOptions.PreserveWhitespace := true;
+        foreach ChildXmlNode in ParentXmlElement.GetChildNodes() do begin
+            ChildXmlNode.WriteTo(UnformattedXmlWriteOptions, ChildXml);
+            InnerXml += ChildXml;
+        end;
+    end;
+
+    local procedure RemoveWhitespaceXmlText(ParentXmlElement: XmlElement)
+    var
+        DescendantXmlNode: XmlNode;
+        WhitespaceXmlNode: XmlNode;
+        WhitespaceFound: Boolean;
+    begin
+        repeat
+            WhitespaceFound := false;
+            foreach DescendantXmlNode in ParentXmlElement.GetDescendantNodes() do
+                if not WhitespaceFound then
+                    if IsWhitespaceXmlText(DescendantXmlNode) then begin
+                        WhitespaceXmlNode := DescendantXmlNode;
+                        WhitespaceFound := true;
+                    end;
+            if WhitespaceFound then
+                WhitespaceXmlNode.Remove();
+        until not WhitespaceFound;
+    end;
+
+    local procedure IsWhitespaceXmlText(CheckXmlNode: XmlNode): Boolean
+    var
+        Whitespace: Text[4];
+    begin
+        if not CheckXmlNode.IsXmlText() then
+            exit(false);
+        Whitespace[1] := 9;
+        Whitespace[2] := 10;
+        Whitespace[3] := 13;
+        Whitespace[4] := 32;
+        exit(DelChr(CheckXmlNode.AsXmlText().Value(), '=', Whitespace) = '');
+    end;
+
+    local procedure GetNameAttributeValue(FoundXmlNode: XmlNode): Text
+    var
+        NameXmlAttribute: XmlAttribute;
+    begin
+        if FoundXmlNode.AsXmlElement().Attributes().Get('name', NameXmlAttribute) then
+            exit(NameXmlAttribute.Value());
+    end;
+
+    local procedure GetFiltersForTable(RecRef: RecordRef; FoundXmlNodeList: XmlNodeList): Boolean
+    var
+        FoundXmlNode: XmlNode;
     begin
         foreach FoundXmlNode in FoundXmlNodeList do
-            if DoesRecRefExactlyCorrespondToXMLNode(RecRef, FoundXmlNode.Attributes.ItemOf('name').Value) then begin
-                RecRef.SetView(FoundXmlNode.InnerText);
+            if DoesRecRefExactlyCorrespondToXMLNode(RecRef, GetNameAttributeValue(FoundXmlNode)) then begin
+                RecRef.SetView(FoundXmlNode.AsXmlElement().InnerText());
                 exit(true);
             end;
 
         foreach FoundXmlNode in FoundXmlNodeList do
-            if DoesRecRefCorrespondToXMLNode(RecRef, FoundXmlNode.Attributes.ItemOf('name').Value) then begin
-                RecRef.SetView(FoundXmlNode.InnerText);
+            if DoesRecRefCorrespondToXMLNode(RecRef, GetNameAttributeValue(FoundXmlNode)) then begin
+                RecRef.SetView(FoundXmlNode.AsXmlElement().InnerText());
                 exit(true);
             end;
 
@@ -254,7 +320,7 @@ codeunit 1530 "Request Page Parameters Helper"
     procedure SetViewOnDynamicRequestPage(var FilterPageBuilder: FilterPageBuilder; Filters: Text; EntityName: Code[20]; TableID: Integer): Boolean
     var
         RecRef: RecordRef;
-        FoundXmlNodeList: DotNet XmlNodeList;
+        FoundXmlNodeList: XmlNodeList;
         TableList: DotNet ArrayList;
         "Table": Integer;
     begin
@@ -295,40 +361,49 @@ codeunit 1530 "Request Page Parameters Helper"
 
     local procedure ConvertFiltersToParameters(TableFilterDictionary: DotNet GenericDictionary2): Text
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        DataItemXmlNode: DotNet XmlNode;
-        DataItemsXmlNode: DotNet XmlNode;
-        XmlDoc: DotNet XmlDocument;
-        ReportParametersXmlNode: DotNet XmlNode;
+        XmlDoc: XmlDocument;
+        ReportParametersXmlElement: XmlElement;
+        DataItemsXmlElement: XmlElement;
+        DataItemXmlElement: XmlElement;
         TableFilter: DotNet GenericKeyValuePair2;
+        UnformattedXmlWriteOptions: XmlWriteOptions;
+        TableView: Text;
+        ParametersXml: Text;
     begin
-        XmlDoc := XmlDoc.XmlDocument();
+        XmlDoc := XmlDocument.Create();
+        XmlDoc.SetDeclaration(XmlDeclaration.Create('1.0', 'utf-8', 'yes'));
+        ReportParametersXmlElement := XmlElement.Create('ReportParameters');
+        XmlDoc.Add(ReportParametersXmlElement);
 
-        XMLDOMMgt.AddRootElement(XmlDoc, 'ReportParameters', ReportParametersXmlNode);
-        XMLDOMMgt.AddDeclaration(XmlDoc, '1.0', 'utf-8', 'yes');
-
-        XMLDOMMgt.AddElement(ReportParametersXmlNode, 'DataItems', '', '', DataItemsXmlNode);
+        DataItemsXmlElement := XmlElement.Create('DataItems');
+        ReportParametersXmlElement.Add(DataItemsXmlElement);
         foreach TableFilter in TableFilterDictionary do begin
-            XMLDOMMgt.AddElement(DataItemsXmlNode, 'DataItem', TableFilter.Value, '', DataItemXmlNode);
-            XMLDOMMgt.AddAttribute(DataItemXmlNode, 'name', StrSubstNo('Table%1', TableFilter.Key));
+            DataItemXmlElement := XmlElement.Create('DataItem');
+            TableView := TableFilter.Value;
+            if TableView <> '' then
+                DataItemXmlElement.Add(XmlText.Create(TableView));
+            DataItemXmlElement.SetAttribute('name', StrSubstNo('Table%1', TableFilter.Key));
+            DataItemsXmlElement.Add(DataItemXmlElement);
         end;
 
-        exit(XmlDoc.InnerXml);
+        UnformattedXmlWriteOptions.PreserveWhitespace := true;
+        XmlDoc.WriteTo(UnformattedXmlWriteOptions, ParametersXml);
+        exit(ParametersXml);
     end;
 
     procedure GetRequestPageOptionValue(OptionName: Text; Parameters: Text): Text
     var
-        FoundXmlNodeList: DotNet XmlNodeList;
-        FoundXmlNode: DotNet XmlNode;
+        FoundXmlNodeList: XmlNodeList;
+        FoundXmlNode: XmlNode;
         TempValue: Text;
     begin
         if not FindNodes(FoundXmlNodeList, Parameters, OptionPathTxt) then
             exit('');
 
         foreach FoundXmlNode in FoundXmlNodeList do begin
-            TempValue := FoundXmlNode.Attributes.ItemOf('name').Value();
+            TempValue := GetNameAttributeValue(FoundXmlNode);
             if Format(TempValue) = Format(OptionName) then
-                exit(FoundXmlNode.InnerText);
+                exit(FoundXmlNode.AsXmlElement().InnerText());
         end;
     end;
 

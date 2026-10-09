@@ -7,7 +7,6 @@ namespace System.Text;
 using Microsoft.CRM.Outlook;
 using System;
 using System.Utilities;
-using System.Xml;
 
 codeunit 5459 "JSON Management"
 {
@@ -562,13 +561,26 @@ codeunit 5459 "JSON Management"
 
     procedure XMLTextToJSONText(Xml: Text) Json: Text
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
         JsonConvert: DotNet JsonConvert;
         JsonFormatting: DotNet Formatting;
-        XmlDocument: DotNet XmlDocument;
+        DotNetXmlDocument: DotNet XmlDocument;
+        SourceXmlDocument: XmlDocument;
+        UnformattedXmlWriteOptions: XmlWriteOptions;
+        ByteOrderMark: Char;
+        NormalizedXml: Text;
     begin
-        XMLDOMMgt.LoadXMLDocumentFromText(Xml, XmlDocument);
-        Json := JsonConvert.SerializeXmlNode(XmlDocument.DocumentElement, JsonFormatting.Indented, true);
+        DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
+        ByteOrderMark := 65279;
+        if Xml <> '' then
+            if Xml[1] = ByteOrderMark then
+                Xml := CopyStr(Xml, 2);
+        if Xml <> '' then begin
+            XmlDocument.ReadFrom(Xml, SourceXmlDocument);
+            UnformattedXmlWriteOptions.PreserveWhitespace := true;
+            SourceXmlDocument.WriteTo(UnformattedXmlWriteOptions, NormalizedXml);
+            DotNetXmlDocument.LoadXml(NormalizedXml);
+        end;
+        Json := JsonConvert.SerializeXmlNode(DotNetXmlDocument.DocumentElement, JsonFormatting.Indented, true);
     end;
 
     procedure JSONTextToXMLText(Json: Text; DocumentElementName: Text) Xml: Text
