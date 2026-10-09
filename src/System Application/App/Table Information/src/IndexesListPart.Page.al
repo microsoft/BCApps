@@ -189,14 +189,12 @@ page 8704 "Indexes List Part"
 
                 trigger OnAction()
                 var
-                    KeyRec: Record "Key";
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
                     IsMetadataDefined: Boolean;
                 begin
-                    if FindKeyFromDatabaseIndex(Rec, KeyRec) then
-                        if KeyRec.MaintainSIFTIndex then
-                            Error(CannotDisableSIFTIndexErr, Rec."Index Name");
+                    if Rec."Index Type" = Rec."Index Type"::SIFT then
+                        Error(CannotDisableSIFTIndexErr, Rec."Index Name");
 
                     IsMetadataDefined := Rec."Metadata Defined";
 
@@ -228,14 +226,12 @@ page 8704 "Indexes List Part"
                 var
                     Company: Record Company;
                     DatabaseIndex: Record "Database Index";
-                    KeyRec: Record "Key";
                     IndexManagement: Codeunit "Index Management";
                     RecordIDOfCurrentPosition: RecordId;
                     IsMetadataDefined: Boolean;
                 begin
-                    if FindKeyFromDatabaseIndex(Rec, KeyRec) then
-                        if KeyRec.MaintainSIFTIndex then
-                            Error(CannotDisableSIFTIndexErr, Rec."Index Name");
+                    if Rec."Index Type" = Rec."Index Type"::SIFT then
+                        Error(CannotDisableSIFTIndexErr, Rec."Index Name");
 
                     IsMetadataDefined := Rec."Metadata Defined";
 
