@@ -25,10 +25,9 @@ codeunit 143001 "NO XML Read Helper"
 
     [Scope('OnPrem')]
     procedure Initialize(FullFilePath: Text)
-    var
-        XMLDOMManagement: Codeunit "XML DOM Management";
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(FullFilePath, XMLDocOut);
+        XMLDocOut := XMLDocOut.XmlDocument();
+        XMLDocOut.Load(FullFilePath);
 
         XMLNsMgr := XMLNsMgr.XmlNamespaceManager(XMLDocOut.NameTable);
         XMLNsMgr.AddNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');

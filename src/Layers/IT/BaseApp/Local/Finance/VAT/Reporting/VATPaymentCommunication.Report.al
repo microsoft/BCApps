@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using System;
 using System.IO;
 
 report 12150 "VAT Payment Communication"
@@ -139,7 +138,9 @@ report 12150 "VAT Payment Communication"
         FileManagement: Codeunit "File Management";
         VATPmtCommDataLookup: Codeunit "VAT Pmt. Comm. Data Lookup";
         VATPmtCommXMLGenerator: Codeunit "VAT Pmt. Comm. XML Generator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
+        ServerFile: File;
+        OutStream: OutStream;
         SuggestedFileName: Text;
         ServerFilePathAlreadySet: Boolean;
     begin
@@ -175,7 +176,11 @@ report 12150 "VAT Payment Communication"
         VATPmtCommXMLGenerator.SetVATPmtCommDataLookup(VATPmtCommDataLookup);
         VATPmtCommXMLGenerator.CreateXml(XMLDoc);
 
-        XMLDoc.Save(ServerFilePath);
+        ServerFile.WriteMode(true);
+        ServerFile.Create(ServerFilePath);
+        ServerFile.CreateOutStream(OutStream);
+        XMLDoc.WriteTo(OutStream);
+        ServerFile.Close();
         VATReportSetup.Get();
         SuggestedFileName := 'IT' + VATPmtCommDataLookup.GetFiscalCode() + '_LI_' +
           VATPmtCommDataLookup.FormatCommunicationId(VATReportSetup."Spesometro Communication ID") +

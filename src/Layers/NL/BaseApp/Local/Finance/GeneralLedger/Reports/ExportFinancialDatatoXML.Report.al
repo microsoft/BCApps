@@ -8,10 +8,8 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Period;
-using System;
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 report 11420 "Export Financial Data to XML"
 {
@@ -93,7 +91,7 @@ report 11420 "Export Financial Data to XML"
 
             trigger OnPostDataItem()
             begin
-                XMLDoc.Save(ServerFileName);
+                SaveXMLFile();
             end;
 
             trigger OnPreDataItem()
@@ -248,7 +246,6 @@ report 11420 "Export Financial Data to XML"
         CompanyInfo.Get();
         CheckDates();
         ServerFileName := FileManagement.ServerTempFileName('xml');
-        XMLDoc := XMLDoc.XmlDocument();
         Window.Open(
           '#1#################################\\' +
           '@2@@@@@@@@@@@@@@@@@@@@@\');
@@ -257,12 +254,11 @@ report 11420 "Export Financial Data to XML"
     var
         CompanyInfo: Record "Company Information";
         AccountingPeriod: Record "Accounting Period";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         FileManagement: Codeunit "File Management";
         Window: Dialog;
-        XMLDoc: DotNet XmlDocument;
-        CurrXMLNode: DotNet XmlNode;
-        ChildXMLNode: DotNet XmlNode;
+        XMLDoc: XmlDocument;
+        CurrXMLNode: XmlElement;
+        ChildXMLNode: XmlElement;
         GLBudgetName: Code[10];
         PrevGLBudgetName: Code[10];
         ISOLCYCode: Code[3];
@@ -300,7 +296,7 @@ report 11420 "Export Financial Data to XML"
     [Scope('OnPrem')]
     procedure CreateHeaderInfo()
     begin
-        XMLDOMMgt.LoadXMLDocumentFromText('<?xml version="1.0" encoding="UTF-8"?>' +
+        XmlDocument.ReadFrom('<?xml version="1.0" encoding="UTF-8"?>' +
           '<sxr-dbr:DataBridge xmlns="http://www.semansys.com/xbrl/sxr/XBRLDataBridge/v2" ' +
           'xmlns:sxr-dbr="http://www.semansys.com/xbrl/sxr/XBRLDataBridge/v2" ' +
           'xmlns:sxr-common="http://www.semansys.com/xbrl/sxr/common" ' +
@@ -308,53 +304,77 @@ report 11420 "Export Financial Data to XML"
           'xsi:schemaLocation="http://www.semansys.com/xbrl/sxr/XBRLDataBridge/v2 ' +
           'http://xbrlone.com/xbrl/xsd/2007/sxr-DataBridge-2007-09-05.xsd">' +
           '</sxr-dbr:DataBridge>', XMLDoc);
-        CurrXMLNode := XMLDoc.DocumentElement;
+        XMLDoc.GetRoot(CurrXMLNode);
 
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:Header', '', '', ChildXMLNode);
+        AddElement(CurrXMLNode, 'Header', '', ChildXMLNode);
         CurrXMLNode := ChildXMLNode;
 
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:Name', 'Ledger Balance', '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:Author', UserId, '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:SourceSystem', 'Microsoft Dynamics NAV', '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:Type', '', '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:Description', CompanyInfo.Name, '', ChildXMLNode);
-        XMLDOMMgt.AddElement(
-          CurrXMLNode, 'sxr-common:Comment', 'This data has been produced based on data in Microsoft Dynamics NAV', '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:DueDate', Format(WorkDate(), 0, 9), '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:CreationDate', Format(WorkDate(), 0, 9), '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:ModificationDate', Format(WorkDate(), 0, 9), '', ChildXMLNode);
-        CurrXMLNode := CurrXMLNode.ParentNode;
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-dbr:DataSource', '', '', ChildXMLNode);
+        AddElement(CurrXMLNode, 'Name', 'Ledger Balance', ChildXMLNode);
+        AddElement(CurrXMLNode, 'Author', UserId, ChildXMLNode);
+        AddElement(CurrXMLNode, 'SourceSystem', 'Microsoft Dynamics NAV', ChildXMLNode);
+        AddElement(CurrXMLNode, 'Type', '', ChildXMLNode);
+        AddElement(CurrXMLNode, 'Description', CompanyInfo.Name, ChildXMLNode);
+        AddElement(
+          CurrXMLNode, 'Comment', 'This data has been produced based on data in Microsoft Dynamics NAV', ChildXMLNode);
+        AddElement(CurrXMLNode, 'DueDate', Format(WorkDate(), 0, 9), ChildXMLNode);
+        AddElement(CurrXMLNode, 'CreationDate', Format(WorkDate(), 0, 9), ChildXMLNode);
+        AddElement(CurrXMLNode, 'ModificationDate', Format(WorkDate(), 0, 9), ChildXMLNode);
+        CurrXMLNode.GetParent(CurrXMLNode);
+        AddElement(CurrXMLNode, 'DataSource', '', ChildXMLNode);
         CurrXMLNode := ChildXMLNode;
     end;
 
     [Scope('OnPrem')]
     procedure CreateDataRow(var GLAcc: Record "G/L Account")
     begin
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-dbr:DataRow', '', '', ChildXMLNode);
+        AddElement(CurrXMLNode, 'DataRow', '', ChildXMLNode);
         CurrXMLNode := ChildXMLNode;
-        XMLDOMMgt.AddAttribute(CurrXMLNode, 'id', 'dr' + Format(j));
+        CurrXMLNode.SetAttribute('id', 'dr' + Format(j));
 
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-dbr:AccountCode', GLAcc."No.", '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-dbr:AccountName', GLAcc.Name, '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-dbr:AccountDescription', Format(GLAcc."Income/Balance", 0, 1), '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-dbr:AccountValue', Format(CalculateAccountValue(GLAcc), 0, 9), '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:DecimalDigits', '2', '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-dbr:ScenarioElement', '', '', ChildXMLNode);
+        AddElement(CurrXMLNode, 'AccountCode', GLAcc."No.", ChildXMLNode);
+        AddElement(CurrXMLNode, 'AccountName', GLAcc.Name, ChildXMLNode);
+        AddElement(CurrXMLNode, 'AccountDescription', Format(GLAcc."Income/Balance", 0, 1), ChildXMLNode);
+        AddElement(CurrXMLNode, 'AccountValue', Format(CalculateAccountValue(GLAcc), 0, 9), ChildXMLNode);
+        AddElement(CurrXMLNode, 'DecimalDigits', '2', ChildXMLNode);
+        AddElement(CurrXMLNode, 'ScenarioElement', '', ChildXMLNode);
         CurrXMLNode := ChildXMLNode;
 
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:ElementName', 'msDynamicsScenario', '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:ElementValue', Format(ElementValue[Integer.Number], 0, 1), '', ChildXMLNode);
-        CurrXMLNode := CurrXMLNode.ParentNode;
+        AddElement(CurrXMLNode, 'ElementName', 'msDynamicsScenario', ChildXMLNode);
+        AddElement(CurrXMLNode, 'ElementValue', Format(ElementValue[Integer.Number], 0, 1), ChildXMLNode);
+        CurrXMLNode.GetParent(CurrXMLNode);
 
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:PeriodStart', Format(GLAcc.GetRangeMin("Date Filter"), 0, 9), '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:PeriodEnd', Format(GLAcc.GetRangeMax("Date Filter"), 0, 9), '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:PeriodInstant', Format(GLAcc.GetRangeMax("Date Filter"), 0, 9), '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:EntityCode', CompanyInfo.Name, '', ChildXMLNode);
-        XMLDOMMgt.AddElement(CurrXMLNode, 'sxr-common:CurrencyCode', ISOLCYCode, '', ChildXMLNode);
-        CurrXMLNode := CurrXMLNode.ParentNode;
+        AddElement(CurrXMLNode, 'PeriodStart', Format(GLAcc.GetRangeMin("Date Filter"), 0, 9), ChildXMLNode);
+        AddElement(CurrXMLNode, 'PeriodEnd', Format(GLAcc.GetRangeMax("Date Filter"), 0, 9), ChildXMLNode);
+        AddElement(CurrXMLNode, 'PeriodInstant', Format(GLAcc.GetRangeMax("Date Filter"), 0, 9), ChildXMLNode);
+        AddElement(CurrXMLNode, 'EntityCode', CompanyInfo.Name, ChildXMLNode);
+        AddElement(CurrXMLNode, 'CurrencyCode', ISOLCYCode, ChildXMLNode);
+        CurrXMLNode.GetParent(CurrXMLNode);
 
         j := j + 1;
+    end;
+
+    local procedure AddElement(var ParentXmlElement: XmlElement; NodeName: Text; NodeText: Text; var CreatedXmlElement: XmlElement)
+    var
+        NewXmlElement: XmlElement;
+    begin
+        // The elements are created without a namespace, as before: they are written without a prefix and the writer adds xmlns="" where needed.
+        NewXmlElement := XmlElement.Create(NodeName);
+        if NodeText <> '' then
+            NewXmlElement.Add(XmlText.Create(NodeText));
+        ParentXmlElement.Add(NewXmlElement);
+        CreatedXmlElement := NewXmlElement;
+    end;
+
+    local procedure SaveXMLFile()
+    var
+        ServerFile: File;
+        OutStream: OutStream;
+    begin
+        ServerFile.WriteMode(true);
+        ServerFile.Create(ServerFileName);
+        ServerFile.CreateOutStream(OutStream);
+        XMLDoc.WriteTo(OutStream);
+        ServerFile.Close();
     end;
 
     [Scope('OnPrem')]

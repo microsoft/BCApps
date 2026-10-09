@@ -14,11 +14,12 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
-using System;
 using System.Environment;
 using System.IO;
 using System.Utilities;
+#if not CLEAN30
 using System.Xml;
+#endif
 
 codeunit 12182 "Datifattura Export"
 {
@@ -26,7 +27,7 @@ codeunit 12182 "Datifattura Export"
 
     trigger OnRun()
     var
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         if not Rec.isDatifattura() then
             exit;
@@ -42,7 +43,7 @@ codeunit 12182 "Datifattura Export"
                 ExportStandardDatifattura(Rec);
             Rec."VAT Report Type"::"Cancellation ":
                 begin
-                    XMLDoc := XMLDoc.XmlDocument();
+                    XMLDoc := XmlDocument.Create();
                     ExportCancellationDatifattura(Rec, XMLDoc);
                     SaveFileOnClient(XMLDoc, 'IT_%1_DF_%2.xml', Rec."No.");
                 end
@@ -56,7 +57,6 @@ codeunit 12182 "Datifattura Export"
         VATReportSetup: Record "VAT Report Setup";
         ErrorMessage: Record "Error Message";
         TempNameValueBuffer: Record "Name/Value Buffer" temporary;
-        XMLDOMManagement: Codeunit "XML DOM Management";
         DocumentTypes: Option TD01,TD04,TD05,TD07,TD08,TD10,TD11;
         TaxRepresentativeType: Option Customer,Vendor,Contact;
         ServerFilePath: Text;
@@ -66,9 +66,11 @@ codeunit 12182 "Datifattura Export"
         StandardDatifatturaXmlnsNs2AttrTxt: Label 'http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v2.0', Locked = true;
         DatifatturaExportLbl: Label 'DatifatturaExport.zip';
 
-    local procedure SaveFileOnClient(XMLDoc: DotNet XmlDocument; FileFormat: Text; FileNameSuffix: Text)
+    local procedure SaveFileOnClient(XMLDoc: XmlDocument; FileFormat: Text; FileNameSuffix: Text)
     var
         FileManagement: Codeunit "File Management";
+        ServerFile: File;
+        OutStream: OutStream;
         SuggestedFileName: Text;
         ServerFilePathAlreadySet: Boolean;
     begin
@@ -81,7 +83,11 @@ codeunit 12182 "Datifattura Export"
         else
             ServerFilePathAlreadySet := true;
 
-        XMLDoc.Save(ServerFilePath);
+        ServerFile.WriteMode(true);
+        ServerFile.Create(ServerFilePath);
+        ServerFile.CreateOutStream(OutStream);
+        XMLDoc.WriteTo(OutStream);
+        ServerFile.Close();
         SuggestedFileName := StrSubstNo(FileFormat, GetSubmitterID(), FileNameSuffix);
         if not ServerFilePathAlreadySet then
             TempNameValueBuffer.AddNewEntry(
@@ -128,21 +134,34 @@ codeunit 12182 "Datifattura Export"
               FileManagement.GetToFilterText('', TempNameValueBuffer.Value), TempNameValueBuffer.Value);
     end;
 
-    local procedure AddDatiFatturaNode(var XMLDoc: DotNet XmlDocument; var XMLRootNode: DotNet XmlNode)
+    local procedure AddDatiFatturaNode(var XMLDoc: XmlDocument; var XMLRootNode: XmlElement)
     begin
-        XMLDOMManagement.AddRootElementWithPrefix(XMLDoc, 'DatiFattura', 'ns2', StandardDatifatturaXmlnsNs2AttrTxt, XMLRootNode);
-        XMLDOMManagement.AddDeclaration(XMLDoc, '1.0', 'utf-8', '');
-        XMLDOMManagement.AddAttribute(XMLRootNode, 'xmlns:xs', StandardDatifatturaXmlnsXsAttrTxt);
-        XMLDOMManagement.AddAttribute(XMLRootNode, 'xmlns:ds', StandardDatifatturaXmlnsDsAttrTxt);
-        XMLDOMManagement.AddAttribute(XMLRootNode, 'versione', 'DAT20');
+        // The ns2 declaration is added last so the attributes keep their order: xmlns:xs, xmlns:ds, versione, xmlns:ns2.
+        XMLRootNode := XmlElement.Create('DatiFattura', StandardDatifatturaXmlnsNs2AttrTxt);
+        XMLRootNode.Add(XmlAttribute.CreateNamespaceDeclaration('xs', StandardDatifatturaXmlnsXsAttrTxt));
+        XMLRootNode.Add(XmlAttribute.CreateNamespaceDeclaration('ds', StandardDatifatturaXmlnsDsAttrTxt));
+        XMLRootNode.SetAttribute('versione', 'DAT20');
+        XMLRootNode.Add(XmlAttribute.CreateNamespaceDeclaration('ns2', StandardDatifatturaXmlnsNs2AttrTxt));
+        XMLDoc.Add(XMLRootNode);
+    end;
+
+    local procedure AddElement(var ParentXmlElement: XmlElement; NodeName: Text; NodeText: Text; var CreatedXmlElement: XmlElement)
+    var
+        NewXmlElement: XmlElement;
+    begin
+        NewXmlElement := XmlElement.Create(NodeName);
+        if NodeText <> '' then
+            NewXmlElement.Add(XmlText.Create(NodeText));
+        ParentXmlElement.Add(NewXmlElement);
+        CreatedXmlElement := NewXmlElement;
     end;
 
     local procedure ExportStandardDatifattura(VATReportHeader: Record "VAT Report Header")
     var
         VATReportLine: Record "VAT Report Line";
-        DotNetXmlDocument: DotNet XmlDocument;
-        XMLRootNode: DotNet XmlNode;
-        DatiFatturaBodyDTEXmlNode: DotNet XmlNode;
+        DatifatturaXmlDocument: XmlDocument;
+        XMLRootNode: XmlElement;
+        DatiFatturaBodyDTEXmlNode: XmlElement;
         FileCounter: Integer;
         FileSuffix: Text;
         CessionarioCommittenteDTECount: Integer;
@@ -162,7 +181,7 @@ codeunit 12182 "Datifattura Export"
             CessionarioCommittenteDTELoop += 1;
         if VATReportLine.FindSet() then
             for CessionarioCommittenteDTELoopCouner := 1 to CessionarioCommittenteDTELoop do begin
-                InitDatiFatturaNode(DotNetXmlDocument, XMLRootNode);
+                InitDatiFatturaNode(DatifatturaXmlDocument, XMLRootNode);
                 ExportStandardDatifatturaHeader(VATReportHeader, XMLRootNode);
                 // DTE xml node
                 // CedentePrestatoreDTE node
@@ -186,7 +205,7 @@ codeunit 12182 "Datifattura Export"
                 CessionarioCommittenteDTECount := 0;
                 FileCounter += 1;
                 GetFileSuffix(FileCounter, CessionarioCommittenteDTELoopCouner, FileSuffix);
-                SaveFileOnClient(DotNetXmlDocument, 'IT%1_DF_%2.xml', 'V000' + FileSuffix);
+                SaveFileOnClient(DatifatturaXmlDocument, 'IT%1_DF_%2.xml', 'V000' + FileSuffix);
             end;
 
         VATReportLine.SetRange(Type, VATReportLine.Type::Purchase);
@@ -195,7 +214,7 @@ codeunit 12182 "Datifattura Export"
             CessionarioCommittenteDTELoop += 1;
         if VATReportLine.FindSet() then
             for CessionarioCommittenteDTELoopCouner := 1 to CessionarioCommittenteDTELoop do begin
-                InitDatiFatturaNode(DotNetXmlDocument, XMLRootNode);
+                InitDatiFatturaNode(DatifatturaXmlDocument, XMLRootNode);
                 ExportStandardDatifatturaHeader(VATReportHeader, XMLRootNode);
                 // DTE xml node
                 // CedentePrestatoreDTE node
@@ -219,19 +238,19 @@ codeunit 12182 "Datifattura Export"
                 CessionarioCommittenteDTECount := 0;
                 FileCounter += 1;
                 GetFileSuffix(FileCounter, CessionarioCommittenteDTELoopCouner, FileSuffix);
-                SaveFileOnClient(DotNetXmlDocument, 'IT%1_DF_%2.xml', '0000' + FileSuffix);
+                SaveFileOnClient(DatifatturaXmlDocument, 'IT%1_DF_%2.xml', '0000' + FileSuffix);
             end;
 
         SaveFileOnWebClient(FileCounter);
     end;
 
-    local procedure ExportStandardDatifatturaHeader(VATReportHeader: Record "VAT Report Header"; var XMLRootNode: DotNet XmlNode)
+    local procedure ExportStandardDatifatturaHeader(VATReportHeader: Record "VAT Report Header"; var XMLRootNode: XmlElement)
     var
         SpesometroAppointment: Record "Spesometro Appointment";
         SpesometroVendor: Record Vendor;
-        DatiFatturaHdrXmlNode: DotNet XmlNode;
-        DichiaranteXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        DatiFatturaHdrXmlNode: XmlElement;
+        DichiaranteXmlNode: XmlElement;
+        XmlNode: XmlElement;
         CodiceFiscale: Text;
         Carica: Text;
     begin
@@ -243,84 +262,84 @@ codeunit 12182 "Datifattura Export"
 
         Carica := SpesometroAppointment."Appointment Code";
 
-        XMLDOMManagement.AddElement(XMLRootNode, 'DatiFatturaHeader', '', '', DatiFatturaHdrXmlNode);
+        AddElement(XMLRootNode, 'DatiFatturaHeader', '', DatiFatturaHdrXmlNode);
 
         // 1.1 ProgressivoInvio
-        XMLDOMManagement.AddElement(DatiFatturaHdrXmlNode, 'ProgressivoInvio', VATReportHeader."No.", '', DichiaranteXmlNode);
+        AddElement(DatiFatturaHdrXmlNode, 'ProgressivoInvio', VATReportHeader."No.", DichiaranteXmlNode);
 
         // 1.2 Dichiarante
-        XMLDOMManagement.AddElement(DatiFatturaHdrXmlNode, 'Dichiarante', '', '', DichiaranteXmlNode);
-        XMLDOMManagement.AddElement(DichiaranteXmlNode, 'CodiceFiscale', CodiceFiscale, '', XmlNode);
-        XMLDOMManagement.AddElement(DichiaranteXmlNode, 'Carica', Carica, '', XmlNode);
+        AddElement(DatiFatturaHdrXmlNode, 'Dichiarante', '', DichiaranteXmlNode);
+        AddElement(DichiaranteXmlNode, 'CodiceFiscale', CodiceFiscale, XmlNode);
+        AddElement(DichiaranteXmlNode, 'Carica', Carica, XmlNode);
     end;
 
-    local procedure ExportCompInfo(var DTEXmlNode: DotNet XmlNode; NodeName: Text; DTENodeName: Text)
+    local procedure ExportCompInfo(var DTEXmlNode: XmlElement; NodeName: Text; DTENodeName: Text)
     var
-        CedentePrestatoreDTEXmlNode: DotNet XmlNode;
-        AltriDatiIdentificativiXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        CedentePrestatoreDTEXmlNode: XmlElement;
+        AltriDatiIdentificativiXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
         // DTE node
-        XMLDOMManagement.AddElement(DTEXmlNode, DTENodeName, '', '', DTEXmlNode);
+        AddElement(DTEXmlNode, DTENodeName, '', DTEXmlNode);
 
         // CedentePrestatoreDTE node
-        XMLDOMManagement.AddElement(DTEXmlNode, NodeName, '', '', CedentePrestatoreDTEXmlNode);
+        AddElement(DTEXmlNode, NodeName, '', CedentePrestatoreDTEXmlNode);
 
         // IdentificativiFiscali node
         ExportCompInfoTaxDtl(CedentePrestatoreDTEXmlNode);
 
         // AltriDatiIdentificativi node
-        XMLDOMManagement.AddElement(CedentePrestatoreDTEXmlNode, 'AltriDatiIdentificativi', '', '', AltriDatiIdentificativiXmlNode);
-        XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Denominazione', CompanyInfo.Name, '', XmlNode);
+        AddElement(CedentePrestatoreDTEXmlNode, 'AltriDatiIdentificativi', '', AltriDatiIdentificativiXmlNode);
+        AddElement(AltriDatiIdentificativiXmlNode, 'Denominazione', CompanyInfo.Name, XmlNode);
         AddCompAddress(AltriDatiIdentificativiXmlNode);
         if CompanyInfo."Tax Representative No." <> '' then
             AddTaxRepresentativeInfo(AltriDatiIdentificativiXmlNode, CompanyInfo."Tax Representative No.", TaxRepresentativeType::Vendor);
     end;
 
-    local procedure ExportCompInfoTaxDtl(var CedentePrestatoreDTEXmlNode: DotNet XmlNode)
+    local procedure ExportCompInfoTaxDtl(var CedentePrestatoreDTEXmlNode: XmlElement)
     var
-        IdentificativiFiscaliXmlNode: DotNet XmlNode;
-        IdFiscaleIVAXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        IdentificativiFiscaliXmlNode: XmlElement;
+        IdFiscaleIVAXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddElement(CedentePrestatoreDTEXmlNode, 'IdentificativiFiscali', '', '', IdentificativiFiscaliXmlNode);
+        AddElement(CedentePrestatoreDTEXmlNode, 'IdentificativiFiscali', '', IdentificativiFiscaliXmlNode);
 
         // IdFiscaleIVA node
-        XMLDOMManagement.AddElement(IdentificativiFiscaliXmlNode, 'IdFiscaleIVA', '', '', IdFiscaleIVAXmlNode);
-        XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdPaese', 'IT', '', XmlNode);
-        XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdCodice', CompanyInfo."VAT Registration No.", '', XmlNode);
+        AddElement(IdentificativiFiscaliXmlNode, 'IdFiscaleIVA', '', IdFiscaleIVAXmlNode);
+        AddElement(IdFiscaleIVAXmlNode, 'IdPaese', 'IT', XmlNode);
+        AddElement(IdFiscaleIVAXmlNode, 'IdCodice', CompanyInfo."VAT Registration No.", XmlNode);
 
         // CodiceFiscale node
-        XMLDOMManagement.AddElement(IdentificativiFiscaliXmlNode, 'CodiceFiscale', CompanyInfo."Fiscal Code", '', XmlNode);
+        AddElement(IdentificativiFiscaliXmlNode, 'CodiceFiscale', CompanyInfo."Fiscal Code", XmlNode);
     end;
 
-    local procedure AddCompAddress(var CompanyXmlNode: DotNet XmlNode)
+    local procedure AddCompAddress(var CompanyXmlNode: XmlElement)
     var
-        AddressXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        AddressXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddElement(CompanyXmlNode, 'Sede', '', '', AddressXmlNode);
+        AddElement(CompanyXmlNode, 'Sede', '', AddressXmlNode);
 
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Indirizzo', CompanyInfo.Address, '', XmlNode);
+        AddElement(AddressXmlNode, 'Indirizzo', CompanyInfo.Address, XmlNode);
         if CompanyInfo."Post Code" <> '' then
-            XMLDOMManagement.AddElement(AddressXmlNode, 'CAP', CompanyInfo."Post Code", '', XmlNode);
+            AddElement(AddressXmlNode, 'CAP', CompanyInfo."Post Code", XmlNode);
 
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Comune', CompanyInfo.City, '', XmlNode);
+        AddElement(AddressXmlNode, 'Comune', CompanyInfo.City, XmlNode);
         if CompanyInfo.County <> '' then
-            XMLDOMManagement.AddElement(AddressXmlNode, 'Provincia', CompanyInfo.County, '', XmlNode);
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Nazione', CompanyInfo."Country/Region Code", '', XmlNode);
+            AddElement(AddressXmlNode, 'Provincia', CompanyInfo.County, XmlNode);
+        AddElement(AddressXmlNode, 'Nazione', CompanyInfo."Country/Region Code", XmlNode);
     end;
 
-    local procedure ExportSaleInvoiceCustAndInvInfo(VATReportLine: Record "VAT Report Line"; var DTEXmlNode: DotNet XmlNode; var DatiFatturaBodyDTEXmlNode: DotNet XmlNode)
+    local procedure ExportSaleInvoiceCustAndInvInfo(VATReportLine: Record "VAT Report Line"; var DTEXmlNode: XmlElement; var DatiFatturaBodyDTEXmlNode: XmlElement)
     var
-        CessionarioCommittenteDTEXmlNode: DotNet XmlNode;
+        CessionarioCommittenteDTEXmlNode: XmlElement;
         DocumentType: Text;
     begin
         if VATReportLine."Bill-to/Pay-to No." = '' then
             exit;
 
         // CessionarioCommittenteDTE node
-        XMLDOMManagement.AddElement(DTEXmlNode, 'CessionarioCommittenteDTE', '', '', CessionarioCommittenteDTEXmlNode);
+        AddElement(DTEXmlNode, 'CessionarioCommittenteDTE', '', CessionarioCommittenteDTEXmlNode);
 
         DocumentType := GetDocumentType(VATReportLine);
 
@@ -335,14 +354,14 @@ codeunit 12182 "Datifattura Export"
         ExportSaleInvoiceData(VATReportLine, CessionarioCommittenteDTEXmlNode, DatiFatturaBodyDTEXmlNode);
     end;
 
-    local procedure ExportSaleInvoiceCustInfoTaxDtl(VATReportLine: Record "VAT Report Line"; var CessionarioCommittenteDTEXmlNode: DotNet XmlNode) Valued: Boolean
+    local procedure ExportSaleInvoiceCustInfoTaxDtl(VATReportLine: Record "VAT Report Line"; var CessionarioCommittenteDTEXmlNode: XmlElement) Valued: Boolean
     var
         Customer: Record Customer;
-        IdentificativiFiscaliXmlNode: DotNet XmlNode;
-        IdFiscaleIVAXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        IdentificativiFiscaliXmlNode: XmlElement;
+        IdFiscaleIVAXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddElement(CessionarioCommittenteDTEXmlNode, 'IdentificativiFiscali', '', '', IdentificativiFiscaliXmlNode);
+        AddElement(CessionarioCommittenteDTEXmlNode, 'IdentificativiFiscali', '', IdentificativiFiscaliXmlNode);
         Valued := false;
 
         if not GetCustomerForVATReportLine(Customer, VATReportLine) then
@@ -356,41 +375,41 @@ codeunit 12182 "Datifattura Export"
 
         // IdFiscaleIVA node
         if Customer."VAT Registration No." <> '' then begin
-            XMLDOMManagement.AddElement(IdentificativiFiscaliXmlNode, 'IdFiscaleIVA', '', '', IdFiscaleIVAXmlNode);
+            AddElement(IdentificativiFiscaliXmlNode, 'IdFiscaleIVA', '', IdFiscaleIVAXmlNode);
 
             ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
-            XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Customer."Country/Region Code", '', XmlNode);
+            AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Customer."Country/Region Code", XmlNode);
 
-            XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Customer."VAT Registration No.", '', XmlNode);
+            AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Customer."VAT Registration No.", XmlNode);
             Valued := true;
         end;
 
         // CodiceFiscale node
         if Customer."Country/Region Code" = 'IT' then begin
-            XMLDOMManagement.AddElement(IdentificativiFiscaliXmlNode, 'CodiceFiscale', Customer."Fiscal Code", '', XmlNode);
+            AddElement(IdentificativiFiscaliXmlNode, 'CodiceFiscale', Customer."Fiscal Code", XmlNode);
             Valued := true;
         end;
     end;
 
-    local procedure ExportSaleInvoiceCustInfoCustDtl(VATReportLine: Record "VAT Report Line"; var CessionarioCommittenteDTEXmlNode: DotNet XmlNode)
+    local procedure ExportSaleInvoiceCustInfoCustDtl(VATReportLine: Record "VAT Report Line"; var CessionarioCommittenteDTEXmlNode: XmlElement)
     var
         Customer: Record Customer;
-        AltriDatiIdentificativiXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        AltriDatiIdentificativiXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddElement(CessionarioCommittenteDTEXmlNode, 'AltriDatiIdentificativi', '', '', AltriDatiIdentificativiXmlNode);
+        AddElement(CessionarioCommittenteDTEXmlNode, 'AltriDatiIdentificativi', '', AltriDatiIdentificativiXmlNode);
 
         if not GetCustomerForVATReportLine(Customer, VATReportLine) then
             exit;
 
         if not Customer."Individual Person" then
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Denominazione', Customer.Name, '', XmlNode)
+            AddElement(AltriDatiIdentificativiXmlNode, 'Denominazione', Customer.Name, XmlNode)
         else begin
             ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("First Name"), ErrorMessage."Message Type"::Error);
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Nome', Customer."First Name", '', XmlNode);
+            AddElement(AltriDatiIdentificativiXmlNode, 'Nome', Customer."First Name", XmlNode);
 
             ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Last Name"), ErrorMessage."Message Type"::Error);
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Cognome', Customer."Last Name", '', XmlNode);
+            AddElement(AltriDatiIdentificativiXmlNode, 'Cognome', Customer."Last Name", XmlNode);
         end;
 
         AddCustAddress(Customer, AltriDatiIdentificativiXmlNode);
@@ -408,63 +427,63 @@ codeunit 12182 "Datifattura Export"
         OnAfterGetCustomerForVATReportLine(Customer, VATReportLine, CustomerExists);
     end;
 
-    local procedure AddCustAddress(Customer: Record Customer; var AltriDatiIdentificativiXmlNode: DotNet XmlNode)
+    local procedure AddCustAddress(Customer: Record Customer; var AltriDatiIdentificativiXmlNode: XmlElement)
     var
-        AddressXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        AddressXmlNode: XmlElement;
+        XmlNode: XmlElement;
         IsResident: Boolean;
     begin
         IsResident := Customer.Resident = Customer.Resident::Resident;
         if IsResident then
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Sede', '', '', AddressXmlNode)
+            AddElement(AltriDatiIdentificativiXmlNode, 'Sede', '', AddressXmlNode)
         else
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'StabileOrganizzazione', '', '', AddressXmlNode);
+            AddElement(AltriDatiIdentificativiXmlNode, 'StabileOrganizzazione', '', AddressXmlNode);
 
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Indirizzo', Customer.Address, '', XmlNode);
+        AddElement(AddressXmlNode, 'Indirizzo', Customer.Address, XmlNode);
 
         if (not IsResident) or (Customer."Post Code" <> '') then begin
             ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
-            XMLDOMManagement.AddElement(AddressXmlNode, 'CAP', Customer."Post Code", '', XmlNode);
+            AddElement(AddressXmlNode, 'CAP', Customer."Post Code", XmlNode);
         end;
 
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(City), ErrorMessage."Message Type"::Error);
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Comune', Customer.City, '', XmlNode);
+        AddElement(AddressXmlNode, 'Comune', Customer.City, XmlNode);
 
         if Customer.County <> '' then
-            XMLDOMManagement.AddElement(AddressXmlNode, 'Provincia', Customer.County, '', XmlNode)
+            AddElement(AddressXmlNode, 'Provincia', Customer.County, XmlNode)
         else
             ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(County), ErrorMessage."Message Type"::Warning);
 
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Nazione', Customer."Country/Region Code", '', XmlNode);
+        AddElement(AddressXmlNode, 'Nazione', Customer."Country/Region Code", XmlNode);
     end;
 
-    local procedure ExportSaleInvoiceData(VATReportLine: Record "VAT Report Line"; var CessionarioCommittenteDTEXmlNode: DotNet XmlNode; var DatiFatturaBodyDTEXmlNode: DotNet XmlNode)
+    local procedure ExportSaleInvoiceData(VATReportLine: Record "VAT Report Line"; var CessionarioCommittenteDTEXmlNode: XmlElement; var DatiFatturaBodyDTEXmlNode: XmlElement)
     var
         VATEntry: Record "VAT Entry";
-        DatiGeneraliXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        DatiGeneraliXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddElement(CessionarioCommittenteDTEXmlNode, 'DatiFatturaBodyDTE', '', '', DatiFatturaBodyDTEXmlNode);
+        AddElement(CessionarioCommittenteDTEXmlNode, 'DatiFatturaBodyDTE', '', DatiFatturaBodyDTEXmlNode);
 
         // 2.2.3.1 DatiGenerali node
-        XMLDOMManagement.AddElement(DatiFatturaBodyDTEXmlNode, 'DatiGenerali', '', '', DatiGeneraliXmlNode);
-        XMLDOMManagement.AddElement(DatiGeneraliXmlNode, 'TipoDocumento', GetDocumentType(VATReportLine), '', XmlNode);
+        AddElement(DatiFatturaBodyDTEXmlNode, 'DatiGenerali', '', DatiGeneraliXmlNode);
+        AddElement(DatiGeneraliXmlNode, 'TipoDocumento', GetDocumentType(VATReportLine), XmlNode);
         VATEntry.Get(VATReportLine."VAT Entry No.");
-        XMLDOMManagement.AddElement(DatiGeneraliXmlNode, 'Data', FormatDate(VATEntry."Document Date"), '', XmlNode);
-        XMLDOMManagement.AddElement(DatiGeneraliXmlNode, 'Numero', GetAlphanumericValue(VATReportLine."Document No."), '', XmlNode);
+        AddElement(DatiGeneraliXmlNode, 'Data', FormatDate(VATEntry."Document Date"), XmlNode);
+        AddElement(DatiGeneraliXmlNode, 'Numero', GetAlphanumericValue(VATReportLine."Document No."), XmlNode);
     end;
 
-    local procedure ExportPurchInvoiceVendAndInvInfo(VATReportLine: Record "VAT Report Line"; var DTRXmlNode: DotNet XmlNode; var DatiFatturaBodyDTEXmlNode: DotNet XmlNode)
+    local procedure ExportPurchInvoiceVendAndInvInfo(VATReportLine: Record "VAT Report Line"; var DTRXmlNode: XmlElement; var DatiFatturaBodyDTEXmlNode: XmlElement)
     var
-        CedentePrestatoreDTRXmlNode: DotNet XmlNode;
+        CedentePrestatoreDTRXmlNode: XmlElement;
     begin
         if VATReportLine."Bill-to/Pay-to No." = '' then
             exit;
 
         // 3.2 CedentePrestatoreDTR node
-        XMLDOMManagement.AddElement(DTRXmlNode, 'CedentePrestatoreDTR', '', '', CedentePrestatoreDTRXmlNode);
+        AddElement(DTRXmlNode, 'CedentePrestatoreDTR', '', CedentePrestatoreDTRXmlNode);
 
         // 3.2.1 IdentificativiFiscali node
         ExportPurchInvoiceVendInfoTaxDtl(VATReportLine, CedentePrestatoreDTRXmlNode);
@@ -476,25 +495,25 @@ codeunit 12182 "Datifattura Export"
         ExportPurchInvoiceData(VATReportLine, CedentePrestatoreDTRXmlNode, DatiFatturaBodyDTEXmlNode);
     end;
 
-    local procedure ExportPurchInvoiceVendInfoTaxDtl(VATReportLine: Record "VAT Report Line"; var CedentePrestatoreDTRXmlNode: DotNet XmlNode)
+    local procedure ExportPurchInvoiceVendInfoTaxDtl(VATReportLine: Record "VAT Report Line"; var CedentePrestatoreDTRXmlNode: XmlElement)
     var
         Vendor: Record Vendor;
-        IdentificativiFiscaliXmlNode: DotNet XmlNode;
-        IdFiscaleIVAXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        IdentificativiFiscaliXmlNode: XmlElement;
+        IdFiscaleIVAXmlNode: XmlElement;
+        XmlNode: XmlElement;
         VendorNo: Code[20];
     begin
-        XMLDOMManagement.AddElement(CedentePrestatoreDTRXmlNode, 'IdentificativiFiscali', '', '', IdentificativiFiscaliXmlNode);
+        AddElement(CedentePrestatoreDTRXmlNode, 'IdentificativiFiscali', '', IdentificativiFiscaliXmlNode);
 
         VendorNo := GetVendorNoForIdentificativiFiscali(VATReportLine);
         if not GetVendorForVATReportLine(Vendor, VendorNo, VATReportLine) then
             exit;
 
         // IdFiscaleIVA node
-        XMLDOMManagement.AddElement(IdentificativiFiscaliXmlNode, 'IdFiscaleIVA', '', '', IdFiscaleIVAXmlNode);
+        AddElement(IdentificativiFiscaliXmlNode, 'IdFiscaleIVA', '', IdFiscaleIVAXmlNode);
 
         ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
-        XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Vendor."Country/Region Code", '', XmlNode);
+        AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Vendor."Country/Region Code", XmlNode);
 
         if Vendor.GetTaxCode() = '' then
             if Vendor."Individual Person" then
@@ -502,34 +521,34 @@ codeunit 12182 "Datifattura Export"
             else
                 ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("VAT Registration No."), ErrorMessage."Message Type"::Error);
         if Vendor."VAT Registration No." <> '' then
-            XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Vendor."VAT Registration No.", '', XmlNode);
+            AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Vendor."VAT Registration No.", XmlNode);
 
         // CodiceFiscale node
         if Vendor."Individual Person" and (Vendor."Country/Region Code" = 'IT') then
             ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Warning);
         if Vendor."Fiscal Code" <> '' then
-            XMLDOMManagement.AddElement(IdentificativiFiscaliXmlNode, 'CodiceFiscale', Vendor."Fiscal Code", '', XmlNode);
+            AddElement(IdentificativiFiscaliXmlNode, 'CodiceFiscale', Vendor."Fiscal Code", XmlNode);
     end;
 
-    local procedure ExportPurchInvoiceVendInfoVendDtl(VATReportLine: Record "VAT Report Line"; var CedentePrestatoreDTRXmlNode: DotNet XmlNode)
+    local procedure ExportPurchInvoiceVendInfoVendDtl(VATReportLine: Record "VAT Report Line"; var CedentePrestatoreDTRXmlNode: XmlElement)
     var
         Vendor: Record Vendor;
-        AltriDatiIdentificativiXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        AltriDatiIdentificativiXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddElement(CedentePrestatoreDTRXmlNode, 'AltriDatiIdentificativi', '', '', AltriDatiIdentificativiXmlNode);
+        AddElement(CedentePrestatoreDTRXmlNode, 'AltriDatiIdentificativi', '', AltriDatiIdentificativiXmlNode);
 
         if not GetVendorForVATReportLine(Vendor, VATReportLine."Bill-to/Pay-to No.", VATReportLine) then
             exit;
 
         if not Vendor."Individual Person" then
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Denominazione', Vendor.Name, '', XmlNode)
+            AddElement(AltriDatiIdentificativiXmlNode, 'Denominazione', Vendor.Name, XmlNode)
         else begin
             ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("First Name"), ErrorMessage."Message Type"::Error);
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Nome', Vendor."First Name", '', XmlNode);
+            AddElement(AltriDatiIdentificativiXmlNode, 'Nome', Vendor."First Name", XmlNode);
 
             ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("Last Name"), ErrorMessage."Message Type"::Error);
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Cognome', Vendor."Last Name", '', XmlNode);
+            AddElement(AltriDatiIdentificativiXmlNode, 'Cognome', Vendor."Last Name", XmlNode);
         end;
 
         AddVendAddress(Vendor, AltriDatiIdentificativiXmlNode);
@@ -547,167 +566,175 @@ codeunit 12182 "Datifattura Export"
         OnAfterGetVendorForVATReportLine(Vendor, VendorNo, VATReportLine, VendorExists);
     end;
 
-    local procedure AddVendAddress(Vendor: Record Vendor; var AltriDatiIdentificativiXmlNode: DotNet XmlNode)
+    local procedure AddVendAddress(Vendor: Record Vendor; var AltriDatiIdentificativiXmlNode: XmlElement)
     var
-        AddressXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        AddressXmlNode: XmlElement;
+        XmlNode: XmlElement;
         IsResident: Boolean;
     begin
         IsResident := Vendor.Resident = Vendor.Resident::Resident;
         if IsResident then
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'Sede', '', '', AddressXmlNode)
+            AddElement(AltriDatiIdentificativiXmlNode, 'Sede', '', AddressXmlNode)
         else
-            XMLDOMManagement.AddElement(AltriDatiIdentificativiXmlNode, 'StabileOrganizzazione', '', '', AddressXmlNode);
+            AddElement(AltriDatiIdentificativiXmlNode, 'StabileOrganizzazione', '', AddressXmlNode);
 
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Indirizzo', Vendor.Address, '', XmlNode);
+        AddElement(AddressXmlNode, 'Indirizzo', Vendor.Address, XmlNode);
         if (not IsResident) or (Vendor."Post Code" <> '') then begin
             ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
             if Vendor."Country/Region Code" <> 'IT' then
-                XMLDOMManagement.AddElement(AddressXmlNode, 'CAP', '00000', '', XmlNode)
+                AddElement(AddressXmlNode, 'CAP', '00000', XmlNode)
             else
-                XMLDOMManagement.AddElement(AddressXmlNode, 'CAP', Vendor."Post Code", '', XmlNode);
+                AddElement(AddressXmlNode, 'CAP', Vendor."Post Code", XmlNode);
         end;
 
         ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo(City), ErrorMessage."Message Type"::Error);
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Comune', Vendor.City, '', XmlNode);
+        AddElement(AddressXmlNode, 'Comune', Vendor.City, XmlNode);
 
         if Vendor.County <> '' then
-            XMLDOMManagement.AddElement(AddressXmlNode, 'Provincia', Vendor.County, '', XmlNode)
+            AddElement(AddressXmlNode, 'Provincia', Vendor.County, XmlNode)
         else
             ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo(County), ErrorMessage."Message Type"::Warning);
 
         ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
-        XMLDOMManagement.AddElement(AddressXmlNode, 'Nazione', Vendor."Country/Region Code", '', XmlNode);
+        AddElement(AddressXmlNode, 'Nazione', Vendor."Country/Region Code", XmlNode);
     end;
 
-    local procedure ExportPurchInvoiceData(VATReportLine: Record "VAT Report Line"; var CedentePrestatoreDTRXmlNode: DotNet XmlNode; var DatiFatturaBodyDTEXmlNode: DotNet XmlNode)
+    local procedure ExportPurchInvoiceData(VATReportLine: Record "VAT Report Line"; var CedentePrestatoreDTRXmlNode: XmlElement; var DatiFatturaBodyDTEXmlNode: XmlElement)
     var
         VATEntry: Record "VAT Entry";
-        DatiGeneraliXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        DatiGeneraliXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddElement(CedentePrestatoreDTRXmlNode, 'DatiFatturaBodyDTR', '', '', DatiFatturaBodyDTEXmlNode);
+        AddElement(CedentePrestatoreDTRXmlNode, 'DatiFatturaBodyDTR', '', DatiFatturaBodyDTEXmlNode);
 
         // 2.2.3.1 DatiGenerali node
-        XMLDOMManagement.AddElement(DatiFatturaBodyDTEXmlNode, 'DatiGenerali', '', '', DatiGeneraliXmlNode);
-        XMLDOMManagement.AddElement(DatiGeneraliXmlNode, 'TipoDocumento', GetDocumentType(VATReportLine), '', XmlNode);
+        AddElement(DatiFatturaBodyDTEXmlNode, 'DatiGenerali', '', DatiGeneraliXmlNode);
+        AddElement(DatiGeneraliXmlNode, 'TipoDocumento', GetDocumentType(VATReportLine), XmlNode);
         VATEntry.Get(VATReportLine."VAT Entry No.");
-        XMLDOMManagement.AddElement(DatiGeneraliXmlNode, 'Data', FormatDate(VATEntry."Document Date"), '', XmlNode);
-        XMLDOMManagement.AddElement(DatiGeneraliXmlNode, 'Numero', GetAlphanumericValue(VATReportLine."Document No."), '', XmlNode);
-        XMLDOMManagement.AddElement(DatiGeneraliXmlNode, 'DataRegistrazione', FormatDate(VATReportLine."Posting Date"), '', XmlNode);
+        AddElement(DatiGeneraliXmlNode, 'Data', FormatDate(VATEntry."Document Date"), XmlNode);
+        AddElement(DatiGeneraliXmlNode, 'Numero', GetAlphanumericValue(VATReportLine."Document No."), XmlNode);
+        AddElement(DatiGeneraliXmlNode, 'DataRegistrazione', FormatDate(VATReportLine."Posting Date"), XmlNode);
     end;
 
-    local procedure AddInvoiceAmountsData(VATReportLine: Record "VAT Report Line"; var InvoiceXmlNode: DotNet XmlNode)
+    local procedure AddInvoiceAmountsData(VATReportLine: Record "VAT Report Line"; var InvoiceXmlNode: XmlElement)
     var
         VATPostingSetup: Record "VAT Posting Setup";
-        DatiRiepilogoXmlNode: DotNet XmlNode;
-        DatiIVAXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+#if not CLEAN30
+        XMLDOMManagement: Codeunit "XML DOM Management";
+#endif
+        DatiRiepilogoXmlNode: XmlElement;
+        DatiIVAXmlNode: XmlElement;
+        XmlNode: XmlElement;
         DocumentType: Text;
         IsHandled: Boolean;
     begin
         // 2.2.3.2 DatiRiepilogo node
-        XMLDOMManagement.AddElement(InvoiceXmlNode, 'DatiRiepilogo', '', '', DatiRiepilogoXmlNode);
+        AddElement(InvoiceXmlNode, 'DatiRiepilogo', '', DatiRiepilogoXmlNode);
 
         DocumentType := GetDocumentType(VATReportLine);
 
         if (DocumentType = Format(DocumentTypes::TD07)) or (DocumentType = Format(DocumentTypes::TD08)) then
-            XMLDOMManagement.AddElement(
-              DatiRiepilogoXmlNode, 'ImponibileImporto', FormatAmount(Abs(VATReportLine."Amount Incl. VAT")), '', XmlNode)
+            AddElement(
+              DatiRiepilogoXmlNode, 'ImponibileImporto', FormatAmount(Abs(VATReportLine."Amount Incl. VAT")), XmlNode)
         else
-            XMLDOMManagement.AddElement(DatiRiepilogoXmlNode, 'ImponibileImporto', FormatAmount(Abs(VATReportLine.Base)), '', XmlNode);
+            AddElement(DatiRiepilogoXmlNode, 'ImponibileImporto', FormatAmount(Abs(VATReportLine.Base)), XmlNode);
 
         IsHandled := false;
+#if not CLEAN30
+#pragma warning disable AL0432
         OnAddInvoiceAmountsDataOnBeforeGetVATPostingSetup(VATReportLine, XMLDOMManagement, IsHandled);
+#pragma warning restore AL0432
+#endif
+        OnAddInvoiceAmountsDataOnBeforeAddVATData(VATReportLine, DatiRiepilogoXmlNode, IsHandled);
         if not IsHandled then
             if VATPostingSetup.Get(VATReportLine."VAT Bus. Posting Group", VATReportLine."VAT Prod. Posting Group") then begin
                 // DatiIVA
                 OnAddInvoiceAmountsDataOnAfterVATPostingSetupGet(VATPostingSetup, VATReportLine);
-                XMLDOMManagement.AddElement(DatiRiepilogoXmlNode, 'DatiIVA', '', '', DatiIVAXmlNode);
-                XMLDOMManagement.AddElement(DatiIVAXmlNode, 'Imposta', FormatAmount(Abs(VATReportLine.Amount)), '', XmlNode);
-                XMLDOMManagement.AddElement(DatiIVAXmlNode, 'Aliquota', FormatAmount(VATPostingSetup."VAT %"), '', XmlNode);
+                AddElement(DatiRiepilogoXmlNode, 'DatiIVA', '', DatiIVAXmlNode);
+                AddElement(DatiIVAXmlNode, 'Imposta', FormatAmount(Abs(VATReportLine.Amount)), XmlNode);
+                AddElement(DatiIVAXmlNode, 'Aliquota', FormatAmount(VATPostingSetup."VAT %"), XmlNode);
 
                 if (VATReportLine.Amount = 0) or
                 (VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT")
                 then
-                    XMLDOMManagement.AddElement(DatiRiepilogoXmlNode, 'Natura', VATReportLine."VAT Transaction Nature", '', XmlNode);
+                    AddElement(DatiRiepilogoXmlNode, 'Natura', VATReportLine."VAT Transaction Nature", XmlNode);
             end;
 
         AddEsigibilitaIVATag(DatiRiepilogoXmlNode, XmlNode, VATReportLine);
     end;
 
-    local procedure AddTaxRepresentativeInfo(var CurrentXmlNode: DotNet XmlNode; TaxRepresentativeNo: Code[20]; RepresentativeType: Option)
+    local procedure AddTaxRepresentativeInfo(var CurrentXmlNode: XmlElement; TaxRepresentativeNo: Code[20]; RepresentativeType: Option)
     var
         Vendor: Record Vendor;
         Customer: Record Customer;
         Contact: Record Contact;
-        RappresentanteFiscaleXmlNode: DotNet XmlNode;
-        IdFiscaleIVAXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        RappresentanteFiscaleXmlNode: XmlElement;
+        IdFiscaleIVAXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddElement(CurrentXmlNode, 'RappresentanteFiscale', '', '', RappresentanteFiscaleXmlNode);
+        AddElement(CurrentXmlNode, 'RappresentanteFiscale', '', RappresentanteFiscaleXmlNode);
         case RepresentativeType of
             TaxRepresentativeType::Customer:
                 begin
                     Customer.Get(TaxRepresentativeNo);
 
-                    XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'IdFiscaleIVA', '', '', IdFiscaleIVAXmlNode);
+                    AddElement(RappresentanteFiscaleXmlNode, 'IdFiscaleIVA', '', IdFiscaleIVAXmlNode);
 
                     ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
-                    XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Customer."Country/Region Code", '', XmlNode);
+                    AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Customer."Country/Region Code", XmlNode);
 
                     ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("VAT Registration No."), ErrorMessage."Message Type"::Error);
-                    XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Customer."VAT Registration No.", '', XmlNode);
+                    AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Customer."VAT Registration No.", XmlNode);
 
                     if not Customer."Individual Person" then
-                        XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'Denominazione', Customer.Name, '', XmlNode)
+                        AddElement(RappresentanteFiscaleXmlNode, 'Denominazione', Customer.Name, XmlNode)
                     else begin
                         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("First Name"), ErrorMessage."Message Type"::Error);
-                        XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'Nome', Customer."First Name", '', XmlNode);
+                        AddElement(RappresentanteFiscaleXmlNode, 'Nome', Customer."First Name", XmlNode);
 
                         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Last Name"), ErrorMessage."Message Type"::Error);
-                        XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'Cognome', Customer."Last Name", '', XmlNode);
+                        AddElement(RappresentanteFiscaleXmlNode, 'Cognome', Customer."Last Name", XmlNode);
                     end;
                 end;
             TaxRepresentativeType::Vendor:
                 begin
                     Vendor.Get(TaxRepresentativeNo);
 
-                    XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'IdFiscaleIVA', '', '', IdFiscaleIVAXmlNode);
+                    AddElement(RappresentanteFiscaleXmlNode, 'IdFiscaleIVA', '', IdFiscaleIVAXmlNode);
 
                     ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
-                    XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Vendor."Country/Region Code", '', XmlNode);
+                    AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Vendor."Country/Region Code", XmlNode);
 
                     ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("VAT Registration No."), ErrorMessage."Message Type"::Error);
-                    XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Vendor."VAT Registration No.", '', XmlNode);
+                    AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Vendor."VAT Registration No.", XmlNode);
 
                     if not Vendor."Individual Person" then
-                        XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'Denominazione', Vendor.Name, '', XmlNode)
+                        AddElement(RappresentanteFiscaleXmlNode, 'Denominazione', Vendor.Name, XmlNode)
                     else begin
                         ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("First Name"), ErrorMessage."Message Type"::Error);
-                        XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'Nome', Vendor."First Name", '', XmlNode);
+                        AddElement(RappresentanteFiscaleXmlNode, 'Nome', Vendor."First Name", XmlNode);
 
                         ErrorMessage.LogIfEmpty(Vendor, Vendor.FieldNo("Last Name"), ErrorMessage."Message Type"::Error);
-                        XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'Cognome', Vendor."Last Name", '', XmlNode);
+                        AddElement(RappresentanteFiscaleXmlNode, 'Cognome', Vendor."Last Name", XmlNode);
                     end;
                 end;
             TaxRepresentativeType::Contact:
                 begin
                     Contact.Get(TaxRepresentativeNo);
 
-                    XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'IdFiscaleIVA', '', '', IdFiscaleIVAXmlNode);
+                    AddElement(RappresentanteFiscaleXmlNode, 'IdFiscaleIVA', '', IdFiscaleIVAXmlNode);
 
                     ErrorMessage.LogIfEmpty(Contact, Contact.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
-                    XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Contact."Country/Region Code", '', XmlNode);
+                    AddElement(IdFiscaleIVAXmlNode, 'IdPaese', Contact."Country/Region Code", XmlNode);
                     if Contact.Type = Contact.Type::Company then begin
                         ErrorMessage.LogIfEmpty(Contact, Contact.FieldNo("VAT Registration No."), ErrorMessage."Message Type"::Error);
-                        XMLDOMManagement.AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Contact."VAT Registration No.", '', XmlNode);
+                        AddElement(IdFiscaleIVAXmlNode, 'IdCodice', Contact."VAT Registration No.", XmlNode);
                     end else begin
                         ErrorMessage.LogIfEmpty(Contact, Contact.FieldNo("First Name"), ErrorMessage."Message Type"::Error);
-                        XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'Nome', Contact."First Name", '', XmlNode);
+                        AddElement(RappresentanteFiscaleXmlNode, 'Nome', Contact."First Name", XmlNode);
 
                         ErrorMessage.LogIfEmpty(Contact, Contact.FieldNo(Surname), ErrorMessage."Message Type"::Error);
-                        XMLDOMManagement.AddElement(RappresentanteFiscaleXmlNode, 'Cognome', Contact.Surname, '', XmlNode);
+                        AddElement(RappresentanteFiscaleXmlNode, 'Cognome', Contact.Surname, XmlNode);
                     end;
                 end;
             else
@@ -715,15 +742,14 @@ codeunit 12182 "Datifattura Export"
         end;
     end;
 
-    local procedure InitDatiFatturaNode(var DotNetXmlDocument: DotNet XmlDocument; var XMLRootNode: DotNet XmlNode)
+    local procedure InitDatiFatturaNode(var DatifatturaXmlDocument: XmlDocument; var XMLRootNode: XmlElement)
     begin
-        Clear(DotNetXmlDocument);
         Clear(XMLRootNode);
-        DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
-        AddDatiFatturaNode(DotNetXmlDocument, XMLRootNode);
+        DatifatturaXmlDocument := XmlDocument.Create();
+        AddDatiFatturaNode(DatifatturaXmlDocument, XMLRootNode);
     end;
 
-    local procedure AddEsigibilitaIVATag(var DatiRiepilogoXmlNode: DotNet XmlNode; var XmlNode: DotNet XmlNode; VATReportLine: Record "VAT Report Line")
+    local procedure AddEsigibilitaIVATag(var DatiRiepilogoXmlNode: XmlElement; var XmlNode: XmlElement; VATReportLine: Record "VAT Report Line")
     var
         VATPostingSetup: Record "VAT Posting Setup";
         TagValue: Text;
@@ -742,25 +768,25 @@ codeunit 12182 "Datifattura Export"
                 TagValue := 'S';
 
         if TagValue <> '' then
-            XMLDOMManagement.AddElement(DatiRiepilogoXmlNode, 'EsigibilitaIVA', TagValue, '', XmlNode);
+            AddElement(DatiRiepilogoXmlNode, 'EsigibilitaIVA', TagValue, XmlNode);
     end;
 
-    local procedure ExportCancellationDatifattura(VATReportHeader: Record "VAT Report Header"; var XMLDoc: DotNet XmlDocument)
+    local procedure ExportCancellationDatifattura(VATReportHeader: Record "VAT Report Header"; var XMLDoc: XmlDocument)
     var
-        XMLRootNode: DotNet XmlNode;
-        ANNXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        XMLRootNode: XmlElement;
+        ANNXmlNode: XmlElement;
+        XmlNode: XmlElement;
     begin
-        XMLDOMManagement.AddRootElement(XMLDoc, 'DatiFattura', XMLRootNode);
-        XMLDOMManagement.AddDeclaration(XMLDoc, '1.0', 'utf-8', '');
+        XMLRootNode := XmlElement.Create('DatiFattura');
+        XMLDoc.Add(XMLRootNode);
 
         // 1 DatiFatturaHeader
         ExportStandardDatifatturaHeader(VATReportHeader, XMLRootNode);
 
         // 4 ANN node
-        XMLDOMManagement.AddElement(XMLRootNode, 'ANN', '', '', ANNXmlNode);
+        AddElement(XMLRootNode, 'ANN', '', ANNXmlNode);
         // 4.1 IdFile node
-        XMLDOMManagement.AddElement(ANNXmlNode, 'IdFile', VATReportHeader."Original Report No.", '', XmlNode);
+        AddElement(ANNXmlNode, 'IdFile', VATReportHeader."Original Report No.", XmlNode);
     end;
 
     local procedure GetSubmitterID(): Text
@@ -896,8 +922,16 @@ codeunit 12182 "Datifattura Export"
         ServerFilePath := FilePath;
     end;
 
+#if not CLEAN30
+    [Obsolete('XML DOM Management is being phased out. Use OnAddInvoiceAmountsDataOnBeforeAddVATData instead.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAddInvoiceAmountsDataOnBeforeGetVATPostingSetup(VATReportLine: Record "VAT Report Line"; XMLDOMManagement: Codeunit "XML DOM Management"; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAddInvoiceAmountsDataOnBeforeAddVATData(VATReportLine: Record "VAT Report Line"; var DatiRiepilogoXmlElement: XmlElement; var IsHandled: Boolean)
     begin
     end;
 

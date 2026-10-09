@@ -22,10 +22,10 @@ codeunit 143001 "NL XML Read Helper"
     [Scope('OnPrem')]
     procedure Initialize(FullFilePath: Text; NameSpace: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         XMLDocElement: DotNet XmlElement;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(FullFilePath, XMLDocOut);
+        XMLDocOut := XMLDocOut.XmlDocument();
+        XMLDocOut.Load(FullFilePath);
 
         XMLNsMgr := XMLNsMgr.XmlNamespaceManager(XMLDocOut.NameTable);
         XMLNsMgr.AddNamespace('ns', NameSpace);
