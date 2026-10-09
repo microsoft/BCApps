@@ -60,10 +60,8 @@ codeunit 30167 "Shpfy Process Orders"
                 ProcessOrder.CleanUpLastCreatedDocument();
             end else begin
                 ShopifyOrderHeader.Get(ShopifyOrderHeader."Shopify Order Id");
-                if ShopifyOrderHeader."Has Error" then begin
-                    Commit();
+                if ShopifyOrderHeader."Has Error" then
                     exit;
-                end;
                 ShopifyOrderHeader."Has Error" := false;
                 ShopifyOrderHeader."Error Message" := '';
                 ShopifyOrderHeader.Processed := true;
