@@ -1028,11 +1028,9 @@ table 6900 Expense
         ExpenseItemization: Record "Expense Itemization";
         ExpensePerDiem: Record "Expense Per Diem";
     begin
-        if Rec.IsItemizationRequired() then begin
-            ExpenseItemization.SetRange("Expense No.", Rec."No.");
-            if not ExpenseItemization.IsEmpty() then
-                exit(true);
-        end;
+        ExpenseItemization.SetRange("Expense No.", Rec."No.");
+        if not ExpenseItemization.IsEmpty() then
+            exit(true);
 
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
