@@ -717,6 +717,7 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         OrderLineJSON: Text;
+        LineDescription: Text;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -725,7 +726,8 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
 
         COMMIT();
 
-        OrderLineJSON := '{"description":"test"}';
+        LineDescription := Format(CreateGuid());
+        OrderLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line
         TargetURL := LibraryGraphMgt
@@ -737,8 +739,10 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, OrderLineJSON, ResponseText);
 
         // [THEN] Line of type Item is created
-        FindFirstSalesLine(SalesHeader, SalesLine);
-        SalesLine.FINDLAST();
+        SalesLine.SETRANGE("Document Type", SalesHeader."Document Type");
+        SalesLine.SETRANGE("Document No.", SalesHeader."No.");
+        SalesLine.SETRANGE(Description, LineDescription);
+        Assert.IsTrue(SalesLine.FINDFIRST(), 'Could not find the created order line');
         Assert.AreEqual('', SalesLine."No.", 'No should be blank');
         Assert.AreEqual(SalesLine.Type, SalesLine.Type::Item, 'Wrong type is set');
 
