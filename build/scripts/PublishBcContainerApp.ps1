@@ -3,10 +3,8 @@ Param(
     [string[]]$AdditionalAppsNotToPublish = @()
 )
 
-$listOfAppsNotToPublish = @(
-    "Library - No Transactions",
-    "Prevent Metadata Updates Library"
-) + $AdditionalAppsNotToPublish
+Import-Module (Join-Path $PSScriptRoot 'AppPublicationPolicy.psm1')
+$listOfAppsNotToPublish = @(Get-StandardAppPublicationExclusion) + $AdditionalAppsNotToPublish
 
 function Test-ShouldPublishApp() {
     param(
@@ -16,12 +14,7 @@ function Test-ShouldPublishApp() {
 
     $appName = (Get-Item $appFile).BaseName
 
-    $matchedApp = $exclusionList | Where-Object {
-        $pattern = "Microsoft_$($_)_*"
-        $appName -like $pattern
-    }
-
-    if ($null -ne $matchedApp) {
+    if (Test-AppPublicationExcluded -BaseName $appName -ExclusionList $exclusionList) {
         Write-Host "Skipping publishing of app $appName as it is in the exclusion list."
         return $false
     }

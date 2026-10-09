@@ -1,0 +1,99 @@
+name: 'Expanded API original owned lane'
+on:
+  workflow_call:
+    inputs:
+      country:
+        type: string
+        required: true
+      config:
+        type: string
+        required: true
+      lane:
+        type: string
+        required: true
+      registryId:
+        type: string
+        required: true
+      registryDigest:
+        type: string
+        required: true
+jobs:
+  Lane:
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-reuse-successor' && github.run_attempt == 1
+    runs-on: GitHub-BCAppsPL
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
+      ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
+      BC_EXPANDED_COUNTRY: ${{ inputs.country }}
+      BC_EXPANDED_CONFIG: ${{ inputs.config }}
+      BC_EXPANDED_LANE: ${{ inputs.lane }}
+      GH_TOKEN: ${{ github.token }}
+      BuildMode: ${{ inputs.lane }}
+    steps:
+      - name: Start assigned-runner clock
+        run: |
+          "BC_EXPANDED_STARTED_UTC=$([DateTime]::UtcNow.ToString('o'))" | Add-Content $env:GITHUB_ENV
+          "BC_EXPANDED_STARTED_TICKS=$([Diagnostics.Stopwatch]::GetTimestamp())" | Add-Content $env:GITHUB_ENV
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          lfs: true
+          fetch-depth: 0
+      - name: Stage exact shared source and distinct lane project
+        id: configure
+        run: .\build\scripts\ExpandedApiDiagnostic\Configure.ps1 -Kind Lane
+      - name: Verify approved producer registry, artifact archives and unchanged compiled package bytes
+        id: packages
+        run: .\build\scripts\ExpandedApiDiagnostic\ReceivePackages.ps1 -RegistryId '${{ inputs.registryId }}' -RegistryDigest '${{ inputs.registryDigest }}'
+      - uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
+        with:
+          shell: pwsh
+          project: ${{ steps.configure.outputs.project }}
+          buildMode: ${{ inputs.lane }}
+      - id: secrets
+        uses: microsoft/AL-Go/Actions/ReadSecrets@91b96c2b294be6f823277dafe6f03350abfb9d23
+        with:
+          shell: pwsh
+          gitHubSecrets: ${{ toJson(secrets) }}
+          getSecrets: 'licenseFileUrl,gitHubPackagesContext,applicationInsightsConnectionString,appDependencySecrets'
+      - name: Load exact helper and verify warm API surface before provisioning
+        uses: microsoft/AL-Go/Actions/RunHook@91b96c2b294be6f823277dafe6f03350abfb9d23
+        with:
+          shell: pwsh
+          project: ${{ steps.configure.outputs.project }}
+          hookName: BuildInitialize
+      - name: Verify cold finalizer and worker API surface before provisioning
+        run: .\build\scripts\ExpandedApiDiagnostic\HelperPreflight.ps1 -Boundary Cold
+      - name: Provision and execute original lane with dedicated test override
+        id: pipeline
+        uses: microsoft/AL-Go/Actions/RunPipeline@91b96c2b294be6f823277dafe6f03350abfb9d23
+        env:
+          Secrets: '${{ steps.secrets.outputs.Secrets }}'
+        with:
+          shell: pwsh
+          project: ${{ steps.configure.outputs.project }}
+          artifact: ${{ steps.configure.outputs.artifact }}
+          buildMode: ${{ inputs.lane }}
+          installAppsJson: ${{ steps.packages.outputs.Apps }}
+          installTestAppsJson: ${{ steps.packages.outputs.TestApps }}
+          baselineWorkflowRunId: '0'
+      - name: Preserve project and nested original pipeline files
+        if: always()
+        run: .\build\scripts\ExpandedApiDiagnostic\ExportPipeline.ps1
+      - name: Preserve originals, remove only owned container and qualify evidence
+        if: always()
+        env:
+          BC_EXPANDED_PIPELINE_OUTCOME: ${{ steps.pipeline.outcome }}
+        run: .\build\scripts\ExpandedApiDiagnostic\Finalize.ps1
+      - name: Preserve raw original evidence including incomplete and failed lanes
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: expanded-evidence-${{ inputs.country }}-${{ inputs.config }}-${{ inputs.lane }}-${{ github.run_id }}
+          path: expanded-api-output/**
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
