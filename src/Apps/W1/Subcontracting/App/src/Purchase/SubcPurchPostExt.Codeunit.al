@@ -25,6 +25,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
 #endif
         CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Use the ''Create Corrective Credit Memo'' action to create a credit memo for this invoice.', Comment = '%1 = Posted Purchase Invoice No.';
+        CorrectReceiptInvoiceNotSupportedErr: Label 'You cannot cancel, correct, or create a corrective credit memo for posted purchase invoice %1 because it contains subcontracting receipt lines copied with Get Receipt Lines.', Comment = '%1 = Posted Purchase Invoice No.';
+        GetTrackedSubcontractingRcptNotSupportedErr: Label 'You cannot copy tracked subcontracting receipt lines with Get Receipt Lines. Invoice the subcontracting purchase order directly instead.';
         ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
 
     [EventSubscriber(ObjectType::Table, Database::"Purch. Rcpt. Line", OnAfterCopyFromPurchRcptLine, '', false, false)]
@@ -40,6 +42,19 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
 
         PurchaseLine."Qty. per Unit of Measure" := PurchRcptLine."Qty. per Unit of Measure";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Get Receipt", OnCreateInvLinesOnBeforeInsertLineIteration, '', false, false)]
+    local procedure BlockTrackedSubcontractingReceiptOnCreateInvLines(var PurchRcptLine2: Record "Purch. Rcpt. Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TransferLine: Boolean; var IsHandled: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if PurchRcptLineHasProdOrder(PurchRcptLine2) and ItemIsTracked(PurchRcptLine2."No.") then
+            Error(GetTrackedSubcontractingRcptNotSupportedErr);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
@@ -71,6 +86,42 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
         if not ValueEntry.IsEmpty() then
             Error(CancelNotSupportedErr, PurchInvHeader."No.");
+
+        BlockCorrectionIfHasCopiedSubcontractingReceipt(PurchInvHeader);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnBeforeCreateCopyDocument, '', false, false)]
+    local procedure BlockCorrectiveCreditMemoIfHasCopiedSubcontractingReceipt(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; SkipCopyFromDescription: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if DocumentType <> DocumentType::"Credit Memo" then
+            exit;
+
+        BlockCorrectionIfHasCopiedSubcontractingReceipt(PurchInvHeader);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purch. Inv. Line", OnAfterIsCancellationSupported, '', false, false)]
+    local procedure BlockCancellationIfCopiedFromSubcontractingReceipt(PurchInvLine: Record "Purch. Inv. Line"; var Result: Boolean)
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if not PurchRcptLine.Get(PurchInvLine."Receipt No.", PurchInvLine."Receipt Line No.") then
+            exit;
+        if PurchRcptLineHasProdOrder(PurchRcptLine) then begin
+            Result := false;
+            Error(CorrectReceiptInvoiceNotSupportedErr, PurchInvLine."Document No.");
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
@@ -206,6 +257,21 @@ codeunit 20535 "Subc. Purch. Post Ext"
                             (PurchRcptLine."Routing No." <> '') and
                             (PurchRcptLine."Operation No." <> '');
         exit(HasProdOrder);
+    end;
+
+    local procedure BlockCorrectionIfHasCopiedSubcontractingReceipt(PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        PurchInvLine: Record "Purch. Inv. Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
+        PurchInvLine.SetFilter("Receipt No.", '<>%1', '');
+        if PurchInvLine.FindSet() then
+            repeat
+                if PurchRcptLine.Get(PurchInvLine."Receipt No.", PurchInvLine."Receipt Line No.") then
+                    if PurchRcptLineHasProdOrder(PurchRcptLine) then
+                        Error(CorrectReceiptInvoiceNotSupportedErr, PurchInvHeader."No.");
+            until PurchInvLine.Next() = 0;
     end;
 
     local procedure CopySubcontractingProdOrderFieldsToItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; PurchRcptLine: Record "Purch. Rcpt. Line")

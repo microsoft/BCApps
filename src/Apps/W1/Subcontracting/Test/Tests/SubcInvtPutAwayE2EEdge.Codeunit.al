@@ -524,6 +524,69 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
+    procedure GetReceiptLinesBlocksTrackedSubcontractingReceipt()
+    var
+        Item: Record Item;
+        InvoiceHeader: Record "Purchase Header";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ReservationEntry: Record "Reservation Entry";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WorkCenter: array[2] of Record "Work Center";
+        NoSeriesCodeunit: Codeunit "No. Series";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        SerialNo: Code[50];
+    begin
+        // [SCENARIO 649862] Get Receipt Lines blocks tracked subcontracting receipts until tracking can be copied safely.
+        Initialize();
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateSerialTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify(true);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 1, Location.Code);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        SerialNo := NoSeriesCodeunit.GetNextNo(Item."Serial Nos.");
+        LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, SerialNo, '', 1);
+
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        Assert.ExpectedError('You cannot copy tracked subcontracting receipt lines with Get Receipt Lines');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure ItemChargeAssignmentsRespectActualReceiptTypePostingTargets()
     var
         Item: Record Item;

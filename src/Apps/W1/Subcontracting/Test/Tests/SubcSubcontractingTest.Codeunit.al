@@ -3301,6 +3301,21 @@ codeunit 139989 "Subc. Subcontracting Test"
         end;
     end;
 
+    [ConfirmHandler]
+    procedure ConfirmHandlerAndCreateCreditMemo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        case true of
+            Question.Contains('Do you really want to change Inventory Account although value entries exist?'),
+            Question.Contains('Do you want to create a production order from'),
+            Question.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?'),
+            Question.Contains('A Purchase Credit memo will be created'):
+                Reply := true;
+            else
+                Reply := false;
+        end;
+    end;
+
     [Test]
     [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,CapturePurchaseOrderPageNo')]
     procedure CreateSubcontractingPONavigatesToOwnPOWhenLinesShareRoutingAndOperation()
@@ -4230,7 +4245,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('ConfirmHandlerAndCreateCreditMemo')]
     procedure GetReceiptLinesCopiesSubcontractingReceiptToSeparateInvoice()
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
@@ -4238,12 +4253,15 @@ codeunit 139989 "Subc. Subcontracting Test"
         ItemLedgerEntry: Record "Item Ledger Entry";
         InvoiceHeader: Record "Purchase Header";
         InvoiceLine: Record "Purchase Line";
+        CreditMemoHeader: Record "Purchase Header";
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
         PurchaseLine: Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         SubcWorkCenter: Record "Work Center";
         ValueEntry: Record "Value Entry";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
         OutputEntryCount: Integer;
         PostedInvoiceNo: Code[20];
@@ -4319,6 +4337,16 @@ codeunit 139989 "Subc. Subcontracting Test"
             CapacityLedgerEntry."Entry No.", ValueEntry."Capacity Ledger Entry No.",
             'The invoice value entry must reference the capacity ledger entry created by the subcontracting receipt.');
         Assert.AreEqual(OutputEntryCount, ItemLedgerEntry.Count(), 'Posting the separate invoice must not create duplicate output.');
+
+        // [THEN] Cancel, Correct, and Create Corrective Credit Memo are blocked for the separate receipt invoice.
+        PurchInvHeader.Get(PostedInvoiceNo);
+        Commit();
+        asserterror CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, CreditMemoHeader);
+        Assert.ExpectedError('contains subcontracting receipt lines copied with Get Receipt Lines');
+        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+        Assert.ExpectedError('contains subcontracting receipt lines copied with Get Receipt Lines');
+        asserterror CorrectPostedPurchInvoice.TestCorrectInvoiceIsAllowed(PurchInvHeader, false);
+        Assert.ExpectedError('contains subcontracting receipt lines copied with Get Receipt Lines');
     end;
 
     [Test]
