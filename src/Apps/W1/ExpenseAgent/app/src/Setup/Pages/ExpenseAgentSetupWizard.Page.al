@@ -12,7 +12,6 @@ using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
-using System.Utilities;
 page 6991 "Expense Agent Setup Wizard"
 {
     PageType = ConfigurationDialog;
@@ -171,6 +170,15 @@ page 6991 "Expense Agent Setup Wizard"
                                             ConfigUpdated();
                                             CurrPage.Update(true);
                                         end;
+                            end;
+                        }
+                        field("Allow Interim Approvers"; Rec."Allow Interim Approvers")
+                        {
+                            ToolTip = 'Specifies whether users can assign interim approvers to expense reports.';
+
+                            trigger OnValidate()
+                            begin
+                                ConfigUpdated();
                             end;
                         }
                     }
@@ -936,7 +944,7 @@ page 6991 "Expense Agent Setup Wizard"
         if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         IsConfigUpdated := false;
         LoadSetup();
-        ExpenseDashboardUrl := GetExpenseDashboardUrl();
+        ExpenseDashboardUrl := EAHttpClient.GetExpenseAppBaseUrl();
         ShowExpenseDashboardLink := ExpenseDashboardUrl <> '';
         CanaryToggleVisible := Rec."Use Canary Endpoint" or EAHttpClient.IsTenantOnCanaryAllowlist();
 
@@ -1034,9 +1042,6 @@ page 6991 "Expense Agent Setup Wizard"
         NoSeriesAppliedLinkTxt: Label 'View number series including new defaults';
         MileageRateSetupLinkTxt: Label 'Configure mileage rates by vehicle type';
         ExpenseDashboardLinkTxt: Label 'Go to Expense app (opens in new window)';
-        ExpenseDashboardUrlOnPremTxt: Label 'http://localhost:5173/', Locked = true;
-        ExpenseDashboardUrlProdTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365219', Locked = true;
-        ExpenseDashboardUrlTieTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365220', Locked = true;
         CapabilityDisabledQst: Label 'The "%1" capability is disabled in the "%2" page. The Agent will not work unless you enable the capability.\\Do you want to open the "%2" page now?', Comment = '%1=A copilot capability such as Expense Agent; %2=A page caption, such as Copilot & Agent Capabilities.';
         CapabilityDisabledErr: Label 'You must enable the "%1" capability to use the Agent.', Comment = '%1=A copilot capability such as Expense Agent.';
         NoMailboxWarningQst: Label 'Email submission is turned on, but no mailbox is configured. The agent will not process emailed receipts until you configure a mailbox for this submission channel. Do you want to continue?';
@@ -1624,23 +1629,4 @@ page 6991 "Expense Agent Setup Wizard"
         exit(EAHttpClient.UnregisterErpConfiguration(Rec."Use Canary Endpoint"));
     end;
 
-    local procedure GetExpenseDashboardUrl(): Text
-    var
-        EnvironmentInfo: Codeunit "Environment Information";
-        URLHelper: Codeunit "URL Helper";
-    begin
-        if EnvironmentInfo.IsOnPrem() then
-            exit(ExpenseDashboardUrlOnPremTxt);
-
-        if not EnvironmentInfo.IsSaaSInfrastructure() then
-            exit('');
-
-        if URLHelper.IsTIE() or URLHelper.IsPPE() then
-            exit(ExpenseDashboardUrlTieTxt);
-
-        if EnvironmentInfo.IsSaaSInfrastructure() then
-            exit(ExpenseDashboardUrlProdTxt);
-
-        exit('');
-    end;
 }
