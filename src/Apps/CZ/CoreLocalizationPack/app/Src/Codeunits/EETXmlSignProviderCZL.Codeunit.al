@@ -74,7 +74,6 @@ codeunit 31082 "EET Xml Sign. Provider CZL"
 
     local procedure GetKeyInfoNodeXmlElement(): XmlElement
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         SecurityTokenReferenceXmlNode: XmlNode;
         ReferenceXmlNode: XmlNode;
         RootXmlDocument: XmlDocument;
@@ -82,11 +81,14 @@ codeunit 31082 "EET Xml Sign. Provider CZL"
         SecurityValueTypeX509V3Txt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3', Locked = true;
     begin
         RootXmlDocument := XmlDocument.Create();
-        XMLDOMManagement.AddRootElementWithPrefix(
-            RootXmlDocument, 'SecurityTokenReference', 'wsse', SecurityExtensionNamespaceTxt, SecurityTokenReferenceXmlNode);
-        XMLDOMManagement.AddElementWithPrefix(SecurityTokenReferenceXmlNode, 'Reference', '', 'wsse', SecurityExtensionNamespaceTxt, ReferenceXmlNode);
-        XMLDOMManagement.AddAttribute(ReferenceXmlNode, 'URI', FormatURI(BinarySecurityTokenId));
-        XMLDOMManagement.AddAttribute(ReferenceXmlNode, 'ValueType', SecurityValueTypeX509V3Txt);
+        SecurityTokenReferenceXmlNode := XmlElement.Create('SecurityTokenReference', SecurityExtensionNamespaceTxt).AsXmlNode();
+        SecurityTokenReferenceXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration('wsse', SecurityExtensionNamespaceTxt));
+        RootXmlDocument.Add(SecurityTokenReferenceXmlNode);
+        ReferenceXmlNode := XmlElement.Create('Reference', SecurityExtensionNamespaceTxt, '').AsXmlNode();
+        ReferenceXmlNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration('wsse', SecurityExtensionNamespaceTxt));
+        SecurityTokenReferenceXmlNode.AsXmlElement().Add(ReferenceXmlNode);
+        ReferenceXmlNode.AsXmlElement().SetAttribute('URI', FormatURI(BinarySecurityTokenId));
+        ReferenceXmlNode.AsXmlElement().SetAttribute('ValueType', SecurityValueTypeX509V3Txt);
         exit(SecurityTokenReferenceXmlNode.AsXmlElement());
     end;
 }

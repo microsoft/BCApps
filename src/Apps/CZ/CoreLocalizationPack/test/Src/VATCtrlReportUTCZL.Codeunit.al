@@ -418,11 +418,14 @@ codeunit 148068 "VAT Ctrl. Report UT CZL"
 
     local procedure AssertXmlAttributeValue(var XMLDoc: XmlDocument; XPath: Text; AttributeName: Text; AttributeValue: Text)
     var
-        XmlDOMManagement: Codeunit "XML DOM Management";
         FoundNode: XmlNode;
+        FoundXmlAttribute: XmlAttribute;
+        ActualAttributeValue: Text;
     begin
         Assert.IsTrue(XMLDoc.SelectSingleNode(XPath, FoundNode), StrSubstNo(XmlNodeNotFoundErr, XPath));
-        Assert.AreEqual(XmlDOMManagement.GetAttributeValue(FoundNode, AttributeName), AttributeValue, UnexpectedAttributeValueErr);
+        if FoundNode.AsXmlElement().Attributes().Get(AttributeName, FoundXmlAttribute) then
+            ActualAttributeValue := FoundXmlAttribute.Value();
+        Assert.AreEqual(ActualAttributeValue, AttributeValue, UnexpectedAttributeValueErr);
     end;
 
     local procedure CreateVATCtrlReportHeader() VATCtrlReportHeaderCZL: Record "VAT Ctrl. Report Header CZL"
