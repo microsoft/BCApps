@@ -10,10 +10,8 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
-using System;
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 report 11309 "VAT Annual Listing - Disk"
 {
@@ -338,7 +336,6 @@ report 11309 "VAT Annual Listing - Disk"
         Representative: Record Representative;
         CheckVatNo: Codeunit VATLogicalTests;
         INTERVATHelper: Codeunit "INTERVAT Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         WBase: Decimal;
         WAmount: Decimal;
         WTotBase2: Decimal;
@@ -371,30 +368,27 @@ report 11309 "VAT Annual Listing - Disk"
     local procedure CreateIntervatXML() ReturnValue: Boolean
     var
         FileManagement: Codeunit "File Management";
-        XMLDocOut: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLFirstNode: DotNet XmlNode;
+        TempBlob: Codeunit "Temp Blob";
+        XMLDocOut: XmlDocument;
+        RootElement: XmlElement;
+        XmlOutStream: OutStream;
         ServerFileName: Text;
     begin
         ReturnValue := false;
         RefreshClientListingsNbr := true;
 
-        XMLDOMMgt.LoadXMLDocumentFromText('<ClientListingConsignment/>', XMLDocOut);
-        XMLCurrNode := XMLDocOut.DocumentElement;
-        INTERVATHelper.AddProcessingInstruction(XMLDocOut, XMLCurrNode);
+        CreateDocument(XMLDocOut);
+        XMLDocOut.GetRoot(RootElement);
 
-        AddHeader(XMLCurrNode);
-        XMLFirstNode := XMLCurrNode;
+        if AddRepresentative then
+            Representative.AddRepresentativeElement(RootElement, xmlnsClientListingConsignment, GetClientListingsNbr());
 
-        if AddRepresentative then begin
-            Representative.AddRepresentativeElement(XMLCurrNode, xmlnsClientListingConsignment, GetClientListingsNbr());
-            XMLCurrNode := XMLFirstNode;
-        end;
+        AddClientListing(RootElement);
 
-        AddClientListing(XMLCurrNode);
-
+        TempBlob.CreateOutStream(XmlOutStream);
+        INTERVATHelper.WriteDocument(XMLDocOut, XmlOutStream);
         ServerFileName := FileManagement.ServerTempFileName('.xml');
-        XMLDocOut.Save(ServerFileName);
+        FileManagement.BLOBExportToServerFile(TempBlob, ServerFileName);
         if FileName = '' then
             FileManagement.DownloadHandler(ServerFileName, '', '', FileManagement.GetToFilterText('', ServerFileName), ClientFileNameTxt)
         else
@@ -404,68 +398,61 @@ report 11309 "VAT Annual Listing - Disk"
         ReturnValue := true;
     end;
 
-    local procedure AddClientListing(XMLCurrNode: DotNet XmlNode)
+    local procedure AddChildElement(ParentElement: XmlElement; LocalName: Text; Value: Text) ChildElement: XmlElement
+    begin
+        ChildElement := XmlElement.Create(LocalName, xmlnsClientListingConsignment);
+        if Value <> '' then
+            ChildElement.Add(XmlText.Create(Value));
+        ParentElement.Add(ChildElement);
+    end;
+
+    local procedure AddClientListing(RootElement: XmlElement)
     var
-        XMLNewChild: DotNet XmlNode;
+        ClientListingElement: XmlElement;
         BaseAmount: Text[100];
         VatAmount: Text[100];
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'ClientListing', '', xmlnsClientListingConsignment, XMLNewChild);
-        XMLCurrNode := XMLNewChild;
+        ClientListingElement := AddChildElement(RootElement, 'ClientListing', '');
 
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'SequenceNumber', '1');
+        ClientListingElement.SetAttribute('SequenceNumber', '1');
 
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'ClientsNbr', Format(Buffer.Count));
+        ClientListingElement.SetAttribute('ClientsNbr', Format(Buffer.Count));
         GetAmounts(BaseAmount, VatAmount);
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'TurnOverSum', BaseAmount);
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'VATAmountSum', VatAmount);
+        ClientListingElement.SetAttribute('TurnOverSum', BaseAmount);
+        ClientListingElement.SetAttribute('VATAmountSum', VatAmount);
 
-        INTERVATHelper.AddElementDeclarant(XMLCurrNode, GetClientListingsNbr());
-        XMLCurrNode := XMLCurrNode.ParentNode;
+        INTERVATHelper.AddElementDeclarant(ClientListingElement, GetClientListingsNbr());
 
-        XMLDOMMgt.AddElement(XMLCurrNode, 'Period', Format(VYear), xmlnsClientListingConsignment, XMLNewChild);
+        AddChildElement(ClientListingElement, 'Period', Format(VYear));
 
-        AddClientsList(XMLCurrNode);
+        AddClientsList(ClientListingElement);
     end;
 
-    local procedure AddClientsList(XMLCurrNode: DotNet XmlNode)
+    local procedure AddClientsList(ClientListingElement: XmlElement)
     var
-        XMLNewChild: DotNet XmlNode;
+        ClientElement: XmlElement;
+        CompanyVATNumberElement: XmlElement;
         CustSequenceNum: Integer;
     begin
         if Buffer.FindSet(true, false) then
             repeat
                 CustSequenceNum := CustSequenceNum + 1;
-                XMLDOMMgt.AddElement(XMLCurrNode, 'Client', '', xmlnsClientListingConsignment, XMLNewChild);
-                XMLDOMMgt.AddAttribute(XMLNewChild, 'SequenceNumber', Format(CustSequenceNum));
-                XMLCurrNode := XMLNewChild;
-                XMLDOMMgt.AddElement(XMLCurrNode, 'CompanyVATNumber', Buffer."Enterprise No.", xmlnsClientListingConsignment, XMLNewChild);
-                XMLDOMMgt.AddAttribute(XMLNewChild, 'issuedBy', Buffer."Country/Region Code");
-                XMLDOMMgt.AddElement(XMLCurrNode, 'TurnOver', INTERVATHelper.GetXMLAmountRepresentation(Buffer.Base),
-                  xmlnsClientListingConsignment, XMLNewChild);
-                XMLDOMMgt.AddElement(XMLCurrNode, 'VATAmount', INTERVATHelper.GetXMLAmountRepresentation(Buffer.Amount),
-                  xmlnsClientListingConsignment, XMLNewChild);
-                XMLCurrNode := XMLCurrNode.ParentNode;
+                ClientElement := AddChildElement(ClientListingElement, 'Client', '');
+                ClientElement.SetAttribute('SequenceNumber', Format(CustSequenceNum));
+                CompanyVATNumberElement := AddChildElement(ClientElement, 'CompanyVATNumber', Buffer."Enterprise No.");
+                CompanyVATNumberElement.SetAttribute('issuedBy', Buffer."Country/Region Code");
+                AddChildElement(ClientElement, 'TurnOver', INTERVATHelper.GetXMLAmountRepresentation(Buffer.Base));
+                AddChildElement(ClientElement, 'VATAmount', INTERVATHelper.GetXMLAmountRepresentation(Buffer.Amount));
             until Buffer.Next() = 0;
     end;
 
-    local procedure AddHeader(var XMLCurrNode: DotNet XmlNode)
+    local procedure CreateDocument(var XMLDocOut: XmlDocument)
+    var
+        DocumentTxt: Label '<?xml version="1.0" encoding="UTF-8"?><ClientListingConsignment ClientListingsNbr="1" xmlns="%1" xmlns:common="%2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="%1 NewLK-in_v0_7.xsd" />', Locked = true;
     begin
         xmlnsCommon := 'http://www.minfin.fgov.be/InputCommon';
         xmlnsClientListingConsignment := 'http://www.minfin.fgov.be/ClientListingConsignment';
-
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'ClientListingsNbr', '1');
-
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns', 'http://www.minfin.fgov.be/VatList'); // DocNameSpace
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns', xmlnsClientListingConsignment);
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns:common', xmlnsCommon);
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
-
-        XMLDOMMgt.AddNameSpacePrefixedAttribute(
-          XMLCurrNode.OwnerDocument, XMLCurrNode,
-          'http://www.w3.org/2001/XMLSchema-instance',
-          'schemaLocation',
-          xmlnsClientListingConsignment + ' NewLK-in_v0_7.xsd');
+        XmlDocument.ReadFrom(StrSubstNo(DocumentTxt, xmlnsClientListingConsignment, xmlnsCommon), XMLDocOut);
     end;
 
     local procedure GetAmounts(var BaseAmount: Text[100]; var VATAmount: Text[100])

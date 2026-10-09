@@ -5,8 +5,9 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Foundation.Address;
+#if not CLEAN30
 using System;
-using System.Xml;
+#endif
 
 table 11308 Representative
 {
@@ -116,7 +117,6 @@ table 11308 Representative
         Text004: Label 'You have indicated that representative should be included. You must specify mandatory fields : %1.';
         PostCode: Record "Post Code";
         INTERVATHelper: Codeunit "INTERVAT Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
 
     procedure CheckCompletion(): Boolean
     var
@@ -166,7 +166,9 @@ table 11308 Representative
         List := List + Delimiter + FieldName;
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use AddRepresentativeElement with an XmlElement parameter instead.', '30.0')]
     procedure AddRepresentativeElement(XMLCurrNode: DotNet XmlNode; NameSpace: Text[250]; SequenceNumber: Integer)
     var
         XMLNewChild: DotNet XmlNode;
@@ -174,30 +176,86 @@ table 11308 Representative
         CreatedXMLNode: DotNet XmlNode;
         RepresentativeReference: Text[50];
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'Representative', '', NameSpace, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'Representative', '', NameSpace, XMLNewChild);
         XMLCurrNode := XMLNewChild;
 
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:RepresentativeID', ID, Text003, XMLNewChild);
-        XMLDOMMgt.AddAttribute(XMLNewChild, 'issuedBy', "Issued by");
-        XMLDOMMgt.AddAttribute(XMLNewChild, 'identificationType', Format("Identification Type"));
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:Name', Name, Text003, XMLNewChild);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:Street', Address, Text003, XMLNewChild);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:PostCode', "Post Code", Text003, XMLNewChild);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:City', City, Text003, XMLNewChild);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:CountryCode', "Country/Region Code", Text003, XMLNewChild);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:EmailAddress', "E-Mail", Text003, XMLNewChild);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:Phone', INTERVATHelper.GetValidPhoneNumber(Phone), Text003, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:RepresentativeID', ID, Text003, XMLNewChild);
+        AddDotNetAttribute(XMLNewChild, 'issuedBy', "Issued by");
+        AddDotNetAttribute(XMLNewChild, 'identificationType', Format("Identification Type"));
+        AddDotNetElement(XMLCurrNode, 'common:Name', Name, Text003, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:Street', Address, Text003, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:PostCode', "Post Code", Text003, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:City', City, Text003, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:CountryCode', "Country/Region Code", Text003, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:EmailAddress', "E-Mail", Text003, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:Phone', INTERVATHelper.GetValidPhoneNumber(Phone), Text003, XMLNewChild);
 
         RepresentativeReference :=
           PadStr('', 4 - StrLen(Format(SequenceNumber)), '0') + Format(SequenceNumber);
 
         ParentNode := XMLCurrNode.ParentNode;
-        XMLDOMMgt.AddElement(
+        AddDotNetElement(
           ParentNode, 'RepresentativeReference', RepresentativeReference,
           XMLCurrNode.NamespaceURI,
           CreatedXMLNode)
     end;
 
+    local procedure AddDotNetElement(var XMLNode: DotNet XmlNode; NodeName: Text; NodeText: Text; NameSpace: Text; var CreatedXMLNode: DotNet XmlNode)
+    begin
+        CreatedXMLNode := XMLNode.OwnerDocument.CreateNode('element', NodeName, NameSpace);
+        if NodeText <> '' then
+            CreatedXMLNode.InnerText := NodeText;
+        XMLNode.AppendChild(CreatedXMLNode);
+    end;
+
+    local procedure AddDotNetAttribute(var XMLNode: DotNet XmlNode; AttributeName: Text; NodeValue: Text)
+    var
+        XMLNewAttributeNode: DotNet XmlNode;
+    begin
+        XMLNewAttributeNode := XMLNode.OwnerDocument.CreateAttribute(AttributeName);
+        if NodeValue <> '' then
+            XMLNewAttributeNode.Value := NodeValue;
+        XMLNode.Attributes.SetNamedItem(XMLNewAttributeNode);
+    end;
+#endif
+
+    /// <summary>
+    /// Adds the Representative element, followed by the RepresentativeReference element, as children of the specified element.
+    /// The 'common' prefix for the http://www.minfin.fgov.be/InputCommon namespace must be declared on an ancestor element.
+    /// </summary>
+    procedure AddRepresentativeElement(ParentElement: XmlElement; NameSpace: Text[250]; SequenceNumber: Integer)
+    var
+        RepresentativeElement: XmlElement;
+        RepresentativeIDElement: XmlElement;
+        RepresentativeReference: Text;
+    begin
+        RepresentativeElement := XmlElement.Create('Representative', NameSpace);
+        ParentElement.Add(RepresentativeElement);
+
+        RepresentativeIDElement := AddChildElement(RepresentativeElement, 'RepresentativeID', ID, Text003);
+        RepresentativeIDElement.SetAttribute('issuedBy', "Issued by");
+        RepresentativeIDElement.SetAttribute('identificationType', Format("Identification Type"));
+        AddChildElement(RepresentativeElement, 'Name', Name, Text003);
+        AddChildElement(RepresentativeElement, 'Street', Address, Text003);
+        AddChildElement(RepresentativeElement, 'PostCode', "Post Code", Text003);
+        AddChildElement(RepresentativeElement, 'City', City, Text003);
+        AddChildElement(RepresentativeElement, 'CountryCode', "Country/Region Code", Text003);
+        AddChildElement(RepresentativeElement, 'EmailAddress', "E-Mail", Text003);
+        AddChildElement(RepresentativeElement, 'Phone', INTERVATHelper.GetValidPhoneNumber(Phone), Text003);
+
+        RepresentativeReference :=
+          PadStr('', 4 - StrLen(Format(SequenceNumber)), '0') + Format(SequenceNumber);
+
+        AddChildElement(ParentElement, 'RepresentativeReference', RepresentativeReference, NameSpace);
+    end;
+
+    local procedure AddChildElement(ParentElement: XmlElement; LocalName: Text; Value: Text; NamespaceUri: Text) ChildElement: XmlElement
+    begin
+        ChildElement := XmlElement.Create(LocalName, NamespaceUri);
+        if Value <> '' then
+            ChildElement.Add(XmlText.Create(Value));
+        ParentElement.Add(ChildElement);
+    end;
     [Scope('OnPrem')]
     procedure LookupIssuedBy(var EntrdValue: Text[10]): Boolean
     var
