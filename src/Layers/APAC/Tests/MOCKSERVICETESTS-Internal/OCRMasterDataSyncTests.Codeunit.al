@@ -394,7 +394,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     procedure TestNoSyncResponseLeavesLastSyncTimeUnchanged()
     begin
         TestSyncFailureLeavesLastSyncTimeUnchanged(
-          '/rso_timeout', 'A call to System.Net.HttpWebRequest.GetResponse failed with this message: The remote server returned an error: (408) Request Time-out. Synchronization failed.');
+          '/rso_timeout', 'The remote server returned an error: (408) Request Time-out. Synchronization failed.');
     end;
 
     local procedure TestSyncFailureLeavesLastSyncTimeUnchanged(FailureUrlToken: Text; ExpectedError: Text)
