@@ -280,7 +280,7 @@ table 428 "IC Outbox Purchase Header"
     var
         ICOutboxPurchLine: Record "IC Outbox Purchase Line";
         ICDocDim: Record "IC Document Dimension";
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
     begin
         ICOutboxPurchLine.SetRange("IC Partner Code", "IC Partner Code");
         ICOutboxPurchLine.SetRange("IC Transaction No.", "IC Transaction No.");
@@ -288,7 +288,7 @@ table 428 "IC Outbox Purchase Header"
         if ICOutboxPurchLine.FindFirst() then
             ICOutboxPurchLine.DeleteAll(true);
         ICDocDim.LockTable();
-        DimMgt.DeleteICDocDim(
+        ICDimMgt.DeleteICDocDim(
           DATABASE::"IC Outbox Purchase Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
     end;
 }

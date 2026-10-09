@@ -280,14 +280,14 @@ table 432 "Handled IC Outbox Purch. Hdr"
     trigger OnDelete()
     var
         HndlICOutboxPurchLine: Record "Handled IC Outbox Purch. Line";
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
     begin
         HndlICOutboxPurchLine.SetRange("IC Partner Code", "IC Partner Code");
         HndlICOutboxPurchLine.SetRange("IC Transaction No.", "IC Transaction No.");
         HndlICOutboxPurchLine.SetRange("Transaction Source", "Transaction Source");
         if HndlICOutboxPurchLine.FindFirst() then
             HndlICOutboxPurchLine.DeleteAll(true);
-        DimMgt.DeleteICDocDim(
+        ICDimMgt.DeleteICDocDim(
           DATABASE::"Handled IC Outbox Purch. Hdr", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
     end;
 }

@@ -828,7 +828,7 @@ table 303 "Finance Charge Memo Line"
     var
         AutoFormatType: Enum "Auto Format";
     begin
-        DocTypeText := CopyStr(DelChr(Format("Document Type"), '<'), 1, 30);
+        DocTypeText := CopyStr(DelChr(Format("Document Type"), '<'), 1, MaxStrLen(DocTypeText));
         if DocTypeText = '' then
             DocTypeText := Text002;
         if FinChrgTerms."Line Description" = '' then
@@ -855,7 +855,7 @@ table 303 "Finance Charge Memo Line"
     var
         AutoFormatType: Enum "Auto Format";
     begin
-        DocTypeText := CopyStr(DelChr(Format("Document Type"), '<'), 1, 30);
+        DocTypeText := CopyStr(DelChr(Format("Document Type"), '<'), 1, MaxStrLen(DocTypeText));
         if DocTypeText = '' then
             DocTypeText := Text002;
         if FinChrgTerms.Description = '' then

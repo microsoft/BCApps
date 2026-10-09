@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.FixedAssets.Journal;
-using Microsoft.Intercompany.Journal;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Utilities;
 using System.Utilities;
@@ -280,24 +279,6 @@ codeunit 9080 "Journal Errors Mgt."
 
     [EventSubscriber(ObjectType::Page, Page::"Payment Journal", 'OnInsertRecordEvent', '', false, false)]
     local procedure OnInsertRecordEventPaymentJournal(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line"; var AllowInsert: Boolean)
-    begin
-        SetRecXRecOnModify(xRec, Rec);
-    end;
-
-    [EventSubscriber(ObjectType::Page, Page::"IC General Journal", 'OnDeleteRecordEvent', '', false, false)]
-    local procedure OnDeleteRecordEventICGeneralJournal(var Rec: Record "Gen. Journal Line"; var AllowDelete: Boolean)
-    begin
-        InsertDeletedLine(Rec);
-    end;
-
-    [EventSubscriber(ObjectType::Page, Page::"IC General Journal", 'OnModifyRecordEvent', '', false, false)]
-    local procedure OnModifyRecordEventICGeneralJournal(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line"; var AllowModify: Boolean)
-    begin
-        SetRecXRecOnModify(xRec, Rec);
-    end;
-
-    [EventSubscriber(ObjectType::Page, Page::"IC General Journal", 'OnInsertRecordEvent', '', false, false)]
-    local procedure OnInsertRecordEventICGeneralJournal(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line"; var AllowInsert: Boolean)
     begin
         SetRecXRecOnModify(xRec, Rec);
     end;

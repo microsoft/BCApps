@@ -40,9 +40,6 @@ using Microsoft.Foundation.Shipping;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Graph;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
@@ -203,9 +200,6 @@ table 36 "Sales Header"
                         TestField("Gen. Bus. Posting Group", xRec."Gen. Bus. Posting Group");
                     end;
 
-                "Sell-to IC Partner Code" := Customer."IC Partner Code";
-                "Send IC Document" := ("Sell-to IC Partner Code" <> '') and ("IC Direction" = "IC Direction"::Outgoing);
-
                 UpdateShipToCodeFromCust();
                 IsHandled := false;
                 OnValidateSellToCustomerNoOnBeforeValidateLocationCode(Rec, Customer, IsHandled, xRec, LocationCode);
@@ -339,9 +333,7 @@ table 36 "Sales Header"
                 if not SkipBillToContact then
                     UpdateBillToCont("Bill-to Customer No.");
 
-                "Bill-to IC Partner Code" := Customer."IC Partner Code";
-                "Send IC Document" := ("Bill-to IC Partner Code" <> '') and ("IC Direction" = "IC Direction"::Outgoing);
-
+                OnValidateBillToCustomerNoOnBeforeUpdateSendICDocument(Rec, Customer);
                 OnValidateBillToCustomerNoOnBeforeRecallModifyAddressNotification(Rec, xRec);
                 if (xRec."Bill-to Customer No." <> '') and (xRec."Bill-to Customer No." <> "Bill-to Customer No.") then
                     Rec.RecallModifyAddressNotification(Rec.GetModifyBillToCustomerAddressNotificationId());
@@ -2354,73 +2346,6 @@ table 36 "Sales Header"
             AutoFormatType = 1;
             Caption = 'Invoice Discount Value';
             Editable = false;
-        }
-        /// <summary>
-        /// Indicates whether an intercompany document should be sent to the IC partner.
-        /// </summary>
-        field(123; "Send IC Document"; Boolean)
-        {
-            Caption = 'Send IC Document';
-
-            trigger OnValidate()
-            var
-                IsHandled: Boolean;
-            begin
-                if "Send IC Document" then begin
-                    if "Bill-to IC Partner Code" = '' then
-                        TestField("Sell-to IC Partner Code");
-                    IsHandled := false;
-                    OnValidateSendICDocumentOnBeforeCheckICDirection(Rec, IsHandled);
-                    if not IsHandled then
-                        TestField("IC Direction", "IC Direction"::Outgoing);
-                end;
-            end;
-        }
-        /// <summary>
-        /// Specifies the intercompany processing status of the document.
-        /// </summary>
-        field(124; "IC Status"; Enum "Sales Document IC Status")
-        {
-            Caption = 'IC Status';
-        }
-        /// <summary>
-        /// Specifies the intercompany partner code of the sell-to customer.
-        /// </summary>
-        field(125; "Sell-to IC Partner Code"; Code[20])
-        {
-            Caption = 'Sell-to IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        /// <summary>
-        /// Specifies the intercompany partner code of the bill-to customer.
-        /// </summary>
-        field(126; "Bill-to IC Partner Code"; Code[20])
-        {
-            Caption = 'Bill-to IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        /// <summary>
-        /// Specifies the document number from the intercompany partner.
-        /// </summary>
-        field(127; "IC Reference Document No."; Code[20])
-        {
-            Caption = 'IC Reference Document No.';
-            Editable = false;
-        }
-        /// <summary>
-        /// Specifies whether this is an outgoing or incoming intercompany document.
-        /// </summary>
-        field(129; "IC Direction"; Enum "IC Direction Type")
-        {
-            Caption = 'IC Direction';
-
-            trigger OnValidate()
-            begin
-                if "IC Direction" = "IC Direction"::Incoming then
-                    "Send IC Document" := false;
-            end;
         }
         /// <summary>
         /// Specifies the prepayment percentage required before delivery.
@@ -7584,7 +7509,7 @@ table 36 "Sales Header"
         if ReplaceVATDate then
             "VAT Reporting Date" := VATDateReq;
 
-        if ReplaceDocDate and ("Document Date" <> PostingDateReq) then begin
+        if ReplacePostingDate and ReplaceDocDate and ("Document Date" <> PostingDateReq) then begin
             UpdateDocumentDate := true;
             Validate("Document Date", PostingDateReq);
         end;
@@ -9765,21 +9690,6 @@ table 36 "Sales Header"
                 Rec.Validate("Document Date", Rec."Posting Date")
             else
                 Rec."Document Date" := Rec."Posting Date";
-    end;
-
-    /// <summary>
-    /// Sends filtered sales documents to intercompany partners through the IC inbox/outbox.
-    /// </summary>
-    /// <param name="SalesHeader">Specifies the filtered sales header records to send.</param>
-    procedure SendICSalesDoc(var SalesHeader: Record "Sales Header")
-    var
-        ICInOutboxMgt: Codeunit ICInboxOutboxMgt;
-    begin
-        if SalesHeader.FindSet() then
-            repeat
-                if ApprovalsMgmt.PrePostApprovalCheckSales(SalesHeader) then
-                    ICInOutboxMgt.SendSalesDoc(SalesHeader, false);
-            until SalesHeader.Next() = 0;
     end;
 
     local procedure SetupDisableAggregateTableUpdate(var DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update")
@@ -13258,12 +13168,12 @@ table 36 "Sales Header"
     end;
 
     /// <summary>
-    /// Raised before checking the IC direction when validating send IC document.
+    /// Raised before updating the IC partner codes when the bill-to customer is changed.
     /// </summary>
     /// <param name="SalesHeader">The sales header record being validated.</param>
-    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    /// <param name="Customer">The bill-to customer record.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnValidateSendICDocumentOnBeforeCheckICDirection(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    local procedure OnValidateBillToCustomerNoOnBeforeUpdateSendICDocument(var SalesHeader: Record "Sales Header"; Customer: Record Customer)
     begin
     end;
 

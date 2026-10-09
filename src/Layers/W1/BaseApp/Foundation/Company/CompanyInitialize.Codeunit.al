@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Setup;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Counting.Document;
@@ -307,7 +306,6 @@ codeunit 2 "Company-Initialize"
         IncomingDocumentsSetup: Record "Incoming Documents Setup";
         CompanyInfo: Record "Company Information";
         TrialBalanceSetup: Record "Trial Balance Setup";
-        ICSetup: Record "IC Setup";
         VATSetup: Record "VAT Setup";
     begin
         if not GLSetup.FindFirst() then begin
@@ -420,11 +418,6 @@ codeunit 2 "Company-Initialize"
             CompanyInfo.Init();
             CompanyInfo."Created DateTime" := CurrentDateTime;
             CompanyInfo.Insert();
-        end;
-
-        if not ICSetup.Get() then begin
-            ICSetup.Init();
-            ICSetup.Insert();
         end;
 
         if not VATSetup.Get() then begin

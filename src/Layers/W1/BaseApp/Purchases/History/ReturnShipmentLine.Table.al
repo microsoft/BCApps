@@ -355,11 +355,6 @@ table 6651 "Return Shipment Line"
         {
             Caption = 'Posting Date';
         }
-        field(138; "IC Item Reference No."; Code[50])
-        {
-            AccessByPermission = TableData "Item Reference" = R;
-            Caption = 'IC Item Reference No.';
-        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';

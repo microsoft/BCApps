@@ -5,7 +5,6 @@
 namespace Microsoft.Foundation.BatchProcessing;
 
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
@@ -33,7 +32,6 @@ codeunit 1380 "Batch Processing Mgt."
         PostingTemplateMsg: Label 'Processing: @1@@@@@@@', Comment = '1 - overall progress';
         ProcessingCodeunitNotSetErr: Label 'A processing codeunit has not been selected.';
         BatchCompletedMsg: Label 'All of your selections were processed.';
-        InterCompanyZipFileNamePatternTok: Label 'General Journal IC Batch - %1.zip', Comment = '%1 - today date, Sample: Sales IC Batch - 23-01-2024.zip';
         BatchProcessingTxt: Label 'Batch processing of %1 records.', Comment = '%1 - a table caption';
         ProcessingMsg: Label 'Executing codeunit %1 on record %2.', Comment = '%1 - codeunit id,%2 - record id';
         ProcessConfirmWithSkipQst: Label 'You have selected multiple documents for processing. \Some of the documents are not available and will be skipped. (Selected %1, Skipping %2)\\Do you want to continue?', Comment = '%1=integer(number of rows selected) %2=integer(number of rows skipped)';
@@ -153,7 +151,6 @@ codeunit 1380 "Batch Processing Mgt."
         ErrorMessageMgt: Codeunit "Error Message Management";
         ErrorMessageHandler: Codeunit "Error Message Handler";
         BatchProcessingMgtHandler: Codeunit "Batch Processing Mgt. Handler";
-        ICOutboxExport: Codeunit "IC Outbox Export";
         PostingResult: Boolean;
     begin
         OnBeforeBatchProcessGenJournalLine(GenJournalLine);
@@ -162,19 +159,11 @@ codeunit 1380 "Batch Processing Mgt."
 
         BindSubscription(BatchProcessingMgtHandler);
         PostingResult := Codeunit.Run(PostingCodeunitId, GenJournalLine);
-        if PostingResult then
-            ICOutboxExport.DownloadBatchFiles(GetICBatchFileName());
+        OnBatchProcessGenJnlLineOnAfterPost(GenJournalLine, PostingResult);
         UnbindSubscription(BatchProcessingMgtHandler);
 
         if not PostingResult then
             ErrorMessageHandler.ShowErrors();
-    end;
-
-    local procedure GetICBatchFileName() Result: Text
-    begin
-        Result := StrSubstNo(InterCompanyZipFileNamePatternTok, Format(WorkDate(), 10, '<Year4>-<Month,2>-<Day,2>'));
-
-        OnGetICBatchFileName(Result);
     end;
 
     local procedure CanProcessRecord(var RecRef: RecordRef): Boolean
@@ -640,9 +629,22 @@ codeunit 1380 "Batch Processing Mgt."
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBatchProcessGenJnlLineOnAfterPost(var GenJournalLine: Record "Gen. Journal Line"; PostingResult: Boolean)
+    begin
+    end;
+
+#if not CLEAN29
+    internal procedure RunOnGetICBatchFileName(var Result: Text)
+    begin
+        OnGetICBatchFileName(Result);
+    end;
+
+    [Obsolete('Moved to codeunit IC Batch Processing Mgt.', '29.0')]
+    [IntegrationEvent(false, false)]
     local procedure OnGetICBatchFileName(var Result: Text)
     begin
     end;
+#endif
 
     [InternalEvent(false, false)]
     local procedure OnAddArtifact(BatchID: Guid; ArtifactType: Enum "Batch Processing Artifact Type"; ArtifactName: Text[1024]; var TempBlobArtifactValue: Codeunit "Temp Blob")

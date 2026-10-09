@@ -6,7 +6,6 @@ namespace Microsoft.Sales.Posting;
 
 using Microsoft.Finance.Analysis;
 using Microsoft.Foundation.BatchProcessing;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
@@ -51,7 +50,6 @@ codeunit 1371 "Sales Batch Post Mgt."
         BatchPostingMsg: Label 'Batch posting of sales documents.';
         ApprovalPendingErr: Label 'Cannot post sales document no. %1 of type %2 because it is pending approval.', Comment = '%1 = Document No.; %2 = Document Type';
         ApprovalWorkflowErr: Label 'Cannot post sales document no. %1 of type %2 due to the approval workflow.', Comment = '%1 = Document No.; %2 = Document Type';
-        InterCompanyZipFileNamePatternTok: Label 'Sales IC Batch - %1.zip', Comment = '%1 - today date, Sample: Sales IC Batch - 23-01-2024.zip';
         ProcessBarMsg: Label 'Processing: @1@@@@@@@', Comment = '1 - overall progress';
 
     /// <summary>
@@ -165,13 +163,6 @@ codeunit 1371 "Sales Batch Post Mgt."
         BatchProcessingMgt.BatchProcess(RecRef);
 
         RecRef.SetTable(SalesHeader);
-    end;
-
-    local procedure GetICBatchFileName() Result: Text
-    begin
-        Result := StrSubstNo(InterCompanyZipFileNamePatternTok, Format(WorkDate(), 10, '<Year4>-<Month,2>-<Day,2>'));
-
-        OnGetICBatchFileName(Result);
     end;
 
     local procedure PrepareSalesHeader(var SalesHeader: Record "Sales Header"; var BatchConfirm: Option)
@@ -495,14 +486,22 @@ codeunit 1371 "Sales Batch Post Mgt."
     begin
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Raised to customize the intercompany batch file name.
     /// </summary>
     /// <param name="Result">The file name to use for the intercompany batch.</param>
+    internal procedure RunOnGetICBatchFileName(var Result: Text)
+    begin
+        OnGetICBatchFileName(Result);
+    end;
+
+    [Obsolete('Moved to IC Sales Batch Processing Mgt.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnGetICBatchFileName(var Result: Text)
     begin
     end;
+#endif
 
     /// <summary>
     /// Raised before releasing the sales header during batch preparation.
@@ -544,14 +543,6 @@ codeunit 1371 "Sales Batch Post Mgt."
         RecRef.SetTable(SalesHeader);
         ProcessBatchInBackground(SalesHeader, SkippedRecordExists);
         RecRef.GetTable(SalesHeader);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Batch Processing Mgt.", 'OnBatchProcessOnBeforeResetBatchID', '', false, false)]
-    local procedure OnBatchProcessOnBeforeResetBatchID(var RecRef: RecordRef; ProcessingCodeunitID: Integer)
-    var
-        ICOutboxExport: Codeunit "IC Outbox Export";
-    begin
-        ICOutboxExport.DownloadBatchFiles(GetICBatchFileName());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Update Analysis View", 'OnBeforeUpdateAll', '', false, false)]

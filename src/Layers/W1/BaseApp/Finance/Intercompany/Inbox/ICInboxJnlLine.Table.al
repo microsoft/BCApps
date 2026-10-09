@@ -205,9 +205,9 @@ table 419 "IC Inbox Jnl. Line"
 
     trigger OnDelete()
     var
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
     begin
-        DimMgt.DeleteICJnlDim(
+        ICDimMgt.DeleteICJnlDim(
           DATABASE::"IC Inbox Jnl. Line", "Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
     end;
 }

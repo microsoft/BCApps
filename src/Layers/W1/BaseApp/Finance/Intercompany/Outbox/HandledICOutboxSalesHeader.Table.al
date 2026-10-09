@@ -256,14 +256,14 @@ table 430 "Handled IC Outbox Sales Header"
     trigger OnDelete()
     var
         HndlICOutboxSalesLine: Record "Handled IC Outbox Sales Line";
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
     begin
         HndlICOutboxSalesLine.SetRange("IC Partner Code", "IC Partner Code");
         HndlICOutboxSalesLine.SetRange("IC Transaction No.", "IC Transaction No.");
         HndlICOutboxSalesLine.SetRange("Transaction Source", "Transaction Source");
         if HndlICOutboxSalesLine.FindFirst() then
             HndlICOutboxSalesLine.DeleteAll(true);
-        DimMgt.DeleteICDocDim(
+        ICDimMgt.DeleteICDocDim(
           DATABASE::"Handled IC Outbox Sales Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
     end;
 }

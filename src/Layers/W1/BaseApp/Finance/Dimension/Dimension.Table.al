@@ -15,7 +15,6 @@ using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Intercompany.Dimension;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -121,27 +120,6 @@ table 348 Dimension
             ToolTip = 'Specifies the code that is used for consolidation.';
         }
         /// <summary>
-        /// Maps this dimension to an intercompany dimension for transactions between related companies.
-        /// When set, all dimension values are automatically mapped to the corresponding IC dimension.
-        /// </summary>
-        field(8; "Map-to IC Dimension Code"; Code[20])
-        {
-            Caption = 'Map-to IC Dimension Code';
-            ToolTip = 'Specifies which intercompany dimension corresponds to the dimension on the line.';
-            TableRelation = "IC Dimension";
-
-            trigger OnValidate()
-            var
-                DimensionValue: Record "Dimension Value";
-            begin
-                if "Map-to IC Dimension Code" <> xRec."Map-to IC Dimension Code" then begin
-                    DimensionValue.SetRange("Dimension Code", Code);
-                    DimensionValue.ModifyAll("Map-to IC Dimension Code", "Map-to IC Dimension Code");
-                    DimensionValue.ModifyAll("Map-to IC Dimension Value Code", '');
-                end;
-            end;
-        }
-        /// <summary>
         /// System field that tracks when the dimension record was last modified.
         /// Used for synchronization and audit purposes.
         /// </summary>
@@ -227,8 +205,6 @@ table 348 Dimension
                     GLSetup.Modify();
                 end;
         end;
-
-        RemoveICDimensionMappings();
     end;
 
     /// <summary>
@@ -754,32 +730,6 @@ table 348 Dimension
     local procedure SetLastModifiedDateTime()
     begin
         "Last Modified Date Time" := CurrentDateTime;
-    end;
-
-    local procedure RemoveICDimensionMappings()
-    var
-        ICDimension: Record "IC Dimension";
-        ICDimensionValue: Record "IC Dimension Value";
-    begin
-        ICDimension.SetRange("Map-to Dimension Code", Rec."Code");
-        if not ICDimension.IsEmpty() then begin
-            ICDimension.FindSet();
-            repeat
-                ICDimensionValue.SetRange("Dimension Code", ICDimension.Code);
-                if not ICDimensionValue.IsEmpty() then begin
-                    ICDimensionValue.FindSet();
-                    repeat
-                        if ICDimensionValue."Map-to Dimension Code" <> '' then begin
-                            ICDimensionValue."Map-to Dimension Code" := '';
-                            ICDimensionValue."Map-to Dimension Value Code" := '';
-                            ICDimensionValue.Modify();
-                        end;
-                    until ICDimensionValue.Next() = 0;
-                end;
-                ICDimension."Map-to Dimension Code" := '';
-                ICDimension.Modify();
-            until ICDimension.Next() = 0;
-        end;
     end;
 
     /// <summary>

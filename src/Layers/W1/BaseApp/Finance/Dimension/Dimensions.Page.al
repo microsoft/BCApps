@@ -4,16 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
-using Microsoft.Intercompany.GLAccount;
-
 /// <summary>
 /// Main administration page for dimension setup and management in Business Central.
 /// Provides comprehensive dimension configuration including creation, editing, and access to related dimension values and default dimension assignments.
 /// </summary>
 /// <remarks>
 /// Primary entry point for dimension administration. Supports dimension value management, default dimension setup, 
-/// intercompany dimension mapping, and dimension translations. Includes actions for mapping to intercompany dimensions
-/// and managing allowed dimension values per account.
+/// and dimension translations. Includes actions for managing allowed dimension values per account.
 /// </remarks>
 page 536 Dimensions
 {
@@ -57,11 +54,6 @@ page 536 Dimensions
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Dimensions;
-                }
-                field("Map-to IC Dimension Code"; Rec."Map-to IC Dimension Code")
-                {
-                    ApplicationArea = Dimensions;
-                    Visible = false;
                 }
                 field("Consolidation Code"; Rec."Consolidation Code")
                 {
@@ -132,33 +124,6 @@ page 536 Dimensions
                 }
             }
         }
-        area(processing)
-        {
-            group("F&unctions")
-            {
-                Caption = 'F&unctions';
-                Image = "Action";
-                action(MapToICDimWithSameCode)
-                {
-                    ApplicationArea = Dimensions;
-                    Caption = 'Map to IC Dim. with Same Code';
-                    Image = MapDimensions;
-                    ToolTip = 'Specify which intercompany dimension corresponds to the dimension on the line. When you enter a dimension code on an intercompany sales or purchase line, the program will put the corresponding intercompany dimension code on the line that is sent to your intercompany partner.';
-
-                    trigger OnAction()
-                    var
-                        Dimension: Record Dimension;
-                        ICMapping: Codeunit "IC Mapping";
-                    begin
-                        CurrPage.SetSelectionFilter(Dimension);
-                        if Dimension.Find('-') and Confirm(Text000) then
-                            repeat
-                                ICMapping.MapOutgoingICDimensions(Dimension);
-                            until Dimension.Next() = 0;
-                    end;
-                }
-            }
-        }
         area(Promoted)
         {
             group(Category_Report)
@@ -184,10 +149,5 @@ page 536 Dimensions
             }
         }
     }
-
-    var
-#pragma warning disable AA0074
-        Text000: Label 'Are you sure you want to map the selected lines?';
-#pragma warning restore AA0074
 }
 

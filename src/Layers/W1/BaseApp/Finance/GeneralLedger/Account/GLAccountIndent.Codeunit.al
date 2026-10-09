@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
-using Microsoft.Intercompany.GLAccount;
 using System.Utilities;
 
 /// <summary>
@@ -36,7 +35,6 @@ codeunit 3 "G/L Account-Indent"
         i: Integer;
 
         GLAccIndentQst: Label 'This function updates the indentation of all the G/L accounts in the chart of accounts. All accounts between a Begin-Total and the matching End-Total are indented one level. The Totaling for each End-total is also updated.\\Do you want to indent the chart of accounts?';
-        ICAccIndentQst: Label 'This function updates the indentation of all the G/L accounts in the chart of accounts. All accounts between a Begin-Total and the matching End-Total are indented one level. \\Do you want to indent the chart of accounts?';
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text004: Label 'Indenting the Chart of Accounts #1##########';
@@ -95,53 +93,19 @@ codeunit 3 "G/L Account-Indent"
         OnAfterIndent();
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Runs the indentation process for Intercompany G/L Accounts with user confirmation.
     /// Updates the indentation levels based on account hierarchy structure.
     /// </summary>
+    [Obsolete('Moved to codeunit ICGLAccountIndent', '29.0')]
     procedure RunICAccountIndent()
     var
-        ConfirmManagement: Codeunit "Confirm Management";
+        ICGLAccountIndent: Codeunit "IC G/L Account-Indent";
     begin
-        if not ConfirmManagement.GetResponseOrDefault(ICAccIndentQst, true) then
-            exit;
-
-        IndentICAccount();
+        ICGLAccountIndent.RunICAccountIndent();
     end;
-
-    local procedure IndentICAccount()
-    var
-        ICGLAcc: Record "IC G/L Account";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeIndentICAccount(GLAcc, IsHandled);
-        if IsHandled then
-            exit;
-
-        Window.Open(Text004);
-        if ICGLAcc.Find('-') then
-            repeat
-                Window.Update(1, ICGLAcc."No.");
-
-                if ICGLAcc."Account Type" = ICGLAcc."Account Type"::"End-Total" then begin
-                    if i < 1 then
-                        Error(
-                          Text005,
-                          ICGLAcc."No.");
-                    i := i - 1;
-                end;
-
-                ICGLAcc.Validate(Indentation, i);
-                ICGLAcc.Modify();
-
-                if ICGLAcc."Account Type" = ICGLAcc."Account Type"::"Begin-Total" then begin
-                    i := i + 1;
-                    AccNo[i] := ICGLAcc."No.";
-                end;
-            until ICGLAcc.Next() = 0;
-        Window.Close();
-    end;
+#endif
 
     /// <summary>
     /// Integration event raised after completing the chart of accounts indentation process.
@@ -163,15 +127,23 @@ codeunit 3 "G/L Account-Indent"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnBeforeIndentICAccount(var GLAcc: Record "G/L Account"; var IsHandled: Boolean)
+    begin
+        OnBeforeIndentICAccount(GLAcc, IsHandled);
+    end;
+
     /// <summary>
     /// Integration event raised before indenting intercompany accounts during the indentation process.
     /// Allows extensions to customize intercompany account indentation behavior.
     /// </summary>
     /// <param name="GLAcc">Intercompany general ledger account being processed</param>
     /// <param name="IsHandled">Set to true to skip default intercompany indentation logic</param>
+    [Obsolete('Moved to codeunit 8432 "IC G/L Account-Indent"', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIndentICAccount(var GLAcc: Record "G/L Account"; var IsHandled: Boolean)
     begin
     end;
+#endif
 }
 

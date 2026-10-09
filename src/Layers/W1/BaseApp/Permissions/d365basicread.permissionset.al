@@ -71,8 +71,6 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
 using Microsoft.Integration.PowerBI;
-using Microsoft.Intercompany.DataExchange;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
@@ -173,18 +171,6 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Alt. Customer Posting Group" = R,
                   tabledata "Alt. Vendor Posting Group" = R,
                   tabledata "Alt. Employee Posting Group" = R,
-                  tabledata "Buffer IC Comment Line" = R,
-                  tabledata "Buffer IC Document Dimension" = R,
-                  tabledata "Buffer IC Inbox Jnl. Line" = R,
-                  tabledata "Buffer IC Inbox Purchase Line" = R,
-                  tabledata "Buffer IC Inbox Purch Header" = R,
-                  tabledata "Buffer IC Inbox Sales Header" = R,
-                  tabledata "Buffer IC Inbox Sales Line" = R,
-                  tabledata "Buffer IC Inbox Transaction" = R,
-                  tabledata "Buffer IC InOut Jnl. Line Dim." = R,
-                  tabledata "IC API Log" = R,
-                  tabledata "IC Incoming Notification" = R,
-                  tabledata "IC Outgoing Notification" = R,
                   tabledata "Code Coverage" = R,
                   tabledata "Data Sensitivity" = R,
                   tabledata "Dispute Status" = R,
@@ -498,7 +484,6 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Generic Chart Y-Axis" = R,
                   tabledata Geolocation = R,
                   tabledata "Human Resources Setup" = R,
-                  tabledata "IC Setup" = R,
                   tabledata "Image Analysis Setup" = R,
                   tabledata "Image Analysis Scenario" = R,
                   tabledata "Import G/L Transaction" = R,

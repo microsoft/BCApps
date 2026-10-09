@@ -89,15 +89,6 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
 using Microsoft.Integration.SyncEngine;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.Comment;
-using Microsoft.Intercompany.DataExchange;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Asset;
@@ -252,7 +243,6 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyWorkflowStepArgument();
         ClassifyPageDataPersonalization();
         ClassifySentNotificationEntry();
-        ClassifyICOutboxPurchaseHeader();
         ClassifyNotificationEntry();
         ClassifyUserPersonalization();
         ClassifyWorkflowStepInstance();
@@ -265,11 +255,6 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyPostedApprovalCommentLine();
         ClassifyPostedApprovalEntry();
         ClassifyApprovalEntry();
-        ClassifyHandledICInboxPurchHeader();
-        ClassifyHandledICInboxSalesHeader();
-        ClassifyICInboxPurchaseHeader();
-        ClassifyICInboxSalesHeader();
-        ClassifyHandledICOutboxPurchHdr();
         ClassifyPersistentBlob();
         ClassifyPublishedApplication();
     end;
@@ -277,7 +262,6 @@ codeunit 1751 "Data Classification Eval. Data"
     local procedure ClassifyTablesPart2()
     begin
         ClassifyUserPageMetadata();
-        ClassifyICPartner();
         ClassifyChangeLogEntry();
         ClassifyInsCoverageLedgerEntry();
         ClassifyTermsAndConditionsState();
@@ -289,7 +273,6 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyConfigLine();
         ClassifyConfigPackageTable();
         ClassifyPositivePayEntryDetail();
-        ClassifyICOutboxSalesHeader();
         ClassifyDirectDebitCollectionEntry();
         ClassifyCreditTransferRegister();
         ClassifyBankAccReconciliationLine();
@@ -321,7 +304,6 @@ codeunit 1751 "Data Classification Eval. Data"
 
     local procedure ClassifyTablesPart3()
     begin
-        ClassifyHandledICOutboxSalesHeader();
         ClassifyGenJournalLine();
         ClassifyPrinterSelection();
         ClassifyGLRegister();
@@ -388,8 +370,6 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyApplicationUserSettings();
         ClassifyPermissionSetInPlan();
         ClassifyFinancialReports();
-        ClassifyICBankAccount();
-        ClassifyICAPILog();
         ClassifyAllocationAccounts();
         ClassifyAgents();
         ClassifyOrderTakerAgent();
@@ -550,28 +530,6 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(DATABASE::"Change Log Setup");
         SetTableFieldsToNormal(DATABASE::"Change Log Setup (Table)");
         SetTableFieldsToNormal(DATABASE::"Change Log Setup (Field)");
-        SetTableFieldsToNormal(DATABASE::"IC G/L Account");
-        SetTableFieldsToNormal(DATABASE::"IC Dimension");
-        SetTableFieldsToNormal(DATABASE::"IC Dimension Value");
-        SetTableFieldsToNormal(DATABASE::"IC Outbox Transaction");
-        SetTableFieldsToNormal(DATABASE::"IC Outbox Jnl. Line");
-        SetTableFieldsToNormal(DATABASE::"Handled IC Outbox Trans.");
-        SetTableFieldsToNormal(DATABASE::"Handled IC Outbox Jnl. Line");
-        SetTableFieldsToNormal(DATABASE::"IC Inbox Transaction");
-        SetTableFieldsToNormal(DATABASE::"IC Inbox Jnl. Line");
-        SetTableFieldsToNormal(DATABASE::"Handled IC Inbox Trans.");
-        SetTableFieldsToNormal(DATABASE::"Handled IC Inbox Jnl. Line");
-        SetTableFieldsToNormal(DATABASE::"IC Inbox/Outbox Jnl. Line Dim.");
-        SetTableFieldsToNormal(DATABASE::"IC Comment Line");
-        SetTableFieldsToNormal(DATABASE::"IC Outbox Sales Line");
-        SetTableFieldsToNormal(DATABASE::"IC Outbox Purchase Line");
-        SetTableFieldsToNormal(DATABASE::"Handled IC Outbox Sales Line");
-        SetTableFieldsToNormal(DATABASE::"Handled IC Outbox Purch. Line");
-        SetTableFieldsToNormal(DATABASE::"IC Inbox Sales Line");
-        SetTableFieldsToNormal(DATABASE::"IC Inbox Purchase Line");
-        SetTableFieldsToNormal(DATABASE::"Handled IC Inbox Sales Line");
-        SetTableFieldsToNormal(DATABASE::"Handled IC Inbox Purch. Line");
-        SetTableFieldsToNormal(DATABASE::"IC Document Dimension");
         SetTableFieldsToNormal(Database::"Gen. Jnl. Dim. Filter");
     end;
 
@@ -1016,20 +974,8 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(149001); // Database::"BCPT Line"
         SetTableFieldsToNormal(149002); // Database::"BCPT Log Entry"
         SetTableFieldsToNormal(149003); // Database::"BCPT Parameter Line"
-        SetTableFieldsToNormal(Database::"IC Setup");
         SetTableFieldsToNormal(Database::"Net Balances Parameters");
         SetTableFieldsToNormal(9017); // Database::"Plan Configuration"
-        SetTableFieldsToNormal(Database::"Buffer IC Comment Line");
-        SetTableFieldsToNormal(Database::"Buffer IC Document Dimension");
-        SetTableFieldsToNormal(Database::"Buffer IC Inbox Jnl. Line");
-        SetTableFieldsToNormal(Database::"Buffer IC Inbox Purch Header");
-        SetTableFieldsToNormal(Database::"Buffer IC Inbox Purchase Line");
-        SetTableFieldsToNormal(Database::"Buffer IC Inbox Sales Header");
-        SetTableFieldsToNormal(Database::"Buffer IC Inbox Sales Line");
-        SetTableFieldsToNormal(Database::"Buffer IC Inbox Transaction");
-        SetTableFieldsToNormal(Database::"Buffer IC InOut Jnl. Line Dim.");
-        SetTableFieldsToNormal(Database::"IC Incoming Notification");
-        SetTableFieldsToNormal(Database::"IC Outgoing Notification");
         SetTableFieldsToNormal(Database::"Item Statistics Cache");
         SetTableFieldsToNormal(Database::"Matched Order Line");
         SetTableFieldsToNormal(Database::"Detailed Matched Order Line");
@@ -2009,20 +1955,6 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToCompanyConfidential(TableNo, DummySentNotificationEntry.FieldNo("Triggered By Record"));
     end;
 
-    local procedure ClassifyICOutboxPurchaseHeader()
-    var
-        DummyICOutboxPurchaseHeader: Record "IC Outbox Purchase Header";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"IC Outbox Purchase Header";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyICOutboxPurchaseHeader.FieldNo("Ship-to Post Code"));
-        SetFieldToPersonal(TableNo, DummyICOutboxPurchaseHeader.FieldNo("Ship-to City"));
-        SetFieldToPersonal(TableNo, DummyICOutboxPurchaseHeader.FieldNo("Ship-to Address 2"));
-        SetFieldToPersonal(TableNo, DummyICOutboxPurchaseHeader.FieldNo("Ship-to Address"));
-        SetFieldToPersonal(TableNo, DummyICOutboxPurchaseHeader.FieldNo("Ship-to Name"));
-    end;
-
     local procedure ClassifyNotificationEntry()
     var
         DummyNotificationEntry: Record "Notification Entry";
@@ -2267,90 +2199,6 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToCompanyConfidential(TableNo, DummyApprovalEntry.FieldNo("Record ID to Approve"));
     end;
 
-    local procedure ClassifyHandledICInboxPurchHeader()
-    var
-        DummyHandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"Handled IC Inbox Purch. Header";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyHandledICInboxPurchHeader.FieldNo("Ship-to Post Code"));
-        SetFieldToPersonal(TableNo, DummyHandledICInboxPurchHeader.FieldNo("Ship-to City"));
-        SetFieldToPersonal(TableNo, DummyHandledICInboxPurchHeader.FieldNo("Ship-to Address 2"));
-        SetFieldToPersonal(TableNo, DummyHandledICInboxPurchHeader.FieldNo("Ship-to Address"));
-        SetFieldToPersonal(TableNo, DummyHandledICInboxPurchHeader.FieldNo("Ship-to Name"));
-    end;
-
-    local procedure ClassifyHandledICInboxSalesHeader()
-    var
-        DummyHandledICInboxSalesHeader: Record "Handled IC Inbox Sales Header";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"Handled IC Inbox Sales Header";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyHandledICInboxSalesHeader.FieldNo("Ship-to Post Code"));
-        SetFieldToPersonal(TableNo, DummyHandledICInboxSalesHeader.FieldNo("Ship-to City"));
-        SetFieldToPersonal(TableNo, DummyHandledICInboxSalesHeader.FieldNo("Ship-to Address 2"));
-        SetFieldToPersonal(TableNo, DummyHandledICInboxSalesHeader.FieldNo("Ship-to Address"));
-        SetFieldToPersonal(TableNo, DummyHandledICInboxSalesHeader.FieldNo("Ship-to Name"));
-    end;
-
-    local procedure ClassifyICInboxPurchaseHeader()
-    var
-        DummyICInboxPurchaseHeader: Record "IC Inbox Purchase Header";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"IC Inbox Purchase Header";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyICInboxPurchaseHeader.FieldNo("Ship-to Post Code"));
-        SetFieldToPersonal(TableNo, DummyICInboxPurchaseHeader.FieldNo("Ship-to City"));
-        SetFieldToPersonal(TableNo, DummyICInboxPurchaseHeader.FieldNo("Ship-to Address 2"));
-        SetFieldToPersonal(TableNo, DummyICInboxPurchaseHeader.FieldNo("Ship-to Address"));
-        SetFieldToPersonal(TableNo, DummyICInboxPurchaseHeader.FieldNo("Ship-to Name"));
-    end;
-
-    local procedure ClassifyICInboxSalesHeader()
-    var
-        DummyICInboxSalesHeader: Record "IC Inbox Sales Header";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"IC Inbox Sales Header";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyICInboxSalesHeader.FieldNo("Ship-to Post Code"));
-        SetFieldToPersonal(TableNo, DummyICInboxSalesHeader.FieldNo("Ship-to City"));
-        SetFieldToPersonal(TableNo, DummyICInboxSalesHeader.FieldNo("Ship-to Address 2"));
-        SetFieldToPersonal(TableNo, DummyICInboxSalesHeader.FieldNo("Ship-to Address"));
-        SetFieldToPersonal(TableNo, DummyICInboxSalesHeader.FieldNo("Ship-to Name"));
-    end;
-
-    local procedure ClassifyHandledICOutboxPurchHdr()
-    var
-        DummyHandledICOutboxPurchHdr: Record "Handled IC Outbox Purch. Hdr";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"Handled IC Outbox Purch. Hdr";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxPurchHdr.FieldNo("Ship-to Post Code"));
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxPurchHdr.FieldNo("Ship-to City"));
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxPurchHdr.FieldNo("Ship-to Address 2"));
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxPurchHdr.FieldNo("Ship-to Address"));
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxPurchHdr.FieldNo("Ship-to Name"));
-    end;
-
-    local procedure ClassifyHandledICOutboxSalesHeader()
-    var
-        DummyHandledICOutboxSalesHeader: Record "Handled IC Outbox Sales Header";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"Handled IC Outbox Sales Header";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxSalesHeader.FieldNo("Ship-to Post Code"));
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxSalesHeader.FieldNo("Ship-to City"));
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxSalesHeader.FieldNo("Ship-to Address 2"));
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxSalesHeader.FieldNo("Ship-to Address"));
-        SetFieldToPersonal(TableNo, DummyHandledICOutboxSalesHeader.FieldNo("Ship-to Name"));
-    end;
-
     local procedure ClassifyUserPageMetadata()
     var
         DummyUserPageMetadata: Record "User Page Metadata";
@@ -2359,16 +2207,6 @@ codeunit 1751 "Data Classification Eval. Data"
         TableNo := DATABASE::"User Page Metadata";
         SetTableFieldsToNormal(TableNo);
         SetFieldToPersonal(TableNo, DummyUserPageMetadata.FieldNo("User SID"));
-    end;
-
-    local procedure ClassifyICPartner()
-    var
-        DummyICPartner: Record "IC Partner";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"IC Partner";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyICPartner.FieldNo(Name));
     end;
 
     local procedure ClassifyChangeLogEntry()
@@ -2661,20 +2499,6 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToCompanyConfidential(TableNo, DummyPositivePayEntryDetail.FieldNo("No."));
         SetFieldToCompanyConfidential(TableNo, DummyPositivePayEntryDetail.FieldNo("Upload Date-Time"));
         SetFieldToCompanyConfidential(TableNo, DummyPositivePayEntryDetail.FieldNo("Bank Account No."));
-    end;
-
-    local procedure ClassifyICOutboxSalesHeader()
-    var
-        DummyICOutboxSalesHeader: Record "IC Outbox Sales Header";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"IC Outbox Sales Header";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyICOutboxSalesHeader.FieldNo("Ship-to Post Code"));
-        SetFieldToPersonal(TableNo, DummyICOutboxSalesHeader.FieldNo("Ship-to City"));
-        SetFieldToPersonal(TableNo, DummyICOutboxSalesHeader.FieldNo("Ship-to Address 2"));
-        SetFieldToPersonal(TableNo, DummyICOutboxSalesHeader.FieldNo("Ship-to Address"));
-        SetFieldToPersonal(TableNo, DummyICOutboxSalesHeader.FieldNo("Ship-to Name"));
     end;
 
     local procedure ClassifyDirectDebitCollectionEntry()
@@ -3799,29 +3623,6 @@ codeunit 1751 "Data Classification Eval. Data"
         TableNo := 9019; // Database::"Default Permission Set In Plan"
         SetTableFieldsToNormal(TableNo);
         SetFieldToCompanyConfidential(TableNo, 3); // FieldNo("Role ID")
-    end;
-
-    local procedure ClassifyICBankAccount()
-    var
-        RemitAddress: Record "IC Bank Account";
-        TableNo: Integer;
-    begin
-        TableNo := DATABASE::"IC Bank Account";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, RemitAddress.FieldNo(Name));
-        SetFieldToPersonal(TableNo, RemitAddress.FieldNo("Bank Account No."));
-        SetFieldToPersonal(TableNo, RemitAddress.FieldNo(IBAN));
-    end;
-
-    local procedure ClassifyICAPILog()
-    var
-        DummyICAPILog: Record "IC API Log";
-        TableNo: Integer;
-    begin
-        TableNo := Database::"IC API Log";
-        SetTableFieldsToNormal(TableNo);
-        SetFieldToPersonal(TableNo, DummyICAPILog.FieldNo("Request Body"));
-        SetFieldToPersonal(TableNo, DummyICAPILog.FieldNo("Response Body"));
     end;
 
     local procedure ClassifyOrderTakerAgent()
