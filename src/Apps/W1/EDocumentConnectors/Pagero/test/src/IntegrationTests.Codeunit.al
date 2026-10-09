@@ -245,6 +245,9 @@ codeunit 148192 "Integration Tests"
         EDocumentPage.GoToRecord(EDocument);
         EDocumentPage.ErrorMessagesPart.First();
         Assert.AreEqual('Error', EDocumentPage.ErrorMessagesPart."Message Type".Value(), IncorrectValueErr);
+        Assert.IsTrue(
+            EDocumentPage.ErrorMessagesPart.Description.Value().Contains('The document could not be processed by the receiver.'),
+            'The error message should contain the description returned by Pagero.');
         EDocumentPage.Close();
 
         // [WHEN] User sends the document again, which restarts the filepart in Pagero

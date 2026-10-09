@@ -3,7 +3,7 @@ namespace System.Integration;
 using Microsoft.Utilities;
 using System;
 using System.Reflection;
-using System.Text;
+using System.Text.Json;
 using System.Utilities;
 using System.Xml;
 
@@ -363,14 +363,13 @@ codeunit 1290 "SOAP Web Service Request Mgt."
     [NonDebuggable]
     procedure GetTokenValue(WebTokenAsJson: Text; ClaimType: Text): Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
-        ClaimValue: Text;
+        Json: Codeunit Json;
+        JsonObject: JsonObject;
+        JsonToken: JsonToken;
     begin
-        JSONManagement.InitializeObject(WebTokenAsJson);
-        JSONManagement.GetJSONObject(JObject);
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, ClaimType, ClaimValue) then
-            exit(ClaimValue);
+        JsonObject.ReadFrom(WebTokenAsJson);
+        if JsonObject.Get(ClaimType, JsonToken) and JsonToken.IsValue() then
+            exit(Json.GetTokenAsText(JsonToken));
     end;
 
     [NonDebuggable]
@@ -379,7 +378,7 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         TypeHelper: Codeunit "Type Helper";
         Timestamp: Decimal;
     begin
-        if not Evaluate(Timestamp, GetTokenValue(WebTokenAsJson, ClaimType)) then
+        if not Evaluate(Timestamp, GetTokenValue(WebTokenAsJson, ClaimType), 9) then
             exit;
         exit(TypeHelper.EvaluateUnixTimestamp(Timestamp));
     end;
@@ -388,11 +387,10 @@ codeunit 1290 "SOAP Web Service Request Mgt."
     [NonDebuggable]
     procedure GetTokenDetailsAsJson(JsonWebToken: SecretText; var WebTokenAsJson: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
         JwtSecurityTokenHandler: DotNet JwtSecurityTokenHandler;
         JwtSecurityToken: DotNet JwtSecurityToken;
         Claim: DotNet Claim;
-        JObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
         if JsonWebToken.IsEmpty() then
             exit;
@@ -400,12 +398,10 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         JwtSecurityTokenHandler := JwtSecurityTokenHandler.JwtSecurityTokenHandler();
         JwtSecurityToken := JwtSecurityTokenHandler.ReadToken(JsonWebToken.Unwrap());
 
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JObject);
         foreach Claim in JwtSecurityToken.Claims do
-            JSONManagement.AddJPropertyToJObject(JObject, Claim.Type, Claim.Value);
+            JsonObject.Add(Claim.Type, Claim.Value);
 
-        WebTokenAsJson := JObject.ToString();
+        JsonObject.WriteTo(WebTokenAsJson);
     end;
 
     [TryFunction]

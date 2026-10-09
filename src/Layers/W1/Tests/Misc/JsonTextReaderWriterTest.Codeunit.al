@@ -1,3 +1,4 @@
+#if not CLEAN30
 codeunit 139211 "Json Text Reader/Writer Test"
 {
     Subtype = Test;
@@ -16,7 +17,9 @@ codeunit 139211 "Json Text Reader/Writer Test"
     procedure TestWriter()
     var
         TempJSONBuffer: Record "JSON Buffer" temporary;
+#pragma warning disable AL0432
         JsonTextReaderWriter: Codeunit "Json Text Reader/Writer";
+#pragma warning restore AL0432
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         Json: Text;
     begin
@@ -97,4 +100,4 @@ codeunit 139211 "Json Text Reader/Writer Test"
         end;
     end;
 }
-
+#endif

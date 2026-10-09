@@ -105,11 +105,11 @@ codeunit 135090 "API Webhook Sending Events"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"API Webhook Notification Send", 'OnBeforeSendNotification', '', false, false)]
     local procedure HandleOnBeforeSendNotification(NotificationUrl: Text; Payload: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
         GraphMgtGeneralTools: Codeunit "Graph Mgt - General Tools";
-        ValueJArray: DotNet JArray;
-        PayloadJObject: DotNet JObject;
-        ValueJObject: DotNet JObject;
+        ValueJArray: JsonArray;
+        PayloadJObject: JsonObject;
+        ValueJObject: JsonObject;
+        JsonToken: JsonToken;
         ExpectedSubscriptionID: Text;
         ExpectedChangeType: Text;
         ExpectedNotificationUrl: Text;
@@ -125,19 +125,17 @@ codeunit 135090 "API Webhook Sending Events"
         ExpectedEntityCount := LibraryVariableStorage.DequeueInteger();
         Assert.AreEqual(ExpectedNotificationUrl, NotificationUrl, 'Incorrect notification URL');
 
-        JSONManagement.InitializeObject(Payload);
-        JSONManagement.GetJSONObject(PayloadJObject);
-        JSONManagement.GetArrayPropertyValueFromJObjectByName(PayloadJObject, 'value', ValueJArray);
+        PayloadJObject.ReadFrom(Payload);
+        ValueJArray := PayloadJObject.GetArray('value');
         ActualEntityCount := ValueJArray.Count();
         Assert.AreEqual(ExpectedEntityCount, ActualEntityCount, 'Invalid number of entities');
-
-        JSONManagement.InitializeCollectionFromJArray(ValueJArray);
 
         for I := 0 to ActualEntityCount - 1 do begin
             ExpectedSubscriptionID := LibraryVariableStorage.DequeueText();
             ExpectedChangeType := LibraryVariableStorage.DequeueText();
             ExpectedResourceUrl := LibraryVariableStorage.DequeueText();
-            JSONManagement.GetJObjectFromCollectionByIndex(ValueJObject, I);
+            ValueJArray.Get(I, JsonToken);
+            ValueJObject := JsonToken.AsObject();
             GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(ValueJObject, 'subscriptionId', ActualSubscriptionID);
             GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(ValueJObject, 'changeType', ActualChangeType);
             GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(ValueJObject, 'resource', ActualResourceUrl);
@@ -268,4 +266,3 @@ codeunit 135090 "API Webhook Sending Events"
             until JobQueueEntry.Next() = 0;
     end;
 }
-
