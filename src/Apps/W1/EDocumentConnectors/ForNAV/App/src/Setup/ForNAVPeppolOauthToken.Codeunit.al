@@ -26,6 +26,14 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
         GetAccessTokenProperties(Token);
     end;
 
+    // Test hook: lets PeppolTest short-circuit the outbound token request and hand back a
+    // canned status/body, so oauth token acquisition can be exercised without a real
+    // network call to the Azure AD token endpoint.
+    [InternalEvent(false)]
+    local procedure OnBeforeSendTokenRequest(HttpRequestMessage: HttpRequestMessage; var Handled: Boolean; var ResponseStatusCode: Integer; var ResponseBody: Text)
+    begin
+    end;
+
     [NonDebuggable]
     local procedure GetAccessToken(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [SecretText]; var Token: Text)
     var
@@ -39,6 +47,8 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
         ResponseObject: JsonObject;
         JsonToken: JsonToken;
         i: Integer;
+        Handled: Boolean;
+        ResponseStatusCode: Integer;
         AuthorizationErr: Label 'Cannot get accesstoken\Status: %1\Reason: %2', Comment = '%1= statuscode %2= reasonphrase';
         PayloadLbl: Label 'client_id=%1&client_secret=%2&scope=%3&grant_type=client_credentials', Comment = '%1= client id %2= client secret %3= scope', Locked = true;
         RedirectLbl: Label '%1&redirect_uri=%2', Comment = '%1=payload %2= redirect url', Locked = true;
@@ -57,11 +67,19 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
             HttpRequestMessage.Content := HttpContent;
             HttpRequestMessage.SetRequestUri(OAuthAuthorityUrl);
             HttpRequestMessage.Method('POST');
-            HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
-            HttpResponseMessage.Content.ReadAs(Response);
-            if HttpResponseMessage.HttpStatusCode = 200 then begin
+
+            Handled := false;
+            Clear(Response);
+            OnBeforeSendTokenRequest(HttpRequestMessage, Handled, ResponseStatusCode, Response);
+            if not Handled then begin
+                HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+                ResponseStatusCode := HttpResponseMessage.HttpStatusCode;
+                HttpResponseMessage.Content.ReadAs(Response);
+            end;
+
+            if ResponseStatusCode = 200 then begin
                 if not ResponseObject.ReadFrom(Response) then
-                    Error(HttpResponseMessage.ReasonPhrase);
+                    Error(AuthorizationErr, ResponseStatusCode, Response);
 
                 ResponseObject.Get('access_token', JsonToken);
                 Token := JsonToken.AsValue().AsText();
@@ -69,7 +87,7 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
             end;
 
             if i > 2 then
-                Error(AuthorizationErr, HttpResponseMessage.HttpStatusCode, Response);
+                Error(AuthorizationErr, ResponseStatusCode, Response);
 
             Clear(HttpClient);
             Clear(HttpRequestMessage);
@@ -118,6 +136,7 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
         NewAccessTokenExpires := AccessTokenExpires;
     end;
 
+    [Obsolete('Roles are no longer stored; role-based access is not used.', '1.0.0.0')]
     internal procedure GetRoles(): List of [Text]
     begin
         exit(Roles);
