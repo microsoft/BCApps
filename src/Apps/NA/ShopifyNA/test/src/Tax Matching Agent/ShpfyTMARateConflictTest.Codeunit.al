@@ -27,6 +27,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
     var
         LibraryAssert: Codeunit "Library Assert";
         NextOrderId: BigInteger;
+        TaxLineIdTok: Label '%1-%2', Locked = true;
 
     // RD1 / RD6 — a matched jurisdiction whose BC Tax Detail rate differs from Shopify's is
     // detected as a rate conflict; the jurisdiction stays assigned and the existing detail is
@@ -49,7 +50,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
 
         TMAMatcher.ReapplyFromAssignedLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
 
-        LibraryAssert.IsTrue(HasRateConflict, 'A differing BC Tax Detail rate should be flagged as a rate conflict.');
+        LibraryAssert.IsTrue(HasRateConflict, 'A differing Tax Detail Rate should be flagged as a rate conflict.');
 
         OrderTaxLine.Get(GetLineId(OrderHeader), 1);
         LibraryAssert.AreEqual('NYSTAX', OrderTaxLine."Tax Jurisdiction Code", 'The jurisdiction must stay assigned on a rate conflict.');
@@ -168,7 +169,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
 
         // The effective rate as of the document date is now Shopify's — conflict resolved.
         LibraryAssert.IsTrue(TMAMatcher.TryGetEffectiveItemRate(OrderTaxLine, BCRate), 'An effective bracket should now exist.');
-        LibraryAssert.AreEqual(20, BCRate, 'BC should now post Shopify''s rate as of the document date.');
+        LibraryAssert.AreEqual(20, BCRate, 'The Tax Detail Rate should now equal Shopify''s rate as of the document date.');
     end;
 
     // RD10 — Use Shopify Rate when a bracket already exists on the document date: it is updated in
@@ -269,7 +270,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
 
         TMAMatcher.ReapplyFromAssignedLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
 
-        LibraryAssert.IsTrue(HasRateConflict, 'A shipping tax line whose rate differs from BC must flag a rate conflict.');
+        LibraryAssert.IsTrue(HasRateConflict, 'A shipping tax line whose rate differs from the Tax Detail Rate must flag a rate conflict.');
         LibraryAssert.AreEqual(5, GetEffectiveBcRate('NYSTAX', 'FREIGHT'), 'The existing shipping Tax Detail rate must be left untouched.');
     end;
 
@@ -437,7 +438,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         LibraryAssert.IsTrue(TMAEvents.IsHeldForReviewPreference(OrderHeader, Shop), 'Low Confidence Only must hold a low-confidence order.');
     end;
 
-    // Guard — matching runs only when enabled, no Tax Area yet, and not tax exempt.
+    // Guard — matching runs only when enabled, supported for the country, no Tax Area yet, and not tax exempt.
     [Test]
     procedure ShouldAttemptMatchWhenEligible()
     var
@@ -485,6 +486,307 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         BuildGuardRecords(OrderHeader, Shop, true, '', true);
         LibraryAssert.IsFalse(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
             'Matching must not run for a tax-exempt order.');
+    end;
+
+    [Test]
+    procedure ShouldAttemptMatchForCanadianOrder()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, '', false);
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+
+        LibraryAssert.IsTrue(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching should run for a Canadian order.');
+    end;
+
+    [Test]
+    procedure ShouldNotAttemptMatchOutsideNorthAmericanTaxDomain()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, '', false);
+        OrderHeader."Ship-to Country/Region Code" := 'DK';
+
+        LibraryAssert.IsFalse(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching must not run outside the US and Canada.');
+    end;
+
+    [Test]
+    procedure CanadianHSTAutoCreateUsesProvinceCode()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'ON';
+
+        LibraryAssert.AreEqual('ONHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', true),
+            'A new Canadian HST jurisdiction must be scoped by province.');
+    end;
+
+    [Test]
+    procedure CanadianHSTReusesProvinceJurisdiction()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureJurisdiction('HST');
+        EnsureJurisdiction('NSHST');
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('NSHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', false),
+            'An existing province-specific HST jurisdiction must take precedence over generic HST.');
+    end;
+
+    [Test]
+    procedure CanadianHSTDoesNotReuseAgentGenericJurisdiction()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureAgentJurisdiction('HST', false);
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('NSHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', true),
+            'An agent-created generic HST jurisdiction must not be reused for another province.');
+    end;
+
+    [Test]
+    procedure CanadianHSTKeepsGenericWhenCreationDisabled()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureJurisdiction('HST');
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'ON';
+
+        LibraryAssert.AreEqual('HST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', false),
+            'Generic HST must remain available when province-specific creation is disabled.');
+    end;
+
+    [Test]
+    procedure CanadianGSTRemainsGeneric()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('GST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'GST', true),
+            'GST is federal and must remain reusable across provinces.');
+    end;
+
+    [Test]
+    procedure CanadianHSTResolvesProvinceName()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureShopifyTaxArea('CA', 'Ontario', 'ON');
+        EnsureJurisdiction('HST');
+        EnsureJurisdiction('ONHST');
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'Ontario';
+
+        LibraryAssert.AreEqual('ONHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', false),
+            'A ship-to province name must be mapped to its province code.');
+    end;
+
+    [Test]
+    procedure ApplyMatchesCreatesProvinceHSTFromProvinceName()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        Shop: Record "Shpfy Shop";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        UnmatchedTaxLineIds: List of [Text];
+        MatchLog: JsonArray;
+        Matches: JsonArray;
+        MatchResults: JsonObject;
+        HasRateConflict: Boolean;
+        HasUnresolvedLine: Boolean;
+        HasLowConfidenceMatch: Boolean;
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        Shop."Auto Create Tax Jurisdictions" := true;
+        EnsureShopifyTaxArea('CA', 'Nova Scotia', 'NS');
+        CreateCanadianOrder(OrderHeader, Shop, 'Nova Scotia');
+        InsertUnmatchedTaxLine(UnmatchedTaxLineIds, GetLineId(OrderHeader), 1, 'HST', 14);
+        Matches.Add(BuildMatch(GetLineId(OrderHeader), 1, 'HST', 'high'));
+        MatchResults.Add('matches', Matches);
+
+        LibraryAssert.IsTrue(TMAMatcher.ApplyMatches(OrderHeader, Shop, MatchResults, UnmatchedTaxLineIds, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch),
+            'The HST line should be matched.');
+
+        OrderTaxLine.Get(GetLineId(OrderHeader), 1);
+        LibraryAssert.AreEqual('NSHST', OrderTaxLine."Tax Jurisdiction Code", 'Generic HST must be scoped to the province resolved from its name.');
+        TaxJurisdiction.Get('NSHST');
+        LibraryAssert.AreEqual('HST - NS', TaxJurisdiction.Description, 'The created jurisdiction must describe its province.');
+        LibraryAssert.IsFalse(HasUnresolvedLine, 'The match must be complete.');
+    end;
+
+    [Test]
+    procedure ApplyMatchesLeavesMissingJurisdictionUnresolved()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        Shop: Record "Shpfy Shop";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        UnmatchedTaxLineIds: List of [Text];
+        MatchLog: JsonArray;
+        Matches: JsonArray;
+        MatchResults: JsonObject;
+        HasRateConflict: Boolean;
+        HasUnresolvedLine: Boolean;
+        HasLowConfidenceMatch: Boolean;
+    begin
+        // Generic HST exists, TVH does not, and creation is disabled.
+        Cleanup();
+        Shop := CreateShop();
+        EnsureJurisdiction('HST');
+        CreateCanadianOrder(OrderHeader, Shop, 'ON');
+        InsertUnmatchedTaxLine(UnmatchedTaxLineIds, GetLineId(OrderHeader), 1, 'HST', 13);
+        InsertUnmatchedTaxLine(UnmatchedTaxLineIds, GetLineId(OrderHeader), 2, 'TVH', 13);
+        Matches.Add(BuildMatch(GetLineId(OrderHeader), 1, 'HST', 'high'));
+        Matches.Add(BuildMatch(GetLineId(OrderHeader), 2, 'TVH', 'high'));
+        MatchResults.Add('matches', Matches);
+
+        LibraryAssert.IsTrue(TMAMatcher.ApplyMatches(OrderHeader, Shop, MatchResults, UnmatchedTaxLineIds, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch),
+            'The HST line should be matched.');
+
+        LibraryAssert.IsTrue(HasUnresolvedLine, 'A jurisdiction that does not exist and cannot be created must leave the match incomplete.');
+        OrderTaxLine.Get(GetLineId(OrderHeader), 2);
+        LibraryAssert.AreEqual('', OrderTaxLine."Tax Jurisdiction Code", 'The TVH line must stay unmatched.');
+        LibraryAssert.IsFalse(MatchedJurisdictions.Contains('TVH'), 'A missing jurisdiction must not be part of the Tax Area.');
+    end;
+
+    [Test]
+    procedure ApplyMatchesFlagsDroppedLowConfidenceLine()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        Shop: Record "Shpfy Shop";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        UnmatchedTaxLineIds: List of [Text];
+        MatchLog: JsonArray;
+        Matches: JsonArray;
+        MatchResults: JsonObject;
+        HasRateConflict: Boolean;
+        HasUnresolvedLine: Boolean;
+        HasLowConfidenceMatch: Boolean;
+    begin
+        // Creation is disabled, so the low-confidence PST match is dropped.
+        Cleanup();
+        Shop := CreateShop();
+        EnsureJurisdiction('GST');
+        EnsureJurisdiction('SKPST');
+        CreateCanadianOrder(OrderHeader, Shop, 'SK');
+        InsertUnmatchedTaxLine(UnmatchedTaxLineIds, GetLineId(OrderHeader), 1, 'GST', 5);
+        InsertUnmatchedTaxLine(UnmatchedTaxLineIds, GetLineId(OrderHeader), 2, 'PST', 6);
+        Matches.Add(BuildMatch(GetLineId(OrderHeader), 1, 'GST', 'high'));
+        Matches.Add(BuildMatch(GetLineId(OrderHeader), 2, 'SKPST', 'low'));
+        MatchResults.Add('matches', Matches);
+
+        LibraryAssert.IsTrue(TMAMatcher.ApplyMatches(OrderHeader, Shop, MatchResults, UnmatchedTaxLineIds, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch),
+            'The GST line should be matched.');
+
+        OrderTaxLine.Get(GetLineId(OrderHeader), 2);
+        LibraryAssert.AreEqual('', OrderTaxLine."Tax Jurisdiction Code", 'The low-confidence line must stay unmatched.');
+        LibraryAssert.IsTrue(HasUnresolvedLine, 'A dropped low-confidence match must leave the match incomplete.');
+    end;
+
+    [Test]
+    procedure ApplyMatchesFlagsTaxLineMissingFromResponse()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
+        Shop: Record "Shpfy Shop";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        UnmatchedTaxLineIds: List of [Text];
+        MatchLog: JsonArray;
+        Matches: JsonArray;
+        MatchResults: JsonObject;
+        HasRateConflict: Boolean;
+        HasUnresolvedLine: Boolean;
+        HasLowConfidenceMatch: Boolean;
+    begin
+        // The response covers the product tax line but omits the shipping tax line.
+        Cleanup();
+        Shop := CreateShop();
+        EnsureJurisdiction('GST');
+        CreateCanadianOrder(OrderHeader, Shop, 'SK');
+        InsertUnmatchedTaxLine(UnmatchedTaxLineIds, GetLineId(OrderHeader), 1, 'GST', 5);
+        ShippingCharge.Init();
+        ShippingCharge."Shopify Shipping Line Id" := OrderHeader."Shopify Order Id" + 5000;
+        ShippingCharge."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        ShippingCharge.Insert();
+        InsertUnmatchedTaxLine(UnmatchedTaxLineIds, ShippingCharge."Shopify Shipping Line Id", 1, 'PST', 6);
+        Matches.Add(BuildMatch(GetLineId(OrderHeader), 1, 'GST', 'high'));
+        MatchResults.Add('matches', Matches);
+
+        LibraryAssert.IsTrue(TMAMatcher.ApplyMatches(OrderHeader, Shop, MatchResults, UnmatchedTaxLineIds, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch),
+            'The product tax line should be matched.');
+
+        LibraryAssert.IsTrue(HasUnresolvedLine, 'A tax line missing from the response must leave the match incomplete.');
+    end;
+
+    [Test]
+    procedure ApplyMatchesOnlyAssignsRequestedTaxLines()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        Shop: Record "Shpfy Shop";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        UnmatchedTaxLineIds: List of [Text];
+        MatchLog: JsonArray;
+        Matches: JsonArray;
+        MatchResults: JsonObject;
+        HasRateConflict: Boolean;
+        HasUnresolvedLine: Boolean;
+        HasLowConfidenceMatch: Boolean;
+    begin
+        // Line 1 is already assigned and was not sent for matching; the response must not overwrite it.
+        Cleanup();
+        Shop := CreateShop();
+        EnsureJurisdiction('GST');
+        EnsureJurisdiction('SKPST');
+        CreateCanadianOrder(OrderHeader, Shop, 'SK');
+        InsertMatchedTaxLine(GetLineId(OrderHeader), 1, 'GST', 5, 'GST');
+        InsertUnmatchedTaxLine(UnmatchedTaxLineIds, GetLineId(OrderHeader), 2, 'PST', 6);
+        Matches.Add(BuildMatch(GetLineId(OrderHeader), 1, 'SKPST', 'high'));
+        Matches.Add(BuildMatch(GetLineId(OrderHeader), 2, 'SKPST', 'high'));
+        MatchResults.Add('matches', Matches);
+
+        LibraryAssert.IsTrue(TMAMatcher.ApplyMatches(OrderHeader, Shop, MatchResults, UnmatchedTaxLineIds, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch),
+            'The requested PST line should be matched.');
+
+        OrderTaxLine.Get(GetLineId(OrderHeader), 1);
+        LibraryAssert.AreEqual('GST', OrderTaxLine."Tax Jurisdiction Code", 'A tax line that was not sent for matching must not be changed.');
+        OrderTaxLine.Get(GetLineId(OrderHeader), 2);
+        LibraryAssert.AreEqual('SKPST', OrderTaxLine."Tax Jurisdiction Code", 'The requested tax line must be matched.');
+        LibraryAssert.IsFalse(HasUnresolvedLine, 'Every requested tax line was matched.');
     end;
 
     // RD9 — Undo Approval clears the reviewed flag, so a held order is held again.
@@ -767,6 +1069,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
 
         Clear(OrderHeader);
         OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Ship-to Country/Region Code" := 'US';
         OrderHeader."Tax Area Code" := ExistingTaxAreaCode;
         OrderHeader."Tax Exempt" := TaxExempt;
     end;
@@ -846,6 +1149,56 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         OrderTaxLine."Rate %" := RatePct;
         OrderTaxLine."Tax Jurisdiction Code" := JurisdictionCode;
         OrderTaxLine.Insert();
+    end;
+
+    local procedure InsertUnmatchedTaxLine(var UnmatchedTaxLineIds: List of [Text]; ParentId: BigInteger; LineNo: Integer; LineTitle: Text; RatePct: Decimal)
+    begin
+        InsertMatchedTaxLine(ParentId, LineNo, LineTitle, RatePct, '');
+        UnmatchedTaxLineIds.Add(StrSubstNo(TaxLineIdTok, ParentId, LineNo));
+    end;
+
+    local procedure CreateCanadianOrder(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; ShipToCounty: Text[30])
+    var
+        OrderLine: Record "Shpfy Order Line";
+    begin
+        EnsureItem('ITEM001', 'TAXABLE');
+
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Document Date" := 20260115D;
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := ShipToCounty;
+        OrderHeader.Insert();
+
+        OrderLine.Init();
+        OrderLine."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderLine."Line Id" := GetLineId(OrderHeader);
+        OrderLine."Item No." := 'ITEM001';
+        OrderLine.Insert();
+    end;
+
+    local procedure BuildMatch(ParentId: BigInteger; LineNo: Integer; JurisdictionCode: Code[10]; Confidence: Text): JsonObject
+    var
+        MatchObj: JsonObject;
+    begin
+        MatchObj.Add('tax_line_id', StrSubstNo(TaxLineIdTok, ParentId, LineNo));
+        MatchObj.Add('jurisdiction_code', JurisdictionCode);
+        MatchObj.Add('confidence', Confidence);
+        exit(MatchObj);
+    end;
+
+    local procedure EnsureShopifyTaxArea(CountryRegionCode: Code[20]; CountyName: Text[50]; CountyCode: Code[10])
+    var
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+    begin
+        if ShopifyTaxArea.Get(CountryRegionCode, CountyName) then
+            exit;
+        ShopifyTaxArea.Init();
+        ShopifyTaxArea."Country/Region Code" := CountryRegionCode;
+        ShopifyTaxArea.County := CountyName;
+        ShopifyTaxArea."County Code" := CountyCode;
+        ShopifyTaxArea.Insert();
     end;
 
     local procedure CreateShippingScenario(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; ShopifyRate: Decimal; ExistingBcRate: Decimal)
@@ -1029,6 +1382,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         TaxGroup: Record "Tax Group";
         Item: Record Item;
         GLAccount: Record "G/L Account";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
     begin
         OrderTaxLine.DeleteAll();
         OrderLine.DeleteAll();
@@ -1043,5 +1397,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         Item.DeleteAll();
         if GLAccount.Get('SHIPACC') then
             GLAccount.Delete();
+        ShopifyTaxArea.SetRange("Country/Region Code", 'CA');
+        ShopifyTaxArea.DeleteAll();
     end;
 }

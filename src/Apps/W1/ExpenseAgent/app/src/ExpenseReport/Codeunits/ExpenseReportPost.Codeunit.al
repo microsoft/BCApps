@@ -8,6 +8,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
@@ -70,6 +71,7 @@ codeunit 6987 "Expense Report-Post"
         AmountToEmployeeLCY: Decimal;
         CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
         ExpenseReportWithStatusErr: Label 'Expense Report %1 cannot be posted because its status is %2.', Comment = '%1 = Document No., %2 = Status';
+        SpendRequestStatusNotPostableErr: Label 'Expense report %1 cannot be posted because travel request %2 has status %3. The travel request must be approved.', Comment = '%1 = Expense Report No., %2 = Travel Request No., %3 = Travel Request Status';
         NothingToPostErr: Label 'There is nothing to post.';
         DocumentCanOnlyBePostedWhenApprovalProcessIsCompleteErr: Label 'This document can only be posted when the approval process is complete.';
         ReimbursementNotificationCannotBeSentErr: Label 'Reimbursement notification cannot be sent as the reimbursable amount is 0.';
@@ -83,6 +85,7 @@ codeunit 6987 "Expense Report-Post"
         RoundingDifferenceTooLargeErr: Label 'The difference between expense report line %1 and its posted amounts exceeds the currency rounding precision. The difference is %2 in reimbursement currency and %3 in local currency.', Comment = '%1 = Expense report line number, %2 = Difference in reimbursement currency, %3 = Difference in local currency';
         AgentVATSpecificationsPostedLbl: Label 'Agent-authored VAT specifications posted.', Locked = true;
         ShowItLbl: Label 'Show it';
+        ShowTravelRequestLbl: Label 'Show travel request';
 
     internal procedure RunWithCheck(var ExpenseReportHeader: Record "Expense Report Header")
     var
@@ -268,15 +271,50 @@ codeunit 6987 "Expense Report-Post"
     local procedure ValidateExpenseReportLineForPosting(ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLine: Record "Expense Report Line";
+        CheckedSpendRequestNos: List of [Code[20]];
     begin
+        CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportHeader."Spend Request No.");
+        CheckedSpendRequestNos.Add(ExpenseReportHeader."Spend Request No.");
+
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
                 ValidateVATSpecLinesForPosting(ExpenseReportLine);
+                if not CheckedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
+                    CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
+                    CheckedSpendRequestNos.Add(ExpenseReportLine."Spend Request No.");
+                end;
             until ExpenseReportLine.Next() = 0
         else
             Error(NothingToPostErr);
+    end;
+
+    local procedure CheckSpendRequestStatusForPosting(ExpenseReportNo: Code[20]; SpendRequestNo: Code[20])
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if SpendRequestNo = '' then
+            exit;
+
+        // Business Central only posts against an approved travel request, so a closed shared travel request blocks posting.
+        SpendRequest.SetLoadFields(Status);
+        SpendRequest.Get(SpendRequestNo);
+        if SpendRequest.Status <> SpendRequest.Status::Approved then
+            Error(GetSpendRequestNotPostableError(ExpenseReportNo, SpendRequest));
+    end;
+
+    local procedure GetSpendRequestNotPostableError(ExpenseReportNo: Code[20]; SpendRequest: Record "Spend Request"): ErrorInfo
+    var
+        SpendRequestNotPostableError: ErrorInfo;
+    begin
+        SpendRequestNotPostableError.Message := StrSubstNo(SpendRequestStatusNotPostableErr, ExpenseReportNo, SpendRequest."No.", SpendRequest.Status);
+        SpendRequestNotPostableError.DataClassification := DataClassification::CustomerContent;
+        SpendRequestNotPostableError.ErrorType := ErrorType::Client;
+        SpendRequestNotPostableError.RecordId := SpendRequest.RecordId;
+        SpendRequestNotPostableError.PageNo := Page::"Travel Request Card";
+        SpendRequestNotPostableError.AddNavigationAction(ShowTravelRequestLbl);
+        exit(SpendRequestNotPostableError);
     end;
 
     local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line")

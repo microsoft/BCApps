@@ -1,5 +1,5 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/91b96c2b294be6f823277dafe6f03350abfb9d23/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/88faf7e7845be73f3f531a58ba4289319387990c/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps IN",
     "country":  "IN",
     "appFolders":  [
@@ -79,6 +79,7 @@
                        "../../../src/Apps/W1/LibraryNoTransactions/app",
                        "../../../src/Apps/W1/Manufacturing/app",
                        "../../../src/Apps/W1/MasterDataManagement/app",
+                       "../../../src/Apps/W1/MicrosoftFabricMirroring/app",
                        "../../../src/Apps/W1/MicrosoftUniversalPrint/app",
                        "../../../src/Apps/W1/MSWalletPayments/app",
                        "../../../src/Apps/W1/OnboardingSignals/app",
@@ -180,6 +181,7 @@
                         "../../../src/Apps/W1/Manufacturing/test",
                         "../../../src/Apps/W1/MasterDataManagement/test",
                         "../../../src/Apps/W1/MasterDataManagement/test library",
+                        "../../../src/Apps/W1/MicrosoftFabricMirroring/test",
                         "../../../src/Apps/W1/OnboardingSignals/test",
                         "../../../src/Apps/W1/Onprem Permissions/test",
                         "../../../src/Apps/W1/PaymentPractices/Test",
