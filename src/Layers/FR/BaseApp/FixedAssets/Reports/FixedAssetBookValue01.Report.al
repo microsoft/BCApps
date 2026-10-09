@@ -288,19 +288,38 @@ report 5605 "Fixed Asset - Book Value 01"
             column(TotalCaption; TotalCaptionLbl)
             {
             }
+            column(HasDerogatoryBook; HasDerogatoryBook)
+            {
+            }
+            column(ShowDerogatoryColumns; not UseNewDerogatoryBehavior or HasDerogatoryBook)
+            {
+            }
 
             trigger OnAfterGetRecord()
+            var
+                NumberOfTypesForThisFA: Integer;
             begin
                 if not FADeprBook.Get("No.", DeprBookCode) then
                     CurrReport.Skip();
                 if SkipRecord() then
                     CurrReport.Skip();
 
+                NumberOfTypesForThisFA := NumberOfTypes - 1;
                 HasDerogatorySetup := false;
-                FADeprBook2.SetRange("FA No.", "No.");
-                FADeprBook2.SetRange("Depreciation Book Code", DerogDeprBook.Code);
-                if FADeprBook2.Find('-') then
+                Clear(FADeprBook2);
+                FADeprBook2.SetLoadFields(
+                    "Depreciation Method", "Depreciation Starting Date", "Depreciation Ending Date", "Declining-Balance %");
+                if HasDerogatoryBook and FADeprBook2.Get("No.", DerogDeprBook.Code) then begin
                     HasDerogatorySetup := true;
+                    NumberOfTypesForThisFA := NumberOfTypes;
+                end;
+
+                if not UseNewDerogatoryBehavior then
+                    NumberOfTypesForThisFA := NumberOfTypes;
+
+                Clear(StartAmounts[7]);
+                Clear(NetChangeAmounts[7]);
+                Clear(DisposalAmounts[7]);
 
                 if GroupTotals = GroupTotals::"FA Posting Group" then
                     if "FA Posting Group" <> FADeprBook."FA Posting Group" then
@@ -313,7 +332,7 @@ report 5605 "Fixed Asset - Book Value 01"
                       "No.", GetStartingDate(StartingDate), EndingDate, DeprBookCode, BeforeAmount, EndingAmount);
 
                 i := 0;
-                while i < NumberOfTypes do begin
+                while i < NumberOfTypesForThisFA do begin
                     i := i + 1;
                     case i of
                         1:
@@ -329,7 +348,7 @@ report 5605 "Fixed Asset - Book Value 01"
                         6:
                             PostingType := FADeprBook.FieldNo("Custom 2");
                         7:
-                            PostingType := FADeprBook.FieldNo(Derogatory);
+                            PostingType := GetDerogatoryPostingType();
                     end;
                     if StartingDate <= 00000101D then
                         StartAmounts[i] := 0
@@ -368,11 +387,15 @@ report 5605 "Fixed Asset - Book Value 01"
                     TotalEndingAmounts[j] := StartAmounts[j] + NetChangeAmounts[j] + DisposalAmounts[j];
                 BookValueAtEndingDate := 0;
                 BookValueAtStartingDate := 0;
-                for j := 1 to NumberOfTypes do
-                    if not ((j = 7) and HasDerogatorySetup) then begin
-                        BookValueAtEndingDate := BookValueAtEndingDate + TotalEndingAmounts[j];
-                        BookValueAtStartingDate := BookValueAtStartingDate + StartAmounts[j];
-                    end;
+                for j := 1 to NumberOfTypes - 1 do begin
+                    BookValueAtEndingDate := BookValueAtEndingDate + TotalEndingAmounts[j];
+                    BookValueAtStartingDate := BookValueAtStartingDate + StartAmounts[j];
+                end;
+
+                if not UseNewDerogatoryBehavior and not HasDerogatorySetup then begin
+                    BookValueAtEndingDate += TotalEndingAmounts[7];
+                    BookValueAtStartingDate += StartAmounts[7];
+                end;
 
                 MakeGroupHeadLine();
                 UpdateTotals();
@@ -470,7 +493,7 @@ report 5605 "Fixed Asset - Book Value 01"
                         Caption = 'Budget Report';
                         ToolTip = 'Specifies if you want the report to calculate future depreciation and book value. This is valid only if you have selected Depreciation and Book Value for Amount Field 1, 2 or 3.';
                     }
-                    field(PrintFASetup; PrintFASetup)
+                    field(Print_FASetup; PrintFASetup)
                     {
                         ApplicationArea = FixedAssets;
                         Caption = 'Print FA Setup';
@@ -516,8 +539,18 @@ report 5605 "Fixed Asset - Book Value 01"
         NumberOfTypes := 7;
         Clear(DerogDeprBook);
         DeprBook.Get(DeprBookCode);
-        DerogDeprBook.SetRange("Derogatory Calculation", DeprBookCode);
-        if DerogDeprBook.Find('-') then;
+#if not CLEAN30
+        UseNewDerogatoryBehavior := AcceleratedDeprFeature.IsEnabled();
+        if UseNewDerogatoryBehavior then
+            HasDerogatoryBook := DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook)
+        else begin
+            DerogDeprBook.SetRange("Derogatory Calculation", DeprBookCode);
+            HasDerogatoryBook := DerogDeprBook.FindFirst();
+        end;
+#else
+        UseNewDerogatoryBehavior := true;
+        HasDerogatoryBook := DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook);
+#endif
         if GroupTotals = GroupTotals::"FA Posting Group" then
             FAGenReport.SetFAPostingGroup("Fixed Asset", DeprBook.Code);
         FAGenReport.AppendFAPostingFilter("Fixed Asset", StartingDate, EndingDate);
@@ -543,8 +576,14 @@ report 5605 "Fixed Asset - Book Value 01"
         DeprBook: Record "Depreciation Book";
         FA: Record "Fixed Asset";
         FAPostingTypeSetup: Record "FA Posting Type Setup";
+        DerogDeprBook: Record "Depreciation Book";
+        FADeprBook2: Record "FA Depreciation Book";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         FAGenReport: Codeunit "FA General Report";
         BudgetDepreciation: Codeunit "Budget Depreciation";
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         FAFilter: Text;
         MainHeadLineText: Text[100];
         DeprBookText: Text[50];
@@ -579,12 +618,12 @@ report 5605 "Fixed Asset - Book Value 01"
         DisposalDate: Date;
         StartText: Text[30];
         EndText: Text[30];
-        DerogDeprBook: Record "Depreciation Book";
-        FADeprBook2: Record "FA Depreciation Book";
         DeprBookInfo: array[5] of Text[30];
         DerogDeprBookInfo: array[5] of Text[30];
         PrintFASetup: Boolean;
         HasDerogatorySetup: Boolean;
+        HasDerogatoryBook: Boolean;
+        UseNewDerogatoryBehavior: Boolean;
 
 #pragma warning disable AA0074
         Text000: Label 'Fixed Asset - Book Value 01';
@@ -596,10 +635,10 @@ report 5605 "Fixed Asset - Book Value 01"
         Text006: Label 'Addition';
 #pragma warning disable AA0470
         Text007: Label '%1 has been modified in fixed asset %2.';
-        Text10800: Label 'Increased in Period';
-        Text10801: Label 'Decreased in Period';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+        IncreasedInPeriodTxt: Label 'Increased in Period';
+        DecreasedInPeriodTxt: Label 'Decreased in Period';
         PageCaptionLbl: Label 'Page';
         TotalCaptionLbl: Label 'Total';
         GroupTotalsTxt: Label ' ,FA Class,FA Subclass,FA Location,Main Asset,Global Dimension 1,Global Dimension 2,FA Posting Group';
@@ -640,6 +679,15 @@ report 5605 "Fixed Asset - Book Value 01"
             DisposalAmounts[j] := DisposalAmounts[j] + DisposalAmounts[i];
             DisposalAmounts[i] := 0;
         end;
+    end;
+
+    local procedure GetDerogatoryPostingType(): Integer
+    begin
+#if not CLEAN30
+        if not UseNewDerogatoryBehavior then
+            exit(FADeprBook.FieldNo(Derogatory));
+#endif
+        exit(FADeprBook.FieldNo("Derogatory Amount"));
     end;
 
     local procedure SkipRecord(): Boolean
@@ -707,10 +755,25 @@ report 5605 "Fixed Asset - Book Value 01"
         HeadLineText[8] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Depreciation), EndText);
         HeadLineText[9] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Book Value"), StartText);
         HeadLineText[10] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Book Value"), EndText);
-        HeadLineText[11] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Derogatory), StartText);
-        HeadLineText[12] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Derogatory), Text10800);
-        HeadLineText[13] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Derogatory), Text10801);
-        HeadLineText[14] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Derogatory), EndText);
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            HeadLineText[11] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Derogatory Amount"), StartText);
+            HeadLineText[12] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Derogatory Amount"), IncreasedInPeriodTxt);
+            HeadLineText[13] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Derogatory Amount"), DecreasedInPeriodTxt);
+            HeadLineText[14] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Derogatory Amount"), EndText);
+        end
+        else begin
+            HeadLineText[11] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Derogatory), StartText);
+            HeadLineText[12] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Derogatory), IncreasedInPeriodTxt);
+            HeadLineText[13] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Derogatory), DecreasedInPeriodTxt);
+            HeadLineText[14] := StrSubstNo('%1 %2', FADeprBook.FieldCaption(Derogatory), EndText);
+        end;
+#else
+        HeadLineText[11] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Derogatory Amount"), StartText);
+        HeadLineText[12] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Derogatory Amount"), IncreasedInPeriodTxt);
+        HeadLineText[13] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Derogatory Amount"), DecreasedInPeriodTxt);
+        HeadLineText[14] := StrSubstNo('%1 %2', FADeprBook.FieldCaption("Derogatory Amount"), EndText);
+#endif
     end;
 
     local procedure MakeGroupHeadLine()
@@ -765,11 +828,14 @@ report 5605 "Fixed Asset - Book Value 01"
               GroupStartAmounts[j] + GroupNetChangeAmounts[j] + GroupDisposalAmounts[j];
         BookValueAtEndingDate := 0;
         BookValueAtStartingDate := 0;
-        for j := 1 to NumberOfTypes do
-            if not ((j = 7) and HasDerogatorySetup) then begin
-                BookValueAtEndingDate := BookValueAtEndingDate + TotalEndingAmounts[j];
-                BookValueAtStartingDate := BookValueAtStartingDate + GroupStartAmounts[j];
-            end;
+        for j := 1 to NumberOfTypes - 1 do begin
+            BookValueAtEndingDate := BookValueAtEndingDate + TotalEndingAmounts[j];
+            BookValueAtStartingDate := BookValueAtStartingDate + GroupStartAmounts[j];
+        end;
+        if not UseNewDerogatoryBehavior and not HasDerogatorySetup then begin
+            BookValueAtEndingDate += TotalEndingAmounts[7];
+            BookValueAtStartingDate += GroupStartAmounts[7];
+        end;
     end;
 
     local procedure CreateTotals()
@@ -779,9 +845,13 @@ report 5605 "Fixed Asset - Book Value 01"
               TotalStartAmounts[j] + TotalNetChangeAmounts[j] + TotalDisposalAmounts[j];
         BookValueAtEndingDate := 0;
         BookValueAtStartingDate := 0;
-        for j := 1 to NumberOfTypes do begin
+        for j := 1 to NumberOfTypes - 1 do begin
             BookValueAtEndingDate := BookValueAtEndingDate + TotalEndingAmounts[j];
             BookValueAtStartingDate := BookValueAtStartingDate + TotalStartAmounts[j];
+        end;
+        if not UseNewDerogatoryBehavior then begin
+            BookValueAtEndingDate += TotalEndingAmounts[7];
+            BookValueAtStartingDate += TotalStartAmounts[7];
         end;
     end;
 
@@ -828,6 +898,10 @@ report 5605 "Fixed Asset - Book Value 01"
     [Scope('OnPrem')]
     procedure GetDerogDeprBookInfo()
     begin
+        Clear(DerogDeprBookInfo);
+        if not HasDerogatorySetup then
+            exit;
+
         DerogDeprBookInfo[1] := FADeprBook2."Depreciation Book Code";
         DerogDeprBookInfo[2] := Format(FADeprBook2."Depreciation Method");
         DerogDeprBookInfo[3] := Format(FADeprBook2."Depreciation Starting Date");
@@ -835,4 +909,3 @@ report 5605 "Fixed Asset - Book Value 01"
         DerogDeprBookInfo[5] := Format(FADeprBook2."Declining-Balance %");
     end;
 }
-

@@ -65,7 +65,10 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Last Custom 1 Date"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
-            FADeprBook.FieldNo("Last Derogatory Date"):
+#if not CLEAN30
+            FADeprBook.FieldNo("Last Derogatory Date"),
+#endif
+            FADeprBook.FieldNo("Last Derogatory"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
             FADeprBook.FieldNo("Last Custom 2 Date"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 2");
@@ -143,7 +146,10 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Custom 1"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
-            FADeprBook.FieldNo(Derogatory):
+#if not CLEAN30
+            FADeprBook.FieldNo(Derogatory),
+#endif
+            FADeprBook.FieldNo("Derogatory Amount"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
             FADeprBook.FieldNo("Custom 2"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 2");
@@ -167,7 +173,7 @@ codeunit 5626 "FA General Report"
             Period::"at Ending Date":
                 FALedgEntry.SetRange("FA Posting Date", 0D, EndingDate);
         end;
-        if (PostingType = FADeprBook.FieldNo(Derogatory)) then
+        if IsDerogatoryPostingType(PostingType) then
             FALedgEntry.CalcSums(Amount, "Debit Amount", "Credit Amount")
         else
             FALedgEntry.CalcSums(Amount);
@@ -183,7 +189,8 @@ codeunit 5626 "FA General Report"
                 Period::"at Ending Date":
                     FALedgEntry.Amount := FALedgEntry.Amount + UntilAmount;
             end;
-        if (PostingType = FADeprBook.FieldNo(Derogatory)) then begin
+        Result := FALedgEntry.Amount;
+        if IsDerogatoryPostingType(PostingType) then begin
             if UseCreditAmounts then begin
                 Clear(UseCreditAmounts);
                 Result := FALedgEntry."Credit Amount";
@@ -192,8 +199,7 @@ codeunit 5626 "FA General Report"
                 Clear(UseDebitAmounts);
                 Result := FALedgEntry."Debit Amount";
             end;
-        end else
-            Result := FALedgEntry.Amount;
+        end;
 
         OnAfterCalcFAPostedAmount(FALedgEntry, PostingType, Period, BeforeAmount, UntilAmount, Result);
     end;
@@ -221,7 +227,10 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Custom 1"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
-            FADeprBook.FieldNo(Derogatory):
+#if not CLEAN30
+            FADeprBook.FieldNo(Derogatory),
+#endif
+            FADeprBook.FieldNo("Derogatory Amount"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
             FADeprBook.FieldNo("Custom 2"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 2");
@@ -316,6 +325,15 @@ codeunit 5626 "FA General Report"
         Window.Close();
     end;
 
+    local procedure IsDerogatoryPostingType(PostingType: Integer): Boolean
+    begin
+#if not CLEAN30
+        if PostingType = FADeprBook.FieldNo(Derogatory) then
+            exit(true);
+#endif
+        exit(PostingType = FADeprBook.FieldNo("Derogatory Amount"));
+    end;
+
     [Scope('OnPrem')]
     procedure SetSign(Sign: Boolean)
     begin
@@ -358,4 +376,3 @@ codeunit 5626 "FA General Report"
     begin
     end;
 }
-

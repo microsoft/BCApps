@@ -21,25 +21,7 @@ codeunit 134049 "ERM Date Compression FA"
         isInitialized: Boolean;
         FARegisterErr: Label 'FA Register must be deleted for Journal Batch Name %1 .', Comment = '%1 = Journal Batch Name';
         DateLockedErr: Label 'The accounting periods for the period you wish to date compress must be Date Locked.';
-
-    local procedure Initialize()
-    var
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        LibraryApplicationArea: Codeunit "Library - Application Area";
-    begin
-        LibraryApplicationArea.EnableFoundationSetup();
-        LibraryFiscalYear.CreateClosedAccountingPeriods();
-        LibraryFiscalYear.CreateFiscalYear();
-
-        if isInitialized then
-            exit;
-
-        LibraryERMCountryData.UpdateGeneralLedgerSetup();
-        LibraryERMCountryData.CreateVATData();
-        LibraryERMCountryData.UpdateLocalData();
-        isInitialized := true;
-        Commit();
-    end;
+        LinkedEntryDateCompressionErr: Label 'belongs to a derogatory depreciation pair';
 
     [Test]
     [Scope('OnPrem')]
@@ -228,6 +210,165 @@ codeunit 134049 "ERM Date Compression FA"
         VerifyFALedgerEntryExists(LastFALedgerEntryNo, GenJournalLine."Account No.");
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DateCompressionRejectsFASource()
+    var
+        SourceEntry: Record "FA Ledger Entry";
+        CounterpartEntry: Record "FA Ledger Entry";
+        UnlinkedEntry: Record "FA Ledger Entry";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Compressing only the FA source book cannot orphan its counterpart
+        Initialize();
+
+        // [GIVEN] A linked FA pair and an unlinked entry
+        CreateFACompressionFailureFixture(SourceEntry, CounterpartEntry, UnlinkedEntry);
+        Commit();
+
+        // [WHEN] Only the source book is selected for compression
+        // [THEN] Compression fails before modifying any entries or registers
+        VerifyLinkedFACompressionRejected(SourceEntry, CounterpartEntry, UnlinkedEntry, false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DateCompressionRejectsFACounterpart()
+    var
+        SourceEntry: Record "FA Ledger Entry";
+        CounterpartEntry: Record "FA Ledger Entry";
+        UnlinkedEntry: Record "FA Ledger Entry";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Compressing only the FA counterpart book cannot remove a persisted link
+        Initialize();
+
+        // [GIVEN] A linked FA pair and an unlinked entry
+        CreateFACompressionFailureFixture(SourceEntry, CounterpartEntry, UnlinkedEntry);
+        Commit();
+
+        // [WHEN] Only the counterpart book is selected for compression
+        // [THEN] Compression fails before modifying any entries or registers
+        VerifyLinkedFACompressionRejected(SourceEntry, CounterpartEntry, UnlinkedEntry, true);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DateCompressionRejectsMaintenanceSource()
+    var
+        SourceEntry: Record "Maintenance Ledger Entry";
+        CounterpartEntry: Record "Maintenance Ledger Entry";
+        UnlinkedEntry: Record "Maintenance Ledger Entry";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Compressing only the maintenance source book cannot orphan its counterpart
+        Initialize();
+
+        // [GIVEN] A linked maintenance pair and an unlinked entry
+        CreateMaintenanceCompressionFailureFixture(SourceEntry, CounterpartEntry, UnlinkedEntry);
+        Commit();
+
+        // [WHEN] Only the source book is selected for compression
+        // [THEN] Compression fails before modifying any entries or registers
+        VerifyLinkedMaintenanceCompressionRejected(SourceEntry, CounterpartEntry, UnlinkedEntry, false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DateCompressionRejectsMaintenanceCounterpart()
+    var
+        SourceEntry: Record "Maintenance Ledger Entry";
+        CounterpartEntry: Record "Maintenance Ledger Entry";
+        UnlinkedEntry: Record "Maintenance Ledger Entry";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Compressing only the maintenance counterpart book cannot remove a persisted link
+        Initialize();
+
+        // [GIVEN] A linked maintenance pair and an unlinked entry
+        CreateMaintenanceCompressionFailureFixture(SourceEntry, CounterpartEntry, UnlinkedEntry);
+        Commit();
+
+        // [WHEN] Only the counterpart book is selected for compression
+        // [THEN] Compression fails before modifying any entries or registers
+        VerifyLinkedMaintenanceCompressionRejected(SourceEntry, CounterpartEntry, UnlinkedEntry, true);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DateCompressionIgnoresFALinksOutsideDateFilter()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An FA pair outside the date filter does not prevent compressing unlinked history
+        Initialize();
+
+        // [GIVEN] A linked pair and an unlinked FA entry on another date
+        // [WHEN] Only the unlinked entry's date is compressed
+        // [THEN] Compression succeeds and the pair remains unchanged
+        VerifyUnlinkedFACompression(true);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DateCompressionIgnoresFALinksOutsideBookFilter()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An FA pair outside the book filter does not prevent compressing unlinked history
+        Initialize();
+
+        // [GIVEN] A linked pair and an unlinked FA entry in another book
+        // [WHEN] Only the unlinked entry's book is compressed
+        // [THEN] Compression succeeds and the pair remains unchanged
+        VerifyUnlinkedFACompression(false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DateCompressionIgnoresMaintenanceLinksOutsideDateFilter()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A maintenance pair outside the date filter does not prevent compressing unlinked history
+        Initialize();
+
+        // [GIVEN] A linked pair and an unlinked maintenance entry on another date
+        // [WHEN] Only the unlinked entry's date is compressed
+        // [THEN] Compression succeeds and the pair remains unchanged
+        VerifyUnlinkedMaintenanceCompression(true);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure DateCompressionIgnoresMaintenanceLinksOutsideBookFilter()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A maintenance pair outside the book filter does not prevent compressing unlinked history
+        Initialize();
+
+        // [GIVEN] A linked pair and an unlinked maintenance entry in another book
+        // [WHEN] Only the unlinked entry's book is compressed
+        // [THEN] Compression succeeds and the pair remains unchanged
+        VerifyUnlinkedMaintenanceCompression(false);
+    end;
+
+    local procedure Initialize()
+    var
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+    begin
+        LibraryApplicationArea.EnableFoundationSetup();
+        LibraryFiscalYear.CreateClosedAccountingPeriods();
+        LibraryFiscalYear.CreateFiscalYear();
+
+        if isInitialized then
+            exit;
+
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
+        LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateLocalData();
+        isInitialized := true;
+        Commit();
+    end;
+
     local procedure AttachDimensionOnFixedAsset(var DimensionValue: Record "Dimension Value"; FANo: Code[20])
     var
         DefaultDimension: Record "Default Dimension";
@@ -249,6 +390,14 @@ codeunit 134049 "ERM Date Compression FA"
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
+    local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; No: Code[20]; DepreciationBookCode: Code[10]; FAPostingGroup: Code[20])
+    begin
+        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, No, DepreciationBookCode);
+        UpdateDateFADepreciationBook(FADepreciationBook, DepreciationBookCode);
+        FADepreciationBook.Validate("FA Posting Group", FAPostingGroup);
+        FADepreciationBook.Modify(true);
+    end;
+
     local procedure CreateFixedAssetWithDimension(): Code[20]
     var
         DepreciationBook: Record "Depreciation Book";
@@ -262,14 +411,6 @@ codeunit 134049 "ERM Date Compression FA"
         UpdateFixedAsset(FixedAsset);
         AttachDimensionOnFixedAsset(DimensionValue, FixedAsset."No.");
         exit(FixedAsset."No.");
-    end;
-
-    local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; No: Code[20]; DepreciationBookCode: Code[10]; FAPostingGroup: Code[20])
-    begin
-        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, No, DepreciationBookCode);
-        UpdateDateFADepreciationBook(FADepreciationBook, DepreciationBookCode);
-        FADepreciationBook.Validate("FA Posting Group", FAPostingGroup);
-        FADepreciationBook.Modify(true);
     end;
 
     local procedure CreateGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; AccountNo: Code[20]; FAPostingType: Enum "Gen. Journal Line FA Posting Type")
@@ -306,6 +447,88 @@ codeunit 134049 "ERM Date Compression FA"
 
         LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+    end;
+
+    local procedure CreateAdditionalCompressionBook(FANo: Code[20]): Code[10]
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+    begin
+        LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FANo, DepreciationBook.Code);
+        exit(DepreciationBook.Code);
+    end;
+
+    local procedure CreateCompressionBooks(var FixedAsset: Record "Fixed Asset"; var SourceBook: Record "Depreciation Book"; var CounterpartBook: Record "Depreciation Book")
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+    begin
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        LibraryFixedAsset.CreateDepreciationBook(SourceBook);
+        LibraryFixedAsset.CreateDepreciationBook(CounterpartBook);
+        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", SourceBook.Code);
+        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", CounterpartBook.Code);
+    end;
+
+    local procedure CreateFACompressionFailureFixture(var SourceEntry: Record "FA Ledger Entry"; var CounterpartEntry: Record "FA Ledger Entry"; var UnlinkedEntry: Record "FA Ledger Entry")
+    begin
+        CreateFACompressionPair(SourceEntry, CounterpartEntry);
+        UnlinkedEntry := SourceEntry;
+        UnlinkedEntry."Entry No." := UnlinkedEntry.GetLastEntryNo() + 1;
+        UnlinkedEntry.Insert();
+    end;
+
+    local procedure CreateFACompressionPair(var SourceEntry: Record "FA Ledger Entry"; var CounterpartEntry: Record "FA Ledger Entry")
+    var
+        FixedAsset: Record "Fixed Asset";
+        SourceBook: Record "Depreciation Book";
+        CounterpartBook: Record "Depreciation Book";
+    begin
+        CreateCompressionBooks(FixedAsset, SourceBook, CounterpartBook);
+        SourceEntry."Entry No." := SourceEntry.GetLastEntryNo() + 1;
+        SourceEntry."FA No." := FixedAsset."No.";
+        SourceEntry."Depreciation Book Code" := SourceBook.Code;
+        SourceEntry."FA Posting Group" := FixedAsset."FA Posting Group";
+        SourceEntry."FA Posting Type" := SourceEntry."FA Posting Type"::Depreciation;
+        SourceEntry."FA Posting Date" := LibraryFiscalYear.GetFirstPostingDate(true);
+        SourceEntry."Posting Date" := SourceEntry."FA Posting Date";
+        SourceEntry.Amount := 100;
+        SourceEntry.Insert();
+        CounterpartEntry := SourceEntry;
+        CounterpartEntry."Entry No." += 1;
+        CounterpartEntry."Depreciation Book Code" := CounterpartBook.Code;
+        CounterpartEntry."Derogatory Source Entry No." := SourceEntry."Entry No.";
+        CounterpartEntry.Insert();
+    end;
+
+    local procedure CreateMaintenanceCompressionFailureFixture(var SourceEntry: Record "Maintenance Ledger Entry"; var CounterpartEntry: Record "Maintenance Ledger Entry"; var UnlinkedEntry: Record "Maintenance Ledger Entry")
+    begin
+        CreateMaintenanceCompressionPair(SourceEntry, CounterpartEntry);
+        UnlinkedEntry := SourceEntry;
+        UnlinkedEntry."Entry No." := UnlinkedEntry.GetLastEntryNo() + 1;
+        UnlinkedEntry.Insert();
+    end;
+
+    local procedure CreateMaintenanceCompressionPair(var SourceEntry: Record "Maintenance Ledger Entry"; var CounterpartEntry: Record "Maintenance Ledger Entry")
+    var
+        FixedAsset: Record "Fixed Asset";
+        SourceBook: Record "Depreciation Book";
+        CounterpartBook: Record "Depreciation Book";
+    begin
+        CreateCompressionBooks(FixedAsset, SourceBook, CounterpartBook);
+        SourceEntry."Entry No." := SourceEntry.GetLastEntryNo() + 1;
+        SourceEntry."FA No." := FixedAsset."No.";
+        SourceEntry."Depreciation Book Code" := SourceBook.Code;
+        SourceEntry."FA Posting Group" := FixedAsset."FA Posting Group";
+        SourceEntry."FA Posting Date" := LibraryFiscalYear.GetFirstPostingDate(true);
+        SourceEntry."Posting Date" := SourceEntry."FA Posting Date";
+        SourceEntry.Amount := 100;
+        SourceEntry.Insert();
+        CounterpartEntry := SourceEntry;
+        CounterpartEntry."Entry No." += 1;
+        CounterpartEntry."Depreciation Book Code" := CounterpartBook.Code;
+        CounterpartEntry."Derogatory Source Entry No." := SourceEntry."Entry No.";
+        CounterpartEntry.Insert();
     end;
 
     local procedure FindDimensionValue(var DimensionValue: Record "Dimension Value")
@@ -395,6 +618,38 @@ codeunit 134049 "ERM Date Compression FA"
         DeleteEmptyFARegisters.Run();
     end;
 
+    local procedure RunFilteredFACompression(FANo: Code[20]; BookCode: Code[10]; PostingDate: Date)
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+        DateComprRegister: Record "Date Compr. Register";
+        DateCompressFALedger: Report "Date Compress FA Ledger";
+    begin
+        FALedgerEntry.SetRange("FA No.", FANo);
+        FALedgerEntry.SetRange("Depreciation Book Code", BookCode);
+        DateCompressFALedger.SetTableView(FALedgerEntry);
+        DateCompressFALedger.SetRetainDocumentNo(false);
+        DateCompressFALedger.SetRetainIndexEntry(false);
+        DateCompressFALedger.InitializeRequest(PostingDate, PostingDate, DateComprRegister."Period Length"::Day, FANo, '', false);
+        DateCompressFALedger.UseRequestPage(false);
+        DateCompressFALedger.Run();
+    end;
+
+    local procedure RunFilteredMaintenanceCompression(FANo: Code[20]; BookCode: Code[10]; PostingDate: Date)
+    var
+        MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        DateComprRegister: Record "Date Compr. Register";
+        DateCompressMaintLedger: Report "Date Compress Maint. Ledger";
+    begin
+        MaintenanceLedgerEntry.SetRange("FA No.", FANo);
+        MaintenanceLedgerEntry.SetRange("Depreciation Book Code", BookCode);
+        DateCompressMaintLedger.SetTableView(MaintenanceLedgerEntry);
+        DateCompressMaintLedger.SetRetainDocumentNo(false);
+        DateCompressMaintLedger.SetRetainIndexEntry(false);
+        DateCompressMaintLedger.InitializeRequest(PostingDate, PostingDate, DateComprRegister."Period Length"::Day, FANo, '', false);
+        DateCompressMaintLedger.UseRequestPage(false);
+        DateCompressMaintLedger.Run();
+    end;
+
     local procedure UpdateDateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; DepreciationBookCode: Code[10])
     begin
         FADepreciationBook.Validate("Depreciation Book Code", DepreciationBookCode);
@@ -448,6 +703,190 @@ codeunit 134049 "ERM Date Compression FA"
         MaintenanceLedgerEntry.TestField(Amount, Amount);
     end;
 
+    local procedure VerifyFACompressionPair(SourceEntryNo: Integer; CounterpartEntryNo: Integer)
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        FALedgerEntry.Get(SourceEntryNo);
+        Assert.AreEqual(100, FALedgerEntry.Amount, 'The original source amount must be preserved.');
+        Assert.AreEqual(0, FALedgerEntry."Derogatory Source Entry No.", 'The source must remain a source.');
+        FALedgerEntry.Get(CounterpartEntryNo);
+        Assert.AreEqual(100, FALedgerEntry.Amount, 'The original counterpart amount must be preserved.');
+        Assert.AreEqual(SourceEntryNo, FALedgerEntry."Derogatory Source Entry No.", 'The persisted pair must be preserved.');
+    end;
+
+    local procedure VerifyLinkedFACompressionRejected(SourceEntry: Record "FA Ledger Entry"; CounterpartEntry: Record "FA Ledger Entry"; UnlinkedEntry: Record "FA Ledger Entry"; CompressCounterpart: Boolean)
+    var
+        DateComprRegister: Record "Date Compr. Register";
+        FARegister: Record "FA Register";
+        RegisterCount: Integer;
+        FARegisterCount: Integer;
+        BookCode: Code[10];
+    begin
+        BookCode := SourceEntry."Depreciation Book Code";
+        if CompressCounterpart then
+            BookCode := CounterpartEntry."Depreciation Book Code";
+        RegisterCount := DateComprRegister.Count();
+        FARegisterCount := FARegister.Count();
+
+        asserterror RunFilteredFACompression(SourceEntry."FA No.", BookCode, SourceEntry."FA Posting Date");
+
+        Assert.ExpectedError(LinkedEntryDateCompressionErr);
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyFACompressionPair(SourceEntry."Entry No.", CounterpartEntry."Entry No.");
+        UnlinkedEntry.Get(UnlinkedEntry."Entry No.");
+        Assert.AreEqual(100, UnlinkedEntry.Amount, 'An unlinked entry must not be compressed before the failure.');
+        Assert.AreEqual(RegisterCount, DateComprRegister.Count(), 'A rejected compression must not create a register.');
+        Assert.AreEqual(FARegisterCount, FARegister.Count(), 'A rejected compression must not create an FA register.');
+    end;
+
+    local procedure VerifyLinkedMaintenanceCompressionRejected(SourceEntry: Record "Maintenance Ledger Entry"; CounterpartEntry: Record "Maintenance Ledger Entry"; UnlinkedEntry: Record "Maintenance Ledger Entry"; CompressCounterpart: Boolean)
+    var
+        DateComprRegister: Record "Date Compr. Register";
+        FARegister: Record "FA Register";
+        RegisterCount: Integer;
+        FARegisterCount: Integer;
+        BookCode: Code[10];
+    begin
+        BookCode := SourceEntry."Depreciation Book Code";
+        if CompressCounterpart then
+            BookCode := CounterpartEntry."Depreciation Book Code";
+        RegisterCount := DateComprRegister.Count();
+        FARegisterCount := FARegister.Count();
+
+        asserterror RunFilteredMaintenanceCompression(SourceEntry."FA No.", BookCode, SourceEntry."FA Posting Date");
+
+        Assert.ExpectedError(LinkedEntryDateCompressionErr);
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyMaintenanceCompressionPair(SourceEntry."Entry No.", CounterpartEntry."Entry No.");
+        UnlinkedEntry.Get(UnlinkedEntry."Entry No.");
+        Assert.AreEqual(100, UnlinkedEntry.Amount, 'An unlinked entry must not be compressed before the failure.');
+        Assert.AreEqual(RegisterCount, DateComprRegister.Count(), 'A rejected compression must not create a register.');
+        Assert.AreEqual(FARegisterCount, FARegister.Count(), 'A rejected compression must not create an FA register.');
+    end;
+
+    local procedure VerifyMaintenanceCompressionPair(SourceEntryNo: Integer; CounterpartEntryNo: Integer)
+    var
+        MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+    begin
+        MaintenanceLedgerEntry.Get(SourceEntryNo);
+        Assert.AreEqual(100, MaintenanceLedgerEntry.Amount, 'The original source amount must be preserved.');
+        Assert.AreEqual(0, MaintenanceLedgerEntry."Derogatory Source Entry No.", 'The source must remain a source.');
+        MaintenanceLedgerEntry.Get(CounterpartEntryNo);
+        Assert.AreEqual(100, MaintenanceLedgerEntry.Amount, 'The original counterpart amount must be preserved.');
+        Assert.AreEqual(SourceEntryNo, MaintenanceLedgerEntry."Derogatory Source Entry No.", 'The persisted pair must be preserved.');
+    end;
+
+    local procedure VerifyUnlinkedFACompression(UseDifferentDate: Boolean)
+    var
+        SourceEntry: Record "FA Ledger Entry";
+        CounterpartEntry: Record "FA Ledger Entry";
+        UnlinkedEntry: Record "FA Ledger Entry";
+        CompressedEntry: Record "FA Ledger Entry";
+    begin
+        CreateFACompressionPair(SourceEntry, CounterpartEntry);
+        UnlinkedEntry := SourceEntry;
+        UnlinkedEntry."Entry No." := UnlinkedEntry.GetLastEntryNo() + 1;
+        if UseDifferentDate then
+            UnlinkedEntry."FA Posting Date" += 1
+        else
+            UnlinkedEntry."Depreciation Book Code" := CreateAdditionalCompressionBook(SourceEntry."FA No.");
+        UnlinkedEntry."Posting Date" := UnlinkedEntry."FA Posting Date";
+        UnlinkedEntry.Insert();
+
+        VerifyUnlinkedFASelection(SourceEntry, CounterpartEntry, UnlinkedEntry);
+        RunFilteredFACompression(UnlinkedEntry."FA No.", UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date");
+
+        VerifyFACompressionPair(SourceEntry."Entry No.", CounterpartEntry."Entry No.");
+        Assert.IsFalse(CompressedEntry.Get(UnlinkedEntry."Entry No."), 'The selected unlinked entry must be compressed.');
+        CompressedEntry.SetRange("FA No.", UnlinkedEntry."FA No.");
+        CompressedEntry.SetRange("Depreciation Book Code", UnlinkedEntry."Depreciation Book Code");
+        CompressedEntry.SetRange("FA Posting Date", UnlinkedEntry."FA Posting Date");
+        Assert.AreEqual(1, CompressedEntry.Count(), 'Compression must leave one summary.');
+        CompressedEntry.FindFirst();
+        Assert.AreEqual(100, CompressedEntry.Amount, 'Compression must preserve the selected amount.');
+        Assert.AreEqual(0, CompressedEntry."Derogatory Source Entry No.", 'An unlinked summary must remain unlinked.');
+    end;
+
+    local procedure VerifyUnlinkedMaintenanceCompression(UseDifferentDate: Boolean)
+    var
+        SourceEntry: Record "Maintenance Ledger Entry";
+        CounterpartEntry: Record "Maintenance Ledger Entry";
+        UnlinkedEntry: Record "Maintenance Ledger Entry";
+        CompressedEntry: Record "Maintenance Ledger Entry";
+    begin
+        CreateMaintenanceCompressionPair(SourceEntry, CounterpartEntry);
+        UnlinkedEntry := SourceEntry;
+        UnlinkedEntry."Entry No." := UnlinkedEntry.GetLastEntryNo() + 1;
+        if UseDifferentDate then
+            UnlinkedEntry."FA Posting Date" += 1
+        else
+            UnlinkedEntry."Depreciation Book Code" := CreateAdditionalCompressionBook(SourceEntry."FA No.");
+        UnlinkedEntry."Posting Date" := UnlinkedEntry."FA Posting Date";
+        UnlinkedEntry.Insert();
+
+        VerifyUnlinkedMaintenanceSelection(SourceEntry, CounterpartEntry, UnlinkedEntry);
+        RunFilteredMaintenanceCompression(UnlinkedEntry."FA No.", UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date");
+
+        VerifyMaintenanceCompressionPair(SourceEntry."Entry No.", CounterpartEntry."Entry No.");
+        Assert.IsFalse(CompressedEntry.Get(UnlinkedEntry."Entry No."), 'The selected unlinked entry must be compressed.');
+        CompressedEntry.SetRange("FA No.", UnlinkedEntry."FA No.");
+        CompressedEntry.SetRange("Depreciation Book Code", UnlinkedEntry."Depreciation Book Code");
+        CompressedEntry.SetRange("FA Posting Date", UnlinkedEntry."FA Posting Date");
+        Assert.AreEqual(1, CompressedEntry.Count(), 'Compression must leave one summary.');
+        CompressedEntry.FindFirst();
+        Assert.AreEqual(100, CompressedEntry.Amount, 'Compression must preserve the selected amount.');
+        Assert.AreEqual(0, CompressedEntry."Derogatory Source Entry No.", 'An unlinked summary must remain unlinked.');
+    end;
+
+    local procedure VerifyUnlinkedFASelection(SourceEntry: Record "FA Ledger Entry"; CounterpartEntry: Record "FA Ledger Entry"; UnlinkedEntry: Record "FA Ledger Entry")
+    var
+        SelectedEntry: Record "FA Ledger Entry";
+    begin
+        Assert.AreNotEqual(SourceEntry."Entry No.", CounterpartEntry."Entry No.", 'Source and counterpart must have distinct identities.');
+        Assert.AreNotEqual(SourceEntry."Entry No.", UnlinkedEntry."Entry No.", 'Source and unlinked entry must have distinct identities.');
+        Assert.AreNotEqual(CounterpartEntry."Entry No.", UnlinkedEntry."Entry No.", 'Counterpart and unlinked entry must have distinct identities.');
+        Assert.AreEqual(0, SourceEntry."Derogatory Source Entry No.", 'The source must not be a counterpart.');
+        Assert.AreEqual(SourceEntry."Entry No.", CounterpartEntry."Derogatory Source Entry No.", 'The counterpart must reference the source.');
+        Assert.AreEqual(0, UnlinkedEntry."Derogatory Source Entry No.",
+            StrSubstNo('Unlinked FA entry %1, source %2, counterpart %3, book %4, date %5 must have no source link.',
+                UnlinkedEntry."Entry No.", SourceEntry."Entry No.", CounterpartEntry."Entry No.",
+                UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date"));
+        SelectedEntry.SetRange("Derogatory Source Entry No.", UnlinkedEntry."Entry No.");
+        Assert.RecordIsEmpty(SelectedEntry);
+        SelectedEntry.Reset();
+        SelectedEntry.SetRange("FA No.", UnlinkedEntry."FA No.");
+        SelectedEntry.SetRange("Depreciation Book Code", UnlinkedEntry."Depreciation Book Code");
+        SelectedEntry.SetRange("FA Posting Date", UnlinkedEntry."FA Posting Date");
+        Assert.AreEqual(1, SelectedEntry.Count(), 'The compression view must select only the unlinked entry.');
+        SelectedEntry.FindFirst();
+        Assert.AreEqual(UnlinkedEntry."Entry No.", SelectedEntry."Entry No.", 'Unexpected selected FA entry.');
+    end;
+
+    local procedure VerifyUnlinkedMaintenanceSelection(SourceEntry: Record "Maintenance Ledger Entry"; CounterpartEntry: Record "Maintenance Ledger Entry"; UnlinkedEntry: Record "Maintenance Ledger Entry")
+    var
+        SelectedEntry: Record "Maintenance Ledger Entry";
+    begin
+        Assert.AreNotEqual(SourceEntry."Entry No.", CounterpartEntry."Entry No.", 'Source and counterpart must have distinct identities.');
+        Assert.AreNotEqual(SourceEntry."Entry No.", UnlinkedEntry."Entry No.", 'Source and unlinked entry must have distinct identities.');
+        Assert.AreNotEqual(CounterpartEntry."Entry No.", UnlinkedEntry."Entry No.", 'Counterpart and unlinked entry must have distinct identities.');
+        Assert.AreEqual(0, SourceEntry."Derogatory Source Entry No.", 'The source must not be a counterpart.');
+        Assert.AreEqual(SourceEntry."Entry No.", CounterpartEntry."Derogatory Source Entry No.", 'The counterpart must reference the source.');
+        Assert.AreEqual(0, UnlinkedEntry."Derogatory Source Entry No.",
+            StrSubstNo('Unlinked maintenance entry %1, source %2, counterpart %3, book %4, date %5 must have no source link.',
+                UnlinkedEntry."Entry No.", SourceEntry."Entry No.", CounterpartEntry."Entry No.",
+                UnlinkedEntry."Depreciation Book Code", UnlinkedEntry."FA Posting Date"));
+        SelectedEntry.SetRange("Derogatory Source Entry No.", UnlinkedEntry."Entry No.");
+        Assert.RecordIsEmpty(SelectedEntry);
+        SelectedEntry.Reset();
+        SelectedEntry.SetRange("FA No.", UnlinkedEntry."FA No.");
+        SelectedEntry.SetRange("Depreciation Book Code", UnlinkedEntry."Depreciation Book Code");
+        SelectedEntry.SetRange("FA Posting Date", UnlinkedEntry."FA Posting Date");
+        Assert.AreEqual(1, SelectedEntry.Count(), 'The compression view must select only the unlinked entry.');
+        SelectedEntry.FindFirst();
+        Assert.AreEqual(UnlinkedEntry."Entry No.", SelectedEntry."Entry No.", 'Unexpected selected maintenance entry.');
+    end;
+
     [ConfirmHandler]
     [Scope('OnPrem')]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
@@ -455,4 +894,3 @@ codeunit 134049 "ERM Date Compression FA"
         Reply := true;
     end;
 }
-

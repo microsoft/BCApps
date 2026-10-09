@@ -33,6 +33,17 @@ codeunit 9999 "Upgrade Tag"
     end;
 
     /// <summary>
+    /// Gets the timestamp of an upgrade tag for the current company.
+    /// </summary>
+    /// <param name="Tag">Tag code to find.</param>
+    /// <param name="TagTimestamp">Timestamp when the tag was set.</param>
+    /// <returns>True if the tag exists.</returns>
+    procedure GetUpgradeTagTimestamp(Tag: Code[250]; var TagTimestamp: DateTime): Boolean
+    begin
+        exit(UpgradeTagImpl.GetUpgradeTagTimestamp(Tag, TagTimestamp));
+    end;
+
+    /// <summary>
     /// Verifies if the upgrade tag exists.
     /// </summary>
     /// <param name="Tag">Tag code to check</param>

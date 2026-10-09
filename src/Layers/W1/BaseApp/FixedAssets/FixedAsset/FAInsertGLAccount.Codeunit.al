@@ -126,7 +126,7 @@ codeunit 5601 "FA Insert G/L Account"
         FAPostingGr.Reset();
         FAPostingGr.GetPostingGroup(PostingGrCode, DeprBookCode);
         OnInsertBufferBalAccOnAfterGetFAPostingGroup(FAPostingGr);
-        GLAccNo := GetGLAccNoFromFAPostingGroup(FAPostingGr, FAPostingType);
+        GLAccNo := GetGLAccNoFromFAPostingGroup(FAPostingGr, FAPostingType, AllocAmount);
 
         DimensionSetIDArr[1] := DimSetID;
 
@@ -362,7 +362,7 @@ codeunit 5601 "FA Insert G/L Account"
         GenJnlLine.Modify(true);
     end;
 
-    local procedure GetGLAccNoFromFAPostingGroup(FAPostingGr: Record "FA Posting Group"; FAPostingType: Enum "FA Posting Group Account Type") GLAccNo: Code[20]
+    local procedure GetGLAccNoFromFAPostingGroup(FAPostingGr: Record "FA Posting Group"; FAPostingType: Enum "FA Posting Group Account Type"; AllocAmount: Decimal) GLAccNo: Code[20]
     var
         FieldErrorText: Text[50];
         IsHandled: Boolean;
@@ -458,6 +458,19 @@ codeunit 5601 "FA Insert G/L Account"
                     FAPostingGr.CalcFields("Allocated Book Value % (Loss)");
                     if FAPostingGr."Allocated Book Value % (Loss)" > 100 then
                         FAPostingGr.FieldError("Allocated Book Value % (Loss)", FieldErrorText);
+                end;
+            FAPostingType::Derogatory:
+                begin
+                    if AllocAmount > 0 then begin
+                        FAPostingGr.TestField("Derogatory Expense Acc.");
+                        GLAccNo := FAPostingGr."Derogatory Expense Acc."
+                    end else begin
+                        FAPostingGr.TestField("Derog. Bal. Account (Decrease)");
+                        GLAccNo := FAPostingGr."Derog. Bal. Account (Decrease)";
+                    end;
+                    FAPostingGr.CalcFields("Allocated Derogatory Pct.");
+                    if FAPostingGr."Allocated Derogatory Pct." > 100 then
+                        FAPostingGr.FieldError("Allocated Derogatory Pct.", FieldErrorText);
                 end;
         end;
 
