@@ -180,10 +180,42 @@ page 1178 "Doc. Attachment List Factbox"
 
     trigger OnDeleteRecord(): Boolean
     begin
+        if not ConfirmDeleteFromUnfilteredList() then
+            exit(false);
+
         // When adding this factbox to a main page, the UpadtePropagation property is set to "Both" to ensure the main page is updated when a record is deleted.
         // This is necessary to call `CurrPage.Update()` to have the property take effect.
         if GuiAllowed then
             CurrPage.Update();
+    end;
+
+    local procedure ConfirmDeleteFromUnfilteredList(): Boolean
+    var
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        DeleteConfirmed: Boolean;
+    begin
+        // OnDeleteRecord runs once per selected record. The answer given for the first record is remembered
+        // for the other records of the same selection, so the user is asked only once per delete operation.
+        if DeleteFromUnfilteredListDecisions.Get(Rec.SystemId, DeleteConfirmed) then begin
+            DeleteFromUnfilteredListDecisions.Remove(Rec.SystemId);
+            exit(DeleteConfirmed);
+        end;
+        Clear(DeleteFromUnfilteredListDecisions);
+
+        if not GuiAllowed then
+            exit(true);
+        if not DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(Rec) then
+            exit(true);
+
+        DeleteConfirmed := DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList();
+        CurrPage.SetSelectionFilter(SelectedDocumentAttachment);
+        if SelectedDocumentAttachment.FindSet() then
+            repeat
+                if SelectedDocumentAttachment.SystemId <> Rec.SystemId then
+                    DeleteFromUnfilteredListDecisions.Set(SelectedDocumentAttachment.SystemId, DeleteConfirmed);
+            until SelectedDocumentAttachment.Next() = 0;
+        exit(DeleteConfirmed);
     end;
 
     local procedure LoadAndRunDocumentAttachmentDetail()
@@ -262,6 +294,7 @@ page 1178 "Doc. Attachment List Factbox"
         IsMultiSelect: Boolean;
         IsOfficeAddIn: Boolean;
         EmailHasAttachments: Boolean;
+        DeleteFromUnfilteredListDecisions: Dictionary of [Guid, Boolean];
         CannotDownloadOrViewFileWithEmptyNameErr: Label 'The file must have a name.';
 
     [IntegrationEvent(true, false)]

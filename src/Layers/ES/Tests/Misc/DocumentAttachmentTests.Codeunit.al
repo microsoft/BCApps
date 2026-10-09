@@ -34,9 +34,11 @@ codeunit 134776 "Document Attachment Tests"
         AttachedDateInvalidErr: Label 'Attached date is invalid';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         AttachmentNotDeletedErr: Label 'Attachment is not deleted';
+        AttachmentDeletedErr: Label 'Attachment must not be deleted';
         ConfirmConvertToOrderQst: Label 'Do you want to convert the quote to an order?';
         ConfirmOpeningNewOrderAfterQuoteToOrderQst: Label 'Do you want to open the new order?';
         DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
+        DeleteFromUnfilteredListQst: Label 'The list of attachments is not filtered to the current document. If you continue, the selected attachments will be deleted even if they belong to other documents in the company.\\Do you want to continue?';
         DuplicateErr: Label 'This file is already attached to the document. Please choose another file.';
         ExpectedFieldNotEditableErr: Label 'Expected field %1 is not editable in %2', Comment = '%1=FieldName, %2=PageName';
         ExpectedFieldNotVisibleErr: Label 'Expected field %1 is not visible in %2', Comment = '%1=FieldName, %2=PageName';
@@ -3709,6 +3711,94 @@ codeunit 134776 "Document Attachment Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListConfirmedDeletesAttachments()
+    var
+        Customer: array[2] of Record Customer;
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO 653614] Deleting from an unfiltered attachment list asks for confirmation and deletes the selected attachments when confirmed
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with an attachment each
+        CreateCustomerWithAttachment(Customer[1]);
+        CreateCustomerWithAttachment(Customer[2]);
+
+        // [WHEN] Attachments of "C1" and "C2" are deleted from an attachment list without any filters and the user confirms
+        LibraryVariableStorage.Enqueue(true);
+        DeleteAttachmentsFromAttachmentList(DocumentAttachment, Customer);
+
+        // [THEN] Attachments of "C1" and "C2" are deleted
+        Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
+        Assert.IsFalse(CustomerAttachmentExists(Customer[2]), AttachmentNotDeletedErr);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListDeclinedKeepsAttachments()
+    var
+        Customer: array[2] of Record Customer;
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO 653614] Deleting from an unfiltered attachment list does not delete anything when the user declines the confirmation
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with an attachment each
+        CreateCustomerWithAttachment(Customer[1]);
+        CreateCustomerWithAttachment(Customer[2]);
+
+        // [WHEN] Attachments of "C1" and "C2" are deleted from an attachment list without any filters and the user declines
+        LibraryVariableStorage.Enqueue(false);
+        DeleteAttachmentsFromAttachmentList(DocumentAttachment, Customer);
+
+        // [THEN] Attachments of "C1" and "C2" are not deleted
+        Assert.IsTrue(CustomerAttachmentExists(Customer[1]), AttachmentDeletedErr);
+        Assert.IsTrue(CustomerAttachmentExists(Customer[2]), AttachmentDeletedErr);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure DeleteFromFilteredAttachmentListDoesNotAskForConfirmation()
+    var
+        Customer: array[2] of Record Customer;
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] Deleting from an attachment list filtered to a document does not ask for an additional confirmation
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with an attachment each
+        CreateCustomerWithAttachment(Customer[1]);
+        CreateCustomerWithAttachment(Customer[2]);
+
+        // [GIVEN] Attachment list filtered to "C1" with link filters, as when the FactBox is linked to the customer
+        DocumentAttachment.FilterGroup(4);
+        DocumentAttachment.SetRange("Table ID", Database::Customer);
+        DocumentAttachment.SetRange("No.", Customer[1]."No.");
+        DocumentAttachment.FilterGroup(0);
+
+        // [WHEN] Attachments of "C1" are deleted from the attachment list
+        Customer[2] := Customer[1];
+        DeleteAttachmentsFromAttachmentList(DocumentAttachment, Customer);
+
+        // [THEN] No confirmation is shown (no ConfirmHandler) and attachments of "C1" are deleted
+        Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
+
+        // [THEN] A list linked only by fields other than "No." (e.g. E-Document pages) is also treated as filtered
+        DocumentAttachment.Reset();
+        DocumentAttachment.FilterGroup(4);
+        DocumentAttachment.SetRange("Table ID", Database::Customer);
+        DocumentAttachment.FilterGroup(0);
+        Assert.IsFalse(DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(DocumentAttachment), 'A list with link filters must be treated as filtered.');
+        Assert.AreEqual(0, DocumentAttachment.FilterGroup(), 'The filter group must be restored.');
+
+        // [THEN] A list without any filters is treated as unfiltered
+        DocumentAttachment.Reset();
+        Assert.IsTrue(DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(DocumentAttachment), 'A list without filters must be treated as unfiltered.');
+    end;
+
+    [Test]
     [HandlerFunctions('ListProductionFlow')]
     [Scope('OnPrem')]
     procedure TestDocAttachPageInRoutingHeader()
@@ -4841,6 +4931,39 @@ codeunit 134776 "Document Attachment Tests"
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
     end;
 
+    local procedure CreateCustomerWithAttachment(var Customer: Record Customer)
+    var
+        RecRef: RecordRef;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        RecRef.GetTable(Customer);
+        CreateDocAttach(RecRef, 'Cust1.jpeg', false, false);
+    end;
+
+    local procedure CustomerAttachmentExists(Customer: Record Customer): Boolean
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.SetRange("Table ID", Database::Customer);
+        DocumentAttachment.SetRange("No.", Customer."No.");
+        exit(not DocumentAttachment.IsEmpty());
+    end;
+
+    local procedure DeleteAttachmentsFromAttachmentList(var DocumentAttachmentList: Record "Document Attachment"; Customer: array[2] of Record Customer)
+    var
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // Mirrors the OnDeleteRecord check of page "Doc. Attachment List Factbox", which cannot be triggered from a TestPage.
+        if DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(DocumentAttachmentList) then
+            if not DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList() then
+                exit;
+
+        SelectedDocumentAttachment.SetRange("Table ID", Database::Customer);
+        SelectedDocumentAttachment.SetFilter("No.", '%1|%2', Customer[1]."No.", Customer[2]."No.");
+        SelectedDocumentAttachment.DeleteAll(true);
+    end;
+
     [Scope('OnPrem')]
     procedure CreateDocAttach(RecRef: RecordRef; FileName: Text[250]; FlowPurch: Boolean; FlowSales: Boolean)
     var
@@ -5556,6 +5679,14 @@ codeunit 134776 "Document Attachment Tests"
     procedure MessageHandler(Message: Text[1024])
     begin
         LibraryVariableStorage.Enqueue(Message);
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandlerDeleteFromUnfilteredList(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage(DeleteFromUnfilteredListQst, Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 
     [ConfirmHandler]

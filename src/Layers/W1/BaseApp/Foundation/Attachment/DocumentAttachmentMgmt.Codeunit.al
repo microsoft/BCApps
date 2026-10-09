@@ -38,6 +38,7 @@ codeunit 1173 "Document Attachment Mgmt"
         NoSaveToPDFReportTxt: Label 'There are no reports which could be saved to PDF for this document.';
         ShowAttachmentsTxt: Label 'Show Attachments';
         DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
+        DeleteFromUnfilteredListQst: Label 'The list of attachments is not filtered to the current document. If you continue, the selected attachments will be deleted even if they belong to other documents in the company.\\Do you want to continue?';
         RelatedAttachmentsFilterTxt: Label '%1|%2', Comment = '%1 = Source Table ID, %2 = Related Table ID', Locked = true;
 
     procedure DeleteAttachedDocuments(RecRef: RecordRef)
@@ -93,6 +94,28 @@ codeunit 1173 "Document Attachment Mgmt"
             NumberOfRecords := Rec.Count();
         end;
         Rec.FilterGroup := CurrentFilterGroup;
+    end;
+
+    internal procedure IsDocumentAttachmentListUnfiltered(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        CurrentFilterGroup: Integer;
+        FilterGroupNo: Integer;
+        HasFilters: Boolean;
+    begin
+        CurrentFilterGroup := DocumentAttachment.FilterGroup;
+        FilterGroupNo := 0;
+        repeat
+            DocumentAttachment.FilterGroup := FilterGroupNo;
+            HasFilters := DocumentAttachment.GetFilters() <> '';
+            FilterGroupNo += 1;
+        until HasFilters or (FilterGroupNo > 255);
+        DocumentAttachment.FilterGroup := CurrentFilterGroup;
+        exit(not HasFilters);
+    end;
+
+    internal procedure ConfirmDeleteFromUnfilteredList(): Boolean
+    begin
+        exit(ConfirmManagement.GetResponse(DeleteFromUnfilteredListQst, false));
     end;
 
     procedure GetRefTable(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment"): Boolean
