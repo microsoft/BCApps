@@ -12,12 +12,11 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 - host, e.g. microsoft.com', Locked = true;
         ConnectionErr: Label 'Could not connect to the remote service %1.', Comment = '%1 - host, e.g. microsoft.com', Locked = true;
         CompanyStatusCheckedTxt: Label 'Nemhandel company registration status was checked.', Locked = true;
-        ResponseRejectedTxt: Label 'The Nemhandelsregisteret response was rejected by response validation (size or schema).', Locked = true;
+        ResponseRejectedTxt: Label 'The Nemhandelsregisteret response was rejected by response validation (schema).', Locked = true;
         ServiceCallFailedTxt: Label 'The Nemhandelsregisteret company registration status lookup failed.', Locked = true;
         NemhandelsregisteretCategoryTxt: Label 'Nemhandelsregisteret', Locked = true;
         NemhandelCompanyStatusKeyLbl: Label 'NemhandelCompanyStatus', Locked = true;
         CVRNumberKeyLbl: Label 'CVRNumber', Locked = true;
-        SecurityAuditResponseTooLargeTxt: Label 'The Nemhandelsregisteret service returned a response that exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseSchemaTxt: Label 'The Nemhandelsregisteret service returned a response that did not contain the expected data.', Locked = true;
 
     trigger OnRun()
@@ -78,8 +77,9 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         case HttpStatusCode of
             200:
                 if not ResponseBodyValid then begin
-                    // Oversized or schema-invalid response: an explicit rejection introduced by response validation.
-                    // Logged as a warning (and to environment telemetry) so it is distinguishable from a successful lookup.
+                    // Schema-invalid response: an explicit rejection introduced by response validation (size is bounded
+                    // by the platform HttpClient limit, not here). Logged as a warning (and to environment telemetry) so
+                    // it is distinguishable from a successful lookup.
                     CompanyStatus := "Nemhandel Company Status"::Unknown;
                     Telemetry.LogMessage(
                         '0000VEV', ResponseRejectedTxt, Verbosity::Warning, DataClassification::SystemMetadata,
@@ -136,12 +136,11 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
 
         ContentString := HttpResponseMsgNemhandel.GetResponseBodyAsText();
 
-        // Size limit: reject abnormally large responses from the unauthenticated Nemhandelsregisteret service before parsing.
-        if StrLen(ContentString) > GetMaxResponseSize() then begin
-            // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
-            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            exit;
-        end;
+        // No app-level response-size cap: a Nemhandelsregisteret lookup legitimately returns very large bodies for
+        // entities with many registered receivers - the 'modtagere' array dominates the payload, and Danish regions
+        // and municipalities can return tens of MB (observed up to ~97 MB / 17,002 receivers). A byte cap would
+        // therefore reject real, registered companies. Memory is bounded by the platform HttpClient absolute response
+        // limit (150 MiB); integrity is enforced below by requiring the response to echo the requested 'cvrNummer'.
 
         // Schema / source expectation: the response must be a JSON object that exposes the 'cvrNummer' field.
         if not TryExtractCVRNumber(ContentString, ResponseCVRNumber) then begin
@@ -166,13 +165,6 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
             exit(false);
         ResponseCVRNumber := CVRNumberToken.AsValue().AsText();
         exit(true);
-    end;
-
-    local procedure GetMaxResponseSize(): Integer
-    begin
-        // A lookup returns a single company record (typically < 1 KB). 64 KB leaves ample headroom
-        // while still rejecting abnormally large payloads from the unauthenticated service.
-        exit(65536);
     end;
 
     local procedure GetHostFromUri(RequestUri: Text): Text
