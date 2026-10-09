@@ -298,25 +298,14 @@ page 1651 "Curr. Exch. Rate Service Card"
     local procedure ShowHttpError()
     var
         ActivityLog: Record "Activity Log";
-        WebRequestHelper: Codeunit "Web Request Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        WebException: DotNet WebException;
-        XmlNode: DotNet XmlNode;
-        ResponseInputStream: InStream;
         ErrorText: Text;
     begin
-        ErrorText := WebRequestHelper.GetWebResponseError(WebException, WebServiceURL);
+        ErrorText := GetLastErrorText();
 
         ActivityLog.LogActivity(Rec, ActivityLog.Status::Failed, Rec."Service Provider", Rec.Description, ErrorText);
 
-        if IsNull(WebException.Response) then
-            Error(ErrorText);
-
-        ResponseInputStream := WebException.Response.GetResponseStream();
-
-        XMLDOMMgt.LoadXMLNodeFromInStream(ResponseInputStream, XmlNode);
-
-        ErrorText := XmlStructureIsNotSupportedErr;
+        if ErrorText = '' then
+            ErrorText := XmlStructureIsNotSupportedErr;
 
         Error(ErrorText);
     end;

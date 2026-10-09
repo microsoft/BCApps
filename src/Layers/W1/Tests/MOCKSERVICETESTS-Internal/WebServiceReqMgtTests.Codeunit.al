@@ -328,36 +328,31 @@ codeunit 132581 WebServiceReqMgtTests
         SOAPWebServiceRequestMgt.SetGlobals(BlobInStream, Url, Username, Password);
 
         if not SOAPWebServiceRequestMgt.SendRequestToWebService() then begin
-            asserterror ProcessFaultResponseAMC('<syslogtype>error</syslogtype>');
+            asserterror ProcessFaultResponseAMC(SOAPWebServiceRequestMgt, '<syslogtype>error</syslogtype>');
             ExpectedError(Expected);
         end else
             Error(WebServiceMgtRunErr);
     end;
 
-    local procedure ProcessFaultResponseAMC(ExpectedTag: Text)
+    local procedure ProcessFaultResponseAMC(var SOAPWebServiceRequestMgt: Codeunit "SOAP Web Service Request Mgt."; ExpectedTag: Text)
     var
         ResponseText: Text;
-        WebRequestHelper: Codeunit "Web Request Helper";
-        WebException: DotNet WebException;
         ResponseInputStream: InStream;
         ErrorText: Text;
-        ServiceURL: Text;
         ErrorMessageStartPos: Integer;
         ErrorMessageEndPos: Integer;
     begin
-        ErrorText := WebRequestHelper.GetWebResponseError(WebException, ServiceURL);
+        if not (SOAPWebServiceRequestMgt.GetFaultResponseStatusCode() in [302, 500]) then
+            SOAPWebServiceRequestMgt.ProcessFaultResponse('');
 
-        if ErrorText <> '' then
-            Error(ErrorText);
-
-        ResponseInputStream := WebException.Response.GetResponseStream();
+        SOAPWebServiceRequestMgt.GetFaultResponseContent(ResponseInputStream);
         ResponseInputStream.Read(ResponseText);
 
         if ResponseText.Contains(ExpectedTag) then begin
             ErrorMessageStartPos := StrPos(ResponseText, '<text>');
             ErrorMessageEndPos := StrPos(ResponseText, '</text>');
             ErrorText := CopyStr(ResponseText, ErrorMessageStartPos + 6, ErrorMessageEndPos - ErrorMessageStartPos - 6);
-            ErrorText := InternalErr + ErrorText + ServiceURL;
+            ErrorText := InternalErr + ErrorText + ServiceURLTxt;
         end;
         Error(ErrorText);
     end;
