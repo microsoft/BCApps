@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
-using System.Text;
 
 page 6928 "Expense Reports API"
 {
@@ -279,7 +278,6 @@ page 6928 "Expense Reports API"
         CurrencyLCYDisplay: Code[10];
         ReimbursementCurrencyCodeDisplay: Code[10];
         ExpenseUserSystemId: Guid;
-        SubmitterFilter: Text;
         ExpenseReportCreatedLbl: Label 'Expense report created via API.', Locked = true;
 
     trigger OnInit()
@@ -340,63 +338,15 @@ page 6928 "Expense Reports API"
     begin
         FilterGroup := Rec.FilterGroup(4);
         ApproverCode := CopyStr(Rec.GetFilter("Pending Approval By"), 1, MaxStrLen(ApproverCode));
-
         Rec.SetRange("Pending Approval By");
-
-        if (SubmitterFilter = '') and (ApproverCode <> '') then begin
-            // The next line can be database intensive - limit its use
-            SubmitterFilter := GetSubmitterFilter(ApproverCode);
-
-            if SubmitterFilter <> '' then
-                Rec.SetFilter("Expense User No.", SubmitterFilter)
-            else
-                // If there is an approver filter that can approve for no submitter, we should show an empty list
-                Rec.SetRange(SystemId, CreateGuid());
-        end;
-
         Rec.FilterGroup(FilterGroup);
-    end;
 
-    local procedure GetSubmitterFilter(ApproverCode: Code[20]) SubmitterFilterString: Text
-    var
-        ExpenseApprovalSetup: Record "Expense Approval Setup";
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        SelectionFilterManagement: Codeunit SelectionFilterManagement;
-        RecRef: RecordRef;
-    begin
-        ExpenseApprovalSetup.SetCurrentKey("Approver No.");
-        ExpenseApprovalSetup.SetRange("Approver No.", ApproverCode);
-
-        RecRef.GetTable(ExpenseApprovalSetup);
-        SubmitterFilterString := SelectionFilterManagement.GetSelectionFilter(RecRef, ExpenseApprovalSetup.FieldNo("Expense User No."));
-
-        ExpenseAgentSetup.Get();
-        if ExpenseAgentSetup."Default Approver No." <> ApproverCode then
+        if ApproverCode = '' then
             exit;
-        AppendDefaultSubmittersForDefaultApprover(SubmitterFilterString);
-        if StrLen(SubmitterFilterString) > 2000 then
-            SubmitterFilterString := '*'; // to avoid failing sql statements
-    end;
 
-    local procedure AppendDefaultSubmittersForDefaultApprover(var SubmitterFilterString: Text)
-    var
-        ExpenseUser: Record "Expense User";
-        DefaultFilter: TextBuilder;
-    begin
-        if SubmitterFilterString <> '' then
-            DefaultFilter.Append(SubmitterFilterString);
-
-        ExpenseUser.SetAutoCalcFields("Approver No.");
-        ExpenseUser.SetFilter("Approver No.", '%1', '');
-        ExpenseUser.SetLoadFields("No.");
-        if ExpenseUser.FindSet() then
-            repeat
-                if DefaultFilter.Length > 0 then
-                    DefaultFilter.Append('|');
-                DefaultFilter.Append(ExpenseUser."No.");
-            until ExpenseUser.Next() = 0;
-
-        SubmitterFilterString := DefaultFilter.ToText();
+        // The active approver can be either the interim or final approver.
+        Rec.SetRange("Approver Expense User No.", ApproverCode);
+        Rec.SetFilter(Status, '%1|%2', Rec.Status::"Pending Approval", Rec.Status::"Interim Approved");
     end;
 
     local procedure UpdateExpenseUserNoFromSystemId()

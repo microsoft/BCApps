@@ -430,6 +430,19 @@ page 6910 "Expense Report"
                         ProcessApprovalAction(RefActionType::Approve);
                     end;
                 }
+                action(ApproveInExpenseApp)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Approve in Expense app';
+                    Enabled = ApprovalActionsEnabled;
+                    Visible = ApprovalActionsEnabled and (ExpenseReportUrl <> '');
+                    ToolTip = 'Opens the expense report for approval in the Expense app.';
+
+                    trigger OnAction()
+                    begin
+                        Hyperlink(ExpenseReportUrl);
+                    end;
+                }
                 action(Reject)
                 {
                     ApplicationArea = Basic, Suite;
@@ -662,6 +675,9 @@ page 6910 "Expense Report"
                 actionref(Approve_Promoted; Approve)
                 {
                 }
+                actionref(ApproveInExpenseApp_Promoted; ApproveInExpenseApp)
+                {
+                }
                 actionref(Reject_Promoted; Reject)
                 {
                 }
@@ -714,7 +730,6 @@ page 6910 "Expense Report"
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
-
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
             ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
             if not ExpenseUser."Unlimited Approval" then begin
@@ -761,6 +776,7 @@ page 6910 "Expense Report"
         SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
+        ExpenseReportUrl: Text;
 
     protected var
         SubmitEnabled: Boolean;
@@ -770,8 +786,10 @@ page 6910 "Expense Report"
 
     local procedure UpdateControls()
     var
+        EAHttpClient: Codeunit "EA Http Client";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
     begin
+        ExpenseReportUrl := EAHttpClient.GetExpenseReportUrl(Rec.SystemId);
         SubmitEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Submit);
         ReopenSubmittedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Submitted");
         ApproveEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Approve);
@@ -853,7 +871,6 @@ page 6910 "Expense Report"
         ExpenseReportLine.SetRange("Document No.", Rec."No.");
         if ExpenseReportLine.IsEmpty() then
             ExpenseReportApprovalMgt.NoExpenseLinesToProcess(ActionType);
-
         case ActionType of
             ActionType::Approve:
                 Rec.PerformManualApproved(Rec."Approver Expense User No.");
@@ -896,13 +913,11 @@ page 6910 "Expense Report"
     begin
         ExpenseReportPost.PostExpenseReport(Rec);
         DocumentIsPosted := (not ExpenseReportHeader.Get(Rec."No."));
-
         case Navigate of
             Enum::"Navigate After Posting"::"Posted Document":
                 begin
                     if InstructionMgt.IsEnabled(InstructionMgt.ShowPostedConfirmationMessageCode()) then
                         ShowPostedConfirmationMessage();
-
                     if DocumentIsPosted then
                         CurrPage.Close();
                 end;
