@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.DemoData.Finance;
 using Microsoft.DemoTool;
 
 codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Module"
@@ -34,9 +35,19 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
 
     procedure CreateMasterData()
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         CreateExpenseCountryData: Codeunit "Create Expense Country Data";
+        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
     begin
         CreateExpenseCountryData.CreateMasterData();
+        if not CreateExpenseCountryData.IsVATCountry() then
+            exit;
+
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", CreateVATPostingGroups.Domestic());
+        ExpenseAgentSetup.Modify(true);
+        Commit();
+        Codeunit.Run(Codeunit::"Create Expense VAT Rates");
     end;
 
     procedure CreateTransactionalData()

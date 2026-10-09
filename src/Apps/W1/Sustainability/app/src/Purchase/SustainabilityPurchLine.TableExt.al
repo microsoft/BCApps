@@ -492,6 +492,13 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
             DataClassification = CustomerContent;
         }
 #pragma warning restore PTE0002
+        field(6242; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR';
+            Editable = false;
+            ToolTip = 'Indicates that the item on the purchase line is subject to the EU Deforestation Regulation, so lot-level certification details may be required.';
+            DataClassification = CustomerContent;
+        }
     }
 
     procedure UpdateSustainabilityEmission(var PurchLine: Record "Purchase Line")

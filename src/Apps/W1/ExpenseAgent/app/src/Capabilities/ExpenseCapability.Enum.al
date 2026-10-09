@@ -89,4 +89,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Approval Conversation', Locked = true;
     }
+
+    /// <summary>
+    /// Travel requests are available in the expense app.
+    /// </summary>
+    value(8; TravelRequest)
+    {
+        Caption = 'Travel Request', Locked = true;
+    }
 }

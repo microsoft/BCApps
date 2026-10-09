@@ -325,9 +325,13 @@ codeunit 10 "Type Helper"
     end;
 
     procedure TestFieldIsNotObsolete("Field": Record "Field")
+    var
+        RecordRef: RecordRef;
     begin
-        if Field.ObsoleteState = Field.ObsoleteState::Removed then
-            Error(ObsoleteFieldErr, Field."Field Caption", Field.TableName);
+        if Field.ObsoleteState = Field.ObsoleteState::Removed then begin
+            RecordRef.Open(Field.TableNo);
+            Error(ObsoleteFieldErr, Field."Field Caption", RecordRef.Caption());
+        end;
     end;
 
     procedure IsPhoneNumber(Input: Text): Boolean
@@ -379,21 +383,9 @@ codeunit 10 "Type Helper"
 
     procedure EvaluateUnixTimestamp(Timestamp: BigInteger): DateTime
     var
-        ResultDateTime: DateTime;
-        EpochDateTime: DateTime;
-        TimezoneOffset: Duration;
-        TimestampInMilliseconds: BigInteger;
+        UnixTimestamp: Codeunit "Unix Timestamp";
     begin
-        if not GetUserTimezoneOffset(TimezoneOffset) then
-            TimezoneOffset := 0;
-
-        EpochDateTime := CreateDateTime(DMY2Date(1, 1, 1970), 0T);
-
-        TimestampInMilliseconds := Timestamp * 1000;
-
-        ResultDateTime := EpochDateTime + TimestampInMilliseconds + TimezoneOffset;
-
-        exit(ResultDateTime);
+        exit(UnixTimestamp.EvaluateTimestamp(Timestamp));
     end;
 
     procedure EvaluateUTCDateTime(DateTimeText: Text) EvaluatedDateTime: DateTime
@@ -1050,4 +1042,3 @@ codeunit 10 "Type Helper"
     begin
     end;
 }
-

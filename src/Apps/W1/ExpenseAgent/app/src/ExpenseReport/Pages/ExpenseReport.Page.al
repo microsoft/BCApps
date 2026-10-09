@@ -9,7 +9,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
-using System.Security.User;
 
 page 6910 "Expense Report"
 {
@@ -114,6 +113,12 @@ page 6910 "Expense Report"
                     ToolTip = 'Specifies the VAT business posting group used when posting VAT for this expense report.';
                     Importance = Additional;
                     Visible = false;
+                }
+                field("Employee Posting Group"; Rec."Employee Posting Group")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the employee posting group used when posting expenses for this expense report.';
+                    Importance = Additional;
                 }
                 field("Spend Request No."; Rec."Spend Request No.")
                 {
@@ -706,17 +711,15 @@ page 6910 "Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
-        UserSetup: Record "User Setup";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
-            if not UserSetup."Unlimited Expense Approval" then begin
+            ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+            if not ExpenseUser."Unlimited Approval" then begin
                 CheckSetDefaultOwnerFilter();
-                ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();
-                ExpenseUser.Get(ExpenseUserNo);
+                ExpenseUserNo := ExpenseUser."No.";
             end;
         end;
 
