@@ -92,6 +92,15 @@ codeunit 1460 SignedXml
     end;
 
     /// <summary>
+    /// Sets the type Uniform Resource Identifier (URI) of the current Reference.
+    /// </summary>
+    /// <param name="Type">The type URI of the current Reference.</param>
+    procedure SetReferenceType(Type: Text)
+    begin
+        SignedXmlImpl.SetReferenceType(Type);
+    end;
+
+    /// <summary>
     /// Sets the digest method Uniform Resource Identifier (URI) of the current Reference.
     /// </summary>
     /// <param name="DigestMethod">The digest method URI of the current Reference. The default value is http://www.w3.org/2001/04/xmlenc#sha256.</param>
