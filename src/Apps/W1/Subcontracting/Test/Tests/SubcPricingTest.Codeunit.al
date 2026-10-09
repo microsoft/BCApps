@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -1943,6 +1944,219 @@ codeunit 139982 "Subc. Pricing Test"
             DirectlyCreatedPurchaseLineDirectUnitCostErr);
     end;
 
+    [Test]
+    procedure TimeBasedSubcontractorPriceEnforcesMinimumAmountAfterTimeFactor()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        ExpectedDirectUnitCost: Decimal;
+        Price: Decimal;
+        RunTime: Decimal;
+    begin
+        // [SCENARIO 653252] The Minimum Amount floor is evaluated against the time-adjusted price, not multiplied by the time factor
+        Initialize();
+
+        // [GIVEN] A time-based operation with Run Time 2, price 100 and a Minimum Amount of 150
+        RunTime := 2;
+        CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, '', RunTime);
+        Price := 100;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", Price);
+        SubcontractorPrice.Validate("Minimum Amount", 150);
+        SubcontractorPrice.Modify(true);
+
+        // [GIVEN] The time-adjusted price (100 * 2 = 200) already exceeds the Minimum Amount
+        ExpectedDirectUnitCost := Price * RunTime;
+
+        CreateReleasedProdOrderAndFindRoutingLine(ProductionOrder, ProdOrderRoutingLine, Item, WorkCenter."No.");
+
+        // [WHEN] The subcontracting purchase line is priced through Subc. Price Management
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        PurchaseLine.TestField("Buy-from Vendor No.", Vendor."No.");
+        PurchaseLine.TestField("Work Center No.", WorkCenter."No.");
+        PurchaseLine.TestField("Unit of Measure Code", SubcontractorPrice."Unit of Measure Code");
+        PurchaseLine.TestField("Currency Code", SubcontractorPrice."Currency Code");
+        PurchaseLine."Order Date" := WorkDate();
+        PurchaseLine."Direct Unit Cost" := 0;
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        // [THEN] The Minimum Amount does not inflate the cost (it is not multiplied by Run Time)
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            TimeBasedMinimumAmountErr);
+    end;
+
+    [Test]
+    procedure TimeBasedSubcontractorPriceUsesLineCurrencyRoundingPrecision()
+    var
+        Currency: Record Currency;
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RequisitionLine: Record "Requisition Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        CurrencyCode: Code[10];
+        ExpectedDirectUnitCost: Decimal;
+        Price: Decimal;
+        RunTime: Decimal;
+    begin
+        // [SCENARIO 653252] A foreign-currency time-based price is rounded with the currency's Unit-Amount Rounding Precision
+        Initialize();
+
+        // [GIVEN] A foreign currency (1:1 exchange) with Unit-Amount Rounding Precision 0.1
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        Currency.Get(CurrencyCode);
+        Currency.Validate("Unit-Amount Rounding Precision", 0.1);
+        Currency.Modify(true);
+
+        // [GIVEN] A time-based operation with Run Time 1.5 and a price of 1.26 in that currency
+        RunTime := 1.5;
+        CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, CurrencyCode, RunTime);
+        Price := 1.26;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            WorkDate(), Item."Base Unit of Measure", 0, CurrencyCode);
+        SubcontractorPrice.Validate("Direct Unit Cost", Price);
+        SubcontractorPrice.Modify(true);
+
+        // [GIVEN] The time-adjusted price 1.89 rounds to 1.9 at the currency's precision
+        Currency.Get(CurrencyCode);
+        ExpectedDirectUnitCost := Round(Price * RunTime, Currency."Unit-Amount Rounding Precision");
+
+        CreateReleasedProdOrderAndFindRoutingLine(ProductionOrder, ProdOrderRoutingLine, Item, WorkCenter."No.");
+
+        // [WHEN] A foreign-currency requisition line for the operation is priced through Subc. Price Management
+        StageTimeBasedRequisitionLine(RequisitionLine, Vendor, WorkCenter, Item, ProdOrderRoutingLine, CurrencyCode);
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] The cost is rounded with the line-currency precision, not the LCY precision
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, RequisitionLine."Direct Unit Cost",
+            TimeBasedCurrencyRoundingErr);
+    end;
+
+    [Test]
+    procedure TimeBasedSubcontractorPriceIncludesProductionLineScrap()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        ExpectedDirectUnitCost: Decimal;
+        Price: Decimal;
+        RunTime: Decimal;
+        ScrapPct: Decimal;
+    begin
+        // [SCENARIO 653252] Production-line scrap increases the time-based subcontracting cost
+        Initialize();
+
+        // [GIVEN] A time-based operation with Run Time 2 and price 100
+        RunTime := 2;
+        CreateTimeBasedSubcontractingScenario(Item, Vendor, WorkCenter, '', RunTime);
+        Price := 100;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", Price);
+        SubcontractorPrice.Modify(true);
+
+        // [GIVEN] A released production order whose line has 10% scrap
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        ScrapPct := 10;
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate("Scrap %", ScrapPct);
+        ProdOrderLine.Modify(true);
+
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [GIVEN] The expected cost includes the scrap-inflated run time (100 * 2 * 1.1)
+        ExpectedDirectUnitCost := Price * RunTime * (1 + ScrapPct / 100);
+
+        // [WHEN] The subcontracting purchase line is priced through Subc. Price Management
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        PurchaseLine.TestField("Buy-from Vendor No.", Vendor."No.");
+        PurchaseLine.TestField("Work Center No.", WorkCenter."No.");
+        PurchaseLine.TestField("Unit of Measure Code", SubcontractorPrice."Unit of Measure Code");
+        PurchaseLine.TestField("Currency Code", SubcontractorPrice."Currency Code");
+        PurchaseLine."Order Date" := WorkDate();
+        PurchaseLine."Direct Unit Cost" := 0;
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        // [THEN] The cost reflects the additional time required for production-line scrap
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            TimeBasedProdLineScrapErr);
+    end;
+
+    local procedure CreateTimeBasedSubcontractingScenario(var Item: Record Item; var Vendor: Record Vendor; var WorkCenter: Record "Work Center"; CurrencyCode: Code[10]; RunTime: Decimal)
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, CurrencyCode);
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Time);
+        WorkCenter.Modify(true);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Run Time", RunTime);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+    end;
+
+    local procedure CreateReleasedProdOrderAndFindRoutingLine(var ProductionOrder: Record "Production Order"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; Item: Record Item; WorkCenterNo: Code[20])
+    begin
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenterNo);
+        ProdOrderRoutingLine.FindFirst();
+    end;
+
+    local procedure StageTimeBasedRequisitionLine(var RequisitionLine: Record "Requisition Line"; Vendor: Record Vendor; WorkCenter: Record "Work Center"; Item: Record Item; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; CurrencyCode: Code[10])
+    begin
+        RequisitionLine.Init();
+        RequisitionLine.Type := RequisitionLine.Type::Item;
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        RequisitionLine."Currency Code" := CurrencyCode;
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 1;
+        RequisitionLine."Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
+        RequisitionLine."Routing No." := ProdOrderRoutingLine."Routing No.";
+        RequisitionLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+        RequisitionLine."Operation No." := ProdOrderRoutingLine."Operation No.";
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Pricing Test");
@@ -2072,4 +2286,7 @@ codeunit 139982 "Subc. Pricing Test"
         CarriedOutPurchaseLineDirectUnitCostErr: Label 'The carried-out purchase line Direct Unit Cost must include Run Time for a time-based subcontractor price.';
         AutomaticPurchaseLineRepricingErr: Label 'Automatic purchase-line repricing must include Run Time for a time-based subcontractor price.';
         DirectlyCreatedPurchaseLineDirectUnitCostErr: Label 'The directly created purchase line Direct Unit Cost must include Run Time for a time-based subcontractor price.';
+        TimeBasedMinimumAmountErr: Label 'The Minimum Amount must be enforced against the time-adjusted price, not multiplied by the time factor.';
+        TimeBasedCurrencyRoundingErr: Label 'The time-based Direct Unit Cost must be rounded with the purchase-line currency precision.';
+        TimeBasedProdLineScrapErr: Label 'The time-based Direct Unit Cost must include production-line scrap.';
 }

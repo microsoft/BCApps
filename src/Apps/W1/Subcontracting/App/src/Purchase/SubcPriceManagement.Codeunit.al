@@ -367,12 +367,17 @@ codeunit 20508 "Subc. Price Management"
 
     local procedure GetPriceByUOM(var SubcontractorPrice: Record "Subcontractor Price"; PriceListQty: Decimal; var PriceListCost: Decimal): Boolean
     begin
+        exit(GetPriceByUOM(SubcontractorPrice, PriceListQty, 1, PriceListCost));
+    end;
+
+    local procedure GetPriceByUOM(var SubcontractorPrice: Record "Subcontractor Price"; PriceListQty: Decimal; CostFactor: Decimal; var PriceListCost: Decimal): Boolean
+    begin
         SubcontractorPrice.SetRange("Minimum Quantity", 0, PriceListQty);
         SubcontractorPrice.SetRange("Unit of Measure Code", SubcontractorPrice."Unit of Measure Code");
         if not SubcontractorPrice.FindLast() then
             exit(false);
 
-        PriceListCost := SubcontractorPrice."Direct Unit Cost";
+        PriceListCost := SubcontractorPrice."Direct Unit Cost" * CostFactor;
         if (PriceListCost <> 0) and (PriceListQty <> 0) then
             if (PriceListCost * PriceListQty) < SubcontractorPrice."Minimum Amount" then
                 PriceListCost := SubcontractorPrice."Minimum Amount" / PriceListQty;
@@ -448,6 +453,7 @@ codeunit 20508 "Subc. Price Management"
         SubcontractorPrice: Record "Subcontractor Price";
         PriceListUOM: Code[10];
         OrderDate: Date;
+        CostFactor: Decimal;
         DirectCost: Decimal;
         PriceListCost: Decimal;
         PriceListQty: Decimal;
@@ -486,7 +492,15 @@ codeunit 20508 "Subc. Price Management"
             end else
                 GetUOMPrice(RequisitionLine."No.", RequisitionLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
 
-            if not GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost) then begin
+            CostFactor := 1;
+            if RequisitionLine."Prod. Order No." <> '' then begin
+                GetProdOrderRtngLine(
+                    RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.",
+                    RequisitionLine."Routing No.", RequisitionLine."Operation No.", ProdOrderRoutingLine);
+                CostFactor := GetOperationCostFactor(ProdOrderRoutingLine);
+            end;
+
+            if not GetPriceByUOM(SubcontractorPrice, PriceListQty, CostFactor, PriceListCost) then begin
                 RequisitionLine."Subc. Pricelist Cost" := 0;
                 RequisitionLine."Subc. UoM for Pricelist" := '';
                 RequisitionLine."Base UM Qty/PL UM Qty" := 1;
@@ -496,13 +510,6 @@ codeunit 20508 "Subc. Price Management"
             if PriceListCost <> 0 then begin
                 ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityForUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
                 ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
-                if RequisitionLine."Prod. Order No." <> '' then begin
-                    // comment
-                    GetProdOrderRtngLine(
-                        RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.",
-                        RequisitionLine."Routing No.", RequisitionLine."Operation No.", ProdOrderRoutingLine);
-                    ApplyTimeBasedOperationCost(ProdOrderRoutingLine, DirectCost);
-                end;
             end;
             RequisitionLine."Direct Unit Cost" := DirectCost;
             RequisitionLine."Subc. Pricelist Cost" := PriceListCost;
@@ -577,6 +584,7 @@ codeunit 20508 "Subc. Price Management"
     var
         SubcontractorPrice: Record "Subcontractor Price";
         PriceListUOM: Code[10];
+        CostFactor: Decimal;
         PriceListCost, PriceListQty, PriceListQtyPerUOM : Decimal;
     begin
         DirectCost := 0;
@@ -614,29 +622,23 @@ codeunit 20508 "Subc. Price Management"
         if SubcontractorPrice."Unit of Measure Code" = PurchaseLine."Unit of Measure Code" then
             PriceListUOM := SubcontractorPrice."Unit of Measure Code";
         GetUOMPrice(PurchaseLine."No.", GetQuantityBase(PurchaseLine), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
-        if not GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost) then
+        CostFactor := GetOperationCostFactor(ProdOrderRoutingLine);
+        if not GetPriceByUOM(SubcontractorPrice, PriceListQty, CostFactor, PriceListCost) then
             exit(false);
         if PriceListCost = 0 then
             exit(true);
 
         ConvertPriceToUOM(PurchaseLine."Unit of Measure Code", PurchaseLine.GetQuantityPerUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
         ConvertPriceToCurrency(PurchaseLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
-        ApplyTimeBasedOperationCost(ProdOrderRoutingLine, DirectCost);
         exit(true);
     end;
 
-    local procedure ApplyTimeBasedOperationCost(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var DirectCost: Decimal)
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
+    local procedure GetOperationCostFactor(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
     begin
         if ProdOrderRoutingLine."Unit Cost Calculation" <> ProdOrderRoutingLine."Unit Cost Calculation"::Time then
-            exit;
+            exit(1);
 
-        GeneralLedgerSetup.Get();
-        DirectCost :=
-            Round(
-                DirectCost * GetTimeBasedOperationCostFactor(ProdOrderRoutingLine),
-                GeneralLedgerSetup."Unit-Amount Rounding Precision");
+        exit(GetTimeBasedOperationCostFactor(ProdOrderRoutingLine));
     end;
 
     local procedure GetTimeBasedOperationCostFactor(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
@@ -645,6 +647,7 @@ codeunit 20508 "Subc. Price Management"
         ProdOrderLine: Record "Prod. Order Line";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         CostTime: Decimal;
+        MfgItemQtyBase: Decimal;
     begin
         GetLine(ProdOrderLine, ProdOrderRoutingLine);
         ProdOrderLine.CalcFields("Total Exp. Oper. Output (Qty.)");
@@ -653,9 +656,11 @@ codeunit 20508 "Subc. Price Management"
 
         ManufacturingSetup2.SetLoadFields("Cost Incl. Setup");
         ManufacturingSetup2.Get();
+        MfgItemQtyBase :=
+            MfgCostCalculationMgt.CalcQtyAdjdForBOMScrap(ProdOrderLine."Quantity (Base)", ProdOrderLine."Scrap %");
         CostTime :=
             MfgCostCalculationMgt.CalculateCostTime(
-                ProdOrderLine."Quantity (Base)",
+                MfgItemQtyBase,
                 ProdOrderRoutingLine."Setup Time", ProdOrderRoutingLine."Setup Time Unit of Meas. Code",
                 ProdOrderRoutingLine."Run Time", ProdOrderRoutingLine."Run Time Unit of Meas. Code",
                 ProdOrderRoutingLine."Lot Size", ProdOrderRoutingLine."Scrap Factor % (Accumulated)",
