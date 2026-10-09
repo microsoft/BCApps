@@ -182,6 +182,7 @@ codeunit 20341 "Tax Document GL Posting"
 
     local procedure AdjustTaxAmountOnGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; Balancing: Boolean)
     var
+        Currency: Record Currency;
         CurrencyExchRate: Record "Currency Exchange Rate";
         TaxJnlMgmt: Codeunit "Tax Posting Buffer Mgmt.";
         AmountLCYToAdjust: Decimal;
@@ -204,11 +205,15 @@ codeunit 20341 "Tax Document GL Posting"
                     GenJnlLine.Validate("Amount (LCY)", GenJnlLine."Amount (LCY)" - AmountLCYToAdjust)
                 else begin
                     GenJnlLine."Amount (LCY)" := GenJnlLine."Amount (LCY)" - AmountLCYToAdjust;
-                    GenJnlLine.Amount := CurrencyExchRate.ExchangeAmtLCYToFCY(
-                        GenJnlLine."Posting Date",
-                        GenJnlLine."Currency Code",
-                        GenJnlLine."Amount (LCY)",
-                        GenJnlLine."Currency Factor");
+                    Currency.Get(GenJnlLine."Currency Code");
+                    Currency.TestField("Amount Rounding Precision");
+                    GenJnlLine.Amount := Round(
+                        CurrencyExchRate.ExchangeAmtLCYToFCY(
+                            GenJnlLine."Posting Date",
+                            GenJnlLine."Currency Code",
+                            GenJnlLine."Amount (LCY)",
+                            GenJnlLine."Currency Factor"),
+                        Currency."Amount Rounding Precision");
                 end;
                 GenJnlLine."Sales/Purch. (LCY)" := TaxJnlMgmt.GetSalesPurchLcy();
                 if CommitSupresed then
