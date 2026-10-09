@@ -523,8 +523,8 @@ codeunit 5278 "Create No. Series"
         SegmentLbl: Label 'Segment', MaxLength = 100;
         FinanceChargeMemoLbl: Label 'Finance Charge Memo', MaxLength = 100;
         IssuedFinanceChargeMemoLbl: Label 'Issued Finance Charge Memo', MaxLength = 100;
-        SNNumbering1Lbl: Label 'SN Numbering', MaxLength = 100;
-        SNNumbering2Lbl: Label 'SN Numbering', MaxLength = 100;
+        SNNumbering1Lbl: Label 'Serial Nos. - SN Prefix', MaxLength = 100;
+        SNNumbering2Lbl: Label 'Serial Nos. - XYZ Prefix', MaxLength = 100;
         SalesPriceListLbl: Label 'Sales Price List', MaxLength = 100;
         SalesQuoteLbl: Label 'Sales Quote', MaxLength = 100;
         PostedSalesReceiptLbl: Label 'Posted Sales Receipt', MaxLength = 100;

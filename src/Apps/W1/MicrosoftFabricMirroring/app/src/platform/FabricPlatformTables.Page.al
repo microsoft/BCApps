@@ -58,11 +58,13 @@ page 48512 "Fabric Platform Tables"
                 var
                     AllObjWithCaption: Record AllObjWithCaption;
                     FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    FabricTableValidation: Codeunit "Fabric Table Validation";
                     ObjectsPage: Page Objects;
                 begin
                     FabricPlatformMgt.CheckCanAddTable();
 
                     AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+                    AllObjWithCaption.SetFilter("Object ID", FabricTableValidation.GetExportableTableIdFilter());
                     ObjectsPage.SetTableView(AllObjWithCaption);
                     ObjectsPage.LookupMode(true);
                     if ObjectsPage.RunModal() <> Action::LookupOK then
