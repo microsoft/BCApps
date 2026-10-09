@@ -5,9 +5,10 @@
 namespace Microsoft.Warehouse.ADCS;
 
 using Microsoft.Warehouse.Setup;
+#if not CLEAN30
 using System;
+#endif
 using System.Reflection;
-using System.Xml;
 
 codeunit 7701 "ADCS Communication"
 {
@@ -18,9 +19,8 @@ codeunit 7701 "ADCS Communication"
 
     var
         ADCSUser: Record "ADCS User";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         RecRef: RecordRef;
-        XMLDOM: DotNet XmlDocument;
+        XMLDOM: XmlDocument;
 #pragma warning disable AA0074
         Text000: Label 'Failed to add a node.';
 #pragma warning disable AA0470
@@ -54,16 +54,14 @@ codeunit 7701 "ADCS Communication"
 #pragma warning restore AA0074
 
     [Scope('OnPrem')]
-    procedure EncodeMiniForm(MiniFormHdr: Record "Miniform Header"; StackCode: Code[250]; var XMLDOMin: DotNet XmlDocument; ActiveInputField: Integer; cMessage: Text[250]; ADCSUserId: Text[250])
+    procedure EncodeMiniForm(MiniFormHdr: Record "Miniform Header"; StackCode: Code[250]; var XMLDOMin: XmlDocument; ActiveInputField: Integer; cMessage: Text[250]; ADCSUserId: Text[250])
     var
-        CurrNode: DotNet XmlNode;
-        NewChild: DotNet XmlNode;
-        FunctionNode: DotNet XmlNode;
-        ReturnedNode: DotNet XmlNode;
-        oAttributes: DotNet XmlNamedNodeMap;
-        AttributeNode: DotNet XmlNode;
-        iAttributeCounter: Integer;
-        iCounter: Integer;
+        RootElement: XmlElement;
+        CurrNode: XmlNode;
+        NewChild: XmlNode;
+        FunctionNode: XmlNode;
+        ReturnedNode: XmlNode;
+        HeaderAttribute: XmlAttribute;
     begin
         XMLDOM := XMLDOMin;
         ActiveInput := ActiveInputField;
@@ -71,28 +69,23 @@ codeunit 7701 "ADCS Communication"
         Comment := cMessage;
 
         // get the incoming header before we create the empty Container..
-        XMLDOMMgt.FindNode(XMLDOM.DocumentElement, 'Header', ReturnedNode);
+        if XMLDOM.GetRoot(RootElement) then
+            RootElement.SelectSingleNode('Header', ReturnedNode);
 
         // Now create an empty root node... this must always be done before we use this object!!
-        XMLDOMMgt.LoadXMLDocumentFromText('<ADCS/>', XMLDOM);
+        XmlDocument.ReadFrom('<ADCS/>', XMLDOM);
 
         // Set the current node to the root node
-        CurrNode := XMLDOM.DocumentElement;
+        XMLDOM.GetRoot(RootElement);
+        CurrNode := RootElement.AsXmlNode();
 
         // add a header node to the ADCS node
-        if XMLDOMMgt.AddElement(CurrNode, 'Header', '', '', NewChild) > 0 then
+        if not TryAddElement(CurrNode, 'Header', '', NewChild) then
             Error(Text000);
 
         // Add all the header fields from the incoming XMLDOM
-        oAttributes := ReturnedNode.Attributes;
-        iAttributeCounter := oAttributes.Count();
-        iCounter := 0;
-        while iCounter < iAttributeCounter do begin
-            AttributeNode := oAttributes.Item(iCounter);
-            AddAttribute(NewChild, AttributeNode.Name, AttributeNode.Value);
-
-            iCounter := iCounter + 1;
-        end;
+        foreach HeaderAttribute in ReturnedNode.AsXmlElement().Attributes() do
+            AddAttribute(NewChild, HeaderAttribute.Name, HeaderAttribute.Value);
 
         // Now add the UserId to the Header
         if ADCSUserId <> '' then begin
@@ -111,26 +104,39 @@ codeunit 7701 "ADCS Communication"
         AddAttribute(NewChild, 'InputIsHidden', '0');
         InputIsHidden := false;
 
-        XMLDOMMgt.AddElement(NewChild, 'Comment', Comment, '', FunctionNode);
+        TryAddElement(NewChild, 'Comment', Comment, FunctionNode);
 
         // add the Function List to the Mini Form
-        if XMLDOMMgt.AddElement(NewChild, 'Functions', '', '', FunctionNode) = 0 then
+        if TryAddElement(NewChild, 'Functions', '', FunctionNode) then
             EncodeFunctions(MiniFormHdr, FunctionNode);
 
         EncodeLines(MiniFormHdr, CurrNode);
 
         if InputIsHidden then begin
-            XMLDOMMgt.FindNode(XMLDOM.DocumentElement, 'Header', ReturnedNode);
+            RootElement.SelectSingleNode('Header', ReturnedNode);
             SetNodeAttribute(ReturnedNode, 'InputIsHidden', '1');
         end;
 
         XMLDOMin := XMLDOM;
     end;
 
-    local procedure EncodeFunctions(MiniFormHdr: Record "Miniform Header"; var CurrNode: DotNet XmlNode)
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by EncodeMiniForm with a parameter of the native XmlDocument type.', '30.0')]
+    procedure EncodeMiniForm(MiniFormHdr: Record "Miniform Header"; StackCode: Code[250]; var XMLDOMin: DotNet XmlDocument; ActiveInputField: Integer; cMessage: Text[250]; ADCSUserId: Text[250])
+    var
+        NativeXmlDocument: XmlDocument;
+    begin
+        ConvertToXmlDocument(XMLDOMin, NativeXmlDocument);
+        EncodeMiniForm(MiniFormHdr, StackCode, NativeXmlDocument, ActiveInputField, cMessage, ADCSUserId);
+        ConvertToDotNetXmlDocument(NativeXmlDocument, XMLDOMin);
+    end;
+#endif
+
+    local procedure EncodeFunctions(MiniFormHdr: Record "Miniform Header"; var CurrNode: XmlNode)
     var
         FunctionLine: Record "Miniform Function";
-        NewChild: DotNet XmlNode;
+        NewChild: XmlNode;
     begin
         // Add the Function List to the XML Document
         FunctionLine.Reset();
@@ -138,22 +144,22 @@ codeunit 7701 "ADCS Communication"
 
         if FunctionLine.Find('-') then
             repeat
-                XMLDOMMgt.AddElement(CurrNode, 'Function', Format(FunctionLine."Function Code"), '', NewChild);
+                TryAddElement(CurrNode, 'Function', Format(FunctionLine."Function Code"), NewChild);
             until FunctionLine.Next() = 0
     end;
 
-    local procedure EncodeLines(MiniFormHdr: Record "Miniform Header"; var CurrNode: DotNet XmlNode)
+    local procedure EncodeLines(MiniFormHdr: Record "Miniform Header"; var CurrNode: XmlNode)
     var
         MiniFormLine: Record "Miniform Line";
         MiniFormLine2: Record "Miniform Line";
-        LinesNode: DotNet XmlNode;
-        AreaNode: DotNet XmlNode;
-        DataLineNode: DotNet XmlNode;
+        LinesNode: XmlNode;
+        AreaNode: XmlNode;
+        DataLineNode: XmlNode;
         CurrentOption: Integer;
         LineCounter: Integer;
     begin
         // add a lines node to the ADCS node
-        if XMLDOMMgt.AddElement(CurrNode, 'Lines', '', '', LinesNode) > 0 then
+        if not TryAddElement(CurrNode, 'Lines', '', LinesNode) then
             Error(Text000);
 
         CurrentOption := -1;
@@ -166,7 +172,7 @@ codeunit 7701 "ADCS Communication"
             repeat
                 if CurrentOption <> MiniFormLine.Area then begin
                     CurrentOption := MiniFormLine.Area;
-                    if XMLDOMMgt.AddElement(LinesNode, Format(MiniFormLine.Area), '', '', AreaNode) > 0 then
+                    if not TryAddElement(LinesNode, Format(MiniFormLine.Area), '', AreaNode) then
                         Error(Text000);
                 end;
 
@@ -207,13 +213,13 @@ codeunit 7701 "ADCS Communication"
             until MiniFormLine.Next() = 0;
     end;
 
-    local procedure SendComposition(MiniFormLine: Record "Miniform Line"; var CurrNode: DotNet XmlNode)
+    local procedure SendComposition(MiniFormLine: Record "Miniform Line"; var CurrNode: XmlNode)
     var
-        NewChild: DotNet XmlNode;
+        NewChild: XmlNode;
     begin
         // add a data node to the area node
 
-        AddElement(CurrNode, 'Field', GetFieldValue(MiniFormLine), '', NewChild);
+        AddElement(CurrNode, 'Field', GetFieldValue(MiniFormLine), NewChild);
 
         // add the field name as an attribute..
         if MiniFormLine."Field Type" <> MiniFormLine."Field Type"::Text then
@@ -239,12 +245,12 @@ codeunit 7701 "ADCS Communication"
             AddAttribute(NewChild, 'Descrip', MiniFormLine.Text);
     end;
 
-    local procedure SendLineNo(MiniFormLine: Record "Miniform Line"; var CurrNode: DotNet XmlNode; var RetNode: DotNet XmlNode; LineNo: Integer)
+    local procedure SendLineNo(MiniFormLine: Record "Miniform Line"; var CurrNode: XmlNode; var RetNode: XmlNode; LineNo: Integer)
     var
-        NewChild: DotNet XmlNode;
+        NewChild: XmlNode;
     begin
         if MiniFormLine.Area = MiniFormLine.Area::Body then
-            AddElement(CurrNode, 'Line', '', '', NewChild)
+            AddElement(CurrNode, 'Line', '', NewChild)
         else
             NewChild := CurrNode;
 
@@ -259,16 +265,33 @@ codeunit 7701 "ADCS Communication"
         RetNode := NewChild;
     end;
 
-    local procedure AddElement(var CurrNode: DotNet XmlNode; ElemName: Text[30]; ElemValue: Text[250]; NameSpace: Text[30]; var NewChild: DotNet XmlNode)
+    local procedure AddElement(var CurrNode: XmlNode; ElemName: Text[30]; ElemValue: Text[250]; var NewChild: XmlNode)
     begin
-        if XMLDOMMgt.AddElement(CurrNode, ElemName, ElemValue, NameSpace, NewChild) > 0 then
+        if not TryAddElement(CurrNode, ElemName, ElemValue, NewChild) then
             Error(Text001, ElemName);
     end;
 
-    local procedure AddAttribute(var NewChild: DotNet XmlNode; AttribName: Text[250]; AttribValue: Text[250])
+    local procedure TryAddElement(var CurrNode: XmlNode; ElemName: Text; ElemValue: Text; var NewChild: XmlNode): Boolean
+    var
+        NewElement: XmlElement;
     begin
-        if XMLDOMMgt.AddAttribute(NewChild, AttribName, AttribValue) > 0 then
+        NewElement := XmlElement.Create(ElemName);
+        if ElemValue <> '' then
+            NewElement.Add(XmlText.Create(ElemValue));
+        NewChild := NewElement.AsXmlNode();
+        exit(CurrNode.AsXmlElement().Add(NewChild));
+    end;
+
+    local procedure AddAttribute(var NewChild: XmlNode; AttribName: Text; AttribValue: Text)
+    begin
+        if not TrySetAttribute(NewChild, AttribName, AttribValue) then
             Error(Text002, AttribName);
+    end;
+
+    [TryFunction]
+    local procedure TrySetAttribute(var NewChild: XmlNode; AttribName: Text; AttribValue: Text)
+    begin
+        NewChild.AsXmlElement().SetAttribute(AttribName, AttribValue);
     end;
 
     procedure SetRecRef(var NewRecRef: RecordRef)
@@ -471,18 +494,51 @@ codeunit 7701 "ADCS Communication"
     end;
 
     [Scope('OnPrem')]
-    procedure SetXMLDOMS(var oXMLDOM: DotNet XmlDocument)
+    procedure SetXMLDOMS(var oXMLDOM: XmlDocument)
     begin
         XMLDOM := oXMLDOM;
     end;
 
     [Scope('OnPrem')]
-    procedure GetReturnXML(var xmlout: DotNet XmlDocument)
+    procedure GetReturnXML(var xmlout: XmlDocument)
     begin
         xmlout := XMLDOM;
     end;
 
     [Scope('OnPrem')]
+    procedure GetNodeAttribute(CurrNode: XmlNode; AttributeName: Text[250]) AttribValue: Text[250]
+    var
+        NodeAttribute: XmlAttribute;
+    begin
+        if CurrNode.AsXmlElement().Attributes().Get(AttributeName, NodeAttribute) then
+            AttribValue := CopyStr(NodeAttribute.Value, 1, MaxStrLen(AttribValue))
+        else
+            AttribValue := '';
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetNodeAttribute(CurrNode: XmlNode; AttributeName: Text[250]; AttribValue: Text[250])
+    begin
+        CurrNode.AsXmlElement().SetAttribute(AttributeName, AttribValue);
+    end;
+
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by SetXMLDOMS with a parameter of the native XmlDocument type.', '30.0')]
+    procedure SetXMLDOMS(var oXMLDOM: DotNet XmlDocument)
+    begin
+        ConvertToXmlDocument(oXMLDOM, XMLDOM);
+    end;
+
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by GetReturnXML with a parameter of the native XmlDocument type.', '30.0')]
+    procedure GetReturnXML(var xmlout: DotNet XmlDocument)
+    begin
+        ConvertToDotNetXmlDocument(XMLDOM, xmlout);
+    end;
+
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by GetNodeAttribute with a parameter of the native XmlNode type.', '30.0')]
     procedure GetNodeAttribute(CurrNode: DotNet XmlNode; AttributeName: Text[250]) AttribValue: Text[250]
     var
         oTempNode: DotNet XmlNode;
@@ -498,6 +554,7 @@ codeunit 7701 "ADCS Communication"
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('Replaced by SetNodeAttribute with a parameter of the native XmlNode type.', '30.0')]
     procedure SetNodeAttribute(CurrNode: DotNet XmlNode; AttributeName: Text[250]; AttribValue: Text[250])
     var
         oTempNode: DotNet XmlNode;
@@ -507,6 +564,28 @@ codeunit 7701 "ADCS Communication"
         oTempNode := NodeAttributes.GetNamedItem(AttributeName);
         oTempNode.Value := AttribValue;
     end;
+
+    local procedure ConvertToXmlDocument(DotNetXmlDocument: DotNet XmlDocument; var NativeXmlDocument: XmlDocument)
+    begin
+        Clear(NativeXmlDocument);
+        if IsNull(DotNetXmlDocument) then
+            exit;
+        if IsNull(DotNetXmlDocument.DocumentElement) then
+            exit;
+        XmlDocument.ReadFrom(DotNetXmlDocument.OuterXml(), NativeXmlDocument);
+    end;
+
+    local procedure ConvertToDotNetXmlDocument(NativeXmlDocument: XmlDocument; var DotNetXmlDocument: DotNet XmlDocument)
+    var
+        ADCSManagement: Codeunit "ADCS Management";
+        RootElement: XmlElement;
+    begin
+        DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
+        if not NativeXmlDocument.GetRoot(RootElement) then
+            exit;
+        DotNetXmlDocument.LoadXml(ADCSManagement.WriteDocumentToText(NativeXmlDocument));
+    end;
+#endif
 
     procedure SetUserNo(uNo: Text[250])
     begin
@@ -558,48 +637,43 @@ codeunit 7701 "ADCS Communication"
     end;
 
     [Scope('OnPrem')]
-    procedure RunPreviousMiniform(var DOMxmlin: DotNet XmlDocument)
+    procedure RunPreviousMiniform(var DOMxmlin: XmlDocument)
     var
         MiniformHeader2: Record "Miniform Header";
-        PreviousCode: Text[20];
+        PreviousCode: Text[250];
     begin
         DecreaseStack(DOMxmlin, PreviousCode);
-        MiniformHeader2.Get(PreviousCode);
+        MiniformHeader2.Get(CopyStr(PreviousCode, 1, MaxStrLen(MiniformHeader2.Code)));
         MiniformHeader2.SaveXMLin(DOMxmlin);
         CODEUNIT.Run(MiniformHeader2."Handling Codeunit", MiniformHeader2);
     end;
 
     [Scope('OnPrem')]
-    procedure IncreaseStack(var DOMxmlin: DotNet XmlDocument; NextElement: Text[250])
+    procedure IncreaseStack(var DOMxmlin: XmlDocument; NextElement: Text[250])
     var
-        ReturnedNode: DotNet XmlNode;
-        RootNode: DotNet XmlNode;
+        RootElement: XmlElement;
+        ReturnedNode: XmlNode;
         StackCode: Text[250];
     begin
-        RootNode := DOMxmlin.DocumentElement;
-        XMLDOMMgt.FindNode(RootNode, 'Header', ReturnedNode);
+        DOMxmlin.GetRoot(RootElement);
+        RootElement.SelectSingleNode('Header', ReturnedNode);
         StackCode := GetNodeAttribute(ReturnedNode, 'StackCode');
 
-        if StackCode = '' then
-            StackCode := NextElement
-        else
-            StackCode := StrSubstNo('%1|%2', StackCode, NextElement);
+        PushStack(StackCode, NextElement);
 
         SetNodeAttribute(ReturnedNode, 'StackCode', StackCode);
         SetNodeAttribute(ReturnedNode, 'RunReturn', '0');
     end;
 
     [Scope('OnPrem')]
-    procedure DecreaseStack(var DOMxmlin: DotNet XmlDocument; var PreviousElement: Text[250])
+    procedure DecreaseStack(var DOMxmlin: XmlDocument; var PreviousElement: Text[250])
     var
-        ReturnedNode: DotNet XmlNode;
-        RootNode: DotNet XmlNode;
+        RootElement: XmlElement;
+        ReturnedNode: XmlNode;
         StackCode: Text[250];
-        p: Integer;
-        pos: Integer;
     begin
-        RootNode := DOMxmlin.DocumentElement;
-        XMLDOMMgt.FindNode(RootNode, 'Header', ReturnedNode);
+        DOMxmlin.GetRoot(RootElement);
+        RootElement.SelectSingleNode('Header', ReturnedNode);
         StackCode := GetNodeAttribute(ReturnedNode, 'StackCode');
 
         if StackCode = '' then begin
@@ -607,6 +681,25 @@ codeunit 7701 "ADCS Communication"
             exit;
         end;
 
+        PopStack(StackCode, PreviousElement);
+
+        SetNodeAttribute(ReturnedNode, 'StackCode', StackCode);
+        SetNodeAttribute(ReturnedNode, 'RunReturn', '1');
+    end;
+
+    local procedure PushStack(var StackCode: Text[250]; NextElement: Text[250])
+    begin
+        if StackCode = '' then
+            StackCode := NextElement
+        else
+            StackCode := StrSubstNo('%1|%2', StackCode, NextElement);
+    end;
+
+    local procedure PopStack(var StackCode: Text[250]; var PreviousElement: Text[250])
+    var
+        p: Integer;
+        pos: Integer;
+    begin
         for p := StrLen(StackCode) downto 1 do
             if StackCode[p] = '|' then begin
                 pos := p;
@@ -620,10 +713,59 @@ codeunit 7701 "ADCS Communication"
             PreviousElement := StackCode;
             StackCode := '';
         end;
+    end;
+
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by RunPreviousMiniform with a parameter of the native XmlDocument type.', '30.0')]
+    procedure RunPreviousMiniform(var DOMxmlin: DotNet XmlDocument)
+    var
+        MiniformHeader2: Record "Miniform Header";
+        PreviousCode: Text[20];
+    begin
+        DecreaseStack(DOMxmlin, PreviousCode);
+        MiniformHeader2.Get(PreviousCode);
+        MiniformHeader2.SaveXMLin(DOMxmlin);
+        CODEUNIT.Run(MiniformHeader2."Handling Codeunit", MiniformHeader2);
+    end;
+
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by IncreaseStack with a parameter of the native XmlDocument type.', '30.0')]
+    procedure IncreaseStack(var DOMxmlin: DotNet XmlDocument; NextElement: Text[250])
+    var
+        ReturnedNode: DotNet XmlNode;
+        StackCode: Text[250];
+    begin
+        ReturnedNode := DOMxmlin.DocumentElement.SelectSingleNode('Header');
+        StackCode := GetNodeAttribute(ReturnedNode, 'StackCode');
+
+        PushStack(StackCode, NextElement);
+
+        SetNodeAttribute(ReturnedNode, 'StackCode', StackCode);
+        SetNodeAttribute(ReturnedNode, 'RunReturn', '0');
+    end;
+
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by DecreaseStack with a parameter of the native XmlDocument type.', '30.0')]
+    procedure DecreaseStack(var DOMxmlin: DotNet XmlDocument; var PreviousElement: Text[250])
+    var
+        ReturnedNode: DotNet XmlNode;
+        StackCode: Text[250];
+    begin
+        ReturnedNode := DOMxmlin.DocumentElement.SelectSingleNode('Header');
+        StackCode := GetNodeAttribute(ReturnedNode, 'StackCode');
+
+        if StackCode = '' then begin
+            PreviousElement := GetNodeAttribute(ReturnedNode, 'UseCaseCode');
+            exit;
+        end;
+
+        PopStack(StackCode, PreviousElement);
 
         SetNodeAttribute(ReturnedNode, 'StackCode', StackCode);
         SetNodeAttribute(ReturnedNode, 'RunReturn', '1');
     end;
+#endif
 
     procedure GetFunctionKey(MiniformCode: Code[20]; InputValue: Text[250]): Integer
     var

@@ -5,8 +5,6 @@
 namespace Microsoft.Warehouse.ADCS;
 
 using Microsoft.Warehouse.Activity;
-using System;
-using System.Xml;
 
 codeunit 7711 "Miniform Whse. Activity Line"
 {
@@ -18,7 +16,7 @@ codeunit 7711 "Miniform Whse. Activity Line"
     begin
         MiniformMgmt.Initialize(
           MiniformHeader, Rec, DOMxmlin, ReturnedNode,
-          RootNode, XMLDOMMgt, ADCSCommunication, ADCSUserId,
+          RootNode, ADCSCommunication, ADCSUserId,
           CurrentCode, StackCode, WhseEmpId, LocationFilter);
 
         if Rec.Code <> CurrentCode then
@@ -31,13 +29,12 @@ codeunit 7711 "Miniform Whse. Activity Line"
 
     var
         MiniformHeader: Record "Miniform Header";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         ADCSCommunication: Codeunit "ADCS Communication";
         ADCSMgt: Codeunit "ADCS Management";
         RecRef: RecordRef;
-        DOMxmlin: DotNet XmlDocument;
-        ReturnedNode: DotNet XmlNode;
-        RootNode: DotNet XmlNode;
+        DOMxmlin: XmlDocument;
+        ReturnedNode: XmlNode;
+        RootNode: XmlNode;
         ADCSUserId: Text[250];
         Remark: Text[250];
         WhseEmpId: Text[250];
@@ -69,8 +66,8 @@ codeunit 7711 "Miniform Whse. Activity Line"
         TableNo: Integer;
         FldNo: Integer;
     begin
-        if XMLDOMMgt.FindNode(RootNode, 'Header/Input', ReturnedNode) then
-            TextValue := ReturnedNode.InnerText
+        if RootNode.SelectSingleNode('Header/Input', ReturnedNode) then
+            TextValue := CopyStr(ReturnedNode.AsXmlElement().InnerText, 1, MaxStrLen(TextValue))
         else
             Error(Text006);
 
@@ -295,7 +292,7 @@ codeunit 7711 "Miniform Whse. Activity Line"
         RecId: RecordID;
         TableNo: Integer;
     begin
-        XMLDOMMgt.FindNode(RootNode, 'Header/Input', ReturnedNode);
+        RootNode.SelectSingleNode('Header/Input', ReturnedNode);
 
         Evaluate(TableNo, ADCSCommunication.GetNodeAttribute(ReturnedNode, 'TableNo'));
         RecRef.Open(TableNo);

@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.ADCS;
 
-using System;
-using System.Xml;
-
 codeunit 7714 "ADCS WS"
 {
 
@@ -19,14 +16,47 @@ codeunit 7714 "ADCS WS"
 
     procedure ProcessDocument(var Document: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        InputXmlDocument: DotNet XmlDocument;
-        OutputXmlDocument: DotNet XmlDocument;
+        InputXmlDocument: XmlDocument;
+        OutputXmlDocument: XmlDocument;
+        RootElement: XmlElement;
+        InputText: Text;
+        ByteOrderMark: Text[1];
     begin
-        XMLDOMManagement.LoadXMLDocumentFromText(Document, InputXmlDocument);
+        InputText := Document;
+        ByteOrderMark[1] := 65279;
+        if StrPos(InputText, ByteOrderMark) = 1 then
+            InputText := DelStr(InputText, 1, 1);
+        if InputText <> '' then begin
+            XmlDocument.ReadFrom(InputText, InputXmlDocument);
+            if InputXmlDocument.GetRoot(RootElement) then
+                RemoveWhitespaceNodes(RootElement);
+        end;
         ADCSManagement.ProcessDocument(InputXmlDocument);
         ADCSManagement.GetOutboundDocument(OutputXmlDocument);
-        Document := OutputXmlDocument.OuterXml();
+        Document := ADCSManagement.WriteDocumentToText(OutputXmlDocument);
+    end;
+
+    local procedure RemoveWhitespaceNodes(ParentElement: XmlElement)
+    var
+        ChildNodes: XmlNodeList;
+        ChildNode: XmlNode;
+        WhitespaceChars: Text[4];
+        Index: Integer;
+    begin
+        // The former DotNet XmlDocument dropped whitespace-only text nodes when loading the request
+        WhitespaceChars[1] := 9;
+        WhitespaceChars[2] := 10;
+        WhitespaceChars[3] := 13;
+        WhitespaceChars[4] := 32;
+        ChildNodes := ParentElement.GetChildNodes();
+        for Index := ChildNodes.Count() downto 1 do begin
+            ChildNodes.Get(Index, ChildNode);
+            if ChildNode.IsXmlText() then begin
+                if DelChr(ChildNode.AsXmlText().Value(), '=', WhitespaceChars) = '' then
+                    ChildNode.Remove();
+            end else
+                if ChildNode.IsXmlElement() then
+                    RemoveWhitespaceNodes(ChildNode.AsXmlElement());
+        end;
     end;
 }
-

@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.ADCS;
 
-using System;
-using System.Xml;
-
 codeunit 7705 "Miniform Logon"
 {
     TableNo = "Miniform Header";
@@ -17,7 +14,7 @@ codeunit 7705 "Miniform Logon"
     begin
         MiniformMgmt.Initialize(
           MiniformHeader, Rec, DOMxmlin, ReturnedNode,
-          RootNode, XMLDOMMgt, ADCSCommunication, ADCSUserId,
+          RootNode, ADCSCommunication, ADCSUserId,
           CurrentCode, StackCode, WhseEmpId, LocationFilter);
 
         if ADCSCommunication.GetNodeAttribute(ReturnedNode, 'RunReturn') = '0' then begin
@@ -35,13 +32,12 @@ codeunit 7705 "Miniform Logon"
         MiniformHeader: Record "Miniform Header";
         MiniformHeader2: Record "Miniform Header";
         ADCSUser: Record "ADCS User";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         ADCSCommunication: Codeunit "ADCS Communication";
         ADCSMgt: Codeunit "ADCS Management";
         RecRef: RecordRef;
-        DOMxmlin: DotNet XmlDocument;
-        ReturnedNode: DotNet XmlNode;
-        RootNode: DotNet XmlNode;
+        DOMxmlin: XmlDocument;
+        ReturnedNode: XmlNode;
+        RootNode: XmlNode;
         ADCSUserId: Text[250];
         WhseEmpId: Text[250];
         LocationFilter: Text[250];
@@ -61,8 +57,8 @@ codeunit 7705 "Miniform Logon"
         FldNo: Integer;
         TextValue: Text[250];
     begin
-        if XMLDOMMgt.FindNode(RootNode, 'Header/Input', ReturnedNode) then
-            TextValue := ReturnedNode.InnerText
+        if RootNode.SelectSingleNode('Header/Input', ReturnedNode) then
+            TextValue := CopyStr(ReturnedNode.AsXmlElement().InnerText, 1, MaxStrLen(TextValue))
         else
             Error(NoInputNodeErr);
 
