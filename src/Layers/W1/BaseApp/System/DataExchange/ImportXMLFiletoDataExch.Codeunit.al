@@ -1,6 +1,5 @@
 namespace System.IO;
 
-using System;
 using System.Utilities;
 using System.Xml;
 
@@ -32,15 +31,14 @@ codeunit 1203 "Import XML File to Data Exch."
     var
         DataExchDef: Record "Data Exch. Def";
         DataExchLineDef: Record "Data Exch. Line Def";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlDocument: DotNet XmlDocument;
-        XmlNodeList: DotNet XmlNodeList;
-        XmlNamespaceManager: DotNet XmlNamespaceManager;
+        XmlDoc: XmlDocument;
+        RootElement: XmlElement;
+        XmlNodeList: XmlNodeList;
+        XmlNamespaceManager: XmlNamespaceManager;
+        CurrentXmlNode: XmlNode;
         XmlStream: InStream;
         CurrentLineNo: Integer;
         NodeID: Text[250];
-        I: Integer;
-        NodeCount: Integer;
     begin
         DataExchDef.Get(DataExch."Data Exch. Def Code");
         DataExchLineDef.SetRange("Data Exch. Def Code", DataExchDef.Code);
@@ -49,37 +47,82 @@ codeunit 1203 "Import XML File to Data Exch."
             exit;
 
         DataExch."File Content".CreateInStream(XmlStream);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(XmlStream, XmlDocument);
-        DataExchLineDef.ValidateNamespace(XmlDocument.DocumentElement);
-        XMLDOMManagement.AddNamespaces(XmlNamespaceManager, XmlDocument);
+        XmlDocument.ReadFrom(XmlStream, XmlDoc);
+        XmlDoc.GetRoot(RootElement);
+        RemoveWhitespaceNodes(RootElement);
+        DataExchLineDef.ValidateNamespace(RootElement);
+        AddNamespaces(XmlNamespaceManager, XmlDoc, RootElement);
 
         repeat
-            XMLDOMManagement.FindNodesWithNamespaceManager(
-              XmlDocument, EscapeMissingNamespacePrefix(DataExchLineDef."Data Line Tag"), XmlNamespaceManager, XmlNodeList);
+            XmlDoc.SelectNodes(EscapeMissingNamespacePrefix(DataExchLineDef."Data Line Tag"), XmlNamespaceManager, XmlNodeList);
             CurrentLineNo := 1;
-            NodeCount := XmlNodeList.Count();
-            for I := 1 to NodeCount do begin
+            foreach CurrentXmlNode in XmlNodeList do begin
                 NodeID := IncreaseNodeID('', CurrentLineNo);
                 ParseParentChildLine(
-                  XmlNodeList.ItemOf(I - 1), NodeID, '', CurrentLineNo, DataExchLineDef, DataExch."Entry No.", XmlNamespaceManager);
+                  CurrentXmlNode, NodeID, '', CurrentLineNo, DataExchLineDef, DataExch."Entry No.", XmlNamespaceManager);
                 CurrentLineNo += 1;
             end;
         until DataExchLineDef.Next() = 0;
     end;
 
-    local procedure ParseParentChildLine(CurrentXmlNode: DotNet XmlNode; NodeID: Text[250]; ParentNodeID: Text[250]; CurrentLineNo: Integer; CurrentDataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer; XmlNamespaceManager: DotNet XmlNamespaceManager)
+    local procedure AddNamespaces(var XmlNamespaceManager: XmlNamespaceManager; XmlDoc: XmlDocument; RootElement: XmlElement)
+    var
+        XmlAttribute: XmlAttribute;
+    begin
+        XmlNamespaceManager.NameTable(XmlDoc.NameTable());
+
+        if RootElement.NamespaceUri() <> '' then
+            XmlNamespaceManager.AddNamespace('', RootElement.NamespaceUri());
+
+        foreach XmlAttribute in RootElement.Attributes() do
+            if XmlAttribute.IsNamespaceDeclaration() and (XmlAttribute.NamespaceUri() <> '') then // xmlns:prefix="..."
+                XmlNamespaceManager.AddNamespace(XmlAttribute.LocalName(), XmlAttribute.Value());
+    end;
+
+    local procedure RemoveWhitespaceNodes(ParentXmlElement: XmlElement)
+    var
+        ChildNodes: XmlNodeList;
+        ChildNode: XmlNode;
+        XmlSpaceAttribute: XmlAttribute;
+        Whitespace: Text;
+        Tab: Char;
+        LineFeed: Char;
+        CarriageReturn: Char;
+        i: Integer;
+    begin
+        // Like the .NET XmlDocument with PreserveWhitespace = false, drop insignificant whitespace unless xml:space="preserve"
+        if ParentXmlElement.Attributes().Get('space', 'http://www.w3.org/XML/1998/namespace', XmlSpaceAttribute) then
+            if XmlSpaceAttribute.Value() = 'preserve' then
+                exit;
+        Tab := 9;
+        LineFeed := 10;
+        CarriageReturn := 13;
+        Whitespace := ' ' + Format(Tab) + Format(LineFeed) + Format(CarriageReturn);
+        ChildNodes := ParentXmlElement.GetChildNodes();
+        for i := ChildNodes.Count() downto 1 do begin
+            ChildNodes.Get(i, ChildNode);
+            if ChildNode.IsXmlText() then begin
+                if DelChr(ChildNode.AsXmlText().Value(), '=', Whitespace) = '' then
+                    ChildNode.Remove();
+            end else
+                if ChildNode.IsXmlElement() then
+                    RemoveWhitespaceNodes(ChildNode.AsXmlElement());
+        end;
+    end;
+
+    local procedure ParseParentChildLine(CurrentXmlNode: XmlNode; NodeID: Text[250]; ParentNodeID: Text[250]; CurrentLineNo: Integer; CurrentDataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer; XmlNamespaceManager: XmlNamespaceManager)
     var
         DataExchColumnDef: Record "Data Exch. Column Def";
         DataExchLineDef: Record "Data Exch. Line Def";
         DataExchField: Record "Data Exch. Field";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlNodeList: DotNet XmlNodeList;
+        XmlNodeList: XmlNodeList;
+        FoundXmlNode: XmlNode;
         CurrentIndex: Integer;
         CurrentNodeID: Text[250];
         InnerText: Text;
+        InnerXml: Text;
+        OuterXml: Text;
         LastLineNo: Integer;
-        I: Integer;
-        NodeCount: Integer;
     begin
         DataExchField.InsertRecXMLFieldDefinition(EntryNo, CurrentLineNo, NodeID, ParentNodeID, '', CurrentDataExchLineDef.Code);
 
@@ -92,20 +135,19 @@ codeunit 1203 "Import XML File to Data Exch."
 
         if DataExchColumnDef.FindSet() then
             repeat
-                XMLDOMManagement.FindNodesWithNamespaceManager(
-                  CurrentXmlNode,
+                CurrentXmlNode.SelectNodes(
                   GetRelativePath(DataExchColumnDef.Path, CurrentDataExchLineDef."Data Line Tag"),
                   XmlNamespaceManager,
                   XmlNodeList);
 
-                NodeCount := XmlNodeList.Count();
-                for I := 1 to NodeCount do begin
+                foreach FoundXmlNode in XmlNodeList do begin
                     CurrentNodeID := IncreaseNodeID(NodeID, CurrentIndex);
                     CurrentIndex += 1;
-                    InnerText := XmlNodeList.ItemOf(I - 1).InnerText;
-                    OnParseParentChildLineOnBeforeInsertColumn(InnerText, XmlNodeList.ItemOf(I - 1).InnerXml, XmlNodeList.ItemOf(I - 1).OuterXML, DataExchColumnDef);
+                    InnerText := GetNodeInnerText(FoundXmlNode);
+                    GetNodeXml(FoundXmlNode, InnerXml, OuterXml);
+                    OnParseParentChildLineOnBeforeInsertColumn(InnerText, InnerXml, OuterXml, DataExchColumnDef);
                     InsertColumn(
-                      DataExchColumnDef."Column No.", CurrentLineNo, CurrentNodeID, ParentNodeID, XmlNodeList.ItemOf(I - 1).Name,
+                      DataExchColumnDef."Column No.", CurrentLineNo, CurrentNodeID, ParentNodeID, GetNodeName(FoundXmlNode),
                       InnerText, CurrentDataExchLineDef, EntryNo);
                 end;
             until DataExchColumnDef.Next() = 0;
@@ -127,8 +169,7 @@ codeunit 1203 "Import XML File to Data Exch."
 
         if DataExchLineDef.FindSet() then
             repeat
-                XMLDOMManagement.FindNodesWithNamespaceManager(
-                  CurrentXmlNode,
+                CurrentXmlNode.SelectNodes(
                   GetRelativePath(DataExchLineDef."Data Line Tag", CurrentDataExchLineDef."Data Line Tag"),
                   XmlNamespaceManager,
                   XmlNodeList);
@@ -139,15 +180,72 @@ codeunit 1203 "Import XML File to Data Exch."
                 if DataExchField.FindLast() then
                     LastLineNo := DataExchField."Line No." + 1;
 
-                NodeCount := XmlNodeList.Count();
-                for I := 1 to NodeCount do begin
+                foreach FoundXmlNode in XmlNodeList do begin
                     CurrentNodeID := IncreaseNodeID(NodeID, CurrentIndex);
                     ParseParentChildLine(
-                      XmlNodeList.ItemOf(I - 1), CurrentNodeID, NodeID, LastLineNo, DataExchLineDef, EntryNo, XmlNamespaceManager);
+                      FoundXmlNode, CurrentNodeID, NodeID, LastLineNo, DataExchLineDef, EntryNo, XmlNamespaceManager);
                     CurrentIndex += 1;
                     LastLineNo += 1;
                 end;
             until DataExchLineDef.Next() = 0;
+    end;
+
+    local procedure GetNodeName(XmlNode: XmlNode): Text
+    begin
+        case true of
+            XmlNode.IsXmlElement():
+                exit(XmlNode.AsXmlElement().Name());
+            XmlNode.IsXmlAttribute():
+                exit(XmlNode.AsXmlAttribute().Name());
+            XmlNode.IsXmlText():
+                exit('#text');
+            XmlNode.IsXmlCData():
+                exit('#cdata-section');
+        end;
+        exit('');
+    end;
+
+    local procedure GetNodeInnerText(XmlNode: XmlNode): Text
+    begin
+        case true of
+            XmlNode.IsXmlElement():
+                exit(XmlNode.AsXmlElement().InnerText());
+            XmlNode.IsXmlAttribute():
+                exit(XmlNode.AsXmlAttribute().Value());
+            XmlNode.IsXmlText():
+                exit(XmlNode.AsXmlText().Value());
+            XmlNode.IsXmlCData():
+                exit(XmlNode.AsXmlCData().Value());
+        end;
+        exit('');
+    end;
+
+    local procedure GetNodeXml(XmlNode: XmlNode; var InnerXml: Text; var OuterXml: Text)
+    var
+        XmlWriteOptions: XmlWriteOptions;
+        ValueStartPos: Integer;
+    begin
+        InnerXml := '';
+        OuterXml := '';
+        // Keep the formatting of the source document, like the .NET OuterXml/InnerXml properties do
+        XmlWriteOptions.PreserveWhitespace(true);
+        case true of
+            XmlNode.IsXmlElement():
+                begin
+                    InnerXml := XmlNode.AsXmlElement().InnerXml();
+                    XmlNode.WriteTo(XmlWriteOptions, OuterXml);
+                end;
+            XmlNode.IsXmlAttribute():
+                begin
+                    // name="value": the inner XML of an attribute is its escaped value
+                    XmlNode.WriteTo(XmlWriteOptions, OuterXml);
+                    ValueStartPos := StrPos(OuterXml, '="');
+                    if ValueStartPos > 0 then
+                        InnerXml := CopyStr(OuterXml, ValueStartPos + 2, StrLen(OuterXml) - ValueStartPos - 2);
+                end;
+            else
+                XmlNode.WriteTo(XmlWriteOptions, OuterXml);
+        end;
     end;
 
     local procedure InsertColumn(ColumnNo: Integer; LineNo: Integer; NodeId: Text[250]; ParentNodeId: Text[250]; Name: Text; Value: Text; var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer)

@@ -1,7 +1,6 @@
 ﻿namespace System.Xml;
 
 using Microsoft.Bank.Statement;
-using System;
 using System.IO;
 
 codeunit 9610 "XSD Parser"
@@ -15,13 +14,14 @@ codeunit 9610 "XSD Parser"
         TempAllXMLSchemaElement: Record "XML Schema Element" temporary;
         TempStackXMLSchemaElement: Record "XML Schema Element" temporary;
         TempXMLSchemaRestriction: Record "XML Schema Restriction" temporary;
-        XMLDOMManagement: Codeunit "XML DOM Management";
         CouldNotFindAllSchemasMsg: Label 'Some required schemas are missing.\\Load the schemas one by one to include the required schemas.';
         GenerateDefinitionAgainQst: Label 'Do you want to generate the XML schema elements again?';
         OverrideExistingDataExchangeDefQst: Label 'A data exchange definition already exists. Do you want to replace the existing data exchange definition?';
         SEPACAMTDataLineTagTok: Label '/Document/BkToCstmrStmt/Stmt/Ntry', Locked = true;
         ReferenceElementTypeTok: Label 'Reference', Locked = true;
         ExtensionElementTypeTok: Label 'Extension', Locked = true;
+        XMLSchemaNamespaceTxt: Label 'http://www.w3.org/2001/XMLSchema', Locked = true;
+        UnnamedXSDSchemaPrefixTxt: Label 'unamedXSDSchemaNamespace', Locked = true;
         CouldNotFindRelatedSchema: Boolean;
 
     [Scope('OnPrem')]
@@ -37,8 +37,9 @@ codeunit 9610 "XSD Parser"
     var
         XMLSchemaElement: Record "XML Schema Element";
         DefinitionXMLSchema: Record "XML Schema";
-        NamespaceMgr: DotNet XmlNamespaceManager;
-        "Schema": DotNet XmlDocument;
+        NamespaceMgr: XmlNamespaceManager;
+        "Schema": XmlDocument;
+        SchemaRootElement: XmlElement;
         SchemaPrefix: Text;
         CurrentID: Integer;
     begin
@@ -53,7 +54,8 @@ codeunit 9610 "XSD Parser"
 
         CurrentID := 1;
         Clear(XMLSchemaElement);
-        ParseChildXMLNodes(Schema.DocumentElement, SchemaPrefix, XMLSchemaElement, DefinitionXMLSchema, NamespaceMgr, 0, CurrentID);
+        Schema.GetRoot(SchemaRootElement);
+        ParseChildXMLNodes(SchemaRootElement.AsXmlNode(), SchemaPrefix, XMLSchemaElement, DefinitionXMLSchema, NamespaceMgr, 0, CurrentID);
 
         InitializeTempBuffers(XMLSchema);
         ExpandDefinitions(XMLSchema);
@@ -63,8 +65,9 @@ codeunit 9610 "XSD Parser"
             Message(CouldNotFindAllSchemasMsg)
     end;
 
-    local procedure LoadSchemaXML(var XMLSchema: Record "XML Schema"; var NamespaceMgr: DotNet XmlNamespaceManager; var "Schema": DotNet XmlDocument; var SchemaPrefix: Text)
+    local procedure LoadSchemaXML(var XMLSchema: Record "XML Schema"; var NamespaceMgr: XmlNamespaceManager; var "Schema": XmlDocument; var SchemaPrefix: Text)
     var
+        NamespacePrefixes: List of [Text];
         InStr: InStream;
     begin
         XMLSchema.TestField(Code);
@@ -72,11 +75,15 @@ codeunit 9610 "XSD Parser"
         XMLSchema.TestField(XSD);
         XMLSchema.XSD.CreateInStream(InStr);
 
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, Schema);
+        XmlDocument.ReadFrom(InStr, Schema);
 
-        NamespaceMgr := NamespaceMgr.XmlNamespaceManager(Schema.XmlDocument().NameTable);
-        PopulateNamespaceManager(NamespaceMgr, Schema.DocumentElement, XMLSchema."Target Namespace", SchemaPrefix);
-        UpdateTargetNamespaceAliases(XMLSchema, NamespaceMgr);
+        NamespaceMgr.NameTable(Schema.NameTable());
+        // Same enumeration order as the prefixes in a .NET XmlNamespaceManager: the predeclared ones first
+        NamespacePrefixes.Add('');
+        NamespacePrefixes.Add('xmlns');
+        NamespacePrefixes.Add('xml');
+        PopulateNamespaceManager(NamespaceMgr, NamespacePrefixes, Schema, XMLSchema."Target Namespace", SchemaPrefix);
+        UpdateTargetNamespaceAliases(XMLSchema, NamespaceMgr, NamespacePrefixes);
     end;
 
     procedure ExtendSelectedElement(var XMLSchemaElement: Record "XML Schema Element")
@@ -123,8 +130,9 @@ codeunit 9610 "XSD Parser"
     local procedure LoadDependentSchemaDefinition(var XMLSchema: Record "XML Schema")
     var
         XMLSchemaElement: Record "XML Schema Element";
-        NamespaceMgr: DotNet XmlNamespaceManager;
-        "Schema": DotNet XmlDocument;
+        NamespaceMgr: XmlNamespaceManager;
+        "Schema": XmlDocument;
+        SchemaRootElement: XmlElement;
         SchemaPrefix: Text;
         CurrentID: Integer;
     begin
@@ -134,7 +142,8 @@ codeunit 9610 "XSD Parser"
         CurrentID := 1;
 
         Clear(XMLSchemaElement);
-        ParseChildXMLNodes(Schema.DocumentElement, SchemaPrefix, XMLSchemaElement, XMLSchema, NamespaceMgr, 0, CurrentID);
+        Schema.GetRoot(SchemaRootElement);
+        ParseChildXMLNodes(SchemaRootElement.AsXmlNode(), SchemaPrefix, XMLSchemaElement, XMLSchema, NamespaceMgr, 0, CurrentID);
     end;
 
     local procedure ExpandDefinitions(XMLSchema: Record "XML Schema")
@@ -175,36 +184,51 @@ codeunit 9610 "XSD Parser"
         exit(true);
     end;
 
-    local procedure PopulateNamespaceManager(var NamespaceMgr: DotNet XmlNamespaceManager; XmlNode: DotNet XmlNode; var TargetNamespace: Text; var SchemaPrefix: Text)
+    local procedure PopulateNamespaceManager(var NamespaceMgr: XmlNamespaceManager; var NamespacePrefixes: List of [Text]; "Schema": XmlDocument; var TargetNamespace: Text; var SchemaPrefix: Text)
     var
-        Attribute: DotNet XmlAttribute;
+        RootElement: XmlElement;
+        Attribute: XmlAttribute;
         Prefix: Text;
     begin
-        if not IsNull(XmlNode) then
-            foreach Attribute in XmlNode.Attributes do begin
-                if StrPos(Attribute.Name, 'xmlns') = 1 then
-                    if StrPos(Attribute.Name, ':') > 0 then begin
-                        Prefix := CopyStr(Attribute.Name, StrPos(Attribute.Name, ':') + 1);
-                        NamespaceMgr.AddNamespace(Prefix, Attribute.Value);
-                        if Attribute.Value = 'http://www.w3.org/2001/XMLSchema' then
-                            SchemaPrefix := Prefix;
-                    end else
-                        if Attribute.Value = 'http://www.w3.org/2001/XMLSchema' then begin
-                            SchemaPrefix := 'unamedXSDSchemaNamespace';
-                            NamespaceMgr.AddNamespace(SchemaPrefix, Attribute.Value);
-                        end;
+        if not Schema.GetRoot(RootElement) then
+            exit;
 
-                if StrPos(Attribute.Name, 'targetNamespace') = 1 then
-                    TargetNamespace := CopyStr(Attribute.Value, 1, MaxStrLen(TargetNamespace));
-            end;
+        foreach Attribute in RootElement.Attributes() do begin
+            if Attribute.IsNamespaceDeclaration() then
+                if Attribute.NamespaceUri() <> '' then begin
+                    // xmlns:prefix="..."
+                    Prefix := Attribute.LocalName();
+                    AddNamespace(NamespaceMgr, NamespacePrefixes, Prefix, Attribute.Value());
+                    if Attribute.Value() = XMLSchemaNamespaceTxt then
+                        SchemaPrefix := Prefix;
+                end else
+                    if Attribute.Value() = XMLSchemaNamespaceTxt then begin
+                        SchemaPrefix := UnnamedXSDSchemaPrefixTxt;
+                        AddNamespace(NamespaceMgr, NamespacePrefixes, SchemaPrefix, Attribute.Value());
+                    end;
+
+            if StrPos(Attribute.Name(), 'targetNamespace') = 1 then
+                TargetNamespace := CopyStr(Attribute.Value(), 1, MaxStrLen(TargetNamespace));
+        end;
     end;
 
-    local procedure UpdateTargetNamespaceAliases(var XMLSchema: Record "XML Schema"; NamespaceMgr: DotNet XmlNamespaceManager)
+    local procedure AddNamespace(var NamespaceMgr: XmlNamespaceManager; var NamespacePrefixes: List of [Text]; Prefix: Text; Namespace: Text)
+    begin
+        NamespaceMgr.AddNamespace(Prefix, Namespace);
+        if not NamespacePrefixes.Contains(Prefix) then
+            NamespacePrefixes.Add(Prefix);
+    end;
+
+    local procedure UpdateTargetNamespaceAliases(var XMLSchema: Record "XML Schema"; NamespaceMgr: XmlNamespaceManager; NamespacePrefixes: List of [Text])
     var
         Prefix: Text;
+        Namespace: Text;
     begin
-        foreach Prefix in NamespaceMgr do begin
-            if NamespaceMgr.LookupNamespace(Prefix) = XMLSchema."Target Namespace" then
+        foreach Prefix in NamespacePrefixes do begin
+            Namespace := '';
+            if not NamespaceMgr.LookupNamespace(Prefix, Namespace) then
+                Namespace := '';
+            if Namespace = XMLSchema."Target Namespace" then
                 if XMLSchema."Target Namespace Aliases" = '' then
                     XMLSchema."Target Namespace Aliases" := CopyStr(Prefix, 1, MaxStrLen(XMLSchema."Target Namespace Aliases"))
                 else
@@ -213,27 +237,30 @@ codeunit 9610 "XSD Parser"
         end;
     end;
 
-    local procedure ParseSchemaReferences(NamespaceMgr: DotNet XmlNamespaceManager; XMLSchema: Record "XML Schema"; "Schema": DotNet XmlDocument; SchemaPrefix: Text)
+    local procedure ParseSchemaReferences(NamespaceMgr: XmlNamespaceManager; XMLSchema: Record "XML Schema"; "Schema": XmlDocument; SchemaPrefix: Text)
     begin
         ParseSchemaReferenceDefinition(StrSubstNo('./%1:include', SchemaPrefix), NamespaceMgr, XMLSchema, Schema);
         ParseSchemaReferenceDefinition(StrSubstNo('./%1:import', SchemaPrefix), NamespaceMgr, XMLSchema, Schema);
     end;
 
-    local procedure ParseSchemaReferenceDefinition(XPath: Text; NamespaceMgr: DotNet XmlNamespaceManager; XMLSchema: Record "XML Schema"; "Schema": DotNet XmlDocument)
+    local procedure ParseSchemaReferenceDefinition(XPath: Text; NamespaceMgr: XmlNamespaceManager; XMLSchema: Record "XML Schema"; "Schema": XmlDocument)
     var
         ImportXMLSchema: Record "XML Schema";
         ExistingXMLSchema: Record "XML Schema";
         LastXMLSchema: Record "XML Schema";
         ReferencedXMLSchema: Record "Referenced XML Schema";
         FileManagement: Codeunit "File Management";
-        XmlNodeList: DotNet XmlNodeList;
-        XmlNode: DotNet XmlNode;
+        SchemaRootElement: XmlElement;
+        XmlNodeList: XmlNodeList;
+        XmlNode: XmlNode;
         SchemaLocation: Text;
         DefinitionFileFound: Boolean;
         NameSpacePrefix: Text;
         TopElementCode: Text;
     begin
-        if not XMLDOMManagement.FindNodesWithNamespaceManager(Schema.DocumentElement, XPath, NamespaceMgr, XmlNodeList) then
+        if not Schema.GetRoot(SchemaRootElement) then
+            exit;
+        if not FindNodes(SchemaRootElement.AsXmlNode(), XPath, NamespaceMgr, XmlNodeList) then
             exit;
 
         foreach XmlNode in XmlNodeList do begin
@@ -268,7 +295,9 @@ codeunit 9610 "XSD Parser"
             end else
                 ImportXMLSchema := ExistingXMLSchema;
 
-            NameSpacePrefix := NamespaceMgr.LookupPrefix(ImportXMLSchema."Target Namespace");
+            NameSpacePrefix := '';
+            if not NamespaceMgr.LookupPrefix(ImportXMLSchema."Target Namespace", NameSpacePrefix) then
+                NameSpacePrefix := '';
             ReferencedXMLSchema.Init();
             ReferencedXMLSchema.Code := XMLSchema.Code;
             ReferencedXMLSchema."Referenced Schema Code" := ImportXMLSchema.Code;
@@ -278,30 +307,34 @@ codeunit 9610 "XSD Parser"
         end;
     end;
 
-    local procedure ParseChildXMLNodes(CurrentXMLNode: DotNet XmlNode; SchemaPrefix: Text; var ParentXMLSchemaElement: Record "XML Schema Element"; XMLSchema: Record "XML Schema"; NamespaceMgr: DotNet XmlNamespaceManager; NestingLevel: Integer; var CurrentID: Integer)
+    local procedure ParseChildXMLNodes(CurrentXMLNode: XmlNode; SchemaPrefix: Text; var ParentXMLSchemaElement: Record "XML Schema Element"; XMLSchema: Record "XML Schema"; NamespaceMgr: XmlNamespaceManager; NestingLevel: Integer; var CurrentID: Integer)
     var
-        XMLNode: DotNet XmlNode;
-        ListOfElements: DotNet GenericList1;
+        XMLNode: XmlNode;
+        ChildNodes: XmlNodeList;
+        AttributeNodeName: Text;
     begin
-        if CurrentXMLNode.HasChildNodes then begin
-            ListOfElements := ListOfElements.List();
-            foreach XMLNode in CurrentXMLNode.ChildNodes() do
-                if XMLNode.Name = StrSubstNo('%1:attribute', SchemaPrefix) then
-                    ParseXMLNode(XMLNode, SchemaPrefix, ParentXMLSchemaElement, XMLSchema, NamespaceMgr, NestingLevel, CurrentID)
-                else
-                    ListOfElements.Add(XMLNode);
-            foreach XMLNode in ListOfElements do
+        if not CurrentXMLNode.IsXmlElement() then
+            exit;
+        ChildNodes := CurrentXMLNode.AsXmlElement().GetChildNodes();
+        if ChildNodes.Count() = 0 then
+            exit;
+
+        // Attributes are parsed before the other child nodes
+        AttributeNodeName := StrSubstNo('%1:attribute', SchemaPrefix);
+        foreach XMLNode in ChildNodes do
+            if GetNodeName(XMLNode) = AttributeNodeName then
                 ParseXMLNode(XMLNode, SchemaPrefix, ParentXMLSchemaElement, XMLSchema, NamespaceMgr, NestingLevel, CurrentID);
-        end;
+        foreach XMLNode in ChildNodes do
+            if GetNodeName(XMLNode) <> AttributeNodeName then
+                ParseXMLNode(XMLNode, SchemaPrefix, ParentXMLSchemaElement, XMLSchema, NamespaceMgr, NestingLevel, CurrentID);
     end;
 
-    local procedure ParseXMLNode(CurrentXMLNode: DotNet XmlNode; SchemaPrefix: Text; var ParentXMLSchemaElement: Record "XML Schema Element"; XMLSchema: Record "XML Schema"; NamespaceMgr: DotNet XmlNamespaceManager; NestingLevel: Integer; var CurrentID: Integer)
+    local procedure ParseXMLNode(CurrentXMLNode: XmlNode; SchemaPrefix: Text; var ParentXMLSchemaElement: Record "XML Schema Element"; XMLSchema: Record "XML Schema"; NamespaceMgr: XmlNamespaceManager; NestingLevel: Integer; var CurrentID: Integer)
     var
         LastXMLSchemaElement: Record "XML Schema Element";
-        XMLNodeType: DotNet XmlNodeType;
     begin
-        if CurrentXMLNode.NodeType.Equals(XMLNodeType.Element) then
-            case CurrentXMLNode.Name of
+        if CurrentXMLNode.IsXmlElement() then
+            case GetNodeName(CurrentXMLNode) of
                 StrSubstNo('%1:element', SchemaPrefix),
                 StrSubstNo('%1:group', SchemaPrefix),
                 StrSubstNo('%1:extension', SchemaPrefix):
@@ -333,7 +366,7 @@ codeunit 9610 "XSD Parser"
             end;
     end;
 
-    local procedure ParseRestrictions(CurrentXmlNode: DotNet XmlNode; var TempXMLSchemaElement: Record "XML Schema Element" temporary; NamespaceMgr: DotNet XmlNamespaceManager; XMLSchema: Record "XML Schema"; SchemaPrefix: Text)
+    local procedure ParseRestrictions(CurrentXmlNode: XmlNode; var TempXMLSchemaElement: Record "XML Schema Element" temporary; NamespaceMgr: XmlNamespaceManager; XMLSchema: Record "XML Schema"; SchemaPrefix: Text)
     var
         XMLSchemaRestriction: Record "XML Schema Restriction";
         LastIndex: Integer;
@@ -360,30 +393,26 @@ codeunit 9610 "XSD Parser"
           TempXMLSchemaElement.ID, StrSubstNo('./%1:pattern', SchemaPrefix), CurrentXmlNode, NamespaceMgr, XMLSchema, LastIndex);
     end;
 
-    local procedure ParseRestrictionDefinitions(ID: Integer; XPath: Text; var CurrentXMLNode: DotNet XmlNode; NamespaceMgr: DotNet XmlNamespaceManager; XMLSchema: Record "XML Schema"; var LastIndex: Integer)
+    local procedure ParseRestrictionDefinitions(ID: Integer; XPath: Text; var CurrentXMLNode: XmlNode; NamespaceMgr: XmlNamespaceManager; XMLSchema: Record "XML Schema"; var LastIndex: Integer)
     var
         XMLSchemaRestriction: Record "XML Schema Restriction";
-        XMLNode: DotNet XmlNode;
-        XMLNodeList: DotNet XmlNodeList;
-        i: Integer;
+        XMLNode: XmlNode;
+        XMLNodeList: XmlNodeList;
     begin
-        if not XMLDOMManagement.FindNodesWithNamespaceManager(CurrentXMLNode, XPath, NamespaceMgr, XMLNodeList) then
+        if not FindNodes(CurrentXMLNode, XPath, NamespaceMgr, XMLNodeList) then
             exit;
 
-        for i := 1 to XMLNodeList.Count do begin
-            XMLNode := XMLNodeList.Item(i - 1);
-            if not IsNull(XMLNode) then begin
-                XMLSchemaRestriction.Init();
-                XMLSchemaRestriction."XML Schema Code" := XMLSchema.Code;
-                XMLSchemaRestriction."Element ID" := ID;
-                LastIndex += 1;
-                XMLSchemaRestriction.ID := LastIndex;
-                XMLSchemaRestriction.Type := XMLSchemaRestriction.Type::Value;
-                XMLSchemaRestriction.Value := GetAttribute('name', XMLNode);
-                if XMLSchemaRestriction.Value = '' then
-                    XMLSchemaRestriction.Value := GetAttribute('value', XMLNode);
-                XMLSchemaRestriction.Insert();
-            end;
+        foreach XMLNode in XMLNodeList do begin
+            XMLSchemaRestriction.Init();
+            XMLSchemaRestriction."XML Schema Code" := XMLSchema.Code;
+            XMLSchemaRestriction."Element ID" := ID;
+            LastIndex += 1;
+            XMLSchemaRestriction.ID := LastIndex;
+            XMLSchemaRestriction.Type := XMLSchemaRestriction.Type::Value;
+            XMLSchemaRestriction.Value := GetAttribute('name', XMLNode);
+            if XMLSchemaRestriction.Value = '' then
+                XMLSchemaRestriction.Value := GetAttribute('value', XMLNode);
+            XMLSchemaRestriction.Insert();
         end;
     end;
 
@@ -500,7 +529,7 @@ codeunit 9610 "XSD Parser"
         end;
     end;
 
-    local procedure InsertElementDefinition(var LastXMLSchemaElement: Record "XML Schema Element"; XmlNode: DotNet XmlNode; ParentID: Integer; XMLSchema: Record "XML Schema"; SchemaPrefix: Text; var CurrentID: Integer)
+    local procedure InsertElementDefinition(var LastXMLSchemaElement: Record "XML Schema Element"; XmlNode: XmlNode; ParentID: Integer; XMLSchema: Record "XML Schema"; SchemaPrefix: Text; var CurrentID: Integer)
     var
         XMLSchemaElement: Record "XML Schema Element";
     begin
@@ -509,21 +538,21 @@ codeunit 9610 "XSD Parser"
 
         XMLSchemaElement."Node Name" := GetElementName(XmlNode);
 
-        if XmlNode.Name = StrSubstNo('%1:element', SchemaPrefix) then
+        if GetNodeName(XmlNode) = StrSubstNo('%1:element', SchemaPrefix) then
             XMLSchemaElement."Node Type" := XMLSchemaElement."Node Type"::Element
         else
             XMLSchemaElement."Node Type" := XMLSchemaElement."Node Type"::"Definition Node";
 
         XMLSchemaElement."Data Type" := GetElementType(XmlNode);
         XMLSchemaElement."Parent ID" := ParentID;
-        XMLSchemaElement.Choice := StrPos(XmlNode.Name, 'choice') > 0;
+        XMLSchemaElement.Choice := StrPos(GetNodeName(XmlNode), 'choice') > 0;
 
         SetMinAndMaxOccurs(XMLSchemaElement, XmlNode);
         XMLSchemaElement.Insert();
         LastXMLSchemaElement := XMLSchemaElement;
     end;
 
-    local procedure InsertAttributeDefinition(var LastXMLSchemaElement: Record "XML Schema Element"; XmlNode: DotNet XmlNode; ParentID: Integer; XMLSchema: Record "XML Schema"; var CurrentID: Integer)
+    local procedure InsertAttributeDefinition(var LastXMLSchemaElement: Record "XML Schema Element"; XmlNode: XmlNode; ParentID: Integer; XMLSchema: Record "XML Schema"; var CurrentID: Integer)
     var
         XMLSchemaElement: Record "XML Schema Element";
     begin
@@ -543,18 +572,33 @@ codeunit 9610 "XSD Parser"
         LastXMLSchemaElement := XMLSchemaElement;
     end;
 
-    local procedure GetAttribute(AttributeName: Text; var XMLNode: DotNet XmlNode): Text[250]
+    local procedure GetAttribute(AttributeName: Text; var XMLNode: XmlNode): Text[250]
     var
-        XMLAttributeNode: DotNet XmlNode;
+        FoundXmlAttribute: XmlAttribute;
     begin
-        XMLAttributeNode := XMLNode.Attributes.GetNamedItem(AttributeName);
-        if IsNull(XMLAttributeNode) then
+        if not XMLNode.IsXmlElement() then
+            exit('');
+        if not XMLNode.AsXmlElement().Attributes().Get(AttributeName, FoundXmlAttribute) then
             exit('');
 
-        exit(CopyStr(Format(XMLAttributeNode.InnerText), 1, 250));
+        exit(CopyStr(FoundXmlAttribute.Value(), 1, 250));
     end;
 
-    local procedure SetMinAndMaxOccurs(var XMLSchemaElement: Record "XML Schema Element"; XmlNode: DotNet XmlNode)
+    local procedure GetNodeName(XMLNode: XmlNode): Text
+    begin
+        if XMLNode.IsXmlElement() then
+            exit(XMLNode.AsXmlElement().Name());
+        exit('');
+    end;
+
+    local procedure FindNodes(RootXmlNode: XmlNode; XPath: Text; NamespaceMgr: XmlNamespaceManager; var FoundXmlNodeList: XmlNodeList): Boolean
+    begin
+        if not RootXmlNode.SelectNodes(XPath, NamespaceMgr, FoundXmlNodeList) then
+            exit(false);
+        exit(FoundXmlNodeList.Count() > 0);
+    end;
+
+    local procedure SetMinAndMaxOccurs(var XMLSchemaElement: Record "XML Schema Element"; XmlNode: XmlNode)
     begin
         if GetAttribute('minOccurs', XmlNode) <> '' then
             Evaluate(XMLSchemaElement.MinOccurs, GetAttribute('minOccurs', XmlNode))
@@ -604,7 +648,7 @@ codeunit 9610 "XSD Parser"
         end;
     end;
 
-    local procedure GetElementName(var XMLNode: DotNet XmlNode): Text[250]
+    local procedure GetElementName(var XMLNode: XmlNode): Text[250]
     var
         ElementName: Text;
     begin
@@ -619,7 +663,7 @@ codeunit 9610 "XSD Parser"
         exit(ElementName);
     end;
 
-    local procedure GetElementType(var XMLNode: DotNet XmlNode): Text[250]
+    local procedure GetElementType(var XMLNode: XmlNode): Text[250]
     var
         ElementType: Text;
     begin
@@ -823,7 +867,7 @@ codeunit 9610 "XSD Parser"
         XMLSchemaElement.SetRange(Selected);
     end;
 
-    local procedure GetSchemaLocation(CurrentXmlNode: DotNet XmlNode; XMLSchema: Record "XML Schema"): Text
+    local procedure GetSchemaLocation(CurrentXmlNode: XmlNode; XMLSchema: Record "XML Schema"): Text
     var
         FileManagement: Codeunit "File Management";
         SchemaLocation: Text;
@@ -880,8 +924,9 @@ codeunit 9610 "XSD Parser"
     var
         XMLSchemaElement: Record "XML Schema Element";
         MainDocumentXMLSchema: Record "XML Schema";
-        NamespaceMgr: DotNet XmlNamespaceManager;
-        "Schema": DotNet XmlDocument;
+        NamespaceMgr: XmlNamespaceManager;
+        "Schema": XmlDocument;
+        SchemaRootElement: XmlElement;
         SchemaPrefix: Text;
         CurrentID: Integer;
     begin
@@ -890,7 +935,8 @@ codeunit 9610 "XSD Parser"
 
         CurrentID := 1;
         Clear(XMLSchemaElement);
-        ParseChildXMLNodes(Schema.DocumentElement, SchemaPrefix, XMLSchemaElement, XMLSchema, NamespaceMgr, 0, CurrentID);
+        Schema.GetRoot(SchemaRootElement);
+        ParseChildXMLNodes(SchemaRootElement.AsXmlNode(), SchemaPrefix, XMLSchemaElement, XMLSchema, NamespaceMgr, 0, CurrentID);
 
         if not Confirm(GenerateDefinitionAgainQst) then
             exit;
