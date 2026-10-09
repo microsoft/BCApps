@@ -151,7 +151,9 @@ codeunit 5522 "Order Planning Mgt."
     var
         UnplannedDemand: Record "Unplanned Demand";
         Item: Record Item;
+        DemandHeaderReqLine: Record "Requisition Line";
         HeaderExists: Boolean;
+        DemandLineExists: Boolean;
     begin
         UnplannedDemand.Copy(TempUnplannedDemand);
 
@@ -163,20 +165,27 @@ codeunit 5522 "Order Planning Mgt."
         OnInsertDemandLinesOnBeforeFindUnplannedDemand(TempUnplannedDemand, ReqLine);
         TempUnplannedDemand.Find('-');
         HeaderExists := false;
+        DemandLineExists := false;
         repeat
-            if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then
-                if not IsUnplannedDemandItemBlocked(ReqLine) then begin
-                    if not HeaderExists then
-                        InsertDemandHeader(UnplannedDemand, ReqLine);
-                    HeaderExists := true;
-
-                    ReqLine.TransferFromUnplannedDemand(TempUnplannedDemand);
+            if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then begin
+                if not HeaderExists then begin
+                    InsertDemandHeader(UnplannedDemand, ReqLine);
+                    DemandHeaderReqLine := ReqLine;
+                end;
+                HeaderExists := true;
+                if ReqLine.TransferFromUnplannedDemandSkipBlockedItem(TempUnplannedDemand) then begin
                     ReqLine.SetSupplyQty(TempUnplannedDemand."Quantity (Base)", TempUnplannedDemand."Needed Qty. (Base)");
                     ReqLine.SetSupplyDates(TempUnplannedDemand."Demand Date");
                     InsertReqLineFromUnplannedDemand(ReqLine, Item);
+                    DemandLineExists := true;
                 end;
+            end;
             TempUnplannedDemand.Delete();
         until TempUnplannedDemand.Next() = 0;
+
+        // All demand lines were skipped because their items are blocked.
+        if HeaderExists and not DemandLineExists then
+            DemandHeaderReqLine.Delete();
 
         TempUnplannedDemand.Copy(UnplannedDemand);
     end;
@@ -490,20 +499,6 @@ codeunit 5522 "Order Planning Mgt."
             until Location.Next() = 0;
 
         exit(AvailableQtyBaseTotal);
-    end;
-
-    local procedure IsUnplannedDemandItemBlocked(RequisitionLine: Record "Requisition Line"): Boolean
-    begin
-        RequisitionLine.Init();
-        RequisitionLine."Planning Line Origin" := RequisitionLine."Planning Line Origin"::"Order Planning";
-        RequisitionLine.Type := RequisitionLine.Type::Item;
-        RequisitionLine."No." := TempUnplannedDemand."Item No.";
-        RequisitionLine."Variant Code" := TempUnplannedDemand."Variant Code";
-        RequisitionLine."Location Code" := TempUnplannedDemand."Location Code";
-        RequisitionLine."Bin Code" := TempUnplannedDemand."Bin Code";
-        RequisitionLine."Drop Shipment" := TempUnplannedDemand."Drop Shipment";
-
-        exit(RequisitionLine.IsItemBlocked());
     end;
 
     [IntegrationEvent(false, false)]

@@ -128,6 +128,8 @@ table 246 "Requisition Line"
                     Type::Item:
                         CopyFromItem();
                 end;
+                if BlockedItemSkipped then
+                    exit;
 
                 OnValidateNoOnAfterAssignFieldsForNo(Rec, xRec);
 
@@ -1581,6 +1583,8 @@ table 246 "Requisition Line"
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         BlockReservation: Boolean;
         DoNotUpdateOrderReceiptDate: Boolean;
+        SkipBlockedItem: Boolean;
+        BlockedItemSkipped: Boolean;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -1677,6 +1681,8 @@ table 246 "Requisition Line"
               StrSubstNo(Text031, Item.TableCaption(), Item."No."),
               Database::Item, CopyStr(Item.GetPosition(), 1, 250));
         CheckBlockedItem();
+        if BlockedItemSkipped then
+            exit;
         "Low-Level Code" := Item."Low-Level Code";
         "Item Category Code" := Item."Item Category Code";
         "Gen. Prod. Posting Group" := Item."Gen. Prod. Posting Group";
@@ -1706,23 +1712,12 @@ table 246 "Requisition Line"
         if IsHandled then
             exit;
 
+        if SkipBlockedItem and Item.Blocked then begin
+            BlockedItemSkipped := true;
+            exit;
+        end;
+
         Item.TestField(Blocked, false);
-    end;
-
-    procedure IsItemBlocked(): Boolean
-    var
-        IsHandled: Boolean;
-    begin
-        if (Type <> Type::Item) or ("No." = '') then
-            exit(false);
-
-        GetItem();
-        if not Item.Blocked then
-            exit(false);
-
-        IsHandled := false;
-        OnBeforeCheckBlockedItem(Rec, IsHandled);
-        exit(not IsHandled);
     end;
 
     local procedure GetItem()
@@ -2869,6 +2864,8 @@ table 246 "Requisition Line"
         "Bin Code" := UnplannedDemand."Bin Code";
         "Drop Shipment" := UnplannedDemand."Drop Shipment";
         Validate("No.");
+        if BlockedItemSkipped then
+            exit;
         Validate("Variant Code", UnplannedDemand."Variant Code");
         UpdateDescription();
         "Unit Of Measure Code (Demand)" := UnplannedDemand."Unit of Measure Code";
@@ -2892,6 +2889,25 @@ table 246 "Requisition Line"
         UpdateDim();
 
         OnAfterTransferFromUnplannedDemand(Rec, UnplannedDemand);
+    end;
+
+    /// <summary>
+    /// Populates the current requisition line from the provided unplanned demand, unless the demanded item is blocked.
+    /// The blocked item check runs at its regular place during validation of the 'No.' field, including the OnBeforeCheckBlockedItem event.
+    /// </summary>
+    /// <param name="UnplannedDemand">Source unplanned demand record.</param>
+    /// <returns>False if the demand was skipped because the item is blocked; otherwise, true.</returns>
+    internal procedure TransferFromUnplannedDemandSkipBlockedItem(var UnplannedDemand: Record "Unplanned Demand"): Boolean
+    var
+        ItemSkipped: Boolean;
+    begin
+        SkipBlockedItem := true;
+        BlockedItemSkipped := false;
+        TransferFromUnplannedDemand(UnplannedDemand);
+        ItemSkipped := BlockedItemSkipped;
+        SkipBlockedItem := false;
+        BlockedItemSkipped := false;
+        exit(not ItemSkipped);
     end;
 
     local procedure InitRecordForOrderPlanning()
