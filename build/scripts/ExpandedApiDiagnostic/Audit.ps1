@@ -28,6 +28,14 @@ foreach ($cell in $plan.cells) {
             Assert-ExpandedApiEvidence -Evidence $report.evidence -Cell @{
                 identity = $cell.identity; country = $cell.country; configuration = $cell.configuration; lanes = @($lane)
             }
+            $installation = Assert-ExpandedInstalledInventory -Files $report.evidence.packageManifest.files `
+                -Installed $report.evidence.installation.installed
+            if ((@($installation.excluded.path | Sort-Object) -join '|') -cne
+                (@($report.evidence.installation.excluded.path | Sort-Object) -join '|') -or
+                (@($installation.required.path | Sort-Object) -join '|') -cne
+                (@($report.evidence.installation.required.path | Sort-Object) -join '|')) {
+                throw 'Runtime installation inventory differs from the shared publication policy.'
+            }
             $key = "$($cell.country)/$($lane.id)"
             $comparison = [ordered]@{
                 registry = $report.evidence.registryId; registryDigest = $report.evidence.registrySha256

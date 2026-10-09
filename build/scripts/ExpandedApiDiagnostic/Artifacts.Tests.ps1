@@ -95,6 +95,10 @@ Export-ModuleMember -Function Get-AppJsonFromAppFile
             ConvertTo-Json|Set-Content (Join-Path $root 'Apps\runner.app')
         @{id='8d52df0b-add3-4e9b-aac5-f11107cba919';name='IRS Forms Tests';version='30.0.1.0';dependencies=@()} |
             ConvertTo-Json|Set-Content (Join-Path $root 'TestApps\irs.app')
+        @{id='fixture-no-transactions';name='Library - No Transactions';version='30.0.1.0';dependencies=@()} |
+            ConvertTo-Json|Set-Content (Join-Path $root 'Apps\Microsoft_Library - No Transactions_30.0.1.0.app')
+        @{id='fixture-prevent-metadata';name='Prevent Metadata Updates Library';version='30.0.1.0';dependencies=@()} |
+            ConvertTo-Json|Set-Content (Join-Path $root 'Apps\Microsoft_Prevent Metadata Updates Library_30.0.1.0.app')
     }
     BeforeEach {
         Mock Invoke-RestMethod -ModuleName Artifacts {
@@ -109,11 +113,26 @@ Export-ModuleMember -Function Get-AppJsonFromAppFile
         & (Join-Path $PSScriptRoot 'SealBuild.ps1') -AppsId 111 -AppsDigest ('c'*64) -TestsId 112 -TestsDigest ('d'*64)
         $manifest=Get-Content (Join-Path $output 'packages.json') -Raw|ConvertFrom-Json
         $manifest.artifacts.id -join ','|Should -Be '111,112'
-        $manifest.files.Count|Should -Be 2
-        $manifest.files[1].appName|Should -Be 'IRS Forms Tests'
+        $manifest.files.Count|Should -Be 4
+        @($manifest.files|Where-Object appName -EQ 'IRS Forms Tests').Count|Should -Be 1
         $manifest.freshCompilation|Should -BeTrue
         {Assert-ExpandedApiPackageManifest -Manifest $manifest -Country CA -RunId 999 -SourceHead ('a'*40) `
             -SourceTree $manifest.sourceTree -PackageDirectory (Join-Path $fixture "$($env:BC_EXPANDED_PROJECT)\.buildartifacts")} |
             Should -Not -Throw
+        $installed=@($manifest.files|Where-Object appName -NotIn @('Library - No Transactions','Prevent Metadata Updates Library')|
+            ForEach-Object {[pscustomobject]@{AppId=$_.appId;Name=$_.appName;Version=$_.version;Publisher='Microsoft'}})
+        $sealedBefore=$manifest|ConvertTo-Json -Depth 30 -Compress
+        $inventory=Assert-ExpandedInstalledInventory -Files $manifest.files -Installed $installed
+        $inventory.excluded.Count|Should -Be 2
+        $inventory.required.Count|Should -Be 2
+        ($manifest|ConvertTo-Json -Depth 30 -Compress)|Should -Be $sealedBefore
+    }
+    It 'still rejects changed bytes in a deliberately unpublished library' {
+        & (Join-Path $PSScriptRoot 'SealBuild.ps1') -AppsId 111 -AppsDigest ('c'*64) -TestsId 112 -TestsDigest ('d'*64)
+        $manifest=Get-Content (Join-Path $output 'packages.json') -Raw|ConvertFrom-Json
+        ($manifest.files|Where-Object appName -EQ 'Library - No Transactions').sha256='e'*64
+        {Assert-ExpandedApiPackageManifest -Manifest $manifest -Country CA -RunId 999 -SourceHead ('a'*40) `
+            -SourceTree $manifest.sourceTree -PackageDirectory (Join-Path $fixture "$($env:BC_EXPANDED_PROJECT)\.buildartifacts")} |
+            Should -Throw '*Package bytes differ*'
     }
 }

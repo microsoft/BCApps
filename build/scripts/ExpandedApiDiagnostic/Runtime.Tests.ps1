@@ -15,7 +15,10 @@ function Get-BcContainerEventLog { param($containerName,[switch]$doNotOpen) Join
 function Get-BcContainerAppInfo {
     param($containerName,$tenant,[switch]$tenantSpecificProperties)
     $p = Get-Content (Join-Path $env:GITHUB_WORKSPACE 'expanded-api-output\packages.json') -Raw | ConvertFrom-Json
-    foreach($f in $p.files) { [pscustomobject]@{ AppId=$f.appId;Name=$f.appName;Version=$f.version;Publisher='Microsoft';IsInstalled=$true } }
+    foreach($f in $p.files) {
+        if($f.appName -in @('Library - No Transactions','Prevent Metadata Updates Library') -or $f.appName -eq $env:BC_EXPANDED_TEST_MISSING_APP){continue}
+        [pscustomobject]@{ AppId=$f.appId;Name=$f.appName;Version=$f.version;Publisher='Microsoft';IsInstalled=$true }
+    }
 }
 function Invoke-ScriptInBcContainer {
     param($containerName,$useSession,$scriptblock,$argumentList)
@@ -48,7 +51,7 @@ Export-ModuleMember -Function *
     foreach ($key in @('GITHUB_WORKSPACE','GITHUB_REPOSITORY','GITHUB_REF','GITHUB_EVENT_NAME','GITHUB_RUN_ATTEMPT',
         'GITHUB_RUN_ID','GITHUB_SHA','BC_EXPANDED_COUNTRY','BC_EXPANDED_CONFIG','BC_EXPANDED_LANE',
         'BC_SQL_TENANT_COUNT','BC_SQL_PILOT_ARM','BC_SQL_API_EXPERIMENT','BC_SQL_PILOT_OUTPUT','BC_EXPANDED_PHASE',
-        'BC_EXPANDED_TEST_FAIL','BcContainerHelperPath')) {
+        'BC_EXPANDED_TEST_FAIL','BC_EXPANDED_TEST_MISSING_APP','BcContainerHelperPath')) {
         $environment[$key] = [Environment]::GetEnvironmentVariable($key)
     }
     $env:GITHUB_WORKSPACE=$fixture; $env:GITHUB_REPOSITORY='microsoft/BCApps'
@@ -76,6 +79,7 @@ Describe 'Real orchestration with fake external services' {
         if(Test-Path $output){Remove-Item $output -Recurse -Force}
         $null=New-Item -ItemType Directory -Path $output
         $env:BC_EXPANDED_TEST_FAIL='0'
+        $env:BC_EXPANDED_TEST_MISSING_APP=''
         @{
             ticks=[Diagnostics.Stopwatch]::GetTimestamp()-100000;frequency=[Diagnostics.Stopwatch]::Frequency
             runner='fixture-runner';host='fixture-host'
@@ -83,8 +87,10 @@ Describe 'Real orchestration with fake external services' {
         @{run='999';sourceHead=('a'*40);identity=$context.cell.identity;lane=$context.lane.id;container=$context.container} |
             ConvertTo-Json | Set-Content (Join-Path $output 'ownership.json')
         @{files=@(
-            @{appId='8d52df0b-add3-4e9b-aac5-f11107cba919';appName='IRS Forms Tests';version='30.0.1.0'},
-            @{appId='23de40a6-dfe8-4f80-80db-d70f83ce8caf';appName='Test Runner';version='30.0.1.0'}
+            @{path='TestApps\Microsoft_IRS Forms Tests_30.0.1.0.app';appId='8d52df0b-add3-4e9b-aac5-f11107cba919';appName='IRS Forms Tests';version='30.0.1.0'},
+            @{path='Apps\Microsoft_Test Runner_30.0.1.0.app';appId='23de40a6-dfe8-4f80-80db-d70f83ce8caf';appName='Test Runner';version='30.0.1.0'},
+            @{path='Apps\Microsoft_Library - No Transactions_30.0.1.0.app';appId='fixture-no-transactions';appName='Library - No Transactions';version='30.0.1.0'},
+            @{path='Apps\Microsoft_Prevent Metadata Updates Library_30.0.1.0.app';appId='fixture-prevent-metadata';appName='Prevent Metadata Updates Library';version='30.0.1.0'}
         )} | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $output 'packages.json')
         @{transportVerified=$true;packageFilesVerified=$true;registryId='123';registrySha256=('b'*64)} |
             ConvertTo-Json | Set-Content (Join-Path $output 'transport-proof.json')
@@ -110,6 +116,12 @@ Describe 'Real orchestration with fake external services' {
         $report.evidence.ownedCleanupVerified|Should -BeTrue
         $report.evidence.lanes[0].discovered[0].runner|Should -Be '130450'
         @($report.evidence.lanes[0].results).Count|Should -Be 1
+        $report.evidence.packageManifest.files.Count|Should -Be 4
+        $report.evidence.installation.excluded.Count|Should -Be 2
+        $report.evidence.installation.required.Count|Should -Be 2
+        $report.evidence.installation.installed.Count|Should -Be 2
+        $report.evidence.installation.excluded.appName|Should -Contain 'Library - No Transactions'
+        $report.evidence.installation.excluded.appName|Should -Contain 'Prevent Metadata Updates Library'
         $reset=@(Get-Content (Join-Path $context.output 'reset-timeline.jsonl')|ForEach-Object {$_|ConvertFrom-Json}|Where-Object phase -EQ reset-complete)
         $reset.Count|Should -Be 2
         $reset[0].plan.Tenant|Should -Be default
@@ -146,5 +158,12 @@ Describe 'Real orchestration with fake external services' {
         { & (Join-Path $root 'Finalize.ps1') }|Should -Throw '*resourceEvidenceComplete*'
         (Test-BcContainer -containerName $context.container)|Should -BeFalse
         (Get-Content (Join-Path $context.output 'lane-evidence.json') -Raw|ConvertFrom-Json).qualified|Should -BeFalse
+    }
+    It 'rejects a missing required installed package before discovery despite standard library exclusions' {
+        $env:BC_EXPANDED_TEST_MISSING_APP='IRS Forms Tests'
+        {Invoke-ExpandedLane -Parameters $parameters}|Should -Throw '*Installed package/version mismatch for IRS Forms Tests*'
+        Test-Path (Join-Path $context.output 'discovery.jsonl')|Should -BeFalse
+        { & (Join-Path $root 'Finalize.ps1') }|Should -Throw
+        (Test-BcContainer -containerName $context.container)|Should -BeFalse
     }
 }

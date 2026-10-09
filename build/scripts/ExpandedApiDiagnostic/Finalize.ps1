@@ -95,6 +95,7 @@ $evidence = @{
         @($resetEnds | Where-Object { $_.plan.TemplateIdentity -ne $template.serviceBrokerGuid }).Count -eq 0)
     lanes = @($outcome); registryId = $transport.registryId; registrySha256 = $transport.registrySha256
     packageManifest = (Get-Content (Join-Path $context.output 'packages.json') -Raw | ConvertFrom-Json)
+    installation = $runtime.installation
 }
 $singleLaneCell = @{ identity = $context.cell.identity; country = $context.cell.country
     configuration = $context.cell.configuration; lanes = @($context.lane) }

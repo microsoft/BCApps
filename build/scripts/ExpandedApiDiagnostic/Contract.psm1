@@ -1,5 +1,31 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot '..\AppPublicationPolicy.psm1')
+
+function Assert-ExpandedInstalledInventory {
+    param([Parameter(Mandatory)][array]$Files, [Parameter(Mandatory)][AllowEmptyCollection()][array]$Installed)
+    $standard = @(Get-StandardAppPublicationExclusion)
+    $required = @()
+    $excluded = @()
+    foreach ($file in $Files) {
+        $baseName = [IO.Path]::GetFileNameWithoutExtension($file.path)
+        if (Test-AppPublicationExcluded -BaseName $baseName -ExclusionList $standard) {
+            if ($file.appName -cnotin $standard) { throw 'Excluded filename does not match standard library metadata.' }
+            if (@($Installed | Where-Object { [string]$_.AppId -eq [string]$file.appId }).Count) {
+                throw "Repository-standard excluded library unexpectedly installed: $($file.appName)."
+            }
+            $excluded += $file
+        } else {
+            $installedMatch = @($Installed | Where-Object {
+                [string]$_.AppId -eq [string]$file.appId -and [string]$_.Version -eq $file.version
+            })
+            if ($installedMatch.Count -ne 1) { throw "Installed package/version mismatch for $($file.appName)." }
+            $required += $file
+        }
+    }
+    @{ required = $required; excluded = $excluded; standardExclusions = $standard
+        installed = @($Installed | Select-Object AppId, Name, Version, Publisher) }
+}
 
 function Get-ExpandedApiPinSet {
     @{
@@ -240,4 +266,5 @@ function Assert-ExpandedApiEvidence {
 }
 
 Export-ModuleMember -Function Get-ExpandedApiPinSet, Assert-ExpandedApiDispatch, Get-ExpandedApiPlan,
-    Assert-ExpandedApiCohort, Assert-ExpandedApiPackageManifest, Assert-ExpandedApiEvidence, Get-ExpandedCohortSignature
+    Assert-ExpandedApiCohort, Assert-ExpandedApiPackageManifest, Assert-ExpandedApiEvidence, Get-ExpandedCohortSignature,
+    Assert-ExpandedInstalledInventory

@@ -129,7 +129,20 @@ the sealed new packages are supplied to RunPipeline.
 ## Runtime producer and original evidence
 
 The new producer replaces the per-project test callback, not ordinary CI defaults.
-It verifies actual installed package IDs/versions (including Test Runner), actual
+The complete sealed build inventory remains distinct from the expected installed
+inventory. **Library - No Transactions** and **Prevent Metadata Updates Library**
+are compiled, uploaded and hash-verified but deliberately not published/installed
+by the repository's standard publication policy. `AppPublicationPolicy.psm1`
+supplies the same exclusion names and filename matching to the inherited publish
+hook and the diagnostic validator. No diagnostic-specific exclusion or caller's
+`AdditionalAppsNotToPublish` may relax required installation. The runtime records
+both required and intentionally excluded packages; installing either excluded
+library is also an error. All other sealed packages must match installed IDs and
+versions. The final audit independently recomputes that partition. Compilation,
+registry, download transport and per-file verification continue to include **all**
+packages, including the two intentionally absent libraries.
+
+It verifies actual required installed package IDs/versions (including Test Runner), actual
 NST executable version, multitenancy with a separate application DB, mounted
 mappings,16G and the pinned generic image's actual layer prefix. The actual derived
 container image ID, runner/host and Docker CPU settings are retained.

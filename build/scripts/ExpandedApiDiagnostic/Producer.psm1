@@ -177,14 +177,12 @@ function Invoke-ExpandedLane {
         if ($actualVersion.Count -ne 1 -or $actualVersion[0] -cne $context.pins.platform) { throw 'Actual NST executable version differs from the pin.' }
         $installed = @(Get-BcContainerAppInfo -containerName $context.container -tenant default -tenantSpecificProperties | Where-Object IsInstalled)
         $manifest = Get-Content (Join-Path $context.output 'packages.json') -Raw | ConvertFrom-Json
-        foreach ($file in $manifest.files) {
-            $installedMatch = @($installed | Where-Object { [string]$_.AppId -eq [string]$file.appId -and [string]$_.Version -eq $file.version })
-            if ($installedMatch.Count -ne 1) { throw "Installed package/version mismatch for $($file.appName)." }
-        }
+        $installation = Assert-ExpandedInstalledInventory -Files $manifest.files -Installed $installed
         if (-not @($manifest.files | Where-Object appName -EQ 'Test Runner').Count) { throw 'Compiled runner package missing.' }
         @{ nstVersion = $actualVersion[0]; multitenant = $true; applicationDatabase = $serverConfiguration.DatabaseName
             installed = @($installed | Select-Object AppId, Name, Version, Publisher)
-            packages = $manifest.files; mounts = $tenants; workers = $context.cell.configuration.workers
+            packages = $manifest.files; installation = $installation
+            mounts = $tenants; workers = $context.cell.configuration.workers
             helperVersion = $context.pins.helper; shellVersion = $PSVersionTable.PSVersion.ToString() } |
             ConvertTo-Json -Depth 25 | Set-Content (Join-Path $context.output 'runner-inventory.json')
         $sampler = Start-SqlTenantSampler -ContainerName $context.container -Directory $context.output
