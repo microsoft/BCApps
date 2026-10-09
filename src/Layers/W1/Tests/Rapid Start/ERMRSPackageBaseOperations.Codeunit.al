@@ -1228,31 +1228,32 @@ codeunit 136610 "ERM RS Package Base Operations"
         RootElement.GetChildNodes().Get(1, TableListNode);
         TableListElement := TableListNode.AsXmlElement();
         CreateDummyCustPriceGroup(CustomerPriceGroup);
-        RecordElement := XmlElement.Create(ConfigXMLExchange.GetElementName(CustomerPriceGroup.TableName));
+        RecordElement := XmlElement.Create(ConfigXMLExchange.GetElementName(CopyStr(CustomerPriceGroup.TableName, 1, 250)));
         TableListElement.Add(RecordElement);
-        AddXMLElement(RecordElement, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName(Code)), CustomerPriceGroup.Code);
+        AddXMLElement(RecordElement, CustomerPriceGroup.FieldName(Code), CustomerPriceGroup.Code);
         AddXMLElement(
-          RecordElement, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Price Includes VAT")),
+          RecordElement, CustomerPriceGroup.FieldName("Price Includes VAT"),
           Format(CustomerPriceGroup."Price Includes VAT"));
         AddXMLElement(
-          RecordElement, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Allow Invoice Disc.")),
+          RecordElement, CustomerPriceGroup.FieldName("Allow Invoice Disc."),
           Format(CustomerPriceGroup."Allow Invoice Disc."));
         AddXMLElement(
-          RecordElement, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("VAT Bus. Posting Gr. (Price)")),
+          RecordElement, CustomerPriceGroup.FieldName("VAT Bus. Posting Gr. (Price)"),
           CustomerPriceGroup."VAT Bus. Posting Gr. (Price)");
         AddXMLElement(
-          RecordElement, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName(Description)),
+          RecordElement, CustomerPriceGroup.FieldName(Description),
           CustomerPriceGroup.Description);
         AddXMLElement(
-          RecordElement, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Allow Line Disc.")),
+          RecordElement, CustomerPriceGroup.FieldName("Allow Line Disc."),
           Format(CustomerPriceGroup."Allow Line Disc."));
     end;
 
-    local procedure AddXMLElement(var ParentElement: XmlElement; Name: Text; Value: Text)
+    local procedure AddXMLElement(var ParentElement: XmlElement; FieldName: Text; Value: Text)
     var
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
         NewElement: XmlElement;
     begin
-        NewElement := XmlElement.Create(Name);
+        NewElement := XmlElement.Create(ConfigXMLExchange.GetElementName(CopyStr(FieldName, 1, 250)));
         if Value <> '' then
             NewElement.Add(XmlText.Create(Value));
         ParentElement.Add(NewElement);

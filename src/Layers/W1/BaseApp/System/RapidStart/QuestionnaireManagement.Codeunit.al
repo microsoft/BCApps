@@ -976,12 +976,14 @@ codeunit 8610 "Questionnaire Management"
         RootElement: XmlElement;
         Node: XmlNode;
         SchemaPath: Text;
+        SchemaAreaPathTok: Label 'xsd:element/%2[@name=''%1'']', Locked = true;
+        SchemaQuestionColumnsPathTok: Label '%1[@name=''ConfigQuestion'']/%1', Locked = true;
     begin
         SchemaPath := 'xsd:complexType/xsd:sequence/xsd:element';
         MapXML.GetRoot(RootElement);
         RootElement.SelectSingleNode(
-          StrSubstNo('xsd:element/%2[@name=''%1'']', QuestionAreaName, SchemaPath), NamespaceMgr, Node);
-        Node.SelectNodes(StrSubstNo('%1[@name=''ConfigQuestion'']/%1', SchemaPath), NamespaceMgr, ColumnNodes);
+          StrSubstNo(SchemaAreaPathTok, QuestionAreaName, SchemaPath), NamespaceMgr, Node);
+        Node.SelectNodes(StrSubstNo(SchemaQuestionColumnsPathTok, SchemaPath), NamespaceMgr, ColumnNodes);
     end;
 }
 
