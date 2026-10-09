@@ -41,39 +41,6 @@ Running the above will
 * Set up launch.jsons and settings.jsons in your VSCode
 * Compile and publish all AL apps that match `.\src\System Application\`
 
-## API test authentication
-
-`Library - Graph Mgt` uses the Microsoft test authentication provider by default.
-API tests do not need a `SetAuthenticationProvider` call, a password file, or a
-Key Vault password lookup. Container and test-session credentials are still
-required to provision and connect to the NST; they are not handed to API requests.
-
-On-premises **NavUserPassword** requests use the current user's web service key.
-The provider reads the key and expiry for each request, reuses a valid key
-(including one without an expiry), and creates a key with a 24-hour expiry when
-the key is missing or expired. Credentials are not cached or logged.
-
-There are no authentication event subscribers, test-runner dependencies, or
-pipeline key-provisioning steps. The provider does not call `Commit()`.
-`Identity Management` may create the key in the caller's existing transaction;
-the independent HTTP session requires committed credentials, just as it requires
-committed fixture data. First-use visibility at the test's transaction boundary
-must therefore be verified on the target server. Concurrent creation by separate
-sessions for the same tenant/user is not serialized by this provider.
-
-Windows, SaaS, and other authentication modes retain ambient authentication.
-`API Test Authentication` uses the Microsoft provider as its
-`DefaultImplementation`; value zero is `Default`. The explicit
-`Microsoft Test Environment` value retains ordinal one. The previous `None`
-value and no-op provider are removed. Custom enum providers and
-`SetAuthenticationProvider` remain supported, and the final
-`OnAfterInitializeWebRequestWithURL` event still runs after the provider.
-
-API fixture initializers reapply the existing test-license-compatible work date
-(November 15 of the current year) before creating date-sensitive data, including
-after an initialization guard has previously been set. This controls fixture
-dates, not license enforcement or the authentication key's real-time expiry.
-
 ## GDL development (layers and views)
 
 Anything that ships in multiple localizations (the **Base Application** and the application layers) lives under `src/Layers`, organized by country/region. Each country's app is composed by overlapping multiple **layers** in order: a `W1` ("worldwide") base, optional regional layers, and the country layer. For example, the `US` app is composed of `W1` + `NA` + `US`, where each layer either introduces new objects or replaces objects from a base layer.

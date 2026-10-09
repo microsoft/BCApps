@@ -7372,3 +7372,4 @@ codeunit 134920 "ERM General Journal UT"
         IsHandled := true;
     end;
 }
+

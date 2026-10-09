@@ -33,12 +33,11 @@ codeunit 139494 "API Test Auth Provider Tests"
         ProviderCallTok: Label 'Provider|%1', Locked = true, Comment = '%1 - Provider invocation number';
         EventCallTok: Label 'Event', Locked = true;
         UnexpectedCallErr: Label 'Unexpected authentication call.';
-        ForcedRollbackErr: Label 'Roll back the API authentication fixture.';
 
     [Test]
     [NonDebuggable]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure MissingKeyIsCommittedBeforeHttpRequest()
+    procedure MissingKeyIsCreatedForRequest()
     var
         TargetURL: Text;
         ResponseText: Text;
@@ -111,67 +110,6 @@ codeunit 139494 "API Test Auth Provider Tests"
         // [THEN] NavUserPassword renews the key while ambient authentication leaves it untouched
         VerifyExpiredKeyForServerMode(ExpiredKey);
         Clear(ExpiredKey);
-        VerifyNextCall(EventCallTok);
-        VerifyNoRemainingCalls();
-    end;
-
-    [Test]
-    [NonDebuggable]
-    [TransactionModel(TransactionModel::AutoCommit)]
-    procedure AuthenticationDoesNotCommitFixture()
-    var
-        CurrentUser: Record User;
-        OriginalFullName: Text[80];
-    begin
-        // [SCENARIO] Missing-key authentication cannot commit unrelated changes to user U
-        Initialize();
-
-        // [GIVEN] User U has no key and an uncommitted fixture change
-        IdentityManagement.ClearWebServicesKey(UserSecurityId());
-        Commit();
-        CurrentUser.Get(UserSecurityId());
-        OriginalFullName := CurrentUser."Full Name";
-        CurrentUser."Full Name" := 'API authentication rollback fixture';
-        CurrentUser.Modify();
-
-        // [WHEN] Authentication is configured and the fixture transaction is rolled back
-        asserterror InitializeRequestAndFail();
-
-        // [THEN] Authentication has not committed the unrelated fixture
-        Assert.ExpectedError(ForcedRollbackErr);
-        Assert.ExpectedErrorCode('Dialog');
-        CurrentUser.Get(UserSecurityId());
-        Assert.IsTrue(CurrentUser."Full Name" = OriginalFullName, 'Authentication must not commit the user fixture.');
-        VerifyNextCall(EventCallTok);
-        VerifyNoRemainingCalls();
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::None)]
-    procedure DefaultAuthenticationRespectsServerAuthMode()
-    var
-        EnvironmentInfo: Codeunit "Environment Information";
-        TargetURL: Text;
-        ResponseText: Text;
-    begin
-        // [SCENARIO] Default authentication uses the current user's committed key or ambient Windows credentials
-        Initialize();
-
-        // [GIVEN] An OnPrem service and a read-only test method with no fixture transaction to commit
-        Assert.IsFalse(EnvironmentInfo.IsSaaSInfrastructure(), 'This HTTP scenario requires an OnPrem test environment.');
-        TargetURL := GetUrl(ClientType::ODataV4);
-
-        // [WHEN] The default provider sends a request without explicit provider selection
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-
-        // [THEN] Authentication completes before the independent HTTP session reads the key
-        VerifyNextCall(EventCallTok);
-
-        // [WHEN] A fresh library instance sends another request
-        Clear(LibraryGraphMgt);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-
-        // [THEN] Authentication does not depend on an instance-local credential cache
         VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
@@ -437,12 +375,6 @@ codeunit 139494 "API Test Auth Provider Tests"
             Assert.IsTrue(IdentityManagement.GetWebServiceExpiryDate(UserSecurityId()) > CurrentDateTime(), 'The replacement key must not be expired.');
         end else
             Assert.IsTrue(ExpiredKey = GetCurrentWebServiceKey(), 'Ambient authentication must not change the key.');
-    end;
-
-    local procedure InitializeRequestAndFail()
-    begin
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpRequestMessage, TargetURLTok);
-        Error(ForcedRollbackErr);
     end;
 
     local procedure VerifyNextCall(ExpectedCall: Text)

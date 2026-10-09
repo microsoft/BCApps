@@ -17,9 +17,4 @@ enum 131023 "API Test Authentication" implements "API Test Auth Provider"
     {
         Caption = 'Default';
     }
-    value(1; "Microsoft Test Environment")
-    {
-        Caption = 'Microsoft Test Environment';
-        Implementation = "API Test Auth Provider" = "Microsoft Test Auth Provider";
-    }
 }

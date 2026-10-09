@@ -54,7 +54,6 @@ codeunit 135528 "WFWH Subscription E2E Tests"
 
         if IsInitialized then
             exit;
-
         IsInitialized := true;
 
         Commit();
@@ -1455,3 +1454,4 @@ codeunit 135528 "WFWH Subscription E2E Tests"
         exit(String);
     end;
 }
+

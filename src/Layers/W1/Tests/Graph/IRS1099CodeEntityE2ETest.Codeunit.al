@@ -41,3 +41,4 @@ codeunit 135519 "IRS 1099 Code Entity E2E Test"
         IsInitialized := true;
     end;
 }
+
