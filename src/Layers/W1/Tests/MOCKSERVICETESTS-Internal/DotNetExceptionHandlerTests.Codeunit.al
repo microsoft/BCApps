@@ -203,10 +203,10 @@ codeunit 132582 "DotNet Exception Handler Tests"
     [TryFunction]
     local procedure LoadImproperXml()
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         XmlDoc: DotNet XmlDocument;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromText(LibraryUtility.GenerateRandomXMLText(1024), XmlDoc);
+        XmlDoc := XmlDoc.XmlDocument();
+        XmlDoc.LoadXml(LibraryUtility.GenerateRandomXMLText(1024));
     end;
 }
 

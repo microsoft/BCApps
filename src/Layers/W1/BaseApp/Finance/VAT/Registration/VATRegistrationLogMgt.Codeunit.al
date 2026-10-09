@@ -10,11 +10,12 @@ using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+#if not CLEAN30
 using System;
+#endif
 using System.Environment;
 using System.Reflection;
 using System.Telemetry;
-using System.Xml;
 
 /// <summary>
 /// Manages VAT registration number validation logging and VIES service integration.
@@ -113,11 +114,34 @@ codeunit 249 "VAT Registration Log Mgt."
           Contact."VAT Registration No.", CountryCode, VATRegistrationLog."Account Type"::Contact, Contact."No.");
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use LogVerification with a native XmlDocument parameter instead.', '30.0')]
     procedure LogVerification(var VATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        FoundXmlNode: DotNet XmlNode;
+        ResponseXmlDoc: XmlDocument;
+    begin
+        if IsNull(XMLDoc) then
+            ResponseXmlDoc := XmlDocument.Create()
+        else
+            if IsNull(XMLDoc.DocumentElement) then
+                ResponseXmlDoc := XmlDocument.Create()
+            else
+                XmlDocument.ReadFrom(XMLDoc.OuterXml(), ResponseXmlDoc);
+        LogVerification(VATRegistrationLog, ResponseXmlDoc, Namespace);
+    end;
+#endif
+
+    /// <summary>
+    /// Logs the result of a VAT registration number verification from a VIES checkVat response.
+    /// </summary>
+    /// <param name="VATRegistrationLog">The VAT registration log entry that is being verified.</param>
+    /// <param name="ResponseXmlDoc">The content of the VIES response.</param>
+    /// <param name="Namespace">The namespace of the VIES response elements.</param>
+    [Scope('OnPrem')]
+    procedure LogVerification(var VATRegistrationLog: Record "VAT Registration Log"; ResponseXmlDoc: XmlDocument; Namespace: Text)
+    var
+        FoundXmlNode: XmlNode;
         ResponsedName: Text;
         ResponsedPostCode: Text;
         ResponsedCity: Text;
@@ -128,7 +152,7 @@ codeunit 249 "VAT Registration Log Mgt."
         MatchPostCode: Boolean;
         MatchCity: Boolean;
     begin
-        if not XMLDOMMgt.FindNodeWithNamespace(XMLDoc.DocumentElement, ValidPathTxt, 'vat', Namespace, FoundXmlNode) then begin
+        if not FindNodeWithNamespace(ResponseXmlDoc, ValidPathTxt, Namespace, FoundXmlNode) then begin
             Session.LogMessage('0000C4T', ValidationFailureMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
 
             if not GuiAllowed() then
@@ -143,9 +167,9 @@ codeunit 249 "VAT Registration Log Mgt."
         // Validate the response integrity for both the valid and invalid paths: a legitimate VIES response always
         // echoes the queried country code and VAT number, so a substituted or malformed response (whether it reports
         // valid=true or valid=false) is rejected before its result is logged for the requested record.
-        ValidateResponseIntegrity(VATRegistrationLog, XMLDoc, Namespace);
+        ValidateResponseIntegrity(VATRegistrationLog, ResponseXmlDoc, Namespace);
 
-        case LowerCase(FoundXmlNode.InnerText) of
+        case LowerCase(GetNodeInnerText(FoundXmlNode)) of
             'true':
                 begin
                     VATRegistrationLog."Entry No." := 0;
@@ -153,21 +177,21 @@ codeunit 249 "VAT Registration Log Mgt."
                     VATRegistrationLog."Verified Date" := CurrentDateTime;
                     VATRegistrationLog."User ID" := CopyStr(UserId(), 1, MaxStrLen(VATRegistrationLog."User ID"));
 
-                    VATRegistrationLog."Request Identifier" := CopyStr(ExtractValue(RequestIdPathTxt, XMLDoc, Namespace), 1,
+                    VATRegistrationLog."Request Identifier" := CopyStr(ExtractValue(RequestIdPathTxt, ResponseXmlDoc, Namespace), 1,
                         MaxStrLen(VATRegistrationLog."Request Identifier"));
 
-                    ResponsedName := ExtractValue(NamePathTxt, XMLDoc, Namespace);
-                    ResponsedAddress := ExtractValue(AddressPathTxt, XMLDoc, Namespace);
-                    ResponsedStreet := ExtractValue(StreetPathTxt, XMLDoc, Namespace);
-                    ResponsedPostCode := ExtractValue(PostcodePathTxt, XMLDoc, Namespace);
-                    ResponsedCity := ExtractValue(CityPathTxt, XMLDoc, Namespace);
+                    ResponsedName := ExtractValue(NamePathTxt, ResponseXmlDoc, Namespace);
+                    ResponsedAddress := ExtractValue(AddressPathTxt, ResponseXmlDoc, Namespace);
+                    ResponsedStreet := ExtractValue(StreetPathTxt, ResponseXmlDoc, Namespace);
+                    ResponsedPostCode := ExtractValue(PostcodePathTxt, ResponseXmlDoc, Namespace);
+                    ResponsedCity := ExtractValue(CityPathTxt, ResponseXmlDoc, Namespace);
                     VATRegistrationLog.SetResponseDetails(
                       ResponsedName, ResponsedAddress, ResponsedStreet, ResponsedCity, ResponsedPostCode);
 
-                    MatchName := ExtractValue(NameMatchPathTxt, XMLDoc, Namespace) = '1';
-                    MatchStreet := ExtractValue(StreetMatchPathTxt, XMLDoc, Namespace) = '1';
-                    MatchPostCode := ExtractValue(PostcodeMatchPathTxt, XMLDoc, Namespace) = '1';
-                    MatchCity := ExtractValue(CityMatchPathTxt, XMLDoc, Namespace) = '1';
+                    MatchName := ExtractValue(NameMatchPathTxt, ResponseXmlDoc, Namespace) = '1';
+                    MatchStreet := ExtractValue(StreetMatchPathTxt, ResponseXmlDoc, Namespace) = '1';
+                    MatchPostCode := ExtractValue(PostcodeMatchPathTxt, ResponseXmlDoc, Namespace) = '1';
+                    MatchCity := ExtractValue(CityMatchPathTxt, ResponseXmlDoc, Namespace) = '1';
                     VATRegistrationLog.SetResponseMatchDetails(MatchName, MatchStreet, MatchCity, MatchPostCode);
 
                     OnBeforeInsertValidLogVerification(VATRegistrationLog);
@@ -391,14 +415,38 @@ codeunit 249 "VAT Registration Log Mgt."
         exit(CompanyInformation."Country/Region Code");
     end;
 
-    local procedure ExtractValue(Xpath: Text; XMLDoc: DotNet XmlDocument; Namespace: Text): Text
+    local procedure ExtractValue(Xpath: Text; ResponseXmlDoc: XmlDocument; Namespace: Text): Text
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        FoundXmlNode: DotNet XmlNode;
+        FoundXmlNode: XmlNode;
     begin
-        if not XMLDOMMgt.FindNodeWithNamespace(XMLDoc.DocumentElement, Xpath, 'vat', Namespace, FoundXmlNode) then
+        if not FindNodeWithNamespace(ResponseXmlDoc, Xpath, Namespace, FoundXmlNode) then
             exit('');
-        exit(FoundXmlNode.InnerText);
+        exit(GetNodeInnerText(FoundXmlNode));
+    end;
+
+    local procedure FindNodeWithNamespace(ResponseXmlDoc: XmlDocument; Xpath: Text; Namespace: Text; var FoundXmlNode: XmlNode): Boolean
+    var
+        RootXmlElement: XmlElement;
+        XmlNamespaceManager: XmlNamespaceManager;
+    begin
+        if not ResponseXmlDoc.GetRoot(RootXmlElement) then
+            exit(false);
+        XmlNamespaceManager.NameTable(ResponseXmlDoc.NameTable());
+        XmlNamespaceManager.AddNamespace('vat', Namespace);
+        exit(RootXmlElement.SelectSingleNode(Xpath, XmlNamespaceManager, FoundXmlNode));
+    end;
+
+    local procedure GetNodeInnerText(FoundXmlNode: XmlNode): Text
+    begin
+        case true of
+            FoundXmlNode.IsXmlElement():
+                exit(FoundXmlNode.AsXmlElement().InnerText());
+            FoundXmlNode.IsXmlAttribute():
+                exit(FoundXmlNode.AsXmlAttribute().Value());
+            FoundXmlNode.IsXmlText():
+                exit(FoundXmlNode.AsXmlText().Value());
+        end;
+        exit('');
     end;
 
     /// <summary>
@@ -409,14 +457,14 @@ codeunit 249 "VAT Registration Log Mgt."
     /// When the identifiers are present, they must match what was requested, so a swapped or unrelated response
     /// received over the unauthenticated service is rejected as well.
     /// </summary>
-    local procedure ValidateResponseIntegrity(var VATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
+    local procedure ValidateResponseIntegrity(var VATRegistrationLog: Record "VAT Registration Log"; ResponseXmlDoc: XmlDocument; Namespace: Text)
     var
         AuditLog: Codeunit "Audit Log";
         ResponseCountryCode: Text;
         ResponseVATNumber: Text;
     begin
-        ResponseCountryCode := ExtractValue(CountryCodePathTxt, XMLDoc, Namespace);
-        ResponseVATNumber := ExtractValue(VatNumberPathTxt, XMLDoc, Namespace);
+        ResponseCountryCode := ExtractValue(CountryCodePathTxt, ResponseXmlDoc, Namespace);
+        ResponseVATNumber := ExtractValue(VatNumberPathTxt, ResponseXmlDoc, Namespace);
 
         // Schema: a legitimate response always echoes both identifiers. Reject a response that omits either one so a
         // valid=true payload with the identifiers stripped cannot be trusted for the requested VAT number.

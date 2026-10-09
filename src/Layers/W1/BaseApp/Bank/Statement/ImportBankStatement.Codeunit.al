@@ -4,9 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Statement;
 
-using System;
 using System.IO;
-using System.Xml;
 
 /// <summary>
 /// Handles the import and parsing of bank statement files in XML format through the data exchange framework.
@@ -25,18 +23,19 @@ codeunit 1200 "Import Bank Statement"
     trigger OnRun()
     var
         DataExchLineDef: Record "Data Exch. Line Def";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlNode: DotNet XmlNode;
+        XmlDoc: XmlDocument;
+        RootXmlElement: XmlElement;
         XMLStream: InStream;
         LineNo: Integer;
     begin
         Rec."File Content".CreateInStream(XMLStream);
-        XMLDOMManagement.LoadXMLNodeFromInStream(XMLStream, XmlNode);
+        XmlDocument.ReadFrom(XMLStream, XmlDoc);
+        XmlDoc.GetRoot(RootXmlElement);
 
         DataExchLineDef.Get(Rec."Data Exch. Def Code", Rec."Data Exch. Line Def Code");
 
         ProgressWindow.Open(ProgressMsg);
-        Parse(DataExchLineDef, Rec."Entry No.", XmlNode, '', '', LineNo, LineNo);
+        Parse(DataExchLineDef, Rec."Entry No.", RootXmlElement.AsXmlNode(), '', '', LineNo, LineNo);
         ProgressWindow.Close();
         OnRunOnAfterRun(Rec);
     end;
@@ -47,42 +46,98 @@ codeunit 1200 "Import Bank Statement"
 #pragma warning restore AA0470
         ProgressWindow: Dialog;
 
-    local procedure Parse(DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer; XMLNode: DotNet XmlNode; ParentPath: Text; NodeId: Text[250]; var LastGivenLineNo: Integer; CurrentLineNo: Integer)
+    local procedure Parse(DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer; CurrentXmlNode: XmlNode; ParentPath: Text; NodeId: Text[250]; var LastGivenLineNo: Integer; CurrentLineNo: Integer)
     var
         CurrentDataExchLineDef: Record "Data Exch. Line Def";
-        XMLAttributeCollection: DotNet XmlAttributeCollection;
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNodeType: DotNet XmlNodeType;
+        CurrentXmlElement: XmlElement;
+        ParentXmlElement: XmlElement;
+        CurrentXmlAttribute: XmlAttribute;
+        ChildXmlNodeList: XmlNodeList;
+        ChildXmlNode: XmlNode;
+        NodeLocalName: Text;
         i: Integer;
     begin
-        CurrentDataExchLineDef.SetRange("Data Line Tag", ParentPath + '/' + XMLNode.LocalName);
+        NodeLocalName := GetNodeLocalName(CurrentXmlNode);
+        CurrentDataExchLineDef.SetRange("Data Line Tag", ParentPath + '/' + NodeLocalName);
         CurrentDataExchLineDef.SetRange("Data Exch. Def Code", DataExchLineDef."Data Exch. Def Code");
         if CurrentDataExchLineDef.FindFirst() then begin
             DataExchLineDef := CurrentDataExchLineDef;
             LastGivenLineNo += 1;
             CurrentLineNo := LastGivenLineNo;
-            DataExchLineDef.ValidateNamespace(XMLNode);
+            if CurrentXmlNode.IsXmlElement() then
+                DataExchLineDef.ValidateNamespace(CurrentXmlNode.AsXmlElement());
         end;
 
-        if XMLNode.NodeType.Equals(XMLNodeType.Text) or XMLNode.NodeType.Equals(XMLNodeType.CDATA) then
-            InsertColumn(ParentPath,
-              CurrentLineNo, NodeId, XMLNode.Value, XMLNode.ParentNode.Name,
+        case true of
+            CurrentXmlNode.IsXmlText():
+                begin
+                    CurrentXmlNode.GetParent(ParentXmlElement);
+                    InsertColumn(ParentPath,
+                      CurrentLineNo, NodeId, CurrentXmlNode.AsXmlText().Value(), ParentXmlElement.Name(),
+                      DataExchLineDef, EntryNo);
+                end;
+            CurrentXmlNode.IsXmlCData():
+                begin
+                    CurrentXmlNode.GetParent(ParentXmlElement);
+                    InsertColumn(ParentPath,
+                      CurrentLineNo, NodeId, CurrentXmlNode.AsXmlCData().Value(), ParentXmlElement.Name(),
+                      DataExchLineDef, EntryNo);
+                end;
+        end;
+
+        if not CurrentXmlNode.IsXmlElement() then
+            exit;
+
+        CurrentXmlElement := CurrentXmlNode.AsXmlElement();
+        foreach CurrentXmlAttribute in CurrentXmlElement.Attributes() do
+            InsertColumn(ParentPath + '/' + NodeLocalName + '[@' + CurrentXmlAttribute.Name() + ']',
+              CurrentLineNo, NodeId, CurrentXmlAttribute.Value(), CurrentXmlAttribute.Name(),
               DataExchLineDef, EntryNo);
 
-        if not IsNull(XMLNode.Attributes) then begin
-            XMLAttributeCollection := XMLNode.Attributes;
-            for i := 1 to XMLAttributeCollection.Count do
-                InsertColumn(ParentPath + '/' + XMLNode.LocalName + '[@' + XMLAttributeCollection.Item(i - 1).Name + ']',
-                  CurrentLineNo, NodeId, XMLAttributeCollection.Item(i - 1).Value, XMLAttributeCollection.Item(i - 1).Name,
-                  DataExchLineDef, EntryNo);
-        end;
-
-        if XMLNode.HasChildNodes then begin
-            XMLNodeList := XMLNode.ChildNodes;
-            for i := 1 to XMLNodeList.Count do
-                Parse(DataExchLineDef, EntryNo, XMLNodeList.Item(i - 1), ParentPath + '/' + XMLNode.LocalName,
+        // Whitespace-only text nodes are skipped (and not counted in the node ID), as the file is parsed without preserving whitespace.
+        ChildXmlNodeList := CurrentXmlElement.GetChildNodes();
+        foreach ChildXmlNode in ChildXmlNodeList do
+            if not IsWhitespaceTextNode(ChildXmlNode) then begin
+                i += 1;
+                Parse(DataExchLineDef, EntryNo, ChildXmlNode, ParentPath + '/' + NodeLocalName,
                   NodeId + Format(i, 0, '<Integer,4><Filler Char,0>'), LastGivenLineNo, CurrentLineNo);
+            end;
+    end;
+
+    local procedure IsWhitespaceTextNode(CurrentXmlNode: XmlNode): Boolean
+    var
+        Tab: Char;
+        LineFeed: Char;
+        CarriageReturn: Char;
+    begin
+        if not CurrentXmlNode.IsXmlText() then
+            exit(false);
+        Tab := 9;
+        LineFeed := 10;
+        CarriageReturn := 13;
+        exit(DelChr(CurrentXmlNode.AsXmlText().Value(), '=', ' ' + Format(Tab) + Format(LineFeed) + Format(CarriageReturn)) = '');
+    end;
+
+    local procedure GetNodeLocalName(CurrentXmlNode: XmlNode): Text
+    var
+        ProcessingInstructionTarget: Text;
+    begin
+        case true of
+            CurrentXmlNode.IsXmlElement():
+                exit(CurrentXmlNode.AsXmlElement().LocalName());
+            CurrentXmlNode.IsXmlText():
+                exit('#text');
+            CurrentXmlNode.IsXmlCData():
+                exit('#cdata-section');
+            CurrentXmlNode.IsXmlComment():
+                exit('#comment');
+            CurrentXmlNode.IsXmlProcessingInstruction():
+                begin
+                    CurrentXmlNode.AsXmlProcessingInstruction().GetTarget(ProcessingInstructionTarget);
+                    exit(ProcessingInstructionTarget);
+                end;
         end;
+        exit('');
     end;
 
     local procedure InsertColumn(Path: Text; LineNo: Integer; NodeId: Text[250]; Value: Text; Name: Text; var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer)
