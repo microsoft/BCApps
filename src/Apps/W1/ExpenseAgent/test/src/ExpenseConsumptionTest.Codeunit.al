@@ -226,7 +226,9 @@ codeunit 148299 "Expense Consumption Test"
 
         // [THEN] One environment consumption record contains the source details and numeric capability ID
         ExpenseAgentEnvConsumption.GetBySystemId(ConsumptionId);
-        ExpectedUniqueId := UpperCase(StrSubstNo('6968-1-%1-%2', Format(ConsumptionSourceSystemId, 0, 9), Format(Operation, 0, 9)));
+        ExpectedUniqueId := CopyStr(
+            UpperCase(StrSubstNo('6968-1-%1-%2', Format(ConsumptionSourceSystemId, 0, 9), Format(Operation, 0, 9))),
+            1, MaxStrLen(ExpectedUniqueId));
         VerifyEnvironmentConsumption(
             ExpenseAgentEnvConsumption, ExpectedUniqueId, ExpenseUser."No.", ConsumptionSourceSystemId, Operation);
     end;
