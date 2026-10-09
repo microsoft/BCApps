@@ -52,6 +52,7 @@ codeunit 4600 "SOA Document Events"
                 TelemetryDimensions.Set('TaskMessageId', Format(SOAEmail."Task Message ID"));
                 AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskID);
                 AgentTaskMessageAttachment.SetRange("Message ID", SOAEmail."Task Message ID");
+                AgentTaskMessageAttachment.SetRange(Ignored, false);
                 if AgentTaskMessageAttachment.FindSet() then
                     repeat
                         AgentTaskFile.Reset();
