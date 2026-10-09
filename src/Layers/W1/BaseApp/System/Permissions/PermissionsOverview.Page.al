@@ -138,54 +138,55 @@ page 9883 "Permissions Overview"
                         end;
                     }
                 }
-            }
-            group(PermissionFilterGroup)
-            {
-                ShowCaption = false;
 
-                field(ReadFilter; ReadFilter)
+                group(PermissionFilterGroup)
                 {
-                    Caption = 'Read';
-                    ToolTip = 'Filter permissions by read access.';
+                    ShowCaption = false;
 
-                    trigger OnValidate()
-                    begin
-                        Rec.SetFilter("Read Permission", GetPermFieldFilter(ReadFilter));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field(InsertFilter; InsertFilter)
-                {
-                    Caption = 'Insert';
-                    ToolTip = 'Filter permissions by insert access.';
+                    field(ReadFilter; ReadFilter)
+                    {
+                        Caption = 'Read';
+                        ToolTip = 'Specifies whether permissions are filtered by read access.';
 
-                    trigger OnValidate()
-                    begin
-                        Rec.SetFilter("Insert Permission", GetPermFieldFilter(InsertFilter));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field(ModifyFilter; ModifyFilter)
-                {
-                    Caption = 'Modify';
-                    ToolTip = 'Filter permissions by modify access.';
+                        trigger OnValidate()
+                        begin
+                            Rec.SetFilter("Read Permission", GetPermFieldFilter(ReadFilter));
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field(InsertFilter; InsertFilter)
+                    {
+                        Caption = 'Insert';
+                        ToolTip = 'Specifies whether permissions are filtered by insert access.';
 
-                    trigger OnValidate()
-                    begin
-                        Rec.SetFilter("Modify Permission", GetPermFieldFilter(ModifyFilter));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field(DeleteFilter; DeleteFilter)
-                {
-                    Caption = 'Delete';
-                    ToolTip = 'Filter permissions by delete access.';
+                        trigger OnValidate()
+                        begin
+                            Rec.SetFilter("Insert Permission", GetPermFieldFilter(InsertFilter));
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field(ModifyFilter; ModifyFilter)
+                    {
+                        Caption = 'Modify';
+                        ToolTip = 'Specifies whether permissions are filtered by modify access.';
 
-                    trigger OnValidate()
-                    begin
-                        Rec.SetFilter("Delete Permission", GetPermFieldFilter(DeleteFilter));
-                        CurrPage.Update(false);
-                    end;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetFilter("Modify Permission", GetPermFieldFilter(ModifyFilter));
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field(DeleteFilter; DeleteFilter)
+                    {
+                        Caption = 'Delete';
+                        ToolTip = 'Specifies whether permissions are filtered by delete access.';
+
+                        trigger OnValidate()
+                        begin
+                            Rec.SetFilter("Delete Permission", GetPermFieldFilter(DeleteFilter));
+                            CurrPage.Update(false);
+                        end;
+                    }
                 }
             }
             repeater(Group)
@@ -322,21 +323,42 @@ page 9883 "Permissions Overview"
             Caption = 'Read - Direct';
             Filters = where("Read Permission" = const(Yes));
         }
+        view(ReadIndirect)
+        {
+            Caption = 'Read - Indirect';
+            Filters = where("Read Permission" = const(Indirect));
+        }
         view(InsertDirect)
         {
             Caption = 'Insert - Direct';
             Filters = where("Insert Permission" = const(Yes));
+        }
+        view(InsertIndirect)
+        {
+            Caption = 'Insert - Indirect';
+            Filters = where("Insert Permission" = const(Indirect));
         }
         view(ModifyDirect)
         {
             Caption = 'Modify - Direct';
             Filters = where("Modify Permission" = const(Yes));
         }
+        view(ModifyIndirect)
+        {
+            Caption = 'Modify - Indirect';
+            Filters = where("Modify Permission" = const(Indirect));
+        }
         view(DeleteDirect)
         {
             Caption = 'Delete - Direct';
             Filters = where("Delete Permission" = const(Yes));
         }
+        view(DeleteIndirect)
+        {
+            Caption = 'Delete - Indirect';
+            Filters = where("Delete Permission" = const(Indirect));
+        }
+
     }
 
     trigger OnAfterGetRecord()
