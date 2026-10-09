@@ -67,6 +67,37 @@ codeunit 7700 "ADCS Management"
         Document := OutboundDocument;
     end;
 
+    /// <summary>
+    /// Serializes the document the same way as the former DotNet XmlDocument.OuterXml: no indentation, and an XML declaration only when the document has one.
+    /// </summary>
+    internal procedure WriteDocumentToText(XmlDoc: XmlDocument) Result: Text
+    var
+        XmlDecl: XmlDeclaration;
+        RootElement: XmlElement;
+        XmlWriteOptions: XmlWriteOptions;
+        RootText: Text;
+        DeclarationEncoding: Text;
+        DeclarationStandalone: Text;
+    begin
+        if not XmlDoc.GetRoot(RootElement) then
+            exit('');
+
+        XmlWriteOptions.PreserveWhitespace(true);
+        RootElement.WriteTo(XmlWriteOptions, RootText);
+
+        if XmlDoc.GetDeclaration(XmlDecl) then begin
+            DeclarationEncoding := XmlDecl.Encoding();
+            DeclarationStandalone := XmlDecl.Standalone();
+            Result := '<?xml version="' + XmlDecl.Version() + '"';
+            if StrLen(DeclarationEncoding) > 0 then
+                Result += ' encoding="' + DeclarationEncoding + '"';
+            if StrLen(DeclarationStandalone) > 0 then
+                Result += ' standalone="' + DeclarationStandalone + '"';
+            Result += '?>';
+        end;
+        Result += RootText;
+    end;
+
 #if not CLEAN30
     [Scope('OnPrem')]
     [Obsolete('Replaced by SendXMLReply with a parameter of the native XmlDocument type.', '30.0')]
@@ -90,14 +121,12 @@ codeunit 7700 "ADCS Management"
     procedure GetOutboundDocument(var Document: DotNet XmlDocument)
     var
         RootElement: XmlElement;
-        XmlContent: Text;
     begin
         Clear(Document);
         if not OutboundDocument.GetRoot(RootElement) then
             exit;
-        OutboundDocument.WriteTo(XmlContent);
         Document := Document.XmlDocument();
-        Document.LoadXml(XmlContent);
+        Document.LoadXml(WriteDocumentToText(OutboundDocument));
     end;
 
     local procedure ConvertToXmlDocument(DotNetXmlDocument: DotNet XmlDocument; var NativeXmlDocument: XmlDocument)

@@ -577,14 +577,13 @@ codeunit 7701 "ADCS Communication"
 
     local procedure ConvertToDotNetXmlDocument(NativeXmlDocument: XmlDocument; var DotNetXmlDocument: DotNet XmlDocument)
     var
+        ADCSManagement: Codeunit "ADCS Management";
         RootElement: XmlElement;
-        XmlContent: Text;
     begin
         DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
         if not NativeXmlDocument.GetRoot(RootElement) then
             exit;
-        NativeXmlDocument.WriteTo(XmlContent);
-        DotNetXmlDocument.LoadXml(XmlContent);
+        DotNetXmlDocument.LoadXml(ADCSManagement.WriteDocumentToText(NativeXmlDocument));
     end;
 #endif
 

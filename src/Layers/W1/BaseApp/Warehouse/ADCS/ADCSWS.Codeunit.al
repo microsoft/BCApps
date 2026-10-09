@@ -33,22 +33,7 @@ codeunit 7714 "ADCS WS"
         end;
         ADCSManagement.ProcessDocument(InputXmlDocument);
         ADCSManagement.GetOutboundDocument(OutputXmlDocument);
-        Document := WriteDocumentToText(OutputXmlDocument);
-    end;
-
-    local procedure WriteDocumentToText(OutputXmlDocument: XmlDocument) Result: Text
-    var
-        XmlDeclaration: XmlDeclaration;
-        RootElement: XmlElement;
-        XmlWriteOptions: XmlWriteOptions;
-    begin
-        // Keep the response identical to the former DotNet XmlDocument.OuterXml: no added declaration and no indentation
-        if OutputXmlDocument.GetDeclaration(XmlDeclaration) then begin
-            XmlWriteOptions.PreserveWhitespace(true);
-            OutputXmlDocument.WriteTo(XmlWriteOptions, Result);
-        end else
-            if OutputXmlDocument.GetRoot(RootElement) then
-                RootElement.WriteTo(Result);
+        Document := ADCSManagement.WriteDocumentToText(OutputXmlDocument);
     end;
 
     local procedure RemoveWhitespaceNodes(ParentElement: XmlElement)
