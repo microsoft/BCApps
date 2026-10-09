@@ -12,6 +12,7 @@ tableextension 6900 "Exp. Employee Posting Group" extends "Employee Posting Grou
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(6500; "Expense Report Payable Account"; Code[20])
         {
             Caption = 'Expense Payable Cash Account';
@@ -36,6 +37,7 @@ tableextension 6900 "Exp. Employee Posting Group" extends "Employee Posting Grou
             TableRelation = "G/L Account";
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0099
     }
 
     var

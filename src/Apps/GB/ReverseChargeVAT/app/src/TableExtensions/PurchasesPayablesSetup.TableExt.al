@@ -10,6 +10,7 @@ tableextension 10559 "Purchases & Payables Setup" extends "Purchases & Payables 
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(10507; "Reverse Charge VAT Post. Gr."; Code[20])
         {
             Caption = 'Reverse Charge VAT Posting Gr.';
@@ -22,5 +23,6 @@ tableextension 10559 "Purchases & Payables Setup" extends "Purchases & Payables 
             TableRelation = "VAT Business Posting Group";
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0099
     }
 }

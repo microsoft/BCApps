@@ -11,6 +11,7 @@ tableextension 10832 Customer extends Customer
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(10861; "Payment in progress (LCY) FR"; Decimal)
         {
             CalcFormula = - sum("Payment Line FR"."Amount (LCY)" where("Account Type" = const(Customer),
@@ -23,5 +24,6 @@ tableextension 10832 Customer extends Customer
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AS0099
     }
 }

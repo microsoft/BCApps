@@ -10,6 +10,7 @@ tableextension 10549 "General Ledger Setup" extends "General Ledger Setup"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(10507; "Threshold applies GB"; Boolean)
         {
             Caption = 'Threshold applies';
@@ -23,5 +24,6 @@ tableextension 10549 "General Ledger Setup" extends "General Ledger Setup"
             AutoFormatType = 1;
             AutoFormatExpression = '';
         }
+#pragma warning restore AS0099
     }
 }
