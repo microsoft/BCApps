@@ -50,6 +50,9 @@ codeunit 139972 "Qlty. Tests - Inspections API"
         if IsInitialized then
             exit;
 
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
         Commit();
