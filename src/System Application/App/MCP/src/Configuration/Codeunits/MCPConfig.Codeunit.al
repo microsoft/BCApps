@@ -59,7 +59,7 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Deletes the specified MCP configuration.
+    /// Deletes the specified MCP configuration and its configured agents.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration to delete.</param>
     procedure DeleteConfiguration(ConfigId: Guid)
@@ -68,7 +68,7 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Copies an existing configuration to a new configuration, including its tools and permissions.
+    /// Copies an existing configuration to a new configuration, including its tools, permissions, and configured agents.
     /// </summary>
     /// <param name="SourceConfigId">The SystemId (GUID) of the configuration to copy.</param>
     /// <param name="NewName">The name of the new configuration.</param>
@@ -129,6 +129,18 @@ codeunit 8350 "MCP Config"
     procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
     begin
         MCPConfigImplementation.EnableDataQueryTools(ConfigId, Enable);
+    end;
+
+    /// <summary>
+    /// Enables or disables tools for Business Central agents for the specified configuration.
+    /// Agent discovery is limited to agents explicitly added to the configuration, including the default configuration.
+    /// Does nothing if the configuration does not exist.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable agent tools, false to disable.</param>
+    procedure EnableAgents(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableAgents(ConfigId, Enable);
     end;
 
     /// <summary>
@@ -207,6 +219,17 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Creates a new agent tool for the specified configuration and agent.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="AgentUserSecurityId">The user security ID of the agent.</param>
+    /// <returns>The SystemId (GUID) of the created agent tool.</returns>
+    procedure CreateAgentTool(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAgentTool(ConfigId, AgentUserSecurityId));
+    end;
+
+    /// <summary>
     /// Retrieves the SystemId (GUID) of a tool by its configuration ID, object ID and object type.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
@@ -216,6 +239,17 @@ codeunit 8350 "MCP Config"
     procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option Page,Query,Codeunit): Guid
     begin
         exit(MCPConfigImplementation.GetAPIToolId(ConfigId, ObjectId, ObjectType));
+    end;
+
+    /// <summary>
+    /// Retrieves the SystemId (GUID) of an agent tool by its configuration ID and agent user security ID.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="AgentUserSecurityId">The user security ID of the agent.</param>
+    /// <returns>The SystemId (GUID) of the agent tool if found; otherwise, an empty GUID.</returns>
+    procedure GetAgentToolId(ConfigId: Guid; AgentUserSecurityId: Guid): Guid
+    begin
+        exit(MCPConfigImplementation.GetAgentToolId(ConfigId, AgentUserSecurityId));
     end;
 
 #if not CLEAN29
@@ -235,12 +269,33 @@ codeunit 8350 "MCP Config"
 #endif
 
     /// <summary>
-    /// Deletes the specified tool from the configuration.
+    /// Deletes the specified API tool from the configuration.
     /// </summary>
-    /// <param name="ToolSystemId">The SystemId (GUID) of the tool to delete.</param>
+    /// <param name="APIToolSystemId">The SystemId (GUID) of the API tool to delete.</param>
+    procedure DeleteAPITool(APIToolSystemId: Guid)
+    begin
+        MCPConfigImplementation.DeleteAPITool(APIToolSystemId);
+    end;
+
+#if not CLEAN30
+    /// <summary>
+    /// Deletes the specified API tool from the configuration.
+    /// </summary>
+    /// <param name="ToolSystemId">The SystemId (GUID) of the API tool to delete.</param>
+    [Obsolete('Renamed to DeleteAPITool.', '30.0')]
     procedure DeleteTool(ToolSystemId: Guid)
     begin
-        MCPConfigImplementation.DeleteTool(ToolSystemId);
+        DeleteAPITool(ToolSystemId);
+    end;
+#endif
+
+    /// <summary>
+    /// Deletes the specified agent tool from the configuration.
+    /// </summary>
+    /// <param name="AgentToolSystemId">The SystemId (GUID) of the agent tool to delete.</param>
+    procedure DeleteAgentTool(AgentToolSystemId: Guid)
+    begin
+        MCPConfigImplementation.DeleteAgentTool(AgentToolSystemId);
     end;
 
     /// <summary>
