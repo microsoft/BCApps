@@ -59,7 +59,7 @@ NAV GitMiapp behavior that was lost when the verification step was ported to git
 #>
 function Expand-MiappExclusionFile {
     [CmdletBinding()]
-    [OutputType([string[]])]
+    [OutputType([string[]], [string])]
     param(
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
