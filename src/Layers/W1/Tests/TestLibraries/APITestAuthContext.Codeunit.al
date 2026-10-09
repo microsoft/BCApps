@@ -30,11 +30,7 @@ codeunit 131023 "API Test Auth Context"
     /// <summary>
     /// Applies the configured authentication to the API test request.
     /// </summary>
-    /// <remarks>
-    /// The test server is reached over plain HTTP, and the platform refuses to send secret headers to non-HTTPS endpoints.
-    /// </remarks>
     /// <param name="HttpRequestMessage">The request to authenticate.</param>
-    [NonDebuggable]
     internal procedure Apply(var HttpRequestMessage: HttpRequestMessage)
     var
         Base64Convert: Codeunit "Base64 Convert";
@@ -46,6 +42,6 @@ codeunit 131023 "API Test Auth Context"
         HttpRequestMessage.GetHeaders(RequestHeaders);
         if RequestHeaders.Contains('Authorization') or RequestHeaders.ContainsSecret('Authorization') then
             RequestHeaders.Remove('Authorization');
-        RequestHeaders.Add('Authorization', SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', BasicUserName, BasicPassword))).Unwrap());
+        RequestHeaders.Add('Authorization', SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', BasicUserName, BasicPassword))));
     end;
 }
