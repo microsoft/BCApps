@@ -21,6 +21,7 @@ codeunit 10752 "SII Doc. Upload Management"
     var
         SIISetup: Record "SII Setup";
         SIIXMLCreator: Codeunit "SII XML Creator";
+        SIIXmlDocument: XmlDocument;
         RequestType: Option InvoiceIssuedRegistration,InvoiceReceivedRegistration,PaymentSentRegistration,PaymentReceivedRegistration,CollectionInCashRegistration;
         NoCertificateErr: Label 'Could not get certificate.';
         NoConnectionErr: Label 'Could not establish connection.';
@@ -398,6 +399,7 @@ codeunit 10752 "SII Doc. Upload Management"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        XmlGenerated: Boolean;
     begin
         OnBeforeTryGenerateXml(SIIDocUploadState, SIIHistory);
 
@@ -422,18 +424,20 @@ codeunit 10752 "SII Doc. Upload Management"
                         end;
                         RequestType := RequestType::InvoiceIssuedRegistration;
                     end;
+                    XmlGenerated := true;
                     IsSupported :=
                       SIIXMLCreator.GenerateXml(
-                        CustLedgerEntry, XMLDoc, SIIHistory."Upload Type", SIIDocUploadState."Is Credit Memo Removal");
+                        CustLedgerEntry, SIIXmlDocument, SIIHistory."Upload Type", SIIDocUploadState."Is Credit Memo Removal");
                 end;
             SIIDocUploadState."Document Source"::"Vendor Ledger":
                 begin
                     VendorLedgerEntry.SetRange("Entry No.", SIIDocUploadState."Entry No");
                     if VendorLedgerEntry.FindFirst() then begin
                         RequestType := RequestType::InvoiceReceivedRegistration;
+                        XmlGenerated := true;
                         IsSupported :=
                           SIIXMLCreator.GenerateXml(
-                            VendorLedgerEntry, XMLDoc, SIIHistory."Upload Type", SIIDocUploadState."Is Credit Memo Removal");
+                            VendorLedgerEntry, SIIXmlDocument, SIIHistory."Upload Type", SIIDocUploadState."Is Credit Memo Removal");
                     end else begin
                         Session.LogMessage('0000CNV', StrSubstNo(GeneratingXmlErrMsg, NoVendLedgerEntryErr), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
                         Error(NoVendLedgerEntryErr);
@@ -444,9 +448,10 @@ codeunit 10752 "SII Doc. Upload Management"
                     DetailedCustLedgEntry.SetRange("Entry No.", SIIDocUploadState."Entry No");
                     if DetailedCustLedgEntry.FindFirst() then begin
                         RequestType := RequestType::PaymentReceivedRegistration;
+                        XmlGenerated := true;
                         IsSupported :=
                           SIIXMLCreator.GenerateXml(
-                            DetailedCustLedgEntry, XMLDoc, SIIHistory."Upload Type", SIIDocUploadState."Is Credit Memo Removal");
+                            DetailedCustLedgEntry, SIIXmlDocument, SIIHistory."Upload Type", SIIDocUploadState."Is Credit Memo Removal");
                     end else begin
                         Session.LogMessage('0000CNV', StrSubstNo(GeneratingXmlErrMsg, NoDetailedCustLedgerEntryErr), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
                         Error(NoDetailedCustLedgerEntryErr);
@@ -457,15 +462,18 @@ codeunit 10752 "SII Doc. Upload Management"
                     DetailedVendorLedgEntry.SetRange("Entry No.", SIIDocUploadState."Entry No");
                     if DetailedVendorLedgEntry.FindFirst() then begin
                         RequestType := RequestType::PaymentSentRegistration;
+                        XmlGenerated := true;
                         IsSupported :=
                           SIIXMLCreator.GenerateXml(
-                            DetailedVendorLedgEntry, XMLDoc, SIIHistory."Upload Type", SIIDocUploadState."Is Credit Memo Removal");
+                            DetailedVendorLedgEntry, SIIXmlDocument, SIIHistory."Upload Type", SIIDocUploadState."Is Credit Memo Removal");
                     end else begin
                         Session.LogMessage('0000CNV', StrSubstNo(GeneratingXmlErrMsg, NoDetailedVendLedgerEntryErr), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
                         Error(NoDetailedVendLedgerEntryErr);
                     end;
                 end;
         end;
+        if XmlGenerated then
+            CopyXmlDocumentToDotNet(SIIXmlDocument, XMLDoc);
 
         if not IsSupported then begin
             Message := SIIXMLCreator.GetLastErrorMsg();
@@ -473,6 +481,21 @@ codeunit 10752 "SII Doc. Upload Management"
         end else
             Session.LogMessage('0000CO0', StrSubstNo(GeneratingXmlSuccMsg, SIIDocUploadState."Document Source"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
 
+    end;
+
+    local procedure CopyXmlDocumentToDotNet(SourceXmlDocument: XmlDocument; var TargetXmlDocument: DotNet XmlDocument)
+    var
+        RootXmlElement: XmlElement;
+        XmlWriteOptions: XmlWriteOptions;
+        XmlText: Text;
+    begin
+        TargetXmlDocument := TargetXmlDocument.XmlDocument();
+        if not SourceXmlDocument.GetRoot(RootXmlElement) then
+            exit;
+        XmlWriteOptions.PreserveWhitespace := true;
+        SourceXmlDocument.WriteTo(XmlWriteOptions, XmlText);
+        TargetXmlDocument.PreserveWhitespace := true;
+        TargetXmlDocument.LoadXml(XmlText);
     end;
 
     local procedure CreateHistoryPendingBuffer(var TempSIIHistoryBuffer: Record "SII History" temporary; IsManual: Boolean)
