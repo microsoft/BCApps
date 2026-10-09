@@ -18,6 +18,24 @@ on the default branch. Ordinary CI job bodies/push triggers remain unchanged;
 they are excluded only on this exact diagnostic branch. Existing experiment
 branches, protocols, dispatch definitions and concurrency groups are untouched.
 
+`PullRequestHandler.yaml` uses `pull_request`, not `pull_request_target`.
+[GitHub documents](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target)
+that `pull_request` executes in the PR merge context; the branch-local workflow
+gate is therefore honored. Every job in that handler excludes only an event with
+`pull_request.head.repo.full_name == microsoft/BCApps` and
+`pull_request.head.ref == features/653393-expanded-api-diagnostic`. Opened,
+synchronize and reopened events are covered regardless of draft/ready status.
+Other heads, forks and merge-group behavior are unchanged. Other PR workflows
+(for example hosted PowerShell validation, labels and reviews) may still run;
+this is **not** a promise of zero GitHub jobs. Do not enqueue/merge this diagnostic.
+The inspected handler at fresh main `fcd2704c64729f42612c1959118588424e6ecb2b`
+uses the same `pull_request` trigger. Future trigger/gate changes need re-review.
+The immutable diagnostic source remains based on `97c2f034…`, not latest main.
+
+A PR is **not required** to run the manual diagnostic after parent authorization:
+`gh workflow run CICD.yaml --repo microsoft/BCApps --ref features/653393-expanded-api-diagnostic -f authorization=reviewed-originals`.
+The input name is `authorization`; the exact value is `reviewed-originals`.
+
 The independent literal concurrency group is
 `sql-api-653393-expanded-api-diagnostic`, cancellation disabled.
 
