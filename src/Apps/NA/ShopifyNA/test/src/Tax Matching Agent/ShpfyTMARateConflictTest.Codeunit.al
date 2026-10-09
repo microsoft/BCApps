@@ -397,6 +397,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CreateSalesDocumentPersistsOnDemandRateConflictForReview()
     var
         OrderHeader: Record "Shpfy Order Header";
