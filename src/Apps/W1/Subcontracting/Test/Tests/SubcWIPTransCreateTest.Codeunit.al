@@ -18,6 +18,7 @@ using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.TestLibraries.Utilities;
 
 codeunit 149911 "Subc. WIP Trans. Create Test"
 {
@@ -32,6 +33,113 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure CoveredWIPExplainsWhyNoTransferIsCreated()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
+        OriginalQuantity: Decimal;
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 648962] An existing WIP-only transfer fully covers positive eligible demand.
+        Initialize();
+
+        // [GIVEN] WIP demand with no eligible components is fully covered by an outbound transfer.
+        CreateWIPOnlyTransfer(PurchaseHeader, TransferHeader, TransferLine);
+        OriginalQuantity := TransferLine.Quantity;
+        Assert.IsTrue(OriginalQuantity > 0, 'The WIP transfer must cover positive demand.');
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+
+        // [WHEN] Attempting to create the same WIP transfer again.
+        asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] Coverage is explained and no duplicate WIP quantity is created.
+        Assert.ExpectedError(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader).Message);
+        Assert.AreEqual(1, TransferLine.Count(), 'No duplicate WIP line should be created.');
+        TransferLine.FindFirst();
+        Assert.AreEqual(OriginalQuantity, TransferLine.Quantity, 'Covered WIP quantity must not change.');
+        PurchaseOrder.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure ShippedWIPCoverageExplainsAndNavigates()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 648962] WIP in transit explains coverage and the released unposted document remains navigable.
+        Initialize();
+
+        // [GIVEN] A WIP-only outbound transfer has been shipped but not received.
+        CreateWIPOnlyTransfer(PurchaseHeader, TransferHeader, TransferLine);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        TransferHeader.Get(TransferHeader."No.");
+        TransferLine.FindFirst();
+        Assert.AreEqual(TransferLine.Quantity, TransferLine."Quantity Shipped", 'The WIP transfer must be shipped.');
+        Assert.AreEqual(TransferHeader.Status::Released, TransferHeader.Status, 'The in-transit document must be released.');
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+
+        // [WHEN] Attempting another transfer while WIP is in transit.
+        asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] Coverage is explained and the action opens the existing shipped transfer.
+        Assert.ExpectedError(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader).Message);
+        PurchaseOrder.Close();
+        OpenedTransferOrderNo := '';
+        SubcPurchaseHeaderExt.ShowOutboundTransferOrdersForPurchHeader(
+            SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader));
+        Assert.AreEqual(TransferHeader."No.", OpenedTransferOrderNo, 'The action must open the shipped outbound transfer.');
+    end;
+
+    local procedure CreateWIPOnlyTransfer(var PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        CreateAndUpdateTransferRoute(ProductionOrder."Location Code", Vendor."Subc. Location Code");
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseOrder.Close();
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Transfer WIP Item", true);
+        TransferLine.SetRange("Subc. Return Order", false);
+        TransferLine.SetRange("Derived From Line No.", 0);
+        Assert.AreEqual(1, TransferLine.Count(), 'Expected exactly one WIP transfer line.');
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+    end;
+
+    [Test]
     procedure TransferWIPItemFlagFromRoutingLineToPurchaseLine()
     var
         Item: Record Item;
@@ -43,8 +151,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
     begin
         // [SCENARIO] The "Transfer WIP Item" flag set on a Routing Line is propagated through the
         // Prod. Order Routing Line to the Purchase Line when the subcontracting purchase order
@@ -121,8 +229,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
     begin
         // [SCENARIO] When "Transfer WIP Item" is NOT set on the Routing Line,
         // the Purchase Line must NOT have the flag set.
@@ -374,7 +482,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         WorkCenter: array[2] of Record "Work Center";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 641284] Creating WIP transfer orders for purchase lines from production orders at different locations opens all transfer orders.
@@ -415,8 +522,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-#pragma warning disable AA0210        
+#pragma warning disable AA0210
         PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
@@ -506,13 +614,10 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
-        // [SCENARIO] When the posted WIP quantity equals the expected quantity at the destination,
-        // the CheckCreateWIPTransfer procedure should return false, and no new WIP Transfer Order
-        // should be created when "Create Transfer Order to Subcontractor" is invoked again.
-
-        // [GIVEN] Complete setup
+        // [SCENARIO 648962] Posted WIP covering positive eligible demand produces an explanatory error without a new transfer.
         Initialize();
 
         // [GIVEN] Work centers, machine centers, item with routing + BOM
@@ -570,16 +675,14 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         // [GIVEN] Delete the first transfer order to allow re-creation attempt
         TransferHeader.Get(TransferLine."Document No.");
         TransferHeader.Delete(true);
+        Assert.AreEqual(0, TransferLine.Count(), 'The posted-only setup must have no open WIP transfer lines.');
 
         // [WHEN] Attempt to create Transfer Order to Subcontractor again
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         asserterror PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [THEN] No WIP Transfer Line is created, and an error message indicates that there is no WIP or components to transfer
-        Assert.ExpectedError('Nothing to create. No components or WIP to transfer for the specified subcontracting order.');
-
-        // [TEARDOWN]
-        WIPLedgerEntry.DeleteAll();
+        // [THEN] The error explains that transfer activity already covers the demand, and no WIP transfer is created.
+        Assert.ExpectedError(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader).Message);
     end;
 
     [Test]
@@ -1030,8 +1133,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     procedure WIPTransferCreatedPerProdOrderLineInFamilyProductionOrder()
     var
         Family: Record Family;
-        FamilyItem: array[2] of Record Item;
         FamilyLine: array[2] of Record "Family Line";
+        FamilyItem: array[2] of Record Item;
         MachineCenter: array[2] of Record "Machine Center";
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
@@ -1042,8 +1145,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] A Production Order sourced from a Family with 2 family items shares a single
@@ -1158,9 +1261,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseLine: Record "Purchase Line";
         TransferLine: Record "Transfer Line";
         WorkCenter: array[2] of Record "Work Center";
-        PurchaseHeaderPage: TestPage "Purchase Order";
-        OriginalQty: Decimal;
         ChangedQty: Decimal;
+        OriginalQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] When the purchase line quantity is changed from the original production order
         // quantity, the WIP transfer line must use the updated purchase line quantity, not the
@@ -1234,9 +1337,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         UnitOfMeasure: Record "Unit of Measure";
         WorkCenter: array[2] of Record "Work Center";
-        PurchaseHeaderPage: TestPage "Purchase Order";
         BoxQtyPerPCS: Decimal;
         ProdOrderQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] When the item has a non-base Purchase Unit of Measure (e.g. BOX = 10 PCS),
         // the WIP Transfer Order line must use the purchase line UOM (BOX) and quantity,
@@ -1316,8 +1419,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        FullQty: Decimal;
         AlreadyPostedQty: Decimal;
+        FullQty: Decimal;
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] When part of the WIP has already been posted at the vendor location,
@@ -1397,8 +1500,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        OriginalQty: Decimal;
         ChangedQty: Decimal;
+        OriginalQty: Decimal;
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] When the purchase line quantity is increased after the original quantity
@@ -1478,9 +1581,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseLine: Record "Purchase Line";
         TransferLine: Record "Transfer Line";
         WorkCenter: array[2] of Record "Work Center";
-        PurchaseHeaderPage: TestPage "Purchase Order";
         FullQty: Decimal;
         ReducedQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 639382] When an open (unposted) WIP transfer line had its quantity reduced,
         // re-running "Create Transfer Order to Subcontractor" must create the remaining quantity
@@ -1980,9 +2083,123 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         ProdOrderRtng.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('CaptureReturnOrderCard,CaptureReturnOrdersList')]
+    procedure MultipleWIPReturnsFromOneProductionOrderOpenExactList()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        UnrelatedPurchaseHeader: Record "Purchase Header";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting] [WIP Return]
+        // [SCENARIO] Two lines of one production order at different locations open exactly their two returns.
+        Initialize();
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] An unrelated return for "P1" opens its real card.
+        CreateReturnNavigationPurchaseOrder(UnrelatedPurchaseHeader, 1);
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(UnrelatedPurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+        VerifyReturnNavigation(UnrelatedPurchaseHeader, 1, 'Card');
+
+        // [GIVEN] "P2" contains two lines for the same item on one released production order.
+        CreateReturnNavigationPurchaseOrder(PurchaseHeader, 2);
+        CreateOutboundNavigationDecoy(PurchaseHeader);
+
+        // [WHEN] Create Return from Subcontractor is invoked for "P2".
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] Exactly the two linked returns, and no unrelated or outbound orders, appear in a list.
+        VerifyReturnNavigation(PurchaseHeader, 2, 'List');
+        PurchaseOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CaptureReturnOrderCard,CaptureReturnOrdersList')]
+    procedure ReusedWIPReturnFromAnotherPurchaseOrderAppearsInList()
+    var
+        OtherPurchaseHeader: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReusedReturnNo: Code[20];
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting] [WIP Return]
+        // [SCENARIO] A return originating from another purchase order is included through current-order lines.
+        Initialize();
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] "P1" has two production lines; "P2" first creates a return for the first line.
+        CreateReturnNavigationPurchaseOrder(PurchaseHeader, 2);
+        LibraryPurchase.CreatePurchHeader(OtherPurchaseHeader, OtherPurchaseHeader."Document Type"::Order, PurchaseHeader."Buy-from Vendor No.");
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        PurchaseLine."Document No." := OtherPurchaseHeader."No.";
+        PurchaseLine.Insert(true);
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(OtherPurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+        VerifyReturnNavigation(OtherPurchaseHeader, 1, 'Card');
+        TransferLine.SetRange("Subc. Purch. Order No.", OtherPurchaseHeader."No.");
+        TransferLine.SetRange("Subc. Return Order", true);
+        TransferLine.FindFirst();
+        ReusedReturnNo := TransferLine."Document No.";
+        CreateOutboundNavigationDecoy(PurchaseHeader);
+
+        // [WHEN] "P1" creates its returns, reusing the existing open header.
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] The reused header keeps "P2" as its origin but has a return line linked to "P1".
+        TransferHeader.Get(ReusedReturnNo);
+        Assert.AreEqual(OtherPurchaseHeader."No.", TransferHeader."Subcontr. Purch. Order No.", 'The reused header must retain its original purchase order.');
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader."No.");
+        TransferLine.SetRange("Document No.", ReusedReturnNo);
+        Assert.RecordCount(TransferLine, 1);
+
+        // [THEN] Both distinct return numbers appear in the list, excluding the outbound order.
+        VerifyReturnNavigation(PurchaseHeader, 2, 'List');
+        PurchaseOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CaptureReturnOrderCard')]
+    procedure SingleWIPReturnOpensRealTransferOrderCard()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting] [WIP Return]
+        // [SCENARIO] A purchase order with one WIP return opens the real transfer order card.
+        Initialize();
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] "P" has one production line with WIP at the subcontractor.
+        CreateReturnNavigationPurchaseOrder(PurchaseHeader, 1);
+
+        // [WHEN] Create Return from Subcontractor is invoked for "P".
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] The card shows the exact persisted return document.
+        VerifyReturnNavigation(PurchaseHeader, 1, 'Card');
+        PurchaseOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
+        OpenedTransferOrderNo := CopyStr(TransfOrderPage."No.".Value(), 1, MaxStrLen(OpenedTransferOrderNo));
         TransfOrderPage.OK().Invoke();
     end;
 
@@ -2081,7 +2298,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     var
         Location: Record Location;
         TransferRoute: Record "Transfer Route";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         LibraryWarehouse.CreateInTransitLocation(Location);
         LibraryWarehouse.CreateAndUpdateTransferRoute(
@@ -2112,18 +2328,169 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         exit(ManufacturingSetup."Components at Location");
     end;
 
+    local procedure CreateReturnNavigationPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; NumberOfLines: Integer)
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+        LineIndex: Integer;
+    begin
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
+        for LineIndex := 1 to NumberOfLines do begin
+            LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+            LibraryManufacturing.CreateProdOrderLine(
+                ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', Location.Code, 10);
+            CreateAndUpdateTransferRoute(Vendor."Subc. Location Code", Location.Code);
+        end;
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, true, false);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.RecordCount(ProdOrderLine, NumberOfLines);
+        ProdOrderLine.FindSet();
+        repeat
+            ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+            ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+            ProdOrderRoutingLine.FindFirst();
+            SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
+                WIPLedgerEntry, Item."No.", Vendor."Subc. Location Code",
+                ProductionOrder, ProdOrderLine, ProdOrderRoutingLine, WorkCenter[2]."No.", 10, false);
+        until ProdOrderLine.Next() = 0;
+
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        WorkCenter[2].SetRecFilter();
+        SubcCalculateSubcontracts.SetTableView(WorkCenter[2]);
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        Assert.RecordCount(RequisitionLine, NumberOfLines);
+        RequisitionLine.FindFirst();
+        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgReq.UseRequestPage(false);
+        CarryOutActionMsgReq.RunModal();
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, NumberOfLines);
+    end;
+
+    local procedure CreateOutboundNavigationDecoy(PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        LibraryInventory.CreateTransferHeader(TransferHeader);
+        TransferHeader."Subcontr. Purch. Order No." := PurchaseHeader."No.";
+        TransferHeader.Modify(true);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, PurchaseLine."No.", 1);
+        TransferLine."Subc. Purch. Order No." := PurchaseHeader."No.";
+        TransferLine.Modify(true);
+    end;
+
+    local procedure VerifyReturnNavigation(PurchaseHeader: Record "Purchase Header"; ExpectedCount: Integer; ExpectedPageType: Text)
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ExpectedNumbers: List of [Code[20]];
+        ActualNumbers: List of [Text];
+        DocumentNo: Code[20];
+        NumberIndex: Integer;
+    begin
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader."No.");
+        TransferLine.SetRange("Subc. Return Order", true);
+        TransferLine.SetRange("Derived From Line No.", 0);
+        Assert.RecordCount(TransferLine, ExpectedCount);
+        TransferLine.FindSet();
+        repeat
+            TransferHeader.Get(TransferLine."Document No.");
+            Assert.IsTrue(TransferHeader."Subc. Return Order", 'The linked document must be a real return order.');
+            if not ExpectedNumbers.Contains(TransferHeader."No.") then
+                ExpectedNumbers.Add(TransferHeader."No.");
+        until TransferLine.Next() = 0;
+        Assert.AreEqual(ExpectedCount, ExpectedNumbers.Count(), 'Each source location must have a distinct return header.');
+        Assert.AreEqual(ExpectedPageType, LibraryVariableStorage.DequeueText(), 'Return navigation must choose the correct page type.');
+        Assert.AreEqual(ExpectedCount, LibraryVariableStorage.DequeueInteger(), 'Return navigation must show exactly the linked return orders.');
+        for NumberIndex := 1 to ExpectedCount do
+            ActualNumbers.Add(LibraryVariableStorage.DequeueText());
+        foreach DocumentNo in ExpectedNumbers do
+            Assert.IsTrue(ActualNumbers.Contains(DocumentNo), StrSubstNo(ReturnDocumentMissingErr, DocumentNo));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [PageHandler]
+    procedure CaptureReturnOrderCard(var TransferOrder: TestPage "Transfer Order")
+    begin
+        LibraryVariableStorage.Enqueue('Card');
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(TransferOrder."No.".Value());
+        TransferOrder.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure CaptureReturnOrdersList(var TransferOrders: TestPage "Transfer Orders")
+    var
+        DocumentNumbers: List of [Text];
+        DocumentNo: Text;
+    begin
+        if TransferOrders.First() then
+            repeat
+                DocumentNumbers.Add(TransferOrders."No.".Value());
+            until not TransferOrders.Next();
+        LibraryVariableStorage.Enqueue('List');
+        LibraryVariableStorage.Enqueue(DocumentNumbers.Count());
+        foreach DocumentNo in DocumentNumbers do
+            LibraryVariableStorage.Enqueue(DocumentNo);
+        TransferOrders.OK().Invoke();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
+        OpenedTransferOrderNo: Code[20];
         ProdOrderRoutingTransferWIPEnabledErr: Label 'Transfer WIP Item should not be enabled for a Machine Center prod. order routing line.';
+        ReturnDocumentMissingErr: Label 'The return page must include document %1.', Comment = '%1 = Transfer Order No.';
 }

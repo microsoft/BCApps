@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Statement;
 
+#pragma warning disable AL0659 // Accepted: renaming the enum is a breaking change
 enum 11000007 "CBG Statement Line Account Type"
+#pragma warning restore AL0659
 {
     Extensible = true;
     AssignmentCompatibility = true;

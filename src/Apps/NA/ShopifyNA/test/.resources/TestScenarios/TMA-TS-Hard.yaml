@@ -1,0 +1,384 @@
+test_setup: TMA-Setup.yaml
+
+tests:
+  - name: HARD-Homonym-WashingtonCounty-OR
+    description: "Hard - Washington County exists in many states; ship-to Oregon must pick the Oregon one"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ORWASHCO
+          Description: Washington County Oregon
+          Country/Region Code: US
+        - Code: UTWASHCO
+          Description: Washington County Utah
+          Country/Region Code: US
+        - Code: PAWASHCO
+          Description: Washington County Pennsylvania
+          Country/Region Code: US
+        - Code: MNWASHCO
+          Description: Washington County Minnesota
+          Country/Region Code: US
+        - Code: ARWASHCO
+          Description: Washington County Arkansas
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: OR
+        city: Beaverton
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Washington County Tax"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ORWASHCO"
+
+  - name: HARD-Geo-KansasCity-Missouri
+    description: "Hard - Kansas City is in Missouri; a Kansas City order must not match a Kansas jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOKC
+          Description: Kansas City Missouri Tax
+          Country/Region Code: US
+        - Code: KSKC
+          Description: Kansas City Kansas Tax
+          Country/Region Code: US
+        - Code: KSSTATE
+          Description: Kansas State Sales Tax
+          Country/Region Code: US
+        - Code: MOSTATE
+          Description: Missouri State Sales Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: Kansas City
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Missouri State Tax"
+              ratePct: 4.225
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Kansas City Tax"
+              ratePct: 3.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTATE"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MOKC"
+
+  - name: HARD-Substring-Kansas-not-Arkansas
+    description: "Hard - Arkansas contains the substring 'kansas'; a Kansas order must not match Arkansas"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: KSSUT
+          Description: Kansas State Sales Tax
+          Country/Region Code: US
+        - Code: ARSUT
+          Description: Arkansas State Sales Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: KS
+        city: Topeka
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Kansas State Tax"
+              ratePct: 6.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "KSSUT"
+
+  - name: HARD-Homonym-Portland-ME
+    description: "Hard - ship-to Portland Maine must match the Maine city, not the more famous Portland Oregon"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MEPORT
+          Description: Portland Maine City Tax
+          Country/Region Code: US
+        - Code: ORPORT
+          Description: Portland Oregon City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: ME
+        city: Portland
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Portland City Tax"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MEPORT"
+
+  - name: HARD-Homonym-Columbus-GA
+    description: "Hard - ship-to Columbus Georgia must match the Georgia city, not the capital Columbus Ohio"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: GACOL
+          Description: Columbus Georgia City Tax
+          Country/Region Code: US
+        - Code: OHCOL
+          Description: Columbus Ohio City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: GA
+        city: Columbus
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Columbus City Tax"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "GACOL"
+
+  - name: HARD-ManyDistractors-Springfield-IL
+    description: "Hard - a dozen same-named Springfield jurisdictions; ship-to Illinois must pick the IL one"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ILSPR
+          Description: Springfield Illinois City Tax
+          Country/Region Code: US
+        - Code: MOSPR
+          Description: Springfield Missouri City Tax
+          Country/Region Code: US
+        - Code: MASPR
+          Description: Springfield Massachusetts City Tax
+          Country/Region Code: US
+        - Code: OHSPR
+          Description: Springfield Ohio City Tax
+          Country/Region Code: US
+        - Code: ORSPR
+          Description: Springfield Oregon City Tax
+          Country/Region Code: US
+        - Code: TNSPR
+          Description: Springfield Tennessee City Tax
+          Country/Region Code: US
+        - Code: VASPR
+          Description: Springfield Virginia City Tax
+          Country/Region Code: US
+        - Code: KYSPR
+          Description: Springfield Kentucky City Tax
+          Country/Region Code: US
+        - Code: MNSPR
+          Description: Springfield Minnesota City Tax
+          Country/Region Code: US
+        - Code: NJSPR
+          Description: Springfield New Jersey Township Tax
+          Country/Region Code: US
+        - Code: PASPR
+          Description: Springfield Pennsylvania Township Tax
+          Country/Region Code: US
+        - Code: COSPR
+          Description: Springfield Colorado Town Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IL
+        city: Springfield
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Springfield City Tax"
+              ratePct: 2.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ILSPR"
+
+  - name: HARD-CodeVsDesc-Conflict-TX
+    description: "Hard - the correct Texas jurisdiction is the one DESCRIBED as Texas, not the one merely CODED 'TEXAS'"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: TXSUT
+          Description: Texas State Sales and Use Tax
+          Country/Region Code: US
+        - Code: TEXAS
+          Description: Tennessee State Sales Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TX
+        city: Austin
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Texas State Tax"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "TXSUT"
+
+  - name: HARD-Level-StateNotCity-NY
+    description: "Hard - 'New York State Tax' must map to the state jurisdiction, not the higher-overlap New York City tax"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NYSTATE
+          Description: State of New York
+          Country/Region Code: US
+        - Code: NYCITY
+          Description: New York City Sales Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: Albany
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "New York State Tax"
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NYSTATE"
+
+  - name: HARD-Homonym-FranklinCounty-OH
+    description: "Hard - Franklin County exists in many states; ship-to Columbus Ohio must pick the Ohio one"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: OHFRANK
+          Description: Franklin County Ohio
+          Country/Region Code: US
+        - Code: MOFRANK
+          Description: Franklin County Missouri
+          Country/Region Code: US
+        - Code: PAFRANK
+          Description: Franklin County Pennsylvania
+          Country/Region Code: US
+        - Code: VAFRANK
+          Description: Franklin County Virginia
+          Country/Region Code: US
+        - Code: MAFRANK
+          Description: Franklin County Massachusetts
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: OH
+        city: Columbus
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Franklin County Tax"
+              ratePct: 1.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "OHFRANK"
+
+  - name: HARD-TruncationCollision-MTA
+    description: "Hard - two titles collide under the Code[20] title truncation (both become 'METROPOLITAN TRANSPO')"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MTAUTH
+          Description: Metropolitan Transportation Authority
+          Country/Region Code: US
+        - Code: MTDIST
+          Description: Metropolitan Transportation District
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Metropolitan Transportation Authority Tax"
+              ratePct: 0.375
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Metropolitan Transportation District Tax"
+              ratePct: 0.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MTAUTH"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MTDIST"

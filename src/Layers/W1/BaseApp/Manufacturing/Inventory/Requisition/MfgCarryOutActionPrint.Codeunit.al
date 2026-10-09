@@ -44,7 +44,7 @@ codeunit 99000816 "Mfg. Carry Out Action Print"
             RecordRefToPrint.GetTable(TempProductionOrderToPrint);
             RecordRefToHeader.GetTable(ProductionOrder);
             ProductionOrder.SetFilter("No.", SelectionFilterManagement.CreateFilterFromTempTable(RecordRefToPrint, RecordRefToHeader, ProductionOrder.FieldNo("No.")));
-            ProductionOrder.SetFilter(Status, '%1|%2', ProductionOrder.Status::Planned, ProductionOrder.Status::"Firm Planned");
+            ProductionOrder.SetFilter(Status, '%1|%2|%3', ProductionOrder.Status::Planned, ProductionOrder.Status::"Firm Planned", ProductionOrder.Status::Released);
             ReportSelections.PrintWithDialogWithCheckForCust(ReportSelections.Usage::"Prod.Order", ProductionOrder, false, 0);
             TempProductionOrderToPrint.DeleteAll();
         end;

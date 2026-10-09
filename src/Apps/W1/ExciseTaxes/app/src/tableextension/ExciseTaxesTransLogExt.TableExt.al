@@ -6,6 +6,7 @@ namespace Microsoft.ExciseTaxes;
 
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Sustainability.ExciseTax;
 
 tableextension 7414 "Excise Taxes Trans. Log Ext" extends "Sust. Excise Taxes Trans. Log"
@@ -57,10 +58,40 @@ tableextension 7414 "Excise Taxes Trans. Log Ext" extends "Sust. Excise Taxes Tr
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(7418; "Excise Calculation Type"; Enum "Excise Calculation Type")
+        {
+            Caption = 'Excise Calculation Type';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(7419; "Excise Duty %"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Excise Duty %';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
         field(7420; "FA Ledger Entry No."; Integer)
         {
             Caption = 'FA Ledger Entry No.';
             TableRelation = "FA Ledger Entry"."Entry No.";
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(7421; "Excise Taxable Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Taxable Amount';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(7422; "Item Category Code"; Code[20])
+        {
+            Caption = 'Item Category Code';
+            TableRelation = "Item Category".Code;
             DataClassification = CustomerContent;
             Editable = false;
         }

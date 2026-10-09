@@ -135,6 +135,9 @@ table 20403 "Qlty. Inspection Template Line"
         Rec.CalcFields("Test Value Type");
     end;
 
+    /// <summary>
+    /// Assigns the next template line number when the line number is zero.
+    /// </summary>
     procedure InitLineNoIfNeeded()
     var
         ExistingsQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -160,7 +163,7 @@ table 20403 "Qlty. Inspection Template Line"
     /// <summary>
     /// Ensures results exist for this template line.
     /// </summary>
-    /// <param name="ForceOverwriteConditions"></param>
+    /// <param name="ForceOverwriteConditions">Specifies whether existing template result conditions are overwritten.</param>
     procedure EnsureResultsExist(ForceOverwriteConditions: Boolean)
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
@@ -179,6 +182,10 @@ table 20403 "Qlty. Inspection Template Line"
     end;
 
     #region Add multiple tests to template
+    /// <summary>
+    /// Opens a test selection page and adds the selected tests to a template.
+    /// </summary>
+    /// <param name="TemplateCode">The template to which selected tests are added.</param>
     internal procedure SelectMultipleTests(TemplateCode: Code[20])
     var
         SelectionFilter: Text;
@@ -192,6 +199,10 @@ table 20403 "Qlty. Inspection Template Line"
             AddSelectedTests(TemplateCode, SelectionFilter);
     end;
 
+    /// <summary>
+    /// Opens the quality test page in lookup mode and gets the selected test filter.
+    /// </summary>
+    /// <returns>The selected test code filter, or blank when selection is canceled.</returns>
     local procedure SelectInQltyTests(): Text
     var
         QltyTests: Page "Qlty. Tests";
@@ -201,6 +212,11 @@ table 20403 "Qlty. Inspection Template Line"
             exit(QltyTests.GetSelectionFilter());
     end;
 
+    /// <summary>
+    /// Adds every test selected by a filter to a template.
+    /// </summary>
+    /// <param name="TemplateCode">The target template code.</param>
+    /// <param name="SelectionFilter">The filter that selects test codes to add.</param>
     internal procedure AddSelectedTests(TemplateCode: Code[20]; SelectionFilter: Text)
     var
         QltyTest: Record "Qlty. Test";
@@ -215,6 +231,11 @@ table 20403 "Qlty. Inspection Template Line"
             until QltyTest.Next() = 0;
     end;
 
+    /// <summary>
+    /// Inserts a test and its result conditions when the test is not already on the template.
+    /// </summary>
+    /// <param name="TemplateCode">The target template code.</param>
+    /// <param name="QltyTestCode">The test code to add.</param>
     local procedure AddTestToTemplateLine(TemplateCode: Code[20]; QltyTestCode: Code[20])
     var
         ExistingQltyInspectionTemplateLine, NewQltyInspectionTemplateLine : Record "Qlty. Inspection Template Line";
@@ -237,8 +258,7 @@ table 20403 "Qlty. Inspection Template Line"
     /// <summary>
     /// Validates the expression formula.
     /// </summary>
-    /// <param name="QltyInspectionTemplateLine"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionTemplateLine">The template line whose expression formula is being validated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateExpressionFormula(var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     begin

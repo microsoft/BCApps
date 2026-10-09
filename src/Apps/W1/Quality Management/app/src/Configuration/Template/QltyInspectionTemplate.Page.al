@@ -202,6 +202,10 @@ page 20402 "Qlty. Inspection Template"
         ShowSampleSizeFixedQuantity: Boolean;
         ShowSampleSizePercentage: Boolean;
 
+    /// <summary>
+    /// Builds the template caption from its code and description.
+    /// </summary>
+    /// <returns>The template page caption.</returns>
     local procedure GetDataCaptionExpression(): Text
     begin
         exit(Rec.Code + ' - ' + Rec.Description);
@@ -219,6 +223,9 @@ page 20402 "Qlty. Inspection Template"
         QltyMgmtFeatureTelemetry.LogFeatureUptakeSetup(ObjectType::Page, Page::"Qlty. Inspection Template");
     end;
 
+    /// <summary>
+    /// Updates sample-size control visibility from the configured sample source.
+    /// </summary>
     local procedure UpdateControls()
     begin
         ShowSampleSizeFixedQuantity := Rec."Sample Source" = Rec."Sample Source"::"Fixed Quantity";

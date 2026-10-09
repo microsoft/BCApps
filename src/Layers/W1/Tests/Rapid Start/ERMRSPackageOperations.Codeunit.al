@@ -4380,6 +4380,48 @@ codeunit 136603 "ERM RS Package Operations"
 
     [Test]
     [Scope('OnPrem')]
+    procedure UniqueXMLFieldNameForCollidingMaxLengthFieldName()
+    var
+        ConfigPackage: Record "Config. Package";
+    begin
+        // [SCENARIO 652923] Unique XML field name is generated when a 30-char field name without digits collides with another field's XML name
+        Initialize();
+        CreateConfigPackage(ConfigPackage);
+
+        // [GIVEN] Package field "Pmt Transaction Entry Ref AB" with XML field name "PmtTransactionEntryRefAB"
+        // [WHEN] Package fields "Pmt. Transaction Entry Ref. AB" (30 chars) and "Pmt Transaction Entry Ref, AB" are added for the same table
+        // [THEN] XML field names "PmtTransactionEntryRefAB1" and "PmtTransactionEntryRefAB2" are generated
+        Assert.AreEqual(
+          'PmtTransactionEntryRefAB', InsertConfigPackageFieldWithName(ConfigPackage.Code, 1, 'Pmt Transaction Entry Ref AB'), '');
+        Assert.AreEqual(
+          'PmtTransactionEntryRefAB1', InsertConfigPackageFieldWithName(ConfigPackage.Code, 2, 'Pmt. Transaction Entry Ref. AB'), '');
+        Assert.AreEqual(
+          'PmtTransactionEntryRefAB2', InsertConfigPackageFieldWithName(ConfigPackage.Code, 3, 'Pmt Transaction Entry Ref, AB'), '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UniqueXMLFieldNameForCollidingMaxLengthXMLFieldName()
+    var
+        ConfigPackage: Record "Config. Package";
+    begin
+        // [SCENARIO 652923] Unique XML field name keeps max length when the colliding XML field name is already 30 chars
+        Initialize();
+        CreateConfigPackage(ConfigPackage);
+
+        // [GIVEN] Package field "1BCDEFGHIJKLMNOPQRSTUVWXYZABCD" with XML field name "_1BCDEFGHIJKLMNOPQRSTUVWXYZABC" (30 chars)
+        // [WHEN] Package fields normalizing to the same XML field name are added for the same table
+        // [THEN] The base name is truncated so that the counter suffix fits into 30 chars
+        Assert.AreEqual(
+          '_1BCDEFGHIJKLMNOPQRSTUVWXYZABC', InsertConfigPackageFieldWithName(ConfigPackage.Code, 1, '1BCDEFGHIJKLMNOPQRSTUVWXYZABCD'), '');
+        Assert.AreEqual(
+          '_1BCDEFGHIJKLMNOPQRSTUVWXYZAB1', InsertConfigPackageFieldWithName(ConfigPackage.Code, 2, '1BCDEFGHIJKLMNOPQRSTUVWXYZABC.'), '');
+        Assert.AreEqual(
+          '_1BCDEFGHIJKLMNOPQRSTUVWXYZAB2', InsertConfigPackageFieldWithName(ConfigPackage.Code, 3, '1BCDEFGHIJKLMNOPQRSTUVWXYZABC,'), '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportConfigPackageIncludesConfigMediaBuffer()
     var
         ConfigPackage: Array[2] of Record "Config. Package";
@@ -4566,6 +4608,19 @@ codeunit 136603 "ERM RS Package Operations"
         LibraryRapidStart.CreatePackage(ConfigPackage);
         ConfigPackage."Min. Count For Async Import" := 999999999; // to avoid background jobs
         ConfigPackage.Modify();
+    end;
+
+    local procedure InsertConfigPackageFieldWithName(PackageCode: Code[20]; FieldID: Integer; FieldName: Text[30]): Text[30]
+    var
+        ConfigPackageField: Record "Config. Package Field";
+    begin
+        ConfigPackageField.Init();
+        ConfigPackageField."Package Code" := PackageCode;
+        ConfigPackageField."Table ID" := Database::DuplicatedXMLFields;
+        ConfigPackageField."Field ID" := FieldID;
+        ConfigPackageField.Validate("Field Name", FieldName);
+        ConfigPackageField.Insert();
+        exit(ConfigPackageField."XML Field Name");
     end;
 
     [Scope('OnPrem')]

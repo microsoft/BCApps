@@ -117,12 +117,7 @@ codeunit 139629 "Library - E-Document"
             end;
 
         // Create Item
-        if StandardItem."No." = '' then begin
-            VATPostingSetup.TestField("VAT Prod. Posting Group");
-            CreateGenericItem(StandardItem);
-            StandardItem."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
-            StandardItem.Modify();
-        end;
+        EnsureStandardItemExists();
 
         SalesSetup.Get();
         SalesSetup."Invoice Rounding" := false;
@@ -131,10 +126,18 @@ codeunit 139629 "Library - E-Document"
 
     procedure GetGenericItem(var Item: Record Item)
     begin
-        if (StandardItem."No." = '') or not Item.Get(StandardItem."No.") then begin
-            CreateGenericItem(StandardItem);
-            Item.Get(StandardItem."No.");
-        end;
+        EnsureStandardItemExists();
+        Item.Get(StandardItem."No.");
+    end;
+
+    local procedure EnsureStandardItemExists()
+    var
+        Item: Record Item;
+    begin
+        if (StandardItem."No." <> '') and Item.Get(StandardItem."No.") then
+            exit;
+
+        CreateItemWithStandardVAT(StandardItem);
     end;
 
 #if not CLEAN26
@@ -183,6 +186,7 @@ codeunit 139629 "Library - E-Document"
     begin
         WorkflowSetup.InitWorkflow();
         SetupCompanyInfo();
+        CleanGeneralPostingSetup();
 
         // Create Customer for sales scenario
         LibraryPurchase.CreateVendor(Vendor);
@@ -199,10 +203,7 @@ codeunit 139629 "Library - E-Document"
         Vendor.Modify(true);
 
         // Create Item
-        if StandardItem."No." = '' then begin
-            VATPostingSetup.TestField("VAT Prod. Posting Group");
-            CreateGenericItem(StandardItem, VATPostingSetup."VAT Prod. Posting Group");
-        end;
+        EnsureStandardItemExists();
 
         UnitOfMeasure.Init();
         UnitOfMeasure."International Standard Code" := 'PCS';
@@ -215,6 +216,35 @@ codeunit 139629 "Library - E-Document"
         CreateGenericItem(ExtraItem, VATPostingSetup."VAT Prod. Posting Group");
         CreateItemUnitOfMeasure(ExtraItem."No.", UnitOfMeasure.Code);
         LibraryItemReference.CreateItemReference(ItemReference, ExtraItem."No.", '', 'PCS', Enum::"Item Reference Type"::Vendor, Vendor."No.", '2000');
+    end;
+
+    local procedure CleanGeneralPostingSetup()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        GeneralPostingSetupToDelete: Record "General Posting Setup";
+    begin
+        if GeneralPostingSetup.FindSet() then
+            repeat
+                if IsGeneralPostingSetupOrphaned(GeneralPostingSetup) then begin
+                    GeneralPostingSetupToDelete := GeneralPostingSetup;
+                    GeneralPostingSetupToDelete.Delete();
+                end;
+            until GeneralPostingSetup.Next() = 0;
+    end;
+
+    local procedure IsGeneralPostingSetupOrphaned(GeneralPostingSetup: Record "General Posting Setup"): Boolean
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+    begin
+        if (GeneralPostingSetup."Gen. Bus. Posting Group" <> '') and
+           (not GenBusinessPostingGroup.Get(GeneralPostingSetup."Gen. Bus. Posting Group"))
+        then
+            exit(true);
+
+        exit(
+            (GeneralPostingSetup."Gen. Prod. Posting Group" <> '') and
+            (not GenProductPostingGroup.Get(GeneralPostingSetup."Gen. Prod. Posting Group")));
     end;
 
     procedure PostInvoice(var Customer: Record Customer) SalesInvHeader: Record "Sales Invoice Header";
@@ -449,6 +479,13 @@ codeunit 139629 "Library - E-Document"
         Item.Modify();
     end;
 
+    procedure CreateItemWithStandardVAT(var Item: Record Item)
+    begin
+        SetupStandardVAT();
+        VATPostingSetup.TestField("VAT Prod. Posting Group");
+        CreateGenericItem(Item, VATPostingSetup."VAT Prod. Posting Group");
+    end;
+
     procedure CreateGenericItem(var Item: Record Item)
     begin
         CreateItemWithPrice(Item, LibraryRandom.RandInt(10));
@@ -491,8 +528,7 @@ codeunit 139629 "Library - E-Document"
     begin
         CreateGenericSalesHeader(Customer, SalesHeader, DocumentType);
 
-        if StandardItem."No." = '' then
-            CreateGenericItem(StandardItem);
+        EnsureStandardItemExists();
 
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, StandardItem."No.", 1);
     end;
@@ -500,8 +536,7 @@ codeunit 139629 "Library - E-Document"
     procedure CreatePurchaseOrderWithLine(var Vendor: Record Vendor; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal)
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, Enum::"Purchase Document Type"::Order, Vendor."No.");
-        if StandardItem."No." = '' then
-            CreateGenericItem(StandardItem);
+        EnsureStandardItemExists();
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, StandardItem."No.", Quantity);
     end;
 
@@ -957,19 +992,59 @@ codeunit 139629 "Library - E-Document"
 
         EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Issued Reminder";
         EDocServiceSupportedType.Insert();
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 
+    /// <summary>
+    /// Adds the purchase document types a receiving E-Document Service needs, with direction Incoming.
+    /// Purchase Order is not added: inbound Purchase Order falls back to the Purchase Invoice row, and an own
+    /// Incoming-only row would block tests that export Purchase Orders.
+    /// </summary>
+    /// <param name="EDocService">The E-Document Service that receives the documents.</param>
+    procedure CreateInboundSupportedDocTypes(EDocService: Record "E-Document Service")
+    begin
+        AddEDocServiceSupportedType(EDocService, Enum::"E-Document Type"::"Purchase Invoice", Enum::"E-Doc. Supp. Type Direction"::Incoming);
+        AddEDocServiceSupportedType(EDocService, Enum::"E-Document Type"::"Purchase Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Incoming);
+    end;
+
+    /// <summary>
+    /// Adds a supported source document type to an E-Document Service for both directions.
+    /// </summary>
+    /// <param name="EDocService">The E-Document Service that supports the document type.</param>
+    /// <param name="EDocumentType">The source document type to add.</param>
     procedure AddEDocServiceSupportedType(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type")
+    begin
+        AddEDocServiceSupportedType(EDocService, EDocumentType, Enum::"E-Doc. Supp. Type Direction"::Both);
+    end;
+
+    /// <summary>
+    /// Adds a supported source document type with its allowed direction to an E-Document Service.
+    /// If the type is already configured with a different direction, the row is widened to Both.
+    /// </summary>
+    /// <param name="EDocService">The E-Document Service that supports the document type.</param>
+    /// <param name="EDocumentType">The source document type to add.</param>
+    /// <param name="Direction">The direction in which the service supports the document type.</param>
+    procedure AddEDocServiceSupportedType(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"; Direction: Enum "E-Doc. Supp. Type Direction")
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
         if not EDocService.Get(EDocService.Code) then
             exit;
 
+        if EDocServiceSupportedType.Get(EDocService.Code, EDocumentType) then begin
+            if EDocServiceSupportedType.Direction <> Direction then begin
+                EDocServiceSupportedType.Direction := Enum::"E-Doc. Supp. Type Direction"::Both;
+                EDocServiceSupportedType.Modify(false);
+            end;
+            exit;
+        end;
+
         EDocServiceSupportedType.Init();
         EDocServiceSupportedType."E-Document Service Code" := EDocService.Code;
         EDocServiceSupportedType."Source Document Type" := EDocumentType;
-        if EDocServiceSupportedType.Insert() then;
+        EDocServiceSupportedType.Direction := Direction;
+        EDocServiceSupportedType.Insert(false);
     end;
 
     procedure CreateTestReceiveServiceForEDoc(var EDocService: Record "E-Document Service"; Integration: Enum "Service Integration")
@@ -982,6 +1057,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 
 #if not CLEAN26
@@ -997,6 +1074,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 #pragma warning restore AL0432
 #endif
@@ -1011,6 +1090,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 
 #if not CLEAN26
@@ -1026,6 +1107,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 #pragma warning restore AL0432
 #endif
@@ -1040,6 +1123,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 
 #if not CLEAN26
@@ -1055,6 +1140,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 #pragma warning restore AL0432
 #endif

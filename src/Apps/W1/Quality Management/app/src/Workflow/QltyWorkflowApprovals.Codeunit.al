@@ -33,18 +33,30 @@ codeunit 20425 "Qlty. Workflow Approvals"
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         ActionApprovedTxt: Label 'request has been approved and will move to the next step.';
 
+    /// <summary>
+    /// Continues the known workflow instance when an inspection approval request is rejected.
+    /// </summary>
+    /// <param name="ApprovalEntry">The rejected approval entry and its workflow step instance.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnRejectApprovalRequest', '', true, true)]
     local procedure RunWorkflowOnRejectTimeCardApproval(var ApprovalEntry: Record "Approval Entry")
     begin
         WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetInspectionRejectEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
     end;
 
+    /// <summary>
+    /// Continues the known workflow instance when an inspection approval request is delegated.
+    /// </summary>
+    /// <param name="ApprovalEntry">The delegated approval entry and its workflow step instance.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnDelegateApprovalRequest', '', true, true)]
     local procedure RunWorkflowOnDelegateTimeCardApproval(var ApprovalEntry: Record "Approval Entry")
     begin
         WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetInspectionDelegateEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
     end;
 
+    /// <summary>
+    /// Continues the known workflow instance when an inspection approval request is approved.
+    /// </summary>
+    /// <param name="ApprovalEntry">The approved approval entry and its workflow step instance.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnApproveApprovalRequest', '', true, true)]
     local procedure HandleOnApproveTheApprovalRequestOnApproveTimeCardApproval(var ApprovalEntry: Record "Approval Entry")
     begin

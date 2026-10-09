@@ -89,4 +89,3 @@ codeunit 135094 "Environment Info Test Library"
         AppId := TestAppId;
     end;
 }
-

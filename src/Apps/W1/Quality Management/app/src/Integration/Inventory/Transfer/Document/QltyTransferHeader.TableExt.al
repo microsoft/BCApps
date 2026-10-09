@@ -36,7 +36,7 @@ tableextension 20409 "Qlty. Transfer Header" extends "Transfer Header"
     }
 
     /// <summary>
-    /// Runs associated Quality Inspection page
+    /// Opens the quality inspection associated with the transfer order when it exists.
     /// </summary>
     procedure QltyShowRelatedInspection()
     var

@@ -692,13 +692,13 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    subgraph Tests["Test Suite (77 test procedures)"]
-        subgraph Core["SharePoint Graph Client Test (132984) — 31 tests"]
+    subgraph Tests["Test Suite (80 test procedures)"]
+        subgraph Core["SharePoint Graph Client Test (132984) — 34 tests"]
             T1["Authorization invoked"]
             T2["Request URI format"]
             T3["GetLists / CreateList"]
             T4["GetListItems / CreateListItem"]
-            T5["GetListItem / UpdateListItem<br/>+ validation + buffer collision"]
+            T5["GetListItem / UpdateListItem<br/>+ validation + buffer collision<br/>+ default $expand + fieldValueSet parsing"]
             T6["GetDrives / GetRootItems"]
             T7["CreateFolder"]
             T8["SharePoint URL validation"]

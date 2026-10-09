@@ -43,6 +43,7 @@ codeunit 142074 "UT REP Export Electronic Pmt."
         "Layout": Option RDLC,Word;
         TempSubDirectoryTxt: Label '142083_Test\';
         PayeeAddressTxt: Label 'PayeeAddress_1_';
+        RemainingAmtLCYControl36Txt: Label 'Remaining_Amt___LCY___Control36';
 
     [Test]
     [HandlerFunctions('ExportElectronicPaymentsRequestPageHandler')]
@@ -374,6 +375,57 @@ codeunit 142074 "UT REP Export Electronic Pmt."
         UnbindSubscription(UTREPExportElectronicPmt);
     end;
 
+    [Test]
+    [HandlerFunctions('ExportElectronicPaymentsRequestPageHandler')]
+    procedure ExportElectronicPaymentsVendorAppliedViaAppliesToID()
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        UTREPExportElectronicPmt: Codeunit "UT REP Export Electronic Pmt.";
+        PaymentJournal: TestPage "Payment Journal";
+        VendorNo, VendorBankAccountCode : Code[20];
+        ExportFormat: Option ,US,CA,MX;
+        InvoiceAmount: Decimal;
+        RemainingAmountLCY: Decimal;
+    begin
+        // [SCENARIO 645165] Remittance Advice report prints the correct Amount Due when the payment is applied to vendor entries via "Applies-to ID" (Summarize Per Vendor / Apply Entries).
+        Initialize();
+
+        // [GIVEN] Create Report Selection set for Vendor Remittance.
+        CreateExportReportSelection(Layout::RDLC);
+        BindSubscription(UTREPExportElectronicPmt);
+
+        // [GIVEN] Create Vendor with a bank account set up for Electronic Payments.
+        VendorNo := LibraryPurchase.CreateVendorNo();
+        VendorBankAccountCode := CreateVendorBankAccount(VendorNo, ExportFormat::US);
+
+        // [GIVEN] Posted vendor invoice in LCY.
+        InvoiceAmount := LibraryRandom.RandDec(100, 2);
+        CreatePostVendorLedgerEntry(VendorLedgerEntry, VendorNo, InvoiceAmount, '');
+
+        // [GIVEN] CreatePayment journal line applying the invoice through "Applies-to ID" with empty "Applies-to Doc. No.".
+        CreateGenJournalLine(
+          GenJournalLine, GenJournalLine."Account Type"::Vendor, VendorNo,
+          '', ExportFormat::US, InvoiceAmount, VendorBankAccountCode);
+        ApplyVendorLedgerEntryByID(GenJournalLine, VendorLedgerEntry);
+
+        // [GIVEN] Enqueue value for Report "Export Electronic Payments".
+        EnqueueValuesForExportElectronicPayment(GenJournalLine);
+        Commit();
+
+        // [WHEN] Open Payment Journal and run the report "Export Electronic Payments".
+        PaymentJournal.OpenEdit();
+        asserterror ExportPaymentJournalDirect(PaymentJournal, GenJournalLine);
+        PaymentJournal.Close();
+
+        // [THEN] Verify Amount Due (Remaining Amt. (LCY)) is printed with the invoice amount instead of zero.
+        LibraryReportDataset.LoadDataSetFile();
+        VendorLedgerEntry.CalcFields("Remaining Amt. (LCY)");
+        RemainingAmountLCY := VendorLedgerEntry."Remaining Amt. (LCY)";
+        LibraryReportDataset.AssertElementWithValueExists(RemainingAmtLCYControl36Txt, -RemainingAmountLCY);
+        UnbindSubscription(UTREPExportElectronicPmt);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -657,6 +709,20 @@ codeunit 142074 "UT REP Export Electronic Pmt."
         GenJournalLine.Modify();
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, GenJournalLine."Document No.");
+    end;
+
+    local procedure ApplyVendorLedgerEntryByID(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry")
+    begin
+        // Apply the vendor invoice through "Applies-to ID" (as done when summarizing per vendor), leaving "Applies-to Doc. No." empty.
+        VendorLedgerEntry.CalcFields("Remaining Amount");
+        VendorLedgerEntry."Applies-to ID" := GenJournalLine."Document No.";
+        VendorLedgerEntry."Amount to Apply" := VendorLedgerEntry."Remaining Amount";
+        VendorLedgerEntry.Modify();
+
+        GenJournalLine."Applies-to Doc. Type" := GenJournalLine."Applies-to Doc. Type"::" ";
+        GenJournalLine."Applies-to Doc. No." := '';
+        GenJournalLine."Applies-to ID" := GenJournalLine."Document No.";
+        GenJournalLine.Modify();
     end;
 
     local procedure CreateGenJournalLineWithCurrency(var GenJournalLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20];

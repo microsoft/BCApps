@@ -861,6 +861,10 @@ page 20406 "Qlty. Inspection"
         UpdateControlVisibilityStates(true);
     end;
 
+    /// <summary>
+    /// Updates action availability, source-field visibility, and status styles for the current inspection.
+    /// </summary>
+    /// <param name="UpdateCurrPageNoModify">Specifies whether to refresh the page without saving the record.</param>
     local procedure UpdateControlVisibilityStates(UpdateCurrPageNoModify: Boolean)
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -870,16 +874,15 @@ page 20406 "Qlty. Inspection"
 
         CanReopen := (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
-        if IsOpen then
-            if QltyPermissionMgmt.CanChangeItemTracking() then begin
-                TempItemTrackingSetup."Lot No. Required" := true;
-                TempItemTrackingSetup."Serial No. Required" := true;
-                TempItemTrackingSetup."Package No. Required" := true;
-                Rec.IsItemTrackingUsed(TempItemTrackingSetup);
-                CanChangeLotTracking := TempItemTrackingSetup."Lot No. Required";
-                CanChangeSerialTracking := TempItemTrackingSetup."Serial No. Required";
-                CanChangePackageTracking := TempItemTrackingSetup."Package No. Required";
-            end;
+        if IsOpen then begin
+            TempItemTrackingSetup."Lot No. Required" := true;
+            TempItemTrackingSetup."Serial No. Required" := true;
+            TempItemTrackingSetup."Package No. Required" := true;
+            Rec.IsItemTrackingUsed(TempItemTrackingSetup);
+            CanChangeLotTracking := TempItemTrackingSetup."Lot No. Required";
+            CanChangeSerialTracking := TempItemTrackingSetup."Serial No. Required";
+            CanChangePackageTracking := TempItemTrackingSetup."Package No. Required";
+        end;
         CanChangeQuantity := QltyPermissionMgmt.CanChangeSourceQuantity();
 
         Rec.CalcFields("Source Table Name");
@@ -918,6 +921,10 @@ page 20406 "Qlty. Inspection"
             CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Builds the page caption from the inspection and its source information.
+    /// </summary>
+    /// <returns>The caption for the current inspection.</returns>
     local procedure GetDataCaptionExpression(): Text
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";

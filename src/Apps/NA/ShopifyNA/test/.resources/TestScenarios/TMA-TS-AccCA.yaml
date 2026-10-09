@@ -1,0 +1,2062 @@
+test_setup: TMA-Setup.yaml
+
+tests:
+  - name: CA-ON-01-exact
+    description: "ON primary jurisdiction via exact title must match ONHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "ONTARIO HST"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-ON-02-abbreviation
+    description: "ON primary jurisdiction via abbreviation title must match ONHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "ON HST"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-ON-03-minimal-abbrev
+    description: "ON primary jurisdiction via minimal-abbrev title must match ONHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "ON TAX"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-ON-04-punctuation
+    description: "ON primary jurisdiction via punctuation title must match ONHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "HST (ON)"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-ON-05-embedded-rate
+    description: "ON primary jurisdiction via embedded-rate title must match ONHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "HST 13.0%"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-ON-06-truncated-code20
+    description: "ON primary jurisdiction via truncated-code20 title must match ONHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "HST HARMONIZED SALES TAX"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-ON-D-distractors
+    description: "ON match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "ONTARIO HST"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-ON-N-nomatch
+    description: "ON unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: CA-ON-A-autocreate
+    description: "ON auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "ONTARIO HST"
+              ratePct: 13.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "ON SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: CA-QC-01-exact
+    description: "QC primary jurisdiction via exact title must match QCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "QUEBEC GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+
+  - name: CA-QC-02-abbreviation
+    description: "QC primary jurisdiction via abbreviation title must match QCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "QC GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+
+  - name: CA-QC-03-punctuation
+    description: "QC primary jurisdiction via punctuation title must match QCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST (QC)"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+
+  - name: CA-QC-04-embedded-rate
+    description: "QC primary jurisdiction via embedded-rate title must match QCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST 5.0%"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+
+  - name: CA-QC-05-truncated-code20
+    description: "QC primary jurisdiction via truncated-code20 title must match QCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST GOODS AND SERVICES TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+
+  - name: CA-QC-D-distractors
+    description: "QC match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "QUEBEC GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+
+  - name: CA-QC-N-nomatch
+    description: "QC unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: CA-QC-M-multiline
+    description: "QC multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "QUEBEC GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "QUEBEC QST"
+              ratePct: 9.975
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "QCQST"
+
+  - name: CA-QC-A-autocreate
+    description: "QC auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "QUEBEC GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "QC SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: CA-QC-F1-french
+    description: "QC French tax abbreviation TPS must map to QCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TPS"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+
+  - name: CA-QC-F2-QCQST-french
+    description: "QC French tax abbreviation TVQ must map to QCQST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec QST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TPS"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "TVQ"
+              ratePct: 9.975
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "QCGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "QCQST"
+
+  - name: CA-BC-01-exact
+    description: "BC primary jurisdiction via exact title must match BCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: British Columbia PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "BC GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "BCGST"
+
+  - name: CA-BC-02-abbreviation
+    description: "BC primary jurisdiction via abbreviation title must match BCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: British Columbia PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "BC GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "BCGST"
+
+  - name: CA-BC-03-punctuation
+    description: "BC primary jurisdiction via punctuation title must match BCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: British Columbia PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST (BC)"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "BCGST"
+
+  - name: CA-BC-04-embedded-rate
+    description: "BC primary jurisdiction via embedded-rate title must match BCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: British Columbia PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST 5.0%"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "BCGST"
+
+  - name: CA-BC-05-truncated-code20
+    description: "BC primary jurisdiction via truncated-code20 title must match BCGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: British Columbia PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST GOODS AND SERVICES TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "BCGST"
+
+  - name: CA-BC-D-distractors
+    description: "BC match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: British Columbia PST
+          Country/Region Code: CA
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "BC GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "BCGST"
+
+  - name: CA-BC-N-nomatch
+    description: "BC unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: CA-BC-M-multiline
+    description: "BC multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: British Columbia PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "BC GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "BC PST"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "BCGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "BCPST"
+
+  - name: CA-BC-A-autocreate
+    description: "BC auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: BCGST
+          Description: British Columbia GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "BC GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "BC SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "BCGST"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: CA-AB-01-exact
+    description: "AB primary jurisdiction via exact title must match ABGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "ALBERTA GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ABGST"
+
+  - name: CA-AB-02-abbreviation
+    description: "AB primary jurisdiction via abbreviation title must match ABGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "AB GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ABGST"
+
+  - name: CA-AB-03-minimal-abbrev
+    description: "AB primary jurisdiction via minimal-abbrev title must match ABGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "AB TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ABGST"
+
+  - name: CA-AB-04-punctuation
+    description: "AB primary jurisdiction via punctuation title must match ABGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST (AB)"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ABGST"
+
+  - name: CA-AB-05-embedded-rate
+    description: "AB primary jurisdiction via embedded-rate title must match ABGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST 5.0%"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ABGST"
+
+  - name: CA-AB-06-truncated-code20
+    description: "AB primary jurisdiction via truncated-code20 title must match ABGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST GOODS AND SERVICES TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ABGST"
+
+  - name: CA-AB-D-distractors
+    description: "AB match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "ALBERTA GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ABGST"
+
+  - name: CA-AB-N-nomatch
+    description: "AB unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: CA-AB-A-autocreate
+    description: "AB auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ABGST
+          Description: Alberta GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "ALBERTA GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "AB SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ABGST"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: CA-NS-01-exact
+    description: "NS primary jurisdiction via exact title must match NSHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NOVA SCOTIA HST"
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-NS-02-abbreviation
+    description: "NS primary jurisdiction via abbreviation title must match NSHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NS HST"
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-NS-03-minimal-abbrev
+    description: "NS primary jurisdiction via minimal-abbrev title must match NSHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NS TAX"
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-NS-04-punctuation
+    description: "NS primary jurisdiction via punctuation title must match NSHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "HST (NS)"
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-NS-05-embedded-rate
+    description: "NS primary jurisdiction via embedded-rate title must match NSHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "HST 15.0%"
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-NS-06-truncated-code20
+    description: "NS primary jurisdiction via truncated-code20 title must match NSHST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "HST HARMONIZED SALES TAX"
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-NS-D-distractors
+    description: "NS match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NOVA SCOTIA HST"
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-NS-N-nomatch
+    description: "NS unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: CA-NS-A-autocreate
+    description: "NS auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NOVA SCOTIA HST"
+              ratePct: 15.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "NS SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: CA-MB-01-exact
+    description: "MB primary jurisdiction via exact title must match MBGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+        - Code: MBPST
+          Description: Manitoba PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MANITOBA GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MBGST"
+
+  - name: CA-MB-02-abbreviation
+    description: "MB primary jurisdiction via abbreviation title must match MBGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+        - Code: MBPST
+          Description: Manitoba PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MB GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MBGST"
+
+  - name: CA-MB-03-punctuation
+    description: "MB primary jurisdiction via punctuation title must match MBGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+        - Code: MBPST
+          Description: Manitoba PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST (MB)"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MBGST"
+
+  - name: CA-MB-04-embedded-rate
+    description: "MB primary jurisdiction via embedded-rate title must match MBGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+        - Code: MBPST
+          Description: Manitoba PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST 5.0%"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MBGST"
+
+  - name: CA-MB-05-truncated-code20
+    description: "MB primary jurisdiction via truncated-code20 title must match MBGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+        - Code: MBPST
+          Description: Manitoba PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST GOODS AND SERVICES TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MBGST"
+
+  - name: CA-MB-D-distractors
+    description: "MB match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+        - Code: MBPST
+          Description: Manitoba PST
+          Country/Region Code: CA
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MANITOBA GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MBGST"
+
+  - name: CA-MB-N-nomatch
+    description: "MB unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: CA-MB-M-multiline
+    description: "MB multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+        - Code: MBPST
+          Description: Manitoba PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MANITOBA GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MANITOBA PST"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MBGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MBPST"
+
+  - name: CA-MB-A-autocreate
+    description: "MB auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MBGST
+          Description: Manitoba GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MANITOBA GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MB SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MBGST"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: CA-SK-01-exact
+    description: "SK primary jurisdiction via exact title must match SKGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "SASKATCHEWAN GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "SKGST"
+
+  - name: CA-SK-02-abbreviation
+    description: "SK primary jurisdiction via abbreviation title must match SKGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "SK GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "SKGST"
+
+  - name: CA-SK-03-punctuation
+    description: "SK primary jurisdiction via punctuation title must match SKGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST (SK)"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "SKGST"
+
+  - name: CA-SK-04-embedded-rate
+    description: "SK primary jurisdiction via embedded-rate title must match SKGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST 5.0%"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "SKGST"
+
+  - name: CA-SK-05-truncated-code20
+    description: "SK primary jurisdiction via truncated-code20 title must match SKGST"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST GOODS AND SERVICES TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "SKGST"
+
+  - name: CA-SK-D-distractors
+    description: "SK match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan PST
+          Country/Region Code: CA
+        - Code: ONHST
+          Description: Ontario HST
+          Country/Region Code: CA
+        - Code: QCGST
+          Description: Quebec GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "SASKATCHEWAN GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "SKGST"
+
+  - name: CA-SK-N-nomatch
+    description: "SK unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: CA-SK-M-multiline
+    description: "SK multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan PST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "SASKATCHEWAN GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "SASK PST"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "SKGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "SKPST"
+
+  - name: CA-SK-A-autocreate
+    description: "SK auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: SKGST
+          Description: Saskatchewan GST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "SASKATCHEWAN GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "SK SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "SKGST"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true

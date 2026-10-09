@@ -142,11 +142,34 @@ table 30142 "Shpfy Refund Header"
         field(108; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            Editable = false;
         }
         field(109; "Presentment Currency Code"; Code[10])
         {
             Caption = 'Presentment Currency Code';
+            Editable = false;
             ToolTip = 'Specifies the presentment currency code for the refund.';
+        }
+        field(110; "Tax Area Code"; Code[20])
+        {
+            Caption = 'Tax Area Code';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Shpfy Order Header"."Tax Area Code" where("Shopify Order Id" = field("Order Id")));
+            Editable = false;
+        }
+        field(111; "Tax Liable"; Boolean)
+        {
+            Caption = 'Tax Liable';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Shpfy Order Header"."Tax Liable" where("Shopify Order Id" = field("Order Id")));
+            Editable = false;
+        }
+        field(112; "Tax Exempt"; Boolean)
+        {
+            Caption = 'Tax Exempt';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Shpfy Order Header"."Tax Exempt" where("Shopify Order Id" = field("Order Id")));
+            Editable = false;
         }
     }
     keys

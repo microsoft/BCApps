@@ -142,6 +142,9 @@ table 20412 "Qlty. I. Result Condit. Conf."
         UpdateFromResult();
     end;
 
+    /// <summary>
+    /// Updates condition priority and visibility from the referenced inspection result.
+    /// </summary>
     local procedure UpdateFromResult()
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
