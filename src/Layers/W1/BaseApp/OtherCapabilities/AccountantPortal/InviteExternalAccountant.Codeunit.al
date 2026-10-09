@@ -3,7 +3,6 @@ namespace Microsoft.AccountantPortal;
 using System;
 using System.Azure.Identity;
 using System.Environment.Configuration;
-using System.Integration;
 using System.Text.Json;
 using System.Utilities;
 

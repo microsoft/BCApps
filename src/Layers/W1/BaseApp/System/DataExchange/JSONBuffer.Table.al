@@ -285,6 +285,7 @@ table 1236 "JSON Buffer"
     local procedure ScanJSONString(var JSONText: Text; var Position: Integer): Boolean
     var
         CharacterCode: Integer;
+        EscapeIsValid: Boolean;
         HexDigitIndex: Integer;
     begin
         Position += 1;
@@ -304,14 +305,15 @@ table 1236 "JSON Buffer"
                         if Position > StrLen(JSONText) then
                             exit(false);
                         if IsJSONCharacter(JSONText, Position, 'u') then begin
+                            EscapeIsValid := true;
                             for HexDigitIndex := 1 to 4 do begin
                                 Position += 1;
-                                if not IsJSONHexDigit(JSONText, Position) then
-                                    exit(false);
+                                EscapeIsValid := EscapeIsValid and IsJSONHexDigit(JSONText, Position);
                             end;
                         end else
-                            if StrPos('"\/bfnrt', CopyStr(JSONText, Position, 1)) = 0 then
-                                exit(false);
+                            EscapeIsValid := StrPos('"\/bfnrt', CopyStr(JSONText, Position, 1)) <> 0;
+                        if not EscapeIsValid then
+                            exit(false);
                     end;
             end;
             Position += 1;
@@ -320,11 +322,14 @@ table 1236 "JSON Buffer"
     end;
 
     local procedure ScanJSONNumber(var JSONText: Text; var Position: Integer): Boolean
+    var
+        HasLeadingZero: Boolean;
     begin
         if IsJSONCharacter(JSONText, Position, '-') then
             Position += 1;
 
-        if IsJSONCharacter(JSONText, Position, '0') then
+        HasLeadingZero := IsJSONCharacter(JSONText, Position, '0');
+        if HasLeadingZero then
             Position += 1
         else
             if not ScanJSONDigits(JSONText, Position) then
