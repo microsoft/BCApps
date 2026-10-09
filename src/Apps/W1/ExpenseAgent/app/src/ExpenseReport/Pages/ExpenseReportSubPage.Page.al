@@ -664,7 +664,7 @@ page 6999 "Expense Report SubPage"
     begin
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
-        IsItemizationCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize;
+        IsItemizationCategory := Rec.IsItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
 
         IsRuleApplied := not IsNullGuid(Rec."Applied Rule Id");

@@ -106,11 +106,16 @@ table 6911 "Expense Report Line Item"
             Caption = 'Daily Rate';
 
             trigger OnValidate()
+            var
+                ExpenseReportLine: Record "Expense Report Line";
             begin
                 TestStatusOpenOfExpenseReport();
 
-                if Rec."Daily Rate" <> 0 then
-                    Rec.TestField("Expense Subcategory Code");
+                if Rec."Daily Rate" <> 0 then begin
+                    ExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.");
+                    if not ExpenseReportLine.IsEnforcedItemizationRequired() then
+                        Rec.TestField("Expense Subcategory Code");
+                end;
 
                 Rec.Validate("Amount", Quantity * "Daily Rate");
             end;
@@ -151,15 +156,19 @@ table 6911 "Expense Report Line Item"
         Rec.TestField("Expense Report No.");
         Rec.TestField("Expense Report Line No.");
         Rec.TestField("Expense Category Code");
-        Rec.TestField("Expense Subcategory Code");
-
         UpdateExpenseReportLineInformation(Rec."Expense Report No.", Rec."Expense Report Line No.");
+        if not ExpenseReportLine.IsEnforcedItemizationRequired() then
+            Rec.TestField("Expense Subcategory Code");
 
         InvalidateParentPolicy();
     end;
 
     trigger OnModify()
     begin
+        ExpenseReportLine := ExpenseReportHelper.GetExpenseReportLine(Rec."Expense Report No.", Rec."Expense Report Line No.");
+        if not ExpenseReportLine.IsEnforcedItemizationRequired() then
+            Rec.TestField("Expense Subcategory Code");
+
         InvalidateParentPolicy();
     end;
 
@@ -200,6 +209,8 @@ table 6911 "Expense Report Line Item"
         ExpenseReportLineItemization: Record "Expense Report Line Item";
     begin
         ExpenseReportLine := ExpenseReportHelper.GetExpenseReportLine(Rec."Expense Report No.", Rec."Expense Report Line No.");
+        if ExpenseReportLine.IsEnforcedItemizationRequired() then
+            exit;
 
         ExpenseReportLineItemization.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
