@@ -15,6 +15,8 @@ codeunit 130618 "Library - Graph Mgt"
         UnexpectedResponseCodeErr: Label 'Response code %1 (%2) differs from the expected %3.', Comment = '%1 - Actual response code number, %2 - Actual response code, %3 - Expected response code number';
         FailedRequestErr: Label '%1 request failed. Response code is %2 (%3). %4', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - error message';
         FailedRequestWithUnexpectedResponseCodeErr: Label '%1 request failed. Response code is %2 (%3), expected code is %4. %5', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - expected response code, %5 - error message';
+        RemoteServerErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 - response code number, %2 - reason phrase';
+        JsonContentTypeTok: Label 'application/json;odata.metadata=minimal', Locked = true;
 
     /// <summary>
     /// Sets the authentication provider used by this library instance.
@@ -67,106 +69,145 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure GetFromWebServiceAndCheckResponseCode(var ResponseText: Text; TargetURL: Text; ExpectedResponseCode: Integer)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpRequestMessage: HttpRequestMessage;
     begin
-        InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURL);
-        HttpWebRequestMgt.SetMethod('GET');
-        HttpWebRequestMgt.SetContentType('application/json;odata.metadata=minimal');
-        HttpWebRequestMgt.SetReturnType('application/json');
+        InitializeWebRequestWithURL(HttpRequestMessage, TargetURL);
+        HttpRequestMessage.Method('GET');
+        SetRequestHeader(HttpRequestMessage, 'Accept', 'application/json');
 
-        GetTextResponseAndCheckForErrors(HttpWebRequestMgt, ResponseText, ExpectedResponseCode);
+        GetTextResponseAndCheckForErrors(HttpRequestMessage, ResponseText, ExpectedResponseCode);
     end;
 
     procedure GetBinaryFromWebServiceAndCheckResponseCode(var TempBlob: Codeunit "Temp Blob"; TargetURL: Text; ReturnType: Text; ExpectedResponseCode: Integer)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpRequestMessage: HttpRequestMessage;
     begin
-        InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURL);
-        HttpWebRequestMgt.SetMethod('GET');
-        HttpWebRequestMgt.SetContentType('application/json;odata.metadata=minimal');
-        HttpWebRequestMgt.SetReturnType(ReturnType);
+        InitializeWebRequestWithURL(HttpRequestMessage, TargetURL);
+        HttpRequestMessage.Method('GET');
+        SetRequestHeader(HttpRequestMessage, 'Accept', ReturnType);
 
-        GetResponseAndCheckForErrors(HttpWebRequestMgt, TempBlob, ExpectedResponseCode);
+        GetResponseAndCheckForErrors(HttpRequestMessage, TempBlob, ExpectedResponseCode);
     end;
 
     procedure PostToWebServiceAndCheckResponseCode(TargetURL: Text; JSONBody: Text; var ResponseText: Text; ExpectedResponseCode: Integer)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpRequestMessage: HttpRequestMessage;
     begin
-        InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURL);
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.SetContentType('application/json;odata.metadata=minimal');
-        HttpWebRequestMgt.SetMethod('POST');
-        HttpWebRequestMgt.AddBodyAsText(JSONBody);
+        InitializeWebRequestWithURL(HttpRequestMessage, TargetURL);
+        SetRequestHeader(HttpRequestMessage, 'Accept', 'application/json');
+        HttpRequestMessage.Method('POST');
+        SetTextContent(HttpRequestMessage, JSONBody, JsonContentTypeTok);
 
-        GetTextResponseAndCheckForErrors(HttpWebRequestMgt, ResponseText, ExpectedResponseCode);
+        GetTextResponseAndCheckForErrors(HttpRequestMessage, ResponseText, ExpectedResponseCode);
     end;
 
-    [Scope('OnPrem')]
-    procedure PostToWebServiceAndCheckResponseCodeExtended(TargetURL: Text; JSONBody: Text; var ResponseText: Text; var ResponseHeaders: DotNet NameValueCollection; ExpectedResponseCode: Integer)
+    procedure PostToWebServiceAndCheckResponseCodeExtended(TargetURL: Text; JSONBody: Text; var ResponseText: Text; var ResponseHeaders: Dictionary of [Text, Text]; ExpectedResponseCode: Integer)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpRequestMessage: HttpRequestMessage;
     begin
-        InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURL);
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.SetContentType('application/json;odata.metadata=minimal');
-        HttpWebRequestMgt.SetMethod('POST');
-        HttpWebRequestMgt.AddBodyAsText(JSONBody);
+        InitializeWebRequestWithURL(HttpRequestMessage, TargetURL);
+        SetRequestHeader(HttpRequestMessage, 'Accept', 'application/json');
+        HttpRequestMessage.Method('POST');
+        SetTextContent(HttpRequestMessage, JSONBody, JsonContentTypeTok);
 
-        GetTextResponseAndCheckForErrorsExtended(HttpWebRequestMgt, ResponseText, ResponseHeaders, ExpectedResponseCode);
+        GetTextResponseAndCheckForErrorsExtended(HttpRequestMessage, ResponseText, ResponseHeaders, ExpectedResponseCode);
     end;
 
     local procedure UpdateToWebServiceAndCheckResponseCode(TargetURL: Text; JSONBody: Text; Method: Text; var ResponseText: Text; ExpectedResponseCode: Integer)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpRequestMessage: HttpRequestMessage;
         ETag: Text;
     begin
         ETag := GetEtag(TargetURL);
 
-        InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURL);
-        HttpWebRequestMgt.SetContentType('application/json;odata.metadata=minimal');
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.SetMethod(Method);
-        HttpWebRequestMgt.AddHeader('If-Match', ETag);
-        HttpWebRequestMgt.AddBodyAsText(JSONBody);
+        InitializeWebRequestWithURL(HttpRequestMessage, TargetURL);
+        SetRequestHeader(HttpRequestMessage, 'Accept', 'application/json');
+        HttpRequestMessage.Method(Method);
+        SetRequestHeader(HttpRequestMessage, 'If-Match', ETag);
+        SetTextContent(HttpRequestMessage, JSONBody, JsonContentTypeTok);
 
-        GetTextResponseAndCheckForErrors(HttpWebRequestMgt, ResponseText, ExpectedResponseCode);
+        GetTextResponseAndCheckForErrors(HttpRequestMessage, ResponseText, ExpectedResponseCode);
     end;
 
     procedure BinaryUpdateToWebServiceAndCheckResponseCode(TargetURL: Text; var TempBlob: Codeunit "Temp Blob"; Method: Text; var ResponseText: Text; ExpectedResponseCode: Integer)
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpRequestMessage: HttpRequestMessage;
         ETag: Text;
     begin
         ETag := '*';
 
-        InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURL);
-        HttpWebRequestMgt.SetContentType('application/octet-stream');
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.AddHeader('If-Match', ETag);
-        HttpWebRequestMgt.SetMethod(Method);
-        HttpWebRequestMgt.AddBodyBlob(TempBlob);
+        InitializeWebRequestWithURL(HttpRequestMessage, TargetURL);
+        SetRequestHeader(HttpRequestMessage, 'Accept', 'application/json');
+        SetRequestHeader(HttpRequestMessage, 'If-Match', ETag);
+        HttpRequestMessage.Method(Method);
+        SetBlobContent(HttpRequestMessage, TempBlob, 'application/octet-stream');
 
-        GetTextResponseAndCheckForErrors(HttpWebRequestMgt, ResponseText, ExpectedResponseCode);
+        GetTextResponseAndCheckForErrors(HttpRequestMessage, ResponseText, ExpectedResponseCode);
     end;
 
-    procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
+    /// <summary>
+    /// Initializes an HTTP request for the target URL and applies the configured API test authentication.
+    /// </summary>
+    /// <param name="HttpRequestMessage">The request to initialize.</param>
+    /// <param name="TargetURL">The URL the request is sent to.</param>
+    procedure InitializeWebRequestWithURL(var HttpRequestMessage: HttpRequestMessage; TargetURL: Text)
     begin
-        HttpWebRequestMgt.Initialize(TargetURL);
-        // API tests call the local Business Central server, which may require Windows authentication.
-        HttpWebRequestMgt.SetUseDefaultCredentials(true);
-        ApplyAuthentication(HttpWebRequestMgt);
-        OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
+        Clear(HttpRequestMessage);
+        HttpRequestMessage.Method('GET');
+        HttpRequestMessage.SetRequestUri(TargetURL);
+        ApplyAuthentication(HttpRequestMessage);
+        OnAfterInitializeWebRequestWithURL(HttpRequestMessage);
     end;
 
-    local procedure ApplyAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    local procedure ApplyAuthentication(var HttpRequestMessage: HttpRequestMessage)
     var
         AuthenticationContext: Codeunit "API Test Auth Context";
         CurrentAuthenticationProvider: Interface "API Test Auth Provider";
     begin
         CurrentAuthenticationProvider := GetAuthenticationProvider();
         CurrentAuthenticationProvider.ConfigureAuthentication(AuthenticationContext);
-        AuthenticationContext.Apply(HttpWebRequestMgt);
+        AuthenticationContext.Apply(HttpRequestMessage);
+    end;
+
+    local procedure SetRequestHeader(var HttpRequestMessage: HttpRequestMessage; HeaderName: Text; HeaderValue: Text)
+    var
+        RequestHeaders: HttpHeaders;
+    begin
+        HttpRequestMessage.GetHeaders(RequestHeaders);
+        if RequestHeaders.Contains(HeaderName) then
+            RequestHeaders.Remove(HeaderName);
+        RequestHeaders.Add(HeaderName, HeaderValue);
+    end;
+
+    local procedure SetTextContent(var HttpRequestMessage: HttpRequestMessage; Body: Text; ContentType: Text)
+    var
+        HttpContent: HttpContent;
+    begin
+        HttpContent.WriteFrom(Body);
+        SetContent(HttpRequestMessage, HttpContent, ContentType);
+    end;
+
+    local procedure SetBlobContent(var HttpRequestMessage: HttpRequestMessage; var TempBlob: Codeunit "Temp Blob"; ContentType: Text)
+    var
+        HttpContent: HttpContent;
+        BodyInStream: InStream;
+    begin
+        if TempBlob.HasValue() then begin
+            TempBlob.CreateInStream(BodyInStream);
+            HttpContent.WriteFrom(BodyInStream);
+        end;
+        SetContent(HttpRequestMessage, HttpContent, ContentType);
+    end;
+
+    local procedure SetContent(var HttpRequestMessage: HttpRequestMessage; var HttpContent: HttpContent; ContentType: Text)
+    var
+        ContentHeaders: HttpHeaders;
+    begin
+        HttpContent.GetHeaders(ContentHeaders);
+        if ContentHeaders.Contains('Content-Type') then
+            ContentHeaders.Remove('Content-Type');
+        ContentHeaders.Add('Content-Type', ContentType);
+        HttpRequestMessage.Content := HttpContent;
     end;
 
     local procedure GetAuthenticationProvider(): Interface "API Test Auth Provider"
@@ -364,58 +405,67 @@ codeunit 130618 "Library - Graph Mgt"
         exit(String);
     end;
 
-    local procedure ExecuteWebRequestAndReadTextResponse(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; var ResponseText: Text; var ResponseError: Text; var HttpStatusCode: DotNet HttpStatusCode; var ResponseHeaders: DotNet NameValueCollection): Boolean
+    local procedure ExecuteWebRequestAndReadTextResponse(var HttpRequestMessage: HttpRequestMessage; var ResponseText: Text; var ResponseError: Text; var ResponseStatusCode: Integer; var ResponseStatusName: Text; var ResponseHeaders: Dictionary of [Text, Text]): Boolean
     var
         TempBlob: Codeunit "Temp Blob";
-        ResponseInStream: InStream;
-        TextLine: Text;
+        Successful: Boolean;
     begin
-        if not ExecuteWebRequestAndReadResponse(HttpWebRequestMgt, TempBlob, ResponseError, HttpStatusCode, ResponseHeaders) then
-            exit(false);
+        Successful := ExecuteWebRequestAndReadResponse(HttpRequestMessage, TempBlob, ResponseError, ResponseStatusCode, ResponseStatusName, ResponseHeaders);
+        if Successful then
+            ResponseText += ReadTextFromTempBlob(TempBlob);
 
-        TempBlob.CreateInStream(ResponseInStream);
-        while ResponseInStream.ReadText(TextLine) > 0 do
-            ResponseText += TextLine;
-
-        exit(true);
+        exit(Successful);
     end;
 
-    local procedure ExecuteWebRequestAndReadResponse(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; var TempBlob: Codeunit "Temp Blob"; var ResponseError: Text; var HttpStatusCode: DotNet HttpStatusCode; var ResponseHeaders: DotNet NameValueCollection): Boolean
+    local procedure ExecuteWebRequestAndReadResponse(var HttpRequestMessage: HttpRequestMessage; var TempBlob: Codeunit "Temp Blob"; var ResponseError: Text; var ResponseStatusCode: Integer; var ResponseStatusName: Text; var ResponseHeaders: Dictionary of [Text, Text]): Boolean
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
-        WebException: DotNet WebException;
-        WebExceptionResponse: DotNet HttpWebResponse;
-        ResponseInStream: InStream;
-        WebExceptionResponseText: Text;
-        TextLine: Text;
-        ServiceUrl: Text;
+        HttpClient: HttpClient;
+        HttpResponseMessage: HttpResponseMessage;
+        RequestHeaders: HttpHeaders;
+        ContentHeaders: HttpHeaders;
+        HttpResponseInStream: InStream;
+        ResponseOutStream: OutStream;
         LastError: Text;
         ErrorCode: Text;
         ErrorMessage: Text;
     begin
         Clear(TempBlob);
-        TempBlob.CreateInStream(ResponseInStream);
+        ResponseStatusCode := 0;
+        ResponseStatusName := '';
+        Clear(ResponseHeaders);
 
         ClearLastError();
-        OnExecuteWebRequestAndReadResponseOnBeforeGetResponse(HttpWebRequestMgt);
-        if HttpWebRequestMgt.GetResponse(ResponseInStream, HttpStatusCode, ResponseHeaders) then
+        OnExecuteWebRequestAndReadResponseOnBeforeGetResponse(HttpRequestMessage);
+
+        // API tests call the local Business Central server, which may require Windows authentication.
+        // Explicit authentication (for example Basic) configured on the request takes precedence.
+        HttpRequestMessage.GetHeaders(RequestHeaders);
+        if not (RequestHeaders.Contains('Authorization') or RequestHeaders.ContainsSecret('Authorization')) then
+            HttpClient.UseDefaultNetworkWindowsAuthentication();
+        HttpClient.Timeout(60000);
+
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            ResponseError := GetLastErrorText();
+            exit(false);
+        end;
+
+        ResponseStatusCode := HttpResponseMessage.HttpStatusCode();
+        ResponseStatusName := GetStatusName(HttpResponseMessage);
+        HttpResponseMessage.Content.GetHeaders(ContentHeaders);
+        AddHeadersToDictionary(ResponseHeaders, HttpResponseMessage.Headers());
+        AddHeadersToDictionary(ResponseHeaders, ContentHeaders);
+
+        HttpResponseMessage.Content.ReadAs(HttpResponseInStream);
+        TempBlob.CreateOutStream(ResponseOutStream);
+        CopyStream(ResponseOutStream, HttpResponseInStream);
+
+        if HttpResponseMessage.IsSuccessStatusCode() then
             exit(true);
 
-        LastError := GetLastErrorText;
+        LastError := StrSubstNo(RemoteServerErr, ResponseStatusCode, GetReasonPhrase(HttpResponseMessage, ResponseStatusName));
         ResponseError := LastError;
 
-        WebRequestHelper.GetWebResponseError(WebException, ServiceUrl);
-        WebExceptionResponse := WebException.Response;
-        if SYSTEM.IsNull(WebExceptionResponse) then
-            exit(false);
-
-        HttpStatusCode := WebExceptionResponse.StatusCode;
-        ResponseHeaders := WebExceptionResponse.Headers;
-        WebExceptionResponse.GetResponseStream().CopyTo(ResponseInStream);
-        while ResponseInStream.ReadText(TextLine) > 0 do
-            WebExceptionResponseText += TextLine;
-
-        if not GetErrorFromJSONResponse(WebExceptionResponseText, ErrorCode, ErrorMessage) then
+        if not GetErrorFromJSONResponse(ReadTextFromTempBlob(TempBlob), ErrorCode, ErrorMessage) then
             exit(false);
 
         ResponseError := '';
@@ -425,6 +475,116 @@ codeunit 130618 "Library - Graph Mgt"
             ResponseError += STRREPLACE(StrSubstNo('Error message: %1. ', ErrorMessage), '..', '.');
         ResponseError += LastError;
         exit(false);
+    end;
+
+    local procedure ReadTextFromTempBlob(var TempBlob: Codeunit "Temp Blob"): Text
+    var
+        ResponseInStream: InStream;
+        ResponseTextBuilder: TextBuilder;
+        TextLine: Text;
+    begin
+        TempBlob.CreateInStream(ResponseInStream);
+        while ResponseInStream.ReadText(TextLine) > 0 do
+            ResponseTextBuilder.Append(TextLine);
+
+        exit(ResponseTextBuilder.ToText());
+    end;
+
+    local procedure AddHeadersToDictionary(var ResponseHeaders: Dictionary of [Text, Text]; Headers: HttpHeaders)
+    var
+        HeaderValues: array[50] of Text;
+        HeaderName: Text;
+        HeaderValue: Text;
+        Index: Integer;
+    begin
+        foreach HeaderName in Headers.Keys() do begin
+            Clear(HeaderValues);
+            Headers.GetValues(HeaderName, HeaderValues);
+            HeaderValue := '';
+            for Index := 1 to ArrayLen(HeaderValues) do
+                if HeaderValues[Index] <> '' then
+                    if HeaderValue = '' then
+                        HeaderValue := HeaderValues[Index]
+                    else
+                        HeaderValue += ',' + HeaderValues[Index];
+            ResponseHeaders.Set(HeaderName, HeaderValue);
+        end;
+    end;
+
+    local procedure GetStatusName(var HttpResponseMessage: HttpResponseMessage): Text
+    var
+        StatusName: Text;
+    begin
+        // Tests assert on the System.Net.HttpStatusCode names (for example 'BadRequest'), so map the code
+        // instead of relying on the reason phrase, which is empty over HTTP/2 and may differ from the enum name.
+        case HttpResponseMessage.HttpStatusCode() of
+            200:
+                exit('OK');
+            201:
+                exit('Created');
+            202:
+                exit('Accepted');
+            204:
+                exit('NoContent');
+            304:
+                exit('NotModified');
+            400:
+                exit('BadRequest');
+            401:
+                exit('Unauthorized');
+            403:
+                exit('Forbidden');
+            404:
+                exit('NotFound');
+            405:
+                exit('MethodNotAllowed');
+            406:
+                exit('NotAcceptable');
+            408:
+                exit('RequestTimeout');
+            409:
+                exit('Conflict');
+            410:
+                exit('Gone');
+            411:
+                exit('LengthRequired');
+            412:
+                exit('PreconditionFailed');
+            413:
+                exit('RequestEntityTooLarge');
+            415:
+                exit('UnsupportedMediaType');
+            416:
+                exit('RequestedRangeNotSatisfiable');
+            422:
+                exit('UnprocessableEntity');
+            428:
+                exit('PreconditionRequired');
+            429:
+                exit('TooManyRequests');
+            500:
+                exit('InternalServerError');
+            501:
+                exit('NotImplemented');
+            502:
+                exit('BadGateway');
+            503:
+                exit('ServiceUnavailable');
+            504:
+                exit('GatewayTimeout');
+        end;
+
+        StatusName := DelChr(HttpResponseMessage.ReasonPhrase(), '=', ' -');
+        if StatusName = '' then
+            StatusName := Format(HttpResponseMessage.HttpStatusCode());
+        exit(StatusName);
+    end;
+
+    local procedure GetReasonPhrase(var HttpResponseMessage: HttpResponseMessage; StatusName: Text): Text
+    begin
+        if HttpResponseMessage.ReasonPhrase() <> '' then
+            exit(HttpResponseMessage.ReasonPhrase());
+        exit(StatusName);
     end;
 
     procedure GetODataTargetURL(ObjType: ObjectType; ObjectNumber: Integer): Text
@@ -823,62 +983,53 @@ codeunit 130618 "Library - Graph Mgt"
         exit(StringWithBrackets);
     end;
 
-    local procedure GetTextResponseAndCheckForErrors(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; var ResponseText: Text; ExpectedResponseCode: Integer)
+    local procedure GetTextResponseAndCheckForErrors(var HttpRequestMessage: HttpRequestMessage; var ResponseText: Text; ExpectedResponseCode: Integer)
     var
-        ResponseHeaders: DotNet NameValueCollection;
+        ResponseHeaders: Dictionary of [Text, Text];
     begin
-        GetTextResponseAndCheckForErrorsExtended(HttpWebRequestMgt, ResponseText, ResponseHeaders, ExpectedResponseCode);
+        GetTextResponseAndCheckForErrorsExtended(HttpRequestMessage, ResponseText, ResponseHeaders, ExpectedResponseCode);
     end;
 
-    local procedure GetTextResponseAndCheckForErrorsExtended(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; var ResponseText: Text; var ResponseHeaders: DotNet NameValueCollection; ExpectedResponseCode: Integer)
+    local procedure GetTextResponseAndCheckForErrorsExtended(var HttpRequestMessage: HttpRequestMessage; var ResponseText: Text; var ResponseHeaders: Dictionary of [Text, Text]; ExpectedResponseCode: Integer)
     var
-        HttpStatusCode: DotNet HttpStatusCode;
         ResponseError: Text;
+        ResponseStatusName: Text;
         Method: Text;
+        ResponseStatusCode: Integer;
         Successful: Boolean;
     begin
-        Method := HttpWebRequestMgt.GetMethod();
-        Successful := ExecuteWebRequestAndReadTextResponse(HttpWebRequestMgt, ResponseText, ResponseError, HttpStatusCode, ResponseHeaders);
-        CheckResponseForErrors(Method, Successful, ResponseError, HttpStatusCode, ExpectedResponseCode);
+        Method := HttpRequestMessage.Method();
+        Successful := ExecuteWebRequestAndReadTextResponse(HttpRequestMessage, ResponseText, ResponseError, ResponseStatusCode, ResponseStatusName, ResponseHeaders);
+        CheckResponseForErrors(Method, Successful, ResponseError, ResponseStatusCode, ResponseStatusName, ExpectedResponseCode);
     end;
 
-    local procedure GetResponseAndCheckForErrors(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; var TempBlob: Codeunit "Temp Blob"; ExpectedResponseCode: Integer)
+    local procedure GetResponseAndCheckForErrors(var HttpRequestMessage: HttpRequestMessage; var TempBlob: Codeunit "Temp Blob"; ExpectedResponseCode: Integer)
     var
-        ResponseHeaders: DotNet NameValueCollection;
-    begin
-        GetResponseAndCheckForErrorsExtended(HttpWebRequestMgt, TempBlob, ResponseHeaders, ExpectedResponseCode);
-    end;
-
-    local procedure GetResponseAndCheckForErrorsExtended(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; var TempBlob: Codeunit "Temp Blob"; var ResponseHeaders: DotNet NameValueCollection; ExpectedResponseCode: Integer)
-    var
-        HttpStatusCode: DotNet HttpStatusCode;
+        ResponseHeaders: Dictionary of [Text, Text];
         ResponseError: Text;
+        ResponseStatusName: Text;
         Method: Text;
+        ResponseStatusCode: Integer;
         Successful: Boolean;
     begin
-        Method := HttpWebRequestMgt.GetMethod();
-        Successful := ExecuteWebRequestAndReadResponse(HttpWebRequestMgt, TempBlob, ResponseError, HttpStatusCode, ResponseHeaders);
-        CheckResponseForErrors(Method, Successful, ResponseError, HttpStatusCode, ExpectedResponseCode);
+        Method := HttpRequestMessage.Method();
+        Successful := ExecuteWebRequestAndReadResponse(HttpRequestMessage, TempBlob, ResponseError, ResponseStatusCode, ResponseStatusName, ResponseHeaders);
+        CheckResponseForErrors(Method, Successful, ResponseError, ResponseStatusCode, ResponseStatusName, ExpectedResponseCode);
     end;
 
-    local procedure CheckResponseForErrors(Method: Text; Successful: Boolean; ResponseError: Text; var HttpStatusCode: DotNet HttpStatusCode; ExpectedResponseCode: Integer)
-    var
-        ActualResponseCode: Integer;
+    local procedure CheckResponseForErrors(Method: Text; Successful: Boolean; ResponseError: Text; ActualResponseCode: Integer; ResponseStatusName: Text; ExpectedResponseCode: Integer)
     begin
-        if not IsNull(HttpStatusCode) then
-            ActualResponseCode := HttpStatusCode;
-
         if Successful then begin
             if ExpectedResponseCode <> ActualResponseCode then
-                Assert.Fail(StrSubstNo(UnexpectedResponseCodeErr, ActualResponseCode, HttpStatusCode, ExpectedResponseCode));
+                Assert.Fail(StrSubstNo(UnexpectedResponseCodeErr, ActualResponseCode, ResponseStatusName, ExpectedResponseCode));
             exit;
         end;
 
         if ExpectedResponseCode <> ActualResponseCode then
             Assert.Fail(StrSubstNo(FailedRequestWithUnexpectedResponseCodeErr,
-                Method, ActualResponseCode, HttpStatusCode, ExpectedResponseCode, ResponseError))
+                Method, ActualResponseCode, ResponseStatusName, ExpectedResponseCode, ResponseError))
         else
-            Assert.Fail(StrSubstNo(FailedRequestErr, Method, ActualResponseCode, HttpStatusCode, ResponseError));
+            Assert.Fail(StrSubstNo(FailedRequestErr, Method, ActualResponseCode, ResponseStatusName, ResponseError));
     end;
 
     [Normal]
@@ -898,12 +1049,12 @@ codeunit 130618 "Library - Graph Mgt"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    local procedure OnAfterInitializeWebRequestWithURL(var HttpRequestMessage: HttpRequestMessage)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnExecuteWebRequestAndReadResponseOnBeforeGetResponse(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    local procedure OnExecuteWebRequestAndReadResponseOnBeforeGetResponse(var HttpRequestMessage: HttpRequestMessage)
     begin
     end;
 }
