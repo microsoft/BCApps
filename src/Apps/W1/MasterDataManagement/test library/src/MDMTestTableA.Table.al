@@ -29,6 +29,14 @@ table 139757 "MDM Test Table A"
         {
             Caption = 'Test Image';
         }
+        field(6; "Test Date"; Date)
+        {
+            Caption = 'Test Date';
+        }
+        field(7; "Test DateTime"; DateTime)
+        {
+            Caption = 'Test DateTime';
+        }
     }
 
     keys

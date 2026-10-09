@@ -6,6 +6,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using System;
+using System.Apps;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Environment;
@@ -424,6 +425,16 @@ codeunit 6941 "EA Http Client"
     end;
 
     [TryFunction]
+    internal procedure TryEnableHttpRequestForExpenseAgentApp()
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(CallerModuleInfo);
+        ExtensionManagement.ConfigureExtensionHttpClientRequestsAllowance(CallerModuleInfo.PackageId(), true);
+    end;
+
+    [TryFunction]
     local procedure TryGetJsonBoolean(JsonValue: JsonValue; var Value: Boolean)
     begin
         Value := JsonValue.AsBoolean();
@@ -600,13 +611,13 @@ codeunit 6941 "EA Http Client"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         AzureADMgt: Codeunit "Azure AD Mgt.";
-        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
         OAuthScope: Text;
         OAuthScopePatternLbl: Label 'api://%1/', Locked = true;
     begin
-        OAuthScope := StrSubstNo(OAuthScopePatternLbl, ExpenseAgentAPIValidation.GetAadAppId());
+        OAuthScope := StrSubstNo(OAuthScopePatternLbl, ExpenseAgentEntraApp.GetAadAppId());
         Scopes.Add(OAuthScope + 'Expenses.ReadWrite.All');
         AccessToken := AzureADMgt.GetAccessTokenAsSecretText(OAuthScope, '', false);
         if AccessToken.IsEmpty() then begin

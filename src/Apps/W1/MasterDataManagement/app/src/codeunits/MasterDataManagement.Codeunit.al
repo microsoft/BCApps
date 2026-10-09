@@ -74,6 +74,7 @@ codeunit 7233 "Master Data Management"
         EmptyIntegrationRecordSystemIdErr: Label 'Empty integration record system id.', Locked = true;
         DeletionConflictHandledRemoveCouplingTxt: Label 'Deletion conflict handled by removing the coupling to the deleted record.', Locked = true;
         DeletionConflictHandledRestoreRecordTxt: Label 'Deletion conflict handled by restoring the deleted record.', Locked = true;
+        DeletionConflictSourceRecordErr: Label 'The source record %1 cannot be synchronized because the record it is coupled to has been deleted. Restore the deleted record, or choose a Deletion-Conflict Resolution for this table on the Synchronization Tables page.', Comment = '%1 = the source record identifier';
         ResetAllCustomIntegrationTableMappingsLbl: Label 'One or more of the selected integration table mappings is custom. \\To restore a custom table mapping, you must subscribe to the event OnBeforeResetTableMapping in codeunit "Master Data Mgt. Setup Default" and implement the defaults for each custom table mapping. \\Do you want to continue?';
         DeletedRecordWithZeroTableIdTxt: Label 'CRM Integration Record with zero Table ID has been deleted. Integration ID: %1, CRM ID: %2', Locked = true;
         AllRecordsMarkedAsSkippedTxt: Label 'All of selected %1 records are marked as skipped.', Comment = '%1 = table caption';
@@ -91,6 +92,9 @@ codeunit 7233 "Master Data Management"
         IntegrationRecordNotFoundErr: Label 'The integration record for entity %1 was not found.', Comment = '%1 - entity name';
         RescheduledTaskTxt: label 'Rescheduled task %1 for Job Queue Entry %2 (%3) to run not before %4', Locked = true;
         FeatureNameTxt: Label 'Master Data Management', Locked = true;
+        SameEnvSynchUsageTxt: Label 'Same-environment synchronization', Locked = true;
+        CrossEnvSynchUsageTxt: Label 'Cross-environment synchronization', Locked = true;
+        LastSynchUsageTelemetryDateKeyTok: Label 'MDM-LastSynchUsageTelemetryDate', Locked = true;
         CachedIsSynchronizationRecord: Dictionary of [Text, Boolean];
         CachedDisableEventDrivenSynchJobReschedule: Dictionary of [Text, Boolean];
         NoPermissionToSetUpErr: Label 'Your license does not allow you to set up Master Data Management. To view details about your permissions, see the Effective Permissions page.';
@@ -105,6 +109,47 @@ codeunit 7233 "Master Data Management"
     internal procedure GetTelemetryCategory(): Text
     begin
         exit(CategoryTok);
+    end;
+
+    // Registers feature usage from the synchronization path. FeatureTelemetry.LogUsage is not deduplicated by the
+    // platform, so it is guarded to emit at most once per day per company. This keeps the daily-active usage signal
+    // (same- and cross-environment are logged under distinct events) without the volume of logging on every job run.
+    internal procedure LogSynchronizationUsage()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if HasLoggedSynchronizationUsageToday() then
+            exit; // cheapest check first: after the first daily log, every later job run exits here
+        if not MasterDataManagementSetup.Get() then
+            exit;
+        if not MasterDataManagementSetup."Is Enabled" then
+            exit;
+        FeatureTelemetry.LogUptake('0000OUA', FeatureNameTxt, Enum::"Feature Uptake Status"::Used);
+        if MasterDataManagementSetup.IsCrossEnvironment() then
+            FeatureTelemetry.LogUsage('0000VVR', FeatureNameTxt, CrossEnvSynchUsageTxt)
+        else
+            FeatureTelemetry.LogUsage('0000JIR', FeatureNameTxt, SameEnvSynchUsageTxt);
+        SetSynchronizationUsageLoggedToday();
+    end;
+
+    local procedure HasLoggedSynchronizationUsageToday(): Boolean
+    var
+        StoredValue: Text;
+        LastLoggedDate: Date;
+    begin
+        if not IsolatedStorage.Get(LastSynchUsageTelemetryDateKeyTok, DataScope::Company, StoredValue) then
+            exit(false);
+        if not Evaluate(LastLoggedDate, StoredValue, 9) then // format 9 = locale-independent XML date
+            exit(false);
+        exit(LastLoggedDate = Today());
+    end;
+
+    local procedure SetSynchronizationUsageLoggedToday()
+    begin
+        // Soft write: capture the result so a failed isolated storage write returns false instead of raising an error.
+        // Telemetry must never fail the synchronization job; if this write is skipped, usage is simply logged again next run.
+        if IsolatedStorage.Set(LastSynchUsageTelemetryDateKeyTok, Format(Today(), 0, 9), DataScope::Company) then;
     end;
 
     internal procedure IsEnabled(): Boolean
@@ -1181,7 +1226,12 @@ codeunit 7233 "Master Data Management"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnDeletionConflictDetected', '', false, false)]
-    local procedure HandleOnDeletionConflictDetected(var IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var DeletionConflictHandled: Boolean)
+    local procedure OnDeletionConflictDetected(var IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var DeletionConflictHandled: Boolean)
+    begin
+        HandleOnDeletionConflictDetected(IntegrationTableMapping, SourceRecordRef, DeletionConflictHandled);
+    end;
+
+    internal procedure HandleOnDeletionConflictDetected(var IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var DeletionConflictHandled: Boolean)
     var
         IntegrationSystemId: Guid;
     begin
@@ -1215,6 +1265,11 @@ codeunit 7233 "Master Data Management"
                     Session.LogMessage('0000J89', DeletionConflictHandledRestoreRecordTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 end;
         end;
+
+        // The platform's default deletion-conflict error names only the table; when MDM hasn't resolved the conflict
+        // (e.g. Deletion-Conflict Resolution = None), fail with a message that identifies the specific source record.
+        if (not DeletionConflictHandled) and (IntegrationTableMapping.Type = IntegrationTableMapping.Type::"Master Data Management") then
+            Error(DeletionConflictSourceRecordErr, Format(SourceRecordRef.RecordId(), 0, 1));
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"My Notifications", 'OnInitializingNotificationWithDefaultState', '', false, false)]
