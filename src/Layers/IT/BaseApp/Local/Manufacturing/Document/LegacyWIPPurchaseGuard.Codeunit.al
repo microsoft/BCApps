@@ -25,6 +25,9 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
             exit;
         if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
             exit;
+
+        // Match the migration's Purchase Line-before-Manufacturing Setup lock order.
+        StoredPurchaseLine.LockTable();
         if not StoredPurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.") then
             exit;
         if not IsWIPItem(StoredPurchaseLine) then
