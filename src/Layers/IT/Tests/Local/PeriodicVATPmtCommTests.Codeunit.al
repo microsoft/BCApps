@@ -36,7 +36,7 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
     [Scope('OnPrem')]
     procedure TestTagsMeseTrimestre()
     var
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
     begin
         // [SCENARIO] For every Modulo tag either Mese tag is present or Trimestre tag is.
         Initialize();
@@ -49,37 +49,31 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
     [Scope('OnPrem')]
     procedure TestNoMoreThanFiveModuloTags()
     var
-        XmlDoc: DotNet XmlDocument;
-        FoundXMLNodeList: DotNet XmlNodeList;
+        XmlDoc: XmlDocument;
     begin
         // [SCENARIO] There are at maximum 5 Modulo tags (xsd validation does not capture this).
         Initialize();
         VATPmtCommXMLGenerator.CreateXml(XmlDoc);
 
-        FoundXMLNodeList := XmlDoc.GetElementsByTagName('Modulo');
-
-        Assert.IsTrue(FoundXMLNodeList.Count > 0, 'There was no Modulo Tag.');
-        Assert.IsTrue(FoundXMLNodeList.Count <= 5, 'There were more than 5 Modulo Tags.');
+        Assert.IsTrue(CountElements(XmlDoc, 'Modulo') > 0, 'There was no Modulo Tag.');
+        Assert.IsTrue(CountElements(XmlDoc, 'Modulo') <= 5, 'There were more than 5 Modulo Tags.');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure TestTagCFDichiarante()
     var
-        FoundXMLNodeList: DotNet XmlNodeList;
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
         CFDichiaranteCount: Integer;
     begin
         // [SCENARIO] Tag CodiceCaricaDichiarante must be present if Tag CodiceCaricaDichiarante is present.
         Initialize();
         VATPmtCommXMLGenerator.CreateXml(XmlDoc);
 
-        FoundXMLNodeList := XmlDoc.GetElementsByTagName('CFDichiarante');
-        CFDichiaranteCount := FoundXMLNodeList.Count();
+        CFDichiaranteCount := CountElements(XmlDoc, 'CFDichiarante');
 
-        FoundXMLNodeList := XmlDoc.GetElementsByTagName('CodiceCaricaDichiarante');
         Assert.IsTrue(
-          FoundXMLNodeList.Count = CFDichiaranteCount,
+          CountElements(XmlDoc, 'CodiceCaricaDichiarante') = CFDichiaranteCount,
           'Tag CodiceCaricaDichiarante must be present if Tag CodiceCaricaDichiarante is present.');
     end;
 
@@ -87,7 +81,7 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
     [Scope('OnPrem')]
     procedure TestTagCFIntermediario()
     var
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
         CFIntermediarioCount: Integer;
     begin
         // [SCENARIO] Tag DataImpegno must be present if Tag CFIntermediario is present.
@@ -95,13 +89,13 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
         Initialize();
         VATPmtCommXMLGenerator.CreateXml(XmlDoc);
 
-        CFIntermediarioCount := XmlDoc.GetElementsByTagName('CFIntermediario').Count();
+        CFIntermediarioCount := CountElements(XmlDoc, 'CFIntermediario');
 
         Assert.IsTrue(
-          XmlDoc.GetElementsByTagName('DataImpegno').Count = CFIntermediarioCount,
+          CountElements(XmlDoc, 'DataImpegno') = CFIntermediarioCount,
           'Tag DataImpegno must be present if Tag CFIntermediario is present.');
         Assert.IsTrue(
-          XmlDoc.GetElementsByTagName('FirmaIntermediario').Count = CFIntermediarioCount,
+          CountElements(XmlDoc, 'FirmaIntermediario') = CFIntermediarioCount,
           'Tag FirmaIntermediario must be present if Tag CFIntermediario is present.');
     end;
 
@@ -110,7 +104,7 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
     [Scope('OnPrem')]
     procedure TestTagsIVA()
     var
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
         TotalSales: Decimal;
         TotalPurchases: Decimal;
         TotalSalesTax: Decimal;
@@ -129,7 +123,7 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
     [Scope('OnPrem')]
     procedure TestTagsImporto()
     var
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
         TotalSales: Decimal;
         TotalPurchases: Decimal;
         TotalSalesTax: Decimal;
@@ -1164,7 +1158,7 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
     var
         LocalVATPmtCommDataLookup: Codeunit "VAT Pmt. Comm. Data Lookup";
         LocalVATPmtCommXMLGenerator: Codeunit "VAT Pmt. Comm. XML Generator";
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
     begin
         // [FEATURE] [UT]
         // [SCENARIO 405053] A "CFIntermediarioNode" xml node exports instead of "CodicefiscaleSocieta" node when "Intermediary" option is used
@@ -1178,8 +1172,8 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
         LocalVATPmtCommXMLGenerator.SetVATPmtCommDataLookup(LocalVATPmtCommDataLookup);
         LocalVATPmtCommXMLGenerator.CreateXml(XmlDoc);
 
-        Assert.AreEqual(0, XmlDoc.GetElementsByTagName('CodicefiscaleSocieta').Count, '');
-        Assert.AreEqual(1, XmlDoc.GetElementsByTagName('CFIntermediario').Count, '');
+        Assert.AreEqual(0, CountElements(XmlDoc, 'CodicefiscaleSocieta'), '');
+        Assert.AreEqual(1, CountElements(XmlDoc, 'CFIntermediario'), '');
     end;
 
     [Scope('OnPrem')]
@@ -1522,15 +1516,24 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
         ApplicationVersion := '13.01.02';
     end;
 
-    local procedure VerifyTagsCount(XmlDoc: DotNet XmlDocument; Tag1: Text; Tag2: Text)
+    local procedure CountElements(XmlDoc: XmlDocument; ElementName: Text): Integer
+    var
+        XmlNodeList: XmlNodeList;
+        ElementByLocalNameXPathTxt: Label '//*[local-name()="%1"]', Locked = true;
+    begin
+        XmlDoc.SelectNodes(StrSubstNo(ElementByLocalNameXPathTxt, ElementName), XmlNodeList);
+        exit(XmlNodeList.Count());
+    end;
+
+    local procedure VerifyTagsCount(XmlDoc: XmlDocument; Tag1: Text; Tag2: Text)
     var
         ModuloCount: Integer;
         Tag1Count: Integer;
         Tag2Count: Integer;
     begin
-        ModuloCount := XmlDoc.GetElementsByTagName('Modulo').Count();
-        Tag1Count := XmlDoc.GetElementsByTagName(Tag1).Count();
-        Tag2Count := XmlDoc.GetElementsByTagName(Tag2).Count();
+        ModuloCount := CountElements(XmlDoc, 'Modulo');
+        Tag1Count := CountElements(XmlDoc, Tag1);
+        Tag2Count := CountElements(XmlDoc, Tag2);
 
         Assert.AreEqual(
           Tag1Count + Tag2Count,
