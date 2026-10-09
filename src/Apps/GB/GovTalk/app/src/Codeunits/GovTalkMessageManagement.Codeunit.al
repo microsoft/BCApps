@@ -179,7 +179,8 @@ codeunit 10569 "GovTalk Message Management"
         if ResponseMessage.HttpStatusCode() <> 200 then
             exit(false);
 
-        ResponseMessage.Content().ReadAs(ResponseInStream);
+        if not ResponseMessage.Content().ReadAs(ResponseInStream) then
+            exit(false);
         XMLDOMManagement.LoadXMLNodeFromInStream(ResponseInStream, SubmitResponseXMLNode);
         exit(true);
     end;
