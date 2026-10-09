@@ -30,12 +30,40 @@ page 48519 "Fabric Platform Setup Wizard"
             group(Credentials)
             {
                 Visible = Step = 2;
-                Caption = 'Workspace API Credentials';
+                Caption = 'Authentication';
 
+                label(AuthenticationText)
+                {
+#if not CLEAN29
+                    Visible = not UseCustomAppValue;
+#endif
+                    Caption = 'The Microsoft Business Central Fabric Export application is used by default. A Microsoft Entra administrator must grant admin consent once. Choose Grant admin consent to do this now.';
+                }
+#if not CLEAN29
+#pragma warning disable AL0432
+                field(UseCustomApp; UseCustomAppValue)
+                {
+                    Caption = 'Use custom app registration';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.';
+                    ObsoleteTag = '29.0';
+                    ToolTip = 'Specifies whether to authenticate with your own Microsoft Entra app registration instead of the Microsoft Business Central Fabric Export application. Leave this off unless your organization requires its own app registration.';
+
+                    trigger OnValidate()
+                    begin
+                        CredMgt.SetCustomAppEnabled(UseCustomAppValue);
+                        CredMgt.ClearTokenCache();
+                        PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
+                    end;
+                }
                 field(ClientId; ClientIdValue)
                 {
                     Caption = 'Client ID';
                     ShowMandatory = true;
+                    Visible = UseCustomAppValue;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.';
+                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and Open Mirroring database browsing.';
 
                     trigger OnValidate()
@@ -48,7 +76,11 @@ page 48519 "Fabric Platform Setup Wizard"
                 {
                     Caption = 'Client Secret';
                     ShowMandatory = true;
+                    Visible = UseCustomAppValue;
                     ExtendedDatatype = Masked;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Third-party authentication with a custom app registration is replaced by the Microsoft first-party application.';
+                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies the Azure AD client secret. Enter a new value to update the stored secret.';
 
                     trigger OnValidate()
@@ -60,11 +92,15 @@ page 48519 "Fabric Platform Setup Wizard"
                         end;
                     end;
                 }
+#pragma warning restore AL0432
+#endif
                 field(PrincipalId; PrincipalIdValue)
                 {
                     Caption = 'Principal ID';
-                    ShowMandatory = true;
-                    ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace.';
+#if not CLEAN29
+                    ShowMandatory = UseCustomAppValue;
+#endif
+                    ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace. With the default Microsoft application it is looked up automatically; enter it manually only if your tenant does not allow reading service principals.';
 
                     trigger OnValidate()
                     begin
@@ -117,7 +153,7 @@ page 48519 "Fabric Platform Setup Wizard"
 
                 label(WorkspaceAccessText)
                 {
-                    Caption = 'Choose Add to workspace to grant the service principal (Principal ID) Contributor access on the selected Fabric workspace. Run this once per workspace.';
+                    Caption = 'Choose Add to workspace to grant the service principal Contributor access on the selected Fabric workspace. Run this once per workspace.';
                 }
             }
             group(OpenMirroring)
@@ -211,6 +247,26 @@ page 48519 "Fabric Platform Setup Wizard"
     {
         area(Processing)
         {
+            action(AdminConsent)
+            {
+                Caption = 'Grant admin consent';
+                ApplicationArea = All;
+#if not CLEAN29
+                Visible = (Step = 2) and not UseCustomAppValue;
+#else
+                Visible = Step = 2;
+#endif
+                Image = Approve;
+                InFooterBar = true;
+                ToolTip = 'Registers the Microsoft Business Central Fabric Export application in your Microsoft Entra tenant. This is a one-time step that requires a Microsoft Entra administrator.';
+
+                trigger OnAction()
+                var
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                begin
+                    FabricPlatformMgt.RequestAdminConsent();
+                end;
+            }
             action(AddToWorkspace)
             {
                 Caption = 'Add to workspace';
@@ -218,13 +274,13 @@ page 48519 "Fabric Platform Setup Wizard"
                 Visible = Step = 4;
                 Image = UserSetup;
                 InFooterBar = true;
-                ToolTip = 'Grants the service principal (Principal ID) Contributor access on the selected Fabric workspace.';
+                ToolTip = 'Grants the service principal Contributor access on the selected Fabric workspace.';
 
                 trigger OnAction()
                 var
                     AdminClient: Codeunit "Fabric Platform Admin Client";
                 begin
-                    AdminClient.AddServicePrincipalToWorkspace(Rec."Fabric Workspace ID", CredMgt.GetPrincipalId());
+                    AdminClient.AddConnectionToWorkspace(Rec."Fabric Workspace ID");
                     Message(SPAddedToWorkspaceMsg, Rec."Fabric Workspace Name");
                 end;
             }
@@ -314,12 +370,21 @@ page 48519 "Fabric Platform Setup Wizard"
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
         FabricPlatformMgt.EnsureSetup(Rec);
-        ClientIdValue := CopyStr(CredMgt.GetClientId(), 1, MaxStrLen(ClientIdValue));
+#if not CLEAN29
+#pragma warning disable AL0432
+        ClientIdValue := CopyStr(CredMgt.GetCustomClientId(), 1, MaxStrLen(ClientIdValue));
+        UseCustomAppValue := CredMgt.IsCustomAppEnabled();
+#pragma warning restore AL0432
+#endif
         PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
         OpenMirroringNameValue := CopyStr(CredMgt.GetOpenMirroringDatabaseName(), 1, MaxStrLen(OpenMirroringNameValue));
         WorkspaceNameValue := CopyStr(Rec."Fabric Workspace Name", 1, MaxStrLen(WorkspaceNameValue));
+#if not CLEAN29
+#pragma warning disable AL0432
         if CredMgt.IsClientSecretSet() then
             ClientSecretValue := ClientSecretSetLbl;
+#pragma warning restore AL0432
+#endif
         Step := 1;
     end;
 
@@ -343,13 +408,18 @@ page 48519 "Fabric Platform Setup Wizard"
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         // Step: 1=Introduction 2=Credentials 3=Workspace 4=WorkspaceAccess 5=OpenMirroring 6=Connect 7=Companies 8=Tables 9=Finish
         Step: Integer;
+#if not CLEAN29
+        UseCustomAppValue: Boolean;
         ClientIdValue: Text[250];
+#endif
         PrincipalIdValue: Text[250];
         OpenMirroringNameValue: Text[250];
         WorkspaceNameValue: Text[250];
+#if not CLEAN29
         [NonDebuggable]
         ClientSecretValue: Text[250];
         ClientSecretSetLbl: Label '*** secret stored ***', Locked = true;
+#endif
         NoWorkspacesFoundErr: Label 'No workspaces found. Verify the Client ID and Client Secret.';
         NoMirroredDatabasesFoundErr: Label 'No Open Mirroring databases found in the selected workspace.';
         WorkspaceIdInvalidErr: Label 'Fabric returned an invalid workspace ID: %1.', Comment = '%1 = workspace ID';
