@@ -22,6 +22,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant through a POST method and check if it was created
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with itemId
         CreateItem(Item);
         Commit();
@@ -46,6 +48,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot create an Item Variant with non-existing itemId
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with non-existing itemId
         ItemId := CreateGuid();
         ItemVariantJSON := CreateItemVariantJsonWithItemId(ItemId, ItemVariantCode);
@@ -67,6 +71,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant through a POST method and check if it was created
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with itemNumber
         CreateItem(Item);
         Commit();
@@ -92,6 +98,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot create an Item Variant with non-existing itemNumber
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with non-existing itemNumber
         ItemNo := LibraryUtility.GenerateRandomCode(ItemVariant.FieldNo(Code), Database::"Item Variant");
         ItemVariantJSON := CreateItemVariantJsonWithItemNo(ItemNo, ItemVariantCode);
@@ -113,6 +121,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant through a POST method and check if it was created
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with itemNumber and itemId
         CreateItem(Item);
         Commit();
@@ -138,6 +148,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot create an Item Variant with mismatching itemNumber and itemId
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with mismatching itemNumber and itemId
         CreateItem(Item1);
         CreateItem(Item2);
@@ -161,6 +173,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot create an Item Variant if there is an item variant with same itemNumber and code
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with same itemNumber and code
         CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -183,6 +197,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Get a simple customer with a GET request to the service.
+        Initialize();
+
         // [GIVEN] An item variant exists in the system
         CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -208,6 +224,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
+        Initialize();
+
         // [GIVEN] an item variant exists in the system
         CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -240,6 +258,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
+        Initialize();
+
         // [GIVEN] an item variant exists in the system
         CreateItem(Item1);
         CreateItem(Item2);
@@ -273,6 +293,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
+        Initialize();
+
         // [GIVEN] an item variant exists in the system
         CreateItem(Item1);
         CreateItem(Item2);
@@ -302,6 +324,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant, use a DELETE method to remove it and then verify the deletion
+        Initialize();
+
         // [GIVEN] an item variant in the system
         CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -328,6 +352,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot delete an item variant in use
+        Initialize();
+
         // [GIVEN] an item variant in the system and used in a sales order line
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -349,6 +375,13 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         Assert: Codeunit "Assert";
         ServiceNameTxt: Label 'itemVariants';
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 
     local procedure CreateItem(var Item: Record Item)
     begin

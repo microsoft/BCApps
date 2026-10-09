@@ -3,6 +3,7 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -32,6 +33,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         LibrarySales.CreateCustomer(Customer);
@@ -56,6 +59,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         LibrarySmallBusiness.CreateItem(Item);
@@ -80,6 +85,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         LibraryHumanResources.CreateEmployee(Employee);
@@ -104,6 +111,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         LibraryJob.CreateJob(Job);
@@ -128,6 +137,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         LibrarySmallBusiness.CreateVendor(Vendor);
@@ -152,6 +163,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         CreatePostedSalesInvoice(DocumentRecordRef, DocumentId);
@@ -174,6 +187,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         CreateDraftSalesInvoice(DocumentRecordRef);
@@ -197,6 +212,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         CreatePostedPurchaseInvoice(DocumentRecordRef, DocumentId);
@@ -219,6 +236,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         CreateDraftPurchaseInvoice(DocumentRecordRef);
@@ -241,6 +260,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         CreateSalesQuote(DocumentRecordRef);
@@ -264,6 +285,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
         // [GIVEN] Attachment exists in the Document Attachment table
         CreatePostedSalesInvoice(DocumentRecordRef, DocumentId);
@@ -286,6 +309,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
         // [GIVEN] Attachment exists in the Document Attachment table
         CreateDraftSalesInvoice(DocumentRecordRef);
@@ -308,6 +333,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
         // [GIVEN] Attachment exists in the Document Attachment table
         CreateDraftSalesOrder(DocumentRecordRef);
@@ -330,6 +357,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve the Attachment record from the Attachment API.
         // [GIVEN] Attachment exists in the Document Attachment table
         CreateSalesQuote(DocumentRecordRef);
@@ -352,6 +381,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         CreateDraftPurchaseOrder(DocumentRecordRef);
@@ -379,6 +410,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ExpectedBase64Content: Text;
         ActualBase64Content: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can update linked attachment binary content through the Attachment API.
         // [GIVEN] A linked attachment exists
         LibrarySmallBusiness.CreateCustomer(Customer);
@@ -407,6 +440,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         Customer: Record Customer;
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         LibrarySmallBusiness.CreateCustomer(Customer);
         DocumentRecordRef.GetTable(Customer);
         TestCreateAttachment(DocumentRecordRef);
@@ -418,6 +453,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         Vendor: Record Vendor;
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         LibrarySmallBusiness.CreateVendor(Vendor);
         DocumentRecordRef.GetTable(Vendor);
         TestCreateAttachment(DocumentRecordRef);
@@ -430,6 +467,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         DocumentId: Guid;
         DocumentType: Text;
     begin
+        Initialize();
+
         CreatePostedSalesInvoice(DocumentRecordRef, DocumentId);
         DocumentType := GetDocumentType(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef, DocumentId, DocumentType);
@@ -440,6 +479,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftSalesInvoice(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -449,6 +490,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftSalesOrder(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -460,6 +503,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         DocumentId: Guid;
         DocumentType: Text;
     begin
+        Initialize();
+
         CreatePostedPurchaseInvoice(DocumentRecordRef, DocumentId);
         DocumentType := GetDocumentType(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef, DocumentId, DocumentType);
@@ -470,6 +515,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftPurchaseInvoice(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -479,6 +526,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftPurchaseOrder(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -530,6 +579,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateSalesQuote(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -540,6 +591,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         Vendor: Record Vendor;
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         LibrarySmallBusiness.CreateVendor(Vendor);
         DocumentRecordRef.GetTable(Vendor);
         CreateAttachment(DocumentRecordRef);
@@ -552,6 +605,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         Employee: Record Employee;
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         LibraryHumanResources.CreateEmployee(Employee);
         DocumentRecordRef.GetTable(Employee);
         CreateAttachment(DocumentRecordRef);
@@ -564,6 +619,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         Job: Record Job;
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         LibraryJob.CreateJob(Job);
         DocumentRecordRef.GetTable(Job);
         CreateAttachment(DocumentRecordRef);
@@ -576,6 +633,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         DocumentRecordRef: RecordRef;
         DocumentId: Guid;
     begin
+        Initialize();
+
         CreatePostedSalesInvoice(DocumentRecordRef, DocumentId);
         TestDeleteAttachment2(DocumentRecordRef);
     end;
@@ -585,6 +644,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftSalesInvoice(DocumentRecordRef);
         TestDeleteAttachment(DocumentRecordRef);
     end;
@@ -595,6 +656,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         DocumentRecordRef: RecordRef;
         DocumentId: Guid;
     begin
+        Initialize();
+
         CreatePostedPurchaseInvoice(DocumentRecordRef, DocumentId);
         TestDeleteAttachment2(DocumentRecordRef);
     end;
@@ -604,6 +667,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftPurchaseInvoice(DocumentRecordRef);
         TestDeleteAttachment(DocumentRecordRef);
     end;
@@ -613,6 +678,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateSalesQuote(DocumentRecordRef);
         TestDeleteAttachment(DocumentRecordRef);
     end;
@@ -625,6 +692,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         CreateDraftPurchaseCreditMemo(DocumentRecordRef);
@@ -648,6 +717,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can retrieve all records from the Attachments API.
         // [GIVEN] 2 Attachments in the Document Attachment table
         CreatePostedPurchaseCreditMemo(DocumentRecordRef, DocumentId);
@@ -667,6 +738,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftPurchaseCreditMemo(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef);
     end;
@@ -678,6 +751,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         DocumentId: Guid;
         DocumentType: Text;
     begin
+        Initialize();
+
         CreatePostedPurchaseCreditMemo(DocumentRecordRef, DocumentId);
         DocumentType := GetDocumentType(DocumentRecordRef);
         TestCreateAttachment(DocumentRecordRef, DocumentId, DocumentType);
@@ -688,6 +763,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
     var
         DocumentRecordRef: RecordRef;
     begin
+        Initialize();
+
         CreateDraftPurchaseCreditMemo(DocumentRecordRef);
         TestDeleteAttachment(DocumentRecordRef);
     end;
@@ -698,6 +775,8 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         DocumentRecordRef: RecordRef;
         DocumentId: Guid;
     begin
+        Initialize();
+
         CreatePostedPurchaseCreditMemo(DocumentRecordRef, DocumentId);
         TestDeleteAttachment2(DocumentRecordRef);
     end;
@@ -1034,5 +1113,12 @@ codeunit 139899 "APIV2 - Document Attach. E2E"
         if Extension <> '' then
             exit(StrSubstNo('%1.%2', Name, Extension));
         exit(Name);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

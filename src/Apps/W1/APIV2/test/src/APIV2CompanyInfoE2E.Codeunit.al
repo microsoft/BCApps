@@ -3,6 +3,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
     // Tests set up data that must be committed so the web service session can read and lock Company Information.
@@ -26,8 +27,13 @@ codeunit 139806 "APIV2 - Company Info. E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := true;
         Commit();

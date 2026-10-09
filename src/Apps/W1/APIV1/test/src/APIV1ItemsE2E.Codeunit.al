@@ -33,8 +33,12 @@ codeunit 139700 "APIV1 - Items E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := TRUE;
         COMMIT();

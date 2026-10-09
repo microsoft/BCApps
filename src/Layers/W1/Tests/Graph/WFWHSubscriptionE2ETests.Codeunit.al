@@ -54,6 +54,9 @@ codeunit 135528 "WFWH Subscription E2E Tests"
 
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         IsInitialized := true;
 
         Commit();
@@ -1454,4 +1457,3 @@ codeunit 135528 "WFWH Subscription E2E Tests"
         exit(String);
     end;
 }
-
