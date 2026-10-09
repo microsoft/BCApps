@@ -17,9 +17,9 @@ table 11302 "Purch. Ledger VAT Buffer"
             Caption = 'G/L Entry No.';
             DataClassification = SystemMetadata;
         }
-        field(2; "Base"; Decimal)
+        field(2; "VAT Base Amount"; Decimal)
         {
-            Caption = 'Base';
+            Caption = 'VAT Base Amount';
             DataClassification = SystemMetadata;
         }
         field(3; "VAT Amount"; Decimal)

@@ -238,7 +238,7 @@ report 11301 "Purchase Ledger"
                         Clear(VATDetailVATAmount);
                         if not UseAmtsInAddCurr then
                             if TempPurchLedgerVATBuffer.Get("Entry No.") then begin
-                                VATDetailBaseAmount := TempPurchLedgerVATBuffer.Base;
+                                VATDetailBaseAmount := TempPurchLedgerVATBuffer."VAT Base Amount";
                                 VATDetailVATAmount := TempPurchLedgerVATBuffer."VAT Amount";
                             end;
                     end;
@@ -812,46 +812,38 @@ report 11301 "Purchase Ledger"
         GLEntry: Record "G/L Entry";
         GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
         VATEntry: Record "VAT Entry";
-        MinGLEntryNo: Integer;
-        MaxGLEntryNo: Integer;
     begin
         TempPurchLedgerVATBuffer.Reset();
         TempPurchLedgerVATBuffer.DeleteAll();
         if UseAmtsInAddCurr then
             exit;
 
-        // Seed the buffer with exactly the G/L entries this period will display.
+        // Pre-compute the VAT detail totals once per period, buffered per G/L entry, so the
+        // render loop does an in-memory lookup instead of repeating the query for every row.
+        // The links are queried for exactly the filtered G/L entries (no scanning across
+        // unrelated entries), and each linked VAT entry must exist (same fail-fast behavior
+        // as the original per-record lookup).
         GLEntry.SetLoadFields("Entry No.");
         GLEntry.CopyFilters("G/L Entry");
         if not GLEntry.FindSet() then
             exit;
+
+        VATEntry.SetLoadFields(Base, Amount);
+        GLEntryVATEntryLink.SetLoadFields("VAT Entry No.");
         repeat
             TempPurchLedgerVATBuffer.Init();
             TempPurchLedgerVATBuffer."G/L Entry No." := GLEntry."Entry No.";
+
+            GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntry."Entry No.");
+            if GLEntryVATEntryLink.FindSet() then
+                repeat
+                    VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.");
+                    TempPurchLedgerVATBuffer."VAT Base Amount" += VATEntry.Base;
+                    TempPurchLedgerVATBuffer."VAT Amount" += VATEntry.Amount;
+                until GLEntryVATEntryLink.Next() = 0;
+
             TempPurchLedgerVATBuffer.Insert();
         until GLEntry.Next() = 0;
-
-        TempPurchLedgerVATBuffer.FindFirst();
-        MinGLEntryNo := TempPurchLedgerVATBuffer."G/L Entry No.";
-        TempPurchLedgerVATBuffer.FindLast();
-        MaxGLEntryNo := TempPurchLedgerVATBuffer."G/L Entry No.";
-
-        // Single scan over the link table for the entry-number range, summing the linked
-        // VAT entries per G/L entry. This matches the original per-entry lookup exactly
-        // (it follows the links of each displayed G/L entry) while replacing the N
-        // per-record queries with one scan.
-        VATEntry.SetLoadFields(Base, Amount);
-        GLEntryVATEntryLink.SetLoadFields("G/L Entry No.", "VAT Entry No.");
-        GLEntryVATEntryLink.SetRange("G/L Entry No.", MinGLEntryNo, MaxGLEntryNo);
-        if GLEntryVATEntryLink.FindSet() then
-            repeat
-                if TempPurchLedgerVATBuffer.Get(GLEntryVATEntryLink."G/L Entry No.") then
-                    if VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.") then begin
-                        TempPurchLedgerVATBuffer.Base += VATEntry.Base;
-                        TempPurchLedgerVATBuffer."VAT Amount" += VATEntry.Amount;
-                        TempPurchLedgerVATBuffer.Modify();
-                    end;
-            until GLEntryVATEntryLink.Next() = 0;
     end;
 
 }
