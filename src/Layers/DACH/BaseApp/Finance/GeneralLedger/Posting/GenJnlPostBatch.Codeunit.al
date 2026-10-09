@@ -69,7 +69,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         NoSeriesBatch: Codeunit "No. Series - Batch";
         PostingSetupMgt: Codeunit PostingSetupManagement;
-#if not CLEAN29
+#if not CLEAN30
         ICGenJnlPostBatch: Codeunit "IC Gen. Jnl.-Post Batch";
 #endif
         Window: Dialog;
@@ -262,7 +262,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             if not PostGenJournalLine(GenJnlLine3) then
                 SkippedLine := true;
 
-#if not CLEAN29
+#if not CLEAN30
             OnProcessLinesOnAfterPostGenJournalLine(GenJnlLine3, ICGenJnlPostBatch.GetICPartnerCode(), ICGenJnlPostBatch.GetICTransactionNo(), LastTaxLineNo);
 #endif
             OnProcessLinesOnAfterPostGenJournalLine2(GenJnlLine3, LastTaxLineNo);
@@ -2248,13 +2248,13 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
     begin
         OnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJournalLine);
     end;
 
-    [Obsolete('Moved to codeunit ICGenJnlPostBatch', '29.0')]
+    [Obsolete('Moved to codeunit ICGenJnlPostBatch', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
     begin
@@ -2341,13 +2341,13 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeProcessICLines(var CurrentICPartner: Code[20]; var ICTransactionNo: Integer; var ICLastDocNo: Code[20]; var ICLastDate: Date; var ICLastDocType: Enum "Gen. Journal Document Type"; var GenJournalLine: Record "Gen. Journal Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; var ICProccessedLines: Integer; var IsHandled: Boolean)
     begin
         OnBeforeProcessICLines(CurrentICPartner, ICTransactionNo, ICLastDocNo, ICLastDate, ICLastDocType, GenJournalLine, TempGenJournalLine, ICProccessedLines, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICGenJnlPostBatch', '29.0')]
+    [Obsolete('Moved to codeunit ICGenJnlPostBatch', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessICLines(var CurrentICPartner: Code[20]; var ICTransactionNo: Integer; var ICLastDocNo: Code[20]; var ICLastDate: Date; var ICLastDocType: Enum "Gen. Journal Document Type"; var GenJournalLine: Record "Gen. Journal Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; var ICProccessedLines: Integer; var IsHandled: Boolean)
     begin
@@ -2424,8 +2424,8 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by event OnProcessLinesOnAfterPostGenJournalLine2', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by event OnProcessLinesOnAfterPostGenJournalLine2', '30.0')]
     [IntegrationEvent(true, false)]
     local procedure OnProcessLinesOnAfterPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer; var LastTaxLineNo: Integer)
     begin

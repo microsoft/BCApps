@@ -15,7 +15,7 @@ codeunit 8495 "IC Batch Processing Mgt."
 {
     var
         InterCompanyZipFileNamePatternTok: Label 'General Journal IC Batch - %1.zip', Comment = '%1 - today date, Sample: Sales IC Batch - 23-01-2024.zip';
-#if not CLEAN29
+#if not CLEAN30
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
 #endif
 
@@ -33,7 +33,7 @@ codeunit 8495 "IC Batch Processing Mgt."
         Result := StrSubstNo(InterCompanyZipFileNamePatternTok, Format(WorkDate(), 10, '<Year4>-<Month,2>-<Day,2>'));
 
         OnGetICBatchFileName(Result);
-#if not CLEAN29
+#if not CLEAN30
         BatchProcessingMgt.RunOnGetICBatchFileName(Result);
 #endif
     end;

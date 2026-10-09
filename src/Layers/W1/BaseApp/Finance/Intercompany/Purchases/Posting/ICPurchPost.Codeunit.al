@@ -26,7 +26,7 @@ codeunit 8452 "IC Purch.-Post"
 
     var
         TempICGenJnlLine: Record "Gen. Journal Line" temporary;
-#if not CLEAN29
+#if not CLEAN30
         PurchPost: Codeunit "Purch.-Post";
 #endif
         SalesTaxICOutboxAmt: Dictionary of [Integer, Decimal];
@@ -79,7 +79,7 @@ codeunit 8452 "IC Purch.-Post"
     begin
         IsHandled := false;
         OnBeforePostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnBeforePostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);
 #endif
         if IsHandled then
@@ -90,27 +90,27 @@ codeunit 8452 "IC Purch.-Post"
             if (PurchLine."Job No." <> '') and (PurchLine."Qty. to Invoice" <> 0) then begin
                 IsHandled := false;
                 OnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchLine, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
                 PurchPost.RunOnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchLine, IsHandled);
 #endif
                 if not IsHandled then begin
                     CreateJobPurchLine(JobPurchLine, PurchLine, PurchHeader."Prices Including VAT");
                     OnPostGLAccICLineOnAfterCreateJobPurchLine(PurchHeader);
-#if not CLEAN29
+#if not CLEAN30
                     PurchPost.RunOnPostGLAccICLineOnAfterCreateJobPurchLine(PurchHeader);
 #endif
                     InvoicePostingInterface.PrepareJobLine(PurchHeader, JobPurchLine, PurchLineACY);
                 end;
             end;
             OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchHeader, PurchLine, xPurchLine, ICGenJnlLineNo);
-#if not CLEAN29
+#if not CLEAN30
             PurchPost.RunOnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchHeader, PurchLine, xPurchLine, ICGenJnlLineNo);
 #endif
             if (PurchLine."IC Partner Code" <> '') and PurchHeader.Invoice then
                 InsertICGenJnlLine(PurchHeader, xPurchLine, InvoicePostingParameters, SuppressCommit);
 
             OnAfterPostAccICLine(PurchLine, SuppressCommit, PurchHeader, PurchInvHeader, PurchCrMemoHeader);
-#if not CLEAN29
+#if not CLEAN30
             PurchPost.RunOnAfterPostAccICLine(PurchLine, SuppressCommit, PurchHeader, PurchInvHeader, PurchCrMemoHeader);
 #endif
         end;
@@ -127,7 +127,7 @@ codeunit 8452 "IC Purch.-Post"
     begin
         IsHandled := false;
         OnBeforeInsertICGenJnlLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnBeforeInsertICGenJnlLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);
 #endif
         if IsHandled then
@@ -149,7 +149,7 @@ codeunit 8452 "IC Purch.-Post"
             InvoicePostingParameters."Document Type", InvoicePostingParameters."Document No.", InvoicePostingParameters."External Document No.",
             InvoicePostingParameters."Source Code", PurchHeader."Posting No. Series");
         OnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchHeader, PurchLine, TempICGenJnlLine);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchHeader, PurchLine, TempICGenJnlLine);
 #endif
 
@@ -206,7 +206,7 @@ codeunit 8452 "IC Purch.-Post"
         TempICGenJnlLine.Validate(Amount);
         TempICGenJnlLine."Journal Template Name" := PurchLine.GetJnlTemplateName();
         OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(TempICGenJnlLine, PurchHeader, PurchLine, SuppressCommit);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(TempICGenJnlLine, PurchHeader, PurchLine, SuppressCommit);
 #endif
         TempICGenJnlLine.Insert();
@@ -246,7 +246,7 @@ codeunit 8452 "IC Purch.-Post"
     begin
         IsHandled := false;
         OnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLine, PurchaseLine, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLine, PurchaseLine, IsHandled);
 #endif
         if IsHandled then
@@ -303,7 +303,7 @@ codeunit 8452 "IC Purch.-Post"
     begin
         IsHandled := false;
         OnBeforeCheckICDocumentDuplicatePosting(PurchHeader, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnBeforeCheckICDocumentDuplicatePosting(PurchHeader, IsHandled);
 #endif
         if IsHandled then
@@ -314,7 +314,7 @@ codeunit 8452 "IC Purch.-Post"
 
         ShouldCheckPosted := PurchHeader."IC Direction" = PurchHeader."IC Direction"::Outgoing;
         OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader, ShouldCheckPosted);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader, ShouldCheckPosted);
 #endif
         if ShouldCheckPosted then begin
@@ -330,7 +330,7 @@ codeunit 8452 "IC Purch.-Post"
 
         ShouldCheckUnposted := PurchHeader."IC Direction" = PurchHeader."IC Direction"::Incoming;
         OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader, ShouldCheckUnposted);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader, ShouldCheckUnposted);
 #endif
         if ShouldCheckUnposted then begin
@@ -399,7 +399,7 @@ codeunit 8452 "IC Purch.-Post"
     begin
         IsHandled := false;
         OnBeforeCheckICPartnerBlocked(PurchHeader, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnBeforeCheckICPartnerBlocked(PurchHeader, IsHandled);
 #endif
         if IsHandled then
@@ -419,7 +419,7 @@ codeunit 8452 "IC Purch.-Post"
         IsHandled: Boolean;
     begin
         OnBeforeSendICDocument(PurchHeader, ModifyHeader, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnBeforeSendICDocument(PurchHeader, ModifyHeader, IsHandled);
 #endif
         if IsHandled then
@@ -441,7 +441,7 @@ codeunit 8452 "IC Purch.-Post"
         IsHandled: Boolean;
     begin
         OnBeforeUpdateHandledICInboxTransaction(PurchHeader, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnBeforeUpdateHandledICInboxTransaction(PurchHeader, IsHandled);
 #endif
         if IsHandled then
@@ -475,7 +475,7 @@ codeunit 8452 "IC Purch.-Post"
     begin
         IsHandled := false;
         OnBeforeCheckGLAccDirectPosting(PurchaseLine, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnBeforeCheckGLAccDirectPosting(PurchaseLine, IsHandled);
 #endif
         if IsHandled then
@@ -505,7 +505,7 @@ codeunit 8452 "IC Purch.-Post"
                 JobPurchLine2."Direct Unit Cost" := JobPurchLine2."Direct Unit Cost" / (1 + JobPurchLine2."VAT %" / 100);
 
         OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
-#if not CLEAN29
+#if not CLEAN30
         PurchPost.RunOnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
 #endif
     end;

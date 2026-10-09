@@ -8955,8 +8955,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(false);
     end;
 
-#if not CLEAN29
-    [Obsolete('Not used in app', '29.0')]
+#if not CLEAN30
+    [Obsolete('Not used in app', '30.0')]
     [Scope('OnPrem')]
     procedure SetReversalDocument(ReversalDoc: Boolean)
     begin
@@ -12953,13 +12953,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforePostICPartner(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
         OnBeforePostICPartner(GenJnlLine, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '29.0')]
+    [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostICPartner(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
@@ -13011,13 +13011,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: Integer; var IsHandled: Boolean)
     begin
         OnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, NextEntryNo, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '29.0')]
+    [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '30.0')]
     [IntegrationEvent(true, false)]
     local procedure OnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: Integer; var IsHandled: Boolean)
     begin

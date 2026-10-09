@@ -616,16 +616,16 @@ This is a two-part pattern. Both parts are required to ensure legacy subscribers
 
 Every obsoleted IC event in the base codeunit gets:
 1. An `internal procedure RunOnXxx(...)` that re-raises the old event — this is what the extracted codeunit calls
-2. The old `[IntegrationEvent]` marked `[Obsolete]`, kept behind `#if not CLEAN29`
+2. The old `[IntegrationEvent]` marked `[Obsolete]`, kept behind `#if not CLEAN30`
 
 ```al
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
         OnBeforeInsertICGenJnlLine(PurchaseHeader, PurchaseLine, ICGenJnlLineNo, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
@@ -635,30 +635,30 @@ Every obsoleted IC event in the base codeunit gets:
 
 #### Part B — Pair calls in the extracted codeunit (`ICPurchPost.Codeunit.al`)
 
-The extracted codeunit holds a reference to `Purch.-Post` as a codeunit variable (guarded by `#if not CLEAN29`):
+The extracted codeunit holds a reference to `Purch.-Post` as a codeunit variable (guarded by `#if not CLEAN30`):
 
 ```al
 var
-#if not CLEAN29
+#if not CLEAN30
     PurchPost: Codeunit "Purch.-Post";
 #endif
 ```
 
-After every call to its own new integration event, the extracted codeunit immediately makes a **paired call** to the corresponding `RunOnXxx` bridge on the base codeunit — also guarded by `#if not CLEAN29`. This ensures any extension that subscribed to the old event in `Purch.-Post` is still notified.
+After every call to its own new integration event, the extracted codeunit immediately makes a **paired call** to the corresponding `RunOnXxx` bridge on the base codeunit — also guarded by `#if not CLEAN30`. This ensures any extension that subscribed to the old event in `Purch.-Post` is still notified.
 
 ```al
 local procedure InsertICGenJnlLine(...)
 begin
     IsHandled := false;
     OnBeforeInsertICGenJnlLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);  // new event (subscribers use this going forward)
-#if not CLEAN29
+#if not CLEAN30
     PurchPost.RunOnBeforeInsertICGenJnlLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);  // backward compat: fires old event in PurchPost
 #endif
     if IsHandled then
         exit;
     ...
     OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(TempICGenJnlLine, PurchHeader, PurchLine, PurchSuppressCommit);
-#if not CLEAN29
+#if not CLEAN30
     PurchPost.RunOnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(TempICGenJnlLine, PurchHeader, PurchLine, PurchSuppressCommit);
 #endif
     TempICGenJnlLine.Insert();
@@ -690,7 +690,7 @@ The same pair-call pattern is applied **at every integration event call site** i
 **Rules:**
 - The pair call always comes **immediately after** the new event call, before any `if IsHandled then exit` or other logic that depends on the event result — so both old and new subscribers have the same opportunity to set `IsHandled` or modify parameters
 - The extracted codeunit defines its own identically-named integration events for new subscribers
-- The codeunit variable `PurchPost: Codeunit "Purch.-Post"` is declared inside `#if not CLEAN29` so it is compiled away after the clean version
+- The codeunit variable `PurchPost: Codeunit "Purch.-Post"` is declared inside `#if not CLEAN30` so it is compiled away after the clean version
 - Obsolete tag format: `[Obsolete('Moved to codeunit <TargetCodeunit>', '<Version>')]`
 
 ---
@@ -722,7 +722,7 @@ New events are declared as `local procedure` with `[IntegrationEvent(false, fals
 - [ ] New integration events added to base codeunit at every extraction point
 - [ ] State cleared via subscriber on `OnAfterClearAllVariables` (or equivalent)
 - [ ] Posting context captured via event (not parameter injection into the extracted codeunit)
-- [ ] Obsoleted events in base codeunit are guarded with `#if not CLEAN29`
+- [ ] Obsoleted events in base codeunit are guarded with `#if not CLEAN30`
 - [ ] Each obsoleted event has a paired `internal procedure RunOnXxx(...)` bridge
 - [ ] Extracted codeunit defines its own fresh integration events for new subscribers
 - [ ] Base codeunit has zero `using` or direct reference to the extracted codeunit

@@ -1597,8 +1597,8 @@ report 10089 "Payment Journal - Test"
         end;
     end;
 
-#if not CLEAN29
-    [Obsolete('Use CheckICPartner procedure in Gen. Journal Line instead', '29.0')]
+#if not CLEAN30
+    [Obsolete('Use CheckICPartner procedure in Gen. Journal Line instead', '30.0')]
     procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName2: Text[100])
     begin
         CheckICPartnerAcc(GenJnlLine, AccName2);

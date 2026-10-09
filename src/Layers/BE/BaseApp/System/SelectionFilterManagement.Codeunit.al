@@ -289,8 +289,8 @@ codeunit 46 SelectionFilterManagement
         exit(GetSelectionFilter(RecRef, BusinessUnit.FieldNo(Code)));
     end;
 
-#if not CLEAN29
-    [Obsolete('Moved to codeunit IC Selection Filter Mgt.', '29.0')]
+#if not CLEAN30
+    [Obsolete('Moved to codeunit IC Selection Filter Mgt.', '30.0')]
     procedure GetSelectionFilterForICPartner(var ICPartner: Record Microsoft.Intercompany.Partner."IC Partner"): Text
     var
         RecRef: RecordRef;

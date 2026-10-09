@@ -4788,7 +4788,7 @@
         GLPostingPreview.Close();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforeSendICDocument', '', false, false)]
     local procedure OnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin

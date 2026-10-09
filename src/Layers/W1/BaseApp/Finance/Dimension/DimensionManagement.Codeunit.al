@@ -108,7 +108,7 @@ codeunit 408 DimensionManagement
         TempDimSetEntryBuffer: Record "Dimension Set Entry" temporary;
         ErrorMessageMgt: Codeunit "Error Message Management";
         InstructionMgt: Codeunit "Instruction Mgt.";
-#if not CLEAN29
+#if not CLEAN30
         ICDimensionManagement: Codeunit "IC Dimension Management";
 #endif
         TempDimCombInitialized: Boolean;
@@ -1910,7 +1910,7 @@ codeunit 408 DimensionManagement
         if PAGE.RunModal(0, DimVal) = ACTION::LookupOK then;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Copies dimension set entries from journal lines to intercompany journal line dimensions.
     /// Converts company-specific dimension codes to intercompany dimension codes during the copy process.
@@ -1921,7 +1921,7 @@ codeunit 408 DimensionManagement
     /// <param name="TransactionSource">Source of the intercompany transaction</param>
     /// <param name="LineNo">Line number within the transaction</param>
     /// <param name="DimSetID">Dimension set ID containing dimensions to copy</param>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure CopyJnlLineDimToICJnlDim(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetID: Integer)
     var
     begin
@@ -1992,21 +1992,21 @@ codeunit 408 DimensionManagement
         UpdateCostType(DefaultDimension, CallingTrigger::OnDelete);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Copies intercompany journal line dimensions from one record set to another.
     /// Creates duplicate dimension entries for intercompany transaction processing.
     /// </summary>
     /// <param name="FromInOutBoxLineDim">Source intercompany journal line dimensions to copy from</param>
     /// <param name="ToInOutBoxlineDim">Target intercompany journal line dimensions to copy to</param>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure CopyICJnlDimToICJnlDim(var FromInOutBoxLineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim."; var ToInOutBoxlineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim.")
     begin
         ICDimensionManagement.CopyICJnlDimToICJnlDim(FromInOutBoxLineDim, ToInOutBoxlineDim);
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Copies dimension set entries from documents to intercompany document dimensions.
     /// Converts company-specific dimension codes to intercompany dimension codes for cross-company transactions.
@@ -2017,7 +2017,7 @@ codeunit 408 DimensionManagement
     /// <param name="TransactionSource">Source of the intercompany transaction</param>
     /// <param name="LineNo">Line number within the document</param>
     /// <param name="DimSetEntryID">Dimension set ID containing dimensions to copy</param>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure CopyDocDimtoICDocDim(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetEntryID: Integer)
     begin
         ICDimensionManagement.CopyDocDimtoICDocDim(TableID, TransactionNo, PartnerCode, TransactionSource, LineNo, DimSetEntryID);
@@ -2031,7 +2031,7 @@ codeunit 408 DimensionManagement
     /// <param name="ToSourceICDocDim">Target intercompany document dimensions to copy to</param>
     /// <param name="ToTableID">Target table identifier for the copied dimensions</param>
     /// <param name="ToTransactionSource">Target transaction source for the copied dimensions</param>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure CopyICDocDimtoICDocDim(FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer)
     begin
         ICDimensionManagement.CopyICDocDimtoICDocDim(FromSourceICDocDim, ToSourceICDocDim, ToTableID, ToTransactionSource);
@@ -2045,7 +2045,7 @@ codeunit 408 DimensionManagement
     /// <param name="ToSourceICDocDim">Target intercompany document dimensions to move to</param>
     /// <param name="ToTableID">Target table identifier for the moved dimensions</param>
     /// <param name="ToTransactionSource">Target transaction source for the moved dimensions</param>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure MoveICDocDimtoICDocDim(FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer)
     begin
         ICDimensionManagement.MoveICDocDimtoICDocDim(FromSourceICDocDim, ToSourceICDocDim, ToTableID, ToTransactionSource);
@@ -2061,7 +2061,7 @@ codeunit 408 DimensionManagement
     /// <param name="PartnerCode">Intercompany partner code to filter by</param>
     /// <param name="TransactionSource">Transaction source to filter by</param>
     /// <param name="LineNo">Line number to filter by</param>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure SetICDocDimFilters(var ICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Integer; LineNo: Integer)
     begin
         ICDimensionManagement.SetICDocDimFilters(ICDocDim, TableID, TransactionNo, PartnerCode, TransactionSource, LineNo);
@@ -2076,7 +2076,7 @@ codeunit 408 DimensionManagement
     /// <param name="ICPartnerCode">Intercompany partner code</param>
     /// <param name="TransactionSource">Transaction source type</param>
     /// <param name="LineNo">Line number within the transaction</param>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure DeleteICDocDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
     begin
         ICDimensionManagement.DeleteICDocDim(TableID, ICTransactionNo, ICPartnerCode, TransactionSource, LineNo);
@@ -2091,7 +2091,7 @@ codeunit 408 DimensionManagement
     /// <param name="ICPartnerCode">Intercompany partner code</param>
     /// <param name="TransactionSource">Transaction source type</param>
     /// <param name="LineNo">Line number within the transaction</param>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure DeleteICJnlDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
     begin
         ICDimensionManagement.DeleteICJnlDim(TableID, ICTransactionNo, ICPartnerCode, TransactionSource, LineNo);
@@ -2103,7 +2103,7 @@ codeunit 408 DimensionManagement
     /// </summary>
     /// <param name="FromDim">Company dimension code to convert</param>
     /// <returns>Mapped intercompany dimension code, or empty if no mapping exists</returns>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure ConvertDimtoICDim(FromDim: Code[20]) ICDimCode: Code[20]
     begin
         ICDimCode := ICDimensionManagement.ConvertDimtoICDim(FromDim);
@@ -2116,7 +2116,7 @@ codeunit 408 DimensionManagement
     /// <param name="FromDim">Company dimension code containing the value</param>
     /// <param name="FromDimValue">Company dimension value code to convert</param>
     /// <returns>Mapped intercompany dimension value code, or empty if no mapping exists</returns>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure ConvertDimValuetoICDimVal(FromDim: Code[20]; FromDimValue: Code[20]) ICDimValueCode: Code[20]
     begin
         ICDimValueCode := ICDimensionManagement.ConvertDimValuetoICDimVal(FromDim, FromDimValue);
@@ -2129,7 +2129,7 @@ codeunit 408 DimensionManagement
     /// <param name="ICDimCode">Intercompany dimension code to validate</param>
     /// <param name="ICDimValCode">Intercompany dimension value code to validate</param>
     /// <returns>True if the intercompany dimension value is valid and not blocked, false otherwise</returns>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure CheckICDimValue(ICDimCode: Code[20]; ICDimValCode: Code[20]): Boolean
     begin
         exit(CheckICDimValue(ICDimCode, ICDimValCode));
@@ -2141,7 +2141,7 @@ codeunit 408 DimensionManagement
     /// </summary>
     /// <param name="ICDimCode">Intercompany dimension code to validate</param>
     /// <returns>True if the intercompany dimension is valid and not blocked, false otherwise</returns>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure CheckICDim(ICDimCode: Code[20]): Boolean
     begin
         exit(CheckICDim(ICDimCode));
@@ -2465,14 +2465,14 @@ codeunit 408 DimensionManagement
         TempDimSetEntry.Insert();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Creates a dimension set ID from intercompany document dimensions by converting IC dimensions to company dimensions.
     /// Processes all IC document dimension entries and builds a corresponding company dimension set.
     /// </summary>
     /// <param name="ICDocDim">Intercompany document dimensions to convert</param>
     /// <returns>Dimension set ID representing the converted intercompany dimensions</returns>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure CreateDimSetIDFromICDocDim(var ICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"): Integer
     begin
         exit(ICDimensionManagement.CreateDimSetIDFromICDocDim(ICDocDim));
@@ -2484,7 +2484,7 @@ codeunit 408 DimensionManagement
     /// </summary>
     /// <param name="ICInboxOutboxJnlLineDim">Intercompany journal line dimensions to convert</param>
     /// <returns>Dimension set ID representing the converted intercompany journal dimensions</returns>
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     procedure CreateDimSetIDFromICJnlLineDim(var ICInboxOutboxJnlLineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim."): Integer
     begin
         exit(ICDimensionManagement.CreateDimSetIDFromICJnlLineDim(ICInboxOutboxJnlLineDim));
@@ -3590,13 +3590,13 @@ codeunit 408 DimensionManagement
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnAfterConvertDimtoICDim(FromDim: Code[20]; var ICDimCode: Code[20])
     begin
         OnAfterConvertDimtoICDim(FromDim, ICDimCode);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterConvertDimtoICDim(FromDim: Code[20]; var ICDimCode: Code[20])
     begin
@@ -3607,7 +3607,7 @@ codeunit 408 DimensionManagement
         OnAfterConvertDimValuetoICDimVal(FromDimCode, FromDimValue, ICDimValueCode);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterConvertDimValuetoICDimVal(FromDimCode: Code[20]; FromDimValue: Code[20]; var ICDimValueCode: Code[20])
     begin
@@ -3618,7 +3618,7 @@ codeunit 408 DimensionManagement
         OnAfterConvertICDimtoDim(FromICDimCode, DimCode);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterConvertICDimtoDim(FromICDimCode: Code[20]; var DimCode: Code[20])
     begin
@@ -3629,7 +3629,7 @@ codeunit 408 DimensionManagement
         OnAfterConvertICDimValuetoDimValue(FromICDimCode, FromICDimValue, DimValueCode);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterConvertICDimValuetoDimValue(FromICDimCode: Code[20]; FromICDimValue: Code[20]; var DimValueCode: Code[20])
     begin
@@ -3736,13 +3736,13 @@ codeunit 408 DimensionManagement
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeCheckICDim(ICDimCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
         OnBeforeCheckICDim(ICDimCode, Result, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICDim(ICDimCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
@@ -3754,13 +3754,13 @@ codeunit 408 DimensionManagement
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeCheckICDimValue(ICDimCode: Code[20]; ICDimValCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
         OnBeforeCheckICDimValue(ICDimCode, ICDimValCode, Result, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICDimValue(ICDimCode: Code[20]; ICDimValCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
@@ -3772,13 +3772,13 @@ codeunit 408 DimensionManagement
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeConvertDimValuetoICDimVal(var DimValue: Record "Dimension Value")
     begin
         OnBeforeConvertDimValuetoICDimVal(DimValue);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConvertDimValuetoICDimVal(var DimValue: Record "Dimension Value")
     begin
@@ -3789,7 +3789,7 @@ codeunit 408 DimensionManagement
         OnBeforeCreateDimSetIDFromICDocDim(DimValue);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDimSetIDFromICDocDim(var DimValue: Record "Dimension Value")
     begin
@@ -3800,7 +3800,7 @@ codeunit 408 DimensionManagement
         OnBeforeCreateDimSetIDFromICJnlLineDim(DimValue);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDimSetIDFromICJnlLineDim(var DimValue: Record "Dimension Value")
     begin
@@ -3917,13 +3917,13 @@ codeunit 408 DimensionManagement
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnCheckICDimValueAllowed(ICDimVal: Record Microsoft.Intercompany.Dimension."IC Dimension Value"; var DimValueAllowed: Boolean)
     begin
         OnCheckICDimValueAllowed(ICDimVal, DimValueAllowed);
     end;
 
-    [Obsolete('Moved to codeunit IC Dimension Management', '29.0')]
+    [Obsolete('Moved to codeunit IC Dimension Management', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckICDimValueAllowed(ICDimVal: Record Microsoft.Intercompany.Dimension."IC Dimension Value"; var DimValueAllowed: Boolean)
     begin

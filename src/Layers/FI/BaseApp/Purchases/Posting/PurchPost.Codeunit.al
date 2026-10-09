@@ -5979,7 +5979,7 @@ codeunit 90 "Purch.-Post"
         exit(number2);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Recalculates and updates Direct Unit Cost of the purchase line related to a job
     /// </summary>
@@ -5990,7 +5990,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="JobPurchLine2">Return Value: Record to store information of purchase line related to a job</param>
     /// <param name="PurchLine2">The purchase line of the document that is being posted.</param>
     /// <param name="PricesIncludingVAT">Specifies if the purchase document that is being posted has prices with VAT</param>
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     procedure CreateJobPurchLine(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PricesIncludingVAT: Boolean)
     begin
         JobPurchLine2 := PurchLine2;
@@ -8719,13 +8719,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnAfterCreateJobPurchLine(var JobPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line")
     begin
         OnAfterCreateJobPurchLine(JobPurchaseLine, PurchaseLine);
     end;
 
-    [Obsolete('Moved to ICPurchPost.Codeunit', '29.0')]
+    [Obsolete('Moved to ICPurchPost.Codeunit', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateJobPurchLine(var JobPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line")
     begin
@@ -8938,13 +8938,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnAfterPostAccICLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
         OnAfterPostAccICLine(PurchaseLine, CommitIsSupressed, PurchaseHeader, PurchInvHeader, PurchCrMemoHdr);
     end;
 
-    [Obsolete('Moved to ICPurchPost.Codeunit', '29.0')]
+    [Obsolete('Moved to ICPurchPost.Codeunit', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostAccICLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
@@ -9157,26 +9157,26 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeCheckGLAccDirectPosting(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
         OnBeforeCheckGLAccDirectPosting(PurchaseLine, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLAccDirectPosting(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeCheckICDocumentDuplicatePosting(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
         OnBeforeCheckICDocumentDuplicatePosting(PurchaseHeader, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICDocumentDuplicatePosting(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -9319,13 +9319,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
         OnBeforeInsertICGenJnlLine(PurchaseHeader, PurchaseLine, ICGenJnlLineNo, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
@@ -9408,13 +9408,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforePostGLAccICLine(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
         OnBeforePostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostGLAccICLine(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
@@ -9612,13 +9612,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeSendICDocument(var PurchHeader: Record "Purchase Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
         OnBeforeSendICDocument(PurchHeader, ModifyHeader, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendICDocument(var PurchHeader: Record "Purchase Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
@@ -9750,13 +9750,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeUpdateHandledICInboxTransaction(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
         OnBeforeUpdateHandledICInboxTransaction(PurchaseHeader, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateHandledICInboxTransaction(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -9924,13 +9924,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var TempICGenJournalLine: Record "Gen. Journal Line")
     begin
         OnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchaseHeader, PurchaseLine, TempICGenJournalLine);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var TempICGenJournalLine: Record "Gen. Journal Line")
     begin
@@ -9942,13 +9942,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(var TempICGenJournalLine: Record "Gen. Journal Line" temporary; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; CommitIsSuppressed: Boolean)
     begin
         OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(TempICGenJournalLine, PurchaseHeader, PurchaseLine, CommitIsSuppressed);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(var TempICGenJournalLine: Record "Gen. Journal Line" temporary; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; CommitIsSuppressed: Boolean)
     begin
@@ -10585,13 +10585,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line"; ICGenJnlLineNo: Integer)
     begin
         OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchaseHeader, PurchaseLine, xPurchaseLine, ICGenJnlLineNo);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line"; ICGenJnlLineNo: Integer)
     begin
@@ -10602,7 +10602,7 @@ codeunit 90 "Purch.-Post"
         OnPostGLAccICLineOnAfterCreateJobPurchLine(PurchaseHeader);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPostGLAccICLineOnAfterCreateJobPurchLine(var PurchaseHeader: Record "Purchase Header")
     begin
@@ -10781,13 +10781,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLine: Record "Gen. Journal Line" temporary; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
         OnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLine, PurchaseLine, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLine: Record "Gen. Journal Line" temporary; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -10879,13 +10879,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader: Record "Purchase Header"; var ShouldCheckPosted: Boolean)
     begin
         OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader, ShouldCheckPosted);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader: Record "Purchase Header"; var ShouldCheckPosted: Boolean)
     begin
@@ -10896,7 +10896,7 @@ codeunit 90 "Purch.-Post"
         OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader, ShouldCheckUnposted);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader: Record "Purchase Header"; var ShouldCheckUnposted: Boolean)
     begin
@@ -10918,13 +10918,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnPostGLAccICLineOnBeforeCreateJobPurchLine(var PurchHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
         OnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchaseLine, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPostGLAccICLineOnBeforeCreateJobPurchLine(var PurchHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -11036,13 +11036,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeCheckICPartnerBlocked(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
         OnBeforeCheckICPartnerBlocked(PurchaseHeader, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit ICPurchPost', '29.0')]
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICPartnerBlocked(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin

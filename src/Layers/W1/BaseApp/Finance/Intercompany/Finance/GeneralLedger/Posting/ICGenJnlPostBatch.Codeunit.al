@@ -17,7 +17,7 @@ codeunit 8415 "IC Gen. Jnl.-Post Batch"
         ICFeedback: Codeunit "IC Feedback";
         ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         ICOutboxExport: Codeunit "IC Outbox Export";
-#if not CLEAN29
+#if not CLEAN30
         GenJnlPostBatch: Codeunit "Gen. Jnl.-Post Batch";
 #endif
         ICLastDocType: Enum "Gen. Journal Document Type";
@@ -126,7 +126,7 @@ codeunit 8415 "IC Gen. Jnl.-Post Batch"
     begin
         IsHandled := false;
         OnBeforeProcessICLines(CurrentICPartner, ICTransactionNo, ICLastDocNo, ICLastDate, ICLastDocType, GenJnlLine, TempGenJnlLine, ICProcessedLines, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         GenJnlPostBatch.RunOnBeforeProcessICLines(CurrentICPartner, ICTransactionNo, ICLastDocNo, ICLastDate, ICLastDocType, GenJnlLine, TempGenJnlLine, ICProcessedLines, IsHandled);
 #endif
         if IsHandled then
@@ -164,7 +164,7 @@ codeunit 8415 "IC Gen. Jnl.-Post Batch"
                         HandledICInboxTrans.LockTable();
                         HandledICInboxTrans.Status := HandledICInboxTrans.Status::Posted;
                         OnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJnlLine);
-#if not CLEAN29
+#if not CLEAN30
                         GenJnlPostBatch.RunOnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJnlLine);
 #endif
                         HandledICInboxTrans.Modify();

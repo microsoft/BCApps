@@ -633,13 +633,13 @@ codeunit 1380 "Batch Processing Mgt."
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnGetICBatchFileName(var Result: Text)
     begin
         OnGetICBatchFileName(Result);
     end;
 
-    [Obsolete('Moved to codeunit IC Batch Processing Mgt.', '29.0')]
+    [Obsolete('Moved to codeunit IC Batch Processing Mgt.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnGetICBatchFileName(var Result: Text)
     begin
