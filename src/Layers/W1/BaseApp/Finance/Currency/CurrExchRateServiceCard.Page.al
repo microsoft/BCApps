@@ -5,13 +5,10 @@
 namespace Microsoft.Finance.Currency;
 
 using Microsoft.Utilities;
-using System;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Integration;
 using System.IO;
 using System.Reflection;
-using System.Xml;
 
 /// <summary>
 /// Provides a detailed card interface for configuring currency exchange rate service connections.
