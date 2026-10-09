@@ -12,7 +12,6 @@ codeunit 146038 Test_DotNet_XslTransform
         Assert: Codeunit Assert;
         DotNet_XslCompiledTransform: Codeunit DotNet_XslCompiledTransform;
         DotNet_XmlDocument: Codeunit DotNet_XmlDocument;
-        XMLDOMManagement: Codeunit "XML DOM Management";
 
     [Scope('OnPrem')]
     procedure TransformXmlHelper(XsltTransformationText: Text; XmlData: Text): Text
@@ -21,16 +20,13 @@ codeunit 146038 Test_DotNet_XslTransform
         DotNet_XsltArgumentList: Codeunit DotNet_XsltArgumentList;
         TypeHelper: Codeunit "Type Helper";
         ResultStream: OutStream;
-        OutStream: OutStream;
         InStream: InStream;
     begin
-        TempBlob.CreateOutStream(OutStream, TEXTENCODING::UTF8);
-        OutStream.WriteText(XsltTransformationText);
-
         Clear(DotNet_XslCompiledTransform);
-        XMLDOMManagement.CreateXslTransformFromBlob(TempBlob, DotNet_XslCompiledTransform);
+        DotNet_XslCompiledTransform.XslCompiledTransform();
+        LoadXmlDocumentHelper(XsltTransformationText);
+        DotNet_XslCompiledTransform.Load(DotNet_XmlDocument);
         LoadXmlDocumentHelper(XmlData);
-        Clear(TempBlob);
         TempBlob.CreateOutStream(ResultStream, TEXTENCODING::UTF8);
         DotNet_XslCompiledTransform.Transform(DotNet_XmlDocument, DotNet_XsltArgumentList, ResultStream);
         TempBlob.CreateInStream(InStream, TEXTENCODING::UTF8);
