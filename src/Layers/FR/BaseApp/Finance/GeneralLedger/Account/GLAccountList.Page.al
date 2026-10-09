@@ -381,6 +381,20 @@ page 18 "G/L Account List"
         }
     }
 
+    views
+    {
+        view(Uncategorized)
+        {
+            Caption = 'Uncategorized accounts';
+            Filters = where("Account Category" = const(" "));
+        }
+        view(NoSubCategory)
+        {
+            Caption = 'Uncategorized accounts (missing sub category)';
+            Filters = where("Account Subcategory Entry No." = const(0));
+        }
+    }
+
     trigger OnOpenPage()
     var
         PriceCalculationMgt: Codeunit "Price Calculation Mgt.";

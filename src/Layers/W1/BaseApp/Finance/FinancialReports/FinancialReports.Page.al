@@ -401,10 +401,13 @@ page 108 "Financial Reports"
         }
         area(Promoted)
         {
-            actionref(ViewFinancialReport_Promoted; ViewFinancialReport) { }
-            actionref(Print_Promoted; Print) { }
-            actionref(Packages_Promoted; Packages) { }
-
+            group(RunReport)
+            {
+                Caption = 'Run Report';
+                actionref(ViewFinancialReport_Promoted; ViewFinancialReport) { }
+                actionref(Print_Promoted; Print) { }
+                actionref(Packages_Promoted; Packages) { }
+            }
             group(Category_Edit)
             {
                 Caption = 'Definitions';
@@ -487,7 +490,6 @@ page 108 "Financial Reports"
         if Rec."Financial Report Row Group" <> '' then
             if AccScheduleName.Get(Rec."Financial Report Row Group") then
                 AnalysisViewRow := AccScheduleName."Analysis View Name";
-
         if Rec."Financial Report Column Group" <> '' then
             if ColumnLayoutName.Get(Rec."Financial Report Column Group") then
                 AnalysisViewColumn := ColumnLayoutName."Analysis View Name";
