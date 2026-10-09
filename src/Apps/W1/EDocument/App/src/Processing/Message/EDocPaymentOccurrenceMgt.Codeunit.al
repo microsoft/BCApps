@@ -137,7 +137,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     end;
 
     /// <summary>
-    /// Immediately retries a failed payment occurrence without scheduling further automatic retries if it fails again.
+    /// Immediately retries a failed payment occurrence while preserving any remaining automatic retries.
     /// </summary>
     /// <param name="EntryNo">The entry number of the payment occurrence to retry.</param>
     procedure RetryPaymentOccurrence(EntryNo: Integer)
@@ -190,7 +190,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
         EDocPaymentOccurrence."Retry Count" += 1;
         EDocPaymentOccurrence."Last Error" := CopyStr(LastErrorText, 1, MaxStrLen(EDocPaymentOccurrence."Last Error"));
-        if ManualRetry or (EDocPaymentOccurrence."Retry Count" >= MaxAutomaticRetryCount()) then begin
+        if EDocPaymentOccurrence."Retry Count" >= MaxAutomaticRetryCount() then begin
             EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
             EDocPaymentOccurrence."Next Attempt At" := 0DT;
         end else begin
