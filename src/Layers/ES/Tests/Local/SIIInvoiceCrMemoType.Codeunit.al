@@ -31,7 +31,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 223508] XML has no node "Contraparte" when post Sales Invoice with "Invoice Type" = "F2 Simplified Invoice"
@@ -67,7 +67,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 223508] XML has node "Contraparte" when post Sales Invoice with "Invoice Type" = "F3 Invoice issued to replace simplified invoices"
@@ -100,7 +100,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 223508] XML has node "Contraparte" when post Sales Invoice with "Invoice Type" = "F4 Invoice summary entry"
@@ -132,7 +132,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Sales Credit Memo with Type "Difference" and "Cr. Memo Type" = "R2 Corrected Invoice (Art. 80.3)"
@@ -165,7 +165,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Sales Credit Memo with Type "Difference" and "Cr. Memo Type" = "R3 Corrected Invoice (Art. 80.4)"
@@ -194,7 +194,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Sales Credit Memo with Type "Difference" and "Cr. Memo Type" = "R4 Corrected Invoice (Other)"
@@ -223,7 +223,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Sales Credit Memo with Type "Replacement" and "Cr. Memo Type" = "R2 Corrected Invoice (Art. 80.3)"
@@ -258,7 +258,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Sales Credit Memo with Type "Replacement" and "Cr. Memo Type" = "R3 Corrected Invoice (Art. 80.4)"
@@ -287,7 +287,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Sales Credit Memo with Type "Replacement" and "Cr. Memo Type" = "R4 Corrected Invoice (Other)"
@@ -316,7 +316,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Invoice with "Invoice Type" = "F2 Simplified Invoice"
@@ -352,7 +352,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Invoice with "Invoice Type" = "F3 Invoice issued to replace simplified invoices"
@@ -385,7 +385,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Invoice with "Invoice Type" = "F4 Invoice summary entry"
@@ -417,7 +417,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Invoice with "Invoice Type" = "F5 Imports (DUA)"
@@ -445,7 +445,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 269099] XML has node "Contraparte" when post Purchase Invoice with "Invoice Type" = "F6 Accounting support material"
@@ -473,7 +473,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Credit Memo with Type "Difference" and "Cr. Memo Type" = "R2 Corrected Invoice (Art. 80.3)"
@@ -508,7 +508,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Credit Memo with Type "Difference" and "Cr. Memo Type" = "R3 Corrected Invoice (Art. 80.4)"
@@ -537,7 +537,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Credit Memo with Type "Difference" and "Cr. Memo Type" = "R4 Corrected Invoice (Other)"
@@ -566,7 +566,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Credit Memo with Type "Replacement" and "Cr. Memo Type" = "R2 Corrected Invoice (Art. 80.3)"
@@ -602,7 +602,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Credit Memo with Type "Replacement" and "Cr. Memo Type" = "R3 Corrected Invoice (Art. 80.4)"
@@ -631,7 +631,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 223508] XML has node "Contraparte" when post Purchase Credit Memo with Type "Replacement" and "Cr. Memo Type" = "R4 Corrected Invoice (Other)"
@@ -660,7 +660,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 263060] TipoFactura is 'LC' for Purchase invoice with invoice type "Customs - Complementary Liquidation"
@@ -685,7 +685,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 433347] Sales credit memo with "F3" type has correct xml to send to SII
@@ -712,7 +712,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 433347] Sales credit memo with "F3" type has correct xml to send to SII
@@ -739,7 +739,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 433347] Sales replacement credit memo with "F3" type has correct xml to send to SII
@@ -767,7 +767,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 433347] Sales replacement credit memo with "F3" type has correct xml to send to SII
@@ -797,7 +797,7 @@ codeunit 147551 "SII Invoice/Cr. Memo Type"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 502669] Stan can post the sales invoice with a foreign customer and "Invoice Type" = "R4 Corrected Invoice (Other)"

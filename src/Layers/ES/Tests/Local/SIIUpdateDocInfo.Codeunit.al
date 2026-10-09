@@ -343,7 +343,7 @@ codeunit 147552 "SII Update Doc. Info"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 232565] XML has nodes with updated information from SII Doc. Upload State for Sales Invoice
@@ -376,7 +376,7 @@ codeunit 147552 "SII Update Doc. Info"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 232565] XML has nodes with updated information from SII Doc. Upload State for Sales Credit Memo with Type "Difference"
@@ -411,7 +411,7 @@ codeunit 147552 "SII Update Doc. Info"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 232565] XML has nodes with updated information from SII Doc. Upload State for Sales Credit Memo with Type "Replacement"
@@ -446,7 +446,7 @@ codeunit 147552 "SII Update Doc. Info"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 232565] XML has nodes with updated information from SII Doc. Upload State for Purchase Invoice
@@ -480,7 +480,7 @@ codeunit 147552 "SII Update Doc. Info"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 232565] XML has nodes with updated information from SII Doc. Upload State for Purchase Credit Memo with Type "Difference"
@@ -516,7 +516,7 @@ codeunit 147552 "SII Update Doc. Info"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 232565] XML has nodes with updated information from SII Doc. Upload State for Purchase Credit Memo with Type "Replacement"
@@ -552,7 +552,7 @@ codeunit 147552 "SII Update Doc. Info"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 232565] XML has nodes with updated information from SII Doc. Upload State for Service Invoice
@@ -587,7 +587,7 @@ codeunit 147552 "SII Update Doc. Info"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 232565] XML has nodes with updated information from SII Doc. Upload State for Service Credit Memo
@@ -622,7 +622,7 @@ codeunit 147552 "SII Update Doc. Info"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 288410] XML has nodes with updated ID Type from SII Doc. Upload State for Sales Invoice
@@ -652,7 +652,7 @@ codeunit 147552 "SII Update Doc. Info"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 232565] XML has nodes with updated ID Type from SII Doc. Upload State for Purchase Invoice
@@ -681,7 +681,7 @@ codeunit 147552 "SII Update Doc. Info"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 232565] XML has nodes with updated ID Type from SII Doc. Upload State for Service Invoice
@@ -711,7 +711,7 @@ codeunit 147552 "SII Update Doc. Info"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 311013] Exported XML file has no ID Type xml node for Sales Credit Memo with "Correction Type" = Removal
@@ -737,7 +737,7 @@ codeunit 147552 "SII Update Doc. Info"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 311013] XML has nodes with updated ID Type from SII Doc. Upload State for Purchase Credit Memo with "Correction Type" = Removal
@@ -768,7 +768,7 @@ codeunit 147552 "SII Update Doc. Info"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 311013] Exported XML file has no ID Type xml node for Service Credit Memo with "Correction Type" = Removal
