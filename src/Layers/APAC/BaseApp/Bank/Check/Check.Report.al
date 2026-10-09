@@ -254,7 +254,6 @@ report 1401 Check
                                         begin
                                             CurrentLineAmount := GenJnlLine2.Amount;
                                             LineAmount2 := CurrentLineAmount;
-
                                             if GenJnlLine2."Applies-to ID" <> '' then
                                                 Error(Text016);
                                             GenJnlLine2.TestField("Check Printed", false);
@@ -538,7 +537,6 @@ report 1401 Check
                             CheckLedgEntry."Check Date" := GenJnlLine."Posting Date";
                             CheckLedgEntry."Check No." := UseCheckNo;
                             CheckManagement.InsertCheck(CheckLedgEntry, GenJnlLine.RecordId);
-
                             if FoundLast and AddedRemainingAmount then begin
                                 if BankAcc2."Currency Code" <> '' then
                                     Currency.Get(BankAcc2."Currency Code")
@@ -548,12 +546,17 @@ report 1401 Check
                                 Decimals := CheckLedgEntry.Amount - Round(CheckLedgEntry.Amount, 1, '<');
                                 if StrLen(Format(Decimals)) < StrLen(Format(Currency."Amount Rounding Precision")) then
                                     if Decimals = 0 then
-                                        CheckAmountText := Format(CheckLedgEntryAmount, 0, 0) +
-                                          CopyStr(Format(0.01), 2, 1) +
-                                          PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - 2, '0')
+                                        CheckAmountText :=
+                                            CopyStr(
+                                                Format(CheckLedgEntryAmount, 0, 0) +
+                                                CopyStr(Format(0.01), 2, 1) + PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - 2, '0'),
+                                                1, 30)
                                     else
-                                        CheckAmountText := Format(CheckLedgEntryAmount, 0, 0) +
-                                          PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - StrLen(Format(Decimals)), '0')
+                                        CheckAmountText :=
+                                            CopyStr(
+                                                Format(CheckLedgEntryAmount, 0, 0) +
+                                                PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - StrLen(Format(Decimals)), '0'),
+                                                1, 30)
                                 else
                                     CheckAmountText := Format(CheckLedgEntryAmount, 0, 0);
                                 FormatNoText(DescriptionLine, CheckLedgEntry.Amount, BankAcc2."Currency Code");
@@ -569,8 +572,7 @@ report 1401 Check
                                 DescriptionLine[2] := DescriptionLine[1];
                                 VoidText := Text022;
                             end;
-                        end
-                        else begin
+                        end else begin
                             CheckLedgEntry.Init();
                             CheckLedgEntry."Bank Account No." := BankAcc2."No.";
                             CheckLedgEntry."Posting Date" := GenJnlLine."Posting Date";
@@ -580,7 +582,7 @@ report 1401 Check
                             CheckLedgEntry."Entry Status" := CheckLedgEntry."Entry Status"::"Test Print";
                             CheckLedgEntry."Check Date" := GenJnlLine."Posting Date";
                             CheckLedgEntry."Check No." := UseCheckNo;
-                            CheckManagement.InsertCheck(CheckLedgEntry, GenJnlLine.RecordId);
+                            CheckManagement.InsertCheck(CheckLedgEntry, RecordId);
 
                             CheckAmountText := Text024;
                             DescriptionLine[1] := Text025;
@@ -621,7 +623,6 @@ report 1401 Check
                             if GenJnlLine3.Find('-') then
                                 GenJnlLine3.FieldError("Document No.", StrSubstNo(Text013, UseCheckNo));
                         end;
-
                         if ApplyMethod <> ApplyMethod::MoreLinesOneEntry then begin
                             GenJnlLine3 := GenJnlLine;
                             GenJnlLine3.TestField("Posting No. Series", '');
@@ -689,7 +690,6 @@ report 1401 Check
                                 RecordRestrictionMgt.AllowRecordUsage(GenJnlLine3);
                         end;
                     end;
-
                     if not TestPrint then begin
                         BankAcc2."Last Check No." := UseCheckNo;
                         BankAcc2.Modify();
@@ -724,10 +724,8 @@ report 1401 Check
                 InterestAmountLCY := "Interest Amount (LCY)";
 
                 JournalPostingDate := "Posting Date";
-
                 if "Bank Payment Type" = "Bank Payment Type"::"Computer Check" then
                     TestField("Exported to Payment File", false);
-
                 if not TestPrint then begin
                     if Amount = 0 then
                         CurrReport.Skip();
@@ -735,7 +733,6 @@ report 1401 Check
                     TestField("Bal. Account Type", "Bal. Account Type"::"Bank Account");
                     if "Bal. Account No." <> BankAcc2."No." then
                         CurrReport.Skip();
-
                     if ("Account No." <> '') and ("Bal. Account No." <> '') then begin
                         BalancingType := "Account Type";
                         BalancingNo := "Account No.";
@@ -780,7 +777,6 @@ report 1401 Check
                                 Cust.Get(BalancingNo);
                                 if Cust."Privacy Blocked" then
                                     Error(Cust.GetPrivacyBlockedGenericErrorText(Cust));
-
                                 if Cust.Blocked = Cust.Blocked::All then
                                     Error(Text064, Cust.FieldCaption(Blocked), Cust.Blocked, Cust.TableCaption(), Cust."No.");
                                 Cust.Contact := '';
@@ -795,18 +791,15 @@ report 1401 Check
                                 Vend.Get(BalancingNo);
                                 if Vend."Privacy Blocked" then
                                     Error(Vend.GetPrivacyBlockedGenericErrorText(Vend));
-
                                 if Vend.Blocked in [Vend.Blocked::All, Vend.Blocked::Payment] then
                                     Error(Text064, Vend.FieldCaption(Blocked), Vend.Blocked, Vend.TableCaption(), Vend."No.");
                                 Vend.Contact := '';
-
                                 if GenJnlLine."Remit-to Code" = '' then
                                     FormatAddr.Vendor(CheckToAddr, Vend)
                                 else begin
                                     RemitAddress.Get(GenJnlLine."Remit-to Code", GenJnlLine."Account No.");
                                     FormatAddr.VendorRemitToAddress(RemitAddress, CheckToAddr);
                                 end;
-
                                 if BankAcc2."Currency Code" <> "Currency Code" then
                                     Error(Text005);
                                 if Vend."Purchaser Code" <> '' then
@@ -1143,7 +1136,6 @@ report 1401 Check
         NoTextIndex := 1;
         NoText[1] := '****';
         GLSetup.Get();
-
         if No < 1 then
             AddToNoText(NoText, NoTextIndex, PrintExponent, Text026)
         else
@@ -1172,7 +1164,6 @@ report 1401 Check
         AddToNoText(NoText, NoTextIndex, PrintExponent, Text028);
         DecimalPosition := GetAmtDecimalPosition();
         AddToNoText(NoText, NoTextIndex, PrintExponent, (Format(No * DecimalPosition) + '/' + Format(DecimalPosition)));
-
         if CurrencyCode <> '' then
             AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
 
@@ -1182,7 +1173,6 @@ report 1401 Check
     local procedure AddToNoText(var NoText: array[2] of Text[80]; var NoTextIndex: Integer; var PrintExponent: Boolean; AddText: Text[30])
     begin
         PrintExponent := true;
-
         while StrLen(NoText[NoTextIndex] + ' ' + AddText) > MaxStrLen(NoText[1]) do begin
             NoTextIndex := NoTextIndex + 1;
             if NoTextIndex > ArrayLen(NoText) then
@@ -1219,7 +1209,6 @@ report 1401 Check
             CustLedgEntry2."Amount to Apply");
         LineAmount2 :=
           Round(ExchangeAmt(GenJnlLine."Currency Code", CurrencyCode2, LineAmount), Currency."Amount Rounding Precision");
-
         if ((CustLedgEntry2."Document Type" in [CustLedgEntry2."Document Type"::Invoice,
                                                 CustLedgEntry2."Document Type"::"Credit Memo"]) and
             (CustLedgEntry2."Remaining Pmt. Disc. Possible" <> 0) and
@@ -1268,7 +1257,6 @@ report 1401 Check
 
         LineAmount2 :=
           Round(ExchangeAmt(GenJnlLine."Currency Code", CurrencyCode2, LineAmount), Currency."Amount Rounding Precision");
-
         if ((VendLedgEntry2."Document Type" in [VendLedgEntry2."Document Type"::Invoice,
                                                 VendLedgEntry2."Document Type"::"Credit Memo"]) and
             (VendLedgEntry2."Remaining Pmt. Disc. Possible" <> 0) and
@@ -1283,7 +1271,6 @@ report 1401 Check
               Round(
                 -ExchangeAmt(
                   GenJnlLine."Currency Code", CurrencyCode2, VendLedgEntry2."Amount to Apply"), Currency."Amount Rounding Precision");
-
             if ApplyMethod <> ApplyMethod::OneLineID then
                 if Abs(RemainingAmount2) < Abs(LineAmount2) then
                     LineAmount2 := RemainingAmount2;
@@ -1433,15 +1420,15 @@ report 1401 Check
 
     local procedure GetAmtDecimalPosition(): Decimal
     var
-        Currency: Record Currency;
+        Currency2: Record Currency;
     begin
         if GenJnlLine."Currency Code" = '' then
-            Currency.InitRoundingPrecision()
+            Currency2.InitRoundingPrecision()
         else begin
-            Currency.Get(GenJnlLine."Currency Code");
-            Currency.TestField("Amount Rounding Precision");
+            Currency2.Get(GenJnlLine."Currency Code");
+            Currency2.TestField("Amount Rounding Precision");
         end;
-        exit(1 / Currency."Amount Rounding Precision");
+        exit(1 / Currency2."Amount Rounding Precision");
     end;
 
     local procedure CheckGenJournalBatchAndLineIsApproved(GenJournalLine: Record "Gen. Journal Line"): Boolean

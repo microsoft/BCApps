@@ -252,7 +252,6 @@ report 1401 Check
                                         begin
                                             CurrentLineAmount := GenJnlLine2.Amount;
                                             LineAmount2 := CurrentLineAmount;
-
                                             if GenJnlLine2."Applies-to ID" <> '' then
                                                 Error(Text016);
                                             GenJnlLine2.TestField("Check Printed", false);
@@ -505,7 +504,6 @@ report 1401 Check
                             CheckLedgEntry."Check Date" := GenJnlLine."Posting Date";
                             CheckLedgEntry."Check No." := UseCheckNo;
                             CheckManagement.InsertCheck(CheckLedgEntry, GenJnlLine.RecordId);
-
                             if FoundLast and AddedRemainingAmount then begin
                                 if BankAcc2."Currency Code" <> '' then
                                     Currency.Get(BankAcc2."Currency Code")
@@ -515,14 +513,19 @@ report 1401 Check
                                 Decimals := CheckLedgEntry.Amount - Round(CheckLedgEntry.Amount, 1, '<');
                                 if StrLen(Format(Decimals)) < StrLen(Format(Currency."Amount Rounding Precision")) then
                                     if Decimals = 0 then
-                                        CheckAmountText := Format(CheckLedgEntryAmount, 0, 0) +
-                                          CopyStr(Format(0.01), 2, 1) +
-                                          PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - 2, '0')
+                                        CheckAmountText :=
+                                            CopyStr(
+                                                Format(CheckLedgEntryAmount, 0, 0) +
+                                                CopyStr(Format(0.01), 2, 1) + PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - 2, '0'),
+                                                1, 30)
                                     else
-                                        CheckAmountText := Format(CheckLedgEntryAmount, 0, 0) +
-                                          PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - StrLen(Format(Decimals)), '0')
+                                        CheckAmountText :=
+                                            CopyStr(
+                                                Format(CheckLedgEntryAmount, 0, 0) +
+                                                PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - StrLen(Format(Decimals)), '0'),
+                                                1, 30)
                                 else
-                                    CheckAmountText := Format(CheckLedgEntryAmount, 0, 0);
+                                    CheckAmountText := CopyStr(Format(CheckLedgEntryAmount, 0, 0), 1, 30);
                                 FormatNoText(DescriptionLine, CheckLedgEntry.Amount, BankAcc2."Currency Code");
                                 VoidText := '';
                             end else begin
@@ -533,8 +536,7 @@ report 1401 Check
                                 DescriptionLine[2] := DescriptionLine[1];
                                 VoidText := Text022;
                             end;
-                        end
-                        else begin
+                        end else begin
                             CheckLedgEntry.Init();
                             CheckLedgEntry."Bank Account No." := BankAcc2."No.";
                             CheckLedgEntry."Posting Date" := GenJnlLine."Posting Date";
@@ -1204,7 +1206,6 @@ report 1401 Check
 
         LineAmount2 :=
           Round(ExchangeAmt(GenJnlLine."Currency Code", CurrencyCode2, LineAmount), Currency."Amount Rounding Precision");
-
         if ((VendLedgEntry2."Document Type" in [VendLedgEntry2."Document Type"::Invoice,
                                                 VendLedgEntry2."Document Type"::"Credit Memo"]) and
             (VendLedgEntry2."Remaining Pmt. Disc. Possible" <> 0) and
@@ -1219,7 +1220,6 @@ report 1401 Check
               Round(
                 -ExchangeAmt(
                   GenJnlLine."Currency Code", CurrencyCode2, VendLedgEntry2."Amount to Apply"), Currency."Amount Rounding Precision");
-
             if ApplyMethod <> ApplyMethod::OneLineID then
                 if Abs(RemainingAmount2) < Abs(LineAmount2) then
                     LineAmount2 := RemainingAmount2;
@@ -1369,15 +1369,15 @@ report 1401 Check
 
     local procedure GetAmtDecimalPosition(): Decimal
     var
-        Currency: Record Currency;
+        Currency2: Record Currency;
     begin
         if GenJnlLine."Currency Code" = '' then
-            Currency.InitRoundingPrecision()
+            Currency2.InitRoundingPrecision()
         else begin
-            Currency.Get(GenJnlLine."Currency Code");
-            Currency.TestField("Amount Rounding Precision");
+            Currency2.Get(GenJnlLine."Currency Code");
+            Currency2.TestField("Amount Rounding Precision");
         end;
-        exit(1 / Currency."Amount Rounding Precision");
+        exit(1 / Currency2."Amount Rounding Precision");
     end;
 
     local procedure CheckGenJournalBatchAndLineIsApproved(GenJournalLine: Record "Gen. Journal Line"): Boolean
