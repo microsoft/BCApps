@@ -1877,7 +1877,7 @@ codeunit 18131 "GST On Purchase Tests"
                     exit;
 
         if not TaxType.Get(GSTTaxTypeLbl) then
-            TaxEngineAssistedSetup.SetupTaxEngine();
+            TaxEngineAssistedSetup.OnImportTaxTypeFromLibrary(GSTTaxTypeLbl);
         TaxType.Get(GSTTaxTypeLbl);
 
         if not GSTSetup.Get() then begin
