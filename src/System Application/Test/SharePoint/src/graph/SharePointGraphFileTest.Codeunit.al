@@ -25,6 +25,7 @@ codeunit 132983 "SharePoint Graph File Test"
         SharePointGraphClient: Codeunit "SharePoint Graph Client";
         LibraryAssert: Codeunit "Library Assert";
         SharePointUrlLbl: Label 'https://contoso.sharepoint.com/sites/test', Locked = true;
+        DefaultDriveIdLbl: Label 'b!mR2-5tV1S-RO3C82s1DNbdCrWBwFQKFUoOB6bTlXClvD9fcjLXO5TbNk5sDyD7c8', Locked = true;
         IsInitialized: Boolean;
 
     [Test]
@@ -69,6 +70,7 @@ codeunit 132983 "SharePoint Graph File Test"
         HttpContent: Codeunit "Http Content";
         MockHttpContent: Codeunit "Http Content";
         MockHttpResponseMessage: Codeunit "Http Response Message";
+        HttpRequestMessage: Codeunit "Http Request Message";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         TempBlob: Codeunit "Temp Blob";
         FileInStream: InStream;
@@ -76,6 +78,7 @@ codeunit 132983 "SharePoint Graph File Test"
     begin
         // [GIVEN] Mock response for DownloadFile
         Initialize();
+        SharePointGraphClient.SetDefaultDriveIdForTesting('');
         MockHttpResponseMessage.SetHttpStatusCode(200);
         MockHttpContent := HttpContent.Create('Downloaded file content');
         MockHttpResponseMessage.SetContent(MockHttpContent);
@@ -83,12 +86,16 @@ codeunit 132983 "SharePoint Graph File Test"
 
         // [WHEN] Calling DownloadFile
         SharePointGraphResponse := SharePointGraphClient.DownloadFile('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempBlob);
+        SharePointGraphTestLibrary.GetHttpRequestMessage(HttpRequestMessage);
+        SharePointGraphClient.SetDefaultDriveIdForTesting(DefaultDriveIdLbl);
 
         // [THEN] Operation should succeed and return the file content
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'DownloadFile should succeed');
         TempBlob.CreateInStream(FileInStream);
         FileInStream.ReadText(Content);
         LibraryAssert.AreEqual('Downloaded file content', Content, 'File content should match');
+        LibraryAssert.IsTrue(HttpRequestMessage.GetRequestUri().Contains('/drive/items/01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ/content'), 'Default overload should use the default-drive endpoint');
+        LibraryAssert.IsFalse(HttpRequestMessage.GetRequestUri().Contains('/drives/'), 'Default overload should not use a drive-specific endpoint');
     end;
 
     [Test]
@@ -98,12 +105,14 @@ codeunit 132983 "SharePoint Graph File Test"
         HttpContent: Codeunit "Http Content";
         MockHttpContent: Codeunit "Http Content";
         MockHttpResponseMessage: Codeunit "Http Response Message";
+        HttpRequestMessage: Codeunit "Http Request Message";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         FileInStream: InStream;
         Content: Text;
     begin
         // [GIVEN] Mock response for DownloadFileByPath
         Initialize();
+        SharePointGraphClient.SetDefaultDriveIdForTesting('');
         MockHttpResponseMessage.SetHttpStatusCode(200);
         MockHttpContent := HttpContent.Create('Downloaded file content by path');
         MockHttpResponseMessage.SetContent(MockHttpContent);
@@ -111,12 +120,84 @@ codeunit 132983 "SharePoint Graph File Test"
 
         // [WHEN] Calling DownloadFileByPath
         SharePointGraphResponse := SharePointGraphClient.DownloadFileByPath('Documents/Test.txt', TempBlob);
+        SharePointGraphTestLibrary.GetHttpRequestMessage(HttpRequestMessage);
+        SharePointGraphClient.SetDefaultDriveIdForTesting(DefaultDriveIdLbl);
 
         // [THEN] Operation should succeed and return the file content
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'DownloadFileByPath should succeed');
         TempBlob.CreateInStream(FileInStream);
         FileInStream.ReadText(Content);
         LibraryAssert.AreEqual('Downloaded file content by path', Content, 'File content should match');
+        LibraryAssert.IsTrue(HttpRequestMessage.GetRequestUri().Contains('/drive/root:/Documents/Test.txt:/content'), 'Default overload should use the default-drive path endpoint');
+        LibraryAssert.IsFalse(HttpRequestMessage.GetRequestUri().Contains('/drives/'), 'Default overload should not use a drive-specific endpoint');
+    end;
+
+    [Test]
+    procedure TestDownloadFileFromSpecificDrive()
+    var
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create('Downloaded file content');
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        SharePointGraphResponse := SharePointGraphClient.DownloadFile('specific-drive-id', 'specific-item-id', TempBlob);
+
+        SharePointGraphTestLibrary.GetHttpRequestMessage(HttpRequestMessage);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'Drive-specific DownloadFile should succeed');
+        LibraryAssert.IsTrue(HttpRequestMessage.GetRequestUri().Contains('/drives/specific-drive-id/items/specific-item-id/content'), 'Drive-specific overload should include the supplied drive ID');
+    end;
+
+    [Test]
+    procedure TestDownloadFileByPathFromSpecificDrive()
+    var
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create('Downloaded file content');
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        SharePointGraphResponse := SharePointGraphClient.DownloadFileByPath('specific-drive-id', 'Documents/Test.txt', TempBlob);
+
+        SharePointGraphTestLibrary.GetHttpRequestMessage(HttpRequestMessage);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'Drive-specific DownloadFileByPath should succeed');
+        LibraryAssert.IsTrue(HttpRequestMessage.GetRequestUri().Contains('/drives/specific-drive-id/root:/Documents/Test.txt:/content'), 'Drive-specific path overload should include the supplied drive ID');
+    end;
+
+    [Test]
+    procedure TestDownloadFileParameterValidation()
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        Initialize();
+
+        SharePointGraphResponse := SharePointGraphClient.DownloadFile('', TempBlob);
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('Item ID'), 'Default ID overload should reject an empty item ID');
+        SharePointGraphResponse := SharePointGraphClient.DownloadFileByPath('', TempBlob);
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('File path'), 'Default path overload should reject an empty file path');
+        SharePointGraphResponse := SharePointGraphClient.DownloadFile('', 'item-id', TempBlob);
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('Drive ID'), 'Drive-specific ID overload should reject an empty drive ID');
+        SharePointGraphResponse := SharePointGraphClient.DownloadFile('drive-id', '', TempBlob);
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('Item ID'), 'Drive-specific ID overload should reject an empty item ID');
+        SharePointGraphResponse := SharePointGraphClient.DownloadFileByPath('', 'Documents/Test.txt', TempBlob);
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('Drive ID'), 'Drive-specific path overload should reject an empty drive ID');
+        SharePointGraphResponse := SharePointGraphClient.DownloadFileByPath('drive-id', '', TempBlob);
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('File path'), 'Drive-specific path overload should reject an empty file path');
     end;
 
     [Test]
@@ -266,7 +347,7 @@ codeunit 132983 "SharePoint Graph File Test"
 
         // Set test IDs to prevent HTTP calls for site and drive discovery
         SharePointGraphClient.SetSiteIdForTesting('contoso.sharepoint.com,e6991d99-75d5-4be4-4ede-2c82b1d40cd6,1b58abad-4105-4125-a0e0-7a6d39571a5b');
-        SharePointGraphClient.SetDefaultDriveIdForTesting('b!mR2-5tV1S-RO3C82s1DNbdCrWBwFQKFUoOB6bTlXClvD9fcjLXO5TbNk5sDyD7c8');
+        SharePointGraphClient.SetDefaultDriveIdForTesting(DefaultDriveIdLbl);
 
         IsInitialized := true;
     end;
