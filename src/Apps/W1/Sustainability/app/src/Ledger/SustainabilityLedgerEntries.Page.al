@@ -292,6 +292,7 @@ page 6220 "Sustainability Ledger Entries"
                     RunPageLink = "Sust. Ledger Entry No." = field("Entry No.");
                     Scope = Repeater;
                     ToolTip = 'View the general ledger entries that were collected into the selected sustainability entry.';
+                    Visible = ShowPostedEntryActions;
                 }
             }
         }
@@ -304,6 +305,7 @@ page 6220 "Sustainability Ledger Entries"
                 Image = Navigate;
                 ShortCutKey = 'Ctrl+Alt+Q';
                 ToolTip = 'Find entries and documents that exist for the document number and posting date on the selected document. (Formerly this action was named Navigate.)';
+                Visible = ShowPostedEntryActions;
 
                 trigger OnAction()
                 begin
@@ -317,6 +319,7 @@ page 6220 "Sustainability Ledger Entries"
                 Caption = 'Reverse Transaction';
                 ToolTip = 'Reverse the selected sustainability ledger entry by creating a new entry with negated emission values.';
                 Image = ReverseRegister;
+                Visible = ShowPostedEntryActions;
 
                 trigger OnAction()
                 var
@@ -355,16 +358,24 @@ page 6220 "Sustainability Ledger Entries"
     }
 
     var
+        SustPreviewPostInstance: Codeunit "Sust. Preview Post Instance";
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
         NavigatePage: Page Navigate;
         Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible : Boolean;
+        ShowPostedEntryActions: Boolean;
         DimensionCaptionLbl: Label '%1 %2', Locked = true;
         ReversalSuccessMsg: Label 'The entry has been successfully reversed.';
         ReversalMultipleSuccessMsg: Label '%1 entries have been successfully reversed.', Comment = '%1 = Count';
 
     trigger OnOpenPage()
     begin
+        ShowPostedEntryActions := true;
         SetDimVisibility();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        ShowPostedEntryActions := not (Rec.IsTemporary() and SustPreviewPostInstance.IsPreviewLedgerEntry(Rec."Entry No."));
     end;
 
     local procedure SetDimVisibility()
