@@ -13,7 +13,7 @@ codeunit 5290 "Xml Helper SAF-T"
 
     var
         AuditFileExportSetup: Record "Audit File Export Setup";
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        XMLUtilities: Codeunit "XML Utilities";
         CurrRecRef: RecordRef;
         XmlDataHandlingSAFT: Interface XmlDataHandlingSAFT;
         XMLDoc: XmlDocument;
@@ -40,7 +40,7 @@ codeunit 5290 "Xml Helper SAF-T"
         Clear(CurrXMLElement);
         Depth := 0;
 
-        UTF8BOMSymbols := XMLDOMManagement.GetUTF8BOMSymbols();
+        UTF8BOMSymbols := XMLUtilities.GetUtf8BomSymbols();
 
         InitXmlDataHandlingInterface();
         XmlDataHandlingSAFT.GetAuditFileNamespace(NamespacePrefix, NamespaceUri);

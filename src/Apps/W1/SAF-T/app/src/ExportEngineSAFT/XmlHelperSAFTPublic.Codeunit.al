@@ -11,7 +11,7 @@ codeunit 5292 "Xml Helper SAF-T Public"
     Access = Public;
 
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        XMLUtilities: Codeunit "XML Utilities";
         CurrXmlElement: array[100] of XmlElement;
         NamespaceUri: Text;
         UTF8BOMSymbols: Text;
@@ -27,7 +27,7 @@ codeunit 5292 "Xml Helper SAF-T Public"
     begin
         Clear(CurrXmlElement);
         Depth := 1;
-        UTF8BOMSymbols := XMLDOMManagement.GetUTF8BOMSymbols();
+        UTF8BOMSymbols := XMLUtilities.GetUtf8BomSymbols();
         CreateRootElement('DummyRootNode', '');
         IsInitialized := true;
     end;

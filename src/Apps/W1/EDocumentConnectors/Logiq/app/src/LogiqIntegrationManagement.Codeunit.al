@@ -265,7 +265,7 @@ codeunit 6432 "Logiq Integration Management"
 
     local procedure GetFileContentAsMultipart(FileBlob: Codeunit "Temp Blob"; FileName: Text; Boundary: Text): Text
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        XMLUtilities: Codeunit "XML Utilities";
         MultiPartContentBuilder: TextBuilder;
         BizDoc: Text;
         InStr: InStream;
@@ -274,7 +274,7 @@ codeunit 6432 "Logiq Integration Management"
 
         // bizDoc
         FileBlob.CreateInStream(InStr, TextEncoding::UTF8);
-        XMLDOMManagement.TryGetXMLAsText(InStr, BizDoc);
+        XMLUtilities.TryGetXmlAsText(InStr, BizDoc);
 
         MultiPartContentBuilder.AppendLine(StrSubstNo(this.ContentTok, FileName));
         MultiPartContentBuilder.AppendLine(this.ContentTypeMultipartTok);
