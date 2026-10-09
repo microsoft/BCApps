@@ -470,12 +470,12 @@ codeunit 136611 "ERM RS Dimensions as Columns"
     local procedure SetXMLNodeValue(var PackageXML: XmlDocument; NodeName: Text[250]; NodeValue: Code[20])
     var
         XMLNode: XmlNode;
-        FieldElement: XmlElement;
+        ValueElement: XmlElement;
     begin
         PackageXML.SelectSingleNode('//' + NodeName, XMLNode);
-        FieldElement := XMLNode.AsXmlElement();
-        FieldElement.RemoveNodes();
-        FieldElement.Add(XmlText.Create(NodeValue));
+        ValueElement := XMLNode.AsXmlElement();
+        ValueElement.RemoveNodes();
+        ValueElement.Add(XmlText.Create(NodeValue));
     end;
 
     local procedure FindDimensionWithValue(var DimVal: Record "Dimension Value")

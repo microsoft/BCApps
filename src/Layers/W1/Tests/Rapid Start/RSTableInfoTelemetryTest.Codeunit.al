@@ -15,8 +15,8 @@ codeunit 139191 "RS Table Info Telemetry Test"
     procedure PaymentTerms_TwoRecords_TenFields()
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        TableNode: XmlElement;
         SampleTableRecordRef: RecordRef;
+        TableNode: XmlElement;
         CurrTableName: Text;
         CurrRecordCount: Integer;
         TotalTableFields: Integer;
@@ -42,8 +42,8 @@ codeunit 139191 "RS Table Info Telemetry Test"
     procedure Currency_ZeroRecords_ZeroFields()
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        TableNode: XmlElement;
         SampleTableRecordRef: RecordRef;
+        TableNode: XmlElement;
         CurrTableName: Text;
         CurrRecordCount: Integer;
         TotalTableFields: Integer;
@@ -69,8 +69,8 @@ codeunit 139191 "RS Table Info Telemetry Test"
     procedure FinanceChargeTerms_OneRecord_FifteenFields()
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        TableNode: XmlElement;
         SampleTableRecordRef: RecordRef;
+        TableNode: XmlElement;
         CurrTableName: Text;
         CurrRecordCount: Integer;
         TotalTableFields: Integer;

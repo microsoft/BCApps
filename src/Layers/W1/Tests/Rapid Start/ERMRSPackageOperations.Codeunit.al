@@ -1010,7 +1010,7 @@ codeunit 136603 "ERM RS Package Operations"
 
         LibrarySales.CreateCustomer(Customer);
         RecRef.GetTable(Customer);
-        AddConfigPackageTableToXML(PackageXMLDoc, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
         // [GIVEN] PAckage is imported from XML
         ConfigXMLExchange.ImportPackageXMLDocument(PackageXMLDoc, '');
 
@@ -3238,14 +3238,14 @@ codeunit 136603 "ERM RS Package Operations"
         IncludeField(ConfigPackageTable, 0, false);
         IncludeField(ConfigPackageTable, Country.FieldNo(Code), true);
         RecRef.GetTable(Country);
-        AddConfigPackageTableToXML(PackageXMLDoc, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
         // Add LocationList
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::Location);
         IncludeField(ConfigPackageTable, 0, false);
         IncludeField(ConfigPackageTable, Location.FieldNo(Code), true);
         IncludeField(ConfigPackageTable, Location.FieldNo("Country/Region Code"), true);
         RecRef.GetTable(Location);
-        AddConfigPackageTableToXML(PackageXMLDoc, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
 
         Country.Delete();
         Location.Delete();
@@ -3297,15 +3297,15 @@ codeunit 136603 "ERM RS Package Operations"
 
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"General Posting Setup");
         RecRef.GetTable(GeneralPostingSetup);
-        AddConfigPackageTableToXML(PackageXMLDoc, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
 
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Gen. Business Posting Group");
         RecRef.GetTable(GenBusPostingGroup);
-        AddConfigPackageTableToXML(PackageXMLDoc, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
 
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Gen. Product Posting Group");
         RecRef.GetTable(GenProductPostingGroup);
-        AddConfigPackageTableToXML(PackageXMLDoc, DocumentElement, ConfigPackageTable, RecRef);
+        AddConfigPackageTableToXML(DocumentElement, ConfigPackageTable, RecRef);
 
         GenProductPostingGroup.Delete();
         GenBusPostingGroup.Delete();
@@ -3322,7 +3322,7 @@ codeunit 136603 "ERM RS Package Operations"
         ParentNode.Add(Node);
     end;
 
-    local procedure AddConfigPackageTableToXML(var PackageXMLDoc: XmlDocument; DocumentElement: XmlElement; ConfigPackageTable: Record "Config. Package Table"; RecRef: RecordRef)
+    local procedure AddConfigPackageTableToXML(DocumentElement: XmlElement; ConfigPackageTable: Record "Config. Package Table"; RecRef: RecordRef)
     var
         ConfigPackageField: Record "Config. Package Field";
         FieldRef: FieldRef;
