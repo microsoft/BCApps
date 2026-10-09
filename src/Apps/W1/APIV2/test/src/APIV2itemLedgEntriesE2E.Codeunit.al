@@ -3,6 +3,7 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -25,9 +26,14 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         LibraryApplicationArea.EnableFoundationSetup();
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateVATPostingSetup();
@@ -107,7 +113,6 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
         exit(CountryRegion.Code);
     end;
 }
-
 
 
 

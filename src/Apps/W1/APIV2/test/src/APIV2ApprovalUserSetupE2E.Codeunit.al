@@ -1,6 +1,5 @@
 codeunit 139918 "APIV2 - Approval UserSetup E2E"
 {
-
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
@@ -20,6 +19,8 @@ codeunit 139918 "APIV2 - Approval UserSetup E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Check that approval user setup can be retrieved via API
 
         // [GIVEN] an Approval User Setup exists
@@ -38,5 +39,11 @@ codeunit 139918 "APIV2 - Approval UserSetup E2E"
             Assert.ExpectedError('Request failed with error: ' + GetLastErrorText());
 
         Assert.IsTrue(LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', UserSetupId), 'Could not find approval user setup');
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }
