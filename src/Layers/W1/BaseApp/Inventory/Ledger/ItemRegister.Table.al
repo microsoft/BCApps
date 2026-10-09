@@ -134,6 +134,7 @@ table 46 "Item Register"
         }
     }
 
+#pragma warning disable AS0024
     procedure GetNextEntryNo(UseLegacyPosting: Boolean): BigInteger
     begin
         if not UseLegacyPosting then
@@ -149,6 +150,7 @@ table 46 "Item Register"
     begin
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Item Register"));
     end;
+#pragma warning restore AS0024
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Register", 'r')]
     procedure GetLastEntryNo(): BigInteger;

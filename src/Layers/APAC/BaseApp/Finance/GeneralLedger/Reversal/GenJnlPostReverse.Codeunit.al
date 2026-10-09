@@ -987,7 +987,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             until TempReversalEntry.Next() = 0;
     end;
 
-    local procedure DeleteReversalEntries(TransactionKey: Integer)
+    local procedure DeleteReversalEntries(TransactionKey: BigInteger)
     var
         ReversalEntry: Record "Reversal Entry";
         IsHandled: Boolean;
@@ -1061,7 +1061,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         GSTPurchaseEntry2: Record "GST Purchase Entry";
         GSTSalesEntry: Record "GST Sales Entry";
         GSTSalesEntry2: Record "GST Sales Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         GeneralLedgerSetup.Get();
         if not GeneralLedgerSetup."GST Report" then
@@ -1405,7 +1405,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="GLEntry2">G/L entry records to be reversed</param>
     /// <param name="GLRegister">G/L register for the reversal</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: Record "BigInteger"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
+    local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: Record "Integer"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
     begin
     end;
 
@@ -1504,7 +1504,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="ReversalEntry2">Working copy of reversal entries</param>
     /// <param name="TempIntegerAsRevertTransactionNo">Temporary integer record for transaction numbers</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseOnBeforeGetTransactionKey(var ReversalEntry2: Record "Reversal Entry"; var TempIntegerAsRevertTransactionNo: Record "BigInteger" temporary)
+    local procedure OnReverseOnBeforeGetTransactionKey(var ReversalEntry2: Record "Reversal Entry"; var TempIntegerAsRevertTransactionNo: Record "Integer" temporary)
     begin
     end;
 

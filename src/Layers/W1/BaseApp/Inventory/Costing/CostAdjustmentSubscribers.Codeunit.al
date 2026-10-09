@@ -515,7 +515,7 @@ codeunit 5821 "Cost Adjustment Subscribers"
     /// Logs the event of assessing if the revaluation value entry should be excluded from the average cost calculation.
     /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", OnBeforeIsExcludeFromAvgCostForRevalPoint, '', false, false)]
-    local procedure OnBeforeIsExcludeFromAvgCostForRevalPoint(var RevaluationPoint: Record "BigInteger"; var RevaluationCheckValueEntry: Record "Value Entry"; var OutbndValueEntry: Record "Value Entry")
+    local procedure OnBeforeIsExcludeFromAvgCostForRevalPoint(var RevaluationPoint: Record "Integer"; var RevaluationCheckValueEntry: Record "Value Entry"; var OutbndValueEntry: Record "Value Entry")
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
