@@ -17,7 +17,9 @@ using System;
 using System.Automation;
 using System.Security.AccessControl;
 using System.Security.User;
+#if not CLEAN30
 using System.TestLibraries.Environment;
+#endif
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
