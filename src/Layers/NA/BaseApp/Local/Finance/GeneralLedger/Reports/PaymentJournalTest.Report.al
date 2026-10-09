@@ -675,7 +675,7 @@ report 10089 "Payment Journal - Test"
                                     "Account Type"::"Fixed Asset":
                                         CheckFixedAsset("Gen. Journal Line", AccName);
                                     "Account Type"::"IC Partner":
-                                        CheckICPartner("Gen. Journal Line", AccName);
+                                        CheckICPartnerAcc("Gen. Journal Line", AccName);
                                 end;
                             if "Bal. Account No." <> '' then begin
                                 ExchAccGLJnlLine.Run("Gen. Journal Line");
@@ -691,7 +691,7 @@ report 10089 "Payment Journal - Test"
                                     "Account Type"::"Fixed Asset":
                                         CheckFixedAsset("Gen. Journal Line", BalAccName);
                                     "Account Type"::"IC Partner":
-                                        CheckICPartner("Gen. Journal Line", AccName);
+                                        CheckICPartnerAcc("Gen. Journal Line", AccName);
                                 end;
                                 ExchAccGLJnlLine.Run("Gen. Journal Line");
                             end;
@@ -754,22 +754,22 @@ report 10089 "Payment Journal - Test"
                         GenJnlLine2.Reset();
                         GenJnlLine2.CopyFilters("Gen. Journal Line");
 
-                        TempGLAccNetChange.DeleteAll();
+                        GLAccNetChange.DeleteAll();
                     end;
                 }
                 dataitem(ReconcileLoop; "Integer")
                 {
                     DataItemTableView = sorting(Number);
-                    column(GLAccNetChange__No__; TempGLAccNetChange."No.")
+                    column(GLAccNetChange__No__; GLAccNetChange."No.")
                     {
                     }
-                    column(GLAccNetChange_Name; TempGLAccNetChange.Name)
+                    column(GLAccNetChange_Name; GLAccNetChange.Name)
                     {
                     }
-                    column(GLAccNetChange__Net_Change_in_Jnl__; TempGLAccNetChange."Net Change in Jnl.")
+                    column(GLAccNetChange__Net_Change_in_Jnl__; GLAccNetChange."Net Change in Jnl.")
                     {
                     }
-                    column(GLAccNetChange__Balance_after_Posting_; TempGLAccNetChange."Balance after Posting")
+                    column(GLAccNetChange__Balance_after_Posting_; GLAccNetChange."Balance after Posting")
                     {
                     }
                     column(ReconcileLoop_Number; Number)
@@ -794,19 +794,19 @@ report 10089 "Payment Journal - Test"
                     trigger OnAfterGetRecord()
                     begin
                         if Number = 1 then
-                            TempGLAccNetChange.Find('-')
+                            GLAccNetChange.Find('-')
                         else
-                            TempGLAccNetChange.Next();
+                            GLAccNetChange.Next();
                     end;
 
                     trigger OnPostDataItem()
                     begin
-                        TempGLAccNetChange.DeleteAll();
+                        GLAccNetChange.DeleteAll();
                     end;
 
                     trigger OnPreDataItem()
                     begin
-                        SetRange(Number, 1, TempGLAccNetChange.Count);
+                        SetRange(Number, 1, GLAccNetChange.Count);
                     end;
                 }
             }
@@ -946,7 +946,7 @@ report 10089 "Payment Journal - Test"
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         FASetup: Record "FA Setup";
-        TempGLAccNetChange: Record "G/L Account Net Change" temporary;
+        GLAccNetChange: Record "G/L Account Net Change" temporary;
         CompanyInformation: Record "Company Information";
         DimSetEntry: Record "Dimension Set Entry";
         ExchAccGLJnlLine: Codeunit "Exchange Acc. G/L Journal Line";
@@ -1255,18 +1255,18 @@ report 10089 "Payment Journal - Test"
 
     local procedure ReconcileGLAccNo(GLAccNo: Code[20]; ReconcileAmount: Decimal)
     begin
-        if not TempGLAccNetChange.Get(GLAccNo) then begin
+        if not GLAccNetChange.Get(GLAccNo) then begin
             GLAcc.Get(GLAccNo);
             GLAcc.CalcFields("Balance at Date");
-            TempGLAccNetChange.Init();
-            TempGLAccNetChange."No." := GLAcc."No.";
-            TempGLAccNetChange.Name := GLAcc.Name;
-            TempGLAccNetChange."Balance after Posting" := GLAcc."Balance at Date";
-            TempGLAccNetChange.Insert();
+            GLAccNetChange.Init();
+            GLAccNetChange."No." := GLAcc."No.";
+            GLAccNetChange.Name := GLAcc.Name;
+            GLAccNetChange."Balance after Posting" := GLAcc."Balance at Date";
+            GLAccNetChange.Insert();
         end;
-        TempGLAccNetChange."Net Change in Jnl." := TempGLAccNetChange."Net Change in Jnl." + ReconcileAmount;
-        TempGLAccNetChange."Balance after Posting" := TempGLAccNetChange."Balance after Posting" + ReconcileAmount;
-        TempGLAccNetChange.Modify();
+        GLAccNetChange."Net Change in Jnl." := GLAccNetChange."Net Change in Jnl." + ReconcileAmount;
+        GLAccNetChange."Balance after Posting" := GLAccNetChange."Balance after Posting" + ReconcileAmount;
+        GLAccNetChange.Modify();
     end;
 
     local procedure CheckGLAcc(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100])
@@ -1597,7 +1597,15 @@ report 10089 "Payment Journal - Test"
         end;
     end;
 
-    procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100])
+#if not CLEAN29
+    [Obsolete('Use CheckICPartner procedure in Gen. Journal Line instead', '29.0')]
+    procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName2: Text[100])
+    begin
+        CheckICPartnerAcc(GenJnlLine, AccName2);
+    end;
+#endif
+
+    local procedure CheckICPartnerAcc(var GenJnlLine: Record "Gen. Journal Line"; var AccName2: Text[100])
     begin
         if not ICPartner.Get(GenJnlLine."Account No.") then
             AddError(
@@ -1605,7 +1613,7 @@ report 10089 "Payment Journal - Test"
                 Text031,
                 ICPartner.TableCaption(), GenJnlLine."Account No."))
         else begin
-            AccName := ICPartner.Name;
+            AccName2 := ICPartner.Name;
             if ICPartner.Blocked then
                 AddError(
                   StrSubstNo(
@@ -2008,4 +2016,3 @@ report 10089 "Payment Journal - Test"
             end;
     end;
 }
-

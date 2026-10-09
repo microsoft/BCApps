@@ -24,7 +24,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
@@ -128,8 +127,6 @@ table 17 "G/L Entry"
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account"
             else
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Bal. Account Type" = const("IC Partner")) "IC Partner"
             else
             if ("Bal. Account Type" = const(Employee)) Employee;
         }
@@ -488,8 +485,6 @@ table 17 "G/L Entry"
         field(72; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Indicates whether this entry has been reversed.
@@ -818,29 +813,29 @@ table 17 "G/L Entry"
         key(Key7; "Transaction No.")
         {
         }
-        key(Key8; "Posting Date", "No. Series", "Document No.")
+        key(Key8; "IC Partner Code")
+        {
+        }
+        key(Key9; "G/L Account No.", "Job No.", "Posting Date")
+        {
+            SumIndexFields = Amount;
+        }
+        key(Key10; "Posting Date", "G/L Account No.", "Dimension Set ID")
+        {
+            SumIndexFields = Amount;
+        }
+        key(Key11; "Gen. Bus. Posting Group", "Gen. Prod. Posting Group")
+        {
+        }
+        key(Key12; "VAT Bus. Posting Group", "VAT Prod. Posting Group")
+        {
+        }
+        key(Key13; "Dimension Set ID")
+        {
+        }
+        key(Key14; "Posting Date", "No. Series", "Document No.")
         {
             SumIndexFields = "Debit Amount", "Credit Amount";
-        }
-        key(Key9; "IC Partner Code")
-        {
-        }
-        key(Key10; "G/L Account No.", "Job No.", "Posting Date")
-        {
-            SumIndexFields = Amount;
-        }
-        key(Key11; "Posting Date", "G/L Account No.", "Dimension Set ID")
-        {
-            SumIndexFields = Amount;
-        }
-        key(Key12; "Gen. Bus. Posting Group", "Gen. Prod. Posting Group")
-        {
-        }
-        key(Key13; "VAT Bus. Posting Group", "VAT Prod. Posting Group")
-        {
-        }
-        key(Key14; "Dimension Set ID")
-        {
         }
     }
 
@@ -1022,10 +1017,6 @@ table 17 "G/L Entry"
                 "Source Type" := GenJnlLine."Account Type";
             "Source No." := GenJnlLine."Account No.";
         end;
-        if (GenJnlLine."Account Type" = GenJnlLine."Account Type"::"IC Partner") or
-           (GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"IC Partner")
-        then
-            "Source Type" := "Source Type"::" ";
         "Job No." := GenJnlLine."Job No.";
         Quantity := GenJnlLine.Quantity;
         "Journal Templ. Name" := GenJnlLine."Journal Template Name";
@@ -1033,7 +1024,6 @@ table 17 "G/L Entry"
         "Reason Code" := GenJnlLine."Reason Code";
         "User ID" := CopyStr(UserId(), 1, MaxStrLen("User ID"));
         "No. Series" := GenJnlLine."Posting No. Series";
-        "IC Partner Code" := GenJnlLine."IC Partner Code";
         "Prod. Order No." := GenJnlLine."Prod. Order No.";
 
         OnAfterCopyGLEntryFromGenJnlLine(Rec, GenJnlLine);

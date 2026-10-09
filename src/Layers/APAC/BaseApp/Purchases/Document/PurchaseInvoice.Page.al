@@ -1363,24 +1363,6 @@ page 51 "Purchase Invoice"
                         CurrPage.PurchLines.PAGE.ClearTotalPurchaseHeader();
                     end;
                 }
-                action("Reject IC Purchase Invoice")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Reject IC Purchase Invoice';
-                    Enabled = RejectICPurchaseInvoiceEnabled;
-                    Image = Cancel;
-                    ToolTip = 'Deletes the invoice and sends the rejection to the company that created it.';
-
-                    trigger OnAction()
-                    var
-                        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-                    begin
-                        if not ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec) then
-                            exit;
-                        if Confirm(SureToRejectMsg) then
-                            ICInboxOutboxMgt.RejectAcceptedPurchaseHeader(Rec);
-                    end;
-                }
             }
             group("F&unctions")
             {
@@ -1951,7 +1933,6 @@ page 51 "Purchase Invoice"
         ShowWorkflowStatus: Boolean;
         JobQueuesUsed: Boolean;
         ICIncomingInvoiceFromOriginalOrderMsg: Label 'This invoice was received through intercompany and it''s related to the purchase %1 with no. %2. You can delete that order and post this invoice.', Comment = '%1 - either "order", "invoice", or "posted invoice", %2 - a code';
-        SureToRejectMsg: Label 'Rejecting this invoice will remove it from your company and send it back to the partner company.\\ Do you want to continue?';
         OpenPostedPurchaseInvQst: Label 'The invoice is posted as number %1 and moved to the Posted Purchase Invoices window.\\Do you want to open the posted invoice?', Comment = '%1 = posted document number';
         IsOfficeAddin: Boolean;
         CanCancelApprovalForRecord: Boolean;

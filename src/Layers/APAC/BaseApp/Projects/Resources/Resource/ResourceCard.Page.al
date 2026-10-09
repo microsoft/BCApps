@@ -153,10 +153,6 @@ page 76 "Resource Card"
                 {
                     ApplicationArea = Jobs;
                 }
-                field("IC Partner Purch. G/L Acc. No."; Rec."IC Partner Purch. G/L Acc. No.")
-                {
-                    ApplicationArea = Jobs;
-                }
             }
             group("Personal Data")
             {

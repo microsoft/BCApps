@@ -35,11 +35,6 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Graph;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -58,7 +53,6 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Setup;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -178,7 +172,6 @@ codeunit 80 "Sales-Post"
         TempWhseSplitSpecification: Record "Tracking Specification" temporary;
         TempValueEntryRelation: Record "Value Entry Relation" temporary;
         JobTaskSalesLine: Record "Sales Line";
-        TempICGenJnlLine: Record "Gen. Journal Line" temporary;
         TempPrepmtDeductLCYSalesLine: Record "Sales Line" temporary;
         TempSKU: Record "Stockkeeping Unit" temporary;
         TempDeferralHeader: Record "Deferral Header" temporary;
@@ -466,7 +459,6 @@ codeunit 80 "Sales-Post"
         ErrorContextElementProcessLines: Codeunit "Error Context Element";
         ErrorContextElementPostLine: Codeunit "Error Context Element";
         ZeroSalesLineRecID: RecordId;
-        ICGenJnlLineNo: Integer;
         LineCount: Integer;
         BiggestLineNo: Integer;
         HasATOShippedNotInvoiced: Boolean;
@@ -515,7 +507,7 @@ codeunit 80 "Sales-Post"
 
                 PostSalesLine(
                   SalesHeader, TempSalesLineGlobal, EverythingInvoiced, TempVATAmountLine, TempVATAmountLineRemainder,
-                  TempItemLedgEntryNotInvoiced, HasATOShippedNotInvoiced, TempDropShptPostBuffer, ICGenJnlLineNo);
+                  TempItemLedgEntryNotInvoiced, HasATOShippedNotInvoiced, TempDropShptPostBuffer);
 
                 UpdateInvoiceRounding(SalesHeader, BiggestLineNo);
 
@@ -534,8 +526,7 @@ codeunit 80 "Sales-Post"
         ErrorMessageMgt.PopContext(ErrorContextElementProcessLines);
         ErrorMessageMgt.Finish(ZeroSalesLineRecID);
 
-        SendICDocument(SalesHeader);
-        UpdateHandledICInboxTransaction(SalesHeader);
+        OnProcessPostingLinesOnBeforeSendICDocument(SalesHeader);
 
         if not SalesHeader.IsCreditDocType() then begin
             ReverseAmount(TotalSalesLine);
@@ -549,9 +540,6 @@ codeunit 80 "Sales-Post"
             PostInvoice(SalesHeader, CustLedgEntry);
 
         OnRunOnBeforePostICGenJnl(SalesHeader, SalesInvHeader, SalesCrMemoHeader, GenJnlPostLine, SrcCode, GenJnlLineDocType, GenJnlLineDocNo, ReturnRcptHeader, PreviewMode);
-
-        if ICGenJnlLineNo > 0 then
-            PostICGenJnl();
 
         SkipInventoryAdjustment := false;
         OnRunOnBeforeMakeInventoryAdjustment(SalesHeader, SalesInvHeader, GenJnlPostLine, ItemJnlPostLine, PreviewMode, SkipInventoryAdjustment);
@@ -812,7 +800,7 @@ codeunit 80 "Sales-Post"
 
         HandleArchiveUnpostedOrder(SalesHeader);
 
-        CheckICPartnerBlocked(SalesHeader);
+        OnCheckAndUpdateOnBeforeCheckICPartnerBlocked(SalesHeader);
 
         LockTables(SalesHeader);
 
@@ -1010,8 +998,7 @@ codeunit 80 "Sales-Post"
     /// <param name="TempItemLedgEntryNotInvoiced">A temp table that will be filled in with all Assemble-to-order item ledger entries that have not been invoiced yet. Used when posting Item tracking for Shipment if Tracking Specification doesn't exist</param>
     /// <param name="HasATOShippedNotInvoiced">A flag telling whether there are any Assemble-to-order item ledger entries that have not been invoiced yet. Used when posting Item tracking for Shipment if Tracking Specification doesn't exist</param>
     /// <param name="TempDropShptPostBuffer">Return Variable: A temp table that will get an additional entry with Drop Shipment information if it's an Item line.</param>
-    /// <param name="ICGenJnlLineNo">Return Variable: The line number of the Inter Company General Journal Line for that was created, It's only filled if line type is G/L Account.</param>
-    local procedure PostSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var EverythingInvoiced: Boolean; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; var TempItemLedgEntryNotInvoiced: Record "Item Ledger Entry" temporary; HasATOShippedNotInvoiced: Boolean; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var ICGenJnlLineNo: Integer)
+    local procedure PostSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var EverythingInvoiced: Boolean; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; var TempItemLedgEntryNotInvoiced: Record "Item Ledger Entry" temporary; HasATOShippedNotInvoiced: Boolean; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     var
         SalesInvLine: Record "Sales Invoice Line";
         SearchSalesInvLine: Record "Sales Invoice Line";
@@ -1094,7 +1081,7 @@ codeunit 80 "Sales-Post"
 
         case SalesLine.Type of
             SalesLine.Type::"G/L Account":
-                PostGLAccICLine(SalesHeader, SalesLine, ICGenJnlLineNo);
+                OnPostSalesLineOnGLAccount(SalesHeader, SalesLine, xSalesLine, InvoicePostingParameters, SuppressCommit);
             SalesLine.Type::Item:
                 PostItemLine(SalesHeader, SalesLine, TempDropShptPostBuffer, TempPostedATOLink);
             SalesLine.Type::Resource:
@@ -1308,35 +1295,6 @@ codeunit 80 "Sales-Post"
             SalesHeader, GenJnlPostLine, TotalSalesLine, TotalSalesLineLCY, SuppressCommit,
             WhseShptHeader, WhseShip, TempWhseShptHeader, SalesInvHeader, SalesCrMemoHeader, CustLedgEntry,
             SrcCode, GenJnlLineDocNo, GenJnlLineExtDocNo, GenJnlLineDocType, PreviewMode, DropShipOrder);
-    end;
-
-    /// <summary>
-    /// Creates a General Journal Line for Inter Company posting
-    /// </summary>
-    /// <param name="SalesHeader">The sales header of the document that is being posted.</param>
-    /// <param name="SalesLine">The sales line of the document line that is being posted.</param>
-    /// <param name="ICGenJnlLineNo">Return value: The line number of the Inter Company General Journal Line for that was created.</param>
-    local procedure PostGLAccICLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var ICGenJnlLineNo: Integer)
-    begin
-        if (SalesLine."No." <> '') and not SalesLine."System-Created Entry" then begin
-            CheckGLAccountDirectPosting(SalesLine);
-            if (SalesLine."IC Partner Code" <> '') and SalesHeader.Invoice then
-                InsertICGenJnlLine(SalesHeader, xSalesLine, ICGenJnlLineNo);
-        end;
-    end;
-
-    local procedure CheckGLAccountDirectPosting(SalesLine: Record "Sales Line")
-    var
-        GLAcc: Record "G/L Account";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeCheckGLAccountDirectPosting(SalesLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        GLAcc.Get(SalesLine."No.");
-        GLAcc.TestField("Direct Posting", true);
     end;
 
     /// <summary>
@@ -3225,7 +3183,6 @@ codeunit 80 "Sales-Post"
         CRMConnectionSetup: Record "CRM Connection Setup";
         TempSalesLine: Record "Sales Line" temporary;
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         WhseSalesRelease: Codeunit "Whse.-Sales Release";
         ArchiveManagement: Codeunit ArchiveManagement;
         IsHandled: Boolean;
@@ -3320,8 +3277,6 @@ codeunit 80 "Sales-Post"
                 GenJnlPostPreview.ThrowError();
         end;
 
-        ICInboxOutboxMgt.CheckPermissionToSendICTransaction(SalesHeader);
-
         if not (InvtPickPutaway or SuppressCommit or PreviewMode) then
             Commit();
 
@@ -3331,11 +3286,7 @@ codeunit 80 "Sales-Post"
         IsHandled := false;
         OnFinalizePostingOnBeforeCreateOutboxSalesTrans(SalesHeader, IsHandled, EverythingInvoiced, SalesInvHeader, SalesCrMemoHeader);
         if not IsHandled then
-            if SalesHeader.Invoice and SalesHeader."Send IC Document" then
-                if SalesHeader."Document Type" in [SalesHeader."Document Type"::Order, SalesHeader."Document Type"::Invoice] then
-                    ICInboxOutboxMgt.CreateOutboxSalesInvTrans(SalesInvHeader)
-                else
-                    ICInboxOutboxMgt.CreateOutboxSalesCrMemoTrans(SalesCrMemoHeader);
+            OnFinalizePostingOnCreateOutboxSalesTrans(SalesHeader, EverythingInvoiced, SalesInvHeader, SalesCrMemoHeader);
 
         OnAfterFinalizePosting(
           SalesHeader, SalesShptHeader, SalesInvHeader, SalesCrMemoHeader, ReturnRcptHeader,
@@ -4018,7 +3969,6 @@ codeunit 80 "Sales-Post"
     var
         IsHandled: Boolean;
     begin
-
         if (CalledFromStatistics) and (not RoundingLineInserted) and (IsInvoiceRoundingLine(SalesHeader, SalesLine)) and (SalesLine."System-Created Entry") then
             exit;
 
@@ -5853,117 +5803,6 @@ codeunit 80 "Sales-Post"
         OnAfterPostJobContractLine(SalesHeader, SalesLine, GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo, SrcCode);
     end;
 
-    local procedure InsertICGenJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var ICGenJnlLineNo: Integer)
-    var
-        ICGLAccount: Record "IC G/L Account";
-        ICPartner: Record "IC Partner";
-        GenJnlLine: Record "Gen. Journal Line";
-    begin
-        SalesHeader.TestField("Sell-to IC Partner Code", '');
-        SalesHeader.TestField("Bill-to IC Partner Code", '');
-        SalesLine.TestField("IC Partner Ref. Type", SalesLine."IC Partner Ref. Type"::"G/L Account");
-        ICGLAccount.Get(SalesLine."IC Partner Reference");
-        ICGenJnlLineNo := ICGenJnlLineNo + 1;
-
-        TempICGenJnlLine.InitNewLine(
-            SalesHeader."Posting Date", SalesHeader."Document Date", SalesHeader."VAT Reporting Date", SalesHeader."Posting Description",
-            SalesLine."Shortcut Dimension 1 Code", SalesLine."Shortcut Dimension 2 Code", SalesLine."Dimension Set ID",
-            SalesHeader."Reason Code");
-        TempICGenJnlLine."Line No." := ICGenJnlLineNo;
-
-        TempICGenJnlLine.CopyDocumentFields(GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo, SrcCode, SalesHeader."Posting No. Series");
-
-        TempICGenJnlLine."Account Type" := TempICGenJnlLine."Account Type"::"IC Partner";
-        TempICGenJnlLine.Validate(TempICGenJnlLine."Account No.", SalesLine."IC Partner Code");
-        TempICGenJnlLine."Source Currency Code" := SalesHeader."Currency Code";
-        TempICGenJnlLine."Source Currency Amount" := TempICGenJnlLine.Amount;
-        TempICGenJnlLine.Correction := SalesHeader.Correction;
-        TempICGenJnlLine."Country/Region Code" := SalesHeader."VAT Country/Region Code";
-        TempICGenJnlLine."Source Type" := GenJnlLine."Source Type"::Customer;
-        TempICGenJnlLine."Source No." := SalesHeader."Bill-to Customer No.";
-        TempICGenJnlLine."Source Line No." := SalesLine."Line No.";
-        TempICGenJnlLine.Validate("Bal. Account Type", TempICGenJnlLine."Bal. Account Type"::"G/L Account");
-        TempICGenJnlLine.Validate("Bal. Account No.", SalesLine."No.");
-        TempICGenJnlLine."Shortcut Dimension 1 Code" := SalesLine."Shortcut Dimension 1 Code";
-        TempICGenJnlLine."Shortcut Dimension 2 Code" := SalesLine."Shortcut Dimension 2 Code";
-        TempICGenJnlLine."Dimension Set ID" := SalesLine."Dimension Set ID";
-
-        ValidateICPartnerBusPostingGroups(SalesLine);
-        TempICGenJnlLine.Validate("Bal. VAT Prod. Posting Group", SalesLine."VAT Prod. Posting Group");
-        TempICGenJnlLine."IC Partner Code" := SalesLine."IC Partner Code";
-        TempICGenJnlLine."IC Account Type" := TempICGenJnlLine."IC Account Type"::"G/L Account";
-        TempICGenJnlLine."IC Account No." := SalesLine."IC Partner Reference";
-        TempICGenJnlLine."IC Direction" := TempICGenJnlLine."IC Direction"::Outgoing;
-        ICPartner.Get(SalesLine."IC Partner Code");
-        if ICPartner."Cost Distribution in LCY" and (SalesLine."Currency Code" <> '') then begin
-            TempICGenJnlLine."Currency Code" := '';
-            TempICGenJnlLine."Currency Factor" := 0;
-            Currency.Get(SalesLine."Currency Code");
-            if SalesHeader.IsCreditDocType() then
-                TempICGenJnlLine.Amount :=
-                  Round(
-                    CurrExchRate.ExchangeAmtFCYToLCY(
-                      SalesHeader."Posting Date", SalesLine."Currency Code",
-                      SalesLine.Amount, SalesHeader."Currency Factor"))
-            else
-                TempICGenJnlLine.Amount :=
-                  -Round(
-                    CurrExchRate.ExchangeAmtFCYToLCY(
-                      SalesHeader."Posting Date", SalesLine."Currency Code",
-                      SalesLine.Amount, SalesHeader."Currency Factor"));
-        end else begin
-            Currency.InitRoundingPrecision();
-            TempICGenJnlLine."Currency Code" := SalesHeader."Currency Code";
-            TempICGenJnlLine."Currency Factor" := SalesHeader."Currency Factor";
-            if SalesHeader.IsCreditDocType() then
-                TempICGenJnlLine.Amount := SalesLine.Amount
-            else
-                TempICGenJnlLine.Amount := -SalesLine.Amount;
-        end;
-        if TempICGenJnlLine."Bal. VAT %" <> 0 then
-            TempICGenJnlLine.Amount := Round(TempICGenJnlLine.Amount * (1 + TempICGenJnlLine."Bal. VAT %" / 100), Currency."Amount Rounding Precision");
-        TempICGenJnlLine.Validate(Amount);
-        TempICGenJnlLine."Journal Template Name" := SalesLine.GetJnlTemplateName();
-        OnBeforeInsertICGenJnlLine(TempICGenJnlLine, SalesHeader, SalesLine, SuppressCommit);
-        TempICGenJnlLine.Insert();
-    end;
-
-    local procedure ValidateICPartnerBusPostingGroups(SalesLine: Record "Sales Line")
-    var
-        Vendor: Record Vendor;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLine, SalesLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        Vendor.SetCurrentKey("IC Partner Code");
-        Vendor.SetRange("IC Partner Code", SalesLine."IC Partner Code");
-        if Vendor.FindFirst() then begin
-            TempICGenJnlLine.Validate("Bal. Gen. Bus. Posting Group", Vendor."Gen. Bus. Posting Group");
-            TempICGenJnlLine.Validate("Bal. VAT Bus. Posting Group", Vendor."VAT Bus. Posting Group");
-        end;
-    end;
-
-    local procedure PostICGenJnl()
-    var
-        ICInOutBoxMgt: Codeunit ICInboxOutboxMgt;
-        ICOutboxExport: Codeunit "IC Outbox Export";
-        ICTransactionNo: Integer;
-    begin
-        TempICGenJnlLine.Reset();
-        TempICGenJnlLine.SetFilter(Amount, '<>%1', 0);
-        if TempICGenJnlLine.Find('-') then
-            repeat
-                ICTransactionNo := ICInOutBoxMgt.CreateOutboxJnlTransaction(TempICGenJnlLine, false);
-                ICInOutBoxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, TempICGenJnlLine);
-                ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
-                if TempICGenJnlLine.Amount <> 0 then
-                    GenJnlPostLine.RunWithCheck(TempICGenJnlLine);
-            until TempICGenJnlLine.Next() = 0;
-    end;
-
     /// <summary>
     /// Checks if the prepayment amount for the sales lines is too big or too small using information from the related sales order lines.
     /// It throws an error if it is.
@@ -7543,66 +7382,6 @@ codeunit 80 "Sales-Post"
         OnAfterInsertReturnReceiptLineWhsePost(SalesLine, xSalesLine, ReturnRcptLine);
     end;
 
-    local procedure CheckICPartnerBlocked(SalesHeader: Record "Sales Header")
-    var
-        ICPartner: Record "IC Partner";
-    begin
-        if SalesHeader."Sell-to IC Partner Code" <> '' then
-            if ICPartner.Get(SalesHeader."Sell-to IC Partner Code") then
-                ICPartner.TestField(Blocked, false);
-        if SalesHeader."Bill-to IC Partner Code" <> '' then
-            if ICPartner.Get(SalesHeader."Bill-to IC Partner Code") then
-                ICPartner.TestField(Blocked, false);
-    end;
-
-    local procedure SendICDocument(var SalesHeader: Record "Sales Header")
-    var
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-        IsHandled: Boolean;
-        ModifyHeader: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeSendICDocument(SalesHeader, ModifyHeader, IsHandled);
-        if IsHandled then
-            exit;
-
-        if SalesHeader."Send IC Document" and (SalesHeader."IC Status" = SalesHeader."IC Status"::New) and (SalesHeader."IC Direction" = SalesHeader."IC Direction"::Outgoing) and
-            (SalesHeader."Document Type" in [SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Return Order"])
-        then begin
-            SalesHeader.Modify();
-            ICInboxOutboxMgt.SendSalesDoc(SalesHeader, true);
-            SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
-            IsHandled := false;
-            OnSendICDocumentOnBeforeSetICStatus(SalesHeader, IsHandled);
-            if not IsHandled then
-                SalesHeader."IC Status" := SalesHeader."IC Status"::Pending;
-            ModifyHeader := true;
-        end;
-    end;
-
-    local procedure UpdateHandledICInboxTransaction(SalesHeader: Record "Sales Header")
-    var
-        HandledICInboxTrans: Record "Handled IC Inbox Trans.";
-        Customer: Record Customer;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeUpdateHandledICInboxTransaction(SalesHeader, IsHandled);
-        if IsHandled then
-            exit;
-
-        if SalesHeader."IC Direction" = SalesHeader."IC Direction"::Incoming then begin
-            HandledICInboxTrans.SetRange("Document No.", SalesHeader."IC Reference Document No.");
-            Customer.Get(SalesHeader."Sell-to Customer No.");
-            HandledICInboxTrans.SetRange("IC Partner Code", Customer."IC Partner Code");
-            HandledICInboxTrans.LockTable();
-            if HandledICInboxTrans.FindFirst() then begin
-                HandledICInboxTrans.Status := HandledICInboxTrans.Status::Posted;
-                HandledICInboxTrans.Modify();
-            end;
-        end;
-    end;
-
     local procedure RunItemJnlPostLine(var ItemJnlLineToPost: Record "Item Journal Line")
     begin
         ItemJnlPostLine.RunWithCheck(ItemJnlLineToPost);
@@ -8823,12 +8602,12 @@ codeunit 80 "Sales-Post"
         TempTrackingSpecificationInv.DeleteAll();
         TempWhseSplitSpecification.DeleteAll();
         TempValueEntryRelation.DeleteAll();
-        TempICGenJnlLine.DeleteAll();
         TempPrepmtDeductLCYSalesLine.DeleteAll();
         TempSKU.DeleteAll();
         TempDeferralHeader.DeleteAll();
         TempDeferralLine.DeleteAll();
         OrderArchived := false;
+        OnAfterClearSalesAllVariables();
     end;
 
     local procedure CheckHeaderShippingAdvice(var SalesHeader: Record "Sales Header")
@@ -10015,6 +9794,7 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Raised before inserting an intercompany general journal line.
     /// </summary>
@@ -10022,10 +9802,17 @@ codeunit 80 "Sales-Post"
     /// <param name="SalesHeader">The sales header being posted.</param>
     /// <param name="SalesLine">The sales line being processed.</param>
     /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed.</param>
+    internal procedure RunOnBeforeInsertICGenJnlLine(ICGenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean)
+    begin
+        OnBeforeInsertICGenJnlLine(ICGenJournalLine, SalesHeader, SalesLine, CommitIsSuppressed);
+    end;
+
+    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertICGenJnlLine(var ICGenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean)
     begin
     end;
+#endif
 
     /// <summary>
     /// Raised before inserting posted document headers.
@@ -10811,15 +10598,23 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Raised before checking G/L account direct posting settings.
     /// </summary>
     /// <param name="SalesLine">The sales line to check.</param>
     /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    internal procedure RunOnBeforeCheckGLAccDirectPosting(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+        OnBeforeCheckGLAccountDirectPosting(SalesLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLAccountDirectPosting(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     /// <summary>
     /// Raised before checking whether to insert the return receipt header.
@@ -11252,16 +11047,24 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Raised before sending the intercompany document.
     /// </summary>
     /// <param name="SalesHeader">The sales header to send.</param>
     /// <param name="ModifyHeader">Indicates whether the header should be modified.</param>
     /// <param name="IsHandled">Set to true to skip the default send logic.</param>
+    internal procedure RunOnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
+    begin
+        OnBeforeSendICDocument(SalesHeader, ModifyHeader, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     /// <summary>
     /// Raised before setting posting flags.
@@ -11437,15 +11240,23 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Raised before updating the handled intercompany inbox transaction.
     /// </summary>
     /// <param name="SalesHeader">The sales header.</param>
     /// <param name="IsHandled">Set to true to skip the default update logic.</param>
+    internal procedure RunOnBeforeUpdateHandledICInboxTransaction(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+        OnBeforeUpdateHandledICInboxTransaction(SalesHeader, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateHandledICInboxTransaction(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     /// <summary>
     /// Raised before updating the posting number.
@@ -12863,6 +12674,11 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+    [InternalEvent(false)]
+    local procedure OnFinalizePostingOnCreateOutboxSalesTrans(var SalesHeader: Record "Sales Header"; EverythingInvoiced: Boolean; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    begin
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeDeleteApprovalEntries(var SalesHeader: Record "Sales Header"; var EverythingInvoiced: Boolean)
     begin
@@ -13250,10 +13066,18 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnSendICDocumentOnBeforeSetICStatus(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+        OnSendICDocumentOnBeforeSetICStatus(SalesHeader, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnSendICDocumentOnBeforeSetICStatus(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSendPostedDocumentRecordElseCase(SalesHeader: Record "Sales Header"; var DocumentSendingProfile: Record "Document Sending Profile"; var IsHandled: Boolean)
@@ -13470,10 +13294,18 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLineParam: Record "Gen. Journal Line" temporary; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+        OnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLineParam, SalesLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLine: Record "Gen. Journal Line" temporary; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCurrency(CurrencyCode: Code[10]; var Currency: Record Currency)
@@ -13948,6 +13780,11 @@ codeunit 80 "Sales-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(var SalesHeader: Record "Sales Header"; ReplacePostingDate: Boolean; var SkipTestPostingDate: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnBeforeSalesHeaderModify(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean)
     begin
     end;
@@ -13994,11 +13831,6 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLinesTempOnAfterVatAmountSet(var VATAmount: Decimal; var TotalSalesLine: Record "Sales Line")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(var SalesHeader: Record "Sales Header"; ReplacePostingDate: Boolean; var SkipTestPostingDate: Boolean)
     begin
     end;
 
@@ -14089,6 +13921,48 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ReservationEntry: Record "Reservation Entry")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after clearing all variables in ClearAllVariables.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterClearSalesAllVariables()
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before checking whether IC partner is blocked during CheckAndUpdate.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckAndUpdateOnBeforeCheckICPartnerBlocked(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before sending the IC document during ProcessPostingLines.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnProcessPostingLinesOnBeforeSendICDocument(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised when posting a G/L account line for IC processing during PostSalesLine.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being posted.</param>
+    /// <param name="SalesLine">The sales line being posted.</param>
+    /// <param name="xSalesLine">The original sales line before modification.</param>
+    /// <param name="GenJnlLineDocType">The document type for the general journal line.</param>
+    /// <param name="GenJnlLineDocNo">The document number for the general journal line.</param>
+    /// <param name="GenJnlLineExtDocNo">The external document number for the general journal line.</param>
+    /// <param name="SrcCode">The source code.</param>
+    /// <param name="SuppressCommit">Indicates whether database commits are suppressed.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPostSalesLineOnGLAccount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line" temporary; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
     begin
     end;
 }

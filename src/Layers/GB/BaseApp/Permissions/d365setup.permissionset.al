@@ -64,7 +64,6 @@ using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Entity;
 using Microsoft.Integration.SyncEngine;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
@@ -357,7 +356,6 @@ permissionset 191 "D365 SETUP"
                   tabledata GovTalkMessage = RIMD,
 #endif
                   tabledata "Human Resources Setup" = Rimd,
-                  tabledata "IC Setup" = RIMD,
                   tabledata "Incoming Document" = RIMD,
                   tabledata "Incoming Document Approver" = RIMD,
                   tabledata "Incoming Documents Setup" = RIMD,

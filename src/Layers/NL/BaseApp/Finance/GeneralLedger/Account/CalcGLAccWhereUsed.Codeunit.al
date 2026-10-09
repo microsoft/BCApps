@@ -14,7 +14,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Setup;
@@ -69,7 +68,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         FAPostingGr: Record "FA Posting Group";
         FAAlloc: Record "FA Allocation";
         InventoryPostingSetup: Record "Inventory Posting Setup";
-        ICPartner: Record "IC Partner";
         PaymentMethod: Record "Payment Method";
         TransactionMode: Record "Transaction Mode";
     begin
@@ -159,11 +157,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
                     InventoryPostingSetup."Invt. Posting Group Code" :=
                       CopyStr(GLAccWhereUsed."Key 2", 1, MaxStrLen(InventoryPostingSetup."Invt. Posting Group Code"));
                     PAGE.Run(PAGE::"Inventory Posting Setup", InventoryPostingSetup);
-                end;
-            Database::"IC Partner":
-                begin
-                    ICPartner.Code := CopyStr(GLAccWhereUsed."Key 1", 1, MaxStrLen(ICPartner.Code));
-                    PAGE.Run(0, ICPartner);
                 end;
             Database::"Payment Method":
                 begin
@@ -355,7 +348,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         AddTable(TableBuffer, Database::"FA Posting Group");
         AddTable(TableBuffer, Database::"FA Allocation");
         AddTable(TableBuffer, Database::"Inventory Posting Setup");
-        AddTable(TableBuffer, Database::"IC Partner");
         AddTable(TableBuffer, Database::"Payment Method");
         AddTable(TableBuffer, Database::"Sales & Receivables Setup");
         AddTable(TableBuffer, Database::"Purchases & Payables Setup");

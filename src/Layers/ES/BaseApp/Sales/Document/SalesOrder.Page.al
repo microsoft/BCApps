@@ -20,10 +20,6 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
@@ -1758,45 +1754,6 @@ page 42 "Sales Order"
                         CurrPage.Update(false);
                     end;
                 }
-                action("Send IC Sales Order")
-                {
-                    AccessByPermission = TableData "IC G/L Account" = R;
-                    ApplicationArea = Intercompany;
-                    Caption = 'Send IC Sales Order';
-                    Image = IntercompanyOrder;
-                    ToolTip = 'Send the sales order to the intercompany outbox or directly to the intercompany partner if automatic transaction sending is enabled.';
-
-                    trigger OnAction()
-                    var
-                        ICInOutboxMgt: Codeunit ICInboxOutboxMgt;
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                        ICFeedback: Codeunit "IC Feedback";
-                    begin
-                        Rec.TestField("IC Direction", Rec."IC Direction"::Outgoing);
-                        if ApprovalsMgmt.PrePostApprovalCheckSales(Rec) then begin
-                            ICInOutboxMgt.SendSalesDoc(Rec, false);
-                            ICFeedback.ShowIntercompanyMessage(Rec, Enum::"IC Transaction Document Type"::Order);
-                        end;
-                    end;
-                }
-                action("Reject IC Sales Order")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Reject IC Sales Order';
-                    Enabled = RejectICSalesOrderEnabled;
-                    Image = Cancel;
-                    ToolTip = 'Deletes the order and sends the rejection to the company that created it.';
-
-                    trigger OnAction()
-                    var
-                        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-                    begin
-                        if not ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec) then
-                            exit;
-                        if Confirm(SureToRejectMsg) then
-                            ICInboxOutboxMgt.RejectAcceptedSalesHeader(Rec);
-                    end;
-                }
                 group(IncomingDocument)
                 {
                     Caption = 'Incoming Document';
@@ -2547,11 +2504,8 @@ page 42 "Sales Order"
     end;
 
     trigger OnAfterGetRecord()
-    var
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
     begin
         WorkDescription := Rec.GetWorkDescription();
-        RejectICSalesOrderEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         if GuiAllowed() then begin
             SetControlVisibility();
             UpdateShipToBillToGroupVisibility();
@@ -2602,7 +2556,7 @@ page 42 "Sales Order"
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         OfficeMgt: Codeunit "Office Management";
         EnvironmentInfo: Codeunit "Environment Information";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
+        SIIManagement: Codeunit "SII Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
@@ -2627,7 +2581,6 @@ page 42 "Sales Order"
 
         if GuiAllowed() then
             CheckShowBackgrValidationNotification();
-        RejectICSalesOrderEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         BasicEUEnabled := ApplicationAreaMgmtFacade.IsBasicCountryEnabled('EU');
     end;
@@ -2679,6 +2632,7 @@ page 42 "Sales Order"
 #pragma warning restore AA0470
         Text002: Label 'The update has been interrupted to respect the warning.';
 #pragma warning restore AA0074
+        EmptyShipToCodeErr: Label 'The Code field can only be empty if you select Custom Address in the Ship-to field.';
         HasIncomingDocument: Boolean;
         DocNoVisible: Boolean;
         ExternalDocNoMandatory: Boolean;
@@ -2695,8 +2649,6 @@ page 42 "Sales Order"
         OpenPostedSalesOrderQst: Label 'The order is posted as number %1 and moved to the Posted Sales Invoices window.\\Do you want to open the posted invoice?', Comment = '%1 = posted document number';
         PaymentServiceVisible: Boolean;
         PaymentServiceEnabled: Boolean;
-        EmptyShipToCodeErr: Label 'The Code field can only be empty if you select Custom Address in the Ship-to field.';
-        SureToRejectMsg: Label 'Rejecting this order will remove it from your company and send it back to the partner company.\\Do you want to continue?';
         CanRequestApprovalForFlow: Boolean;
         CanCancelApprovalForFlow: Boolean;
         IsCustomerOrContactNotEmpty: Boolean;
@@ -2712,7 +2664,8 @@ page 42 "Sales Order"
         IsSalesLinesEditable: Boolean;
         ShouldSearchForCustByName: Boolean;
         IsBidirectionalSyncEnabled: Boolean;
-        RejectICSalesOrderEnabled: Boolean;
+        DocHasMultipleRegimeCode: Boolean;
+        MultipleSchemeCodesLbl: Label 'Multiple scheme codes';
         VATDateEnabled: Boolean;
         BasicEUEnabled: Boolean;
 
@@ -2884,12 +2837,11 @@ page 42 "Sales Order"
         OrderSalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         InstructionMgt: Codeunit "Instruction Mgt.";
-        ICFeedback: Codeunit "IC Feedback";
     begin
         if not OrderSalesHeader.Get(Rec."Document Type", Rec."No.") then begin
             SalesInvoiceHeader.SetRange("No.", Rec."Last Posting No.");
             if SalesInvoiceHeader.FindFirst() then begin
-                ICFeedback.ShowIntercompanyMessage(Rec, Enum::"IC Transaction Document Type"::Order);
+                OnShowPostedConfirmationMessageIC(Rec);
                 if InstructionMgt.ShowConfirm(StrSubstNo(OpenPostedSalesOrderQst, SalesInvoiceHeader."No."),
                      InstructionMgt.ShowPostedConfirmationMessageCode())
                 then
@@ -2975,6 +2927,11 @@ page 42 "Sales Order"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShippingOptions(var SalesHeader: Record "Sales Header"; ShipToOptions: Option "Default (Sell-to Address)","Alternate Shipping Address","Custom Address")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnShowPostedConfirmationMessageIC(var SalesHeader: Record "Sales Header")
     begin
     end;
 

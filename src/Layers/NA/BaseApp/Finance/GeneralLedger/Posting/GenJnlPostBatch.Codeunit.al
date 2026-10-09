@@ -19,9 +19,6 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Reflection;
@@ -53,6 +50,56 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     end;
 
     var
+        GenJnlTemplate: Record "Gen. Journal Template";
+        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlLine2: Record "Gen. Journal Line";
+        GenJnlLine3: Record "Gen. Journal Line";
+        TempGenJnlLine4: Record "Gen. Journal Line" temporary;
+        GenJnlLine5: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLReg: Record "G/L Register";
+        GLAcc: Record "G/L Account";
+        GenJnlAlloc: Record "Gen. Jnl. Allocation";
+        AccountingPeriod: Record "Accounting Period";
+        GLSetup: Record "General Ledger Setup";
+        FAJnlSetup: Record "FA Journal Setup";
+        TempGenJnlLine3: Record "Gen. Journal Line" temporary;
+        SavedGenJournalLine: Record "Gen. Journal Line";
+        GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
+        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
+        NoSeriesBatch: Codeunit "No. Series - Batch";
+        SalesTaxCalculate: Codeunit "Sales Tax Calculate";
+        PostingSetupMgt: Codeunit PostingSetupManagement;
+#if not CLEAN29
+        ICGenJnlPostBatch: Codeunit "IC Gen. Jnl.-Post Batch";
+#endif
+        Window: Dialog;
+        GLRegNo: Integer;
+        StartLineNo: Integer;
+        StartLineNoReverse: Integer;
+        LastDate: Date;
+        LastDocType: Enum "Gen. Journal Document Type";
+        LastDocNo: Code[20];
+        LastPostedDocNo: Code[20];
+        CurrentBalance: Decimal;
+        CurrentBalanceReverse: Decimal;
+        Day: Integer;
+        Week: Integer;
+        Month: Integer;
+        MonthText: Text[30];
+        NoOfRecords: Integer;
+        NoOfReversingRecords: Integer;
+        LineCount: Integer;
+        DocCorrection: Boolean;
+        VATEntryCreated: Boolean;
+        LastFAAddCurrExchRate: Decimal;
+        LastCurrencyCode: Code[10];
+        CurrencyBalance: Decimal;
+        PreviewMode: Boolean;
+        SuppressCommit: Boolean;
+        FirstLine: Boolean;
+
 #pragma warning disable AA0470
         PostingStateMsg: Label 'Journal Batch Name    #1##########\\Posting @2@@@@@@@@@@@@@\#3#############', Comment = 'This is a message for dialog window. Parameters do not require translation.';
 #pragma warning restore AA0470
@@ -90,64 +137,13 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         Text028: Label 'The Balance and Reversing Balance recurring methods can be used only with Allocations.';
 #pragma warning restore AA0074
         ConfirmManualCheckTxt: Label 'A balancing account is not specified for one or more lines. If you print checks without specifying balancing accounts you will not be able to void the checks, if needed. Do you want to continue?';
-        GenJnlTemplate: Record "Gen. Journal Template";
-        GenJnlBatch: Record "Gen. Journal Batch";
-        GenJnlLine2: Record "Gen. Journal Line";
-        GenJnlLine3: Record "Gen. Journal Line";
-        TempGenJnlLine4: Record "Gen. Journal Line" temporary;
-        GenJnlLine5: Record "Gen. Journal Line";
-        GLEntry: Record "G/L Entry";
-        GLReg: Record "G/L Register";
-        GLAcc: Record "G/L Account";
-        GenJnlAlloc: Record "Gen. Jnl. Allocation";
-        AccountingPeriod: Record "Accounting Period";
-        GLSetup: Record "General Ledger Setup";
-        FAJnlSetup: Record "FA Journal Setup";
-        TempGenJnlLine3: Record "Gen. Journal Line" temporary;
-        SavedGenJournalLine: Record "Gen. Journal Line";
-        GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
-        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
-        GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
-        NoSeriesBatch: Codeunit "No. Series - Batch";
-        ICOutboxMgt: Codeunit ICInboxOutboxMgt;
-        SalesTaxCalculate: Codeunit "Sales Tax Calculate";
-        PostingSetupMgt: Codeunit PostingSetupManagement;
-        Window: Dialog;
-        GLRegNo: Integer;
-        StartLineNo: Integer;
-        StartLineNoReverse: Integer;
-        LastDate: Date;
-        LastDocType: Enum "Gen. Journal Document Type";
-        LastDocNo: Code[20];
-        LastPostedDocNo: Code[20];
-        CurrentBalance: Decimal;
-        CurrentBalanceReverse: Decimal;
-        Day: Integer;
-        Week: Integer;
-        Month: Integer;
-        MonthText: Text[30];
-        NoOfRecords: Integer;
-        NoOfReversingRecords: Integer;
-        LineCount: Integer;
-        DocCorrection: Boolean;
-        VATEntryCreated: Boolean;
-        LastFAAddCurrExchRate: Decimal;
-        LastCurrencyCode: Code[10];
-        CurrencyBalance: Decimal;
 #pragma warning disable AA0074
         Text029: Label '%1 %2 posted on %3 includes more than one customer, vendor or IC Partner.', Comment = '%1 = Document Type;%2 = Document No.;%3=Posting Date';
-#pragma warning disable AA0470
-        Text030: Label 'You cannot enter G/L Account or Bank Account in both %1 and %2.';
-        Text031: Label 'Line No. %1 does not contain a G/L Account or Bank Account. When the %2 field contains an account number, either the %3 field or the %4 field must contain a G/L Account or Bank Account.';
-#pragma warning restore AA0470
 #pragma warning restore AA0074
         RefPostingState: Option "Checking lines","Checking balance","Updating bal. lines","Posting Lines","Posting revers. lines","Updating lines";
-        PreviewMode: Boolean;
         SkippedLineMsg: Label 'One or more lines has not been posted because the amount is zero.';
         ConfirmPostingAfterWorkingDateQst: Label 'The posting date of one or more journal lines is after the working date. Do you want to continue?';
-        SuppressCommit: Boolean;
         ReversePostingDateErr: Label 'Posting Date for reverse cannot be less than %1', Comment = '%1 = Posting Date';
-        FirstLine: Boolean;
         TempBatchNameTxt: Label 'BD_TEMP', Locked = true;
         TwoPlaceHoldersTok: Label '%1%2', Locked = true;
         ServiceSessionTok: Label '#%1#%2#', Locked = true;
@@ -195,21 +191,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         TempGenJnlBatch: Record "Gen. Journal Batch" temporary;
         GenJnlLineVATInfoSource: Record "Gen. Journal Line";
         UpdateAnalysisView: Codeunit "Update Analysis View";
-        ICOutboxExport: Codeunit "IC Outbox Export";
         TypeHelper: Codeunit "Type Helper";
         ErrorContextElement: Codeunit "Error Context Element";
         ErrorMessageMgt: Codeunit "Error Message Management";
-        ICFeedback: Codeunit "IC Feedback";
         RecRef: RecordRef;
-        ICLastDocNo: Code[20];
-        CurrentICPartner: Code[20];
         LastTaxLineNo: Integer;
         LastLineNo: Integer;
-        LastICTransactionNo: Integer;
-        ICTransactionNo: Integer;
-        ICProccessedLines: Integer;
-        ICLastDocType: Enum "Gen. Journal Document Type";
-        ICLastDate: Date;
         VATInfoSourceLineIsInserted: Boolean;
         SkippedLine: Boolean;
         PostingAfterWorkingDateConfirmed: Boolean;
@@ -251,10 +238,10 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             if GenJnlLine.Next() = 0 then
                 GenJnlLine.FindFirst();
         until GenJnlLine."Line No." = StartLineNo;
-        if GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany then
-            CheckICDocument(TempGenJnlLine);
 
-        ProcessBalanceOfLines(GenJnlLine, GenJnlLineVATInfoSource, VATInfoSourceLineIsInserted, LastLineNo, CurrentICPartner);
+        OnProcessLinesOnAfterCheckLines(GenJnlTemplate, TempGenJnlLine, LastDate, LastDocType, LastDocNo);
+
+        ProcessBalanceOfLines(GenJnlLine, GenJnlLineVATInfoSource, VATInfoSourceLineIsInserted, LastLineNo);
 
         // Find next register no.
         GLEntry.LockTable();
@@ -264,27 +251,26 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         LineCount := 0;
         LastDocNo := '';
         LastPostedDocNo := '';
-        LastICTransactionNo := 0;
         TempGenJnlLine4.DeleteAll();
         NoOfReversingRecords := 0;
         GenJnlLine.FindSet(true);
         FirstLine := true;
-        ICProccessedLines := 0;
         repeat
             ErrorMessageMgt.PushContext(ErrorContextElement, GenJnlLine.RecordId, 0, PostingLinesMsg);
-            ProcessICLines(CurrentICPartner, ICTransactionNo, ICLastDocNo, ICLastDate, ICLastDocType, GenJnlLine, TempGenJnlLine, ICProccessedLines);
-            ProcessICTransaction(LastICTransactionNo, ICTransactionNo);
+            OnProcessLinesOnProcessICTransaction(GenJnlLine, TempGenJnlLine, GenJnlTemplate);
             OnProcessLinesOnAfterProcessICTransaction(GenJnlLine);
             GenJnlLine3 := GenJnlLine;
-            if not PostGenJournalLine(GenJnlLine3, CurrentICPartner, ICTransactionNo) then
+            if not PostGenJournalLine(GenJnlLine3) then
                 SkippedLine := true;
 
-            OnProcessLinesOnAfterPostGenJournalLine(GenJnlLine3, CurrentICPartner, ICTransactionNo, LastTaxLineNo);
+#if not CLEAN29
+            OnProcessLinesOnAfterPostGenJournalLine(GenJnlLine3, ICGenJnlPostBatch.GetICPartnerCode(), ICGenJnlPostBatch.GetICTransactionNo(), LastTaxLineNo);
+#endif
+            OnProcessLinesOnAfterPostGenJournalLine2(GenJnlLine3, LastTaxLineNo);
             ErrorMessageMgt.PopContext(ErrorContextElement);
         until GenJnlLine.Next() = 0;
 
-        if LastICTransactionNo > 0 then
-            ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
+        OnProcessLinesOnAfterPostGenJnlPostLines(GenJnlLine);
 
         OnBeforeFindGenJnlLineOnProcessLines(GenJnlLine);
         // Post reversing lines
@@ -350,11 +336,10 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
         OnAfterProcessLines(TempGenJnlLine, GenJnlLine, SuppressCommit, PreviewMode);
 
-        if LastICTransactionNo > 0 then
-            ICFeedback.ShowIntercompanyMessage(TempGenJnlLine, ICLastDocNo, ICProccessedLines);
+        OnAfterProcessLinesIC(TempGenJnlLine);
     end;
 
-    local procedure ProcessBalanceOfLines(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlLineVATInfoSource: Record "Gen. Journal Line"; var VATInfoSourceLineIsInserted: Boolean; var LastLineNo: Integer; CurrentICPartner: Code[20])
+    local procedure ProcessBalanceOfLines(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlLineVATInfoSource: Record "Gen. Journal Line"; var VATInfoSourceLineIsInserted: Boolean; var LastLineNo: Integer)
     var
         VATPostingSetup: Record "VAT Posting Setup";
         BalVATPostingSetup: Record "VAT Posting Setup";
@@ -416,7 +401,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                 LastDocType := "Gen. Journal Document Type".FromInteger(LastDocTypeOption);
                 if not IsHandled then
                     if ForceCheckBalance or (GenJnlLine."Posting Date" <> LastDate) or GenJnlTemplate."Force Doc. Balance" and
-                    ((GenJnlLine."Document Type" <> LastDocType) or (GenJnlLine."Document No." <> LastDocNo))
+                       ((GenJnlLine."Document Type" <> LastDocType) or (GenJnlLine."Document No." <> LastDocNo))
                     then begin
                         CheckBalance(GenJnlLine);
                         CurrencyBalance := 0;
@@ -428,7 +413,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                 if IsNonZeroAmount(GenJnlLine) then begin
                     if LastFAAddCurrExchRate <> GenJnlLine."FA Add.-Currency Factor" then
                         CheckAddExchRateBalance(GenJnlLine);
-                    if (CurrentBalance = 0) and (CurrentICPartner = '') then begin
+                    if (CurrentBalance = 0) and BlankICPartner() then begin
                         TempGenJnlLine3.Reset();
                         TempGenJnlLine3.DeleteAll();
                         if VATEntryCreated and VATInfoSourceLineIsInserted then
@@ -459,13 +444,13 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                     if not BalVATPostingSetup.Get(GenJnlLine."Bal. VAT Bus. Posting Group", GenJnlLine."Bal. VAT Prod. Posting Group") then
                         Clear(BalVATPostingSetup);
                     VATEntryCreated :=
-                    VATEntryCreated or
-                    ((GenJnlLine."Account Type" = GenJnlLine."Account Type"::"G/L Account") and (GenJnlLine."Account No." <> '') and
-                    (GenJnlLine."Gen. Posting Type" in [GenJnlLine."Gen. Posting Type"::Purchase, GenJnlLine."Gen. Posting Type"::Sale]) and
-                    (VATPostingSetup."VAT %" <> 0)) or
-                    ((GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"G/L Account") and (GenJnlLine."Bal. Account No." <> '') and
-                    (GenJnlLine."Bal. Gen. Posting Type" in [GenJnlLine."Bal. Gen. Posting Type"::Purchase, GenJnlLine."Bal. Gen. Posting Type"::Sale]) and
-                    (BalVATPostingSetup."VAT %" <> 0));
+                      VATEntryCreated or
+                      ((GenJnlLine."Account Type" = GenJnlLine."Account Type"::"G/L Account") and (GenJnlLine."Account No." <> '') and
+                       (GenJnlLine."Gen. Posting Type" in [GenJnlLine."Gen. Posting Type"::Purchase, GenJnlLine."Gen. Posting Type"::Sale]) and
+                       (VATPostingSetup."VAT %" <> 0)) or
+                      ((GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"G/L Account") and (GenJnlLine."Bal. Account No." <> '') and
+                       (GenJnlLine."Bal. Gen. Posting Type" in [GenJnlLine."Bal. Gen. Posting Type"::Purchase, GenJnlLine."Bal. Gen. Posting Type"::Sale]) and
+                       (BalVATPostingSetup."VAT %" <> 0));
                     OnProcessBalanceOfLinesOnAfterSetVATEntryCreated(GenJnlLine, VATEntryCreated);
                     if TempGenJnlLine3.IsCustVendICAdded(GenJnlLine) then begin
                         GenJnlLineVATInfoSource := GenJnlLine;
@@ -475,12 +460,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                         ErrorMessage := Text009 + Text010;
                         Error(ErrorMessage, GenJnlLine."Document Type", GenJnlLine."Document No.", GenJnlLine."Posting Date");
                     end;
-                    if (TempGenJnlLine3.Count > 1) and (CurrentICPartner <> '') and
-                    (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany)
+                    if (TempGenJnlLine3.Count > 1) and not BlankICPartner() and
+                       (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany)
                     then
                         Error(
-                        Text029,
-                        GenJnlLine."Document Type", GenJnlLine."Document No.", GenJnlLine."Posting Date");
+                          Text029,
+                          GenJnlLine."Document Type", GenJnlLine."Document No.", GenJnlLine."Posting Date");
                     LastLineNo := GenJnlLine."Line No.";
                 end;
             end;
@@ -491,67 +476,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             UpdateGenJnlLineWithVATInfo(GenJnlLine, GenJnlLineVATInfoSource, StartLineNo, LastLineNo);
 
         OnAfterProcessBalanceOfLines(GenJnlLine);
-    end;
-
-    local procedure ProcessICLines(var CurrentICPartner: Code[20]; var ICTransactionNo: Integer; var ICLastDocNo: Code[20]; var ICLastDate: Date; var ICLastDocType: Enum "Gen. Journal Document Type"; var GenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var ICProccessedLines: Integer)
-    var
-        HandledICInboxTrans: Record "Handled IC Inbox Trans.";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeProcessICLines(CurrentICPartner, ICTransactionNo, ICLastDocNo, ICLastDate, ICLastDocType, GenJnlLine, TempGenJnlLine, ICProccessedLines, IsHandled);
-        if IsHandled then
-            exit;
-
-        if (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) and not GenJnlLine.EmptyLine() and
-               ((GenJnlLine."Posting Date" <> ICLastDate) or (GenJnlLine."Document Type" <> ICLastDocType) or (GenJnlLine."Document No." <> ICLastDocNo) or
-               ((GenJnlLine."IC Partner Code" <> CurrentICPartner) and (GenJnlLine."Account Type" = GenJnlLine."Account Type"::"IC Partner")))
-        then begin
-            CurrentICPartner := '';
-            ICLastDate := GenJnlLine."Posting Date";
-            ICLastDocType := GenJnlLine."Document Type";
-            ICLastDocNo := GenJnlLine."Document No.";
-            TempGenJnlLine.Reset();
-            TempGenJnlLine.SetCurrentKey("Journal Template Name", "Journal Batch Name", "Posting Date", "Document No.");
-            TempGenJnlLine.SetRange("Journal Template Name", GenJnlLine."Journal Template Name");
-            TempGenJnlLine.SetRange("Journal Batch Name", GenJnlLine."Journal Batch Name");
-            TempGenJnlLine.SetRange("Posting Date", GenJnlLine."Posting Date");
-            TempGenJnlLine.SetRange("Document No.", GenJnlLine."Document No.");
-            if (GenJnlLine."IC Partner Code" = '') then
-                TempGenJnlLine.SetFilter("IC Partner Code", '<>%1', '')
-            else
-                TempGenJnlLine.SetRange("IC Partner Code", GenJnlLine."IC Partner Code");
-
-            if TempGenJnlLine.FindFirst() and (TempGenJnlLine."IC Partner Code" <> '') then begin
-                ICProccessedLines := ICProccessedLines + 1;
-                CurrentICPartner := TempGenJnlLine."IC Partner Code";
-                if TempGenJnlLine."IC Direction" = TempGenJnlLine."IC Direction"::Outgoing then
-                    ICTransactionNo := ICOutboxMgt.CreateOutboxJnlTransaction(TempGenJnlLine, false)
-                else
-                    if HandledICInboxTrans.Get(
-                         TempGenJnlLine."IC Partner Transaction No.", TempGenJnlLine."IC Partner Code",
-                         HandledICInboxTrans."Transaction Source"::"Created by Partner", TempGenJnlLine."Document Type")
-                    then begin
-                        HandledICInboxTrans.LockTable();
-                        HandledICInboxTrans.Status := HandledICInboxTrans.Status::Posted;
-                        OnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJnlLine);
-                        HandledICInboxTrans.Modify();
-                    end
-            end
-        end;
-    end;
-
-    local procedure ProcessICTransaction(var LastICTransactionNo: Integer; ICTransactionNo: Integer)
-    var
-        ICOutboxExport: Codeunit "IC Outbox Export";
-    begin
-        if LastICTransactionNo = 0 then
-            LastICTransactionNo := ICTransactionNo
-        else
-            if LastICTransactionNo <> ICTransactionNo then begin
-                ICOutboxExport.ProcessAutoSendOutboxTransactionNo(LastICTransactionNo);
-                LastICTransactionNo := ICTransactionNo;
-            end;
     end;
 
     local procedure CheckBalance(var GenJnlLine: Record "Gen. Journal Line")
@@ -616,7 +540,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             DocCorrection := GenJournalLine.Correction;
         end else
             if GenJournalLine.Correction <> DocCorrection then
-                GenJournalLine.FieldError(GenJournalLine.Correction, Text008);
+                GenJournalLine.FieldError(Correction, Text008);
     end;
 
     local procedure CheckAddExchRateBalance(GenJnlLine: Record "Gen. Journal Line")
@@ -955,55 +879,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                 CopyGenJnlLineBalancingData(GenJnlLine4, TempGenJnlLine);
                 GenJnlLine4.Modify();
             until TempGenJnlLine.Next() = 0;
-    end;
-
-    local procedure CheckICDocument(var TempGenJnlLine1: Record "Gen. Journal Line" temporary)
-    var
-        TempGenJnlLine2: Record "Gen. Journal Line" temporary;
-        CurrentICPartner: Code[20];
-    begin
-        TempGenJnlLine1.SetCurrentKey("Journal Template Name", "Journal Batch Name", "Posting Date", "Document No.");
-        TempGenJnlLine1.SetRange("Journal Template Name", TempGenJnlLine1."Journal Template Name");
-        TempGenJnlLine1.SetRange("Journal Batch Name", TempGenJnlLine1."Journal Batch Name");
-        TempGenJnlLine1.Find('-');
-        repeat
-            if (TempGenJnlLine1."Posting Date" <> LastDate) or (TempGenJnlLine1."Document Type" <> LastDocType) or (TempGenJnlLine1."Document No." <> LastDocNo) then begin
-                TempGenJnlLine2 := TempGenJnlLine1;
-                TempGenJnlLine1.SetRange("Posting Date", TempGenJnlLine1."Posting Date");
-                TempGenJnlLine1.SetRange("Document No.", TempGenJnlLine1."Document No.");
-                TempGenJnlLine1.SetFilter(TempGenJnlLine1."IC Partner Code", '<>%1', '');
-                if TempGenJnlLine1.Find('-') then
-                    CurrentICPartner := TempGenJnlLine1."IC Partner Code"
-                else
-                    CurrentICPartner := '';
-                TempGenJnlLine1.SetRange("Posting Date");
-                TempGenJnlLine1.SetRange("Document No.");
-                TempGenJnlLine1.SetRange("IC Partner Code");
-                LastDate := TempGenJnlLine1."Posting Date";
-                LastDocType := TempGenJnlLine1."Document Type";
-                LastDocNo := TempGenJnlLine1."Document No.";
-                TempGenJnlLine1 := TempGenJnlLine2;
-            end;
-            if (CurrentICPartner <> '') and (TempGenJnlLine1."IC Direction" = TempGenJnlLine1."IC Direction"::Outgoing) then begin
-                if (TempGenJnlLine1."Account Type" in [TempGenJnlLine1."Account Type"::"G/L Account", TempGenJnlLine1."Account Type"::"Bank Account"]) and
-                   (TempGenJnlLine1."Bal. Account Type" in [TempGenJnlLine1."Bal. Account Type"::"G/L Account", TempGenJnlLine1."Account Type"::"Bank Account"]) and
-                   (TempGenJnlLine1."Account No." <> '') and
-                   (TempGenJnlLine1."Bal. Account No." <> '')
-                then
-                    Error(Text030, TempGenJnlLine1.FieldCaption("Account No."), TempGenJnlLine1.FieldCaption("Bal. Account No."));
-                if ((TempGenJnlLine1."Account Type" in [TempGenJnlLine1."Account Type"::"G/L Account", TempGenJnlLine1."Account Type"::"Bank Account"]) and (TempGenJnlLine1."Account No." <> '')) xor
-                   ((TempGenJnlLine1."Bal. Account Type" in [TempGenJnlLine1."Bal. Account Type"::"G/L Account", TempGenJnlLine1."Account Type"::"Bank Account"]) and
-                    (TempGenJnlLine1."Bal. Account No." <> ''))
-                then
-                    TempGenJnlLine1.TestField(TempGenJnlLine1."IC Account No.")
-                else
-                    if TempGenJnlLine1."IC Account No." <> '' then
-                        Error(Text031,
-                          TempGenJnlLine1."Line No.", TempGenJnlLine1.FieldCaption("IC Account No."), TempGenJnlLine1.FieldCaption("Account No."),
-                          TempGenJnlLine1.FieldCaption("Bal. Account No."));
-            end else
-                TempGenJnlLine1.TestField(TempGenJnlLine1."IC Account No.", '');
-        until TempGenJnlLine1.Next() = 0;
     end;
 
     local procedure UpdateIncomingDocument(var GenJnlLine: Record "Gen. Journal Line")
@@ -1531,12 +1406,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             until GenJnlLine.Next() = 0;
     end;
 
-    internal procedure PostGenJournalLines(var GenJournalLine: Record "Gen. Journal Line"; CurrGenJnlLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer) Result: Boolean
+    internal procedure PostGenJournalLines(var GenJournalLine: Record "Gen. Journal Line"; CurrGenJnlLine: Record "Gen. Journal Line") Result: Boolean
     begin
-        PostGenJournalLine(GenJournalLine, CurrentICPartner, ICTransactionNo)
+        PostGenJournalLine(GenJournalLine);
     end;
 
-    local procedure PostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer) Result: Boolean
+    local procedure PostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line") Result: Boolean
     var
         IsPosted: Boolean;
         SavedPostingDate: Date;
@@ -1547,8 +1422,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
         GenJnlPostLine.SetPreviewMode(PreviewMode);
         LineCount := LineCount + 1;
-        if CurrentICPartner <> '' then
-            GenJournalLine."IC Partner Code" := CurrentICPartner;
         UpdateDialog(RefPostingState::"Posting Lines", LineCount, NoOfRecords);
         MakeRecurringTexts(GenJournalLine);
         OnPostGenJournalLineOnBeforeCheckDocumentNo(GenJournalLine, GLRegNo);
@@ -1565,10 +1438,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             UnlinkIncDocFromGenJnlLine(GenJournalLine);
         end;
         OnAfterPostGenJnlLine(GenJnlLine5, SuppressCommit, GenJnlPostLine, IsPosted, GenJournalLine);
-        if (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) and (CurrentICPartner <> '') and
-           (GenJournalLine."IC Direction" = GenJournalLine."IC Direction"::Outgoing) and (ICTransactionNo > 0)
-        then
-            ICOutboxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, GenJnlLine5);
+        OnAfterPostGenJnlLineIC(GenJnlTemplate, GenJournalLine, GenJnlLine5);
         if (GenJournalLine."Recurring Method".AsInteger() >= GenJournalLine."Recurring Method"::"RF Reversing Fixed".AsInteger()) and (GenJournalLine."Posting Date" <> 0D) and (GenJournalLine."Recurring Method".AsInteger() <> GenJournalLine."Recurring Method"::"BD Balance by Dimension".AsInteger()) then begin
             SavedPostingDate := GenJournalLine."Posting Date";
             if GenJournalLine."VAT Reporting Date" = 0D then
@@ -1967,6 +1837,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         exit(not GenJournalLine.IsEmpty());
     end;
 
+    local procedure BlankICPartner() Result: Boolean
+    begin
+        OnBlankICPartner(Result);
+    end;
+
     /// <summary>
     /// Integration event raised after validating document numbers for journal lines.
     /// Enables custom processing or additional validation after document number checks are complete.
@@ -2330,10 +2205,18 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
+    begin
+        OnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJournalLine);
+    end;
+
+    [Obsolete('Moved to codeunit ICGenJnlPostBatch', '29.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record "Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
+    local procedure OnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckAllocationsOnAfterCalcShowAllocationsRecurringError(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; var GenJournalLine: Record "Gen. Journal Line"; var ShowAllocationsRecurringError: Boolean)
@@ -2415,10 +2298,18 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnBeforeProcessICLines(var CurrentICPartner: Code[20]; var ICTransactionNo: Integer; var ICLastDocNo: Code[20]; var ICLastDate: Date; var ICLastDocType: Enum "Gen. Journal Document Type"; var GenJournalLine: Record "Gen. Journal Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; var ICProccessedLines: Integer; var IsHandled: Boolean)
+    begin
+        OnBeforeProcessICLines(CurrentICPartner, ICTransactionNo, ICLastDocNo, ICLastDate, ICLastDocType, GenJournalLine, TempGenJournalLine, ICProccessedLines, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICGenJnlPostBatch', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessICLines(var CurrentICPartner: Code[20]; var ICTransactionNo: Integer; var ICLastDocNo: Code[20]; var ICLastDate: Date; var ICLastDocType: Enum "Gen. Journal Document Type"; var GenJournalLine: Record "Gen. Journal Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; var ICProccessedLines: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateGenJnlLineWithVATInfo(var GenJournalLine: Record "Gen. Journal Line"; GenJournalLineVATInfoSource: Record "Gen. Journal Line"; StartLineNo: Integer; LastLineNo: Integer; var IsHandled: Boolean)
@@ -2485,13 +2376,51 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by event OnProcessLinesOnAfterPostGenJournalLine2', '29.0')]
     [IntegrationEvent(true, false)]
     local procedure OnProcessLinesOnAfterPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer; var LastTaxLineNo: Integer)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(true, false)]
+    local procedure OnProcessLinesOnAfterPostGenJournalLine2(var GenJournalLine: Record "Gen. Journal Line"; var LastTaxLineNo: Integer)
     begin
     end;
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindGenJnlLineOnProcessLines(var GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnAfterProcessLinesIC(var TempGenJnlLine: Record "Gen. Journal Line" temporary)
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnProcessLinesOnProcessICTransaction(var GenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var GenJnlTemplate: Record "Gen. Journal Template")
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnProcessLinesOnAfterCheckLines(GenJnlTemplate: Record "Gen. Journal Template"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var LastDate: Date; var LastDocType: Enum "Gen. Journal Document Type"; var LastDocNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnProcessLinesOnAfterPostGenJnlPostLines(var GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnAfterPostGenJnlLineIC(GenJnlTemplate: Record "Gen. Journal Template"; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlLine5: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnBlankICPartner(var Result: Boolean)
     begin
     end;
 }

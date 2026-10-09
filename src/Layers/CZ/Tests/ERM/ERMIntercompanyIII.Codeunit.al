@@ -1,4 +1,4 @@
-codeunit 134154 "ERM Intercompany III"
+﻿codeunit 134154 "ERM Intercompany III"
 {
     Permissions = TableData "Cust. Ledger Entry" = rimd,
                   TableData "Vendor Ledger Entry" = rimd;
@@ -4788,11 +4788,19 @@ codeunit 134154 "ERM Intercompany III"
         GLPostingPreview.Close();
     end;
 
+#if not CLEAN29
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforeSendICDocument', '', false, false)]
     local procedure OnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
         Error('OnBeforeSendICDocument should not be called');
     end;
+#else
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"IC Sales-Post", 'OnBeforeSendICDocument', '', false, false)]
+    local procedure OnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
+    begin
+        Error('OnBeforeSendICDocument should not be called');
+    end;
+#endif
 
     [EventSubscriber(ObjectType::Page, Page::"IC Dimensions Selector", 'OnBeforeSelectingDimensions', '', false, false)]
     local procedure OnBeforeSelectingDimensions(var IsHandled: Boolean; var Dimension: Record Dimension)

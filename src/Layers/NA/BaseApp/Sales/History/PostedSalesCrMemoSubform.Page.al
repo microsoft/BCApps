@@ -50,11 +50,6 @@ page 135 "Posted Sales Cr. Memo Subform"
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;

@@ -20,7 +20,6 @@ using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -611,20 +610,6 @@ table 113 "Sales Invoice Line"
             Editable = false;
         }
         /// <summary>
-        /// Specifies the type of intercompany partner reference.
-        /// </summary>
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
-        {
-            Caption = 'IC Partner Ref. Type';
-        }
-        /// <summary>
-        /// Specifies the intercompany partner reference code.
-        /// </summary>
-        field(108; "IC Partner Reference"; Code[20])
-        {
-            Caption = 'IC Partner Reference';
-        }
-        /// <summary>
         /// Indicates whether this is a prepayment line.
         /// </summary>
         field(123; "Prepayment Line"; Boolean)
@@ -633,28 +618,11 @@ table 113 "Sales Invoice Line"
             Editable = false;
         }
         /// <summary>
-        /// Specifies the intercompany partner code for intercompany transactions.
-        /// </summary>
-        field(130; "IC Partner Code"; Code[20])
-        {
-            Caption = 'IC Partner Code';
-            ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
-            TableRelation = "IC Partner";
-        }
-        /// <summary>
         /// Specifies the date when the line was posted.
         /// </summary>
         field(131; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
-        }
-        /// <summary>
-        /// Specifies the item reference number for intercompany transactions.
-        /// </summary>
-        field(138; "IC Item Reference No."; Code[50])
-        {
-            AccessByPermission = TableData "Item Reference" = R;
-            Caption = 'IC Item Reference No.';
         }
         /// <summary>
         /// Specifies the payment discount amount for the line.

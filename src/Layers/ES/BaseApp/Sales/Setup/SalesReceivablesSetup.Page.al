@@ -430,14 +430,6 @@ page 459 "Sales & Receivables Setup"
                 {
                     ApplicationArea = Prepayments;
                 }
-                field("IC Sales Invoice Template Name"; Rec."IC Sales Invoice Template Name")
-                {
-                    ApplicationArea = Intercompany;
-                }
-                field("IC Sales Cr. Memo Templ. Name"; Rec."IC Sales Cr. Memo Templ. Name")
-                {
-                    ApplicationArea = Intercompany;
-                }
                 field("Fin. Charge Jnl. Template Name"; Rec."Fin. Charge Jnl. Template Name")
                 {
                     ApplicationArea = Basic, Suite;

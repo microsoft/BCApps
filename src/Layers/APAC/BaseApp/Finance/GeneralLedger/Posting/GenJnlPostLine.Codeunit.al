@@ -35,7 +35,6 @@ using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Posting;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
@@ -130,6 +129,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary;
         TempVATEntry: Record "VAT Entry" temporary;
         SourceCodeSetup: Record "Source Code Setup";
+        WHTEntry: Record "WHT Entry";
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         WHTManagement: Codeunit WHTManagement;
@@ -181,17 +181,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLSetupRead: Boolean;
         PreviewMode: Boolean;
         GLEntryInconsistent: Boolean;
-        WHTEntry: Record "WHT Entry";
         NextWHTEntryNo: Integer;
         CurrFactor: Decimal;
         KeepWHTEntryNo: Integer;
         HadWHTEntryNo: Boolean;
         NextNo: Integer;
         UseVendExchRate: Boolean;
-        Text28000: Label 'No Matching Document';
         CheckRem: Boolean;
-        IsReversal: Boolean;
-        Text016: Label 'Cannot post the payment journal because one or more journal lines must be applied to an invoice line when the WHT Realized Type %1', Comment = '%1 : WHT Realized Type';
         MultiplePostingGroups: Boolean;
         SourceCodeSetupRead: Boolean;
         IsGLRegInserted: Boolean;
@@ -208,6 +204,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DescriptionMustNotBeBlankErr: Label 'When %1 is selected for %2, %3 must have a value.', Comment = '%1: Field Omit Default Descr. in Jnl., %2 G/L Account No, %3 Description';
         NoDeferralScheduleErr: Label 'You must create a deferral schedule if a deferral template is selected. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
         ZeroDeferralAmtErr: Label 'Deferral amounts cannot be 0. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
+        CannotPostPaymentJournalWHTErr: Label 'Cannot post the payment journal because one or more journal lines must be applied to an invoice line when the WHT Realized Type %1', Comment = '%1 : WHT Realized Type';
+        NoMatchingDocumentTxt: Label 'No Matching Document';
 
     /// <summary>
     /// Returns the G/L Register that has been created during the posting process.
@@ -422,8 +420,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 PostBankAcc(GenJnlLine, Balancing);
             GenJnlLine."Account Type"::"Fixed Asset":
                 PostFixedAsset(GenJnlLine);
-            GenJnlLine."Account Type"::"IC Partner":
-                PostICPartner(GenJnlLine);
         end;
 
         OnAfterPostGenJnlLine(GenJnlLine, Balancing);
@@ -1971,44 +1967,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         // Wrapper procedure for exetrrnal call of PostFixedAsset
         PostFixedAsset(GenJnlLine);
-    end;
-
-    local procedure PostICPartner(GenJnlLine: Record "Gen. Journal Line")
-    var
-        ICPartner: Record "IC Partner";
-        AccountNo: Code[20];
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforePostICPartner(GenJnlLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        if GenJnlLine."Account No." <> ICPartner.Code then
-            ICPartner.Get(GenJnlLine."Account No.");
-        if not IsReversal then begin
-            if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") xor (GenJnlLine.Amount > 0) then begin
-                ICPartner.TestField("Receivables Account");
-                AccountNo := ICPartner."Receivables Account";
-            end else begin
-                ICPartner.TestField("Payables Account");
-                AccountNo := ICPartner."Payables Account";
-            end;
-        end else
-            if GenJnlLine.Amount < 0 then begin
-                ICPartner.TestField("Receivables Account");
-                AccountNo := ICPartner."Receivables Account";
-            end else begin
-                ICPartner.TestField("Payables Account");
-                AccountNo := ICPartner."Payables Account";
-            end;
-
-        IsHandled := false;
-        OnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, NextEntryNo, IsHandled);
-        if not IsHandled then
-            CreateGLEntryBalAcc(
-              GenJnlLine, AccountNo, GenJnlLine."Amount (LCY)", GenJnlLine."Source Currency Amount",
-              GenJnlLine."Bal. Account Type", GenJnlLine."Bal. Account No.");
     end;
 
     local procedure FindJobLineSign(GenJnlLine: Record "Gen. Journal Line")
@@ -8851,7 +8809,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GSTSaleReport."Document No." := GenJnlLine2."Document No.";
             GSTSaleReport."Document Line No." := GenJnlLine2."Line No.";
             GSTSaleReport."Document Line Type" := GSTSaleReport."Document Line Type"::"G/L Account";
-            GSTSaleReport."Document Line Description" := Text28000;
+            GSTSaleReport."Document Line Description" := NoMatchingDocumentTxt;
             GSTSaleReport."GST Entry Type" := GSTSaleReport."GST Entry Type"::Sale;
             GSTSaleReport."GST Base" := GenJnlLine2."VAT Base Amount (LCY)";
             GSTSaleReport.Amount := GenJnlLine2."VAT Amount (LCY)";
@@ -8880,7 +8838,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GSTPurchReport."Document No." := GenJnlLine2."Document No.";
                 GSTPurchReport."Document Line No." := GenJnlLine2."Line No.";
                 GSTPurchReport."Document Line Type" := GSTPurchReport."Document Line Type"::"G/L Account";
-                GSTPurchReport."Document Line Description" := Text28000;
+                GSTPurchReport."Document Line Description" := NoMatchingDocumentTxt;
                 GSTPurchReport."GST Entry Type" := GSTPurchReport."GST Entry Type"::Purchase;
                 GSTPurchReport."GST Base" := GenJnlLine2."VAT Base Amount (LCY)";
                 GSTPurchReport.Amount := GenJnlLine2."VAT Amount (LCY)";
@@ -8997,11 +8955,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(false);
     end;
 
+#if not CLEAN29
+    [Obsolete('Not used in app', '29.0')]
     [Scope('OnPrem')]
     procedure SetReversalDocument(ReversalDoc: Boolean)
     begin
-        IsReversal := ReversalDoc;
     end;
+#endif
 
     local procedure CalcDtldCVLedgEntryAmount(GenJnlLine: Record "Gen. Journal Line"; WHTPercent: Decimal): Decimal
     begin
@@ -9815,7 +9775,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     WHTAmountLCY := -Abs(WHTAmountLCY);
                             end;
                     if (WHTPostingSetup."Realized WHT Type" = WHTPostingSetup."Realized WHT Type"::Payment) and (not GenJnlLine."Financial Void") then
-                        Error(Text016, WHTPostingSetup."Realized WHT Type");
+                        Error(CannotPostPaymentJournalWHTErr, WHTPostingSetup."Realized WHT Type");
                 end;
             if (GenJnlLine."Currency Code" <> '') and (CurrFactor <> 0) then
                 if (WHTPostingSetup."Realized WHT Type" = WHTPostingSetup."Realized WHT Type"::Payment) and
@@ -12993,10 +12953,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnBeforePostICPartner(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        OnBeforePostICPartner(GenJnlLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostICPartner(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterStartPosting(GenJnlLine: Record "Gen. Journal Line")
@@ -13043,10 +13011,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: Integer; var IsHandled: Boolean)
+    begin
+        OnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, NextEntryNo, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '29.0')]
     [IntegrationEvent(true, false)]
     local procedure OnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertGlEntry(var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var IsHandled: Boolean)
