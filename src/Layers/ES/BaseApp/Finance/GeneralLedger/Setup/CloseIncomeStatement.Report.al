@@ -46,7 +46,7 @@ report 94 "Close Income Statement"
             dataitem("G/L Entry"; "G/L Entry")
             {
                 DataItemLink = "G/L Account No." = field("No.");
-                DataItemTableView = sorting("G/L Account No.", "Posting Date") where(Amount = filter(<> 0));
+                DataItemTableView = sorting("G/L Account No.", "Posting Date");
 
                 trigger OnAfterGetRecord()
                 var
@@ -633,7 +633,9 @@ report 94 "Close Income Statement"
                 if not ((GenJnlLine.Amount = 0) and (GenJnlLine."Source Currency Amount" <> 0)) then
                     GenJnlLine.Insert();
         end else
-            if not ZeroGenJnlAmount() or (GenJnlLine."Source Currency Code" <> '') then
+            if not ZeroGenJnlAmount() or (GenJnlLine."Source Currency Code" <> '') or
+               (GenJnlLine."Source Currency Amount" <> 0)
+            then
                 GenJnlLine.Insert();
     end;
 

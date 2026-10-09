@@ -657,7 +657,9 @@ report 94 "Close Income Statement"
                     NoSeries.GetNextNo(GenJnlBatch."No. Series", EndDateReq);
             end;
         end else
-            if not ZeroGenJnlAmount() or (GenJnlLine."Source Currency Code" <> '') then
+            if not ZeroGenJnlAmount() or (GenJnlLine."Source Currency Code" <> '') or
+               (GenJnlLine."Source Currency Amount" <> 0)
+            then
                 GenJnlLine.Insert();
     end;
 

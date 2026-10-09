@@ -690,12 +690,12 @@ codeunit 134228 "ERM Close Income Statement"
         InsertGLEntryForCloseIncome(
             PostingDate, GLAccountNo, 10, 0, 'EUR', 20, 5, VATOnlyDimSetID, VATOnlyDimValue, '', '');
         InsertGLEntryForCloseIncome(
-            PostingDate + 1, GLAccountNo, 30, 0, 'USD', 0, 3, VATOnlyDimSetID, VATOnlyDimValue, '', '');
+            PostingDate + 1, GLAccountNo, 0, 0, 'USD', 0, 3, VATOnlyDimSetID, VATOnlyDimValue, '', '');
         // [GIVEN] Historical additional-currency amounts remain in the grouped totals after the current setup has no ARC.
         InsertGLEntryForCloseIncome(
-            PostingDate, GLAccountNo, 4, 17, '', 0, 0, AdditionalCurrencyDimSetID, AdditionalCurrencyDimValue, '', '');
+            PostingDate, GLAccountNo, 0, 17, '', 0, 0, AdditionalCurrencyDimSetID, AdditionalCurrencyDimValue, '', '');
         InsertGLEntryForCloseIncome(
-            PostingDate + 1, GLAccountNo, 5, 8, '', 0, 0, AdditionalCurrencyDimSetID, AdditionalCurrencyDimValue, '', '');
+            PostingDate + 1, GLAccountNo, 0, 8, '', 0, 0, AdditionalCurrencyDimSetID, AdditionalCurrencyDimValue, '', '');
 
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
@@ -712,9 +712,9 @@ codeunit 134228 "ERM Close Income Statement"
         VerifyCloseIncomeJournalLine(
             GenJournalBatch, DocumentNo, GLAccountNo, VATOnlyDimValue, '', '', 'EUR', -10, -20, -5);
         VerifyCloseIncomeJournalLine(
-            GenJournalBatch, DocumentNo, GLAccountNo, VATOnlyDimValue, '', '', 'USD', -30, 0, -3);
+            GenJournalBatch, DocumentNo, GLAccountNo, VATOnlyDimValue, '', '', 'USD', 0, 0, -3);
         VerifyCloseIncomeJournalLine(
-            GenJournalBatch, DocumentNo, GLAccountNo, AdditionalCurrencyDimValue, '', '', '', -9, -25, 0);
+            GenJournalBatch, DocumentNo, GLAccountNo, AdditionalCurrencyDimValue, '', '', '', 0, -25, 0);
     end;
 
     [Test]
