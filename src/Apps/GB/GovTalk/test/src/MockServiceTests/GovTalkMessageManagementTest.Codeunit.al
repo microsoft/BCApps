@@ -38,6 +38,9 @@ codeunit 144030 "GovTalkMessage Management Test"
         ErrorResponseURLTxt: Label 'https://localhost:8080/GovTalkGateway/error', Locked = true;
         ECSLServiceResponseURLTxt: Label 'https://localhost:8080/GovTalkGateway/ECSLresponse', Locked = true;
         ECSLErrorResponseURLTxt: Label 'https://localhost:8080/GovTalkGateway/ECSLerror', Locked = true;
+        GatewayURLTxt: Label 'https://transaction-engine.tax.service.gov.uk/submission', Locked = true;
+        LastRequestPath: Text;
+        LastRequestWasPost: Boolean;
         NilPaymentTxt: Label 'This is a repayment return. No payment is due.', Locked = true;
         ErrorResponseTxt: Label 'The VAT Period you have entered 2001-04 for the VRN 999900001 was not found, please check and resubmit if necessary.', Locked = true;
         ECSLLineResponse1Txt: Label 'Line No. 001 Acknowledged', Locked = true;
@@ -292,6 +295,95 @@ codeunit 144030 "GovTalkMessage Management Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CreateGovTalkHttpRequestBuildsXmlPost()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        RequestMessage: HttpRequestMessage;
+        ContentHeaders: HttpHeaders;
+        RequestHeaders: HttpHeaders;
+        BodyXMLNode: DotNet XmlNode;
+        GovTalkRequestXMLNode: DotNet XmlNode;
+        SentXMLNode: DotNet XmlNode;
+        HeaderValues: array[10] of Text;
+        RequestBodyInStream: InStream;
+    begin
+        // [SCENARIO] The GovTalk HTTP request is a POST of the GovTalk XML message with text/xml content type
+        Initialize();
+        CreateVATReportHeaderForVATReturn(VATReportHeader);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+
+        // [WHEN] The HTTP request is built for the GovTalk message
+        GovTalkMessageManagement.CreateGovTalkHttpRequest(GovTalkRequestXMLNode, GatewayURLTxt, RequestMessage);
+
+        // [THEN] It is a POST to the gateway URL
+        Assert.AreEqual('POST', RequestMessage.Method(), 'Unexpected HTTP method.');
+        Assert.AreEqual(GatewayURLTxt, RequestMessage.GetRequestUri(), 'Unexpected request URL.');
+
+        // [THEN] The request carries the Accept-Encoding header
+        RequestMessage.GetHeaders(RequestHeaders);
+        Assert.IsTrue(RequestHeaders.GetValues('Accept-Encoding', HeaderValues), 'Expected an Accept-Encoding header.');
+        Assert.AreEqual('utf-8', HeaderValues[1], 'Unexpected Accept-Encoding header.');
+
+        // [THEN] The content type is text/xml
+        RequestMessage.Content().GetHeaders(ContentHeaders);
+        Assert.IsTrue(ContentHeaders.GetValues('Content-Type', HeaderValues), 'Expected a Content-Type header.');
+        Assert.AreEqual('text/xml', HeaderValues[1], 'Unexpected Content-Type header.');
+
+        // [THEN] The body is the GovTalk XML message
+        RequestMessage.Content().ReadAs(RequestBodyInStream);
+        XMLDOMManagement.LoadXMLNodeFromInStream(RequestBodyInStream, SentXMLNode);
+        Assert.AreEqual(GovTalkRequestXMLNode.OuterXml, SentXMLNode.OuterXml, 'Unexpected request body.');
+    end;
+
+    [Test]
+    [HandlerFunctions('GovTalkGatewaySuccessHttpHandler')]
+    [Scope('OnPrem')]
+    procedure SendHttpRequestPostsGovTalkXmlAndReadsResponse()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        BodyXMLNode: DotNet XmlNode;
+        GovTalkRequestXMLNode: DotNet XmlNode;
+        SubmitResponseXMLNode: DotNet XmlNode;
+    begin
+        // [SCENARIO] GovTalk message is posted as XML via HttpClient and the gateway response is parsed
+        Initialize();
+        CreateVATReportHeaderForVATReturn(VATReportHeader);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+
+        // [WHEN] The GovTalk message is sent and the gateway responds with 200 OK
+        Assert.IsTrue(GovTalkMessageManagement.SendHttpRequest(GovTalkRequestXMLNode, GatewayURLTxt, SubmitResponseXMLNode), 'Expected the request to succeed.');
+
+        // [THEN] The request is a POST to the gateway URL
+        Assert.IsTrue(LastRequestWasPost, 'Expected a POST request.');
+        Assert.AreEqual(GatewayURLTxt, LastRequestPath, 'Unexpected request URL.');
+
+        // [THEN] The response XML is loaded
+        Assert.AreEqual('response',
+          XMLDOMManagement.FindNodeTextWithNamespace(SubmitResponseXMLNode, '//x:Qualifier', 'x', GovTalkNameSpaceTxt), '');
+    end;
+
+    [Test]
+    [HandlerFunctions('GovTalkGatewayFailureHttpHandler')]
+    [Scope('OnPrem')]
+    procedure SendHttpRequestReturnsFalseOnNonSuccessStatus()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        BodyXMLNode: DotNet XmlNode;
+        GovTalkRequestXMLNode: DotNet XmlNode;
+        SubmitResponseXMLNode: DotNet XmlNode;
+    begin
+        // [SCENARIO] A non-success gateway status makes SendHttpRequest return false
+        Initialize();
+        CreateVATReportHeaderForVATReturn(VATReportHeader);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+
+        // [WHEN] The GovTalk message is sent and the gateway responds with 500
+        // [THEN] SendHttpRequest returns false
+        Assert.IsFalse(GovTalkMessageManagement.SendHttpRequest(GovTalkRequestXMLNode, GatewayURLTxt, SubmitResponseXMLNode), 'Expected the request to fail.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestECSLSuccessResponse()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -525,6 +617,31 @@ codeunit 144030 "GovTalkMessage Management Test"
     local procedure GetPeriodID(PeriodEnd: Date): Code[10]
     begin
         exit(Format(PeriodEnd, 0, '<Year4>-<Month,2>'));
+    end;
+
+    [HttpClientHandler]
+    internal procedure GovTalkGatewaySuccessHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        CaptureRequest(Request);
+        Response.HttpStatusCode := 200;
+        Response.Content.WriteFrom(
+          '<GovTalkMessage xmlns="' + GovTalkNameSpaceTxt + '"><EnvelopeVersion>2.0</EnvelopeVersion><Header><MessageDetails>' +
+          '<Class>HMRC-VAT-DEC</Class><Qualifier>response</Qualifier><Function>submit</Function></MessageDetails></Header></GovTalkMessage>');
+        exit(false);
+    end;
+
+    [HttpClientHandler]
+    internal procedure GovTalkGatewayFailureHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        CaptureRequest(Request);
+        Response.HttpStatusCode := 500;
+        exit(false);
+    end;
+
+    local procedure CaptureRequest(Request: TestHttpRequestMessage)
+    begin
+        LastRequestWasPost := Request.RequestType = HttpRequestType::POST;
+        LastRequestPath := Request.Path;
     end;
 }
 
