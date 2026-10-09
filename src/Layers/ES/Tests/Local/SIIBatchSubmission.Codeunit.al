@@ -306,7 +306,7 @@ codeunit 147553 "SII Batch Submission"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 232557] Two sales invoice documents are combined in one XML
@@ -328,7 +328,7 @@ codeunit 147553 "SII Batch Submission"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 232557] Two sales credit memo documents are combined in one XML
@@ -350,7 +350,7 @@ codeunit 147553 "SII Batch Submission"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 232557] Two sales credit memo removal documents are combined in one XML
@@ -372,7 +372,7 @@ codeunit 147553 "SII Batch Submission"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 232557] Two purchase invoice documents are combined in one XML
@@ -394,7 +394,7 @@ codeunit 147553 "SII Batch Submission"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 232557] Two purchase credit memo documents are combined in one XML
@@ -416,7 +416,7 @@ codeunit 147553 "SII Batch Submission"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 232557] Two purchase credit memo removal documents are combined in one XML
@@ -438,7 +438,7 @@ codeunit 147553 "SII Batch Submission"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 232557] Two sales invoice documents are splitted when SIIXMLCreator.Reset() is invoked

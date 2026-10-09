@@ -26,7 +26,7 @@ codeunit 148000 "SII Period Tests"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 557603] The Periodo XML node in the Sales Invoice XML file is generated correctly for the Quarterly Tax Period
         Initialize();
@@ -51,7 +51,7 @@ codeunit 148000 "SII Period Tests"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 557603] The Periodo XML node in the Sales Credit Memo XML file is generated correctly for the Quarterly Tax Period
 
@@ -77,7 +77,7 @@ codeunit 148000 "SII Period Tests"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 557603] The Periodo XML node in the removal Sales Credit Memo XML file is generated correctly for the Quarterly Tax Period
 

@@ -37,7 +37,7 @@ codeunit 147528 "SII Corrective Documents"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 231007] Negative Sales Invoice with type "F1 Invoice" have negative amounts and does not have XML nodes of Credit Memo in SII File
@@ -75,7 +75,7 @@ codeunit 147528 "SII Corrective Documents"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 231007] Negative Purchase Invoice with type "F1 Invoice" have negative amounts and does not have XML nodes of Credit Memo in SII File
@@ -113,7 +113,7 @@ codeunit 147528 "SII Corrective Documents"
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 231007] Negative Service Invoice with type "F1 Invoice" have negative amounts and does not have XML nodes of Credit Memo in SII File
@@ -151,7 +151,7 @@ codeunit 147528 "SII Corrective Documents"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 231007] Negative Sales Invoice with type "F2 Simplified Invoice" have negative amounts and does not have XML nodes of Credit Memo in SII File
@@ -191,7 +191,7 @@ codeunit 147528 "SII Corrective Documents"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 231007] Negative Purchase Invoice with type "F2 Simplified Invoice" have negative amounts and does not have XML nodes of Credit Memo in SII File
@@ -231,7 +231,7 @@ codeunit 147528 "SII Corrective Documents"
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 231007] Negative Service Invoice with type "F2 Simplified Invoice" have negative amounts and does not have XML nodes of Credit Memo in SII File
@@ -269,7 +269,7 @@ codeunit 147528 "SII Corrective Documents"
     procedure CuotaDeducibleDeductNegativeLineForPurchInvoice()
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         TotalVATAmount: Decimal;
     begin
         // [FEATURE] [Purchase]
@@ -297,7 +297,7 @@ codeunit 147528 "SII Corrective Documents"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 383654] Stan can send sales invoice with "Invoice Type" = "R1" to the SII in order to reflect the corrective invoice
@@ -350,7 +350,7 @@ codeunit 147528 "SII Corrective Documents"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 383654] Stan can send purchase invoice with "Invoice Type" = "R1" to the SII in order to reflect the corrective invoice
@@ -765,7 +765,7 @@ codeunit 147528 "SII Corrective Documents"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         VendorLedgerEntry.SetRange("Document No.", PostedDocNo);
         VendorLedgerEntry.FindSet();
@@ -793,7 +793,7 @@ codeunit 147528 "SII Corrective Documents"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         VendorLedgerEntry.SetRange("Document No.", PostedDocNo);
         VendorLedgerEntry.FindSet();

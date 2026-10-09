@@ -33,7 +33,7 @@ codeunit 147526 "SII Initial Documents"
     procedure InitialSalesInvoice()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 230255] DescripcionOperacion node does not inherit value from Sales Invoice with "Posting Date" before 30.06.2017
@@ -58,7 +58,7 @@ codeunit 147526 "SII Initial Documents"
     procedure InitialNormalSalesCrMemo()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 230255] DescripcionOperacion node does not inherit value from Sales Credit Memo with "Posting Date" before 30.06.2017
@@ -84,7 +84,7 @@ codeunit 147526 "SII Initial Documents"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 230255] DescripcionOperacion node does not inherit value from Sales Credit Memo with "Correction Type" = Replacement and "Posting Date" before 30.06.2017
@@ -111,7 +111,7 @@ codeunit 147526 "SII Initial Documents"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 230255] CuotaDeducible node has zero value and DescripcionOperacion node does not inherit value from Purchase Invoice with "Posting Date" before 30.06.2017
@@ -149,7 +149,7 @@ codeunit 147526 "SII Initial Documents"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 230255] CuotaDeducible node has zero value and DescripcionOperacion node does not inherit value from Purchase Credit Memo with "Posting Date" before 30.06.2017
@@ -188,7 +188,7 @@ codeunit 147526 "SII Initial Documents"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 230255] CuotaDeducible node has zero value and DescripcionOperacion node does not inherit value from Purchase Credit Memo with "Correction Type" = Replacement and "Posting Date" before 30.06.2017
@@ -228,7 +228,7 @@ codeunit 147526 "SII Initial Documents"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIInitialDocUpload: Codeunit "SII Initial Doc. Upload";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [No Tax] [Invoice]
         // [SCENARIO 253774] Non Taxable Sales Invoice with "Posting Date" before 30.06.2017 has amount under node NoExenta
@@ -255,7 +255,7 @@ codeunit 147526 "SII Initial Documents"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIInitialDocUpload: Codeunit "SII Initial Doc. Upload";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [No Tax] [Credit Memo]
         // [SCENARIO 253774] Non Taxable Sales Credit Memo with "Posting Date" before 30.06.2017 has amount under node NoExenta
@@ -283,7 +283,7 @@ codeunit 147526 "SII Initial Documents"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIInitialDocUpload: Codeunit "SII Initial Doc. Upload";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Exemption] [Invoice]
         // [SCENARIO 253774] VAT Exemption Sales Invoice with "Posting Date" before 30.06.2017 has amount under node NoExenta
@@ -309,7 +309,7 @@ codeunit 147526 "SII Initial Documents"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIInitialDocUpload: Codeunit "SII Initial Doc. Upload";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Exemption] [Credit Memo]
         // [SCENARIO 253774] VAT Exemption Sales Credit Memo with "Posting Date" before 30.06.2017 has amount under node NoExenta
@@ -337,7 +337,7 @@ codeunit 147526 "SII Initial Documents"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Reverse Charge VAT] [Invoice]
         // [SCENARIO 253774] Reverse Charge Purchase Invoice with "Posting Date" before 30.06.2017 has amount under node NoExenta
@@ -362,7 +362,7 @@ codeunit 147526 "SII Initial Documents"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Reverse Charge VAT] [Credit Memo]
         // [SCENARIO 253774] Reverse Charge Purchase Credit Memo with "Posting Date" before 30.06.2017 has amount under node NoExenta
