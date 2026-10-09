@@ -929,7 +929,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
         CstmrDrctDbtInitnNode := GetFirstChildNode(XMLDocNode);
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         DirectDebitCollectionEntry.FindLast();
-        foreach XMLNode in CstmrDrctDbtInitnNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in CstmrDrctDbtInitnNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, DirectDebitCollection, DirectDebitCollectionEntry);
@@ -995,7 +995,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
         // [THEN] Ustrd tag is exported with Description and Document No. of each Direct Debit Collection Entry (TFS 257781)
         CstmrDrctDbtInitnNode := GetFirstChildNode(XMLDocNode);
         Assert.AreEqual('CstmrDrctDbtInitn', CstmrDrctDbtInitnNode.AsXmlElement().Name, 'CstmrDrctDbtInitn');
-        foreach XMLNode in CstmrDrctDbtInitnNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in CstmrDrctDbtInitnNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, DirectDebitCollection, DirectDebitCollectionEntry);
@@ -1793,21 +1793,21 @@ codeunit 134429 "ERM Test SEPA DD 08"
         TempBlob.CreateInStream(InStr);
         XmlDocument.ReadFrom(InStr, XMLDoc);
         XMLDoc.GetRoot(XMLDocElement);
-        if XMLDocElement.GetChildNodes().Count() = 0 then
+        if XMLDocElement.GetChildElements().Count() = 0 then
             Error(XMLNoChildrenErr);
         XMLDocNode := XMLDocElement.AsXmlNode();
     end;
 
     local procedure GetFirstChildNode(ParentNode: XmlNode) ChildNode: XmlNode
     begin
-        ParentNode.AsXmlElement().GetChildNodes().Get(1, ChildNode);
+        ParentNode.AsXmlElement().GetChildElements().Get(1, ChildNode);
     end;
 
     local procedure GetLastChildNode(ParentNode: XmlNode) ChildNode: XmlNode
     var
         ChildNodes: XmlNodeList;
     begin
-        ChildNodes := ParentNode.AsXmlElement().GetChildNodes();
+        ChildNodes := ParentNode.AsXmlElement().GetChildElements();
         ChildNodes.Get(ChildNodes.Count(), ChildNode);
     end;
 
@@ -1875,7 +1875,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
         XMLNode: XmlNode;
         dt: DateTime;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'MsgId':
                     Assert.AreEqual(DirectDebitCollection."Message ID", XMLNode.AsXmlElement().InnerXml, 'Wrong MsgID.');
@@ -1910,7 +1910,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
         CompanyNameTxt: Text;
     begin
         CompanyInfo.Get();
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'Nm':
                     begin
@@ -1955,7 +1955,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
         CtrlSum: Decimal;
         NbOfTxs: Integer;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'PmtTpInf':
                     ValidatePmtTpInf(XMLNode);
@@ -2000,7 +2000,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
     var
         XMLNode: XmlNode;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             Assert.AreNotEqual(XMLNode.AsXmlElement().Name, 'PstlAdr', '');
     end;
 
@@ -2008,7 +2008,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
     var
         XMLNode: XmlNode;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do begin
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do begin
             case XMLNode.AsXmlElement().Name of
                 'RmtInf':
                     ValidateRmtInf(XMLNode, UstrdText);
@@ -2022,7 +2022,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
     var
         XMLNode: XmlNode;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             Assert.AreNotEqual('InstrPrty', XMLNode.AsXmlElement().Name, PmtTpInfInstrPrtyErr);
     end;
 
@@ -2039,7 +2039,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
     var
         XMLNode: XmlNode;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'Nm':
                     Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
@@ -2056,7 +2056,7 @@ codeunit 134429 "ERM Test SEPA DD 08"
     var
         XMLNode: XmlNode;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'StrtNm', 'PstCd', 'TwnNm', 'Ctry':
                     ;

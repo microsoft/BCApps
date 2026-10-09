@@ -761,12 +761,12 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         TempBlob.CreateInStream(InStr);
         XmlDocument.ReadFrom(InStr, XMLDoc);
         XMLDoc.GetRoot(XMLDocElement);
-        if XMLDocElement.GetChildNodes().Count() = 0 then
+        if XMLDocElement.GetChildElements().Count() = 0 then
             Error(XMLNoChildrenErr);
 
         CstmrCdtTrfInitnNode := GetFirstChildNode(XMLDocElement.AsXmlNode());
         Assert.AreEqual('CstmrCdtTrfInitn', CstmrCdtTrfInitnNode.AsXmlElement().Name, 'CstmrCdtTrfInitn');
-        foreach XMLNode in CstmrCdtTrfInitnNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in CstmrCdtTrfInitnNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, GenJnlLine);
@@ -826,7 +826,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
 
         // [THEN] The exported file contains a tag <Cd> with "BANK" value within tag <SchmeNm>
         // TFS 217316: The tag <Cd> contains "BANK" value
-        LibraryXPathXMLReader.VerifyXmlNodeValue('(//ns:SchmeNm)[1]/node()[1][self::ns:Cd]', 'BANK');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('(//ns:SchmeNm)[1]/*[1][self::ns:Cd]', 'BANK');
     end;
 
     [Test]
@@ -1765,13 +1765,13 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         TempBlob.CreateInStream(InStr);
         XmlDocument.ReadFrom(InStr, XMLDoc);
         XMLDoc.GetRoot(XMLDocElement);
-        if XMLDocElement.GetChildNodes().Count() = 0 then
+        if XMLDocElement.GetChildElements().Count() = 0 then
             Error(XMLNoChildrenErr);
 
         // [THEN] Verify Grouping of payments in XML document.
         CstmrCdtTrfInitnNode := GetFirstChildNode(XMLDocElement.AsXmlNode());
         Assert.AreEqual('CstmrCdtTrfInitn', CstmrCdtTrfInitnNode.AsXmlElement().Name, 'CstmrCdtTrfInitn');
-        foreach XMLNode in CstmrCdtTrfInitnNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in CstmrCdtTrfInitnNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'GrpHdr':
                     ValidateGrpHdr(XMLNode, GenJnlLine);
@@ -2227,7 +2227,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         XMLNode: XmlNode;
         dt: DateTime;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'MsgId':
                     ;
@@ -2256,7 +2256,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
     var
         XMLNode: XmlNode;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'StrtNm', 'PstCd', 'TwnNm', 'Ctry':
                     ;
@@ -2269,7 +2269,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
     var
         XMLNode: XmlNode;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'Nm':
                     Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
@@ -2293,7 +2293,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         NbOfTxs: Integer;
         InstrId: Guid;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'PmtInfId', 'BtchBookg', 'PmtTpInf', 'Dbtr', 'DbtrAcct', 'DbtrAgt', 'CdtrAgt', 'FinInstnId', 'BICFI', 'AnyBIC':
                     ;
@@ -2345,7 +2345,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
 
     local procedure GetFirstChildNode(ParentNode: XmlNode) ChildNode: XmlNode
     begin
-        ParentNode.AsXmlElement().GetChildNodes().Get(1, ChildNode);
+        ParentNode.AsXmlElement().GetChildElements().Get(1, ChildNode);
     end;
 
     local procedure VerifyPaymentJnlExportErr(GenJnlLine: Record "Gen. Journal Line"; ErrText: Text)
@@ -2403,7 +2403,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         CtrlSum: Decimal;
         NbOfTxs: Integer;
     begin
-        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildElements() do
             case XMLNode.AsXmlElement().Name of
                 'PmtInfId', 'BtchBookg', 'PmtTpInf', 'Dbtr', 'DbtrAcct', 'DbtrAgt', 'CdtrAgt', 'FinInstnId', 'BICFI', 'AnyBIC':
                     ;
