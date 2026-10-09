@@ -74,7 +74,7 @@ codeunit 6969 "Expense Consumption Handler"
             ExpenseAgentEnvConsumption."Consumption Source Type" := ConsumptionSourceType;
             ExpenseAgentEnvConsumption."Consumption Source System ID" := ConsumptionSourceSystemId;
             ExpenseAgentEnvConsumption."Consumption Source Operation" := Operation;
-            ExpenseAgentEnvConsumption.IsFeatureTrial := IsTrial;
+            ExpenseAgentEnvConsumption."Is Feature Trial" := IsTrial;
             ExpenseAgentEnvConsumption.Insert();
         end;
 
