@@ -224,7 +224,7 @@ codeunit 7442 "EA Create Corp Card Setup"
     begin
         if not GLAccount.Get(CorpCardGLAccountTok) then begin
             GLAccount.Init();
-            GLAccount.Validate("No.", CorpCardGLAccountTok);
+            GLAccount."No." := CorpCardGLAccountTok;
             GLAccount.Validate(Name, CorpCardGLAccountNameLbl);
             GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
             GLAccount.Validate("Account Category", GLAccount."Account Category"::Assets);
