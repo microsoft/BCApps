@@ -8,7 +8,7 @@ BeforeAll {
         'GITHUB_WORKSPACE','BC_EXPANDED_COUNTRY','BC_EXPANDED_PROJECT','BC_EXPANDED_ARTIFACT_FIXTURE','BcContainerHelperPath')){
         $saved[$key]=[Environment]::GetEnvironmentVariable($key)
     }
-    $env:GITHUB_REPOSITORY='microsoft/BCApps';$env:GITHUB_REF='refs/heads/features/653393-expanded-api-diagnostic'
+    $env:GITHUB_REPOSITORY='microsoft/BCApps';$env:GITHUB_REF='refs/heads/features/653393-expanded-api-helper-scope'
     $env:GITHUB_EVENT_NAME='workflow_dispatch';$env:GITHUB_RUN_ATTEMPT='1';$env:GITHUB_RUN_ID='999';$env:GITHUB_SHA='a'*40
     $env:GITHUB_WORKSPACE=$fixture;$env:BC_EXPANDED_COUNTRY='CA';$env:BC_EXPANDED_PROJECT='build\projects\Expanded Build CA'
     $env:BC_EXPANDED_ARTIFACT_FIXTURE=Join-Path $fixture 'service.json'
@@ -80,7 +80,6 @@ $bcContainerHelperVersion='6.1.19-preview2811389'
 function Get-AppJsonFromAppFile {param([string]$appFile) Get-Content $appFile -Raw|ConvertFrom-Json}
 Export-ModuleMember -Function Get-AppJsonFromAppFile
 '@
-        Import-Module $helper -Force
         $env:BcContainerHelperPath=$helper
         $script:output=Join-Path $fixture 'expanded-api-output'
         $null=New-Item -ItemType Directory -Path $output

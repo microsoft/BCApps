@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   Plan:
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-diagnostic' && github.run_attempt == 1 && inputs.authorization == 'reviewed-originals'
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-helper-scope' && github.run_attempt == 1 && inputs.authorization == 'reviewed-originals'
     runs-on: windows-latest
     timeout-minutes: 10
     outputs:
@@ -82,6 +82,14 @@ jobs:
           shell: pwsh
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: 'licenseFileUrl,gitHubPackagesContext,applicationInsightsConnectionString,appDependencySecrets'
+      - name: Load exact helper and validate warm API surface without replacing AL-Go configuration
+        uses: microsoft/AL-Go/Actions/RunHook@91b96c2b294be6f823277dafe6f03350abfb9d23
+        with:
+          shell: pwsh
+          project: ${{ steps.configure.outputs.project }}
+          hookName: BuildInitialize
+      - name: Validate cold consumer API surface before compilation
+        run: .\build\scripts\ExpandedApiDiagnostic\HelperPreflight.ps1 -Boundary Cold
       - name: Compile all country app and test dependencies once
         uses: microsoft/AL-Go/Actions/CompileApps@91b96c2b294be6f823277dafe6f03350abfb9d23
         env:

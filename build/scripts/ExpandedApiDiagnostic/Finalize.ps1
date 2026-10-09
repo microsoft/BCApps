@@ -11,7 +11,10 @@ if (Test-Path $ownershipPath) {
     if ($owner.run -cne $env:GITHUB_RUN_ID -or $owner.sourceHead -cne $env:GITHUB_SHA -or
         $owner.identity -cne $context.cell.identity -or $owner.lane -cne $context.lane.id -or
         $owner.container -ne $context.container) { throw 'Refusing cleanup of foreign ownership.' }
-    Import-ExpandedHelper
+    Import-ExpandedHelper -RequiredCommands @{
+        'Test-BcContainer' = @('containerName'); 'Remove-BcContainer' = @('containerName')
+        'Get-BcContainerEventLog' = @('containerName', 'doNotOpen')
+    }
     try {
         if (Test-BcContainer -containerName $context.container) {
             $events = Get-BcContainerEventLog -containerName $context.container -doNotOpen

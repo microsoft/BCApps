@@ -142,7 +142,11 @@ function Invoke-ExpandedLane {
     if ($Parameters.containerName -ne $context.container -or -not $Parameters.JUnitResultFileName) {
         throw 'Unexpected test callback identity or missing raw JUnit destination.'
     }
-    Import-ExpandedHelper
+    Import-ExpandedHelper -RequiredCommands @{
+        'Get-TestsFromBcContainer' = @('testType', 'requiredTestIsolation')
+        'Run-TestsInBcContainer' = @('testCodeunitRange', 'testRunnerCodeunitId')
+        'Get-BcContainerServerConfiguration' = @('containerName')
+    }
     $env:BC_SQL_TENANT_COUNT = [string]$context.cell.configuration.mounts.Count
     $env:BC_SQL_PILOT_ARM = 'control'
     $env:BC_SQL_API_EXPERIMENT = 'control'

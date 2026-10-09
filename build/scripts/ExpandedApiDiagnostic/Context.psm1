@@ -18,13 +18,35 @@ function Get-ExpandedContext {
 }
 
 function Import-ExpandedHelper {
-    if (-not (Get-Module BcContainerHelper)) {
-        if (-not $env:BcContainerHelperPath) { throw 'Pinned AL-Go helper path is missing.' }
-        Import-Module (Join-Path (Split-Path $env:BcContainerHelperPath -Parent) 'BcContainerHelper.psm1') -ErrorAction Stop
+    param([string[]]$ConfigFiles = @(), [hashtable]$RequiredCommands = @{})
+    if (-not $env:BcContainerHelperPath) { throw 'Pinned AL-Go helper path is missing.' }
+    $path = (Resolve-Path (Join-Path (Split-Path $env:BcContainerHelperPath -Parent) 'BcContainerHelper.psm1') -ErrorAction Stop).Path
+    $loaded = @(Get-Module BcContainerHelper -All)
+    if (@($loaded | Where-Object { $_.Path -ine $path }).Count -or $loaded.Count -gt 1) {
+        throw 'A different or ambiguous BCH provider is already loaded; no replacement is authorized.'
     }
-    $module = Get-Module BcContainerHelper
+    if ($loaded.Count) {
+        $module = $loaded[0]
+        if ((& $module { $bcContainerHelperVersion }) -cne (Get-ExpandedApiPinSet).helper) {
+            throw 'Loaded helper is not the pinned diagnostic version.'
+        }
+        # Re-export the existing instance without Force: retain AL-Go's in-memory
+        # configuration while making its commands visible beyond Context's scope.
+        Import-Module -ModuleInfo $module -Global -DisableNameChecking -ErrorAction Stop
+    } else {
+        $module = Import-Module $path -Global -PassThru -DisableNameChecking `
+            -ArgumentList @($false, $false, $ConfigFiles) -ErrorAction Stop
+    }
     if ((& $module { $bcContainerHelperVersion }) -cne (Get-ExpandedApiPinSet).helper) {
         throw 'Loaded helper is not the pinned diagnostic version.'
+    }
+    foreach ($name in $RequiredCommands.Keys) {
+        $command = Get-Command -Name $name -ErrorAction Stop
+        if ($command.CommandType -ne 'Function' -or $command.Module.Path -ine $path -or
+            -not $module.ExportedCommands.ContainsKey($name)) { throw "Unexpected helper command provider: $name." }
+        foreach ($parameter in $RequiredCommands[$name]) {
+            if (-not $command.Parameters.ContainsKey($parameter)) { throw "Missing helper parameter: $name/$parameter." }
+        }
     }
 }
 

@@ -108,6 +108,11 @@ param([hashtable]$parameters)
 '@
 }
 $settings | ConvertTo-Json -Depth 30 | Set-Content $settingsPath
+Set-Content (Join-Path $project '.AL-Go\BuildInitialize.ps1') @'
+param([hashtable]$parameters)
+DownloadAndImportBcContainerHelper
+& (Join-Path $PSScriptRoot '../../../scripts/ExpandedApiDiagnostic/HelperPreflight.ps1') -Boundary Warm
+'@
 Copy-Item $settingsPath (Join-Path $output 'project-settings.json')
 "project=$($project.Replace('\', '/'))" | Add-Content $env:GITHUB_OUTPUT
 "artifact=$($repo.artifact)" | Add-Content $env:GITHUB_OUTPUT

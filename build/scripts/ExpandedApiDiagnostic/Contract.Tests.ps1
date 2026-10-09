@@ -141,7 +141,7 @@ Describe 'Manual diagnostic identity' {
         $script:savedEnvironment = @{}
         $identity = @{
             GITHUB_REPOSITORY = 'microsoft/BCApps'
-            GITHUB_REF = 'refs/heads/features/653393-expanded-api-diagnostic'
+            GITHUB_REF = 'refs/heads/features/653393-expanded-api-helper-scope'
             GITHUB_EVENT_NAME = 'workflow_dispatch'
             GITHUB_RUN_ATTEMPT = '1'
             GITHUB_RUN_ID = '999'
@@ -160,6 +160,7 @@ Describe 'Manual diagnostic identity' {
     It 'rejects forks, old branches, push, reruns and malformed run ids' -ForEach @(
         @{ environmentKey = 'GITHUB_REPOSITORY'; rejectedValue = 'other/BCApps' },
         @{ environmentKey = 'GITHUB_REF'; rejectedValue = 'refs/heads/features/646383-sql-api-tenant-count-comparison' },
+        @{ environmentKey = 'GITHUB_REF'; rejectedValue = 'refs/heads/features/653393-expanded-api-diagnostic' },
         @{ environmentKey = 'GITHUB_EVENT_NAME'; rejectedValue = 'push' },
         @{ environmentKey = 'GITHUB_RUN_ATTEMPT'; rejectedValue = '2' },
         @{ environmentKey = 'GITHUB_RUN_ID'; rejectedValue = '../999' }

@@ -11,7 +11,7 @@ test is claimed. The investigation remains open.
 
 The registered `CICD.yaml` dispatch entry bridges to
 `SqlApiExpandedDiagnostic.yaml` **only** on
-`features/653393-expanded-api-diagnostic`, manual event, attempt1, with
+`features/653393-expanded-api-helper-scope`, manual event, attempt1, with
 `authorization=reviewed-originals`. Default authorization is **HOLD**.
 The bridge avoids depending on a newly introduced workflow already being registered
 on the default branch. Ordinary CI job bodies/push triggers remain unchanged;
@@ -23,7 +23,7 @@ branches, protocols, dispatch definitions and concurrency groups are untouched.
 that `pull_request` executes in the PR merge context; the branch-local workflow
 gate is therefore honored. Every job in that handler excludes only an event with
 `pull_request.head.repo.full_name == microsoft/BCApps` and
-`pull_request.head.ref == features/653393-expanded-api-diagnostic`. Opened,
+`pull_request.head.ref == features/653393-expanded-api-helper-scope`. Opened,
 synchronize and reopened events are covered regardless of draft/ready status.
 Other heads, forks and merge-group behavior are unchanged. Other PR workflows
 (for example hosted PowerShell validation, labels and reviews) may still run;
@@ -33,8 +33,46 @@ uses the same `pull_request` trigger. Future trigger/gate changes need re-review
 The immutable diagnostic source remains based on `97c2f034…`, not latest main.
 
 A PR is **not required** to run the manual diagnostic after parent authorization:
-`gh workflow run CICD.yaml --repo microsoft/BCApps --ref features/653393-expanded-api-diagnostic -f authorization=reviewed-originals`.
+`gh workflow run CICD.yaml --repo microsoft/BCApps --ref features/653393-expanded-api-helper-scope -f authorization=reviewed-originals`.
 The input name is `authorization`; the exact value is `reviewed-originals`.
+
+## Isolated helper-scope successor
+
+This branch starts at immutable `1d4e69dd94ac4faee5ec0a05b0338abb301530b2`.
+The predecessor branch/PR12587 and run37873706046 are not edited or replayed.
+Parent terminal evidence records all five country compilations successful but
+the separate sealing and cleanup processes failed command resolution; registry/
+trials never ran. This was our **CI setup bug**, not evidence of a SQL platform bug.
+
+`Import-ExpandedHelper` previously imported into the Context module's private
+scope. The exact pinned helper really exports the reader and cleanup APIs.
+It now publishes that exact instance to global session scope and checks version,
+provider path, exports and required parameters. Warm instances are re-exported
+without Force, preserving AL-Go configuration. Both build and lane workflows run
+a pinned AL-Go BuildInitialize hook to load/verify the warm helper, followed by
+a separate cold PowerShell API/signature check **before** compilation/provisioning.
+The finalizer, producer and new-container callbacks also check their required
+surface. Worker and sampler children already import directly in their own session.
+
+Compiler cleanup now persists ownership/removal/absence/failure evidence even
+when loading or removal fails, and rethrows the original error. Only the exact
+run-scoped destination under the helper compiler root is eligible; matching names
+elsewhere and reparse-point destinations are rejected. Null/unknown absence is
+not success. Registry requires verified ownership and absence with no failure.
+The five **remote compiler folders** from the predecessor remain cleanup-UNKNOWN;
+these are not NST containers and this patch does not delete or assert absence of
+them. Parent cleanup/capacity/provenance and independent review gates still apply.
+
+`ExactHelperProbe.ps1` is an explicitly invoked integration probe, not an automatic
+mock test. Run it in a fresh `pwsh -NoProfile` with the exact helper module, a new
+workspace-local fixture, an already verified compiled app ZIP/digest and an
+existing cached AL extension directory. It validates real exports/signatures,
+cold caller visibility, warm instance/config preservation, parses the real Test
+Runner package using the real helper and cached metadata reader (no compiler),
+and creates/removes only its own disposable compiler-folder fixture. It performs
+no NST/Docker/remote cleanup. The helper ZIP is obtained from the exact version URL
+used by AL-Go91b96's `GetBcContainerHelperPath`, not a floating release. Mock suites
+no longer globally preload fake BCH before calling the production loader.
 
 The independent literal concurrency group is
 `sql-api-653393-expanded-api-diagnostic`, cancellation disabled.

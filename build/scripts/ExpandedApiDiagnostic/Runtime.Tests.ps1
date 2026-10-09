@@ -55,7 +55,7 @@ Export-ModuleMember -Function *
         $environment[$key] = [Environment]::GetEnvironmentVariable($key)
     }
     $env:GITHUB_WORKSPACE=$fixture; $env:GITHUB_REPOSITORY='microsoft/BCApps'
-    $env:GITHUB_REF='refs/heads/features/653393-expanded-api-diagnostic';$env:GITHUB_EVENT_NAME='workflow_dispatch'
+    $env:GITHUB_REF='refs/heads/features/653393-expanded-api-helper-scope';$env:GITHUB_EVENT_NAME='workflow_dispatch'
     $env:GITHUB_RUN_ATTEMPT='1';$env:GITHUB_RUN_ID='999';$env:GITHUB_SHA='a'*40
     $env:BC_EXPANDED_COUNTRY='CA';$env:BC_EXPANDED_CONFIG='m2w2';$env:BC_EXPANDED_LANE='UncategorizedTests'
     $env:BcContainerHelperPath=$helperPath
@@ -71,7 +71,6 @@ Describe 'Real orchestration with fake external services' {
     BeforeEach {
         $env:BC_EXPANDED_CONFIG = if ($topology) { $topology } else { 'm2w2' }
         Remove-Module Producer,Lifecycle,TenantCount,BcContainerHelper -ErrorAction SilentlyContinue
-        Import-Module $helperPath -Force -DisableNameChecking
         Import-Module (Join-Path $root 'Producer.psm1') -Force
         Import-Module (Join-Path $root 'Context.psm1') -Force
         $script:context=Get-ExpandedContext

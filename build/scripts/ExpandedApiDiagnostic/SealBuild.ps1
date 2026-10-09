@@ -4,7 +4,7 @@ Import-Module (Join-Path $PSScriptRoot 'Contract.psm1')
 Import-Module (Join-Path $PSScriptRoot 'Context.psm1')
 Import-Module (Join-Path $PSScriptRoot 'Artifacts.psm1')
 Assert-ExpandedApiDispatch
-Import-ExpandedHelper
+Import-ExpandedHelper -RequiredCommands @{ 'Get-AppJsonFromAppFile' = @('appFile') }
 $output = Join-Path $env:GITHUB_WORKSPACE 'expanded-api-output'
 $source = Get-Content (Join-Path $output 'source-receipt.json') -Raw | ConvertFrom-Json
 $overlay = Get-Content (Join-Path $PSScriptRoot 'source-overlay.json') -Raw | ConvertFrom-Json

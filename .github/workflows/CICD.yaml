@@ -35,13 +35,13 @@ env:
 
 jobs:
   ExpandedDiagnostic:
-    if: github.ref == 'refs/heads/features/653393-expanded-api-diagnostic' && github.event_name == 'workflow_dispatch' && inputs.authorization == 'reviewed-originals' && github.run_attempt == 1
+    if: github.ref == 'refs/heads/features/653393-expanded-api-helper-scope' && github.event_name == 'workflow_dispatch' && inputs.authorization == 'reviewed-originals' && github.run_attempt == 1
     uses: ./.github/workflows/SqlApiExpandedDiagnostic.yaml
     secrets: inherit
     with:
       authorization: ${{ inputs.authorization }}
   Initialization:
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic'
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope'
     needs: [ ]
     runs-on: [ windows-latest ]
     outputs:
@@ -165,7 +165,7 @@ jobs:
           type: 'CD'
 
   CheckForUpdates:
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic'
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope'
     needs: [ Initialization ]
     runs-on: [ windows-latest ]
     steps:
@@ -198,7 +198,7 @@ jobs:
 
   Build1:
     needs: [ Initialization ]
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic' && (!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope' && (!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0
     strategy:
       matrix:
         include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[0].buildDimensions }}
@@ -223,7 +223,7 @@ jobs:
 
   Build:
     needs: [ Initialization, Build1 ]
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic' && (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope' && (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
     strategy:
       matrix:
         include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[1].buildDimensions }}
@@ -248,7 +248,7 @@ jobs:
 
   CodeAnalysisUpload:
     needs: [ Initialization, Build ]
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic' && (!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGitHub == 'True')
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope' && (!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGitHub == 'True')
     runs-on: [ windows-latest ]
     name: Code Analysis Processing
     steps:
@@ -281,7 +281,7 @@ jobs:
 
   DeployALDoc:
     needs: [ Initialization, Build ]
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic' && (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.generateALDocArtifact == 1 && github.ref_name == 'main'
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope' && (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.generateALDocArtifact == 1 && github.ref_name == 'main'
     runs-on: [ windows-latest ]
     name: Deploy Reference Documentation
     permissions:
@@ -337,7 +337,7 @@ jobs:
 
   Deploy:
     needs: [ Initialization, Build1, Build ]
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic' && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.environmentCount > 0
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope' && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.environmentCount > 0
     strategy: ${{ fromJson(needs.Initialization.outputs.environmentsMatrixJson) }}
     runs-on: ${{ fromJson(matrix.os) }}
     name: Deploy to ${{ matrix.environment }}
@@ -407,7 +407,7 @@ jobs:
 
   Deliver:
     needs: [ Initialization, Build1, Build ]
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic' && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.deliveryTargetsJson != '[]'
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope' && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.deliveryTargetsJson != '[]'
     strategy:
       matrix:
         deliveryTarget: ${{ fromJson(needs.Initialization.outputs.deliveryTargetsJson) }}
@@ -451,7 +451,7 @@ jobs:
 
   PostProcess:
     needs: [ Initialization, Build1, Build, Deploy, Deliver, DeployALDoc, CodeAnalysisUpload ]
-    if: github.ref != 'refs/heads/features/653393-expanded-api-diagnostic' && (!cancelled())
+    if: github.ref != 'refs/heads/features/653393-expanded-api-helper-scope' && (!cancelled())
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout

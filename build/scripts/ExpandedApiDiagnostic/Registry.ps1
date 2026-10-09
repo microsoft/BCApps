@@ -21,7 +21,8 @@ foreach ($country in @('W1', 'DE', 'CA', 'US', 'IT')) {
     $cleanup = Get-Content (Join-Path $directory 'compiler-cleanup.json') -Raw | ConvertFrom-Json
     if ($manifest.country -cne $country -or $manifest.runId -cne $env:GITHUB_RUN_ID -or
         $manifest.sourceHead -cne $env:GITHUB_SHA -or $manifest.sourceTree -cne $overlay.sourceTree -or
-        $manifest.overlaySha256 -cne $overlay.overlaySha256 -or $cleanup.compilerRemaining -ne $false) {
+        $manifest.overlaySha256 -cne $overlay.overlaySha256 -or $cleanup.compilerRemaining -ne $false -or
+        $cleanup.absenceVerified -ne $true -or $cleanup.ownershipValidated -ne $true -or $cleanup.failureType) {
         throw 'Compilation provenance or owned compiler cleanup missing.'
     }
     $countries += @{ country = $country; artifactId = [string]$metadata.id

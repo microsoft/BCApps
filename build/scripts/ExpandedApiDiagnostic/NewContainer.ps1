@@ -2,7 +2,10 @@ param([hashtable]$Parameters)
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'Context.psm1')
 $context = Get-ExpandedContext
-Import-ExpandedHelper
+Import-ExpandedHelper -RequiredCommands @{
+    'New-BcContainer' = @('containerName', 'useGenericImage', 'platformArtifactUrl')
+    'Test-BcContainer' = @('containerName')
+}
 if ($Parameters.containerName -ne $context.container -or (Test-BcContainer -containerName $context.container)) {
     throw 'Container is not the unique, absent lane-owned destination.'
 }

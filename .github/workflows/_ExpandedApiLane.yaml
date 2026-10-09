@@ -19,7 +19,7 @@ on:
         required: true
 jobs:
   Lane:
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-diagnostic' && github.run_attempt == 1
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-helper-scope' && github.run_attempt == 1
     runs-on: GitHub-BCAppsPL
     timeout-minutes: 360
     defaults:
@@ -59,6 +59,14 @@ jobs:
           shell: pwsh
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: 'licenseFileUrl,gitHubPackagesContext,applicationInsightsConnectionString,appDependencySecrets'
+      - name: Load exact helper and verify warm API surface before provisioning
+        uses: microsoft/AL-Go/Actions/RunHook@91b96c2b294be6f823277dafe6f03350abfb9d23
+        with:
+          shell: pwsh
+          project: ${{ steps.configure.outputs.project }}
+          hookName: BuildInitialize
+      - name: Verify cold finalizer and worker API surface before provisioning
+        run: .\build\scripts\ExpandedApiDiagnostic\HelperPreflight.ps1 -Boundary Cold
       - name: Provision and execute original lane with dedicated test override
         uses: microsoft/AL-Go/Actions/RunPipeline@91b96c2b294be6f823277dafe6f03350abfb9d23
         env:
