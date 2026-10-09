@@ -1,170 +1,217 @@
-# DRAFT expanded API preparation — DO NOT MERGE
+# DRAFT expanded API matched comparison — DO NOT MERGE
 
 AB#653393 · AB#646383
 
-**Blocked preparation, not an executable comparison. Do not dispatch this draft.**
-The opt-in workflow writes its complete scope and then deliberately fails. It has
-no build, provisioning or test jobs. A green contract suite is not runtime proof.
-The shared build stage and all-lane runtime producer remain unimplemented. Parent
-review and capacity/new-binary coordination are required before further work.
+**Executable opt-in orchestration, locally validated, not dispatched.**
+The parent must review the complete successor and reserve **two** allocations
+before any push, draft PR, or dispatch. No local AL compilation, publication or NST
+test is claimed. The investigation remains open.
 
-## Evidence and source ancestry
+## Entry point and allocation bound
 
-Both candidates passed the empirical pilot gate in original run `37758493320`,
-SHA `94989d1c434f264f688748143eadc915a7b2a706`: each has 5 W1 + 5 DE fully
-audited originals, zero relevant original failures; all 20 cleanups were verified.
-This is an exploratory qualification, **not statistical stability proof**.
+The registered `CICD.yaml` dispatch entry bridges to
+`SqlApiExpandedDiagnostic.yaml` **only** on
+`features/653393-expanded-api-diagnostic`, manual event, attempt1, with
+`authorization=reviewed-originals`. Default authorization is **HOLD**.
+The bridge avoids depending on a newly introduced workflow already being registered
+on the default branch. Ordinary CI job bodies/push triggers remain unchanged;
+they are excluded only on this exact diagnostic branch. Existing experiment
+branches, protocols, dispatch definitions and concurrency groups are untouched.
+
+The independent literal concurrency group is
+`sql-api-653393-expanded-api-diagnostic`, cancellation disabled.
+
+1. Plan declares all cells and exact source routes.
+2. **Five shared country builds**, max-parallel2, compile all application and test
+   dependencies once from the diagnostic source overlay.
+3. Registry verifies actual country artifact IDs/digests and compiler cleanup.
+4. **Fifteen configuration/country cells**, max-parallel2, each run their lanes
+   sequentially through `_ExpandedApiCell.yaml` / `_ExpandedApiLane.yaml`.
+   Every lane has a separate owned container, project, cache, company and template.
+5. Always-run audit validates every original lane and compares exact packages,
+   compiled selectors, methods and skip states across all three topologies.
+
+Builds finish before trials start. Each active cell has at most one provisioning/
+test job, so at most **two BC allocations** exist in either phase. Plan, registry
+and audit use hosted control-plane runners, not BC container allocations.
+Builds have180-minute and lanes360-minute bounds. There are39 lane executions,
+one original per cell/lane; no automatic repetitions, replacements or reruns.
+Runner loss without cleanup proof is invalid and still requires parent orphan
+auditing; scheduler limits alone cannot prove physical cleanup.
+
+## Bounded coverage
+
+| Scope | Configuration cells | Lanes and CUs in each cell |
+| --- | ---: | --- |
+| W1 + DE | 6 | All five lanes,159 selected source variants per country |
+| CA + US | 6 | IRS Forms Tests CU148018, Uncategorized only |
+| IT | 3 | Eleven localized-fix CUs, Uncategorized only |
+
+Topologies: `m1w1` = default; `m2w2` = default + tenant2; `m4w3` = four
+mounted tenants with **only tenant2/3/4 as workers**. Default is reserved in the
+baseline after its discovery reset. All three use the same protected template
+and reset implementation, not the historical four-mount producer.
+
+Primary lane counts: Default51, Integration33, Uncategorized66, Legacy bucket1
+5, Legacy bucket2 4. APIV1/APIV2 include all three typed modes.
+The existing reviewed inventory remains167 source variants /15 apps /five lanes.
+Source declarations are not runtime case totals.
+
+Italy was added after a focused metadata review: table12170 **Payment Lines**
+and the **Operation Occurred Date** fields exist only in IT. W1/DE cannot exercise
+the localized branches of `a91e0d9308` and `4902a412d0`. The11 representatives are
+139709,139711,139723,139728,139729,139809,139811,139823,139828,139851,139865.
+The other localization-only deltas are equivalent authentication initialization
+or whitespace, not newly omitted unique logic.
+
+Seven source variants remain explicitly unselected: APAC General Journal and
+Prepayment, CH/CZ/ES/IT General Journal, NA Prepayment. CA/US are IRS-only, and IT
+is the11-CU supplement, **not full country coverage**.160 distinct source variants
+are selected overall. The plan and final audit enumerate exact uncovered paths.
+
+## Immutable source, compiler and package provenance
 
 The supplied main snapshot `ad9b529a78c818ba25c24aecd093442a6c7a3852` precedes
-the externally owned revert. Git ancestry proves it is an ancestor of
-`97c2f034e7a32eb3bbb7efb1a1e893ea06ac121b` (with `f18567dc08` between them).
-The new isolated branch starts at the latter. PR12514 is not changed, blocked or
-merged by this draft; its merge remains an ancestor.
+the externally owned revert. The isolated branch starts after its descendant
+`97c2f034e7a32eb3bbb7efb1a1e893ea06ac121b`; PR12514 is untouched.
 
-`source-overlay.patch` independently reapplies the reviewed source fixes only
-inside a future dedicated manual build checkout. It changes **no ordinary source
-files, settings, disabled-test manifests or existing workflows on push**.
-`source-overlay.json` seals its hash, 178 paths, source subtree and 11 exact
-reviewed commits. The full stack ref remains unchanged at
-`f6c91f21b7fac7942c9d2dcd589a33c1b1b604c7`.
+`source-overlay.patch` contains178 source paths from11 pinned reviewed commits.
+It restores Expense enablement/consolidated fixes and the deferred full API stack
+**only in a dedicated manually dispatched checkout**. No ordinary source,
+disabled-test configuration or production default is enabled on push.
+`StageSource.ps1` requires clean source, exact ancestor/base/hash and exact
+resulting `src` subtree. Drift fails rather than overwriting or resolving conflicts.
 
-The overlay includes Expense enablement/consolidated regressions, general API
-authentication enablement (including layer/IRS tests), VAT fixtures, cancellation
-reason fixtures, localized payment discounts/document comparisons, quote dates,
-vendor-payment number series, posted return-shipment report selection and APIV1
-fixture/verification fixes. It does **not** bring back Expense-first sequencing
-disables. Only disabled-test keys removed by the reviewed enablement commits are
-removed; unrelated existing entries are retained:
+The overlay preserves main's `29212ba86b` Company Info description restoration
+and removes the duplicate RequiredTestIsolation property introduced by composition.
+All167 route property/test-procedure sequences were checked;166 route files are
+byte-identical to the reviewed stack at `f6c91f21b7fac7942c9d2dcd589a33c1b1b604c7`.
+No stack refs changed and no wasteful reinventory was performed.
+
+Only disabled entries removed by reviewed enablement commits are removed:
 
 | Manifest | Before | Reviewed removals | Retained |
 | --- | ---: | ---: | ---: |
-| Expense Agent | 60 | 51 | 9 |
-| E-Document Core | 151 | 1 | 150 |
-| APIV1 | 291 | 291 | 0 |
-| APIV2 | 717 | 716 | 1 |
+| Expense Agent |60|51|9|
+| E-Document Core |151|1|150|
+| APIV1 |291|291|0|
+| APIV2 |717|716|1|
 
-These are manifest entries, not executed skip counts. No new disabled tests,
-retry, warmup, companies probe or failure tolerance is added.
-`StageSource.ps1` is manual-identity-gated, verifies ancestry/base-source/hash,
-requires a clean checkout, applies the patch with an index check, and verifies the
-resulting `src` subtree. It fails on drift rather than resolving conflicts.
-Local composition used an isolated index; the overlay has **not been compiled**.
-One scoped integration adjustment preserves main's `29212ba86b` Company Info
-description-restoration fix while removing the duplicate `RequiredTestIsolation`
-property introduced by applying general API enablement on top of it. All 167
-inventory routes retain their test-type/isolation properties and test-procedure
-sequences; the other 166 route files are byte-identical to the reviewed stack.
-This is a targeted integration check, not a replacement runtime inventory.
+These are manifest entries, not runtime skips. Existing intentional skips remain.
+The former Expense-first sequencing exclusions are not restored.
 
-## Bounded initial coverage
+Exact pins:
 
-Use the original reviewed static inventory unchanged: 167 source-CU variants,
-15 apps, five lanes, zero unrouted entries. `Get-ExpandedApiPlan` uses the exact
-country source-overlay selection and package membership, not `supportedCountries`
-alone (which may be `All`). Never interpret declarations as runtime case counts.
+- AL-Go `91b96c2b294be6f823277dafe6f03350abfb9d23`
+- BCH `6.1.19-preview2811389`
+- Application artifact `30.0.55683.0`; platform **30.0.55665.0**
+- Generic image `mcr.microsoft.com/businesscentral@sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492`
+- PowerShell7,16G, existing disposable-container password-file authentication
 
-| Scope | Cells | Coverage in each cell |
-| --- | ---: | --- |
-| W1 + DE | 6 | 159 selected CU variants, all five lanes |
-| CA + US supplement | 6 | IRS Forms Tests CU148018, Uncategorized only |
+The fixed30.x Platform47167 build is unpublished and **not adopted**. No floating
+runtime or VSIX override is accepted. Compiler creation checks its exact artifact,
+owns a unique run-scoped folder, and is cleaned even after compilation failure.
+All incremental event flags are disabled and baselineWorkflowRunId is0.
 
-Each country compares `m1w1` (default), `m2w2` (default + tenant2), and `m4w3`
-(four mounts; only tenant2/3/4 are workers). The latter must use the **same new
-protected-default-template design**, not the historical four-mount producer.
-There is one original per configuration/country, no repetition or replacement.
+The compile action builds all folders/dependencies; artifact upload precedes
+sealing actual Apps/TestApps IDs, service archive digests, source head/subtree,
+overlay hash, per-package SHA256/size/id/name/version/dependencies and compiler
+settings. Compiler cleanup is mandatory before registry publication.
+Every topology receives the same sealed registry and country manifest.
+Downloads verify service provenance, transport SHA, path safety, exact package
+bytes and file inventory. Old PR2/253-prefix snapshots cannot be substituted.
 
-Primary lane counts per country: Default 51, Integration 33, Uncategorized 66,
-Legacy bucket1 5, Legacy bucket2 4. APIV1/APIV2 span all three typed modes.
-The seven unselected variants are APAC General Journal + Prepayment, CH/CZ/ES/IT
-General Journal, and NA Prepayment. AU/NZ/CH/CZ/ES/IT/MX are not tested by this
-plan; CA/US coverage is IRS-only, not complete CA/US or NA-layer coverage.
-The plan exports exact uncovered paths. No all-country or full-167-runtime claim.
+The original test-project marker (`projectsToTest`) is retained: pinned AL-Go
+otherwise exits as an empty repository before reading installTestAppsJson.
+There is **no** upstream dependency download or recompilation in a lane; only
+the sealed new packages are supplied to RunPipeline.
 
-## Precise producer blockers requiring parent review
+## Runtime producer and original evidence
 
-The qualified source is **not safe to broaden by replacing its 21-ID list**:
+The new producer replaces the per-project test callback, not ordinary CI defaults.
+It verifies actual installed package IDs/versions (including Test Runner), actual
+NST executable version, multitenancy with a separate application DB, mounted
+mappings,16G and the pinned generic image's actual layer prefix. The actual derived
+container image ID, runner/host and Docker CPU settings are retained.
 
-1. `ParallelTestExecution.psm1:Get-RequiredDisabledWorkItems` filters
-   `requiredTestIsolation=Disabled`; Legacy returns an empty array. Of the 167
-   source variants, 44 have unspecified required isolation. The successor needs
-   explicit inventory-CU discovery for every lane and must preserve compiled
-   normal/disabled runner semantics. Selecting only Disabled silently drops
-   coverage; forcing all 44 through runner130451 changes semantics without proof.
-2. `Get-CachedTestRunResult` keys only on container; the pilot finalizer expects
-   21 suites/253 cases/19 skips and a single Integration template. Reusing that
-   cache or template across lanes can silently skip tests or use the wrong data.
-   A material lifecycle choice remains: distinct owned containers per lane
-   (recommended, sequential within each cell), versus a demonstrated full lane
-   reinitialization protocol. This draft does not invent one.
-3. The matched four-mount baseline must protect its detached template before
-   discovery just like both candidates, restore the discovery tenant in finally,
-   and allow only its declared worker set for subsequent resets. Existing
-   tenant-count reset guards whitelist only default/tenant2, while the historical
-   four-mount path freezes its template after secondary discovery. Neither
-   existing path is a matched baseline without new code and focused tests.
-4. The new source must actually compile before any expanded runtime claims.
-   Shared compilation and new artifact sealing are not wired in this draft.
-   Old PR2 packages and the 253-case snapshots are explicitly rejected by the
-   consumer contract. This cannot be fixed by relabeling those artifacts.
+Correct company/data setup is reused from the existing producer:
 
-## Required next implementation contract
+- Unit: Empty Company, no demo generation.
+- Integration: My Company, setup demo data.
+- Uncategorized: CRONUS International Ltd., evaluation/full demo data and scheduler.
+- Legacy: CRONUS, existing Extended setup; bucket1 additionally checks Standard/
+  Evaluation as before.
 
-One separate workflow group `sql-api-653393-expanded-api-diagnostic`, cancellation
-disabled, at most **two concurrent allocations**, independent of all three
-existing experiment paths. The parent reserves capacity. Builds finish before
-trials, with compile/build and runtime allocations included in the ceiling.
+A diagnostic-only copy of the setup script preserves these paths, reduces both
+setup retry budgets to **one**, makes schema-sync errors fatal and uses the owned
+output directory for its transcript. Shared scripts are not edited.
 
-Shared build: W1/DE/CA/US compile once from the exact overlay, including BaseApp,
-test libraries, all application/test dependencies and country materializations.
-Pin AL-Go `91b96c2b294be6f823277dafe6f03350abfb9d23`, BCH
-`6.1.19-preview2811389`, application `30.0.55683.0`, platform **30.0.55665.0**,
-and image `sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492`.
-Do not inherit main's newer/floating defaults. Platform47167 uptake belongs to a
-separate monitor; the fixed30.x build is unpublished and is not adopted here.
+After setup, all configurations copy default to a detached READ_ONLY template
+**before** discovery. Template GUID/read-only state, local mapping and mounted
+count guard each destructive reset. Discovery restores default in finally.
+Default can subsequently be reset as a worker only in m1w1/m2w2; m4w3 reserves it.
+All batch restores finish before dispatch, retaining the qualified reset sequence.
 
-After upload, seal actual Apps/TestApps artifact IDs, service archive SHA256,
-run/attempt/head/source-tree/overlay hash, compiler/settings provenance, and
-per-`.app` path/size/SHA256/app-id/version/dependencies. Verify download transport
-and package hashes before install. All three country configurations consume
-the **same exact sealed artifact IDs and package bytes**. No name-only lookup,
-baseline fallback, incremental old packages or per-configuration recompilation.
-Record actual installed runner/test-framework packages and the running NST binary
-version (not just the requested artifact URL), shell, Docker limits and image.
+Discovery is not restricted to RequiredTestIsolation=Disabled:
 
-Each lane retains its existing settings: Unit/Empty Company;
-Integration/My Company; Uncategorized/CRONUS with scheduler enabled;
-Legacy/CRONUS, with bucket1 Standard/Evaluation demo data. Freeze a detached
-read-only template only after the lane's complete setup and before discovery.
-Never use an Integration template as evidence for another lane.
+- Actual compiled `None|Codeunit` and `Disabled` selectors establish the normal
+ 130450 versus Disabled130451 runner.
+- A second effective discovery with preserved disabled manifests records actual
+  enabled/skipped method sets.
+- Legacy also gets explicit untyped app/CU discovery, which must exactly match
+  the compiled runner classification; it cannot disappear through the typed path.
+- Execution loads **only the verified numeric CU range**, without reloading the
+  whole extension/type and rerunning other CUs' OnRun triggers on a clean worker.
+- All cases are checked against exact country/lane/app/CU/method/skip identities.
+  Unknown, missing, duplicate or changed skip states fail closed. Canonical
+  cross-topology signatures do not depend on JSON property ordering.
 
-Mandatory runtime inventory: country, lane, app id/name/version, CU id/name,
-method, compiled selector/isolation, normal/disabled runner, intentional skip
-state/reason and the exact installed package hash. Compare exact discovered
-identities/skip states against results and across all three configurations,
-including the static expected app/CU routing. Record unsupported cases explicitly.
-Missing, duplicate, truncated or newly skipped cases must fail closed.
+Per-attempt transcripts, original XML and receipt are persisted before
+classification. ERROR DIALOG/cancellation cannot become success. Each CU runs
+once; independent later CUs may continue on newly restored workers, but a failed
+original can never qualify. No first-app warmup, companies probe, SQL retry,
+generic test retry, failure tolerance or added skip exists.
 
-Persist first-attempt raw failures **before** classification or aggregation.
-Preserve worker logs, original XML, NST event logs, reset mappings/template GUID,
-resource samples and ownership receipts. No retries or failure tolerance.
-Use finally/always for ownership-scoped cleanup and artifact export; runner loss
-without cleanup proof is invalid, never success. The consumer functions validate
-contract shapes and exact identities; they do not replace raw-evidence auditing.
+Always-run export/cleanup preserve original/nested pipeline logs, event logs,
+runtime inventories, reset mappings, resource samples and performance files.
+Only the owned run/cell/lane container is removed. Incomplete resource, cohort,
+provenance, phase or cleanup evidence fails qualification even when tests passed.
 
-Timing starts on the assigned runner before checkout and ends after owned cleanup.
-Queue/upload are excluded, with GitHub job timestamps reported separately.
-Record setup, template creation, discovery, discovery-reset, per-CU resets,
-dispatch/collection/test execution, cleanup and whole-cell intervals using
-monotonic ticks. Define discovery/reset as nested within lane execution, and
-per-CU concurrent times as **summed work**, not additive wall time. Report reset
-union/wall and sum separately. XML case time is AL duration, not HTTP latency.
-Use identical host/NST/SQL CPU, memory, waits and I/O sampling in all arms;
-missing resource evidence fails qualification rather than becoming zero.
+## Timing and resources
 
-## Local validation and limitations
+Each lane starts its monotonic clock on its assigned runner before checkout and
+ends after owned cleanup. Queue and artifact upload are excluded; summed sequential
+lane totals are **not** whole-workflow elapsed time.
 
-Pester6.1 contract tests use project-local fixtures with TestDrive/TestRegistry
-disabled. Parser, PSScriptAnalyzer and isolated-index patch checks are appropriate.
-No local AL compile, publish, NST test, dispatch, push, PR or CI start is performed.
-The only new workflow is fail-closed preparation; it deliberately cannot produce a
-green expanded diagnostic run. **Do not mark the investigation complete.**
+Setup, execution, template, discovery including its finally reset, per-reset host
+intervals, in-container reset operation durations, CU dispatch/collection, worker
+execution, XML case times, pipeline finalization/export and cleanup are separate.
+Execution includes inventory/sampler/template/discovery/resets/tests/event export.
+Reset host intervals are serialized within a lane; their union differs from the
+in-container operation sum. CU dispatch durations include startup and batch-drain
+waiting and overlap; worker execution excludes startup. Neither sum is wall time.
+XML duration is AL case time, not isolated HTTP latency.
+
+Identical read-only host/NST/SQL CPU/memory/paging/wait/I/O sampling runs in all
+topologies, with setup samples and actual Docker limits. Missing/empty/error
+measurements do not become zero-valued success. Cumulative counters need deltas;
+database recreation resets I/O identities and host activity may include other work.
+
+## Local validation boundary
+
+Pester6.1 runs project-local fixtures with TestDrive/TestRegistry disabled.
+Tests exercise real orchestration, transcripts and worker processes with **fake
+external services**, including all topologies, original failure, discovery failure
+and cleanup/resource rejection. Artifact tests exercise transport hashing/path
+safety and the real manifest producer with synthetic compiler output.
+Parser/PSScriptAnalyzer, workflow dependency/capacity/ordinary-CI equivalence and
+isolated-index source-overlay checks complement those tests.
+
+No actual compiler/NST/SQL/Docker/GitHub dispatch is run by these local tests.
+Real package IDs, runtime case totals and empirical expanded results will exist
+only after the parent's reviewed, authorized CI execution.
+
+Prior empirical gate: run37758493320/SHA94989d1c43, each candidate10/10 fully
+audited originals (5W1+5DE), zero relevant original failures and20 verified cleanups.
+That remains qualification to begin expansion, **not expanded-cohort or statistical
+stability proof**. Do not mark the investigation complete.

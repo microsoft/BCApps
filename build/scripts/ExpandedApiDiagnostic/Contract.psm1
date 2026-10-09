@@ -49,13 +49,16 @@ function Get-ExpandedApiPlan {
     )
     $cells = @()
     $selectedPaths = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-    foreach ($country in @('W1', 'DE', 'CA', 'US')) {
+    $italyCodeunits = @(139709, 139711, 139723, 139728, 139729, 139809, 139811, 139823, 139828, 139851, 139865)
+    foreach ($country in @('W1', 'DE', 'CA', 'US', 'IT')) {
         $routes = @($inventory.routes | Where-Object {
             $country -cin $_.countriesSelectingThisSourceVariant -and
             $country -cin $_.manifestIncludedInCountryPackageSettings -and
             $country -cnotin $_.unsupportedCountries -and
             ('All' -cin $_.supportedCountries -or $country -cin $_.supportedCountries) -and
-            ($country -cin @('W1', 'DE') -or $_.appName -ceq 'IRS Forms Tests')
+            ($country -cin @('W1', 'DE') -or
+                ($country -cin @('CA', 'US') -and $_.appName -ceq 'IRS Forms Tests') -or
+                ($country -ceq 'IT' -and $_.codeunit -in $italyCodeunits))
         })
         if ($routes.Count -eq 0) { throw "Missing declared routes for $country." }
         $keys = @($routes | ForEach-Object { "$($_.appId)/$($_.codeunit)/$($_.buildMode)" })
@@ -79,28 +82,30 @@ function Get-ExpandedApiPlan {
         foreach ($configuration in $configurations) {
             $cells += @{
                 identity = "$country/$($configuration.id)/1"; country = $country; trial = 1
-                comparison = $(if ($country -cin @('W1', 'DE')) { 'primary' } else { 'IRS-only-supplement' })
+                comparison = $(if ($country -cin @('W1', 'DE')) { 'primary' } elseif ($country -ceq 'IT') { 'Italy-localized-fixes' } else { 'IRS-only-supplement' })
                 configuration = $configuration; lanes = $lanes
                 sharedPackageKey = $country
             }
         }
     }
     @{
-        schemaVersion = 1; status = 'DRAFT_BLOCKED_NOT_EXECUTABLE'; executionReady = $false
+        schemaVersion = 2; status = 'DRAFT_EXECUTABLE_OPT_IN'; executionReady = $true
         pins = $pins; cells = $cells
-        primaryCells = 6; supplementaryIRSCells = 6
+        primaryCells = 6; supplementaryIRSCells = 6; supplementaryItalyCells = 3
         maxParallel = 2; concurrencyGroup = 'sql-api-653393-expanded-api-diagnostic'
-        sharedBuildCountries = @('W1', 'DE', 'CA', 'US')
+        sharedBuildCountries = @('W1', 'DE', 'CA', 'US', 'IT')
+        italyCoverage = @{
+            codeunits = $italyCodeunits
+            reason = 'Table12170 Payment Lines and Operation Occurred Date only exist in IT; exercise a91e0d9308 and4902a412d0 rather than claiming W1/DE exercised these branches.'
+            metadata = @('src/Layers/IT/BaseApp/Local/Foundation/PaymentTerms/PaymentLines.Table.al',
+                'src/Layers/IT/BaseApp/Sales/Document/SalesHeader.Table.al',
+                'src/Layers/IT/BaseApp/Purchases/Document/PurchaseHeader.Table.al')
+        }
         sourceVariants = 167; plannedSourceVariants = $selectedPaths.Count
         uncoveredVariants = @($inventory.routes | Where-Object { -not $selectedPaths.Contains($_.path) })
         runtimeVerified = $false; allCountriesCovered = $false
         skips = 'Preserve reviewed pre-existing skips; remove only explicitly reviewed enablement entries. Never infer executed cases from declarations.'
-        blockedBy = @(
-            'Producer integration: current clean selector filters RequiredTestIsolation=Disabled and returns no Legacy work items; 44 source variants have unspecified required isolation. A dedicated all-inventory-CU selector and reviewed normal-versus-disabled runner selection are not implemented.'
-            'Lane lifecycle integration: qualified producer has one container-wide cache, one Integration company/template, fixed 21-CU prefix and 253/19 finalizer. Distinct lane-owned containers/templates and the matched protected-template m4w3 reset path are not implemented.'
-            'Shared build integration: compile all app and test dependencies from the post-revert diagnostic overlay with pinned AL-Go/helper/platform/image, seal actual artifact IDs and hashes, then feed that same manifest to all three configurations. No compiled artifacts exist yet.'
-            'Runtime integration: mandatory actual NST, installed app/CU/case/skip inventory, original failures, owned cleanup and phase/resource evidence must be emitted by the new producer, not reconstructed from source counts.'
-        )
+        blockedBy = @()
     }
 }
 
@@ -134,6 +139,18 @@ function Assert-ExpandedApiCohort {
         if ($case.status -cin @('Failed', 'Error')) { throw 'Original test failures cannot qualify.' }
         $null = $expected.Remove($key)
     }
+}
+
+function Get-ExpandedCohortSignature {
+    param([Parameter(Mandatory)][array]$Cases)
+    $rows = @(foreach ($case in $Cases | Sort-Object country, lane, appId, codeunitId, method) {
+        [ordered]@{
+            key = Get-ExpandedApiCaseKey $case; skipped = $case.skipped
+            appName = $case.appName; codeunitName = $case.codeunitName
+            compiledIsolationSelector = $case.compiledIsolationSelector; runner = $case.runner
+        }
+    })
+    ConvertTo-Json -InputObject $rows -Depth 8 -Compress
 }
 
 function Assert-ExpandedApiPackageManifest {
@@ -223,4 +240,4 @@ function Assert-ExpandedApiEvidence {
 }
 
 Export-ModuleMember -Function Get-ExpandedApiPinSet, Assert-ExpandedApiDispatch, Get-ExpandedApiPlan,
-    Assert-ExpandedApiCohort, Assert-ExpandedApiPackageManifest, Assert-ExpandedApiEvidence
+    Assert-ExpandedApiCohort, Assert-ExpandedApiPackageManifest, Assert-ExpandedApiEvidence, Get-ExpandedCohortSignature

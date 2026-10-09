@@ -15,16 +15,16 @@ BeforeAll {
 }
 
 Describe 'Bounded expanded diagnostic plan' {
-    It 'never advertises an executable or runtime-verified successor' {
-        $plan.executionReady | Should -BeFalse
+    It 'prepares executable opt-in orchestration without claiming runtime verification' {
+        $plan.executionReady | Should -BeTrue
         $plan.runtimeVerified | Should -BeFalse
-        $plan.status | Should -Be 'DRAFT_BLOCKED_NOT_EXECUTABLE'
-        $plan.blockedBy.Count | Should -Be 4
+        $plan.status | Should -Be 'DRAFT_EXECUTABLE_OPT_IN'
+        $plan.blockedBy.Count | Should -Be 0
     }
     It 'preserves six primary cells and six explicit IRS-only supplements' {
-        @($plan.cells).Count | Should -Be 12
+        @($plan.cells).Count | Should -Be 15
         @($plan.cells | Where-Object comparison -EQ primary).Count | Should -Be 6
-        @($plan.cells.identity | Sort-Object -Unique).Count | Should -Be 12
+        @($plan.cells.identity | Sort-Object -Unique).Count | Should -Be 15
         foreach ($cell in $plan.cells | Where-Object comparison -EQ primary) {
             @($cell.lanes).Count | Should -Be 5
             @($cell.lanes.routes).Count | Should -Be 159
@@ -35,9 +35,20 @@ Describe 'Bounded expanded diagnostic plan' {
             $cell.lanes[0].routes[0].appName | Should -Be 'IRS Forms Tests'
         }
     }
+        It 'adds bounded Italy representatives for otherwise untested localized fixes' {
+            $cells = @($plan.cells | Where-Object country -EQ IT)
+            $cells.Count | Should -Be 3
+            foreach ($cell in $cells) {
+                $cell.lanes.Count | Should -Be 1
+                $cell.lanes[0].id | Should -Be 'UncategorizedTests'
+                $cell.lanes[0].routes.Count | Should -Be 11
+                $cell.lanes[0].routes.codeunit | Should -Contain 139729
+            }
+            $plan.sharedBuildCountries | Should -Contain IT
+        }
     It 'compares two candidates with the four-mount three-worker baseline, not four workers' {
         $plan.maxParallel | Should -Be 2
-        foreach ($country in @('W1', 'DE', 'CA', 'US')) {
+        foreach ($country in @('W1', 'DE', 'CA', 'US', 'IT')) {
             $cells = @($plan.cells | Where-Object country -EQ $country)
             ($cells.configuration.id -join ',') | Should -Be 'm1w1,m2w2,m4w3'
             $cells[2].configuration.mounts.Count | Should -Be 4
@@ -74,8 +85,19 @@ Describe 'Bounded expanded diagnostic plan' {
         $workflow = Get-Content (Join-Path $PSScriptRoot '..\..\..\.github\workflows\SqlApiExpandedDiagnostic.yaml') -Raw
         $workflow | Should -Match 'workflow_dispatch:'
         $workflow | Should -Not -Match '(?m)^\s+(push|pull_request|schedule):'
-        $workflow | Should -Not -Match 'RunPipeline|Run-Tests|CICD\.yaml|SqlApiComparisonBatch'
+        $workflow | Should -Not -Match 'CICD\.yaml|SqlApiComparisonBatch'
+        $workflow | Should -Match 'CompileApps@91b96c2'
+        $workflow | Should -Match 'default: HOLD'
+        $workflow | Should -Match 'max-parallel: 2'
         $workflow | Should -Match 'if: always\(\)'
+    }
+    It 'keeps the pinned AL-Go test-project marker to prevent an empty-repository no-op' {
+        $configure = Get-Content (Join-Path $PSScriptRoot 'Configure.ps1') -Raw
+        $configure | Should -Match '\$settings\.projectsToTest = @\("build/projects/Apps '
+        $configure | Should -Not -Match '\$settings\.projectsToTest = @\(\)'
+        $lane = Get-Content (Join-Path $PSScriptRoot '..\..\..\.github\workflows\_ExpandedApiLane.yaml') -Raw
+        $lane | Should -Match 'installTestAppsJson: \$\{\{ steps.packages.outputs.TestApps \}\}'
+        $lane | Should -Not -Match 'DownloadProjectDependencies|CompileApps'
     }
 }
 
@@ -124,25 +146,25 @@ Describe 'Manual diagnostic identity' {
             GITHUB_RUN_ATTEMPT = '1'
             GITHUB_RUN_ID = '999'
         }
-        foreach ($key in $identity.Keys) {
-            $savedEnvironment[$key] = [Environment]::GetEnvironmentVariable($key)
-            [Environment]::SetEnvironmentVariable($key, $identity[$key])
+        foreach ($environmentName in $identity.Keys) {
+            $savedEnvironment[$environmentName] = [Environment]::GetEnvironmentVariable($environmentName)
+            [Environment]::SetEnvironmentVariable($environmentName, $identity[$environmentName])
         }
     }
     AfterEach {
-        foreach ($key in $savedEnvironment.Keys) { [Environment]::SetEnvironmentVariable($key, $savedEnvironment[$key]) }
+        foreach ($environmentName in $savedEnvironment.Keys) { [Environment]::SetEnvironmentVariable($environmentName, $savedEnvironment[$environmentName]) }
     }
     It 'allows only the original explicit draft identity' {
         { Assert-ExpandedApiDispatch } | Should -Not -Throw
     }
     It 'rejects forks, old branches, push, reruns and malformed run ids' -ForEach @(
-        @{ key = 'GITHUB_REPOSITORY'; value = 'other/BCApps' },
-        @{ key = 'GITHUB_REF'; value = 'refs/heads/features/646383-sql-api-tenant-count-comparison' },
-        @{ key = 'GITHUB_EVENT_NAME'; value = 'push' },
-        @{ key = 'GITHUB_RUN_ATTEMPT'; value = '2' },
-        @{ key = 'GITHUB_RUN_ID'; value = '../999' }
+        @{ environmentKey = 'GITHUB_REPOSITORY'; rejectedValue = 'other/BCApps' },
+        @{ environmentKey = 'GITHUB_REF'; rejectedValue = 'refs/heads/features/646383-sql-api-tenant-count-comparison' },
+        @{ environmentKey = 'GITHUB_EVENT_NAME'; rejectedValue = 'push' },
+        @{ environmentKey = 'GITHUB_RUN_ATTEMPT'; rejectedValue = '2' },
+        @{ environmentKey = 'GITHUB_RUN_ID'; rejectedValue = '../999' }
     ) {
-        [Environment]::SetEnvironmentVariable($key, $value)
+        [Environment]::SetEnvironmentVariable($environmentKey, $rejectedValue)
         { Assert-ExpandedApiDispatch } | Should -Throw '*exact opt-in branch*'
     }
 }
