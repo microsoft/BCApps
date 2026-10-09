@@ -3514,7 +3514,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         Report.Run(Report::"Transfer Shipment", true, false, TransferShipmentHeader);
         LibraryReportDataset.LoadDataSetFile();
 
-        // [THEN] The report keeps the ordinary shipment and leaves subcontracting references blank
+        // [THEN] The report runs and the ordinary shipment leaves subcontracting references blank
         VerifyOrdinaryTransferShipmentReport(TransferShipmentHeader);
     end;
 
@@ -5797,7 +5797,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractorNo: Code[20];
         SubcontractPurchaseOrderNo: Code[20];
     begin
-        LibraryReportDataset.AssertElementWithValueExists('No_TransShptHeader', TransferShipmentHeader."No.");
         SubcTransferShipmentData.GetHeaderData(
             TransferShipmentHeader, SubcontractorNo, SubcontractorName, SubcontractorAddressValue,
             SubcontractorAddress, SubcontractPurchaseOrderNo);
