@@ -13,6 +13,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
@@ -1353,6 +1354,176 @@ codeunit 139982 "Subc. Pricing Test"
             'Prod. Order Routing Unit Cost per must use the vendor-currency subcontractor price, not the blank/LCY one.');
     end;
 
+    [Test]
+    [HandlerFunctions('StandardCostLevelSelectionHandler')]
+    procedure StandardCostWithZeroLotSizeUsesOneUnitPrice()
+    var
+        Item: Record Item;
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting Pricing]
+        // [SCENARIO] Zero item lot size uses the one-unit subcontractor price.
+        Initialize();
+
+        // [GIVEN] Item "I" has zero lot size and price tiers at quantities one and ten.
+        CreateLotSizePricingScenario(Item, 0, false);
+
+        // [WHEN] Standard cost is calculated for "I".
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [THEN] Both subcontracted and standard cost use the one-unit price.
+        VerifyLotSizeStandardCost(Item, 30, 30);
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardCostLevelSelectionHandler')]
+    procedure StandardCostWithOneLotSizeUsesOneUnitPrice()
+    var
+        Item: Record Item;
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting Pricing]
+        // [SCENARIO] Item lot size one selects the minimum-quantity-one price.
+        Initialize();
+
+        // [GIVEN] Item "I" has lot size one and price tiers at quantities one and ten.
+        CreateLotSizePricingScenario(Item, 1, false);
+
+        // [WHEN] Standard cost is calculated for "I".
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [THEN] Both subcontracted and standard cost use the one-unit price.
+        VerifyLotSizeStandardCost(Item, 30, 30);
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardCostLevelSelectionHandler')]
+    procedure StandardCostBelowLotSizePriceThresholdUsesOneUnitPrice()
+    var
+        Item: Record Item;
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting Pricing]
+        // [SCENARIO] Item lot size nine does not qualify for the quantity-ten price.
+        Initialize();
+
+        // [GIVEN] Item "I" has lot size nine and price tiers at quantities one and ten.
+        CreateLotSizePricingScenario(Item, 9, false);
+
+        // [WHEN] Standard cost is calculated for "I".
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [THEN] Both subcontracted and standard cost remain at the one-unit price.
+        VerifyLotSizeStandardCost(Item, 30, 30);
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardCostLevelSelectionHandler')]
+    procedure StandardCostAtLotSizePriceThresholdUsesQuantityPrice()
+    var
+        Item: Record Item;
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting Pricing]
+        // [SCENARIO] Item lot size ten qualifies for the quantity-ten price.
+        Initialize();
+
+        // [GIVEN] Item "I" has lot size ten while its routing line retains lot size one.
+        CreateLotSizePricingScenario(Item, 10, false);
+
+        // [WHEN] Standard cost is calculated for "I".
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [THEN] Both subcontracted and standard cost use the quantity-ten price per unit.
+        VerifyLotSizeStandardCost(Item, 20, 20);
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardCostLevelSelectionHandler')]
+    procedure StandardCostAboveLotSizePriceThresholdUsesQuantityPrice()
+    var
+        Item: Record Item;
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting Pricing]
+        // [SCENARIO] Item lot size eleven still qualifies for the quantity-ten price.
+        Initialize();
+
+        // [GIVEN] Item "I" has lot size eleven while its routing line retains lot size one.
+        CreateLotSizePricingScenario(Item, 11, false);
+
+        // [WHEN] Standard cost is calculated for "I".
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [THEN] The selected quantity price is not divided by the item lot size again.
+        VerifyLotSizeStandardCost(Item, 20, 20);
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardCostLevelSelectionHandler')]
+    procedure StandardCostWithBlankPriceUOMUsesItemLotSize()
+    var
+        Item: Record Item;
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting Pricing]
+        // [SCENARIO] Blank-UOM prices use the item lot size as the base quantity.
+        Initialize();
+
+        // [GIVEN] Item "I" has lot size ten and both price tiers have blank UOM.
+        CreateLotSizePricingScenario(Item, 10, true);
+
+        // [WHEN] Standard cost is calculated for "I".
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [THEN] Both subcontracted and standard cost use the quantity-ten price.
+        VerifyLotSizeStandardCost(Item, 20, 20);
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardCostLevelSelectionHandler')]
+    procedure StandardCostWithSetupAndOneLotSizeRollsUpForty()
+    var
+        Item: Record Item;
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting Pricing]
+        // [SCENARIO] Lot size one combines setup cost ten and subcontracted cost thirty.
+        Initialize();
+
+        // [GIVEN] Item "I" has lot size one and a separate setup operation costing ten.
+        CreateLotSizePricingScenario(Item, 1, false);
+        AddSetupCostRoutingOperation(Item);
+
+        // [WHEN] Standard cost is calculated for "I".
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [THEN] Subcontracted cost is thirty and total standard cost is forty.
+        VerifyLotSizeStandardCost(Item, 30, 40);
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardCostLevelSelectionHandler')]
+    procedure StandardCostWithSetupAndTenLotSizeRollsUpTwentyOne()
+    var
+        Item: Record Item;
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting Pricing]
+        // [SCENARIO] Lot size ten combines setup cost one per unit and subcontracted cost twenty.
+        Initialize();
+
+        // [GIVEN] Item "I" has lot size ten and a separate setup operation costing ten.
+        CreateLotSizePricingScenario(Item, 10, false);
+        AddSetupCostRoutingOperation(Item);
+
+        // [WHEN] Standard cost is calculated for "I".
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [THEN] Subcontracted cost is twenty and total standard cost is twenty-one.
+        VerifyLotSizeStandardCost(Item, 20, 21);
+    end;
+
     local procedure CreateDateEffectiveSubcontractingScenario(var Item: Record Item; var ProductionOrder: Record "Production Order"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var EarlierPrice: Decimal; var LaterPrice: Decimal)
     var
         SubcontractorPrice: Record "Subcontractor Price";
@@ -1877,7 +2048,8 @@ codeunit 139982 "Subc. Pricing Test"
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
         SubcontractorPrice: Record "Subcontractor Price";
-        SubcPriceAmount: Decimal;
+        BaseTierPriceAmount: Decimal;
+        LotSizeTierPriceAmount: Decimal;
         WorkCenterDirectCost: Decimal;
         XmlParameters: Text;
     begin
@@ -1906,14 +2078,19 @@ codeunit 139982 "Subc. Pricing Test"
         RoutingHeader.Modify(true);
 
         Item.Validate("Routing No.", RoutingHeader."No.");
-        Item.Validate("Lot Size", 1);
+        Item.Validate("Lot Size", 10);
         Item.Modify(true);
 
-        // [GIVEN] A subcontractor price of 200 for this item/work center (different from WorkCenter."Direct Unit Cost" of 50).
-        SubcPriceAmount := 200;
+        // [GIVEN] Subcontractor prices of 300 for quantity one and 200 for quantity ten.
+        BaseTierPriceAmount := 300;
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
-            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
-        SubcontractorPrice.Validate("Direct Unit Cost", SubcPriceAmount);
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 1, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", BaseTierPriceAmount);
+        SubcontractorPrice.Modify(true);
+        LotSizeTierPriceAmount := 200;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 10, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", LotSizeTierPriceAmount);
         SubcontractorPrice.Modify(true);
 
         // [WHEN] Run the "Detailed Calculation" report (BaseApp 99000756) for this item.
@@ -1922,9 +2099,104 @@ codeunit 139982 "Subc. Pricing Test"
         XmlParameters := Report.RunRequestPage(Report::"Detailed Calculation");
         LibraryReportDataset.RunReportAndLoad(Report::"Detailed Calculation", Item, XmlParameters);
 
-        // [THEN] The ProdUnitCost in the report dataset equals the subcontractor price (200),
-        // not the Work Center's generic Direct Unit Cost (50).
-        LibraryReportDataset.AssertElementWithValueExists('ProdUnitCost', SubcPriceAmount);
+        // [THEN] The ProdUnitCost in the report dataset equals the quantity-ten price (200),
+        // not the quantity-one price (300) or the Work Center's generic Direct Unit Cost (50).
+        LibraryReportDataset.AssertElementWithValueExists('ProdUnitCost', LotSizeTierPriceAmount);
+    end;
+
+    local procedure CreateLotSizePricingScenario(var Item: Record Item; LotSize: Decimal; BlankPriceUOM: Boolean)
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        PriceUOMCode: Code[10];
+    begin
+        CreateItemVendorAndSubcontractingWorkCenter(Item, Vendor, WorkCenter);
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenter.Validate("Direct Unit Cost", 50);
+        WorkCenter.Validate("Specific Unit Cost", false);
+        WorkCenter.Modify(true);
+
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Lot Size", 1);
+        RoutingLine.Validate("Setup Time", 0);
+        RoutingLine.Validate("Run Time", 1);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        Item.Validate("Costing Method", Item."Costing Method"::Standard);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Validate("Lot Size", LotSize);
+        Item.Validate("Indirect Cost %", 0);
+        Item.Validate("Overhead Rate", 0);
+        Item.Validate("Scrap %", 0);
+        Item.Modify(true);
+
+        PriceUOMCode := Item."Base Unit of Measure";
+        if BlankPriceUOM then
+            PriceUOMCode := '';
+        CreateLotSizePriceTier(Item, Vendor, WorkCenter, PriceUOMCode, 1, 30);
+        CreateLotSizePriceTier(Item, Vendor, WorkCenter, PriceUOMCode, 10, 20);
+    end;
+
+    local procedure CreateLotSizePriceTier(Item: Record Item; Vendor: Record Vendor; WorkCenter: Record "Work Center"; PriceUOMCode: Code[10]; MinimumQuantity: Decimal; DirectUnitCost: Decimal)
+    var
+        SubcontractorPrice: Record "Subcontractor Price";
+    begin
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), PriceUOMCode, MinimumQuantity, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", DirectUnitCost);
+        SubcontractorPrice.Modify(true);
+    end;
+
+    local procedure AddSetupCostRoutingOperation(Item: Record Item)
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+    begin
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Time);
+        WorkCenter.Validate("Indirect Cost %", 0);
+        WorkCenter.Validate("Overhead Rate", 0);
+        WorkCenter.Validate("Direct Unit Cost", 10);
+        WorkCenter.Validate("Specific Unit Cost", false);
+        WorkCenter.Modify(true);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", WorkCenter."Unit of Measure Code");
+        RoutingLine.Validate("Run Time Unit of Meas. Code", WorkCenter."Unit of Measure Code");
+        RoutingLine.Validate("Lot Size", 1);
+        RoutingLine.Validate("Concurrent Capacities", 1);
+        RoutingLine.Validate("Setup Time", 1);
+        RoutingLine.Validate("Run Time", 0);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+    end;
+
+    local procedure VerifyLotSizeStandardCost(var Item: Record Item; ExpectedSubcontractedCost: Decimal; ExpectedStandardCost: Decimal)
+    begin
+        Item.Get(Item."No.");
+        Assert.AreEqual(
+            ExpectedSubcontractedCost, Item."Rolled-up Subcontracted Cost",
+            'Rolled-up subcontracted cost must use the price tier for the item lot size.');
+        Assert.AreEqual(
+            ExpectedStandardCost, Item."Standard Cost",
+            'Standard cost must combine the lot-size subcontractor price with setup cost per unit.');
+    end;
+
+    [StrMenuHandler]
+    procedure StandardCostLevelSelectionHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
+    begin
+        Choice := 1;
     end;
 
     [RequestPageHandler]
