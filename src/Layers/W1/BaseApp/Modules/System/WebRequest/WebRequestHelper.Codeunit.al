@@ -11,17 +11,17 @@ codeunit 1299 "Web Request Helper"
     end;
 
     var
-        ConnectionErr: Label 'Connection to the remote service could not be established.\\';
         FileSchemeNotAllowedErr: Label 'The file scheme is not allowed.';
         InvalidEncodingErr: Label 'The text encoding is not specified or is not valid.';
         InvalidUriErr: Label 'The URI is not valid.';
         NonSecureUriErr: Label 'The URI is not secure.';
-        ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
         RemoteServerErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
+#if not CLEAN30
+        ConnectionErr: Label 'Connection to the remote service could not be established.\\';
+        ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
 #pragma warning disable AA0470
         ServiceURLTxt: Label '\\Service URL: %1.', Comment = 'Example: ServiceURL: http://www.contoso.com/';
 #pragma warning restore AA0470
-#if not CLEAN30
         GlobalHttpWebResponseError: DotNet HttpWebResponse;
 #endif
 
