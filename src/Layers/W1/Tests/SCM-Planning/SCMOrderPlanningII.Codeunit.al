@@ -1384,7 +1384,54 @@ codeunit 137087 "SCM Order Planning - II"
         FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[2]."No.", '');
 
         // [THEN] Verify that no requisition line exists for the blocked first item.
-        asserterror FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[1]."No.", '');
+        RequisitionLine.SetRange("No.", Item[1]."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // Tear Down.
+        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
+    end;
+
+    [Test]
+    procedure DemandHeaderNotCreatedWhenAllItemsOfDocumentAreBlocked()
+    var
+        Item: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: array[2] of Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
+        Quantity: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 651525] Order Planning does not keep a demand header for a document whose only demand item is blocked.
+        Initialize();
+        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
+
+        Quantity := LibraryRandom.RandIntInRange(50, 100);
+
+        // [GIVEN] Two items with Reordering Policy = "Lot-for-Lot" and a sales order for each item.
+        for i := 1 to 2 do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Item[i].Validate("Reordering Policy", Item[i]."Reordering Policy"::"Lot-for-Lot");
+            Item[i].Modify(true);
+            LibrarySales.CreateSalesDocumentWithItem(
+              SalesHeader[i], SalesLine, SalesHeader[i]."Document Type"::Order, '', Item[i]."No.", Quantity, '', WorkDate());
+        end;
+
+        // [GIVEN] Block the item of the first sales order.
+        Item[1].Get(Item[1]."No.");
+        Item[1].Validate(Blocked, true);
+        Item[1].Modify(true);
+
+        // [WHEN] Calculate Order Plan for Sales.
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+
+        // [THEN] The second sales order is planned.
+        FindRequisitionLine(RequisitionLine, SalesHeader[2]."No.", Item[2]."No.", '');
+
+        // [THEN] Neither a demand header nor a demand line exists for the first sales order.
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("Demand Order No.", SalesHeader[1]."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
 
         // Tear Down.
         RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
