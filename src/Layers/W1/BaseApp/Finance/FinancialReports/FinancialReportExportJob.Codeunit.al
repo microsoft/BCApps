@@ -69,7 +69,6 @@ codeunit 8361 "Financial Report Export Job"
                 User.SetRange("User Name", FinancialReportRecipient."User ID");
                 if not User.FindFirst() then
                     continue;
-
                 if User.State = User.State::Disabled then
                     continue;
 
@@ -82,7 +81,6 @@ codeunit 8361 "Financial Report Export Job"
             until FinancialReportRecipient.Next() = 0
         else
             exit;
-
         if not (FinancialReportSchedule."Export to Excel" or FinancialReportSchedule."Export to PDF") then
             exit;
 
@@ -103,16 +101,12 @@ codeunit 8361 "Financial Report Export Job"
 
         SendEmailField := FinancialReportSchedule."Send Email";
         FinancialReportSchedule."Send Email" := FinancialReportSchedule."Send Email" and (UserEmails.Count() > 0);
-
         if FinancialReportSchedule."Send Email" then
             CreateEmailMessage(FinancialReportSchedule, ReportDescription, UserEmails, EmailMessage);
-
         if FinancialReportSchedule."Export to Excel" then
             ExportExcel(FinancialReportSchedule, FinancialReport, ReportDescription, FinancialReportExportLog.SystemId, UserNames, EmailMessage);
-
         if FinancialReportSchedule."Export to PDF" then
             ExportPdf(FinancialReportSchedule, FinancialReport, ReportDescription, FinancialReportExportLog.SystemId, UserNames, EmailMessage);
-
         if FinancialReportSchedule."Send Email" then begin
             Email.AddRelation(
                 EmailMessage, Database::"Financial Report Export Log", FinancialReportExportLog.SystemId,
@@ -262,6 +256,7 @@ codeunit 8361 "Financial Report Export Job"
         FinReportPackageReport: Record "Fin. Report Package Report";
         FinRepPackageExportLog: Record "Fin. Rep. Package Export Log";
         AccountSchedule: Report "Account Schedule";
+        FinReportExportNameHandler: Codeunit FinReportExportNameHandler;
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
         TempBlob: Codeunit "Temp Blob";
@@ -286,7 +281,6 @@ codeunit 8361 "Financial Report Export Job"
             User.SetRange("User Name", FinRepPackageRecipient."User ID");
             if not User.FindFirst() then
                 continue;
-
             if User.State = User.State::Disabled then
                 continue;
 
@@ -297,7 +291,6 @@ codeunit 8361 "Financial Report Export Job"
                 UserEmails.Add(UserSetup."E-Mail");
             end;
         until FinRepPackageRecipient.Next() = 0;
-
         if UserNames.Count() = 0 then
             exit;
 
@@ -313,9 +306,13 @@ codeunit 8361 "Financial Report Export Job"
             until FinReportPackageReport.Next() = 0;
         AccountSchedule.SetRunForExport();
         TempBlob.CreateOutStream(OutStr);
+        isHandled := false;
         OnBeforeSaveAccountSchedule(FinRepPackageSchedule, FinReportPackageReport, AccScheduleParam, AccountSchedule, OutStr, IsHandled);
-        if not IsHandled then
-            AccountSchedule.SaveAs(AccScheduleParam, ReportFormat::PDF, OutStr);
+        if not IsHandled then begin
+            FinReportExportNameHandler.Init(FinRepPackage.Code);
+            AccountSchedule.SaveAs(AccScheduleParam, ReportFormat::PDF, OutStr)
+        end;
+
         TempBlob.CreateInStream(InStr);
 
         ReportDescription := StrSubstNo('%1 (%2)',
@@ -323,7 +320,6 @@ codeunit 8361 "Financial Report Export Job"
             FinRepPackageSchedule.Name <> '' ? FinRepPackageSchedule.Name : FinRepPackageSchedule."Schedule Code");
 
         CreateInboxEntries(InStr, UserNames, Report::"Account Schedule", CopyStr(ReportDescription, 1, 250), Enum::"Report Inbox Output Type"::PDF, FinRepPackageExportLog.SystemId);
-
         if FinRepPackageSchedule."Send Email" then begin
             CreatePackageEmailMessage(FinRepPackageSchedule, ReportDescription, UserEmails, EmailMessage);
             InStr.ResetPosition();

@@ -568,6 +568,41 @@ codeunit 135005 "ERM Financial Report Schedules"
         end;
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PrintPackageUsesPackageCodeAsFileName()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        FinancialReportPackage: Record "Financial Report Package";
+        FinRepPackageSchedule: Record "Fin. Report Package Schedule";
+        FinReportExportHandler: Codeunit "Fin. Report Export Handler";
+        FinancialReportPackages: TestPage "Financial Report Packages";
+    begin
+        // [SCENARIO] Printing a financial report package uses the package code as the PDF file name
+        Initialize();
+
+        // [GIVEN] A financial report package with a report
+        FinRepPackageSchedule := CreatePackageSchedule(false);
+        FinancialReportPackage.Get(FinRepPackageSchedule."Package Code");
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithAmount(AccScheduleName.Name);
+        CreatePackageReport(FinRepPackageSchedule."Package Code", AccScheduleName.Name);
+        Commit();
+
+        // [WHEN] The package is printed
+        BindSubscription(FinReportExportHandler);
+        FinancialReportPackages.OpenEdit();
+        FinancialReportPackages.GoToRecord(FinancialReportPackage);
+        FinancialReportPackages.Print.Invoke();
+        UnbindSubscription(FinReportExportHandler);
+
+        // [THEN] The downloaded PDF file name is based on the package code
+        Assert.AreEqual(
+            FinancialReportPackage.Code + '.pdf',
+            FinReportExportHandler.GetOutputFileName(),
+            'The financial report package file name is not correct');
+    end;
+
     [RequestPageHandler]
     procedure AccountScheduleRequestPageHandler(var RequestPage: TestRequestPage "Account Schedule")
     begin
