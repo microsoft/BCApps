@@ -317,8 +317,8 @@ page 6988 "Expense"
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and the category does not require itemization.';
-                    Editable = Rec.Refundable and (not IsItemizationCategory);
+                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and itemization is not required or is enforced by policy.';
+                    Editable = Rec.Refundable and ((not IsItemizationCategory) or IsEnforcedItemizationCategory);
                     Importance = Additional;
 
                     trigger OnValidate()
@@ -728,7 +728,7 @@ page 6988 "Expense"
 
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory : Boolean;
+        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory, IsEnforcedItemizationCategory : Boolean;
         DocNoVisible: Boolean;
         HasPdfAttachment: Boolean;
         RuleStyleTxt: Text;
@@ -749,6 +749,7 @@ page 6988 "Expense"
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
         IsItemizationCategory := Rec.IsItemizationRequired();
+        IsEnforcedItemizationCategory := Rec.IsEnforcedItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
