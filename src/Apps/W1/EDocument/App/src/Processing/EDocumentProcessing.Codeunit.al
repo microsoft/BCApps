@@ -786,9 +786,7 @@ codeunit 6108 "E-Document Processing"
     procedure SendOrderRejection(EDocument: Record "E-Document")
     var
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
-        ResponseBlob: Codeunit "Temp Blob";
         IResponseProvider: Interface IEDocResponseProvider;
-        IMessageBuilder: Interface IEDocMessageBuilder;
         MessageType: Enum "E-Document Message Type";
     begin
         EDocument.TestField(Direction, EDocument.Direction::Incoming);
@@ -796,9 +794,7 @@ codeunit 6108 "E-Document Processing"
         MessageType := IResponseProvider.GetResponseMessageType(EDocument);
         if MessageType = "E-Document Message Type"::Unknown then
             exit;
-        IMessageBuilder := MessageType;
-        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Rejected, ResponseBlob);
-        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Rejected, ResponseBlob);
+        EDocMessageMgt.CreateResponseMessage(EDocument, MessageType, "E-Doc. Response Type"::Rejected);
     end;
 
     [IntegrationEvent(false, false)]
