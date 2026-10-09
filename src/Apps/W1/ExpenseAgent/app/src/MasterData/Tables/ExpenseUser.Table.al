@@ -115,8 +115,13 @@ table 6923 "Expense User"
                 if not "Can Approve" then begin
                     if not ConfirmApproverReassignment() then
                         Error('');
-                end else
+
+                    Rec.Validate("Unlimited Approval", false);
+                    Rec.Validate("Approval Limit (LCY)", 0);
+                end else begin
+                    Rec.Validate("Unlimited Approval", true);
                     UpdateApprovalUserId();
+                end;
             end;
         }
         field(30; "Is a System User"; Boolean)
@@ -233,7 +238,8 @@ table 6923 "Expense User"
                 if Rec."Unlimited Approval" then begin
                     Rec.TestField("Can Approve", true);
                     Rec."Approval Limit (LCY)" := 0;
-                end;
+                end else
+                    CheckIfApproverIsDefaultApprover();
             end;
         }
     }
@@ -281,6 +287,7 @@ table 6923 "Expense User"
         CurrentBCUserNotMatchedToExpenseUserErr: Label 'No Expense User exists for the email %1 used by your Business Central account. Ask your administrator to create an Expense User with this email, or to update the email on the existing Expense User to match.', Comment = '%1 = authentication email of the current Business Central user';
         ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
         ConflictingApprovalsErr: Label 'You cannot have both a %1 and %2. ', Comment = '%1 = Approval Limit field caption, %2 = Unlimited Approval field caption';
+        CannotMarkAsFalseBecauseDefaultApproverErr: Label 'You cannot mark %1 as false because Expense User %2 is the default approver in Expense Agent Setup.', Comment = '%1 = field caption, %2 = Expense User No.';
 
     trigger OnDelete()
     var
@@ -828,5 +835,12 @@ table 6923 "Expense User"
             repeat
                 ExpenseUser.SetWelcomeEmailDelivered(Delivered);
             until ExpenseUser.Next() = 0;
+    end;
+
+    local procedure CheckIfApproverIsDefaultApprover()
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Default Approver No." = Rec."No." then
+            Error(CannotMarkAsFalseBecauseDefaultApproverErr, Rec.FieldCaption("Unlimited Approval"), Rec."No.");
     end;
 }

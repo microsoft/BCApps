@@ -3167,7 +3167,14 @@ codeunit 148339 "Spend Request Test"
     local procedure SetDefaultApprover(ApproverExpenseUserNo: Code[20])
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
     begin
+        if ApproverExpenseUserNo <> '' then begin
+            ExpenseUser.Get(ApproverExpenseUserNo);
+            ExpenseUser.Validate("Unlimited Approval", true);
+            ExpenseUser.Modify(true);
+        end;
+
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Default Approver No.", ApproverExpenseUserNo);
         ExpenseAgentSetup.Modify(true);

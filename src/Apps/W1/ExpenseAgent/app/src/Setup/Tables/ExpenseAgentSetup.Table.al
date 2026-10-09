@@ -604,7 +604,7 @@ table 6930 "Expense Agent Setup"
             Caption = 'Default Approver No.';
             ToolTip = 'Specifies the expense user who by default is set as approver.';
             DataClassification = CustomerContent;
-            TableRelation = "Expense User";
+            TableRelation = "Expense User" where("Can Approve" = const(true), "Unlimited Approval" = const(true));
 
             trigger OnValidate()
             var

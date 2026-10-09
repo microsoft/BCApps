@@ -48,6 +48,7 @@ permissionset 6904 "Expense Management - Objects"
         table "EA Email Attachment" = X,
         table "EA Scheduler Task" = X,
         table "Expense Approval Setup" = X,
+        table "Expense Alternate Approver" = X,
         table "Expense Team" = X,
         table "Expense Rule Violation" = X,
         table "Expense Report Rule Violation" = X,
@@ -136,6 +137,7 @@ permissionset 6904 "Expense Management - Objects"
         page "Expense Report VAT Spec." = X,
         page "Expense Ledger Entries" = X,
         page "Expense Approval Setup" = X,
+        page "Expense Alternate Approvers" = X,
         page "Expense Teams" = X,
         page "Add Expenses To Expense Report" = X,
         page "Expense Billing Information" = X,
@@ -215,6 +217,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense Per Diem Calculation" = X,
         codeunit "Expense Preview Post Mgt." = X,
         codeunit "Expense Report Approval Mgmt" = X,
+        codeunit "Delegate Expense Approval Run" = X,
         codeunit "Expense Vendor Matching" = X,
         codeunit "Expense OAuth Client" = X,
         codeunit "Expense API Currency Helper" = X,
@@ -225,5 +228,6 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Import Expense User" = X,
         report "Expense Report Cover Page" = X,
         report "Expense Report Summary Page" = X,
-        report "Expense Report Details" = X;
+        report "Expense Report Details" = X,
+        report "Delegate Expense Approval Req" = X;
 }

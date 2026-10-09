@@ -21,6 +21,7 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense Activity Log API" = X,
                   page "Expense Agent Access Ctrl API" = X,
                   page "Expense Agent Setup API" = X,
+                  page "Exp. Alternate Approvers API" = X,
                   page "Expense Approval Setup API" = X,
                   page "Expense Attachments API" = X,
                   page "Expense Categories API" = X,
@@ -87,6 +88,7 @@ permissionset 6952 "Expense Agent - Objects"
 
                   table Expense = X,
                   table "Expense Approval Setup" = X,
+                  table "Expense Alternate Approver" = X,
                   table "Expense Capabilities Buffer" = X,
                   table "Expense Activity Log Entry" = X,
                   table "Expense Project Buf" = X,
@@ -161,6 +163,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Projects Builder" = X,
                   codeunit "Expense Report" = X,
                   codeunit "Expense Report Approval Mgmt" = X,
+                  codeunit "Delegate Expense Approval Run" = X,
                   codeunit "Expense Report Batch Post Mgt." = X,
                   codeunit "Expense Report Manual Release" = X,
                   codeunit "Expense Report Manual Reopen" = X,
@@ -178,6 +181,6 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Agent MCP Config." = X,
 #pragma warning restore AL0432
 #endif
-                  codeunit "Release Expense Document" = X;
-
+                  codeunit "Release Expense Document" = X,
+                  report "Delegate Expense Approval Req" = X;
 }
