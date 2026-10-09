@@ -1316,6 +1316,41 @@ codeunit 144200 "FatturaPA Test"
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
     end;
 
+    [Test]
+    [HandlerFunctions('InvalidCAPErrorMessagesPageHandler')]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithInvalidCompanyCAP()
+    var
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] FatturaPA export rejects a company CAP that is not exactly five numeric characters
+        Initialize();
+
+        // [GIVEN] A posted Sales Invoice for a local customer with a valid CAP
+        CompanyInformation.Get();
+        Customer.Get(CreateCustomer());
+        Customer."Country/Region Code" := CompanyInformation."Country/Region Code";
+        Customer."Post Code" := '00100';
+        Customer.Modify();
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [GIVEN] Company Information has an invalid four-digit CAP
+        CompanyInformation."Post Code" := '1234';
+        CompanyInformation.Modify();
+
+        // [WHEN] The document is exported to FatturaPA
+        // [THEN] The existing error-message handler verifies the CAP validation error
+        asserterror ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
+
     [PageHandler]
     [Scope('OnPrem')]
     procedure InvalidCAPErrorMessagesPageHandler(var ErrorMessages: TestPage "Error Messages")
