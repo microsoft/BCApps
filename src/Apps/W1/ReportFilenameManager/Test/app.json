@@ -1,0 +1,50 @@
+{
+  "id": "9c4e1d78-5b26-4a03-bf91-7d8e2a6c4f10",
+  "name": "Report Filename Manager Tests",
+  "publisher": "Microsoft",
+  "brief": "Tests for the Report Filename Manager app.",
+  "description": "Proves that one configured pattern names a report identically on every delivery route. DESTRUCTIVE: it deletes every row of Report Filename Pattern to isolate its own, and creates job queue entries. It refuses to run unless the environment is a sandbox or an on-premises installation. Never install it in a production environment.",
+  "version": "30.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2204541",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "b41f7c62-9d3a-4e58-8a17-2c5e9f0d6b84",
+      "name": "Report Filename Manager",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
+      "name": "Permissions Mock",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
+  "idRanges": [
+    {
+      "from": 50150,
+      "to": 50179
+    },
+    {
+      "from": 50190,
+      "to": 50199
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem",
+  "features": [
+    "TranslationFile"
+  ]
+}
