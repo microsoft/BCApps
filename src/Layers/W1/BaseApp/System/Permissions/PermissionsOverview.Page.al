@@ -187,6 +187,17 @@ page 9883 "Permissions Overview"
                             CurrPage.Update(false);
                         end;
                     }
+                    field(ExecuteFilter; ExecuteFilter)
+                    {
+                        Caption = 'Execute';
+                        ToolTip = 'Specifies whether permissions are filtered by execute access.';
+
+                        trigger OnValidate()
+                        begin
+                            Rec.SetFilter("Execute Permission", GetPermFieldFilter(ExecuteFilter));
+                            CurrPage.Update(false);
+                        end;
+                    }
                 }
             }
             repeater(Group)
@@ -358,7 +369,16 @@ page 9883 "Permissions Overview"
             Caption = 'Delete - Indirect';
             Filters = where("Delete Permission" = const(Indirect));
         }
-
+        view(ExecuteDirect)
+        {
+            Caption = 'Execute - Direct';
+            Filters = where("Execute Permission" = const(Yes));
+        }
+        view(ExecuteIndirect)
+        {
+            Caption = 'Execute - Indirect';
+            Filters = where("Execute Permission" = const(Indirect));
+        }
     }
 
     trigger OnAfterGetRecord()
@@ -380,6 +400,7 @@ page 9883 "Permissions Overview"
         SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Insert Permission")), InsertFilter);
         SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Modify Permission")), ModifyFilter);
         SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Delete Permission")), DeleteFilter);
+        SetPermFieldFilter(RecRef.Field(Rec.FieldNo("Execute Permission")), ExecuteFilter);
 
         LoadPermAssignmentBuffer();
         CurrPage.PermissionSetSecurityGroups.Page.SetSource(PermSetAssignmentBuffer);
@@ -438,8 +459,7 @@ page 9883 "Permissions Overview"
         InitialRoleIDFilter: Text[30];
         InitialObjTypeFilter: Option None,"Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
         InitialObjIDFilter: Text;
-        ReadFilter, InsertFilter, ModifyFilter, DeleteFilter : Enum "Permission Filter";
-
+        ReadFilter, InsertFilter, ModifyFilter, DeleteFilter, ExecuteFilter : Enum "Permission Filter";
 
     local procedure AddInherentPermissions(ForObjectType: Option; MetadataTableId: Integer; ObjectIdFieldId: Integer; InherentPermissionFieldId: Integer)
     var
