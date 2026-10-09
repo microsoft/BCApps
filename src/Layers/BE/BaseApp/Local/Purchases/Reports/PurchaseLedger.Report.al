@@ -213,6 +213,7 @@ report 11301 "Purchase Ledger"
                         end else
                             PrnDocno := '';
 
+                        GLAccount.SetLoadFields(Name);
                         if not GLAccount.Get("G/L Account No.") then
                             GLAccount.Init();
                         GLPostingDescription := Description;
@@ -220,6 +221,7 @@ report 11301 "Purchase Ledger"
                         CurrencyCode := '';
                         CurrencyAmount := 0;
 
+                        VendorLedgerEntry.SetLoadFields("Vendor No.", "Currency Code");
                         if VendorLedgerEntry.Get("Entry No.") then begin
                             GLPostingDescription := VendorLedgerEntry."Vendor No.";
                             CurrencyCode := VendorLedgerEntry."Currency Code";
@@ -227,6 +229,7 @@ report 11301 "Purchase Ledger"
                             CurrencyAmount := VendorLedgerEntry.Amount;
                             if CurrencyCode = '' then
                                 CurrencyAmount := 0;
+                            Vendor.SetLoadFields(Name);
                             if Vendor.Get(VendorLedgerEntry."Vendor No.") then
                                 GLPostingDescription := GLPostingDescription + ' ' + Vendor.Name;
                         end;
@@ -234,7 +237,10 @@ report 11301 "Purchase Ledger"
                         Clear(VATDetailBaseAmount);
                         Clear(VATDetailVATAmount);
                         if not UseAmtsInAddCurr then
-                            CalculateVATDetailAmounts("Entry No.");
+                            if TempPurchLedgerVATBuffer.Get("Entry No.") then begin
+                                VATDetailBaseAmount := TempPurchLedgerVATBuffer.Base;
+                                VATDetailVATAmount := TempPurchLedgerVATBuffer."VAT Amount";
+                            end;
                     end;
 
                     trigger OnPreDataItem()
@@ -244,6 +250,8 @@ report 11301 "Purchase Ledger"
                             "G/L Entry".SetRange("Posting Date", PeriodStartDate, PeriodEndDate)
                         else
                             "G/L Entry".SetRange("VAT Reporting Date", PeriodStartDate, PeriodEndDate);
+
+                        BuildVATDetailBuffer();
                     end;
                 }
                 dataitem(Loop1; "Integer")
@@ -350,6 +358,7 @@ report 11301 "Purchase Ledger"
 
                         trigger OnAfterGetRecord()
                         begin
+                            GLAccount.SetLoadFields(Name);
                             if not GLAccount.Get("G/L Account No.") then
                                 GLAccount.Init();
 
@@ -499,8 +508,11 @@ report 11301 "Purchase Ledger"
                         begin
                             VATSumBuffer.GetLine(Number);
                             if not UseAmtsInAddCurr then begin
+                                VATBusPostGroup.SetLoadFields(Description);
                                 if VATBusPostGroup.Get(VATSumBuffer."VAT Bus. Posting Group") then;
+                                VATProdPostGroup.SetLoadFields(Description);
                                 if VATProdPostGroup.Get(VATSumBuffer."VAT Prod. Posting Group") then;
+                                VATPostSetup.SetLoadFields("VAT %");
                                 if VATPostSetup.Get(VATSumBuffer."VAT Bus. Posting Group", VATSumBuffer."VAT Prod. Posting Group") then
                                     VATPostingDescription :=
                                       VATBusPostGroup.Description + ' - ' +
@@ -759,6 +771,7 @@ report 11301 "Purchase Ledger"
         Startpage: Integer;
         VATDetailBaseAmount: Decimal;
         VATDetailVATAmount: Decimal;
+        TempPurchLedgerVATBuffer: Record "Purch. Ledger VAT Buffer" temporary;
         GLPostingDescription: Text;
         DateCaption: Text;
         ExcludeDeferrals: Boolean;
@@ -794,17 +807,50 @@ report 11301 "Purchase Ledger"
         PeriodStartDate: Date;
         PeriodEndDate: Date;
 
-    local procedure CalculateVATDetailAmounts(GLEntryNo: Integer)
+    local procedure BuildVATDetailBuffer()
     var
+        GLEntry: Record "G/L Entry";
         GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
         VATEntry: Record "VAT Entry";
+        MinGLEntryNo: Integer;
+        MaxGLEntryNo: Integer;
     begin
-        GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntryNo);
+        TempPurchLedgerVATBuffer.Reset();
+        TempPurchLedgerVATBuffer.DeleteAll();
+        if UseAmtsInAddCurr then
+            exit;
+
+        // Seed the buffer with exactly the G/L entries this period will display.
+        GLEntry.SetLoadFields("Entry No.");
+        GLEntry.CopyFilters("G/L Entry");
+        if not GLEntry.FindSet() then
+            exit;
+        repeat
+            TempPurchLedgerVATBuffer.Init();
+            TempPurchLedgerVATBuffer."G/L Entry No." := GLEntry."Entry No.";
+            TempPurchLedgerVATBuffer.Insert();
+        until GLEntry.Next() = 0;
+
+        TempPurchLedgerVATBuffer.FindFirst();
+        MinGLEntryNo := TempPurchLedgerVATBuffer."G/L Entry No.";
+        TempPurchLedgerVATBuffer.FindLast();
+        MaxGLEntryNo := TempPurchLedgerVATBuffer."G/L Entry No.";
+
+        // Single scan over the link table for the entry-number range, summing the linked
+        // VAT entries per G/L entry. This matches the original per-entry lookup exactly
+        // (it follows the links of each displayed G/L entry) while replacing the N
+        // per-record queries with one scan.
+        VATEntry.SetLoadFields(Base, Amount);
+        GLEntryVATEntryLink.SetLoadFields("G/L Entry No.", "VAT Entry No.");
+        GLEntryVATEntryLink.SetRange("G/L Entry No.", MinGLEntryNo, MaxGLEntryNo);
         if GLEntryVATEntryLink.FindSet() then
             repeat
-                VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.");
-                VATDetailBaseAmount += VATEntry.Base;
-                VATDetailVATAmount += VATEntry.Amount;
+                if TempPurchLedgerVATBuffer.Get(GLEntryVATEntryLink."G/L Entry No.") then
+                    if VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.") then begin
+                        TempPurchLedgerVATBuffer.Base += VATEntry.Base;
+                        TempPurchLedgerVATBuffer."VAT Amount" += VATEntry.Amount;
+                        TempPurchLedgerVATBuffer.Modify();
+                    end;
             until GLEntryVATEntryLink.Next() = 0;
     end;
 
