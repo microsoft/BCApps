@@ -1,4 +1,45 @@
-# SQL API 300-trial diagnostic — AB#646383 — DO NOT MERGE
+# Fixed-platform uptake — AB#653457 — DO NOT MERGE
+
+This isolated branch starts at original comparison commit
+`0227094059f2f26f3fcb1b7f85a3285c17e78b8e`, not current main. Its only
+runtime treatment is **30.0.55665.0 → 30.0.56092.0**. The platform fix
+`7a4d33b8848c5795474eb6d517724e3ae5043baf` is an ancestor of official build
+2860912 (definition 698). Publisher 2861912 (definition 2336) consumed that
+exact `_Platform-Core-OfficialBuild` resource; its own source is not binary
+provenance. CDN publication was verified 2026-10-09T11:00:34Z.
+
+The new manual `CICD.yaml` requires branch
+`features/653457-sql-platform-fix-uptake`, attempt one, and authorization
+`AB653457-fixed-platform-original-control-10`. It schedules **ten original
+control cells**, W1/DE indices 1–5, in five sequential pairs, each with at
+most two containers. Pair one completes before pairs two–five; failures
+remain failures and do not suppress later original pairs. No replacements,
+reruns, readiness waits, warmups, companies probes, added skips or compilation.
+Automatic PR initialization excludes this branch. No ordinary full CI exists
+in this branch's manual-only CICD workflow.
+
+`PlatformUptake.json` is the canonical fixed-build, application archive,
+compiled-package-set, snapshot transport and selected-plan provenance.
+`PlanPlatformUptake.ps1` validates the original comparison's still-live country
+snapshots; it does **not** download expired source artifacts or substitute
+newer packages. Every cell repeats the transport, source, ZIP and extracted
+package hash checks. Package-set fingerprints are SHA256 of UTF-8,
+LF-joined `name=lowercase-sha256` lines sorted by name, without trailing LF.
+They were taken from original control W1/DE trial-one provenance.
+
+The exact 21 CUs/253 methods/234 expected passes/19 existing skips, four
+mounted tenants/three workers, password-file authentication, helper, image,
+application artifact, company, clean-template lifecycle and failure finalizers
+remain the original control protocol below. Installed NST process file version
+must match 30.0.56092.0; `runtime-preflight.json` is runtime evidence, not the
+publication manifest. Owned names use `Uptake<index>control<run>` and reject
+preexisting containers; teardown cannot touch original comparison containers.
+
+Local unit/static checks are not installed-runtime or SQL-fix verification.
+Parent review, capacity/duplicate-run checks and one authorized dispatch remain
+necessary. Historical baseline, readiness and tenant20 campaigns are unchanged.
+
+## Historical original-300 protocol (reference only; not this branch's schedule)
 
 Explicit user authorization: 2026-10-07. One manual `CICD.yaml` dispatch on
 `features/646383-sql-api-300-trial-comparison` with `mode=originals` schedules

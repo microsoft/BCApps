@@ -40,8 +40,8 @@ if ($env:BC_SQL_PILOT_ARM) {
         }
     }
     $runtime | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $env:BC_SQL_PILOT_OUTPUT 'runtime-preflight.json')
-    if (@($runtime.nst).Count -ne 1 -or $runtime.nst[0].version -notmatch '^30\.0\.55665\.0(?:\s|$)') {
-        throw 'Installed NST is not the predeclared 30.0.55665.0 runtime.'
+    if (@($runtime.nst).Count -ne 1 -or $runtime.nst[0].version -notmatch '^30\.0\.56092\.0(?:\s|$)') {
+        throw 'Installed NST is not the predeclared 30.0.56092.0 runtime.'
     }
 }
 

@@ -1,105 +1,51 @@
-name: 'SQL API 300 trial comparison - DO NOT MERGE'
-run-name: SQL API 300 comparison - ${{ inputs.mode }}
+name: 'SQL platform fix uptake - DO NOT MERGE'
+run-name: SQL platform 30.0.56092.0 - ten original control cells
 
 on:
   workflow_dispatch:
     inputs:
-      mode:
-        description: originals schedules all 300; replacement schedules one proven communication-invalid cell
-        type: choice
-        options: [originals, replacement]
-        default: originals
+      authorization:
+        description: Exact authorization AB653457-fixed-platform-original-control-10
+        type: string
         required: true
-      replacementArm:
-        description: Replacement only - control, warmup, or retry
-        type: string
-      replacementCountry:
-        description: Replacement only - W1 or DE
-        type: string
-      replacementTrial:
-        description: Replacement only - original index 1 through 50
-        type: string
-      originalRun:
-        description: Replacement only - this comparison's original run ID
-        type: string
-      originalJob:
-        description: Replacement only - communication-failed original trial job ID
-        type: string
 
 permissions:
   actions: read
-  checks: read
   contents: read
   id-token: write
   packages: read
 
-# Serialize this comparison and its explicit replacements, never unrelated workflows.
 concurrency:
-  group: sql-api-646383-300-trial-comparison
+  group: sql-platform-653457-fixed-uptake
   cancel-in-progress: false
 
 jobs:
   Plan:
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-300-trial-comparison' && github.run_attempt == 1
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653457-sql-platform-fix-uptake' && github.run_attempt == 1 && inputs.authorization == 'AB653457-fixed-platform-original-control-10'
     runs-on: windows-latest
     timeout-minutes: 10
     outputs:
-      mode: ${{ steps.plan.outputs.mode }}
-      replacement: ${{ steps.plan.outputs.replacement }}
-      w1Package: ${{ steps.w1.outputs.artifact-id || steps.plan.outputs.w1Package }}
-      dePackage: ${{ steps.de.outputs.artifact-id || steps.plan.outputs.dePackage }}
-      packageRun: ${{ steps.plan.outputs.packageRun }}
       batch01: ${{ steps.plan.outputs.batch01 }}
       batch02: ${{ steps.plan.outputs.batch02 }}
       batch03: ${{ steps.plan.outputs.batch03 }}
       batch04: ${{ steps.plan.outputs.batch04 }}
       batch05: ${{ steps.plan.outputs.batch05 }}
-      batch06: ${{ steps.plan.outputs.batch06 }}
-      batch07: ${{ steps.plan.outputs.batch07 }}
-      batch08: ${{ steps.plan.outputs.batch08 }}
-      batch09: ${{ steps.plan.outputs.batch09 }}
-      batch10: ${{ steps.plan.outputs.batch10 }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: Validate immutable artifacts and exact trial manifest
+        with:
+          fetch-depth: 0
+      - name: Verify original package transport and canonical fixed-runtime plan
         id: plan
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          COMPARISON_MODE: ${{ inputs.mode }}
-          REPLACEMENT_ARM: ${{ inputs.replacementArm }}
-          REPLACEMENT_COUNTRY: ${{ inputs.replacementCountry }}
-          REPLACEMENT_TRIAL: ${{ inputs.replacementTrial }}
-          ORIGINAL_RUN: ${{ inputs.originalRun }}
-          ORIGINAL_JOB: ${{ inputs.originalJob }}
-        run: .\build\scripts\SqlResetPilot\PlanComparison.ps1
-      - name: Preserve exact W1 source ZIPs beyond original expiry
-        id: w1
-        if: inputs.mode == 'originals'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: sql-api-comparison-packages-W1-${{ github.run_id }}
-          retention-days: 14
-          compression-level: 0
-          if-no-files-found: error
-          include-hidden-files: true
-          path: .sql-api-comparison-plan/W1/*
-      - name: Preserve exact DE source ZIPs beyond original expiry
-        id: de
-        if: inputs.mode == 'originals'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: sql-api-comparison-packages-DE-${{ github.run_id }}
-          retention-days: 14
-          compression-level: 0
-          if-no-files-found: error
-          include-hidden-files: true
-          path: .sql-api-comparison-plan/DE/*
+          BC_SQL_UPTAKE_AUTHORIZATION: ${{ inputs.authorization }}
+        run: .\build\scripts\SqlResetPilot\PlanPlatformUptake.ps1
       - name: Preserve scheduling and package provenance
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: sql-api-comparison-manifest-${{ github.run_id }}
+          name: sql-platform-uptake-manifest-${{ github.run_id }}
           retention-days: 14
           if-no-files-found: error
           include-hidden-files: true
@@ -111,115 +57,40 @@ jobs:
     secrets: inherit
     with:
       matrix: ${{ needs.Plan.outputs.batch01 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
+      authorization: ${{ inputs.authorization }}
 
   Batch02:
     needs: [Plan, Batch01]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
+    if: always() && !cancelled() && needs.Plan.result == 'success'
     uses: ./.github/workflows/SqlApiComparisonBatch.yaml
     secrets: inherit
     with:
       matrix: ${{ needs.Plan.outputs.batch02 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
+      authorization: ${{ inputs.authorization }}
 
   Batch03:
     needs: [Plan, Batch02]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
+    if: always() && !cancelled() && needs.Plan.result == 'success'
     uses: ./.github/workflows/SqlApiComparisonBatch.yaml
     secrets: inherit
     with:
       matrix: ${{ needs.Plan.outputs.batch03 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
+      authorization: ${{ inputs.authorization }}
 
   Batch04:
     needs: [Plan, Batch03]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
+    if: always() && !cancelled() && needs.Plan.result == 'success'
     uses: ./.github/workflows/SqlApiComparisonBatch.yaml
     secrets: inherit
     with:
       matrix: ${{ needs.Plan.outputs.batch04 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
+      authorization: ${{ inputs.authorization }}
 
   Batch05:
     needs: [Plan, Batch04]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
+    if: always() && !cancelled() && needs.Plan.result == 'success'
     uses: ./.github/workflows/SqlApiComparisonBatch.yaml
     secrets: inherit
     with:
       matrix: ${{ needs.Plan.outputs.batch05 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
-
-  Batch06:
-    needs: [Plan, Batch05]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
-    uses: ./.github/workflows/SqlApiComparisonBatch.yaml
-    secrets: inherit
-    with:
-      matrix: ${{ needs.Plan.outputs.batch06 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
-
-  Batch07:
-    needs: [Plan, Batch06]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
-    uses: ./.github/workflows/SqlApiComparisonBatch.yaml
-    secrets: inherit
-    with:
-      matrix: ${{ needs.Plan.outputs.batch07 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
-
-  Batch08:
-    needs: [Plan, Batch07]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
-    uses: ./.github/workflows/SqlApiComparisonBatch.yaml
-    secrets: inherit
-    with:
-      matrix: ${{ needs.Plan.outputs.batch08 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
-
-  Batch09:
-    needs: [Plan, Batch08]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
-    uses: ./.github/workflows/SqlApiComparisonBatch.yaml
-    secrets: inherit
-    with:
-      matrix: ${{ needs.Plan.outputs.batch09 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
-
-  Batch10:
-    needs: [Plan, Batch09]
-    if: always() && !cancelled() && needs.Plan.result == 'success' && needs.Plan.outputs.mode == 'originals'
-    uses: ./.github/workflows/SqlApiComparisonBatch.yaml
-    secrets: inherit
-    with:
-      matrix: ${{ needs.Plan.outputs.batch10 }}
-      replacement: ${{ needs.Plan.outputs.replacement }}
-      w1Package: ${{ needs.Plan.outputs.w1Package }}
-      dePackage: ${{ needs.Plan.outputs.dePackage }}
-      packageRun: ${{ needs.Plan.outputs.packageRun }}
+      authorization: ${{ inputs.authorization }}

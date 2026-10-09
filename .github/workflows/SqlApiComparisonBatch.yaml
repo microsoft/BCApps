@@ -1,4 +1,4 @@
-name: 'SQL API comparison batch - DO NOT MERGE'
+name: 'SQL platform uptake pair - DO NOT MERGE'
 
 on:
   workflow_call:
@@ -6,16 +6,7 @@ on:
       matrix:
         required: true
         type: string
-      replacement:
-        required: true
-        type: string
-      w1Package:
-        required: true
-        type: string
-      dePackage:
-        required: true
-        type: string
-      packageRun:
+      authorization:
         required: true
         type: string
 
@@ -28,10 +19,10 @@ permissions:
 jobs:
   Pilot:
     name: Trial ${{ matrix.experiment }}/${{ matrix.country }}/${{ matrix.trial }}
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/646383-sql-api-300-trial-comparison' && github.run_attempt == 1
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653457-sql-platform-fix-uptake' && github.run_attempt == 1 && inputs.authorization == 'AB653457-fixed-platform-original-control-10'
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 2
       matrix: ${{ fromJSON(inputs.matrix) }}
     runs-on: GitHub-BCAppsPL
     timeout-minutes: 120
@@ -45,9 +36,7 @@ jobs:
       BC_SQL_API_EXPERIMENT: ${{ matrix.experiment }}
       BC_SQL_PILOT_COUNTRY: ${{ matrix.country }}
       BC_SQL_PILOT_TRIAL: ${{ matrix.trial }}
-      BC_SQL_COMPARISON_REPLACEMENT: ${{ inputs.replacement }}
-      BC_SQL_COMPARISON_PACKAGE_ARTIFACT: ${{ matrix.country == 'W1' && inputs.w1Package || inputs.dePackage }}
-      BC_SQL_COMPARISON_PACKAGE_RUN: ${{ inputs.packageRun }}
+      BC_SQL_UPTAKE_AUTHORIZATION: ${{ inputs.authorization }}
       BuildMode: IntegrationTests
     steps:
       - name: Checkout experiment
@@ -81,7 +70,7 @@ jobs:
         uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
         with:
           shell: pwsh
-          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}
+          project: build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}
           buildMode: IntegrationTests
 
       - name: Read normal disposable CI license and package secrets
@@ -98,7 +87,7 @@ jobs:
           Secrets: '${{ steps.secrets.outputs.Secrets }}'
         with:
           shell: pwsh
-          project: build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}
+          project: build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}
           buildMode: IntegrationTests
           artifact: ${{ steps.packages.outputs.artifact }}
           installAppsJson: ${{ steps.packages.outputs.apps }}
@@ -113,16 +102,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: sql-api-comparison-${{ matrix.experiment }}-${{ matrix.country }}-${{ matrix.trial }}-${{ github.run_id }}
+          name: sql-platform-uptake-${{ matrix.experiment }}-${{ matrix.country }}-${{ matrix.trial }}-${{ github.run_id }}
           retention-days: 14
           include-hidden-files: true
           if-no-files-found: error
           path: |
             sql-reset-pilot-output/**
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/TestResults*.xml
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/ContainerEventLog.evtx
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/BuildOutput.txt
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.xml
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.log
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.evtx
-            build/projects/Test Apps ${{ matrix.country }} Trial${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/BuildOutput.txt
+            build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}/TestResults*.xml
+            build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}/ContainerEventLog.evtx
+            build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}/BuildOutput.txt
+            build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.xml
+            build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.log
+            build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/*.evtx
+            build/projects/Test Apps ${{ matrix.country }} Uptake${{ matrix.trial }}${{ matrix.experiment }}/.buildartifacts/**/BuildOutput.txt

@@ -6,12 +6,15 @@ Describe 'Experiment country and trial container ownership' {
     BeforeEach {
         $script:saved = @{}
         foreach ($name in @('GITHUB_REPOSITORY','GITHUB_REF','GITHUB_EVENT_NAME','GITHUB_RUN_ATTEMPT','GITHUB_RUN_ID',
-            'BC_SQL_PILOT_ARM','BC_SQL_PILOT_COUNTRY','BC_SQL_PILOT_TRIAL','BC_SQL_PILOT_OUTPUT','BC_SQL_API_EXPERIMENT','Settings')) {
+            'BC_SQL_PILOT_ARM','BC_SQL_PILOT_COUNTRY','BC_SQL_PILOT_TRIAL','BC_SQL_PILOT_OUTPUT','BC_SQL_API_EXPERIMENT','Settings',
+            'GITHUB_SHA','BC_SQL_UPTAKE_AUTHORIZATION')) {
             $script:saved[$name] = [Environment]::GetEnvironmentVariable($name)
         }
         $env:GITHUB_REPOSITORY = 'microsoft/BCApps'
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-300-trial-comparison'
-        $env:BC_SQL_API_EXPERIMENT = 'retry'
+        $env:GITHUB_REF = 'refs/heads/features/653457-sql-platform-fix-uptake'
+        $env:GITHUB_SHA = 'a' * 40
+        $env:BC_SQL_UPTAKE_AUTHORIZATION = 'AB653457-fixed-platform-original-control-10'
+        $env:BC_SQL_API_EXPERIMENT = 'control'
         $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
         $env:GITHUB_RUN_ATTEMPT = '1'
         $env:GITHUB_RUN_ID = '123'
@@ -24,8 +27,8 @@ Describe 'Experiment country and trial container ownership' {
             companyName = 'My Company'; enableCleanTestCodeunitExecution = $true; enableTaskScheduler = $false
         } | ConvertTo-Json
         $script:parameters = @{
-            ContainerName = 'bcbuildprojectsTestAppsDETrial2retry123'
-            platformArtifactUrl = 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/30.0.55665.0/platform'
+            ContainerName = 'bcbuildprojectsTestAppsDEUptake2control123'
+            platformArtifactUrl = 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/30.0.56092.0/platform'
         }
         Mock Get-Module { { '6.1.19-preview2811389' } } -ParameterFilter { $Name -eq 'BcContainerHelper' }
         Mock Test-BcContainer { $false }
@@ -38,8 +41,9 @@ Describe 'Experiment country and trial container ownership' {
         $record = Get-Content (Join-Path $TestDrive 'container-ownership.json') -Raw | ConvertFrom-Json
         $record.country | Should -Be 'DE'
         $record.trial | Should -Be '2'
-        $record.container | Should -Be 'bcbuildprojectsTestAppsDETrial2retry123'
-        $record.experiment | Should -Be 'retry'
+        $record.container | Should -Be 'bcbuildprojectsTestAppsDEUptake2control123'
+        $record.experiment | Should -Be 'control'
+        $record.platform | Should -Be '30.0.56092.0'
         $script:parameters.useGenericImage | Should -Be 'mcr.microsoft.com/businesscentral@sha256:c899d12093ad7bbdbfd08ccc0e6294e0f98c682c7e35db4ecfbca345fb068492'
     }
     It 'refuses a preexisting container rather than replacing it' {
@@ -70,22 +74,37 @@ Describe 'Experiment country and trial container ownership' {
         $env:Settings = $settings | ConvertTo-Json
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw '*settings differ*'
     }
-    It 'allows trial 50 but never trial 51 even with matching container names' {
-        $env:BC_SQL_PILOT_TRIAL = '50'
-        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial50retry123'
+    It 'allows trial 5 but never trial 6 even with matching container names' {
+        $env:BC_SQL_PILOT_TRIAL = '5'
+        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDEUptake5control123'
         & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters
-        $env:BC_SQL_PILOT_TRIAL = '51'
-        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDETrial51retry123'
+        $env:BC_SQL_PILOT_TRIAL = '6'
+        $script:parameters.ContainerName = 'bcbuildprojectsTestAppsDEUptake6control123'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
     }
     It 'rejects obsolete exclusion arms and other branches or events' {
         $env:BC_SQL_API_EXPERIMENT = 'A'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
-        $env:BC_SQL_API_EXPERIMENT = 'retry'
+        $env:BC_SQL_API_EXPERIMENT = 'control'
         $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-two-arm-experiment'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
-        $env:GITHUB_REF = 'refs/heads/features/646383-sql-api-300-trial-comparison'
+        $env:GITHUB_REF = 'refs/heads/features/653457-sql-platform-fix-uptake'
         $env:GITHUB_EVENT_NAME = 'pull_request'
         { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw
+    }
+    It 'rejects the old platform, floating platform and missing authorization' {
+        foreach ($version in @('30.0.55665.0', 'latest', '28.0.56092.0')) {
+            $script:parameters.platformArtifactUrl = "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/$version/platform"
+            { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw '*pinned source platform*'
+        }
+        $env:BC_SQL_UPTAKE_AUTHORIZATION = ''
+        { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw '*authorized manual branch*'
+    }
+    It 'rejects warmup and retry before any container inspection' {
+        foreach ($arm in @('warmup', 'retry')) {
+            $env:BC_SQL_API_EXPERIMENT = $arm
+            { & (Join-Path $PSScriptRoot 'ContainerPreflight.ps1') -Parameters $script:parameters } | Should -Throw '*ten original control cells*'
+        }
+        Should -Invoke Test-BcContainer -Times 0
     }
 }

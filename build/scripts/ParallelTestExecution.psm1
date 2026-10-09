@@ -52,6 +52,12 @@ function Get-DisabledTestsForApp {
 }
 
 function Test-SqlApiExperiment {
+    if ($env:GITHUB_REF -eq 'refs/heads/features/653457-sql-platform-fix-uptake') {
+        return ($env:GITHUB_REPOSITORY -eq 'microsoft/BCApps' -and
+            $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch' -and $env:GITHUB_RUN_ATTEMPT -eq '1' -and
+            $env:BC_SQL_UPTAKE_AUTHORIZATION -eq 'AB653457-fixed-platform-original-control-10' -and
+            $env:BC_SQL_PILOT_ARM -eq 'control' -and $env:BC_SQL_API_EXPERIMENT -eq 'control')
+    }
     return ($env:GITHUB_REPOSITORY -eq 'microsoft/BCApps' -and
         $env:GITHUB_REF -eq 'refs/heads/features/646383-sql-api-300-trial-comparison' -and
         $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch' -and $env:GITHUB_RUN_ATTEMPT -eq '1' -and
@@ -59,6 +65,10 @@ function Test-SqlApiExperiment {
 }
 
 function Test-SqlApiWarmupEnabled {
+    if ($env:GITHUB_REF -eq 'refs/heads/features/653457-sql-platform-fix-uptake') {
+        if (-not (Test-SqlApiExperiment)) { throw 'Invalid control-only uptake context; refusing warmup fallback.' }
+        return $false
+    }
     return ($env:BC_SQL_PILOT_ARM -and
         (-not (Test-SqlApiExperiment) -or $env:BC_SQL_API_EXPERIMENT -ne 'control'))
 }

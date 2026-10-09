@@ -1,20 +1,15 @@
 $ErrorActionPreference = 'Stop'
 $base = 'c4953dceffe02a017adad34973e1955017bf5d20'
-if ($env:GITHUB_REPOSITORY -ne 'microsoft/BCApps' -or
-    $env:GITHUB_REF -ne 'refs/heads/features/646383-sql-api-300-trial-comparison' -or
-    $env:BC_SQL_API_EXPERIMENT -notin @('control', 'warmup', 'retry') -or
-    $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_RUN_ATTEMPT -ne '1' -or
-    $env:BC_SQL_PILOT_ARM -ne 'control' -or $env:BC_SQL_PILOT_COUNTRY -notin @('W1', 'DE') -or
-    $env:BC_SQL_PILOT_TRIAL -notmatch '^(?:[1-9]|[1-4][0-9]|50)$' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
-    throw 'This diagnostic is restricted to its explicitly dispatched disposable CI branch, attempt one.'
-}
+Import-Module (Join-Path $PSScriptRoot 'PlatformUptake.psm1') -Force
+Assert-SqlPlatformUptakeContext -Cell
+$uptake = Get-SqlPlatformUptake
 git merge-base --is-ancestor $base HEAD
 if ($LASTEXITCODE -ne 0) { throw 'PR2 base is not an ancestor.' }
 git diff --exit-code $base HEAD -- src
 if ($LASTEXITCODE -ne 0) { throw 'AL/package source differs from the pinned compiled PR2 source.' }
 
 $project = "build\projects\Test Apps $($env:BC_SQL_PILOT_COUNTRY)"
-$trialProject = "$project Trial$($env:BC_SQL_PILOT_TRIAL)$($env:BC_SQL_API_EXPERIMENT)"
+$trialProject = "$project Uptake$($env:BC_SQL_PILOT_TRIAL)$($env:BC_SQL_API_EXPERIMENT)"
 if (Test-Path $trialProject) { throw 'Trial project must not already exist.' }
 # AL-Go derives its container name from the project path. Preserve wrapper depth and country settings.
 Copy-Item $project $trialProject -Recurse
@@ -25,13 +20,12 @@ New-Item -ItemType Directory $output -Force | Out-Null
 "BC_SQL_PILOT_OUTPUT=$output" | Add-Content $env:GITHUB_ENV
 @{ phase = 'package-preflight'; arm = $env:BC_SQL_PILOT_ARM; run = $env:GITHUB_RUN_ID; utc = [DateTime]::UtcNow.ToString('o') } |
     ConvertTo-Json | Set-Content (Join-Path $output 'start.json') -Encoding UTF8
-Import-Module (Join-Path $PSScriptRoot 'Comparison.psm1') -Force
-$replacement = $env:BC_SQL_COMPARISON_REPLACEMENT | ConvertFrom-Json
-$expectedSnapshotRun = if ($replacement) { [string]$replacement.runId } else { $env:GITHUB_RUN_ID }
-if ($env:BC_SQL_COMPARISON_PACKAGE_RUN -ne $expectedSnapshotRun) { throw 'Snapshot source run differs from original/replacement provenance.' }
+$expectedSnapshotRun = $uptake.originalSnapshotRun
+if ($env:BC_SQL_COMPARISON_REPLACEMENT -and $env:BC_SQL_COMPARISON_REPLACEMENT -ne 'null') {
+    throw 'No replacement trials are authorized.'
+}
 $snapshotDirectory = Join-Path $env:GITHUB_WORKSPACE 'sql-api-package-snapshot'
-$snapshotProof = @(Save-SqlComparisonSnapshot -ArtifactId $env:BC_SQL_COMPARISON_PACKAGE_ARTIFACT `
-    -RunId $expectedSnapshotRun -HeadSha $env:GITHUB_SHA -Country $env:BC_SQL_PILOT_COUNTRY -Directory $snapshotDirectory)
+$snapshotProof = @(Save-SqlPlatformUptakeSnapshot -Country $env:BC_SQL_PILOT_COUNTRY -Directory $snapshotDirectory)
 $snapshotProof | ConvertTo-Json -Depth 12 | Set-Content (Join-Path $output 'original-artifact-proof.json')
 $artifacts = @(
     @{ Kind = 'apps'; Id = 11374170356; Digest = '683343673e6efeb7699734b250d2ee5004d2d83fe08e57f324c4c645c09612db' },
@@ -60,10 +54,12 @@ foreach ($artifact in $artifacts) {
     $list = Join-Path $destination 'packages.json'
     ConvertTo-Json -InputObject @($files.FullName) | Set-Content $list -Encoding UTF8
     "$($artifact.Kind)=$list" | Add-Content $env:GITHUB_OUTPUT
+    $packageFiles = @($files | ForEach-Object { @{ name = $_.Name; sha256 = (Get-FileHash $_.FullName).Hash } })
+    Assert-SqlPlatformUptakePackageSet -Country $env:BC_SQL_PILOT_COUNTRY -Kind $artifact.Kind -Files $packageFiles
     $manifest += @{
         artifactId = $artifact.Id; sourceRun = 37372848860; sourceHead = $base
         kind = $artifact.Kind; archiveSha256 = $artifact.Digest
-        files = @($files | ForEach-Object { @{ name = $_.Name; sha256 = (Get-FileHash $_.FullName).Hash } })
+        files = $packageFiles
     }
 }
 @{
@@ -71,8 +67,9 @@ foreach ($artifact in $artifacts) {
     experiment = $env:BC_SQL_API_EXPERIMENT; sharedBaseline = 'fbd7ec46c636ee5f9d940cb81e5abbc1df90f055'
     probeAndWarmupBaseline = 'fcc1776c6b165199dd66e4227675b1cc31da7a8f'
     trialIdentity = "$($env:BC_SQL_API_EXPERIMENT)/$($env:BC_SQL_PILOT_COUNTRY)/$($env:BC_SQL_PILOT_TRIAL)"
-    replacementOf = $replacement
-    packageSnapshot = @{ runId = $expectedSnapshotRun; artifactId = $env:BC_SQL_COMPARISON_PACKAGE_ARTIFACT }
+    platformUptake = $uptake
+    replacementOf = $null
+    packageSnapshot = @{ runId = $expectedSnapshotRun; artifactId = @($uptake.snapshots | Where-Object country -eq $env:BC_SQL_PILOT_COUNTRY)[0].id }
     country = $env:BC_SQL_PILOT_COUNTRY; trial = $env:BC_SQL_PILOT_TRIAL; project = $trialProject
     warmup = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { 'original-first-app-before-clean-lane' })
     companiesProbe = $(if ($env:BC_SQL_API_EXPERIMENT -eq 'control') { 'none' } else { 'per-restored-worker-single-attempt' })
@@ -82,4 +79,4 @@ foreach ($artifact in $artifacts) {
     genericTestRetries = 0; schedulerRetries = 0; ciRetries = 0
     budgetMinutes = 120; startedUtc = [DateTime]::UtcNow.ToString('o')
     artifacts = $manifest
-} | ConvertTo-Json -Depth 8 | Set-Content (Join-Path $output 'provenance.json') -Encoding UTF8
+} | ConvertTo-Json -Depth 15 | Set-Content (Join-Path $output 'provenance.json') -Encoding UTF8

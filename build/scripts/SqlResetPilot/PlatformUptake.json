@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "authorization": "AB653457-fixed-platform-original-control-10",
+  "branch": "features/653457-sql-platform-fix-uptake",
+  "comparisonBase": "0227094059f2f26f3fcb1b7f85a3285c17e78b8e",
+  "originalSnapshotRun": "37634358042",
+  "applicationSource": "c4953dceffe02a017adad34973e1955017bf5d20",
+  "applicationRun": "37372848860",
+  "applicationVersion": "30.0.55683.0",
+  "previousRuntime": "30.0.55665.0",
+  "runtime": "30.0.56092.0",
+  "publication": {
+    "observedUtc": "2026-10-09T11:00:34Z",
+    "fixPullRequest": "https://microsoft.ghe.com/bic/BC-Platform/pull/47167",
+    "fixCommit": "7a4d33b8848c5795474eb6d517724e3ae5043baf",
+    "officialDefinition": 698,
+    "officialBuild": 2860912,
+    "officialSource": "3ed6bbc6787b3f832c1ba7d2163a49bfec75f50f",
+    "commitsAheadOfFix": 1,
+    "officialResult": "Succeeded",
+    "publisherDefinition": 2336,
+    "publisherRun": 2861912,
+    "publisherResult": "Succeeded",
+    "actualResource": "_Platform-Core-OfficialBuild",
+    "actualResourceBuild": 2860912,
+    "actualResourceVersion": "30.0.56092.0",
+    "publisherSelfSourceIsNotBinaryProvenance": true,
+    "index": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/indexes/platform.json",
+    "creationUtc": "2026-10-09T10:47:20Z"
+  },
+  "snapshots": [
+    {
+      "country": "W1",
+      "id": "11487493885",
+      "digest": "09be1c12a5fe014fd2c1e0a6ab075e809f5693a9294dc8aa949c53961d1b50bd"
+    },
+    {
+      "country": "DE",
+      "id": "11486874993",
+      "digest": "786e121028e19304a94fcf86da7d40326701a5a19631adbcaf3302dac9abb5ac"
+    }
+  ],
+  "applicationArtifacts": [
+    {
+      "country": "W1", "kind": "apps", "id": "11374170356",
+      "digest": "683343673e6efeb7699734b250d2ee5004d2d83fe08e57f324c4c645c09612db",
+      "compiledPackageCount": 117,
+      "compiledPackageSetSha256": "e54b977a72f2232cc293e1442740252c1e82f553c9c21da2fa86c9273b4d220b"
+    },
+    {
+      "country": "W1", "kind": "tests", "id": "11374145359",
+      "digest": "f75ce06920437328e5d79a5512eddcc2425624bb696c339c108478c83554171d",
+      "compiledPackageCount": 131,
+      "compiledPackageSetSha256": "a556c75d78c7becac2050e8068931e279196cc382a7d86846044ac298182e339"
+    },
+    {
+      "country": "DE", "kind": "apps", "id": "11376415128",
+      "digest": "409af00bb5e6922224626f94a4d4f5625f4a9bf13b9398e84cc101a41a313dd5",
+      "compiledPackageCount": 123,
+      "compiledPackageSetSha256": "0288721b1bfdecc31c13200ef40c3d5205e937b18478e0fc6768e43df82a65f3"
+    },
+    {
+      "country": "DE", "kind": "tests", "id": "11375174896",
+      "digest": "4e1edde77089e0b586679b168f11123a8181a99c63c3a82b42323503340a5d3b",
+      "compiledPackageCount": 131,
+      "compiledPackageSetSha256": "8074c1c7e2251b573a66914f5e66e9f93a251abeddc747e63812d4c009bcf912"
+    }
+  ],
+  "trialPlan": {
+    "arm": "control",
+    "countries": ["W1", "DE"],
+    "trials": [1, 2, 3, 4, 5],
+    "cellCount": 10,
+    "firstPairBeforeRemainingPairs": true,
+    "globalContainerLimit": 2,
+    "mountedTenants": 4,
+    "workers": 3,
+    "warmup": false,
+    "companiesProbe": false,
+    "readinessWait": false,
+    "retries": 0,
+    "addedSkips": 0,
+    "codeunits": [139700,139702,139703,139706,139725,139726,139732,139739,139742,139745,139802,139803,139806,139826,139832,139854,139972,139780,148315,148318,148343],
+    "cases": 253,
+    "expectedPass": 234,
+    "existingSkip": 19
+  }
+}
