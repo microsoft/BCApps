@@ -126,6 +126,7 @@ codeunit 10145 "E-Invoice Mgt."
         SchemaLocation3xsdTxt: Label '%1  %2  %3  %4 %5 %6', Comment = '%1 - namespase1; %2 - xsd location1; %3 - namespase2; %4 - xsd location2; %5 - namespase3; %6 - xsd location3.';
         XSINamespaceTxt: Label 'http://www.w3.org/2001/XMLSchema-instance', Locked = true;
         CFDINamespaceTxt: Label 'http://www.sat.gob.mx/cfd/4', Locked = true;
+        TimbreFiscalDigitalNamespaceTxt: Label 'http://www.sat.gob.mx/TimbreFiscalDigital', Locked = true;
         CartaPorteNamespaceTxt: Label 'http://www.sat.gob.mx/CartaPorte31', Locked = true;
         CFDIXSDLocationTxt: Label 'http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd', Locked = true;
         CFDIComercioExteriorNamespaceTxt: Label 'http://www.sat.gob.mx/ComercioExterior20', Locked = true;
@@ -427,14 +428,13 @@ codeunit 10145 "E-Invoice Mgt."
         TempCFDIRelationDocument: Record "CFDI Relation Document" temporary;
         TempBlobOriginalString: Codeunit "Temp Blob";
         TempBlobDigitalStamp: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
+        XMLDocResult: XmlDocument;
         OutStrOriginalDoc: OutStream;
         OutStrSignedDoc: OutStream;
         InStream: InStream;
         XMLDoc: DotNet XmlDocument;
-        XMLDocResult: DotNet XmlDocument;
         SystemEnvironment: DotNet SystemEnvironment;
         OriginalString: Text;
         SignedString: Text;
@@ -638,7 +638,7 @@ codeunit 10145 "E-Invoice Mgt."
                     RecordRef.SetTable(SalesInvoiceHeader);
                     SalesInvoiceHeader."Certificate Serial No." := CertificateSerialNo;
                     SalesInvoiceHeader."Original Document XML".CreateOutStream(OutStrOriginalDoc);
-                    SalesInvoiceHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc);
+                    SalesInvoiceHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc, TextEncoding::UTF8);
                     XMLDoc.Save(OutStrOriginalDoc);
                     SalesInvoiceHeader.Modify();
                 end else begin
@@ -656,7 +656,7 @@ codeunit 10145 "E-Invoice Mgt."
                     RecordRef.SetTable(CFDIDocuments);
                     CFDIDocuments."Certificate Serial No." := CertificateSerialNo;
                     CFDIDocuments."Original Document XML".CreateOutStream(OutStrOriginalDoc);
-                    CFDIDocuments."Signed Document XML".CreateOutStream(OutStrSignedDoc);
+                    CFDIDocuments."Signed Document XML".CreateOutStream(OutStrSignedDoc, TextEncoding::UTF8);
                     XMLDoc.Save(OutStrOriginalDoc);
                     SalesInvoiceHeader.Modify();
                 end;
@@ -668,7 +668,7 @@ codeunit 10145 "E-Invoice Mgt."
                     RecordRef.SetTable(SalesCrMemoHeader);
                     SalesCrMemoHeader."Certificate Serial No." := CertificateSerialNo;
                     SalesCrMemoHeader."Original Document XML".CreateOutStream(OutStrOriginalDoc);
-                    SalesCrMemoHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc);
+                    SalesCrMemoHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc, TextEncoding::UTF8);
                     XMLDoc.Save(OutStrOriginalDoc);
                     SalesCrMemoHeader.Modify();
                 end;
@@ -680,7 +680,7 @@ codeunit 10145 "E-Invoice Mgt."
                     RecordRef.SetTable(ServiceInvoiceHeader);
                     ServiceInvoiceHeader."Certificate Serial No." := CertificateSerialNo;
                     ServiceInvoiceHeader."Original Document XML".CreateOutStream(OutStrOriginalDoc);
-                    ServiceInvoiceHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc);
+                    ServiceInvoiceHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc, TextEncoding::UTF8);
                     XMLDoc.Save(OutStrOriginalDoc);
                     ServiceInvoiceHeader.Modify();
                 end;
@@ -692,7 +692,7 @@ codeunit 10145 "E-Invoice Mgt."
                     RecordRef.SetTable(ServiceCrMemoHeader);
                     ServiceCrMemoHeader."Certificate Serial No." := CertificateSerialNo;
                     ServiceCrMemoHeader."Original Document XML".CreateOutStream(OutStrOriginalDoc);
-                    ServiceCrMemoHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc);
+                    ServiceCrMemoHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc, TextEncoding::UTF8);
                     XMLDoc.Save(OutStrOriginalDoc);
                     ServiceCrMemoHeader.Modify();
                 end;
@@ -704,7 +704,7 @@ codeunit 10145 "E-Invoice Mgt."
                     RecordRef.SetTable(SalesShipmentHeader);
                     SalesShipmentHeader."Certificate Serial No." := CertificateSerialNo;
                     SalesShipmentHeader."Original Document XML".CreateOutStream(OutStrOriginalDoc);
-                    SalesShipmentHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc);
+                    SalesShipmentHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc, TextEncoding::UTF8);
                     XMLDoc.Save(OutStrOriginalDoc);
                     SalesShipmentHeader.Modify();
                 end;
@@ -716,7 +716,7 @@ codeunit 10145 "E-Invoice Mgt."
                     RecordRef.SetTable(TransferShipmentHeader);
                     TransferShipmentHeader."Certificate Serial No." := CertificateSerialNo;
                     TransferShipmentHeader."Original Document XML".CreateOutStream(OutStrOriginalDoc);
-                    TransferShipmentHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc);
+                    TransferShipmentHeader."Signed Document XML".CreateOutStream(OutStrSignedDoc, TextEncoding::UTF8);
                     XMLDoc.Save(OutStrOriginalDoc);
                     TransferShipmentHeader.Modify();
                 end;
@@ -729,13 +729,13 @@ codeunit 10145 "E-Invoice Mgt."
         // For Test Mocking
         if not GLSetup."Sim. Request Stamp" then begin
             if Reverse then begin
-                XMLDOMManagement.LoadXMLDocumentFromText(Response, XMLDocResult);
-                XMLDocResult.Save(OutStrSignedDoc);
+                ReadXMLDocumentFromText(Response, XMLDocResult);
+                SaveXMLDocument(XMLDocResult, OutStrSignedDoc);
                 CFDIDocuments.Modify();
             end;
             if not Reverse then begin
-                XMLDOMManagement.LoadXMLDocumentFromText(Response, XMLDocResult);
-                XMLDocResult.Save(OutStrSignedDoc);
+                ReadXMLDocumentFromText(Response, XMLDocResult);
+                SaveXMLDocument(XMLDocResult, OutStrSignedDoc);
             end;
         end;
 
@@ -1530,21 +1530,16 @@ codeunit 10145 "E-Invoice Mgt."
         CFDIDocuments: Record "CFDI Documents";
         PACWebService: Record "PAC Web Service";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDoc: DotNet XmlDocument;
-        XMLDocResult: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap;
-        XMLDOMNodeList: DotNet XmlNodeList;
-        NamespaceManager: DotNet XmlNamespaceManager;
         RecordRef: RecordRef;
+        XMLDocResult: XmlDocument;
+        ResultXMLElement: XmlElement;
+        TFDXMLElement: XmlElement;
         OutStr: OutStream;
         InStr: InStream;
-        NodeCount: Integer;
-        Counter: Integer;
         QRCodeInput: Text;
         ErrorDescription: Text;
         TelemetryError: Text;
+        ResponseCode: Text;
         CancelStatus: Option InProgress,Rejected,Cancelled;
         CancelResult: Text[250];
         DocumentStatus: Option " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
@@ -1555,26 +1550,21 @@ codeunit 10145 "E-Invoice Mgt."
         GetCustomer(Customer, SalesInvoiceHeader."Bill-to Customer No.", false);
 
         // Process Response and Load back to header the Signed XML if you get one...
-        if IsNull(XMLDocResult) then
-            XMLDocResult := XMLDocResult.XmlDocument();
-
         if not Reverse then begin
             SalesInvoiceHeader.CalcFields("Signed Document XML");
             SalesInvoiceHeader."Signed Document XML".CreateInStream(InStr);
-            XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDocResult);
+            ReadXMLDocumentFromInStream(InStr, XMLDocResult);
             Clear(SalesInvoiceHeader."Signed Document XML");
         end else begin
             CFDIDocuments.Get(SalesInvoiceHeader."No.", DATABASE::"Sales Invoice Header", true, true);
             CFDIDocuments.CalcFields("Signed Document XML");
             CFDIDocuments."Signed Document XML".CreateInStream(InStr);
-            XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDocResult);
+            ReadXMLDocumentFromInStream(InStr, XMLDocResult);
             Clear(CFDIDocuments."Signed Document XML");
         end;
 
-        XMLCurrNode := XMLDocResult.SelectSingleNode('Resultado');
-
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('IdRespuesta');
+        GetResponseResultElement(XMLDocResult, ResultXMLElement);
+        ResponseCode := GetXMLAttributeValue(ResultXMLElement, 'IdRespuesta');
 
         PACWebService.Get(GLSetup."PAC Code");
 
@@ -1583,14 +1573,10 @@ codeunit 10145 "E-Invoice Mgt."
         else
             CFDIDocuments."PAC Web Service Name" := PACWebService.Name;
 
-        if XMLCurrNode.Value <> '1' then begin // Error encountered
+        if ResponseCode <> '1' then begin // Error encountered
             if not Reverse then begin
-                SalesInvoiceHeader."Error Code" := XMLCurrNode.Value();
-                XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Descripcion');
-                ErrorDescription := XMLCurrNode.Value();
-                XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Detalle');
-                if not IsNull(XMLCurrNode) then
-                    ErrorDescription := ErrorDescription + ': ' + XMLCurrNode.Value();
+                SalesInvoiceHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(SalesInvoiceHeader."Error Code"));
+                ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
                 TelemetryError := ErrorDescription;
                 if StrLen(ErrorDescription) > 250 then
                     ErrorDescription := CopyStr(ErrorDescription, 1, 247) + '...';
@@ -1607,12 +1593,8 @@ codeunit 10145 "E-Invoice Mgt."
                         end;
                 end;
             end else begin
-                CFDIDocuments."Error Code" := XMLCurrNode.Value();
-                XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Descripcion');
-                ErrorDescription := XMLCurrNode.Value();
-                XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Detalle');
-                if not IsNull(XMLCurrNode) then
-                    ErrorDescription := ErrorDescription + ': ' + XMLCurrNode.Value();
+                CFDIDocuments."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(CFDIDocuments."Error Code"));
+                ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
                 TelemetryError := ErrorDescription;
                 if StrLen(ErrorDescription) > 250 then
                     ErrorDescription := CopyStr(ErrorDescription, 1, 247) + '...';
@@ -1636,12 +1618,12 @@ codeunit 10145 "E-Invoice Mgt."
             SalesInvoiceHeader."Error Description" := '';
             if Action = EDocAction::Cancel then begin
                 SalesInvoiceHeader."Electronic Document Status" := SalesInvoiceHeader."Electronic Document Status"::"Cancel In Progress";
-                SalesInvoiceHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+                SalesInvoiceHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(ResultXMLElement);
                 LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Invoice Header"), SalesInvoiceHeader."CFDI Cancellation ID");
                 exit;
             end;
             if Action = EDocAction::CancelRequest then begin
-                ProcessCancelResponse(XMLDocResult, XMLCurrNode, XMLDOMNamedNodeMap, CancelStatus, CancelResult, DateTimeCancelled);
+                ProcessCancelResponse(ResultXMLElement, CancelStatus, CancelResult, DateTimeCancelled);
                 GetDocumentStatusFromCancelStatus(DocumentStatus, CancelStatus);
                 SalesInvoiceHeader."Electronic Document Status" := DocumentStatus;
                 SalesInvoiceHeader."Error Description" := CancelResult;
@@ -1653,63 +1635,40 @@ codeunit 10145 "E-Invoice Mgt."
             CFDIDocuments."Error Description" := '';
         end;
 
-        XMLCurrNode := XMLDocResult.SelectSingleNode('Resultado');
-        XMLDOMNodeList := XMLCurrNode.ChildNodes;
-        NodeCount := XMLDOMNodeList.Count();
-
-        Clear(XMLDoc);
-        XMLDoc := XMLDoc.XmlDocument();
-        for Counter := 0 to (NodeCount - 1) do begin
-            XMLCurrNode := XMLDOMNodeList.Item(Counter);
-            XMLDoc.AppendChild(XMLDoc.ImportNode(XMLCurrNode, true));
-        end;
-
         if not Reverse then
-            SalesInvoiceHeader."Signed Document XML".CreateOutStream(OutStr)
+            SalesInvoiceHeader."Signed Document XML".CreateOutStream(OutStr, TextEncoding::UTF8)
         else
-            CFDIDocuments."Signed Document XML".CreateOutStream(OutStr);
+            CFDIDocuments."Signed Document XML".CreateOutStream(OutStr, TextEncoding::UTF8);
 
-        XMLDoc.Save(OutStr);
+        SaveSignedDocumentXML(ResultXMLElement, OutStr);
 
-        NamespaceManager := NamespaceManager.XmlNamespaceManager(XMLDoc.NameTable);
-        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        XMLCurrNode := XMLDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager);
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
+        GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
         if not Reverse then begin
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('FechaTimbrado');
-            SalesInvoiceHeader."Date/Time Stamped" := XMLCurrNode.Value();
+            SalesInvoiceHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(SalesInvoiceHeader."Date/Time Stamped"));
             SalesInvoiceHeader."Date/Time Stamp Received" := ConvertStingToDateTime(SalesInvoiceHeader."Date/Time Stamped");
 
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('UUID');
-            SalesInvoiceHeader."Fiscal Invoice Number PAC" := XMLCurrNode.Value();
+            SalesInvoiceHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(SalesInvoiceHeader."Fiscal Invoice Number PAC"));
 
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('NoCertificadoSAT');
-            SalesInvoiceHeader."Certificate Serial No." := XMLCurrNode.Value();
+            SalesInvoiceHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(SalesInvoiceHeader."Certificate Serial No."));
         end else begin
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('FechaTimbrado');
-            CFDIDocuments."Date/Time Stamped" := XMLCurrNode.Value();
+            CFDIDocuments."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(CFDIDocuments."Date/Time Stamped"));
             CFDIDocuments."Date/Time Stamp Received" := ConvertStingToDateTime(CFDIDocuments."Date/Time Stamped");
 
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('UUID');
-            CFDIDocuments."Fiscal Invoice Number PAC" := XMLCurrNode.Value();
+            CFDIDocuments."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(CFDIDocuments."Fiscal Invoice Number PAC"));
 
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('NoCertificadoSAT');
-            CFDIDocuments."Certificate Serial No." := XMLCurrNode.Value();
+            CFDIDocuments."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(CFDIDocuments."Certificate Serial No."));
         end;
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('SelloSAT');
 
         Clear(OutStr);
         if not Reverse then begin
             SalesInvoiceHeader."Digital Stamp PAC".CreateOutStream(OutStr);
-            OutStr.WriteText(XMLCurrNode.Value);
+            OutStr.WriteText(GetXMLAttributeValue(TFDXMLElement, 'SelloSAT'));
             // Certificate Serial
             SalesInvoiceHeader."Electronic Document Status" := SalesInvoiceHeader."Electronic Document Status"::"Stamp Received";
         end else begin
             CFDIDocuments."Digital Stamp PAC".CreateOutStream(OutStr);
-            OutStr.WriteText(XMLCurrNode.Value);
+            OutStr.WriteText(GetXMLAttributeValue(TFDXMLElement, 'SelloSAT'));
             // Certificate Serial
             CFDIDocuments."Electronic Document Status" := CFDIDocuments."Electronic Document Status"::"Stamp Received";
         end;
@@ -1737,20 +1696,16 @@ codeunit 10145 "E-Invoice Mgt."
         Customer: Record Customer;
         PACWebService: Record "PAC Web Service";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDoc: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap;
-        XMLDOMNodeList: DotNet XmlNodeList;
-        NamespaceManager: DotNet XmlNamespaceManager;
         RecordRef: RecordRef;
+        XMLDoc: XmlDocument;
+        ResultXMLElement: XmlElement;
+        TFDXMLElement: XmlElement;
         OutStr: OutStream;
         InStr: InStream;
-        NodeCount: Integer;
-        Counter: Integer;
         QRCodeInput: Text;
         ErrorDescription: Text;
         TelemetryError: Text;
+        ResponseCode: Text;
         CancelStatus: Option InProgress,Rejected,Cancelled;
         CancelResult: Text[250];
         DocumentStatus: Option " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
@@ -1761,28 +1716,19 @@ codeunit 10145 "E-Invoice Mgt."
         GetCustomer(Customer, SalesCrMemoHeader."Bill-to Customer No.", false);
 
         // Process Response and Load back to header the Signed XML if you get one...
-        if IsNull(XMLDoc) then
-            XMLDoc := XMLDoc.XmlDocument();
-
         SalesCrMemoHeader.CalcFields("Signed Document XML");
         SalesCrMemoHeader."Signed Document XML".CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDoc);
+        ReadXMLDocumentFromInStream(InStr, XMLDoc);
         Clear(SalesCrMemoHeader."Signed Document XML");
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('IdRespuesta');
+        GetResponseResultElement(XMLDoc, ResultXMLElement);
+        ResponseCode := GetXMLAttributeValue(ResultXMLElement, 'IdRespuesta');
 
         PACWebService.Get(GLSetup."PAC Code");
         SalesCrMemoHeader."PAC Web Service Name" := PACWebService.Name;
 
-        if XMLCurrNode.Value <> '1' then begin
-            SalesCrMemoHeader."Error Code" := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Descripcion');
-            ErrorDescription := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Detalle');
-            if not IsNull(XMLCurrNode) then
-                ErrorDescription := ErrorDescription + ': ' + XMLCurrNode.Value();
+        if ResponseCode <> '1' then begin
+            SalesCrMemoHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(SalesCrMemoHeader."Error Code"));
+            ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
                 ErrorDescription := CopyStr(ErrorDescription, 1, 247) + '...';
@@ -1809,12 +1755,12 @@ codeunit 10145 "E-Invoice Mgt."
         SalesCrMemoHeader."Error Description" := '';
         if Action = EDocAction::Cancel then begin
             SalesCrMemoHeader."Electronic Document Status" := SalesCrMemoHeader."Electronic Document Status"::"Cancel In Progress";
-            SalesCrMemoHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            SalesCrMemoHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(ResultXMLElement);
             LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Cr.Memo Header"), SalesCrMemoHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
-            ProcessCancelResponse(XMLDoc, XMLCurrNode, XMLDOMNamedNodeMap, CancelStatus, CancelResult, DateTimeCancelled);
+            ProcessCancelResponse(ResultXMLElement, CancelStatus, CancelResult, DateTimeCancelled);
             GetDocumentStatusFromCancelStatus(DocumentStatus, CancelStatus);
             SalesCrMemoHeader."Electronic Document Status" := DocumentStatus;
             SalesCrMemoHeader."Error Description" := CancelResult;
@@ -1822,41 +1768,21 @@ codeunit 10145 "E-Invoice Mgt."
             exit;
         end;
 
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-        XMLDOMNodeList := XMLCurrNode.ChildNodes;
-        NodeCount := XMLDOMNodeList.Count();
-        Clear(XMLDoc);
-        XMLDoc := XMLDoc.XmlDocument();
+        SalesCrMemoHeader."Signed Document XML".CreateOutStream(OutStr, TextEncoding::UTF8);
+        SaveSignedDocumentXML(ResultXMLElement, OutStr);
 
-        for Counter := 0 to (NodeCount - 1) do begin
-            XMLCurrNode := XMLDOMNodeList.Item(Counter);
-            XMLDoc.AppendChild(XMLDoc.ImportNode(XMLCurrNode, true));
-        end;
+        GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        SalesCrMemoHeader."Signed Document XML".CreateOutStream(OutStr);
-        XMLDoc.Save(OutStr);
-
-        NamespaceManager := NamespaceManager.XmlNamespaceManager(XMLDoc.NameTable);
-        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        XMLCurrNode := XMLDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager);
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('FechaTimbrado');
-        SalesCrMemoHeader."Date/Time Stamped" := XMLCurrNode.Value();
+        SalesCrMemoHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(SalesCrMemoHeader."Date/Time Stamped"));
         SalesCrMemoHeader."Date/Time Stamp Received" := ConvertStingToDateTime(SalesCrMemoHeader."Date/Time Stamped");
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('UUID');
-        SalesCrMemoHeader."Fiscal Invoice Number PAC" := XMLCurrNode.Value();
+        SalesCrMemoHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(SalesCrMemoHeader."Fiscal Invoice Number PAC"));
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('NoCertificadoSAT');
-        SalesCrMemoHeader."Certificate Serial No." := XMLCurrNode.Value();
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('SelloSAT');
+        SalesCrMemoHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(SalesCrMemoHeader."Certificate Serial No."));
 
         Clear(OutStr);
         SalesCrMemoHeader."Digital Stamp PAC".CreateOutStream(OutStr);
-        OutStr.WriteText(XMLCurrNode.Value);
+        OutStr.WriteText(GetXMLAttributeValue(TFDXMLElement, 'SelloSAT'));
         // Certificate Serial
         SalesCrMemoHeader."Electronic Document Status" := SalesCrMemoHeader."Electronic Document Status"::"Stamp Received";
 
@@ -1873,21 +1799,17 @@ codeunit 10145 "E-Invoice Mgt."
     var
         Customer: Record Customer;
         PACWebService: Record "PAC Web Service";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         TempBlob: Codeunit "Temp Blob";
-        XMLDoc: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap;
-        XMLDOMNodeList: DotNet XmlNodeList;
-        NamespaceManager: DotNet XmlNamespaceManager;
         RecordRef: RecordRef;
+        XMLDoc: XmlDocument;
+        ResultXMLElement: XmlElement;
+        TFDXMLElement: XmlElement;
         OutStr: OutStream;
         InStr: InStream;
-        NodeCount: Integer;
-        Counter: Integer;
         QRCodeInput: Text;
         ErrorDescription: Text;
         TelemetryError: Text;
+        ResponseCode: Text;
         CancelStatus: Option InProgress,Rejected,Cancelled;
         CancelResult: Text[250];
         DocumentStatus: Option " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
@@ -1898,28 +1820,19 @@ codeunit 10145 "E-Invoice Mgt."
         GetCustomer(Customer, ServInvoiceHeader."Bill-to Customer No.", false);
 
         // Process Response and Load back to header the Signed XML if you get one...
-        if IsNull(XMLDoc) then
-            XMLDoc := XMLDoc.XmlDocument();
-
         ServInvoiceHeader.CalcFields("Signed Document XML");
         ServInvoiceHeader."Signed Document XML".CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDoc);
+        ReadXMLDocumentFromInStream(InStr, XMLDoc);
         Clear(ServInvoiceHeader."Signed Document XML");
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('IdRespuesta');
+        GetResponseResultElement(XMLDoc, ResultXMLElement);
+        ResponseCode := GetXMLAttributeValue(ResultXMLElement, 'IdRespuesta');
 
         PACWebService.Get(GLSetup."PAC Code");
         ServInvoiceHeader."PAC Web Service Name" := PACWebService.Name;
 
-        if XMLCurrNode.Value <> '1' then begin
-            ServInvoiceHeader."Error Code" := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Descripcion');
-            ErrorDescription := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Detalle');
-            if not IsNull(XMLCurrNode) then
-                ErrorDescription := ErrorDescription + ': ' + XMLCurrNode.Value();
+        if ResponseCode <> '1' then begin
+            ServInvoiceHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(ServInvoiceHeader."Error Code"));
+            ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
                 ErrorDescription := CopyStr(ErrorDescription, 1, 247) + '...';
@@ -1946,12 +1859,12 @@ codeunit 10145 "E-Invoice Mgt."
         ServInvoiceHeader."Error Description" := '';
         if Action = EDocAction::Cancel then begin
             ServInvoiceHeader."Electronic Document Status" := ServInvoiceHeader."Electronic Document Status"::"Cancel In Progress";
-            ServInvoiceHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            ServInvoiceHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(ResultXMLElement);
             LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Service Invoice Header"), ServInvoiceHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
-            ProcessCancelResponse(XMLDoc, XMLCurrNode, XMLDOMNamedNodeMap, CancelStatus, CancelResult, DateTimeCancelled);
+            ProcessCancelResponse(ResultXMLElement, CancelStatus, CancelResult, DateTimeCancelled);
             GetDocumentStatusFromCancelStatus(DocumentStatus, CancelStatus);
             ServInvoiceHeader."Electronic Document Status" := DocumentStatus;
             ServInvoiceHeader."Error Description" := CancelResult;
@@ -1959,41 +1872,21 @@ codeunit 10145 "E-Invoice Mgt."
             exit;
         end;
 
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-        XMLDOMNodeList := XMLCurrNode.ChildNodes;
-        NodeCount := XMLDOMNodeList.Count();
-        Clear(XMLDoc);
-        XMLDoc := XMLDoc.XmlDocument();
+        ServInvoiceHeader."Signed Document XML".CreateOutStream(OutStr, TextEncoding::UTF8);
+        SaveSignedDocumentXML(ResultXMLElement, OutStr);
 
-        for Counter := 0 to (NodeCount - 1) do begin
-            XMLCurrNode := XMLDOMNodeList.Item(Counter);
-            XMLDoc.AppendChild(XMLDoc.ImportNode(XMLCurrNode, true));
-        end;
+        GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        ServInvoiceHeader."Signed Document XML".CreateOutStream(OutStr);
-        XMLDoc.Save(OutStr);
-
-        NamespaceManager := NamespaceManager.XmlNamespaceManager(XMLDoc.NameTable);
-        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        XMLCurrNode := XMLDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager);
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('FechaTimbrado');
-        ServInvoiceHeader."Date/Time Stamped" := XMLCurrNode.Value();
+        ServInvoiceHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(ServInvoiceHeader."Date/Time Stamped"));
         ServInvoiceHeader."Date/Time Stamp Received" := ConvertStingToDateTime(ServInvoiceHeader."Date/Time Stamped");
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('UUID');
-        ServInvoiceHeader."Fiscal Invoice Number PAC" := XMLCurrNode.Value();
+        ServInvoiceHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(ServInvoiceHeader."Fiscal Invoice Number PAC"));
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('NoCertificadoSAT');
-        ServInvoiceHeader."Certificate Serial No." := XMLCurrNode.Value();
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('SelloSAT');
+        ServInvoiceHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(ServInvoiceHeader."Certificate Serial No."));
 
         Clear(OutStr);
         ServInvoiceHeader."Digital Stamp PAC".CreateOutStream(OutStr);
-        OutStr.WriteText(XMLCurrNode.Value);
+        OutStr.WriteText(GetXMLAttributeValue(TFDXMLElement, 'SelloSAT'));
         // Certiificate Serial
         ServInvoiceHeader."Electronic Document Status" := ServInvoiceHeader."Electronic Document Status"::"Stamp Received";
 
@@ -2011,20 +1904,16 @@ codeunit 10145 "E-Invoice Mgt."
         Customer: Record Customer;
         PACWebService: Record "PAC Web Service";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDoc: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap;
-        XMLDOMNodeList: DotNet XmlNodeList;
-        NamespaceManager: DotNet XmlNamespaceManager;
         RecordRef: RecordRef;
+        XMLDoc: XmlDocument;
+        ResultXMLElement: XmlElement;
+        TFDXMLElement: XmlElement;
         OutStr: OutStream;
         InStr: InStream;
-        NodeCount: Integer;
-        Counter: Integer;
         QRCodeInput: Text;
         ErrorDescription: Text;
         TelemetryError: Text;
+        ResponseCode: Text;
         CancelStatus: Option InProgress,Rejected,Cancelled;
         CancelResult: Text[250];
         DocumentStatus: Option " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
@@ -2035,28 +1924,19 @@ codeunit 10145 "E-Invoice Mgt."
         GetCustomer(Customer, ServCrMemoHeader."Bill-to Customer No.", false);
 
         // Process Response and Load back to header the Signed XML if you get one...
-        if IsNull(XMLDoc) then
-            XMLDoc := XMLDoc.XmlDocument();
-
         ServCrMemoHeader.CalcFields("Signed Document XML");
         ServCrMemoHeader."Signed Document XML".CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDoc);
+        ReadXMLDocumentFromInStream(InStr, XMLDoc);
         Clear(ServCrMemoHeader."Signed Document XML");
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('IdRespuesta');
+        GetResponseResultElement(XMLDoc, ResultXMLElement);
+        ResponseCode := GetXMLAttributeValue(ResultXMLElement, 'IdRespuesta');
 
         PACWebService.Get(GLSetup."PAC Code");
         ServCrMemoHeader."PAC Web Service Name" := PACWebService.Name;
 
-        if XMLCurrNode.Value <> '1' then begin
-            ServCrMemoHeader."Error Code" := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Descripcion');
-            ErrorDescription := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Detalle');
-            if not IsNull(XMLCurrNode) then
-                ErrorDescription := ErrorDescription + ': ' + XMLCurrNode.Value();
+        if ResponseCode <> '1' then begin
+            ServCrMemoHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(ServCrMemoHeader."Error Code"));
+            ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
                 ErrorDescription := CopyStr(ErrorDescription, 1, 247) + '...';
@@ -2083,12 +1963,12 @@ codeunit 10145 "E-Invoice Mgt."
         ServCrMemoHeader."Error Description" := '';
         if Action = EDocAction::Cancel then begin
             ServCrMemoHeader."Electronic Document Status" := ServCrMemoHeader."Electronic Document Status"::"Cancel In Progress";
-            ServCrMemoHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            ServCrMemoHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(ResultXMLElement);
             LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Service Cr.Memo Header"), ServCrMemoHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
-            ProcessCancelResponse(XMLDoc, XMLCurrNode, XMLDOMNamedNodeMap, CancelStatus, CancelResult, DateTimeCancelled);
+            ProcessCancelResponse(ResultXMLElement, CancelStatus, CancelResult, DateTimeCancelled);
             GetDocumentStatusFromCancelStatus(DocumentStatus, CancelStatus);
             ServCrMemoHeader."Electronic Document Status" := DocumentStatus;
             ServCrMemoHeader."Error Description" := CancelResult;
@@ -2096,41 +1976,21 @@ codeunit 10145 "E-Invoice Mgt."
             exit;
         end;
 
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-        XMLDOMNodeList := XMLCurrNode.ChildNodes;
-        NodeCount := XMLDOMNodeList.Count();
-        Clear(XMLDoc);
-        XMLDoc := XMLDoc.XmlDocument();
+        ServCrMemoHeader."Signed Document XML".CreateOutStream(OutStr, TextEncoding::UTF8);
+        SaveSignedDocumentXML(ResultXMLElement, OutStr);
 
-        for Counter := 0 to (NodeCount - 1) do begin
-            XMLCurrNode := XMLDOMNodeList.Item(Counter);
-            XMLDoc.AppendChild(XMLDoc.ImportNode(XMLCurrNode, true));
-        end;
+        GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        ServCrMemoHeader."Signed Document XML".CreateOutStream(OutStr);
-        XMLDoc.Save(OutStr);
-
-        NamespaceManager := NamespaceManager.XmlNamespaceManager(XMLDoc.NameTable);
-        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        XMLCurrNode := XMLDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager);
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('FechaTimbrado');
-        ServCrMemoHeader."Date/Time Stamped" := XMLCurrNode.Value();
+        ServCrMemoHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(ServCrMemoHeader."Date/Time Stamped"));
         ServCrMemoHeader."Date/Time Stamp Received" := ConvertStingToDateTime(ServCrMemoHeader."Date/Time Stamped");
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('UUID');
-        ServCrMemoHeader."Fiscal Invoice Number PAC" := XMLCurrNode.Value();
+        ServCrMemoHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(ServCrMemoHeader."Fiscal Invoice Number PAC"));
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('NoCertificadoSAT');
-        ServCrMemoHeader."Certificate Serial No." := XMLCurrNode.Value();
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('SelloSAT');
+        ServCrMemoHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(ServCrMemoHeader."Certificate Serial No."));
 
         Clear(OutStr);
         ServCrMemoHeader."Digital Stamp PAC".CreateOutStream(OutStr);
-        OutStr.WriteText(XMLCurrNode.Value);
+        OutStr.WriteText(GetXMLAttributeValue(TFDXMLElement, 'SelloSAT'));
         // Certificate Serial
         ServCrMemoHeader."Electronic Document Status" := ServCrMemoHeader."Electronic Document Status"::"Stamp Received";
 
@@ -2147,20 +2007,16 @@ codeunit 10145 "E-Invoice Mgt."
     var
         PACWebService: Record "PAC Web Service";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RecordRef: RecordRef;
-        XMLDoc: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap;
-        XMLDOMNodeList: DotNet XmlNodeList;
-        NamespaceManager: DotNet XmlNamespaceManager;
+        XMLDoc: XmlDocument;
+        ResultXMLElement: XmlElement;
+        TFDXMLElement: XmlElement;
         OutStr: OutStream;
         InStr: InStream;
-        NodeCount: Integer;
-        Counter: Integer;
         QRCodeInput: Text;
         ErrorDescription: Text;
         TelemetryError: Text;
+        ResponseCode: Text;
         CancelStatus: Option InProgress,Rejected,Cancelled;
         CancelResult: Text[250];
         DocumentStatus: Option " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
@@ -2170,28 +2026,19 @@ codeunit 10145 "E-Invoice Mgt."
         GetCompanyInfo();
 
         // Process Response and Load back to header the Signed XML if you get one...
-        if IsNull(XMLDoc) then
-            XMLDoc := XMLDoc.XmlDocument();
-
         SalesShipmentHeader.CalcFields("Signed Document XML");
         SalesShipmentHeader."Signed Document XML".CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDoc);
+        ReadXMLDocumentFromInStream(InStr, XMLDoc);
         Clear(SalesShipmentHeader."Signed Document XML");
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('IdRespuesta');
+        GetResponseResultElement(XMLDoc, ResultXMLElement);
+        ResponseCode := GetXMLAttributeValue(ResultXMLElement, 'IdRespuesta');
 
         PACWebService.Get(GLSetup."PAC Code");
         SalesShipmentHeader."PAC Web Service Name" := PACWebService.Name;
 
-        if XMLCurrNode.Value <> '1' then begin
-            SalesShipmentHeader."Error Code" := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Descripcion');
-            ErrorDescription := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Detalle');
-            if not IsNull(XMLCurrNode) then
-                ErrorDescription := ErrorDescription + ': ' + XMLCurrNode.Value();
+        if ResponseCode <> '1' then begin
+            SalesShipmentHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(SalesShipmentHeader."Error Code"));
+            ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
                 ErrorDescription := CopyStr(ErrorDescription, 1, 247) + '...';
@@ -2219,53 +2066,33 @@ codeunit 10145 "E-Invoice Mgt."
         SalesShipmentHeader."Error Description" := '';
         if Action = EDocAction::Cancel then begin
             SalesShipmentHeader."Electronic Document Status" := SalesShipmentHeader."Electronic Document Status"::"Cancel In Progress";
-            SalesShipmentHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            SalesShipmentHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(ResultXMLElement);
             LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Shipment Header"), SalesShipmentHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
-            ProcessCancelResponse(XMLDoc, XMLCurrNode, XMLDOMNamedNodeMap, CancelStatus, CancelResult, DateTimeCancelled);
+            ProcessCancelResponse(ResultXMLElement, CancelStatus, CancelResult, DateTimeCancelled);
             GetDocumentStatusFromCancelStatus(DocumentStatus, CancelStatus);
             SalesShipmentHeader."Electronic Document Status" := DocumentStatus;
             SalesShipmentHeader."Error Description" := CancelResult;
             SalesShipmentHeader."Date/Time Canceled" := DateTimeCancelled;
             exit;
         end;
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-        XMLDOMNodeList := XMLCurrNode.ChildNodes;
-        NodeCount := XMLDOMNodeList.Count();
-        Clear(XMLDoc);
-        XMLDoc := XMLDoc.XmlDocument();
+        SalesShipmentHeader."Signed Document XML".CreateOutStream(OutStr, TextEncoding::UTF8);
+        SaveSignedDocumentXML(ResultXMLElement, OutStr);
 
-        for Counter := 0 to (NodeCount - 1) do begin
-            XMLCurrNode := XMLDOMNodeList.Item(Counter);
-            XMLDoc.AppendChild(XMLDoc.ImportNode(XMLCurrNode, true));
-        end;
+        GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        SalesShipmentHeader."Signed Document XML".CreateOutStream(OutStr);
-        XMLDoc.Save(OutStr);
-
-        NamespaceManager := NamespaceManager.XmlNamespaceManager(XMLDoc.NameTable);
-        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        XMLCurrNode := XMLDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager);
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('FechaTimbrado');
-        SalesShipmentHeader."Date/Time Stamped" := XMLCurrNode.Value();
+        SalesShipmentHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(SalesShipmentHeader."Date/Time Stamped"));
         SalesShipmentHeader."Date/Time Stamp Received" := ConvertStingToDateTime(SalesShipmentHeader."Date/Time Stamped");
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('UUID');
-        SalesShipmentHeader."Fiscal Invoice Number PAC" := XMLCurrNode.Value();
+        SalesShipmentHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(SalesShipmentHeader."Fiscal Invoice Number PAC"));
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('NoCertificadoSAT');
-        SalesShipmentHeader."Certificate Serial No." := XMLCurrNode.Value();
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('SelloSAT');
+        SalesShipmentHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(SalesShipmentHeader."Certificate Serial No."));
 
         Clear(OutStr);
         SalesShipmentHeader."Digital Stamp PAC".CreateOutStream(OutStr);
-        OutStr.WriteText(XMLCurrNode.Value);
+        OutStr.WriteText(GetXMLAttributeValue(TFDXMLElement, 'SelloSAT'));
         // Certificate Serial
         SalesShipmentHeader."Electronic Document Status" := SalesShipmentHeader."Electronic Document Status"::"Stamp Received";
 
@@ -2282,20 +2109,16 @@ codeunit 10145 "E-Invoice Mgt."
     var
         PACWebService: Record "PAC Web Service";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RecordRef: RecordRef;
-        XMLDoc: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap;
-        XMLDOMNodeList: DotNet XmlNodeList;
-        NamespaceManager: DotNet XmlNamespaceManager;
+        XMLDoc: XmlDocument;
+        ResultXMLElement: XmlElement;
+        TFDXMLElement: XmlElement;
         OutStr: OutStream;
         InStr: InStream;
-        NodeCount: Integer;
-        Counter: Integer;
         QRCodeInput: Text;
         ErrorDescription: Text;
         TelemetryError: Text;
+        ResponseCode: Text;
         CancelStatus: Option InProgress,Rejected,Cancelled;
         CancelResult: Text[250];
         DocumentStatus: Option " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
@@ -2305,28 +2128,19 @@ codeunit 10145 "E-Invoice Mgt."
         GetCompanyInfo();
 
         // Process Response and Load back to header the Signed XML if you get one...
-        if IsNull(XMLDoc) then
-            XMLDoc := XMLDoc.XmlDocument();
-
         TransferShipmentHeader.CalcFields("Signed Document XML");
         TransferShipmentHeader."Signed Document XML".CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDoc);
+        ReadXMLDocumentFromInStream(InStr, XMLDoc);
         Clear(TransferShipmentHeader."Signed Document XML");
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('IdRespuesta');
+        GetResponseResultElement(XMLDoc, ResultXMLElement);
+        ResponseCode := GetXMLAttributeValue(ResultXMLElement, 'IdRespuesta');
 
         PACWebService.Get(GLSetup."PAC Code");
         TransferShipmentHeader."PAC Web Service Name" := PACWebService.Name;
 
-        if XMLCurrNode.Value <> '1' then begin
-            TransferShipmentHeader."Error Code" := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Descripcion');
-            ErrorDescription := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Detalle');
-            if not IsNull(XMLCurrNode) then
-                ErrorDescription := ErrorDescription + ': ' + XMLCurrNode.Value();
+        if ResponseCode <> '1' then begin
+            TransferShipmentHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(TransferShipmentHeader."Error Code"));
+            ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
                 ErrorDescription := CopyStr(ErrorDescription, 1, 247) + '...';
@@ -2355,53 +2169,33 @@ codeunit 10145 "E-Invoice Mgt."
         if Action = EDocAction::Cancel then begin
             TransferShipmentHeader."Electronic Document Status" :=
               TransferShipmentHeader."Electronic Document Status"::"Cancel In Progress";
-            TransferShipmentHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            TransferShipmentHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(ResultXMLElement);
             LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Transfer Shipment Header"), TransferShipmentHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
-            ProcessCancelResponse(XMLDoc, XMLCurrNode, XMLDOMNamedNodeMap, CancelStatus, CancelResult, DateTimeCancelled);
+            ProcessCancelResponse(ResultXMLElement, CancelStatus, CancelResult, DateTimeCancelled);
             GetDocumentStatusFromCancelStatus(DocumentStatus, CancelStatus);
             TransferShipmentHeader."Electronic Document Status" := DocumentStatus;
             TransferShipmentHeader."Error Description" := CancelResult;
             TransferShipmentHeader."Date/Time Canceled" := DateTimeCancelled;
             exit;
         end;
-        XMLCurrNode := XMLDoc.SelectSingleNode('Resultado');
-        XMLDOMNodeList := XMLCurrNode.ChildNodes;
-        NodeCount := XMLDOMNodeList.Count();
-        Clear(XMLDoc);
-        XMLDoc := XMLDoc.XmlDocument();
+        TransferShipmentHeader."Signed Document XML".CreateOutStream(OutStr, TextEncoding::UTF8);
+        SaveSignedDocumentXML(ResultXMLElement, OutStr);
 
-        for Counter := 0 to (NodeCount - 1) do begin
-            XMLCurrNode := XMLDOMNodeList.Item(Counter);
-            XMLDoc.AppendChild(XMLDoc.ImportNode(XMLCurrNode, true));
-        end;
+        GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        TransferShipmentHeader."Signed Document XML".CreateOutStream(OutStr);
-        XMLDoc.Save(OutStr);
-
-        NamespaceManager := NamespaceManager.XmlNamespaceManager(XMLDoc.NameTable);
-        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        XMLCurrNode := XMLDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager);
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('FechaTimbrado');
-        TransferShipmentHeader."Date/Time Stamped" := XMLCurrNode.Value();
+        TransferShipmentHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(TransferShipmentHeader."Date/Time Stamped"));
         TransferShipmentHeader."Date/Time Stamp Received" := ConvertStingToDateTime(TransferShipmentHeader."Date/Time Stamped");
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('UUID');
-        TransferShipmentHeader."Fiscal Invoice Number PAC" := XMLCurrNode.Value();
+        TransferShipmentHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(TransferShipmentHeader."Fiscal Invoice Number PAC"));
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('NoCertificadoSAT');
-        TransferShipmentHeader."Certificate Serial No." := XMLCurrNode.Value();
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('SelloSAT');
+        TransferShipmentHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(TransferShipmentHeader."Certificate Serial No."));
 
         Clear(OutStr);
         TransferShipmentHeader."Digital Stamp PAC".CreateOutStream(OutStr);
-        OutStr.WriteText(XMLCurrNode.Value);
+        OutStr.WriteText(GetXMLAttributeValue(TFDXMLElement, 'SelloSAT'));
         // Certificate Serial
         TransferShipmentHeader."Electronic Document Status" := TransferShipmentHeader."Electronic Document Status"::"Stamp Received";
 
@@ -2414,16 +2208,15 @@ codeunit 10145 "E-Invoice Mgt."
         RecordRef.SetTable(TransferShipmentHeader);
     end;
 
-    local procedure ProcessCancelResponse(XmlDoc: DotNet XmlDocument; XMLCurrNode: DotNet XmlNode; XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap; var CancelStatus: Option InProgress,Rejected,Cancelled; var CancelResult: Text[250]; var DateTimeCancelled: Text[50])
+    local procedure ProcessCancelResponse(ResultXMLElement: XmlElement; var CancelStatus: Option InProgress,Rejected,Cancelled; var CancelResult: Text[250]; var DateTimeCancelled: Text[50])
     var
-        XMLCurrNodeEvent: DotNet XmlNode;
+        EventXMLNodeList: XmlNodeList;
+        EventXMLNode: XmlNode;
         StatusTxt: Text[10];
     begin
         DateTimeCancelled := '';
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Estatus');
-        StatusTxt := XMLCurrNode.Value();
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Resultado');
-        CancelResult := XMLCurrNode.Value();
+        StatusTxt := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'Estatus'), 1, MaxStrLen(StatusTxt));
+        CancelResult := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'Resultado'), 1, MaxStrLen(CancelResult));
         case StatusTxt of
             'EnProceso':
                 CancelStatus := CancelStatus::InProgress;
@@ -2433,8 +2226,9 @@ codeunit 10145 "E-Invoice Mgt."
                 begin
                     CancelStatus := CancelStatus::Cancelled;
                     CancelResult := '';
-                    XMLCurrNodeEvent := XMLDoc.DocumentElement.SelectNodes('Evento').Item(0);
-                    DateTimeCancelled := XMLCurrNodeEvent.Attributes.GetNamedItem('Fecha').Value;
+                    ResultXMLElement.SelectNodes('Evento', EventXMLNodeList);
+                    EventXMLNodeList.Get(1, EventXMLNode);
+                    DateTimeCancelled := CopyStr(GetXMLAttributeValue(EventXMLNode.AsXmlElement(), 'Fecha'), 1, MaxStrLen(DateTimeCancelled));
                 end;
         end;
     end;
@@ -2453,10 +2247,130 @@ codeunit 10145 "E-Invoice Mgt."
         end;
     end;
 
-    local procedure GetResponseValueCancellationID(XMLCurrNode: DotNet XmlNode; XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap): Text[50]
+    local procedure GetResponseValueCancellationID(ResultXMLElement: XmlElement) CancellationID: Text[50]
     begin
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('ConsultaCancelacionId');
-        exit(XMLCurrNode.Value);
+        CancellationID := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'ConsultaCancelacionId'), 1, MaxStrLen(CancellationID));
+    end;
+
+    local procedure ReadXMLDocumentFromInStream(InStr: InStream; var XMLDoc: XmlDocument)
+    begin
+        XmlDocument.ReadFrom(InStr, XMLDoc);
+        RemoveWhitespaceNodes(XMLDoc);
+    end;
+
+    local procedure ReadXMLDocumentFromText(XMLText: Text; var XMLDoc: XmlDocument)
+    begin
+        if XMLText = '' then begin
+            XMLDoc := XmlDocument.Create();
+            exit;
+        end;
+        if XMLText[1] = 65279 then // UTF-8 byte order mark
+            XMLText := CopyStr(XMLText, 2);
+        XmlDocument.ReadFrom(XMLText, XMLDoc);
+        RemoveWhitespaceNodes(XMLDoc);
+    end;
+
+    local procedure RemoveWhitespaceNodes(var XMLDoc: XmlDocument)
+    var
+        RootXMLElement: XmlElement;
+    begin
+        // XmlReadOptions.PreserveWhitespace := false is not applied by XmlDocument.ReadFrom, so whitespace-only text nodes are removed here.
+        // This keeps the indentation produced by WriteTo identical to the formatting of the previously stored documents.
+        RemoveWhitespaceChildNodes(XMLDoc.GetChildNodes());
+        if XMLDoc.GetRoot(RootXMLElement) then
+            RemoveWhitespaceNodes(RootXMLElement);
+    end;
+
+    local procedure RemoveWhitespaceNodes(XMLElement: XmlElement)
+    var
+        ChildXMLNode: XmlNode;
+    begin
+        RemoveWhitespaceChildNodes(XMLElement.GetChildNodes());
+        foreach ChildXMLNode in XMLElement.GetChildNodes() do
+            if ChildXMLNode.IsXmlElement() then
+                RemoveWhitespaceNodes(ChildXMLNode.AsXmlElement());
+    end;
+
+    local procedure RemoveWhitespaceChildNodes(ChildXMLNodeList: XmlNodeList)
+    var
+        ChildXMLNode: XmlNode;
+        WhitespaceChars: Text[3];
+    begin
+        WhitespaceChars[1] := 9;
+        WhitespaceChars[2] := 10;
+        WhitespaceChars[3] := 13;
+        foreach ChildXMLNode in ChildXMLNodeList do
+            if ChildXMLNode.IsXmlText() then
+                if DelChr(ChildXMLNode.AsXmlText().Value(), '=', ' ' + WhitespaceChars) = '' then
+                    ChildXMLNode.Remove();
+    end;
+
+    local procedure SaveXMLDocument(var XMLDoc: XmlDocument; var OutStr: OutStream)
+    var
+        XMLDeclaration: XmlDeclaration;
+        RootXMLElement: XmlElement;
+        XMLText: Text;
+    begin
+        if XMLDoc.GetDeclaration(XMLDeclaration) then begin
+            XMLDoc.WriteTo(OutStr);
+            exit;
+        end;
+        // XmlDocument.WriteTo always adds a declaration; documents without one are stored without declaration and byte order mark.
+        if not XMLDoc.GetRoot(RootXMLElement) then
+            exit;
+        RootXMLElement.WriteTo(XMLText);
+        OutStr.WriteText(XMLText);
+    end;
+
+    local procedure SaveSignedDocumentXML(ResultXMLElement: XmlElement; var OutStr: OutStream)
+    var
+        ChildXMLNode: XmlNode;
+        XMLText: Text;
+    begin
+        foreach ChildXMLNode in ResultXMLElement.GetChildNodes() do
+            if ChildXMLNode.IsXmlElement() then begin
+                ChildXMLNode.AsXmlElement().WriteTo(XMLText);
+                OutStr.WriteText(XMLText);
+            end;
+    end;
+
+    local procedure GetResponseResultElement(var XMLDoc: XmlDocument; var ResultXMLElement: XmlElement)
+    var
+        ResultXMLNode: XmlNode;
+    begin
+        XMLDoc.SelectSingleNode('Resultado', ResultXMLNode);
+        ResultXMLElement := ResultXMLNode.AsXmlElement();
+    end;
+
+    local procedure GetResponseErrorDescription(ResultXMLElement: XmlElement) ErrorDescription: Text
+    var
+        DetailXMLAttribute: XmlAttribute;
+    begin
+        ErrorDescription := GetXMLAttributeValue(ResultXMLElement, 'Descripcion');
+        if ResultXMLElement.Attributes().Get('Detalle', DetailXMLAttribute) then
+            ErrorDescription := ErrorDescription + ': ' + DetailXMLAttribute.Value();
+    end;
+
+    local procedure GetTimbreFiscalDigitalElement(ResultXMLElement: XmlElement; var TFDXMLElement: XmlElement)
+    var
+        XMLDoc: XmlDocument;
+        XMLNamespaceManager: XmlNamespaceManager;
+        TFDXMLNode: XmlNode;
+    begin
+        ResultXMLElement.GetDocument(XMLDoc);
+        XMLNamespaceManager.NameTable(XMLDoc.NameTable());
+        XMLNamespaceManager.AddNamespace('cfdi', CFDINamespaceTxt);
+        XMLNamespaceManager.AddNamespace('tfd', TimbreFiscalDigitalNamespaceTxt);
+        ResultXMLElement.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', XMLNamespaceManager, TFDXMLNode);
+        TFDXMLElement := TFDXMLNode.AsXmlElement();
+    end;
+
+    local procedure GetXMLAttributeValue(XMLElement: XmlElement; AttributeName: Text): Text
+    var
+        XMLAttribute: XmlAttribute;
+    begin
+        XMLElement.Attributes().Get(AttributeName, XMLAttribute);
+        exit(XMLAttribute.Value());
     end;
 
     local procedure LogPACRejectionAudit(DocTypeText: Text; ErrorDescription: Text)
@@ -3831,19 +3745,16 @@ codeunit 10145 "E-Invoice Mgt."
     var
         TempBlob: Codeunit "Temp Blob";
         FileManagement: Codeunit "File Management";
-        ServerFileName: Text;
         UUID: Text[50];
     begin
-        ServerFileName := FileManagement.ServerTempFileName('xml');
         FileManagement.BLOBImportWithFilter(TempBlob, FileDialogTxt, '', FileFilterTxt, ExtensionFilterTxt);
         if not TempBlob.HasValue() then
             exit;
-        FileManagement.BLOBExportToServerFile(TempBlob, ServerFileName);
 
         // Import UUID
-        UUID := ImportUUIDFromXML(ServerFileName, 'http://www.sat.gob.mx/cfd/4');
+        UUID := ImportUUIDFromXML(TempBlob, 'http://www.sat.gob.mx/cfd/4');
         if UUID = '' then
-            UUID := ImportUUIDFromXML(ServerFileName, 'http://www.sat.gob.mx/cfd/3');
+            UUID := ImportUUIDFromXML(TempBlob, 'http://www.sat.gob.mx/cfd/3');
 
         if UUID <> '' then begin
             PurchaseHeader.Validate("Fiscal Invoice Number PAC", UUID);
@@ -3852,26 +3763,29 @@ codeunit 10145 "E-Invoice Mgt."
             Error(ImportFailedErr);
     end;
 
-    local procedure ImportUUIDFromXML(ServerFileName: Text; CFDINamespace: Text): Text[50]
+    local procedure ImportUUIDFromXML(var TempBlob: Codeunit "Temp Blob"; CFDINamespace: Text): Text[50]
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDoc: DotNet XmlDocument;
-        Node: DotNet XmlNode;
-        NodeList: DotNet XmlNodeList;
-        NamespaceManager: DotNet XmlNamespaceManager;
+        XMLDoc: XmlDocument;
+        RootXMLElement: XmlElement;
+        XMLNamespaceManager: XmlNamespaceManager;
+        TFDXMLNodeList: XmlNodeList;
+        TFDXMLNode: XmlNode;
+        InStr: InStream;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(ServerFileName, XMLDoc);
+        TempBlob.CreateInStream(InStr);
+        XmlDocument.ReadFrom(InStr, XMLDoc);
+        XMLDoc.GetRoot(RootXMLElement);
 
-        NamespaceManager := NamespaceManager.XmlNamespaceManager(XMLDoc.NameTable);
-        NamespaceManager.AddNamespace('cfdi', CFDINamespace);
-        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
+        XMLNamespaceManager.NameTable(XMLDoc.NameTable());
+        XMLNamespaceManager.AddNamespace('cfdi', CFDINamespace);
+        XMLNamespaceManager.AddNamespace('tfd', TimbreFiscalDigitalNamespaceTxt);
 
         // Read UUID
-        NodeList := XMLDoc.DocumentElement.SelectNodes('//cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager);
-        if NodeList.Count <> 0 then begin
-            Node := NodeList.Item(0);
+        RootXMLElement.SelectNodes('//cfdi:Complemento/tfd:TimbreFiscalDigital', XMLNamespaceManager, TFDXMLNodeList);
+        if TFDXMLNodeList.Count() <> 0 then begin
+            TFDXMLNodeList.Get(1, TFDXMLNode);
             exit(
-                CopyStr(Node.Attributes.GetNamedItem('UUID').Value, 1, 50));
+                CopyStr(GetXMLAttributeValue(TFDXMLNode.AsXmlElement(), 'UUID'), 1, 50));
         end;
         exit('');
     end;
@@ -5096,14 +5010,13 @@ codeunit 10145 "E-Invoice Mgt."
         TempDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary;
         TempBlobOriginalString: Codeunit "Temp Blob";
         TempBlobDigitalStamp: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         TypeHelper: Codeunit "Type Helper";
         OutStrOriginalDoc: OutStream;
         OutStrSignedDoc: OutStream;
         XMLDoc: DotNet XmlDocument;
-        XMLDocResult: DotNet XmlDocument;
         SystemEnvironment: DotNet SystemEnvironment;
         RecordRef: RecordRef;
+        XMLDocResult: XmlDocument;
         InStream: InStream;
         OriginalString: Text;
         SignedString: Text;
@@ -5172,7 +5085,7 @@ codeunit 10145 "E-Invoice Mgt."
         RecordRef.SetTable(CustLedgerEntry);
         CustLedgerEntry."Certificate Serial No." := CertificateSerialNo;
         CustLedgerEntry."Original Document XML".CreateOutStream(OutStrOriginalDoc);
-        CustLedgerEntry."Signed Document XML".CreateOutStream(OutStrSignedDoc);
+        CustLedgerEntry."Signed Document XML".CreateOutStream(OutStrSignedDoc, TextEncoding::UTF8);
         XMLDoc.Save(OutStrOriginalDoc);
         CustLedgerEntry.Modify();
 
@@ -5182,8 +5095,8 @@ codeunit 10145 "E-Invoice Mgt."
 
         // For Test Mocking
         if not GLSetup."Sim. Request Stamp" then begin
-            XMLDOMManagement.LoadXMLDocumentFromText(Response, XMLDocResult);
-            XMLDocResult.Save(OutStrSignedDoc);
+            ReadXMLDocumentFromText(Response, XMLDocResult);
+            SaveXMLDocument(XMLDocResult, OutStrSignedDoc);
         end;
 
         ProcessResponseEPayment(CustLedgerEntry, EDocAction::"Request Stamp");
@@ -5316,21 +5229,16 @@ codeunit 10145 "E-Invoice Mgt."
         Customer: Record Customer;
         PACWebService: Record "PAC Web Service";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDoc: DotNet XmlDocument;
-        XMLDocResult: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLDOMNamedNodeMap: DotNet XmlNamedNodeMap;
-        XMLDOMNodeList: DotNet XmlNodeList;
-        NamespaceManager: DotNet XmlNamespaceManager;
         RecordRef: RecordRef;
+        XMLDocResult: XmlDocument;
+        ResultXMLElement: XmlElement;
+        TFDXMLElement: XmlElement;
         OutStr: OutStream;
         InStr: InStream;
-        NodeCount: Integer;
-        Counter: Integer;
         QRCodeInput: Text;
         ErrorDescription: Text;
         TelemetryError: Text;
+        ResponseCode: Text;
         CancelStatus: Option InProgress,Rejected,Cancelled;
         CancelResult: Text[250];
         DocumentStatus: Option " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
@@ -5342,28 +5250,19 @@ codeunit 10145 "E-Invoice Mgt."
         GetCustomer(Customer, CustLedgerEntry."Customer No.", false);
 
         // Process Response and Load back to header the Signed XML if you get one...
-        if IsNull(XMLDocResult) then
-            XMLDocResult := XMLDocResult.XmlDocument();
-
         CustLedgerEntry.CalcFields("Signed Document XML");
         CustLedgerEntry."Signed Document XML".CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDocResult);
+        ReadXMLDocumentFromInStream(InStr, XMLDocResult);
         Clear(CustLedgerEntry."Signed Document XML");
-        XMLCurrNode := XMLDocResult.SelectSingleNode('Resultado');
-
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('IdRespuesta');
+        GetResponseResultElement(XMLDocResult, ResultXMLElement);
+        ResponseCode := GetXMLAttributeValue(ResultXMLElement, 'IdRespuesta');
 
         PACWebService.Get(GLSetup."PAC Code");
         CustLedgerEntry."PAC Web Service Name" := PACWebService.Name;
 
-        if XMLCurrNode.Value <> '1' then begin
-            CustLedgerEntry."Error Code" := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Descripcion');
-            ErrorDescription := XMLCurrNode.Value();
-            XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('Detalle');
-            if not IsNull(XMLCurrNode) then
-                ErrorDescription := ErrorDescription + ': ' + XMLCurrNode.Value();
+        if ResponseCode <> '1' then begin
+            CustLedgerEntry."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(CustLedgerEntry."Error Code"));
+            ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
                 ErrorDescription := CopyStr(ErrorDescription, 1, 247) + '...';
@@ -5388,12 +5287,12 @@ codeunit 10145 "E-Invoice Mgt."
         CustLedgerEntry."Error Description" := '';
         if Action = EDocAction::Cancel then begin
             CustLedgerEntry."Electronic Document Status" := CustLedgerEntry."Electronic Document Status"::"Cancel In Progress";
-            CustLedgerEntry."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            CustLedgerEntry."CFDI Cancellation ID" := GetResponseValueCancellationID(ResultXMLElement);
             LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Cust. Ledger Entry"), CustLedgerEntry."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
-            ProcessCancelResponse(XMLDocResult, XMLCurrNode, XMLDOMNamedNodeMap, CancelStatus, CancelResult, DateTimeCancelled);
+            ProcessCancelResponse(ResultXMLElement, CancelStatus, CancelResult, DateTimeCancelled);
             GetDocumentStatusFromCancelStatus(DocumentStatus, CancelStatus);
             CustLedgerEntry."Electronic Document Status" := DocumentStatus;
             CustLedgerEntry."Error Description" := CancelResult;
@@ -5401,43 +5300,22 @@ codeunit 10145 "E-Invoice Mgt."
             exit;
         end;
 
-        XMLCurrNode := XMLDocResult.SelectSingleNode('Resultado');
-        XMLDOMNodeList := XMLCurrNode.ChildNodes;
-        NodeCount := XMLDOMNodeList.Count();
+        CustLedgerEntry."Signed Document XML".CreateOutStream(OutStr, TextEncoding::UTF8);
 
-        Clear(XMLDoc);
-        XMLDoc := XMLDoc.XmlDocument();
-        for Counter := 0 to (NodeCount - 1) do begin
-            XMLCurrNode := XMLDOMNodeList.Item(Counter);
-            XMLDoc.AppendChild(XMLDoc.ImportNode(XMLCurrNode, true));
-        end;
-
-        CustLedgerEntry."Signed Document XML".CreateOutStream(OutStr);
-
-        XMLDoc.Save(OutStr);
+        SaveSignedDocumentXML(ResultXMLElement, OutStr);
         // *****Does any of this need to change for Payments?
-        NamespaceManager := NamespaceManager.XmlNamespaceManager(XMLDoc.NameTable);
-        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-        NamespaceManager.AddNamespace('pago20', 'http://www.sat.gob.mx/Pagos20');
-        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        XMLCurrNode := XMLDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager);
-        XMLDOMNamedNodeMap := XMLCurrNode.Attributes;
+        GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('FechaTimbrado');
-        CustLedgerEntry."Date/Time Stamped" := XMLCurrNode.Value();
+        CustLedgerEntry."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(CustLedgerEntry."Date/Time Stamped"));
         CustLedgerEntry."Date/Time Stamp Received" := ConvertStingToDateTime(CustLedgerEntry."Date/Time Stamped");
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('UUID');
-        CustLedgerEntry."Fiscal Invoice Number PAC" := XMLCurrNode.Value();
+        CustLedgerEntry."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(CustLedgerEntry."Fiscal Invoice Number PAC"));
 
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('NoCertificadoSAT');
-        CustLedgerEntry."Certificate Serial No." := XMLCurrNode.Value();
-
-        XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('SelloSAT');
+        CustLedgerEntry."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(CustLedgerEntry."Certificate Serial No."));
 
         Clear(OutStr);
         CustLedgerEntry."Digital Stamp PAC".CreateOutStream(OutStr);
-        OutStr.WriteText(XMLCurrNode.Value);
+        OutStr.WriteText(GetXMLAttributeValue(TFDXMLElement, 'SelloSAT'));
         // Certificate Serial
         CustLedgerEntry."Electronic Document Status" := CustLedgerEntry."Electronic Document Status"::"Stamp Received";
 
