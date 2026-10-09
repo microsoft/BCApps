@@ -8838,6 +8838,63 @@ codeunit 148301 "Expense Rule Test"
         Assert.ExpectedTestFieldError(ExpenseReportLineItem.FieldCaption("Expense Subcategory Code"), '');
     end;
 
+    [Test]
+    procedure NonRefundableAmountEditableForPolicyEnforcedItemization()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ItemizedCategory: Record "Expense Category";
+        ExpensePolicy: Record "Expense Policy";
+        ExpenseUser: Record "Expense User";
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ItemizedExpense: Record Expense;
+        ItemizedReportHeader: Record "Expense Report Header";
+        ItemizedReportLine: Record "Expense Report Line";
+        ExpensePage: TestPage Expense;
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [SCENARIO 629913] Non-refundable amount is editable for enforced itemization but remains derived for ordinary Itemize detail.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'Itemize expenses for this category.');
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 100);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        ExpenseReportLine.Validate(Refundable, true);
+        ExpenseReportLine.Modify(true);
+
+        // [THEN] Policy-enforced itemization leaves the non-refundable amount editable on both pages.
+        ExpensePage.OpenEdit();
+        ExpensePage.GoToRecord(Expense);
+        Assert.IsTrue(ExpensePage."Non-Refundable Amount".Editable(), 'Expense non-refundable amount must be editable for enforced itemization.');
+        ExpenseReportPage.OpenEdit();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage."Expense Report Subform"."Non-Refundable Amount".Editable(), 'Report-line non-refundable amount must be editable for enforced itemization.');
+        ExpenseReportPage.Close();
+        ExpensePage.Close();
+
+        // [THEN] Ordinary Itemize detail keeps the non-refundable amount derived.
+        LibraryExpense.CreateExpenseCategory(ItemizedCategory, ItemizedCategory."Reimbursement Type"::"Employee Paid", ItemizedCategory."Expense Detail Required"::Itemize);
+        LibraryExpense.CreateExpense(ItemizedExpense, ExpenseUser."No.", ItemizedCategory.Code, '', '', true, '', 100);
+        LibraryExpense.CreateExpenseReport(ItemizedReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ItemizedReportLine, ItemizedReportHeader, ItemizedCategory.Code, false, '',
+            ItemizedReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        ExpensePage.OpenEdit();
+        ExpensePage.GoToRecord(ItemizedExpense);
+        Assert.IsFalse(ExpensePage."Non-Refundable Amount".Editable(), 'Expense non-refundable amount remains derived for Itemize detail.');
+        ExpenseReportPage.OpenEdit();
+        ExpenseReportPage.GoToRecord(ItemizedReportHeader);
+        Assert.IsFalse(ExpenseReportPage."Expense Report Subform"."Non-Refundable Amount".Editable(), 'Report-line non-refundable amount remains derived for Itemize detail.');
+        ExpenseReportPage.Close();
+        ExpensePage.Close();
+    end;
+
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";

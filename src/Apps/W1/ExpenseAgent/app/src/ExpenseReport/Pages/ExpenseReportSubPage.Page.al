@@ -356,8 +356,8 @@ page 6999 "Expense Report SubPage"
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Non-Refundable Amount field.';
-                    Editable = Rec.Refundable and (not IsItemizationCategory);
+                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and itemization is not required or is enforced by policy.';
+                    Editable = Rec.Refundable and ((not IsItemizationCategory) or IsEnforcedItemizationCategory);
 
                     trigger OnValidate()
                     begin
@@ -650,7 +650,7 @@ page 6999 "Expense Report SubPage"
         TotalNonRefundableAmountLCY: Decimal;
         TotalReimbursableAmountLCY, TotalRefundableAmountLCY : Decimal;
         TotalReimbursableAmount, TotalRefundableAmount : Decimal;
-        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory : Boolean;
+        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory, IsEnforcedItemizationCategory : Boolean;
         IsRuleApplied: Boolean;
         TotalMileage: Decimal;
         AllowVATReclaim: Boolean;
@@ -665,6 +665,7 @@ page 6999 "Expense Report SubPage"
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
         IsItemizationCategory := Rec.IsItemizationRequired();
+        IsEnforcedItemizationCategory := Rec.IsEnforcedItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
 
         IsRuleApplied := not IsNullGuid(Rec."Applied Rule Id");
