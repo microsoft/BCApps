@@ -108,7 +108,7 @@ codeunit 30473 "Shpfy TMA Events"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeCreateSalesHeader, '', false, false)]
-    local procedure OnBeforeCreateSalesHeaderSubscriber(ShopifyOrderHeader: Record "Shpfy Order Header"; var SalesHeader: Record "Sales Header"; var LastCreatedDocumentId: Guid; var Handled: Boolean)
+    local procedure OnBeforeCreateSalesHeaderSubscriber(ShopifyOrderHeader: Record "Shpfy Order Header"; var SalesHeader: Record "Sales Header"; var LastCreatedDocumentId: Guid; var Handled: Boolean; var ProcessingError: Boolean; var ErrorMessage: Text)
     var
         Shop: Record "Shpfy Shop";
         TMARegister: Codeunit "Shpfy TMA Register";
@@ -126,13 +126,14 @@ codeunit 30473 "Shpfy TMA Events"
         Session.LogMessage('0000UMI', CreationBlockedMsg,
             Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
 
+        ProcessingError := true;
         if ShopifyOrderHeader."Tax Rate Conflict" then
-            Error(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
+            ErrorMessage := StrSubstNo(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
         else
             if ShopifyOrderHeader."Tax Match Incomplete" then
-                Error(IncompleteBlockErr, ShopifyOrderHeader."Shopify Order No.")
+                ErrorMessage := StrSubstNo(IncompleteBlockErr, ShopifyOrderHeader."Shopify Order No.")
             else
-                Error(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
+                ErrorMessage := StrSubstNo(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
     end;
 
     /// <summary>
