@@ -39,6 +39,7 @@ codeunit 137351 "SCM Inventory Reports - IV"
         NotAvailable: Label 'Not Available';
         PostingMessage: Label 'Do you want to post the journal lines?';
         PostedLinesMessage: Label 'The journal lines were successfully posted.';
+        PeriodLengthFormatTok: Label '<%1D>', Locked = true;
         RevaluationLinesCreated: Label 'Revaluation journal lines have also been created.';
         StartingDateError: Label 'You cannot base a date calculation on an undefined date.';
         StatusDateError: Label 'Enter the Status Date';
@@ -169,7 +170,7 @@ codeunit 137351 "SCM Inventory Reports - IV"
         // [GIVEN] Saved request page parameters with random Ending Date and random Period Length.
         EndingDate := LibraryRandom.RandDate(LibraryRandom.RandIntInRange(10, 100));
         PeriodDays := LibraryRandom.RandIntInRange(5, 30);
-        Evaluate(PeriodLength, StrSubstNo('<%1D>', PeriodDays));
+        Evaluate(PeriodLength, StrSubstNo(PeriodLengthFormatTok, PeriodDays));
         LibraryVariableStorage.Enqueue(EndingDate);
         LibraryVariableStorage.Enqueue(PeriodLength);
         Commit();
