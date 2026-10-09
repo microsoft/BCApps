@@ -362,7 +362,7 @@ table 1236 "JSON Buffer"
         exit(Position > StartPosition);
     end;
 
-    local procedure ScanJSONLiteral(var JSONText: Text; var Position: Integer; Literal: Text): Boolean
+    local procedure ScanJSONLiteral(JSONText: Text; var Position: Integer; Literal: Text): Boolean
     begin
         if CopyStr(JSONText, Position, StrLen(Literal)) <> Literal then
             exit(false);
@@ -376,7 +376,7 @@ table 1236 "JSON Buffer"
             Position += 1;
     end;
 
-    local procedure IsJSONWhitespace(var JSONText: Text; Position: Integer): Boolean
+    local procedure IsJSONWhitespace(JSONText: Text; Position: Integer): Boolean
     var
         CharacterCode: Integer;
     begin
@@ -386,21 +386,21 @@ table 1236 "JSON Buffer"
         exit(CharacterCode in [9, 10, 13, 32]);
     end;
 
-    local procedure IsJSONCharacter(var JSONText: Text; Position: Integer; ExpectedCharacter: Char): Boolean
+    local procedure IsJSONCharacter(JSONText: Text; Position: Integer; ExpectedCharacter: Char): Boolean
     begin
         if Position > StrLen(JSONText) then
             exit(false);
         exit(JSONText[Position] = ExpectedCharacter);
     end;
 
-    local procedure IsJSONDigit(var JSONText: Text; Position: Integer): Boolean
+    local procedure IsJSONDigit(JSONText: Text; Position: Integer): Boolean
     begin
         if Position > StrLen(JSONText) then
             exit(false);
         exit(JSONText[Position] in ['0' .. '9']);
     end;
 
-    local procedure IsJSONHexDigit(var JSONText: Text; Position: Integer): Boolean
+    local procedure IsJSONHexDigit(JSONText: Text; Position: Integer): Boolean
     begin
         if Position > StrLen(JSONText) then
             exit(false);
