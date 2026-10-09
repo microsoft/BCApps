@@ -18,7 +18,7 @@ codeunit 132581 WebServiceReqMgtTests
         InvalidUriErr: Label 'The URI is not valid.';
         MockServiceURLTxt: Label 'https://localhost:8080/', Locked = true;
         NonExistingServiceURLTxt: Label 'nonexistingserviceurl';
-        NotFoundErr: Label 'No such host is known.';
+        NotFoundErr: Label 'There was an error while executing the HTTP request.';
         ServiceURLTxt: Label '\\Service URL: https://localhost:8080/.', Locked = true;
         SupportURLErr: Label '\\For more information, go to %1';
         LibraryUtility: Codeunit "Library - Utility";
@@ -28,6 +28,7 @@ codeunit 132581 WebServiceReqMgtTests
         WebServiceMgtRunErr: Label 'SOAPWebServiceRequestMgt.RUN was supposed to return false but returned true.';
         WrongBodyErr: Label 'Request returned an unexpected response body.';
         WrongContentErr: Label 'Unexpected value in the selected element.';
+        BaseAppIdTxt: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -64,6 +65,7 @@ codeunit 132581 WebServiceReqMgtTests
         TempBlob.CreateInStream(BlobInStream);
         BlobOutStream.WriteText(Data);
 
+        AllowBaseAppHttpClientRequests();
         SOAPWebServiceRequestMgt.SetGlobals(BlobInStream, MockServiceURLTxt, Username, Password);
 
         if not SOAPWebServiceRequestMgt.SendRequestToWebService() then
@@ -248,6 +250,7 @@ codeunit 132581 WebServiceReqMgtTests
         TempBlob.CreateInStream(BlobInStream);
         BlobOutStream.WriteText(Data);
 
+        AllowBaseAppHttpClientRequests();
         SOAPWebServiceRequestMgt.SetGlobals(BlobInStream, UnsecureUrl, Username, Password);
         SOAPWebServiceRequestMgt.DisableHttpsCheck();
 
@@ -305,6 +308,7 @@ codeunit 132581 WebServiceReqMgtTests
         TempBlob.CreateInStream(BlobInStream);
         BlobOutStream.WriteText(DataToBeSent);
 
+        AllowBaseAppHttpClientRequests();
         SOAPWebServiceRequestMgt.SetGlobals(BlobInStream, Url, Username, Password);
 
         if not SOAPWebServiceRequestMgt.SendRequestToWebService() then begin
@@ -325,6 +329,7 @@ codeunit 132581 WebServiceReqMgtTests
         TempBlob.CreateInStream(BlobInStream);
         BlobOutStream.WriteText(DataToBeSent);
 
+        AllowBaseAppHttpClientRequests();
         SOAPWebServiceRequestMgt.SetGlobals(BlobInStream, Url, Username, Password);
 
         if not SOAPWebServiceRequestMgt.SendRequestToWebService() then begin
@@ -355,6 +360,17 @@ codeunit 132581 WebServiceReqMgtTests
             ErrorText := InternalErr + ErrorText + ServiceURLTxt;
         end;
         Error(ErrorText);
+    end;
+
+    local procedure AllowBaseAppHttpClientRequests()
+    var
+        NavAppSetting: Record "NAV App Setting";
+    begin
+        // The SOAP request is sent by the Base Application through HttpClient, which sandbox environments block by default.
+        NavAppSetting."App ID" := BaseAppIdTxt;
+        NavAppSetting."Allow HttpClient Requests" := true;
+        if not NavAppSetting.Insert() then
+            NavAppSetting.Modify();
     end;
 
     local procedure ExpectedError(Expected: Text)

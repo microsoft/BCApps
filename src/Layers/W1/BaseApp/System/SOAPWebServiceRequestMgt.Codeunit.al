@@ -106,8 +106,16 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         if GlobalContentType = '' then
             GlobalContentType := ContentTypeTxt;
         if GlobalTimeout <= 0 then
-            GlobalTimeout := 600000;
+            GlobalTimeout := MaxHttpClientTimeoutMs();
+        if GlobalTimeout > MaxHttpClientTimeoutMs() then
+            GlobalTimeout := MaxHttpClientTimeoutMs();
         HttpClient.Timeout(GlobalTimeout);
+    end;
+
+    local procedure MaxHttpClientTimeoutMs(): Integer
+    begin
+        // HttpClient does not support timeouts above 5 minutes.
+        exit(300000);
     end;
 
     local procedure CreateRequestContent(var HttpRequestMessage: HttpRequestMessage)
