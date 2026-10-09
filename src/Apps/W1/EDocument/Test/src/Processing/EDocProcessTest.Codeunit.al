@@ -16,7 +16,9 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
@@ -45,7 +47,9 @@ codeunit 139883 "E-Doc Process Test"
         LibraryEDoc: Codeunit "Library - E-Document";
         EDocImplState: Codeunit "E-Doc. Impl. State";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemReference: Codeunit "Library - Item Reference";
         LibraryPurchase: Codeunit "Library - Purchase";
         IsInitialized: Boolean;
 
@@ -516,6 +520,186 @@ codeunit 139883 "E-Doc Process Test"
 
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         Assert.IsFalse(PurchaseHeader.IsEmpty(), 'The purchase header should be created.');
+    end;
+
+    [Test]
+    procedure FinishDraftKeepsUnitOfMeasureOnGLAccountLine()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        GLAccount: Record "G/L Account";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        UnitOfMeasure: Record "Unit of Measure";
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A G/L account draft line keeps its unit of measure when the draft is turned into a purchase line.
+
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A purchase invoice and a unit of measure
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+
+        // [GIVEN] A draft line for a G/L account carrying that unit of measure
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", Vendor."VAT Bus. Posting Group");
+        VATPostingSetup.FindFirst();
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Direct Posting", true);
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+        CreateDraftPurchaseLine(EDocumentPurchaseLine, EDocument, Enum::"Purchase Line Type"::"G/L Account", GLAccount."No.", UnitOfMeasure.Code, '');
+
+        // [WHEN] The draft line is turned into a purchase line
+        EDocPurchDocHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, false, 10000);
+
+        // [THEN] The purchase line carries the unit of measure from the draft
+        PurchaseLine.Get(PurchaseHeader."Document Type", PurchaseHeader."No.", 10000);
+        Assert.AreEqual(UnitOfMeasure.Code, PurchaseLine."Unit of Measure Code", 'The G/L account line should keep the unit of measure from the draft.');
+    end;
+
+    [Test]
+    procedure FinishDraftKeepsUnitOfMeasureOnItemLine()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An item draft line keeps its unit of measure instead of falling back to the item default.
+
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A purchase invoice and an item with a second unit of measure
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryEDoc.CreateItemWithStandardVAT(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 12);
+
+        // [GIVEN] A draft line for that item carrying the second unit of measure
+        CreateDraftPurchaseLine(EDocumentPurchaseLine, EDocument, Enum::"Purchase Line Type"::Item, Item."No.", ItemUnitOfMeasure.Code, '');
+
+        // [WHEN] The draft line is turned into a purchase line
+        EDocPurchDocHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, false, 10000);
+
+        // [THEN] The purchase line carries the unit of measure from the draft and not the item default
+        PurchaseLine.Get(PurchaseHeader."Document Type", PurchaseHeader."No.", 10000);
+        Assert.AreEqual(ItemUnitOfMeasure.Code, PurchaseLine."Unit of Measure Code", 'The item line should keep the unit of measure from the draft.');
+
+        // [THEN] The quantity conversion follows the unit of measure that was kept
+        Assert.AreEqual(12, PurchaseLine."Qty. per Unit of Measure", 'The quantity per unit of measure should follow the unit of measure from the draft.');
+    end;
+
+    [Test]
+    procedure FinishDraftKeepsVariantCodeOnItemLine()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An item draft line keeps its variant code when the draft is turned into a purchase line.
+
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A purchase invoice and an item with a variant
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryEDoc.CreateItemWithStandardVAT(Item);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [GIVEN] A draft line for that item carrying the variant
+        CreateDraftPurchaseLine(EDocumentPurchaseLine, EDocument, Enum::"Purchase Line Type"::Item, Item."No.", '', ItemVariant.Code);
+
+        // [WHEN] The draft line is turned into a purchase line
+        EDocPurchDocHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, false, 10000);
+
+        // [THEN] The purchase line carries the variant from the draft
+        PurchaseLine.Get(PurchaseHeader."Document Type", PurchaseHeader."No.", 10000);
+        Assert.AreEqual(ItemVariant.Code, PurchaseLine."Variant Code", 'The item line should keep the variant code from the draft.');
+    end;
+
+    [Test]
+    procedure FinishDraftPrefersDraftUnitOfMeasureOverItemReference()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        ItemReference: Record "Item Reference";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The draft unit of measure wins over the one the item reference applies during validation.
+
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A purchase invoice and an item with a second unit of measure
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryEDoc.CreateItemWithStandardVAT(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 12);
+
+        // [GIVEN] A vendor item reference that carries the base unit of measure instead
+        LibraryItemReference.CreateItemReference(
+            ItemReference, Item."No.", '', Item."Base Unit of Measure",
+            "Item Reference Type"::Vendor, Vendor."No.", 'EDOCUOMREF');
+
+        // [GIVEN] A draft line pointing at that reference but carrying the second unit of measure
+        CreateDraftPurchaseLine(EDocumentPurchaseLine, EDocument, Enum::"Purchase Line Type"::Item, Item."No.", ItemUnitOfMeasure.Code, '');
+        EDocumentPurchaseLine."[BC] Item Reference No." := ItemReference."Reference No.";
+        EDocumentPurchaseLine.Modify();
+
+        // [WHEN] The draft line is turned into a purchase line
+        EDocPurchDocHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, false, 10000);
+
+        // [THEN] The purchase line keeps the draft unit of measure and not the item reference one
+        PurchaseLine.Get(PurchaseHeader."Document Type", PurchaseHeader."No.", 10000);
+        Assert.AreEqual(ItemUnitOfMeasure.Code, PurchaseLine."Unit of Measure Code", 'The draft unit of measure should win over the item reference unit of measure.');
+    end;
+
+    [Test]
+    procedure FinishDraftWithoutUnitOfMeasureFallsBackToItemDefault()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A draft line without a unit of measure still gets the item default, so unresolved units are not turned into blanks.
+
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A purchase invoice and an item
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryEDoc.CreateItemWithStandardVAT(Item);
+
+        // [GIVEN] A draft line for that item without a unit of measure
+        CreateDraftPurchaseLine(EDocumentPurchaseLine, EDocument, Enum::"Purchase Line Type"::Item, Item."No.", '', '');
+
+        // [WHEN] The draft line is turned into a purchase line
+        EDocPurchDocHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, false, 10000);
+
+        // [THEN] The purchase line falls back to the item unit of measure
+        PurchaseLine.Get(PurchaseHeader."Document Type", PurchaseHeader."No.", 10000);
+        Assert.AreEqual(Item."Base Unit of Measure", PurchaseLine."Unit of Measure Code", 'A draft line without a unit of measure should fall back to the item default.');
     end;
 
     #region HistoricalMatchingTest
@@ -1681,7 +1865,6 @@ codeunit 139883 "E-Doc Process Test"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         GLSetup: Record "General Ledger Setup";
         Currency: Record Currency;
-        LibraryERM: Codeunit "Library - ERM";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
         LibraryVariableStorage.Clear();
@@ -1746,6 +1929,19 @@ codeunit 139883 "E-Doc Process Test"
         NewVendor."Country/Region Code" := CompanyInformation."Country/Region Code";
         NewVendor."VAT Registration No." := VatRegistrationNo;
         NewVendor.Modify();
+    end;
+
+    local procedure CreateDraftPurchaseLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line"; EDocument: Record "E-Document"; LineType: Enum "Purchase Line Type"; TypeNo: Code[20]; UnitOfMeasureCode: Code[20]; VariantCode: Code[10])
+    begin
+        EDocumentPurchaseLine := LibraryEDoc.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Purchase Line Type" := LineType;
+        EDocumentPurchaseLine."[BC] Purchase Type No." := TypeNo;
+        EDocumentPurchaseLine."[BC] Unit of Measure" := UnitOfMeasureCode;
+        EDocumentPurchaseLine."[BC] Variant Code" := VariantCode;
+        EDocumentPurchaseLine.Description := 'Draft line';
+        EDocumentPurchaseLine.Quantity := 2;
+        EDocumentPurchaseLine."Unit Price" := 100;
+        EDocumentPurchaseLine.Modify();
     end;
 
     [Test]

@@ -38,8 +38,6 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         PurchaseLine."Document Type" := PurchaseHeader."Document Type";
         PurchaseLine."Document No." := PurchaseHeader."No.";
         PurchaseLine."Line No." := LineNo;
-        PurchaseLine."Unit of Measure Code" := CopyStr(EDocumentPurchaseLine."[BC] Unit of Measure", 1, MaxStrLen(PurchaseLine."Unit of Measure Code"));
-        PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
         PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("No."), EDocumentPurchaseLine."[BC] Purchase Type No.");
         if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" <> '' then
@@ -51,6 +49,12 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
 
         if EDocumentPurchaseLine."[BC] Item Reference No." <> '' then
             ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Item Reference No."), EDocumentPurchaseLine."[BC] Item Reference No.");
+
+        if EDocumentPurchaseLine."[BC] Variant Code" <> '' then
+            ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Variant Code"), EDocumentPurchaseLine."[BC] Variant Code");
+        if EDocumentPurchaseLine."[BC] Unit of Measure" <> '' then
+            ValidateFieldWithContext(
+                PurchaseLine, PurchaseLine.FieldNo("Unit of Measure Code"), CopyStr(EDocumentPurchaseLine."[BC] Unit of Measure", 1, MaxStrLen(PurchaseLine."Unit of Measure Code")));
 
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo(Quantity), EDocumentPurchaseLine.Quantity);
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Direct Unit Cost"), EDocumentPurchaseLine."Unit Price");
