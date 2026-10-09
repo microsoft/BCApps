@@ -3110,7 +3110,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('TransferShipmentRequestPageHandler')]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TransferShipmentReportShowsPostedSubcontractingReferences()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
@@ -3146,7 +3145,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         Vendor.Name := CopyStr(LibraryRandom.RandText(MaxStrLen(Vendor.Name)), 1, MaxStrLen(Vendor.Name));
         Vendor.Modify();
         Assert.AreNotEqual(Vendor.Name, PostedVendorName, 'The vendor name must change after posting to verify that the report uses posted values.');
-        Commit();
 
         // [WHEN] The standard transfer shipment report is run after the vendor name changes
         TransferShipmentHeader.SetRecFilter();
@@ -3160,7 +3158,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('TransferShipmentRequestPageHandler')]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TransferShipmentReportLeavesSubcontractingReferencesBlankForOrdinaryTransfer()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
@@ -3173,7 +3170,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [GIVEN] A posted ordinary transfer shipment
         SubcontractingMgmtLibrary.CreatePostedTransferShipment(TransferShipmentHeader, TransferShipmentLine);
-        Commit();
 
         // [WHEN] The standard transfer shipment report is run
         TransferShipmentHeader.SetRecFilter();
