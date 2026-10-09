@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.ADCS;
 
-using System;
-using System.Xml;
-
 codeunit 7714 "ADCS WS"
 {
 
@@ -19,14 +16,19 @@ codeunit 7714 "ADCS WS"
 
     procedure ProcessDocument(var Document: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        InputXmlDocument: DotNet XmlDocument;
-        OutputXmlDocument: DotNet XmlDocument;
+        InputXmlDocument: XmlDocument;
+        OutputXmlDocument: XmlDocument;
+        InputText: Text;
+        ByteOrderMark: Text[1];
     begin
-        XMLDOMManagement.LoadXMLDocumentFromText(Document, InputXmlDocument);
+        InputText := Document;
+        ByteOrderMark[1] := 65279;
+        if StrPos(InputText, ByteOrderMark) = 1 then
+            InputText := DelStr(InputText, 1, 1);
+        if InputText <> '' then
+            XmlDocument.ReadFrom(InputText, InputXmlDocument);
         ADCSManagement.ProcessDocument(InputXmlDocument);
         ADCSManagement.GetOutboundDocument(OutputXmlDocument);
-        Document := OutputXmlDocument.OuterXml();
+        OutputXmlDocument.WriteTo(Document);
     end;
 }
-

@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.ADCS;
 
+#if not CLEAN30
 using System;
-using System.Xml;
+#endif
 
 codeunit 7700 "ADCS Management"
 {
@@ -16,11 +17,11 @@ codeunit 7700 "ADCS Management"
     end;
 
     var
-        InboundDocument: DotNet XmlDocument;
-        OutboundDocument: DotNet XmlDocument;
+        InboundDocument: XmlDocument;
+        OutboundDocument: XmlDocument;
 
     [Scope('OnPrem')]
-    procedure SendXMLReply(xmlout: DotNet XmlDocument)
+    procedure SendXMLReply(xmlout: XmlDocument)
     begin
         OutboundDocument := xmlout;
     end;
@@ -28,31 +29,31 @@ codeunit 7700 "ADCS Management"
     [Scope('OnPrem')]
     procedure SendError(ErrorString: Text[250])
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        RootNode: DotNet XmlNode;
-        Child: DotNet XmlNode;
-        ReturnedNode: DotNet XmlNode;
+        RootElement: XmlElement;
+        Child: XmlNode;
+        ReturnedNode: XmlNode;
+        CommentElement: XmlElement;
     begin
         OutboundDocument := InboundDocument;
 
         // Error text
-        Clear(XMLDOMMgt);
-        RootNode := OutboundDocument.DocumentElement;
+        if not OutboundDocument.GetRoot(RootElement) then
+            exit;
 
-        if XMLDOMMgt.FindNode(RootNode, 'Header', ReturnedNode) then begin
-            if XMLDOMMgt.FindNode(RootNode, 'Header/Input', Child) then
-                ReturnedNode.RemoveChild(Child);
-            if XMLDOMMgt.FindNode(RootNode, 'Header/Comment', Child) then
-                ReturnedNode.RemoveChild(Child);
-            XMLDOMMgt.AddElement(ReturnedNode, 'Comment', ErrorString, '', ReturnedNode);
+        if RootElement.SelectSingleNode('Header', ReturnedNode) then begin
+            if RootElement.SelectSingleNode('Header/Input', Child) then
+                Child.Remove();
+            if RootElement.SelectSingleNode('Header/Comment', Child) then
+                Child.Remove();
+            CommentElement := XmlElement.Create('Comment');
+            if ErrorString <> '' then
+                CommentElement.Add(XmlText.Create(ErrorString));
+            ReturnedNode.AsXmlElement().Add(CommentElement);
         end;
-
-        Clear(RootNode);
-        Clear(Child);
     end;
 
     [Scope('OnPrem')]
-    procedure ProcessDocument(Document: DotNet XmlDocument)
+    procedure ProcessDocument(Document: XmlDocument)
     var
         MiniformMgt: Codeunit "Miniform Management";
     begin
@@ -61,9 +62,52 @@ codeunit 7700 "ADCS Management"
     end;
 
     [Scope('OnPrem')]
-    procedure GetOutboundDocument(var Document: DotNet XmlDocument)
+    procedure GetOutboundDocument(var Document: XmlDocument)
     begin
         Document := OutboundDocument;
     end;
-}
 
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by SendXMLReply with a parameter of the native XmlDocument type.', '30.0')]
+    procedure SendXMLReply(xmlout: DotNet XmlDocument)
+    begin
+        ConvertToXmlDocument(xmlout, OutboundDocument);
+    end;
+
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by ProcessDocument with a parameter of the native XmlDocument type.', '30.0')]
+    procedure ProcessDocument(Document: DotNet XmlDocument)
+    var
+        NativeXmlDocument: XmlDocument;
+    begin
+        ConvertToXmlDocument(Document, NativeXmlDocument);
+        ProcessDocument(NativeXmlDocument);
+    end;
+
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by GetOutboundDocument with a parameter of the native XmlDocument type.', '30.0')]
+    procedure GetOutboundDocument(var Document: DotNet XmlDocument)
+    var
+        RootElement: XmlElement;
+        XmlContent: Text;
+    begin
+        Clear(Document);
+        if not OutboundDocument.GetRoot(RootElement) then
+            exit;
+        OutboundDocument.WriteTo(XmlContent);
+        Document := Document.XmlDocument();
+        Document.LoadXml(XmlContent);
+    end;
+
+    local procedure ConvertToXmlDocument(DotNetXmlDocument: DotNet XmlDocument; var NativeXmlDocument: XmlDocument)
+    begin
+        Clear(NativeXmlDocument);
+        if IsNull(DotNetXmlDocument) then
+            exit;
+        if IsNull(DotNetXmlDocument.DocumentElement) then
+            exit;
+        XmlDocument.ReadFrom(DotNetXmlDocument.OuterXml(), NativeXmlDocument);
+    end;
+#endif
+}

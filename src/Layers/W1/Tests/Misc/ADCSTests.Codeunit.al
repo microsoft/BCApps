@@ -13,6 +13,11 @@ codeunit 139010 "ADCS Tests"
         LoginNoInputNodeErrorInputTxt: Label '<ADCS><Header UseCaseCode="LOGIN" RunReturn="0"/></ADCS>', Locked = true;
         LoginNoInputNodeErrorOutputTxt: Label '<ADCS><Header UseCaseCode="LOGIN" RunReturn="0"><Comment>No input Node found.</Comment></Header></ADCS>', Locked = true;
         IncorrectValueReturnedErr: Label 'Incorrect value returned.';
+        LoginErrorWithDeclarationInputTxt: Label '<?xml version="1.0" encoding="utf-8"?><ADCS><Header UseCaseCode="LOGIN" RunReturn="0" Custom="a&amp;b&lt;c&gt;d&quot;e''f"><Comment>Old</Comment></Header></ADCS>', Locked = true;
+        LoginErrorWithDeclarationOutputTxt: Label '<?xml version="1.0" encoding="utf-8"?><ADCS><Header UseCaseCode="LOGIN" RunReturn="0" Custom="a&amp;b&lt;c&gt;d&quot;e''f"><Comment>No input Node found.</Comment></Header></ADCS>', Locked = true;
+        HelloWithCustomAttributeInputTxt: Label '<?xml version="1.0" encoding="utf-8"?><ADCS><Header UseCaseCode="HELLO" Custom="a&amp;b&lt;c&gt;d&quot;e''f" /></ADCS>', Locked = true;
+        LoginWithCustomAttributeOutputTxt: Label '<ADCS><Header UseCaseCode="LOGIN" Custom="a&amp;b&lt;c&gt;d&quot;e''f" StackCode="" RunReturn="0" FormTypeOpt="Card" NoOfLines="4" InputIsHidden="0"><Comment /><Functions><Function>ESC</Function></Functions></Header><Lines><Header><Field Type="Text" MaxLen="7">Welcome</Field></Header><Body><Field FieldID="1" Type="Input" MaxLen="20" Descrip="User ID" /><Field FieldID="2" Type="OutPut" MaxLen="30" Descrip="Password" /></Body></Lines></ADCS>', Locked = true;
+        UnexpectedOutputErr: Label 'The ADCS web service response is not identical to the expected response.';
 
     [Test]
     [Scope('OnPrem')]
@@ -193,76 +198,120 @@ codeunit 139010 "ADCS Tests"
           IncorrectValueReturnedErr);
     end;
 
-    local procedure VerifyXmlNodesAreEqual(Expected: DotNet XmlNode; Actual: DotNet XmlNode): Boolean
+    [Test]
+    [Scope('OnPrem')]
+    procedure LoginMiniformErrorKeepsXmlDeclarationAndEscaping()
     var
-        ExpectedChild: DotNet XmlNode;
-        ActualChild: DotNet XmlNode;
+        ADCSWS: Codeunit "ADCS WS";
+        WideIn: Text;
     begin
-        while true do begin
-            if IsNull(Expected) or IsNull(Actual) then
-                exit(IsNull(Expected) and IsNull(Actual));
+        // [SCENARIO] The error response is returned to the handheld exactly as before: the XML declaration of the request is kept and special characters stay escaped
+        WideIn := LoginErrorWithDeclarationInputTxt;
 
-            if Expected.Name <> Actual.Name then
-                exit(false);
+        ADCSWS.ProcessDocument(WideIn);
 
-            if not VerifyXmlAttributesAreEqual(Expected, Actual) then
-                exit(false);
-
-            if not VerifyXmlValuesAreDefined(Expected, Actual) then
-                exit(false);
-
-            ExpectedChild := Expected.FirstChild;
-            ActualChild := Actual.FirstChild;
-            while VerifyXmlNodesAreEqual(ExpectedChild, ActualChild) and not IsNull(ExpectedChild) do begin
-                ExpectedChild := ExpectedChild.NextSibling;
-                ActualChild := ActualChild.NextSibling;
-            end;
-
-            if not (IsNull(ExpectedChild) and IsNull(ActualChild)) then
-                exit(false);
-
-            Expected := Expected.NextSibling;
-            Actual := Actual.NextSibling;
-        end;
+        Assert.AreEqual(LoginErrorWithDeclarationOutputTxt, WideIn, UnexpectedOutputErr);
     end;
 
-    local procedure VerifyXmlAttributesAreEqual(Expected: DotNet XmlNode; Actual: DotNet XmlNode): Boolean
+    [Test]
+    [Scope('OnPrem')]
+    procedure LoginMiniformErrorExactOutput()
     var
-        ExpectedAttribute: DotNet XmlAttribute;
-        ActualAttribute: DotNet XmlAttribute;
+        ADCSWS: Codeunit "ADCS WS";
+        WideIn: Text;
+    begin
+        // [SCENARIO] The error response is returned to the handheld exactly as before
+        WideIn := LoginNoInputNodeErrorInputTxt;
+
+        ADCSWS.ProcessDocument(WideIn);
+
+        Assert.AreEqual(
+          '<ADCS><Header UseCaseCode="LOGIN" RunReturn="0"><Comment>No input Node found.</Comment></Header></ADCS>', WideIn, UnexpectedOutputErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LoginMiniformExactOutput()
+    var
+        ADCSWS: Codeunit "ADCS WS";
+        WideIn: Text;
+        TempLanguage: Integer;
+    begin
+        // [SCENARIO] The encoded login miniform is returned to the handheld exactly as before: header attributes are copied in order, empty elements are self-closing and special characters stay escaped
+        WideIn := HelloWithCustomAttributeInputTxt;
+        TempLanguage := GlobalLanguage;
+        GlobalLanguage(1033);
+
+        ADCSWS.ProcessDocument(WideIn);
+
+        GlobalLanguage(TempLanguage);
+        Assert.AreEqual(LoginWithCustomAttributeOutputTxt, WideIn, UnexpectedOutputErr);
+    end;
+
+    local procedure VerifyXmlNodesAreEqual(Expected: XmlNode; Actual: XmlNode): Boolean
+    var
+        ExpectedChildren: XmlNodeList;
+        ActualChildren: XmlNodeList;
+        ExpectedChild: XmlNode;
+        ActualChild: XmlNode;
         Index: Integer;
     begin
-        if IsNull(Expected.Attributes) or IsNull(Actual.Attributes) then
-            exit(IsNull(Expected.Attributes) and IsNull(Actual.Attributes));
-
-        if Expected.Attributes.Count <> Actual.Attributes.Count then
+        if Expected.IsXmlElement() <> Actual.IsXmlElement() then
             exit(false);
 
-        Index := 0;
-        while Index < Expected.Attributes.Count - 1 do begin
-            ExpectedAttribute := Expected.Attributes.ItemOf(Index);
-            ActualAttribute := Actual.Attributes.ItemOf(ExpectedAttribute.Name);
+        if not Expected.IsXmlElement() then
+            exit(VerifyXmlValuesAreDefined(Expected, Actual));
 
-            if IsNull(ActualAttribute) then
+        if Expected.AsXmlElement().Name() <> Actual.AsXmlElement().Name() then
+            exit(false);
+
+        if not VerifyXmlAttributesAreEqual(Expected.AsXmlElement(), Actual.AsXmlElement()) then
+            exit(false);
+
+        ExpectedChildren := Expected.AsXmlElement().GetChildNodes();
+        ActualChildren := Actual.AsXmlElement().GetChildNodes();
+        if ExpectedChildren.Count() <> ActualChildren.Count() then
+            exit(false);
+
+        for Index := 1 to ExpectedChildren.Count() do begin
+            ExpectedChildren.Get(Index, ExpectedChild);
+            ActualChildren.Get(Index, ActualChild);
+            if not VerifyXmlNodesAreEqual(ExpectedChild, ActualChild) then
                 exit(false);
-
-            // We don't validate the localized values
-            if (ExpectedAttribute.Name <> 'MaxLen') and (ExpectedAttribute.Name <> 'Descrip') then
-                if ExpectedAttribute.Value <> ActualAttribute.Value then
-                    exit(false);
-
-            Index += 1;
         end;
         exit(true);
     end;
 
-    local procedure VerifyXmlValuesAreDefined(Expected: DotNet XmlNode; Actual: DotNet XmlNode): Boolean
+    local procedure VerifyXmlAttributesAreEqual(Expected: XmlElement; Actual: XmlElement): Boolean
+    var
+        ExpectedAttribute: XmlAttribute;
+        ActualAttribute: XmlAttribute;
     begin
-        // Values are localized, we only verify that they are there
-        if (Expected.Value = '') or (Actual.Value = '') then
-            exit((Expected.Value = '') and (Actual.Value = ''));
+        if Expected.Attributes().Count() <> Actual.Attributes().Count() then
+            exit(false);
 
-        exit((Expected.Value <> '') and (Actual.Value <> ''));
+        foreach ExpectedAttribute in Expected.Attributes() do begin
+            if not Actual.Attributes().Get(ExpectedAttribute.Name(), ActualAttribute) then
+                exit(false);
+
+            // We don't validate the localized values
+            if (ExpectedAttribute.Name() <> 'MaxLen') and (ExpectedAttribute.Name() <> 'Descrip') then
+                if ExpectedAttribute.Value() <> ActualAttribute.Value() then
+                    exit(false);
+        end;
+        exit(true);
+    end;
+
+    local procedure VerifyXmlValuesAreDefined(Expected: XmlNode; Actual: XmlNode): Boolean
+    begin
+        if Expected.IsXmlText() <> Actual.IsXmlText() then
+            exit(false);
+
+        if not Expected.IsXmlText() then
+            exit(true);
+
+        // Values are localized, we only verify that they are there
+        exit((Expected.AsXmlText().Value() = '') = (Actual.AsXmlText().Value() = ''));
     end;
 
     local procedure HelloInputText(): Text
@@ -287,16 +336,19 @@ codeunit 139010 "ADCS Tests"
 
     local procedure VerifyXmlInputOutput(InputXml: Text; OutputXml: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        InputXmlDocument: DotNet XmlDocument;
-        OutputXmlDocument: DotNet XmlDocument;
+        InputXmlDocument: XmlDocument;
+        OutputXmlDocument: XmlDocument;
+        InputRootElement: XmlElement;
+        OutputRootElement: XmlElement;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromText(InputXml, InputXmlDocument);
-        XMLDOMManagement.LoadXMLDocumentFromText(OutputXml, OutputXmlDocument);
+        XmlDocument.ReadFrom(InputXml, InputXmlDocument);
+        XmlDocument.ReadFrom(OutputXml, OutputXmlDocument);
+        InputXmlDocument.GetRoot(InputRootElement);
+        OutputXmlDocument.GetRoot(OutputRootElement);
 
         Assert.IsTrue(
-          VerifyXmlNodesAreEqual(OutputXmlDocument.DocumentElement, InputXmlDocument.DocumentElement),
-          StrSubstNo('Expected<%1>, Actual<%2>', OutputXmlDocument.OuterXml, InputXmlDocument.OuterXml));
+          VerifyXmlNodesAreEqual(OutputRootElement.AsXmlNode(), InputRootElement.AsXmlNode()),
+          StrSubstNo('Expected<%1>, Actual<%2>', OutputXml, InputXml));
     end;
 }
 

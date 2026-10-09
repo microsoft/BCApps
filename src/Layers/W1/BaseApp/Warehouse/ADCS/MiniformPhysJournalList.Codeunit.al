@@ -5,8 +5,6 @@
 namespace Microsoft.Warehouse.ADCS;
 
 using Microsoft.Warehouse.Journal;
-using System;
-using System.Xml;
 
 codeunit 7712 "Miniform Phys. Journal List"
 {
@@ -18,7 +16,7 @@ codeunit 7712 "Miniform Phys. Journal List"
     begin
         MiniformMgmt.Initialize(
           MiniformHeader, Rec, DOMxmlin, ReturnedNode,
-          RootNode, XMLDOMMgt, ADCSCommunication, ADCSUserId,
+          RootNode, ADCSCommunication, ADCSUserId,
           CurrentCode, StackCode, WhseEmpId, LocationFilter);
 
         if Rec.Code <> CurrentCode then
@@ -33,13 +31,12 @@ codeunit 7712 "Miniform Phys. Journal List"
         MiniformHeader: Record "Miniform Header";
         MiniformHeader2: Record "Miniform Header";
         WhseJournalBatch: Record "Warehouse Journal Batch";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         ADCSCommunication: Codeunit "ADCS Communication";
         ADCSMgt: Codeunit "ADCS Management";
         RecRef: RecordRef;
-        ReturnedNode: DotNet XmlNode;
-        DOMxmlin: DotNet XmlDocument;
-        RootNode: DotNet XmlNode;
+        ReturnedNode: XmlNode;
+        DOMxmlin: XmlDocument;
+        RootNode: XmlNode;
 #pragma warning disable AA0074
         Text000: Label 'Function not Found.';
         Text006: Label 'No input Node found.';
@@ -63,8 +60,8 @@ codeunit 7712 "Miniform Phys. Journal List"
         RecId: RecordID;
         TableNo: Integer;
     begin
-        if XMLDOMMgt.FindNode(RootNode, 'Header/Input', ReturnedNode) then
-            TextValue := ReturnedNode.InnerText
+        if RootNode.SelectSingleNode('Header/Input', ReturnedNode) then
+            TextValue := CopyStr(ReturnedNode.AsXmlElement().InnerText, 1, MaxStrLen(TextValue))
         else
             Error(Text006);
 
