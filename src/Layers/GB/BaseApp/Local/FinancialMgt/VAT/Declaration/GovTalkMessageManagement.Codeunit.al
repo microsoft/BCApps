@@ -159,20 +159,41 @@ codeunit 10520 GovTalkMessageManagement
     [Scope('OnPrem')]
     procedure SendHttpRequest(var GovTalkMessageXMLNode: DotNet XmlNode; SubmitURL: Text; var SubmitResponseXMLNode: DotNet XmlNode): Boolean
     var
-        TempBlob: Codeunit "Temp Blob";
-        XmlDoc: DotNet XmlDocument;
-        MemoryStream: DotNet MemoryStream;
         Client: HttpClient;
         RequestMessage: HttpRequestMessage;
         ResponseMessage: HttpResponseMessage;
+        ProcessingWindow: Dialog;
+        ResponseInStream: InStream;
+        RequestSent: Boolean;
+    begin
+        CreateGovTalkHttpRequest(GovTalkMessageXMLNode, SubmitURL, RequestMessage);
+
+        if GuiAllowed() then
+            ProcessingWindow.Open(ProcessingWindowMsg);
+        RequestSent := Client.Send(RequestMessage, ResponseMessage);
+        if GuiAllowed() then
+            ProcessingWindow.Close();
+
+        if not RequestSent then
+            exit(false);
+        if ResponseMessage.HttpStatusCode() <> 200 then
+            exit(false);
+
+        ResponseMessage.Content().ReadAs(ResponseInStream);
+        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseInStream, SubmitResponseXMLNode);
+        exit(true);
+    end;
+
+    local procedure CreateGovTalkHttpRequest(var GovTalkMessageXMLNode: DotNet XmlNode; SubmitURL: Text; var RequestMessage: HttpRequestMessage)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        XmlDoc: DotNet XmlDocument;
+        MemoryStream: DotNet MemoryStream;
         RequestContent: HttpContent;
         ContentHeaders: HttpHeaders;
         RequestHeaders: HttpHeaders;
-        ProcessingWindow: Dialog;
         RequestOutStream: OutStream;
         RequestInStream: InStream;
-        ResponseInStream: InStream;
-        RequestSent: Boolean;
     begin
         XmlDoc := GovTalkMessageXMLNode.ParentNode;
         MemoryStream := MemoryStream.MemoryStream();
@@ -192,21 +213,6 @@ codeunit 10520 GovTalkMessageManagement
         RequestMessage.Content(RequestContent);
         RequestMessage.GetHeaders(RequestHeaders);
         RequestHeaders.Add('Accept-Encoding', 'utf-8');
-
-        if GuiAllowed() then
-            ProcessingWindow.Open(ProcessingWindowMsg);
-        RequestSent := Client.Send(RequestMessage, ResponseMessage);
-        if GuiAllowed() then
-            ProcessingWindow.Close();
-
-        if not RequestSent then
-            exit(false);
-        if ResponseMessage.HttpStatusCode() <> 200 then
-            exit(false);
-
-        ResponseMessage.Content().ReadAs(ResponseInStream);
-        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseInStream, SubmitResponseXMLNode);
-        exit(true);
     end;
 
     [Scope('OnPrem')]

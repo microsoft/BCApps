@@ -294,6 +294,48 @@ codeunit 144030 "GovTalkMessage Management Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure CreateGovTalkHttpRequestBuildsXmlPost()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        RequestMessage: HttpRequestMessage;
+        ContentHeaders: HttpHeaders;
+        RequestHeaders: HttpHeaders;
+        BodyXMLNode: DotNet XmlNode;
+        GovTalkRequestXMLNode: DotNet XmlNode;
+        SentXMLNode: DotNet XmlNode;
+        HeaderValues: array[10] of Text;
+        RequestBodyInStream: InStream;
+    begin
+        // [SCENARIO] The GovTalk HTTP request is a POST of the GovTalk XML message with text/xml content type
+        Initialize();
+        CreateVATReportHeaderForVATReturn(VATReportHeader);
+        GovTalkMessageManagement.CreateBlankGovTalkXmlMessage(GovTalkRequestXMLNode, BodyXMLNode, VATReportHeader, 'request', 'submit', true);
+
+        // [WHEN] The HTTP request is built for the GovTalk message
+        GovTalkMessageManagement.CreateGovTalkHttpRequest(GovTalkRequestXMLNode, GatewayURLTxt, RequestMessage);
+
+        // [THEN] It is a POST to the gateway URL
+        Assert.AreEqual('POST', RequestMessage.Method(), 'Unexpected HTTP method.');
+        Assert.AreEqual(GatewayURLTxt, RequestMessage.GetRequestUri(), 'Unexpected request URL.');
+
+        // [THEN] The request carries the Accept-Encoding header
+        RequestMessage.GetHeaders(RequestHeaders);
+        Assert.IsTrue(RequestHeaders.GetValues('Accept-Encoding', HeaderValues), 'Expected an Accept-Encoding header.');
+        Assert.AreEqual('utf-8', HeaderValues[1], 'Unexpected Accept-Encoding header.');
+
+        // [THEN] The content type is text/xml
+        RequestMessage.Content().GetHeaders(ContentHeaders);
+        Assert.IsTrue(ContentHeaders.GetValues('Content-Type', HeaderValues), 'Expected a Content-Type header.');
+        Assert.AreEqual('text/xml', HeaderValues[1], 'Unexpected Content-Type header.');
+
+        // [THEN] The body is the GovTalk XML message
+        RequestMessage.Content().ReadAs(RequestBodyInStream);
+        XMLDOMManagement.LoadXMLNodeFromInStream(RequestBodyInStream, SentXMLNode);
+        Assert.AreEqual(GovTalkRequestXMLNode.OuterXml, SentXMLNode.OuterXml, 'Unexpected request body.');
+    end;
+
+    [Test]
     [HandlerFunctions('GovTalkGatewaySuccessHttpHandler')]
     [Scope('OnPrem')]
     procedure SendHttpRequestPostsGovTalkXmlAndReadsResponse()
