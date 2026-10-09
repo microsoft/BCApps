@@ -110,6 +110,7 @@ table 1226 "Payment Export Data"
         field(31; "Sender Bank Account No."; Text[50])
         {
             Caption = 'Sender Bank Account No.';
+            MaskType = Concealed;
         }
         /// <summary>
         /// Currency code of the sender bank account.
