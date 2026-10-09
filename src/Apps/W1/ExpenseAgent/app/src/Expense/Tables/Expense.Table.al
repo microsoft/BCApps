@@ -1028,12 +1028,13 @@ table 6900 Expense
         ExpenseItemization: Record "Expense Itemization";
         ExpensePerDiem: Record "Expense Per Diem";
     begin
+        ExpenseItemization.SetRange("Expense No.", Rec."No.");
+        if not ExpenseItemization.IsEmpty() then
+            exit(true);
+
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
-                begin
-                    ExpenseItemization.SetRange("Expense No.", Rec."No.");
-                    exit(not ExpenseItemization.IsEmpty());
-                end;
+                exit(false);
             Rec."Expense Detail Required"::Participants:
                 begin
                     ExpenseParticipant.SetRange("Expense No.", Rec."No.");
@@ -1394,5 +1395,26 @@ table 6900 Expense
                 ExpenseVATSpec := TempExpenseVATSpec;
                 ExpenseVATSpec.Insert();
             until TempExpenseVATSpec.Next() = 0;
+    end;
+
+    internal procedure IsItemizationRequired(): Boolean
+    begin
+        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+            exit(true);
+
+        exit(Rec.IsEnforcedItemizationRequired());
+    end;
+
+    internal procedure IsEnforcedItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or (Rec."Expense Category" = '') then
+            exit(false);
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 }

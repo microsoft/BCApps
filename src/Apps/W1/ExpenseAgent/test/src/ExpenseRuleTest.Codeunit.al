@@ -53,6 +53,8 @@ codeunit 148301 "Expense Rule Test"
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
         RequiredSpecificMerchantNotAllowedForMileageErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Mileage value, %4 = Expense Category table caption, %5 = Expense Category Code';
         RequiredSpecificMerchantEnabledMsg: Label 'Required Specific Merchant should be enabled for a non-mileage category.';
+        ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
+        ExpenseSubCategoryMustBeRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
 
     [Test]
     procedure AmountLCYIsConvertedBasedOnCurrencyInExpense()
@@ -8438,6 +8440,459 @@ codeunit 148301 "Expense Rule Test"
 
         // [THEN] Validation fails because the merchant name must be cleared first.
         Assert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
+    procedure ItemizationApplicabilityComesFromDocumentDetailAndPolicy()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ItemizedCategory: Record "Expense Category";
+        ExpensePolicy: Record "Expense Policy";
+        ExpenseUser: Record "Expense User";
+        Expense: Record Expense;
+        ItemizedExpense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ItemizedReportHeader: Record "Expense Report Header";
+        ItemizedReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO 629913] Itemization applicability is derived from detail type and enabled policy text.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 100);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        // [THEN] A category with no policy does not require itemization.
+        Assert.AreEqual(false, Expense.IsItemizationRequired(), 'A category without a policy must not require expense itemization.');
+        Assert.AreEqual(false, ExpenseReportLine.IsItemizationRequired(), 'A category without a policy must not require report-line itemization.');
+
+        // [WHEN] An enabled policy has blank text.
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'Temporary policy text.');
+        ExpensePolicy."Policy Text" := '';
+        ExpensePolicy.Modify(true);
+
+        // [THEN] Blank policy text does not enforce itemization.
+        Assert.AreEqual(false, Expense.IsItemizationRequired(), 'Blank policy text must not require expense itemization.');
+        Assert.AreEqual(false, Expense.IsEnforcedItemizationRequired(), 'Blank policy text must not enforce expense itemization.');
+        Assert.AreEqual(false, ExpenseReportLine.IsItemizationRequired(), 'Blank policy text must not require report-line itemization.');
+        Assert.AreEqual(false, ExpenseReportLine.IsEnforcedItemizationRequired(), 'Blank policy text must not enforce report-line itemization.');
+
+        // [WHEN] The enabled policy has nonblank text.
+        ExpensePolicy."Policy Text" := 'Itemize expenses for this category.';
+        ExpensePolicy.Modify(true);
+
+        // [THEN] Both document types require policy-enforced itemization.
+        Assert.AreEqual(true, Expense.IsItemizationRequired(), 'An enabled category policy must require expense itemization.');
+        Assert.AreEqual(true, Expense.IsEnforcedItemizationRequired(), 'An enabled category policy must enforce expense itemization.');
+        Assert.AreEqual(true, ExpenseReportLine.IsItemizationRequired(), 'An enabled category policy must require report-line itemization.');
+        Assert.AreEqual(true, ExpenseReportLine.IsEnforcedItemizationRequired(), 'An enabled category policy must enforce report-line itemization.');
+
+        // [WHEN] The policy is disabled.
+        ExpensePolicy.Enabled := false;
+        ExpensePolicy.Modify(true);
+
+        // [THEN] Disabled policies do not require itemization.
+        Assert.AreEqual(false, Expense.IsItemizationRequired(), 'A disabled policy must not require expense itemization.');
+        Assert.AreEqual(false, Expense.IsEnforcedItemizationRequired(), 'A disabled policy must not enforce expense itemization.');
+        Assert.AreEqual(false, ExpenseReportLine.IsItemizationRequired(), 'A disabled policy must not require report-line itemization.');
+        Assert.AreEqual(false, ExpenseReportLine.IsEnforcedItemizationRequired(), 'A disabled policy must not enforce report-line itemization.');
+
+        // [WHEN] Itemization is explicitly required by the document detail type.
+        LibraryExpense.CreateExpenseCategory(ItemizedCategory, ItemizedCategory."Reimbursement Type"::"Employee Paid", ItemizedCategory."Expense Detail Required"::Itemize);
+        LibraryExpense.CreateExpense(ItemizedExpense, ExpenseUser."No.", ItemizedCategory.Code, '', '', true, '', 100);
+        LibraryExpense.CreateExpenseReport(ItemizedReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ItemizedReportLine, ItemizedReportHeader, ItemizedCategory.Code, false, '',
+            ItemizedReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        // [THEN] Itemize detail requires itemization, but is not policy enforcement.
+        Assert.AreEqual(true, ItemizedExpense.IsItemizationRequired(), 'An Itemize expense category must require itemization without policy enforcement.');
+        Assert.AreEqual(false, ItemizedExpense.IsEnforcedItemizationRequired(), 'The Itemize detail setting is not policy enforcement.');
+        Assert.AreEqual(true, ItemizedReportLine.IsItemizationRequired(), 'An Itemize report-line category must require itemization without policy enforcement.');
+        Assert.AreEqual(false, ItemizedReportLine.IsEnforcedItemizationRequired(), 'The Itemize report-line detail setting is not policy enforcement.');
+    end;
+
+    [Test]
+    procedure AutoPopulationPreservesPolicyEnforcedItemization()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpensePolicy: Record "Expense Policy";
+        ExpenseUser: Record "Expense User";
+        Expense: Record Expense;
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        ExpenseAutoPopulation: Codeunit "Expense Auto Population";
+    begin
+        // [SCENARIO 629913] Auto-population preserves itemization required by policy for both document types.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'Itemize expenses for this category.');
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 100);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        // [GIVEN] Blank-subcategory itemizations are valid while the policy enforces itemization.
+        ExpenseItemization.Init();
+        ExpenseItemization."Expense No." := Expense."No.";
+        ExpenseItemization."Line No." := 10000;
+        ExpenseItemization."Expense Category Code" := ExpenseCategory.Code;
+        ExpenseItemization.Amount := Expense.Amount;
+        ExpenseItemization.Insert(true);
+
+        ExpenseReportLineItem.Init();
+        ExpenseReportLineItem."Expense Report No." := ExpenseReportLine."Document No.";
+        ExpenseReportLineItem."Expense Report Line No." := ExpenseReportLine."Line No.";
+        ExpenseReportLineItem."Line No." := 10000;
+        ExpenseReportLineItem."Expense Category Code" := ExpenseCategory.Code;
+        ExpenseReportLineItem.Amount := ExpenseReportLine.Amount;
+        ExpenseReportLineItem.Insert(true);
+
+        // [WHEN] Auto-population processes the documents with Expense Detail Required left blank.
+        ExpenseAutoPopulation.FindRuleAndUpdateExpense(Expense);
+        ExpenseAutoPopulation.FindRuleAndUpdateExpenseReportLine(ExpenseReportLine);
+
+        // [THEN] Existing policy-enforced itemizations remain on both documents.
+        ExpenseItemization.SetRange("Expense No.", Expense."No.");
+        Assert.AreEqual(false, ExpenseItemization.IsEmpty(), 'Auto-population must preserve policy-enforced expense itemization.');
+        ExpenseReportLineItem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineItem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(false, ExpenseReportLineItem.IsEmpty(), 'Auto-population must preserve policy-enforced report-line itemization.');
+    end;
+
+    [Test]
+    procedure ValidateItemizationSubcategoryRequiredErrorForExpense()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [SCENARIO 651059] Verify an error is raised for a blank subcategory code when the expense category requires itemization.
+        Initialize();
+
+        // [GIVEN] Create expense user and expense category with itemization.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+
+        // [GIVEN] Create a subcategory and an expense.
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', LibraryRandom.RandDec(100, 2));
+
+        // [GIVEN] Create expense itemization and clear subcategory code without validation trigger.
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), 0, 1);
+        ExpenseItemization."Expense Subcategory Code" := '';
+        ExpenseItemization.Modify(false);
+
+        // [WHEN] Apply rule validation.
+        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
+
+        // [THEN] Verify rule violation exists for missing itemization subcategory code.
+        ExpenseRuleViolation.SetRange("Expense No.", Expense."No.");
+        ExpenseRuleViolation.SetRange(Description, StrSubstNo(ExpenseSubCategoryMustBeRequiredInExpenseErr, ExpenseItemization.FieldCaption("Expense Subcategory Code"), ExpenseItemization."Expense No.", ExpenseItemization."Line No."));
+        Assert.RecordIsNotEmpty(ExpenseRuleViolation);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ValidateItemizationSubcategoryRequiredErrorForExpenseReportLine()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [SCENARIO 651059] Verify an error is raised for a blank subcategory code when the expense category requires itemization.
+        Initialize();
+
+        // [GIVEN] Create expense user and expense category with itemization.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+
+        // [GIVEN] Create a subcategory, expense and valid itemization.
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', LibraryRandom.RandDec(100, 2));
+        LibraryExpense.CreateExpenseItemization(ExpenseItemization, Expense, ExpenseSubCategory."Expense Category Code", ExpenseSubCategory.Code, WorkDate(), 0, 1);
+
+        // [GIVEN] Release expense and create expense report.
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        CreateAndAttachExpenseToExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        FindExpenseReportLine(ExpenseReportLine, ExpenseReportHeader."No.");
+        FindExpenseReportLineItemization(ExpenseReportLineItem, ExpenseReportHeader."No.", ExpenseReportLine);
+
+        // [GIVEN] Clear subcategory code on the expense report line itemization without validation trigger.
+        ExpenseReportLineItem."Expense Subcategory Code" := '';
+        ExpenseReportLineItem.Modify(false);
+
+        // [WHEN] Apply rule validation on expense report line.
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [THEN] Verify rule violation exists for missing itemization subcategory code.
+        ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportHeader."No.");
+        ExpenseReportRuleViolation.SetRange("Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportRuleViolation.SetRange(Description, StrSubstNo(ExpenseSubCategoryMustBeRequiredInExpenseReportErr, ExpenseReportLineItem.FieldCaption("Expense Subcategory Code"), ExpenseReportLineItem."Expense Report No.", ExpenseReportLineItem."Expense Report Line No.", ExpenseReportLineItem."Line No."));
+        Assert.RecordIsNotEmpty(ExpenseReportRuleViolation);
+    end;
+
+    [Test]
+    procedure BlankExpenseItemizationSubcategoryCannotBeSaved()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory1: Record "Expense Subcategory";
+        ExpenseSubCategory2: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ZeroRateItemization: Record "Expense Itemization";
+        NonzeroRateItemization: Record "Expense Itemization";
+    begin
+        // [SCENARIO 651059] Saving a blank subcategory is rejected for zero-rate and nonzero-rate expense itemizations.
+        Initialize();
+
+        // [GIVEN] An expense user and an expense category that requires itemization.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+
+        // [GIVEN] Two valid subcategories and an expense with zero-rate and nonzero-rate itemizations.
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory1, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory2, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory1.Code, '', true, '', LibraryRandom.RandDec(100, 2));
+        LibraryExpense.CreateExpenseItemization(ZeroRateItemization, Expense, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 0, 1);
+        LibraryExpense.CreateExpenseItemization(NonzeroRateItemization, Expense, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 10, 1);
+
+        // [GIVEN] Save the itemizations so the expected errors do not roll back their setup.
+        Commit();
+
+        // [WHEN] Save the zero-rate itemization with a blank subcategory.
+        ZeroRateItemization."Expense Subcategory Code" := '';
+        asserterror ZeroRateItemization.Modify(true);
+
+        // [THEN] The save is rejected and the persisted row remains unchanged.
+        Assert.ExpectedTestFieldError(ZeroRateItemization.FieldCaption("Expense Subcategory Code"), '');
+        ZeroRateItemization.Get(ZeroRateItemization."Expense No.", ZeroRateItemization."Line No.");
+        Assert.AreEqual(ExpenseSubCategory1.Code, ZeroRateItemization."Expense Subcategory Code", 'The zero-rate itemization subcategory must remain unchanged.');
+        Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The zero-rate itemization daily rate must remain unchanged.');
+
+        // [WHEN] Save the zero-rate itemization with a valid replacement subcategory.
+        ZeroRateItemization."Expense Subcategory Code" := ExpenseSubCategory2.Code;
+        ZeroRateItemization.Modify(true);
+        Commit();
+        ZeroRateItemization.Get(ZeroRateItemization."Expense No.", ZeroRateItemization."Line No.");
+
+        // [THEN] The valid replacement is persisted and the daily rate is unchanged.
+        Assert.AreEqual(ExpenseSubCategory2.Code, ZeroRateItemization."Expense Subcategory Code", 'The valid zero-rate subcategory update must be saved.');
+        Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The valid zero-rate update must preserve the daily rate.');
+
+        // [WHEN] Save the nonzero-rate itemization with a blank subcategory.
+        NonzeroRateItemization."Expense Subcategory Code" := '';
+        asserterror NonzeroRateItemization.Modify(true);
+
+        // [THEN] The save is rejected and the persisted row remains unchanged.
+        Assert.ExpectedTestFieldError(NonzeroRateItemization.FieldCaption("Expense Subcategory Code"), '');
+        NonzeroRateItemization.Get(NonzeroRateItemization."Expense No.", NonzeroRateItemization."Line No.");
+        Assert.AreEqual(ExpenseSubCategory1.Code, NonzeroRateItemization."Expense Subcategory Code", 'The nonzero-rate itemization subcategory must remain unchanged.');
+        Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The nonzero-rate itemization daily rate must remain unchanged.');
+
+        // [WHEN] Save the nonzero-rate itemization with a valid replacement subcategory.
+        NonzeroRateItemization."Expense Subcategory Code" := ExpenseSubCategory2.Code;
+        NonzeroRateItemization.Modify(true);
+        NonzeroRateItemization.Get(NonzeroRateItemization."Expense No.", NonzeroRateItemization."Line No.");
+
+        // [THEN] The valid replacement is persisted and the daily rate is unchanged.
+        Assert.AreEqual(ExpenseSubCategory2.Code, NonzeroRateItemization."Expense Subcategory Code", 'The valid nonzero-rate subcategory update must be saved.');
+        Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The valid nonzero-rate update must preserve the daily rate.');
+    end;
+
+    [Test]
+    procedure BlankExpenseReportItemizationSubcategoryCannotBeSaved()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory1: Record "Expense Subcategory";
+        ExpenseSubCategory2: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ZeroRateItemization: Record "Expense Report Line Item";
+        NonzeroRateItemization: Record "Expense Report Line Item";
+    begin
+        // [SCENARIO 651059] Saving a blank subcategory is rejected for zero-rate and nonzero-rate report itemizations.
+        Initialize();
+
+        // [GIVEN] An expense user and an expense category that requires itemization.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+
+        // [GIVEN] Two valid subcategories and an expense report line.
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory1, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory2, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, '', true, '', 100);
+
+        // [GIVEN] Zero-rate and nonzero-rate itemizations with valid subcategories.
+        LibraryExpense.CreateExpenseReportLineItemization(ZeroRateItemization, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 0, 1);
+        LibraryExpense.CreateExpenseReportLineItemization(NonzeroRateItemization, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubCategory1.Code, WorkDate(), 10, 1);
+
+        // [GIVEN] Save the itemizations so the expected errors do not roll back their setup.
+        Commit();
+
+        // [WHEN] Save the zero-rate report itemization with a blank subcategory.
+        ZeroRateItemization."Expense Subcategory Code" := '';
+        asserterror ZeroRateItemization.Modify(true);
+
+        // [THEN] The save is rejected and the persisted row remains unchanged.
+        Assert.ExpectedTestFieldError(ZeroRateItemization.FieldCaption("Expense Subcategory Code"), '');
+        ZeroRateItemization.Get(ZeroRateItemization."Expense Report No.", ZeroRateItemization."Expense Report Line No.", ZeroRateItemization."Line No.");
+        Assert.AreEqual(ExpenseSubCategory1.Code, ZeroRateItemization."Expense Subcategory Code", 'The zero-rate report itemization subcategory must remain unchanged.');
+        Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The zero-rate report itemization daily rate must remain unchanged.');
+
+        // [WHEN] Save the zero-rate report itemization with a valid replacement subcategory.
+        ZeroRateItemization."Expense Subcategory Code" := ExpenseSubCategory2.Code;
+        ZeroRateItemization.Modify(true);
+        Commit();
+        ZeroRateItemization.Get(ZeroRateItemization."Expense Report No.", ZeroRateItemization."Expense Report Line No.", ZeroRateItemization."Line No.");
+
+        // [THEN] The valid replacement is persisted and the daily rate is unchanged.
+        Assert.AreEqual(ExpenseSubCategory2.Code, ZeroRateItemization."Expense Subcategory Code", 'The valid zero-rate report subcategory update must be saved.');
+        Assert.AreEqual(0, ZeroRateItemization."Daily Rate", 'The valid zero-rate report update must preserve the daily rate.');
+
+        // [WHEN] Save the nonzero-rate report itemization with a blank subcategory.
+        NonzeroRateItemization."Expense Subcategory Code" := '';
+        asserterror NonzeroRateItemization.Modify(true);
+
+        // [THEN] The save is rejected and the persisted row remains unchanged.
+        Assert.ExpectedTestFieldError(NonzeroRateItemization.FieldCaption("Expense Subcategory Code"), '');
+        NonzeroRateItemization.Get(NonzeroRateItemization."Expense Report No.", NonzeroRateItemization."Expense Report Line No.", NonzeroRateItemization."Line No.");
+        Assert.AreEqual(ExpenseSubCategory1.Code, NonzeroRateItemization."Expense Subcategory Code", 'The nonzero-rate report itemization subcategory must remain unchanged.');
+        Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The nonzero-rate report itemization daily rate must remain unchanged.');
+
+        // [WHEN] Save the nonzero-rate report itemization with a valid replacement subcategory.
+        NonzeroRateItemization."Expense Subcategory Code" := ExpenseSubCategory2.Code;
+        NonzeroRateItemization.Modify(true);
+        NonzeroRateItemization.Get(NonzeroRateItemization."Expense Report No.", NonzeroRateItemization."Expense Report Line No.", NonzeroRateItemization."Line No.");
+
+        // [THEN] The valid replacement is persisted and the daily rate is unchanged.
+        Assert.AreEqual(ExpenseSubCategory2.Code, NonzeroRateItemization."Expense Subcategory Code", 'The valid nonzero-rate report subcategory update must be saved.');
+        Assert.AreEqual(10, NonzeroRateItemization."Daily Rate", 'The valid nonzero-rate report update must preserve the daily rate.');
+    end;
+
+    [Test]
+    procedure BlankSubcategoryInsertRejectedForRegularItemization()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseUser: Record "Expense User";
+        Expense: Record Expense;
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+    begin
+        // [SCENARIO 629913] Regular itemization requires a subcategory when inserted for both document types.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Itemize);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 100);
+        Commit();
+
+        // [WHEN] Insert an Expense itemization without a subcategory.
+        ExpenseItemization.Init();
+        ExpenseItemization."Expense No." := Expense."No.";
+        ExpenseItemization."Line No." := 10000;
+        ExpenseItemization."Expense Category Code" := ExpenseCategory.Code;
+        asserterror ExpenseItemization.Insert(true);
+
+        // [THEN] The missing Expense subcategory is rejected.
+        Assert.ExpectedTestFieldError(ExpenseItemization.FieldCaption("Expense Subcategory Code"), '');
+
+        // [GIVEN] A report line whose category requires Itemize details.
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, '', true, '', 100);
+        Commit();
+
+        // [WHEN] Insert a report-line itemization without a subcategory.
+        ExpenseReportLineItem.Init();
+        ExpenseReportLineItem."Expense Report No." := ExpenseReportLine."Document No.";
+        ExpenseReportLineItem."Expense Report Line No." := ExpenseReportLine."Line No.";
+        ExpenseReportLineItem."Line No." := 10000;
+        ExpenseReportLineItem."Expense Category Code" := ExpenseCategory.Code;
+        asserterror ExpenseReportLineItem.Insert(true);
+
+        // [THEN] The missing report-line subcategory is rejected.
+        Assert.ExpectedTestFieldError(ExpenseReportLineItem.FieldCaption("Expense Subcategory Code"), '');
+    end;
+
+    [Test]
+    procedure NonRefundableAmountEditableForPolicyEnforcedItemization()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ItemizedCategory: Record "Expense Category";
+        ExpensePolicy: Record "Expense Policy";
+        ExpenseUser: Record "Expense User";
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ItemizedExpense: Record Expense;
+        ItemizedReportHeader: Record "Expense Report Header";
+        ItemizedReportLine: Record "Expense Report Line";
+        ExpensePage: TestPage Expense;
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [SCENARIO 629913] Non-refundable amount is editable for enforced itemization but remains derived for ordinary Itemize detail.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'Itemize expenses for this category.');
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 100);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        ExpenseReportLine.Validate(Refundable, true);
+        ExpenseReportLine.Modify(true);
+
+        // [THEN] Policy-enforced itemization leaves the non-refundable amount editable on both pages.
+        ExpensePage.OpenEdit();
+        ExpensePage.GoToRecord(Expense);
+        Assert.IsTrue(ExpensePage."Non-Refundable Amount".Editable(), 'Expense non-refundable amount must be editable for enforced itemization.');
+        ExpenseReportPage.OpenEdit();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage."Expense Report Subform"."Non-Refundable Amount".Editable(), 'Report-line non-refundable amount must be editable for enforced itemization.');
+        ExpenseReportPage.Close();
+        ExpensePage.Close();
+
+        // [THEN] Ordinary Itemize detail keeps the non-refundable amount derived.
+        LibraryExpense.CreateExpenseCategory(ItemizedCategory, ItemizedCategory."Reimbursement Type"::"Employee Paid", ItemizedCategory."Expense Detail Required"::Itemize);
+        LibraryExpense.CreateExpense(ItemizedExpense, ExpenseUser."No.", ItemizedCategory.Code, '', '', true, '', 100);
+        LibraryExpense.CreateExpenseReport(ItemizedReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ItemizedReportLine, ItemizedReportHeader, ItemizedCategory.Code, false, '',
+            ItemizedReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        ExpensePage.OpenEdit();
+        ExpensePage.GoToRecord(ItemizedExpense);
+        Assert.IsFalse(ExpensePage."Non-Refundable Amount".Editable(), 'Expense non-refundable amount remains derived for Itemize detail.');
+        ExpenseReportPage.OpenEdit();
+        ExpenseReportPage.GoToRecord(ItemizedReportHeader);
+        Assert.IsFalse(ExpenseReportPage."Expense Report Subform"."Non-Refundable Amount".Editable(), 'Report-line non-refundable amount remains derived for Itemize detail.');
+        ExpenseReportPage.Close();
+        ExpensePage.Close();
     end;
 
     local procedure Initialize()
