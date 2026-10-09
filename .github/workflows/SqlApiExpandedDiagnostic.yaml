@@ -1,0 +1,26 @@
+name: 'DRAFT expanded API preparation - DO NOT MERGE'
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sql-api-653393-expanded-api-diagnostic
+  cancel-in-progress: false
+jobs:
+  Plan:
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-diagnostic' && github.run_attempt == 1
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Preserve full scope and fail closed on unimplemented producer requirements
+        shell: pwsh
+        run: .\build\scripts\ExpandedApiDiagnostic\Plan.ps1 -OutputDirectory expanded-api-plan
+      - name: Preserve blocked draft plan
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: expanded-api-plan-${{ github.run_id }}
+          path: expanded-api-plan/*.json
+          if-no-files-found: error
+          retention-days: 14
