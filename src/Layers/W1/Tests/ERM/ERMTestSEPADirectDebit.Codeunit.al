@@ -2075,32 +2075,32 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
             Assert.AreNotEqual('InstrPrty', XMLNode.AsXmlElement().Name, PmtTpInfInstrPrtyErr);
-        end;
+    end;
 
-        local procedure ValidateRmtInf(XMLParentNode: XmlNode; UstrdText: Text)
-        var
-            XMLNode: XmlNode;
-        begin
-            XMLNode := GetFirstChildNode(XMLParentNode);
-            Assert.AreEqual('Ustrd', XMLNode.AsXmlElement().Name, '');
-            Assert.AreEqual(UstrdText, XMLNode.AsXmlElement().InnerXml, '');
-        end;
+    local procedure ValidateRmtInf(XMLParentNode: XmlNode; UstrdText: Text)
+    var
+        XMLNode: XmlNode;
+    begin
+        XMLNode := GetFirstChildNode(XMLParentNode);
+        Assert.AreEqual('Ustrd', XMLNode.AsXmlElement().Name, '');
+        Assert.AreEqual(UstrdText, XMLNode.AsXmlElement().InnerXml, '');
+    end;
 
-        local procedure ValidatePartyElement(XMLParentNode: XmlNode)
-        var
-            XMLNode: XmlNode;
-        begin
-            foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
-                case XMLNode.AsXmlElement().Name of
-                    'Nm':
-                        Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
-                    'PstlAdr':
-                        ValidatePartyAddress(XMLNode);
-                    'Id':
-                        ;
-                    else
-                        Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
-                end;
+    local procedure ValidatePartyElement(XMLParentNode: XmlNode)
+    var
+        XMLNode: XmlNode;
+    begin
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+            case XMLNode.AsXmlElement().Name of
+                'Nm':
+                    Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
+                'PstlAdr':
+                    ValidatePartyAddress(XMLNode);
+                'Id':
+                    ;
+                else
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+            end;
     end;
 
     local procedure ValidatePartyAddress(XMLParentNode: XmlNode)

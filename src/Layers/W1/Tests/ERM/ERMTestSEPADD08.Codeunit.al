@@ -1970,20 +1970,20 @@ codeunit 134429 "ERM Test SEPA DD 08"
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
             Assert.AreNotEqual(XMLNode.AsXmlElement().Name, 'PstlAdr', '');
-        end;
+    end;
 
-        local procedure ValidateDrctDbtTxInf(XMLParentNode: XmlNode; UstrdText: Text)
-        var
-            XMLNode: XmlNode;
-        begin
-            foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do begin
-                case XMLNode.AsXmlElement().Name of
-                    'RmtInf':
-                        ValidateRmtInf(XMLNode, UstrdText);
-                end;
-                Assert.AreNotEqual('ChrgBr', XMLNode.AsXmlElement().Name, DrctDbtChrgBrErr);
-                Assert.AreNotEqual('PmtTpInf', XMLNode.AsXmlElement().Name, DrctDbtPmtTpInfErr);
+    local procedure ValidateDrctDbtTxInf(XMLParentNode: XmlNode; UstrdText: Text)
+    var
+        XMLNode: XmlNode;
+    begin
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do begin
+            case XMLNode.AsXmlElement().Name of
+                'RmtInf':
+                    ValidateRmtInf(XMLNode, UstrdText);
             end;
+            Assert.AreNotEqual('ChrgBr', XMLNode.AsXmlElement().Name, DrctDbtChrgBrErr);
+            Assert.AreNotEqual('PmtTpInf', XMLNode.AsXmlElement().Name, DrctDbtPmtTpInfErr);
+        end;
     end;
 
     local procedure ValidatePmtTpInf(XMLParentNode: XmlNode)
@@ -1992,32 +1992,32 @@ codeunit 134429 "ERM Test SEPA DD 08"
     begin
         foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
             Assert.AreNotEqual('InstrPrty', XMLNode.AsXmlElement().Name, PmtTpInfInstrPrtyErr);
-        end;
+    end;
 
-        local procedure ValidateRmtInf(XMLParentNode: XmlNode; UstrdText: Text)
-        var
-            XMLNode: XmlNode;
-        begin
-            XMLNode := GetFirstChildNode(XMLParentNode);
-            Assert.AreEqual('Ustrd', XMLNode.AsXmlElement().Name, '');
-            Assert.AreEqual(UstrdText, XMLNode.AsXmlElement().InnerXml, '');
-        end;
+    local procedure ValidateRmtInf(XMLParentNode: XmlNode; UstrdText: Text)
+    var
+        XMLNode: XmlNode;
+    begin
+        XMLNode := GetFirstChildNode(XMLParentNode);
+        Assert.AreEqual('Ustrd', XMLNode.AsXmlElement().Name, '');
+        Assert.AreEqual(UstrdText, XMLNode.AsXmlElement().InnerXml, '');
+    end;
 
-        local procedure ValidatePartyElement(XMLParentNode: XmlNode)
-        var
-            XMLNode: XmlNode;
-        begin
-            foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
-                case XMLNode.AsXmlElement().Name of
-                    'Nm':
-                        Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
-                    'PstlAdr':
-                        ValidatePartyAddress(XMLNode);
-                    'Id':
-                        ;
-                    else
-                        Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
-                end;
+    local procedure ValidatePartyElement(XMLParentNode: XmlNode)
+    var
+        XMLNode: XmlNode;
+    begin
+        foreach XMLNode in XMLParentNode.AsXmlElement().GetChildNodes() do
+            case XMLNode.AsXmlElement().Name of
+                'Nm':
+                    Assert.AreNotEqual('', XMLNode.AsXmlElement().InnerXml, '');
+                'PstlAdr':
+                    ValidatePartyAddress(XMLNode);
+                'Id':
+                    ;
+                else
+                    Error(XMLUnknownElementErr, XMLNode.AsXmlElement().Name);
+            end;
     end;
 
     local procedure ValidatePartyAddress(XMLParentNode: XmlNode)
