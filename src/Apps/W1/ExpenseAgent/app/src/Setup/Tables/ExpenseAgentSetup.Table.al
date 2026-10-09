@@ -684,6 +684,11 @@ table 6930 "Expense Agent Setup"
             ToolTip = 'Specifies whether the default VAT rates have been applied.';
             Editable = false;
         }
+        field(106; "Allow No Receipt"; Boolean)
+        {
+            Caption = 'Allow No Receipt';
+            ToolTip = 'Specifies whether users can replace a missing original receipt with a system-generated no receipt declaration.';
+        }
         field(120; "Enable Project Fields"; Boolean)
         {
             Caption = 'Enable project fields';

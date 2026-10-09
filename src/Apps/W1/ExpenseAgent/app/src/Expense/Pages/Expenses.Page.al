@@ -57,6 +57,18 @@ page 6989 Expenses
                 {
                     ToolTip = 'Specifies the total amount in the expense currency.';
                 }
+                field("No Receipt Type"; Rec."No Receipt Type")
+                {
+                    ToolTip = 'Specifies whether the original receipt was replaced by a no receipt declaration.';
+                    Style = Unfavorable;
+                    StyleExpr = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
+                }
+                field("Compliance Status"; Rec."Compliance Status")
+                {
+                    ToolTip = 'Specifies the compliance status assigned to the expense.';
+                    Style = Unfavorable;
+                    StyleExpr = Rec."Compliance Status" = Rec."Compliance Status"::"Non-Compliant";
+                }
             }
         }
         area(factboxes)
@@ -126,6 +138,20 @@ page 6989 Expenses
                     begin
                         CurrPage.SetSelectionFilter(Expenses);
                         CreateExpenseReport.AddExpensesToReport(Expenses);
+                    end;
+                }
+                action("No Receipt")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'No Receipt';
+                    Image = Document;
+                    Enabled = AllowNoReceipt and (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '');
+                    Visible = AllowNoReceipt;
+                    ToolTip = 'Create and attach a non-compliant replacement proof document when the original receipt is unavailable.';
+
+                    trigger OnAction()
+                    begin
+                        Page.Run(Page::Expense, Rec);
                     end;
                 }
             }
@@ -261,6 +287,14 @@ page 6989 Expenses
         StatusStyleTxt := Rec.GetStatusStyleText();
     end;
 
+    trigger OnOpenPage()
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        AllowNoReceipt := ExpenseAgentSetup."Allow No Receipt";
+    end;
+
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         StatusStyleTxt: Text;
+        AllowNoReceipt: Boolean;
 }

@@ -83,6 +83,7 @@ codeunit 6987 "Expense Report-Post"
         PendingVATSpecTitleErr: Label 'VAT reclaim status is pending';
         PendingVATSpecDetailedErr: Label 'Open the VAT specification line and approve or reject the reclaim, and then retry posting the expense report.';
         RoundingDifferenceTooLargeErr: Label 'The difference between expense report line %1 and its posted amounts exceeds the currency rounding precision. The difference is %2 in reimbursement currency and %3 in local currency.', Comment = '%1 = Expense report line number, %2 = Difference in reimbursement currency, %3 = Difference in local currency';
+        NoReceiptMustBeApprovedErr: Label 'An expense report containing a no receipt declaration must be approved before it can be posted.';
         AgentVATSpecificationsPostedLbl: Label 'Agent-authored VAT specifications posted.', Locked = true;
         ShowItLbl: Label 'Show it';
         ShowTravelRequestLbl: Label 'Show travel request';
@@ -98,6 +99,10 @@ codeunit 6987 "Expense Report-Post"
         ExpenseAgentSetup.GetRecordOnce();
 
         GenJnlPostLine.SetIgnoreJournalTemplNameMandatoryCheck();
+
+        if HasNoReceiptLines(ExpenseReportHeader) and not PreviewMode then
+            if ExpenseReportHeader.Status <> ExpenseReportHeader.Status::Approved then
+                Error(NoReceiptMustBeApprovedErr);
 
         if (ExpenseAgentSetup."Enable Approval Workflow") or ExpenseAgentSetup."Enable Agent" then begin
             if not PreviewMode then
@@ -121,11 +126,21 @@ codeunit 6987 "Expense Report-Post"
                 VATSetup.Modify();
                 DisableNonDeductibleVATAfterPost := false;
             end;
+
             LogAgentVATSpecificationUsage(AgentVATSpecificationCount);
         end;
 
         if PreviewMode then
             GenJnlPostPreview.ThrowError();
+    end;
+
+    local procedure HasNoReceiptLines(ExpenseReportHeader: Record "Expense Report Header"): Boolean
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.SetRange("No Receipt Type", ExpenseReportLine."No Receipt Type"::"Lost Receipt");
+        exit(not ExpenseReportLine.IsEmpty());
     end;
 
     local procedure GetAgentVATSpecificationCount(ExpenseReportNo: Code[20]): Integer

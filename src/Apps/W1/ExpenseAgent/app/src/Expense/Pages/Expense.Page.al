@@ -122,6 +122,28 @@ page 6988 "Expense"
                     ToolTip = 'Specifies the justification for the expense per policy.';
                     Importance = Additional;
                 }
+                field("No Receipt Type"; Rec."No Receipt Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether the original receipt was lost and replaced by a no receipt declaration.';
+                    Style = Unfavorable;
+                    StyleExpr = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
+                }
+                field("No Receipt Reason"; Rec."No Receipt Reason")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = AllowNoReceipt and (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '');
+                    ToolTip = 'Specifies why the original receipt is unavailable.';
+                    MultiLine = true;
+                    Visible = AllowNoReceipt or (Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt");
+                }
+                field("Compliance Status"; Rec."Compliance Status")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the compliance status assigned to the expense.';
+                    Style = Unfavorable;
+                    StyleExpr = Rec."Compliance Status" = Rec."Compliance Status"::"Non-Compliant";
+                }
                 field("Merchant Name"; Rec."Merchant Name")
                 {
                     ApplicationArea = Basic, Suite;
@@ -580,6 +602,47 @@ page 6988 "Expense"
                         CreateExpenseReport.AddExpensesToReport(Expenses);
                     end;
                 }
+                action("No Receipt")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'No Receipt';
+                    Image = Document;
+                    Enabled = AllowNoReceipt and (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '');
+                    Visible = AllowNoReceipt;
+                    ToolTip = 'Create and attach a non-compliant replacement proof document when the original receipt is unavailable.';
+
+                    trigger OnAction()
+                    var
+                        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+                    begin
+                        CurrPage.SaveRecord();
+                        if not Confirm(NoReceiptAttestationQst, false) then
+                            exit;
+
+                        NoReceiptDeclarationMgt.CreateDeclaration(Rec, Rec."No Receipt Reason", true);
+                        CurrPage.Update(false);
+                    end;
+                }
+                action("Cancel No Receipt")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Cancel No Receipt';
+                    Image = Cancel;
+                    Enabled = (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '') and (Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt");
+                    Visible = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
+                    ToolTip = 'Remove the no receipt declaration, for example when the original receipt has been found.';
+
+                    trigger OnAction()
+                    var
+                        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+                    begin
+                        if not Confirm(CancelNoReceiptQst, false) then
+                            exit;
+
+                        NoReceiptDeclarationMgt.CancelDeclaration(Rec);
+                        CurrPage.Update(false);
+                    end;
+                }
                 action("Match Vendor")
                 {
                     ApplicationArea = Basic, Suite;
@@ -668,6 +731,12 @@ page 6988 "Expense"
                 actionref(Create_Expense_Report_Promoted; "Create Expense Report")
                 {
                 }
+                actionref(No_Receipt_Promoted; "No Receipt")
+                {
+                }
+                actionref(Cancel_No_Receipt_Promoted; "Cancel No Receipt")
+                {
+                }
             }
             group(Category_Expense)
             {
@@ -734,7 +803,10 @@ page 6988 "Expense"
         RuleStyleTxt: Text;
         ShowAppliedRuleTxt: Text[50];
         TotalMileage: Decimal;
+        NoReceiptAttestationQst: Label 'I confirm that the original receipt is unavailable and the expense information is accurate. Create the no receipt declaration?';
+        CancelNoReceiptQst: Label 'Remove the no receipt declaration from this expense?';
         AllowVATReclaim: Boolean;
+        AllowNoReceipt: Boolean;
         ViewAppliedRuleLbl: Label 'View Applied Rule';
 
     local procedure SetDocNoVisible()
@@ -752,6 +824,7 @@ page 6988 "Expense"
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        AllowNoReceipt := ExpenseAgentSetup."Allow No Receipt";
     end;
 
     local procedure ShortcutDimension1CodeOnAfterV()
