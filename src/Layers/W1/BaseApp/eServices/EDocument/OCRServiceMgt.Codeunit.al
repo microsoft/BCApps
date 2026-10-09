@@ -12,7 +12,6 @@ using System.Environment;
 using System.IO;
 using System.Telemetry;
 using System.Utilities;
-using System.Xml;
 
 codeunit 1294 "OCR Service Mgt."
 {
@@ -218,28 +217,27 @@ codeunit 1294 "OCR Service Mgt."
     [Scope('OnPrem')]
     procedure UpdateOrganizationInfo(var OCRServiceSetup: Record "OCR Service Setup")
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLRootNode: DotNet XmlNode;
-        XMLNode: DotNet XmlNode;
+        XmlRootNode: XmlNode;
+        FoundXmlNode: XmlNode;
         ResponseStr: InStream;
     begin
         if not RsoGetRequest('accounts/rest/currentcustomer', ResponseStr) then begin
             Session.LogMessage('00008KB', GettingCurrentCustomerFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(GetLastErrorText);
         end;
-        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
-        if XMLDOMManagement.FindNode(XMLRootNode, 'Id', XMLNode) then
-            OCRServiceSetup."Customer ID" := CopyStr(XMLNode.InnerText, 1, MaxStrLen(OCRServiceSetup."Customer ID"));
-        if XMLDOMManagement.FindNode(XMLRootNode, 'Name', XMLNode) then
-            OCRServiceSetup."Customer Name" := CopyStr(XMLNode.InnerText, 1, MaxStrLen(OCRServiceSetup."Customer Name"));
-        if XMLDOMManagement.FindNode(XMLRootNode, 'ActivationStatus', XMLNode) then
-            OCRServiceSetup."Customer Status" := CopyStr(XMLNode.InnerText, 1, MaxStrLen(OCRServiceSetup."Customer Status"));
+        LoadXmlRootNode(ResponseStr, XmlRootNode);
+        if XmlRootNode.SelectSingleNode('Id', FoundXmlNode) then
+            OCRServiceSetup."Customer ID" := CopyStr(GetNodeInnerText(FoundXmlNode), 1, MaxStrLen(OCRServiceSetup."Customer ID"));
+        if XmlRootNode.SelectSingleNode('Name', FoundXmlNode) then
+            OCRServiceSetup."Customer Name" := CopyStr(GetNodeInnerText(FoundXmlNode), 1, MaxStrLen(OCRServiceSetup."Customer Name"));
+        if XmlRootNode.SelectSingleNode('ActivationStatus', FoundXmlNode) then
+            OCRServiceSetup."Customer Status" := CopyStr(GetNodeInnerText(FoundXmlNode), 1, MaxStrLen(OCRServiceSetup."Customer Status"));
         if not RsoGetRequest('users/rest/currentuser', ResponseStr) then
             Session.LogMessage('00008KC', GettingCurrentUserFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
-        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
+        LoadXmlRootNode(ResponseStr, XmlRootNode);
 
-        if XMLDOMManagement.FindNode(XMLRootNode, 'OrganizationId', XMLNode) then
-            OCRServiceSetup."Organization ID" := CopyStr(XMLNode.InnerText, 1, MaxStrLen(OCRServiceSetup."Organization ID"));
+        if XmlRootNode.SelectSingleNode('OrganizationId', FoundXmlNode) then
+            OCRServiceSetup."Organization ID" := CopyStr(GetNodeInnerText(FoundXmlNode), 1, MaxStrLen(OCRServiceSetup."Organization ID"));
         OCRServiceSetup.Modify();
     end;
 
@@ -247,10 +245,10 @@ codeunit 1294 "OCR Service Mgt."
     procedure UpdateOcrDocumentTemplates()
     var
         OCRServiceDocumentTemplate: Record "OCR Service Document Template";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLRootNode: DotNet XmlNode;
-        XMLNode: DotNet XmlNode;
-        XMLNode2: DotNet XmlNode;
+        XmlRootNode: XmlNode;
+        DocumentTypeXmlNode: XmlNode;
+        ChildXmlNode: XmlNode;
+        DocumentTypeXmlNodeList: XmlNodeList;
         ResponseStr: InStream;
     begin
         GetOcrServiceSetup(false);
@@ -258,16 +256,17 @@ codeunit 1294 "OCR Service Mgt."
 
         if not RsoGetRequest(StrSubstNo(UserConfigurationPathTxt, OCRServiceSetup."Organization ID"), ResponseStr) then
             Session.LogMessage('00008KD', GettingUserConfigurationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
-        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
+        TryLoadXmlRootNode(ResponseStr, XmlRootNode);
 
         OCRServiceDocumentTemplate.LockTable();
         OCRServiceDocumentTemplate.DeleteAll();
-        foreach XMLNode in XMLRootNode.SelectNodes('AvailableDocumentTypes/UserConfigurationDocumentType') do begin
+        XmlRootNode.SelectNodes('AvailableDocumentTypes/UserConfigurationDocumentType', DocumentTypeXmlNodeList);
+        foreach DocumentTypeXmlNode in DocumentTypeXmlNodeList do begin
             OCRServiceDocumentTemplate.Init();
-            XMLNode2 := XMLNode.SelectSingleNode('SystemName');
-            OCRServiceDocumentTemplate.Code := CopyStr(XMLNode2.InnerText, 1, MaxStrLen(OCRServiceDocumentTemplate.Code));
-            XMLNode2 := XMLNode.SelectSingleNode('Name');
-            OCRServiceDocumentTemplate.Name := CopyStr(XMLNode2.InnerText, 1, MaxStrLen(OCRServiceDocumentTemplate.Name));
+            DocumentTypeXmlNode.SelectSingleNode('SystemName', ChildXmlNode);
+            OCRServiceDocumentTemplate.Code := CopyStr(GetNodeInnerText(ChildXmlNode), 1, MaxStrLen(OCRServiceDocumentTemplate.Code));
+            DocumentTypeXmlNode.SelectSingleNode('Name', ChildXmlNode);
+            OCRServiceDocumentTemplate.Name := CopyStr(GetNodeInnerText(ChildXmlNode), 1, MaxStrLen(OCRServiceDocumentTemplate.Name));
             OCRServiceDocumentTemplate.Insert();
         end;
     end;
@@ -487,6 +486,42 @@ codeunit 1294 "OCR Service Mgt."
             Node.IsXmlText():
                 exit(Node.AsXmlText().Value());
         end;
+        exit('');
+    end;
+
+    [TryFunction]
+    local procedure TryLoadXmlRootNode(var InStr: InStream; var XmlRootNode: XmlNode)
+    var
+        XmlDoc: XmlDocument;
+        RootXmlElement: XmlElement;
+    begin
+        XmlDocument.ReadFrom(InStr, XmlDoc);
+        XmlDoc.GetRoot(RootXmlElement);
+        XmlRootNode := RootXmlElement.AsXmlNode();
+    end;
+
+    local procedure LoadXmlRootNode(var InStr: InStream; var XmlRootNode: XmlNode): Boolean
+    var
+        EmptyXmlDoc: XmlDocument;
+        EmptyXmlElement: XmlElement;
+    begin
+        if TryLoadXmlRootNode(InStr, XmlRootNode) then
+            exit(true);
+
+        // The response could not be loaded: continue with an empty document so that no nodes are found.
+        EmptyXmlDoc := XmlDocument.Create();
+        EmptyXmlElement := XmlElement.Create('Empty');
+        EmptyXmlDoc.Add(EmptyXmlElement);
+        XmlRootNode := EmptyXmlElement.AsXmlNode();
+        exit(false);
+    end;
+
+    local procedure FindNodeText(XmlRootNode: XmlNode; NodePath: Text): Text
+    var
+        FoundXmlNode: XmlNode;
+    begin
+        if XmlRootNode.SelectSingleNode(NodePath, FoundXmlNode) then
+            exit(GetNodeInnerText(FoundXmlNode));
         exit('');
     end;
 
@@ -730,85 +765,153 @@ codeunit 1294 "OCR Service Mgt."
 
     procedure CorrectOCRFile(IncomingDocument: Record "Incoming Document"; var TempBlob: Codeunit "Temp Blob")
     var
-        OCRFileXMLRootNode: DotNet XmlNode;
+        OCRFileXmlRootNode: XmlNode;
+        OCRFileXmlDocument: XmlDocument;
+        OCRFileXmlDeclaration: XmlDeclaration;
         OutStream: OutStream;
+        OCRFileXmlText: Text;
     begin
         ValidateUpdatedOCRFields(IncomingDocument);
 
-        GetOriginalOCRXMLRootNode(IncomingDocument, OCRFileXMLRootNode);
+        GetOriginalOCRXMLRootNode(IncomingDocument, OCRFileXmlRootNode);
 
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Name"));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Invoice No."));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Order No."));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Document Date"));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Due Date"));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Amount Excl. VAT"));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Amount Incl. VAT"));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("VAT Amount"));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Currency Code"));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor VAT Registration No."));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor IBAN"));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Bank Branch No."));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Bank Account No."));
-        CorrectOCRFileNode(OCRFileXMLRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Phone No."));
-        OnCorrectOCRFileOnAfterCorrectOCRFileNodes(OCRFileXMLRootNode, IncomingDocument);
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Name"));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Invoice No."));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Order No."));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Document Date"));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Due Date"));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Amount Excl. VAT"));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Amount Incl. VAT"));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("VAT Amount"));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Currency Code"));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor VAT Registration No."));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor IBAN"));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Bank Branch No."));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Bank Account No."));
+        CorrectOCRFileNode(OCRFileXmlRootNode, IncomingDocument, IncomingDocument.FieldNo("Vendor Phone No."));
+#if not CLEAN30
+        RaiseOnCorrectOCRFileOnAfterCorrectOCRFileNodes(OCRFileXmlRootNode, IncomingDocument);
+#endif
+        OnCorrectOCRFileOnAfterCorrectOCRFileXmlNodes(OCRFileXmlRootNode, IncomingDocument);
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStream);
-        OCRFileXMLRootNode.OwnerDocument.Save(OutStream);
+        OCRFileXmlRootNode.GetDocument(OCRFileXmlDocument);
+        if OCRFileXmlDocument.GetDeclaration(OCRFileXmlDeclaration) then
+            OCRFileXmlDocument.WriteTo(OutStream)
+        else begin
+            // XmlDocument.WriteTo always adds a declaration, so write only the root element when the original file has none.
+            OCRFileXmlRootNode.WriteTo(OCRFileXmlText);
+            Clear(TempBlob);
+            TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+            OutStream.WriteText(OCRFileXmlText);
+        end;
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use CorrectOCRFileNode with a native XmlNode parameter instead.', '30.0')]
     procedure CorrectOCRFileNode(var OCRFileXMLRootNode: DotNet XmlNode; IncomingDocument: Record "Incoming Document"; FieldNo: Integer)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         CorrectionXMLNode: DotNet XmlNode;
         EmptyCorrectionXMLNode: DotNet XmlNode;
         CorrectionXMLNodeParent: DotNet XmlNode;
         PositionXMLNode: DotNet XmlNode;
-        IncomingDocumentRecRef: RecordRef;
-        IncomingDocumentFieldRef: FieldRef;
         XPath: Text;
         CorrectionValue: Text;
-        CorrectionNeeded: Boolean;
+    begin
+        XPath := IncomingDocument.GetDataExchangePath(FieldNo);
+        if XPath = '' then
+            exit;
+        if IsNull(OCRFileXMLRootNode) then
+            exit;
+        CorrectionXMLNode := OCRFileXMLRootNode.SelectSingleNode(XPath);
+        if IsNull(CorrectionXMLNode) then
+            exit;
+        if not IsOCRFileCorrectionNeeded(IncomingDocument, FieldNo, CorrectionXMLNode.InnerText, CorrectionValue) then
+            exit;
+
+        PositionXMLNode := CorrectionXMLNode.SelectSingleNode('../Position');
+        if not IsNull(PositionXMLNode) then
+            PositionXMLNode.InnerText := '0, 0, 0, 0';
+        if CorrectionValue = '' then begin
+            CorrectionXMLNodeParent := CorrectionXMLNode.ParentNode;
+            EmptyCorrectionXMLNode := CorrectionXMLNodeParent.OwnerDocument.CreateElement(CorrectionXMLNode.Name);
+            CorrectionXMLNodeParent.ReplaceChild(EmptyCorrectionXMLNode, CorrectionXMLNode);
+        end else
+            CorrectionXMLNode.InnerText := CorrectionValue
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure CorrectOCRFileNode(var OCRFileXmlRootNode: XmlNode; IncomingDocument: Record "Incoming Document"; FieldNo: Integer)
+    var
+        CorrectionXmlNode: XmlNode;
+        PositionXmlNode: XmlNode;
+        XPath: Text;
+        CorrectionValue: Text;
+    begin
+        XPath := IncomingDocument.GetDataExchangePath(FieldNo);
+        if XPath = '' then
+            exit;
+        if not OCRFileXmlRootNode.SelectSingleNode(XPath, CorrectionXmlNode) then
+            exit;
+        if not IsOCRFileCorrectionNeeded(IncomingDocument, FieldNo, GetNodeInnerText(CorrectionXmlNode), CorrectionValue) then
+            exit;
+
+        if CorrectionXmlNode.SelectSingleNode('../Position', PositionXmlNode) then
+            SetNodeInnerText(PositionXmlNode, '0, 0, 0, 0');
+        if (CorrectionValue = '') and CorrectionXmlNode.IsXmlElement() then
+            CorrectionXmlNode.ReplaceWith(
+                XmlElement.Create(CorrectionXmlNode.AsXmlElement().LocalName(), CorrectionXmlNode.AsXmlElement().NamespaceUri()))
+        else
+            SetNodeInnerText(CorrectionXmlNode, CorrectionValue);
+    end;
+
+    local procedure IsOCRFileCorrectionNeeded(IncomingDocument: Record "Incoming Document"; FieldNo: Integer; OriginalValue: Text; var CorrectionValue: Text) CorrectionNeeded: Boolean
+    var
+        IncomingDocumentRecRef: RecordRef;
+        IncomingDocumentFieldRef: FieldRef;
         CorrectionValueAsDecimal: Decimal;
         OriginalValueAsDecimal: Decimal;
     begin
         IncomingDocumentRecRef.GetTable(IncomingDocument);
-        XPath := IncomingDocument.GetDataExchangePath(FieldNo);
-        if XPath = '' then
-            exit;
-        if XMLDOMManagement.FindNode(OCRFileXMLRootNode, XPath, CorrectionXMLNode) then begin
-            IncomingDocumentFieldRef := IncomingDocumentRecRef.Field(FieldNo);
+        IncomingDocumentFieldRef := IncomingDocumentRecRef.Field(FieldNo);
 
-            case IncomingDocumentFieldRef.Type of
-                FieldType::Date:
-                    begin
-                        CorrectionValue := DateConvertXML2YYYYMMDD(Format(IncomingDocumentFieldRef.Value, 0, 9));
-                        CorrectionNeeded := CorrectionXMLNode.InnerText <> CorrectionValue;
-                    end;
-                FieldType::Decimal:
-                    begin
-                        CorrectionValueAsDecimal := IncomingDocumentFieldRef.Value();
-                        CorrectionValue := Format(IncomingDocumentFieldRef.Value, 0, 9);
-                        if Evaluate(OriginalValueAsDecimal, CorrectionXMLNode.InnerText, 9) then;
-                        CorrectionNeeded := OriginalValueAsDecimal <> CorrectionValueAsDecimal;
-                    end;
-                else begin
-                    CorrectionValue := Format(IncomingDocumentFieldRef.Value, 0, 9);
-                    CorrectionNeeded := CorrectionXMLNode.InnerText <> CorrectionValue;
+        case IncomingDocumentFieldRef.Type of
+            FieldType::Date:
+                begin
+                    CorrectionValue := DateConvertXML2YYYYMMDD(Format(IncomingDocumentFieldRef.Value, 0, 9));
+                    CorrectionNeeded := OriginalValue <> CorrectionValue;
                 end;
+            FieldType::Decimal:
+                begin
+                    CorrectionValueAsDecimal := IncomingDocumentFieldRef.Value();
+                    CorrectionValue := Format(IncomingDocumentFieldRef.Value, 0, 9);
+                    if Evaluate(OriginalValueAsDecimal, OriginalValue, 9) then;
+                    CorrectionNeeded := OriginalValueAsDecimal <> CorrectionValueAsDecimal;
+                end;
+            else begin
+                CorrectionValue := Format(IncomingDocumentFieldRef.Value, 0, 9);
+                CorrectionNeeded := OriginalValue <> CorrectionValue;
             end;
+        end;
+    end;
 
-            if CorrectionNeeded then begin
-                if XMLDOMManagement.FindNode(CorrectionXMLNode, '../Position', PositionXMLNode) then
-                    PositionXMLNode.InnerText := '0, 0, 0, 0';
-                if CorrectionValue = '' then begin
-                    CorrectionXMLNodeParent := CorrectionXMLNode.ParentNode;
-                    EmptyCorrectionXMLNode := CorrectionXMLNodeParent.OwnerDocument.CreateElement(CorrectionXMLNode.Name);
-                    CorrectionXMLNodeParent.ReplaceChild(EmptyCorrectionXMLNode, CorrectionXMLNode);
-                end else
-                    CorrectionXMLNode.InnerText := CorrectionValue
-            end;
+    local procedure SetNodeInnerText(Node: XmlNode; NewText: Text)
+    var
+        NodeXmlElement: XmlElement;
+    begin
+        case true of
+            Node.IsXmlElement():
+                begin
+                    NodeXmlElement := Node.AsXmlElement();
+                    NodeXmlElement.RemoveNodes();
+                    NodeXmlElement.Add(XmlText.Create(NewText));
+                end;
+            Node.IsXmlAttribute():
+                Node.AsXmlAttribute().Value(NewText);
+            Node.IsXmlText():
+                Node.AsXmlText().Value(NewText);
         end;
     end;
 
@@ -817,13 +920,12 @@ codeunit 1294 "OCR Service Mgt."
         IncomingDocument.TestField("Vendor Name");
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use GetOriginalOCRXMLRootNode with a native XmlNode parameter instead.', '30.0')]
     procedure GetOriginalOCRXMLRootNode(IncomingDocument: Record "Incoming Document"; var OriginalXMLRootNode: DotNet XmlNode)
     var
-        IncomingDocumentAttachment: Record "Incoming Document Attachment";
-        TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        InStream: InStream;
+        OriginalXmlNode: XmlNode;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -831,17 +933,91 @@ codeunit 1294 "OCR Service Mgt."
         if IsHandled then
             exit;
 
+        if LoadOriginalOCRXmlRootNode(IncomingDocument, OriginalXmlNode) then
+            ConvertToDotNetXmlNode(OriginalXmlNode, OriginalXMLRootNode);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure GetOriginalOCRXMLRootNode(IncomingDocument: Record "Incoming Document"; var OriginalXmlRootNode: XmlNode)
+#if not CLEAN30
+    var
+        OriginalXMLRootNodeDotNet: DotNet XmlNode;
+        IsHandled: Boolean;
+#endif
+    begin
+#if not CLEAN30
+        IsHandled := false;
+#pragma warning disable AL0432
+        OnBeforeGetOriginalOCRXMLRootNode(IncomingDocument, OriginalXMLRootNodeDotNet, IsHandled);
+#pragma warning restore AL0432
+        if IsHandled then begin
+            if not IsNull(OriginalXMLRootNodeDotNet) then
+                ConvertFromDotNetXmlNode(OriginalXMLRootNodeDotNet, OriginalXmlRootNode);
+            exit;
+        end;
+#endif
+        LoadOriginalOCRXmlRootNode(IncomingDocument, OriginalXmlRootNode);
+    end;
+
+    local procedure LoadOriginalOCRXmlRootNode(IncomingDocument: Record "Incoming Document"; var OriginalXmlRootNode: XmlNode): Boolean
+    var
+        IncomingDocumentAttachment: Record "Incoming Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeGetOriginalOCRXmlNode(IncomingDocument, OriginalXmlRootNode, IsHandled);
+        if IsHandled then
+            exit(true);
+
         IncomingDocument.TestField(Posted, false);
         IncomingDocumentAttachment.SetRange("Incoming Document Entry No.", IncomingDocument."Entry No.");
         IncomingDocumentAttachment.SetRange("Generated from OCR", true);
         IncomingDocumentAttachment.SetRange(Default, true);
         if not IncomingDocumentAttachment.FindFirst() then
-            exit;
+            exit(false);
 
         TempBlob.FromRecord(IncomingDocumentAttachment, IncomingDocumentAttachment.FieldNo(Content));
         TempBlob.CreateInStream(InStream);
-        XMLDOMManagement.LoadXMLNodeFromInStream(InStream, OriginalXMLRootNode);
+        exit(TryLoadXmlRootNode(InStream, OriginalXmlRootNode));
     end;
+#if not CLEAN30
+    local procedure RaiseOnCorrectOCRFileOnAfterCorrectOCRFileNodes(var OCRFileXmlRootNode: XmlNode; var IncomingDocument: Record "Incoming Document")
+    var
+        OCRFileXMLRootNodeDotNet: DotNet XmlNode;
+    begin
+        ConvertToDotNetXmlNode(OCRFileXmlRootNode, OCRFileXMLRootNodeDotNet);
+#pragma warning disable AL0432
+        OnCorrectOCRFileOnAfterCorrectOCRFileNodes(OCRFileXMLRootNodeDotNet, IncomingDocument);
+#pragma warning restore AL0432
+        ConvertFromDotNetXmlNode(OCRFileXMLRootNodeDotNet, OCRFileXmlRootNode);
+    end;
+
+    local procedure ConvertToDotNetXmlNode(XmlRootNode: XmlNode; var DotNetXmlRootNode: DotNet XmlNode)
+    var
+        NativeXmlDocument: XmlDocument;
+        DotNetXmlDocument: DotNet XmlDocument;
+        XmlText: Text;
+    begin
+        XmlRootNode.GetDocument(NativeXmlDocument);
+        NativeXmlDocument.WriteTo(XmlText);
+        DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
+        DotNetXmlDocument.LoadXml(XmlText);
+        DotNetXmlRootNode := DotNetXmlDocument.DocumentElement;
+    end;
+
+    local procedure ConvertFromDotNetXmlNode(DotNetXmlRootNode: DotNet XmlNode; var XmlRootNode: XmlNode)
+    var
+        NativeXmlDocument: XmlDocument;
+        RootXmlElement: XmlElement;
+    begin
+        XmlDocument.ReadFrom(DotNetXmlRootNode.OwnerDocument.OuterXml(), NativeXmlDocument);
+        NativeXmlDocument.GetRoot(RootXmlElement);
+        XmlRootNode := RootXmlElement.AsXmlNode();
+    end;
+#endif
 
     procedure GetOCRServiceDocumentReference(IncomingDocument: Record "Incoming Document"): Text[50]
     var
@@ -868,10 +1044,10 @@ codeunit 1294 "OCR Service Mgt."
     procedure GetDocuments(ExternalBatchFilter: Text): Integer
     var
         Regex: Codeunit Regex;
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLRootNode: DotNet XmlNode;
-        XMLNode: DotNet XmlNode;
-        ChildNode: DotNet XmlNode;
+        XmlRootNode: XmlNode;
+        BatchXmlNode: XmlNode;
+        ChildXmlNode: XmlNode;
+        DocumentIdXmlNodeList: XmlNodeList;
         ResponseStr: InStream;
         ExternalBatchId: Text[50];
         DocId: Text[50];
@@ -883,15 +1059,16 @@ codeunit 1294 "OCR Service Mgt."
         if not RsoGetRequest(StrSubstNo(OutputDocumentsPathTxt, OCRServiceSetup."Customer ID"), ResponseStr) then
             Session.LogMessage('00008KK', GettingDocumentsForCustomerFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
 
-        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
+        TryLoadXmlRootNode(ResponseStr, XmlRootNode);
 
-        foreach XMLNode in XMLRootNode.ChildNodes do begin
-            ChildNode := XMLNode.SelectSingleNode('BatchExternalId');
-            ExternalBatchId := ChildNode.InnerText;
-            if (ExternalBatchFilter = '') or (ExternalBatchFilter = ExternalBatchId) then
-                foreach ChildNode in XMLNode.SelectNodes('DocumentId') do begin
+        foreach BatchXmlNode in XmlRootNode.AsXmlElement().GetChildElements() do begin
+            BatchXmlNode.SelectSingleNode('BatchExternalId', ChildXmlNode);
+            ExternalBatchId := CopyStr(GetNodeInnerText(ChildXmlNode), 1, MaxStrLen(ExternalBatchId));
+            if (ExternalBatchFilter = '') or (ExternalBatchFilter = ExternalBatchId) then begin
+                BatchXmlNode.SelectNodes('DocumentId', DocumentIdXmlNodeList);
+                foreach ChildXmlNode in DocumentIdXmlNodeList do begin
                     CountProcessed += 1;
-                    DocId := ChildNode.InnerText;
+                    DocId := CopyStr(GetNodeInnerText(ChildXmlNode), 1, MaxStrLen(DocId));
 
                     if not Regex.IsMatch(DocId, '^[a-zA-Z0-9\-\{\}]*$') then begin
                         Session.LogMessage('00008LB', InvalidDocumentIdTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
@@ -906,6 +1083,7 @@ codeunit 1294 "OCR Service Mgt."
                         exit(CountDownloaded);
                     end;
                 end;
+            end;
         end;
 
         Session.LogMessage('00008KM', StrSubstNo(DocumentsDownloadedTxt, CountDownloaded, CountProcessed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
@@ -1006,9 +1184,8 @@ codeunit 1294 "OCR Service Mgt."
         exit(Status);
     end;
 
-    local procedure GetBatchDocuments(var XMLRootNode: DotNet XmlNode; BatchFilter: Text): Boolean
+    local procedure GetBatchDocuments(var XmlRootNode: XmlNode; BatchFilter: Text): Boolean
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ResponseStr: InStream;
         Path: Text;
         PageSize: Integer;
@@ -1023,13 +1200,12 @@ codeunit 1294 "OCR Service Mgt."
             Session.LogMessage('00008KN', GettingBatchDocumentsFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             exit(false);
         end;
-        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
+        LoadXmlRootNode(ResponseStr, XmlRootNode);
         exit(true);
     end;
 
-    local procedure GetBatchesApi(var XMLRootNode: DotNet XmlNode; ExternalBatchFilter: Text): Boolean
+    local procedure GetBatchesApi(var XmlRootNode: XmlNode; ExternalBatchFilter: Text): Boolean
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ResponseStr: InStream;
         Path: Text;
         PageSize: Integer;
@@ -1051,30 +1227,30 @@ codeunit 1294 "OCR Service Mgt."
             exit(false);
         end;
 
-        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode);
+        LoadXmlRootNode(ResponseStr, XmlRootNode);
         exit(true);
     end;
 
     local procedure GetBatches(var TempIncomingDocumentAttachment: Record "Incoming Document Attachment" temporary; ExternalBatchFilter: Text): Boolean
     var
         IncomingDocument: Record "Incoming Document";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         SendIncomingDocumentToOCR: Codeunit "Send Incoming Document to OCR";
-        XMLRootNode: DotNet XmlNode;
+        XmlRootNode: XmlNode;
+        BatchesXmlNode: XmlNode;
         CurrentPage: Integer;
         TotalPages: Integer;
     begin
         repeat
-            if not GetBatchesApi(XMLRootNode, ExternalBatchFilter) then
+            if not GetBatchesApi(XmlRootNode, ExternalBatchFilter) then
                 exit(false);
 
-            if not Evaluate(TotalPages, XMLDOMManagement.FindNodeText(XMLRootNode, '//PageCount')) then begin
+            if not Evaluate(TotalPages, FindNodeText(XmlRootNode, '//PageCount')) then begin
                 Session.LogMessage('00008LD', GettingBatchesFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
                 exit(false);
             end;
 
-            XMLDOMManagement.FindNode(XMLRootNode, '//Batches', XMLRootNode);
-            FindDocumentFromList(XMLRootNode, TempIncomingDocumentAttachment);
+            XmlRootNode.SelectSingleNode('//Batches', BatchesXmlNode);
+            FindDocumentFromList(BatchesXmlNode, TempIncomingDocumentAttachment);
 
             CurrentPage += 1;
         until (TempIncomingDocumentAttachment.Count = 0) or (CurrentPage > TotalPages);
@@ -1091,22 +1267,21 @@ codeunit 1294 "OCR Service Mgt."
     [Scope('OnPrem')]
     procedure GetDocumentId(ExternalBatchFilter: Text): Text
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLRootNode: DotNet XmlNode;
+        XmlRootNode: XmlNode;
         BatchID: Text;
         DocumentID: Text;
     begin
         GetOcrServiceSetup(true);
 
-        if not GetBatchesApi(XMLRootNode, ExternalBatchFilter) then
+        if not GetBatchesApi(XmlRootNode, ExternalBatchFilter) then
             exit('');
 
-        BatchID := XMLDOMManagement.FindNodeText(XMLRootNode, '/PagedBatches/Batches/Batch/Id');
+        BatchID := FindNodeText(XmlRootNode, '/PagedBatches/Batches/Batch/Id');
 
-        if not GetBatchDocuments(XMLRootNode, BatchID) then
+        if not GetBatchDocuments(XmlRootNode, BatchID) then
             exit('');
 
-        DocumentID := XMLDOMManagement.FindNodeText(XMLRootNode, '/PagedDocuments/Documents/Document/Id');
+        DocumentID := FindNodeText(XmlRootNode, '/PagedDocuments/Documents/Document/Id');
 
         exit(DocumentID);
     end;
@@ -1115,12 +1290,11 @@ codeunit 1294 "OCR Service Mgt."
     var
         IncomingDocument: Record "Incoming Document";
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         SendIncomingDocumentToOCR: Codeunit "Send Incoming Document to OCR";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         ImageInStr: InStream;
         ResponseStr: InStream;
-        XMLRootNode: DotNet XmlNode;
+        XmlRootNode: XmlNode;
         AttachmentName: Text[250];
         ContentType: Text;
         TrackId: Text;
@@ -1138,7 +1312,7 @@ codeunit 1294 "OCR Service Mgt."
             LogActivityFailedNoError(OCRServiceSetup.RecordId, StrSubstNo(DocumentNotDownloadedTxt, DocId, ''), '');
             exit(0);
         end;
-        if not XMLDOMManagement.LoadXMLNodeFromInStream(ResponseStr, XMLRootNode) then begin
+        if not TryLoadXmlRootNode(ResponseStr, XmlRootNode) then begin
             Session.LogMessage('000089N', OCRServiceUserFailedToDownloadDocumentTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             LogActivityFailedNoError(OCRServiceSetup.RecordId, StrSubstNo(DocumentNotDownloadedTxt, DocId, ''), '');
             exit(0);
@@ -1146,7 +1320,7 @@ codeunit 1294 "OCR Service Mgt."
         FeatureTelemetry.LogUptake('0000IMN', TelemetryCategoryTok, Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000IMO', TelemetryCategoryTok, 'Document imported');
 
-        TrackId := XMLDOMManagement.FindNodeText(XMLRootNode, 'TrackId');
+        TrackId := FindNodeText(XmlRootNode, 'TrackId');
 
         if ExternalBatchId <> '' then
             IncomingDocumentAttachment.SetRange("External Document Reference", ExternalBatchId);
@@ -1156,7 +1330,7 @@ codeunit 1294 "OCR Service Mgt."
             AttachmentName := IncomingDocumentAttachment.Name;
         end else begin  // New Incoming Document
             Session.LogMessage('00008KR', InsertingIncomingDocumentTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
-            AttachmentName := CopyStr(XMLDOMManagement.FindNodeText(XMLRootNode, 'OriginalFilename'), 1, MaxStrLen(AttachmentName));
+            AttachmentName := CopyStr(FindNodeText(XmlRootNode, 'OriginalFilename'), 1, MaxStrLen(AttachmentName));
             IncomingDocument.Init();
             IncomingDocument.CreateIncomingDocument(AttachmentName, '');
             IncomingDocumentAttachment.SetRange("External Document Reference");
@@ -1180,7 +1354,7 @@ codeunit 1294 "OCR Service Mgt."
         IncomingDocument.Get(IncomingDocument."Entry No.");
         SendIncomingDocumentToOCR.SetStatusToReceived(IncomingDocument);
 
-        UpdateIncomingDocWithOCRData(IncomingDocument, XMLRootNode);
+        UpdateIncomingDocWithOCRData(IncomingDocument, XmlRootNode);
         Session.LogMessage('000089O', OCRServiceUserSuccessfullyDownloadedDocumentTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
         LogActivitySucceeded(OCRServiceSetup.RecordId, GetDocumentMsg, StrSubstNo(DocumentDownloadedTxt, DocId, TrackId));
         LogActivitySucceeded(IncomingDocument.RecordId, GetDocumentMsg, StrSubstNo(DocumentDownloadedTxt, DocId, TrackId));
@@ -1202,12 +1376,24 @@ codeunit 1294 "OCR Service Mgt."
         exit(1);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use UpdateIncomingDocWithOCRData with a native XmlNode parameter instead.', '30.0')]
     procedure UpdateIncomingDocWithOCRData(var IncomingDocument: Record "Incoming Document"; var XMLRootNode: DotNet XmlNode)
+    var
+        XmlRootNodeNative: XmlNode;
+    begin
+        if not IsNull(XMLRootNode) then
+            ConvertFromDotNetXmlNode(XMLRootNode, XmlRootNodeNative);
+        UpdateIncomingDocWithOCRData(IncomingDocument, XmlRootNodeNative);
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure UpdateIncomingDocWithOCRData(var IncomingDocument: Record "Incoming Document"; var XmlRootNode: XmlNode)
     var
         Vendor: Record Vendor;
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         VendorFound: Boolean;
     begin
         if IncomingDocument."Data Exchange Type" = '' then
@@ -1221,15 +1407,15 @@ codeunit 1294 "OCR Service Mgt."
             exit;
         end;
 
-        IncomingDocumentAttachment.ExtractHeaderFields(XMLRootNode, IncomingDocument);
+        IncomingDocumentAttachment.ExtractHeaderFields(XmlRootNode, IncomingDocument);
         IncomingDocument.Get(IncomingDocument."Entry No.");
 
-        if XMLDOMManagement.FindNodeText(XMLRootNode, 'HeaderFields/HeaderField/Text[../Type/text() = "creditinvoice"]') =
+        if FindNodeText(XmlRootNode, 'HeaderFields/HeaderField/Text[../Type/text() = "creditinvoice"]') =
            'true'
         then
             IncomingDocument."Document Type" := IncomingDocument."Document Type"::"Purchase Credit Memo";
 
-        IncomingDocument."OCR Track ID" := CopyStr(XMLDOMManagement.FindNodeText(XMLRootNode, 'TrackId'), 1, MaxStrLen(IncomingDocument."OCR Track ID"));
+        IncomingDocument."OCR Track ID" := CopyStr(FindNodeText(XmlRootNode, 'TrackId'), 1, MaxStrLen(IncomingDocument."OCR Track ID"));
 
         if not IsNullGuid(IncomingDocument."Vendor Id") then
             VendorFound := Vendor.GetBySystemId(IncomingDocument."Vendor Id");
@@ -1370,25 +1556,24 @@ codeunit 1294 "OCR Service Mgt."
         end;
     end;
 
-    local procedure FindDocumentFromList(var XMLRootNode: DotNet XmlNode; var TempIncomingDocumentAttachment: Record "Incoming Document Attachment" temporary)
+    local procedure FindDocumentFromList(var XmlRootNode: XmlNode; var TempIncomingDocumentAttachment: Record "Incoming Document Attachment" temporary)
     var
         IncomingDocument: Record "Incoming Document";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         SendIncomingDocumentToOCR: Codeunit "Send Incoming Document to OCR";
-        XMLNode: DotNet XmlNode;
+        DocumentXmlNode: XmlNode;
         DocId: Text;
         DocStatus: Integer;
         StatusAsInt: Integer;
     begin
-        foreach XMLNode in XMLRootNode.ChildNodes do begin
+        foreach DocumentXmlNode in XmlRootNode.AsXmlElement().GetChildElements() do begin
             if TempIncomingDocumentAttachment.IsEmpty() then
                 exit;
 
-            DocId := XMLDOMManagement.FindNodeText(XMLNode, './ExternalId');
+            DocId := FindNodeText(DocumentXmlNode, './ExternalId');
             TempIncomingDocumentAttachment.SetRange("External Document Reference", DocId);
             if TempIncomingDocumentAttachment.FindSet() then
                 repeat
-                    Evaluate(StatusAsInt, XMLDOMManagement.FindNodeText(XMLNode, './StatusAsInt'));
+                    Evaluate(StatusAsInt, FindNodeText(DocumentXmlNode, './StatusAsInt'));
                     DocStatus := GetDocumentSimplifiedStatus(StatusAsInt);
                     IncomingDocument.Get(TempIncomingDocumentAttachment."Incoming Document Entry No.");
                     case DocStatus of
@@ -1494,8 +1679,16 @@ codeunit 1294 "OCR Service Mgt."
             Session.LogMessage('000089Q', OCRServiceUserCreatedInvoiceOutOfOCRedDocumentTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
     end;
 
+#if not CLEAN30
     [IntegrationEvent(false, false)]
+    [Obsolete('Use OnBeforeGetOriginalOCRXmlNode instead.', '30.0')]
     local procedure OnBeforeGetOriginalOCRXMLRootNode(IncomingDocument: Record "Incoming Document"; var OriginalXMLRootNode: DotNet XmlNode; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetOriginalOCRXmlNode(IncomingDocument: Record "Incoming Document"; var OriginalXmlRootNode: XmlNode; var IsHandled: Boolean)
     begin
     end;
 
@@ -1504,8 +1697,16 @@ codeunit 1294 "OCR Service Mgt."
     begin
     end;
 
+#if not CLEAN30
     [IntegrationEvent(false, false)]
+    [Obsolete('Use OnCorrectOCRFileOnAfterCorrectOCRFileXmlNodes instead.', '30.0')]
     local procedure OnCorrectOCRFileOnAfterCorrectOCRFileNodes(var OCRFileXMLRootNode: DotNet XmlNode; var IncomingDocument: Record "Incoming Document")
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCorrectOCRFileOnAfterCorrectOCRFileXmlNodes(var OCRFileXmlRootNode: XmlNode; var IncomingDocument: Record "Incoming Document")
     begin
     end;
 

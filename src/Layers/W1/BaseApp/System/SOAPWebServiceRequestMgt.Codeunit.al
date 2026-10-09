@@ -2,10 +2,10 @@ namespace System.Integration;
 
 using Microsoft.Utilities;
 using System;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Utilities;
-using System.Xml;
 
 codeunit 1290 "SOAP Web Service Request Mgt."
 {
@@ -93,58 +93,88 @@ codeunit 1290 "SOAP Web Service Request Mgt."
 
     local procedure CreateSoapRequest(RequestOutStream: OutStream; BodyContentInStream: InStream; Username: Text; Password: SecretText)
     var
+#if not CLEAN30
         [NonDebuggable]
-        XmlDoc: DotNet XmlDocument;
-        BodyXmlNode: DotNet XmlNode;
+        DotNetXmlDoc: DotNet XmlDocument;
         [NonDebuggable]
-        PasswordFromEvent: Text;
+        PasswordFromObsoleteEvent: Text;
+#endif
+        [NonDebuggable]
+        XmlDoc: XmlDocument;
+        BodyXmlNode: XmlNode;
+        PasswordFromEvent: SecretText;
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCreateSoapRequest(RequestOutStream, BodyContentInStream, XMLDoc, UserName, PasswordFromEvent, TraceLogEnabled, IsHandled);
-        if PasswordFromEvent <> '' then
+#if not CLEAN30
+#pragma warning disable AL0432
+        OnBeforeCreateSoapRequest(RequestOutStream, BodyContentInStream, DotNetXmlDoc, UserName, PasswordFromObsoleteEvent, TraceLogEnabled, IsHandled);
+#pragma warning restore AL0432
+        if PasswordFromObsoleteEvent <> '' then
+            Password := PasswordFromObsoleteEvent;
+        if IsHandled then
+            exit;
+#endif
+        OnBeforeCreateSoapRequestXml(RequestOutStream, BodyContentInStream, XmlDoc, Username, PasswordFromEvent, TraceLogEnabled, IsHandled);
+        if not PasswordFromEvent.IsEmpty() then
             Password := PasswordFromEvent;
         if IsHandled then
             exit;
 
         CreateEnvelope(XmlDoc, BodyXmlNode, Username, Password);
         AddBodyToEnvelope(BodyXmlNode, BodyContentInStream);
-        XmlDoc.Save(RequestOutStream);
+        WriteXmlDocumentWithoutDeclaration(XmlDoc, RequestOutStream);
         TraceLogXmlDocToTempFile(XmlDoc, 'FullRequest');
     end;
 
     [NonDebuggable]
-    local procedure CreateEnvelope(var XmlDoc: DotNet XmlDocument; var BodyXmlNode: DotNet XmlNode; Username: Text; Password: SecretText)
+    local procedure CreateEnvelope(var XmlDoc: XmlDocument; var BodyXmlNode: XmlNode; Username: Text; Password: SecretText)
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        EnvelopeXmlNode: DotNet XmlNode;
-        HeaderXmlNode: DotNet XmlNode;
-        SecurityXmlNode: DotNet XmlNode;
-        UsernameTokenXmlNode: DotNet XmlNode;
-        TempXmlNode: DotNet XmlNode;
-        PasswordXmlNode: DotNet XmlNode;
+        EnvelopeXmlElement: XmlElement;
+        HeaderXmlElement: XmlElement;
+        SecurityXmlElement: XmlElement;
+        UsernameTokenXmlElement: XmlElement;
+        PasswordXmlElement: XmlElement;
+        BodyXmlElement: XmlElement;
     begin
-        XmlDoc := XmlDoc.XmlDocument();
-        XMLDOMMgt.AddRootElementWithPrefix(XmlDoc, 'Envelope', 's', SoapNamespaceTxt, EnvelopeXmlNode);
-        XMLDOMMgt.AddAttribute(EnvelopeXmlNode, 'xmlns:u', SecurityUtilityNamespaceTxt);
+        XmlDoc := XmlDocument.Create();
+        EnvelopeXmlElement := XmlElement.Create('Envelope', SoapNamespaceTxt);
+        EnvelopeXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration('s', SoapNamespaceTxt));
+        EnvelopeXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration('u', SecurityUtilityNamespaceTxt));
+        XmlDoc.Add(EnvelopeXmlElement);
 
-        XMLDOMMgt.AddElementWithPrefix(EnvelopeXmlNode, 'Header', '', 's', SoapNamespaceTxt, HeaderXmlNode);
+        HeaderXmlElement := XmlElement.Create('Header', SoapNamespaceTxt);
+        EnvelopeXmlElement.Add(HeaderXmlElement);
 
         if (Username <> '') or (not Password.IsEmpty()) then begin
-            XMLDOMMgt.AddElementWithPrefix(HeaderXmlNode, 'Security', '', 'o', SecurityExtensionNamespaceTxt, SecurityXmlNode);
-            XMLDOMMgt.AddAttributeWithPrefix(SecurityXmlNode, 'mustUnderstand', 's', SoapNamespaceTxt, '1');
+            SecurityXmlElement := XmlElement.Create('Security', SecurityExtensionNamespaceTxt);
+            SecurityXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration('o', SecurityExtensionNamespaceTxt));
+            SecurityXmlElement.Add(XmlAttribute.Create('mustUnderstand', SoapNamespaceTxt, '1'));
+            HeaderXmlElement.Add(SecurityXmlElement);
 
-            XMLDOMMgt.AddElementWithPrefix(SecurityXmlNode, 'UsernameToken', '', 'o', SecurityExtensionNamespaceTxt, UsernameTokenXmlNode);
-            XMLDOMMgt.AddAttributeWithPrefix(UsernameTokenXmlNode, 'Id', 'u', SecurityUtilityNamespaceTxt, CreateUUID());
+            UsernameTokenXmlElement := XmlElement.Create('UsernameToken', SecurityExtensionNamespaceTxt);
+            UsernameTokenXmlElement.Add(XmlAttribute.Create('Id', SecurityUtilityNamespaceTxt, CreateUUID()));
+            SecurityXmlElement.Add(UsernameTokenXmlElement);
 
-            XMLDOMMgt.AddElementWithPrefix(UsernameTokenXmlNode, 'Username', Username, 'o', SecurityExtensionNamespaceTxt, TempXmlNode);
-            XMLDOMMgt.AddElementWithPrefix(UsernameTokenXmlNode, 'Password', Password.Unwrap(), 'o', SecurityExtensionNamespaceTxt, PasswordXmlNode);
-            XMLDOMMgt.AddAttribute(PasswordXmlNode, 'Type', UsernameTokenNamepsaceTxt);
+            UsernameTokenXmlElement.Add(CreateElementWithText('Username', SecurityExtensionNamespaceTxt, Username));
+            PasswordXmlElement := CreateElementWithText('Password', SecurityExtensionNamespaceTxt, Password.Unwrap());
+            PasswordXmlElement.SetAttribute('Type', UsernameTokenNamepsaceTxt);
+            UsernameTokenXmlElement.Add(PasswordXmlElement);
         end;
 
-        XMLDOMMgt.AddElementWithPrefix(EnvelopeXmlNode, 'Body', '', 's', SoapNamespaceTxt, BodyXmlNode);
-        XMLDOMMgt.AddAttribute(BodyXmlNode, 'xmlns:xsi', SchemaInstanceNamespaceTxt);
-        XMLDOMMgt.AddAttribute(BodyXmlNode, 'xmlns:xsd', SchemaNamespaceTxt);
+        BodyXmlElement := XmlElement.Create('Body', SoapNamespaceTxt);
+        BodyXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration('xsi', SchemaInstanceNamespaceTxt));
+        BodyXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration('xsd', SchemaNamespaceTxt));
+        EnvelopeXmlElement.Add(BodyXmlElement);
+        BodyXmlNode := BodyXmlElement.AsXmlNode();
+    end;
+
+    [NonDebuggable]
+    local procedure CreateElementWithText(Name: Text; Namespace: Text; Content: Text): XmlElement
+    begin
+        if Content = '' then
+            exit(XmlElement.Create(Name, Namespace));
+        exit(XmlElement.Create(Name, Namespace, Content));
     end;
 
     local procedure CreateUUID(): Text
@@ -152,41 +182,99 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         exit('uuid-' + DelChr(LowerCase(Format(CreateGuid())), '=', '{}'));
     end;
 
-    local procedure AddBodyToEnvelope(var BodyXmlNode: DotNet XmlNode; BodyInStream: InStream)
+    local procedure AddBodyToEnvelope(var BodyXmlNode: XmlNode; BodyInStream: InStream)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        BodyContentXmlDoc: DotNet XmlDocument;
+        BodyContentXmlDoc: XmlDocument;
+        BodyContentXmlElement: XmlElement;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromInStream(BodyInStream, BodyContentXmlDoc);
+        XmlDocument.ReadFrom(BodyInStream, BodyContentXmlDoc);
         TraceLogXmlDocToTempFile(BodyContentXmlDoc, 'RequestBodyContent');
 
-        BodyXmlNode.AppendChild(BodyXmlNode.OwnerDocument.ImportNode(BodyContentXmlDoc.DocumentElement, true));
+        BodyContentXmlDoc.GetRoot(BodyContentXmlElement);
+        BodyXmlNode.AsXmlElement().Add(BodyContentXmlElement);
     end;
 
     local procedure ExtractContentFromResponse(ResponseInStream: InStream; var TempBlobBody: Codeunit "Temp Blob")
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        ResponseBodyXMLDoc: DotNet XmlDocument;
-        ResponseBodyXmlNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        ResponseXmlDoc: XmlDocument;
+        ResponseBodyXmlDoc: XmlDocument;
+        ResponseBodyXmlNode: XmlNode;
+        ResponseContentXmlNode: XmlNode;
+        ResponseContentXmlElement: XmlElement;
+        XmlNamespaceManager: XmlNamespaceManager;
         BodyOutStream: OutStream;
-        Found: Boolean;
     begin
         TraceLogStreamToTempFile(ResponseInStream, 'FullResponse', TempBlobDebugLog);
-        XMLDOMMgt.LoadXMLNodeFromInStream(ResponseInStream, XmlNode);
-
-        Found := XMLDOMMgt.FindNodeWithNamespace(XmlNode, BodyPathTxt, 'soap', SoapNamespaceTxt, ResponseBodyXmlNode);
-        if not Found then
+        if not XmlDocument.ReadFrom(ResponseInStream, ResponseXmlDoc) then
             Error(ExpectedResponseNotReceivedErr);
 
-        ResponseBodyXMLDoc := ResponseBodyXMLDoc.XmlDocument();
-        ResponseBodyXMLDoc.AppendChild(ResponseBodyXMLDoc.ImportNode(ResponseBodyXmlNode.FirstChild, true));
+        XmlNamespaceManager.NameTable(ResponseXmlDoc.NameTable());
+        XmlNamespaceManager.AddNamespace('soap', SoapNamespaceTxt);
+        if not ResponseXmlDoc.SelectSingleNode(BodyPathTxt, XmlNamespaceManager, ResponseBodyXmlNode) then
+            Error(ExpectedResponseNotReceivedErr);
+
+        ResponseBodyXmlNode.AsXmlElement().GetChildElements().Get(1, ResponseContentXmlNode);
+        ResponseContentXmlElement := ResponseContentXmlNode.AsXmlElement();
+        AddInScopeNamespaceDeclarations(ResponseContentXmlElement);
+        ResponseBodyXmlDoc := XmlDocument.Create();
+        ResponseBodyXmlDoc.Add(ResponseContentXmlElement);
 
         TempBlobBody.CreateOutStream(BodyOutStream, GlobalStreamEncoding);
-        ResponseBodyXMLDoc.Save(BodyOutStream);
-        TraceLogXmlDocToTempFile(ResponseBodyXMLDoc, 'ResponseBodyContent');
+        WriteXmlDocumentWithoutDeclaration(ResponseBodyXmlDoc, BodyOutStream);
+        TraceLogXmlDocToTempFile(ResponseBodyXmlDoc, 'ResponseBodyContent');
     end;
 
+    [NonDebuggable]
+    local procedure WriteXmlDocumentWithoutDeclaration(XmlDoc: XmlDocument; var DestinationOutStream: OutStream)
+    var
+        TempBlobXml: Codeunit "Temp Blob";
+        RootXmlElement: XmlElement;
+        XmlOutStream: OutStream;
+        XmlInStream: InStream;
+        XmlText: Text;
+    begin
+        // Write UTF-8 without an XML declaration or byte order mark, as XmlDocument.WriteTo always adds a declaration.
+        XmlDoc.GetRoot(RootXmlElement);
+        RootXmlElement.WriteTo(XmlText);
+        TempBlobXml.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        XmlOutStream.WriteText(XmlText);
+        TempBlobXml.CreateInStream(XmlInStream);
+        CopyStream(DestinationOutStream, XmlInStream);
+    end;
+
+    local procedure AddInScopeNamespaceDeclarations(var ContentXmlElement: XmlElement)
+    var
+        AncestorXmlElement: XmlElement;
+        AncestorXmlAttribute: XmlAttribute;
+        DeclaredPrefixes: List of [Text];
+    begin
+        // Keep the namespace prefixes declared on the SOAP envelope when the content is moved to a separate document.
+        CollectDeclaredPrefixes(ContentXmlElement, DeclaredPrefixes);
+        if not ContentXmlElement.GetParent(AncestorXmlElement) then
+            exit;
+        repeat
+            foreach AncestorXmlAttribute in AncestorXmlElement.Attributes() do
+                if IsPrefixedNamespaceDeclaration(AncestorXmlAttribute) then
+                    if not DeclaredPrefixes.Contains(AncestorXmlAttribute.LocalName()) then begin
+                        ContentXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration(AncestorXmlAttribute.LocalName(), AncestorXmlAttribute.Value()));
+                        DeclaredPrefixes.Add(AncestorXmlAttribute.LocalName());
+                    end;
+        until not AncestorXmlElement.GetParent(AncestorXmlElement);
+    end;
+
+    local procedure CollectDeclaredPrefixes(ContentXmlElement: XmlElement; var DeclaredPrefixes: List of [Text])
+    var
+        ContentXmlAttribute: XmlAttribute;
+    begin
+        foreach ContentXmlAttribute in ContentXmlElement.Attributes() do
+            if IsPrefixedNamespaceDeclaration(ContentXmlAttribute) then
+                DeclaredPrefixes.Add(ContentXmlAttribute.LocalName());
+    end;
+
+    local procedure IsPrefixedNamespaceDeclaration(CurrentXmlAttribute: XmlAttribute): Boolean
+    begin
+        exit(CurrentXmlAttribute.IsNamespaceDeclaration() and (StrPos(CurrentXmlAttribute.Name(), 'xmlns:') = 1));
+    end;
     procedure GetResponseContent(var ResponseBodyInStream: InStream)
     begin
         TempBlobResponseBody.CreateInStream(ResponseBodyInStream, GlobalStreamEncoding);
@@ -195,9 +283,10 @@ codeunit 1290 "SOAP Web Service Request Mgt."
     procedure ProcessFaultResponse(SupportInfo: Text)
     var
         WebRequestHelper: Codeunit "Web Request Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         WebException: DotNet WebException;
-        XmlNode: DotNet XmlNode;
+        ResponseXmlDoc: XmlDocument;
+        XmlNamespaceManager: XmlNamespaceManager;
+        FaultStringXmlNode: XmlNode;
         ResponseInputStream: InStream;
         ErrorText: Text;
         ServiceURL: Text;
@@ -211,9 +300,12 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         if TraceLogEnabled then
             Trace.LogStreamToTempFile(ResponseInputStream, 'WebExceptionResponse', TempBlobDebugLog);
 
-        XMLDOMMgt.LoadXMLNodeFromInStream(ResponseInputStream, XmlNode);
-
-        ErrorText := XMLDOMMgt.FindNodeTextWithNamespace(XmlNode, FaultStringXmlPathTxt, 'soap', SoapNamespaceTxt);
+        if XmlDocument.ReadFrom(ResponseInputStream, ResponseXmlDoc) then begin
+            XmlNamespaceManager.NameTable(ResponseXmlDoc.NameTable());
+            XmlNamespaceManager.AddNamespace('soap', SoapNamespaceTxt);
+            if ResponseXmlDoc.SelectSingleNode(FaultStringXmlPathTxt, XmlNamespaceManager, FaultStringXmlNode) then
+                ErrorText := FaultStringXmlNode.AsXmlElement().InnerText();
+        end;
         if ErrorText = '' then
             ErrorText := WebException.Message;
         ErrorText := InternalErr + ErrorText + ServiceURL;
@@ -302,10 +394,21 @@ codeunit 1290 "SOAP Web Service Request Mgt."
             Trace.LogStreamToTempFile(ToLogInStream, Name, TempBlobTraceLog);
     end;
 
-    local procedure TraceLogXmlDocToTempFile(var XmlDoc: DotNet XmlDocument; Name: Text)
+    local procedure TraceLogXmlDocToTempFile(XmlDoc: XmlDocument; Name: Text)
+    var
+        FileManagement: Codeunit "File Management";
+        TempBlobTraceLog: Codeunit "Temp Blob";
+        TraceLogOutStream: OutStream;
+        Filename: Text;
     begin
-        if TraceLogEnabled then
-            Trace.LogXmlDocToTempFile(XmlDoc, Name);
+        if not TraceLogEnabled then
+            exit;
+
+        Filename := FileManagement.ServerTempFileName(Name + '.XML');
+        FileManagement.IsAllowedPath(Filename, false);
+        TempBlobTraceLog.CreateOutStream(TraceLogOutStream);
+        XmlDoc.WriteTo(TraceLogOutStream);
+        FileManagement.BLOBExportToServerFile(TempBlobTraceLog, Filename);
     end;
 
     [NonDebuggable]
@@ -426,8 +529,16 @@ codeunit 1290 "SOAP Web Service Request Mgt."
             Buffer.AddNewEntry(Claim.Type, Claim.Value);
     end;
 
+#if not CLEAN30
     [IntegrationEvent(false, false)]
+    [Obsolete('Use OnBeforeCreateSoapRequestXml instead.', '30.0')]
     local procedure OnBeforeCreateSoapRequest(var RequestOutStream: OutStream; var BodyContentInStream: InStream; var XmlDoc: DotNet XmlDocument; var Username: Text; var Password: Text; var TraceLogEnabled: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreateSoapRequestXml(var RequestOutStream: OutStream; var BodyContentInStream: InStream; var XmlDoc: XmlDocument; var Username: Text; var Password: SecretText; var TraceLogEnabled: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

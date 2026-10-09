@@ -114,6 +114,17 @@ table 1227 "Data Exch. Line Def"
         end;
     end;
 
+    procedure ValidateNamespace(CurrentXmlElement: XmlElement)
+    var
+        NamespaceURI: Text;
+    begin
+        if Namespace <> '' then begin
+            NamespaceURI := CurrentXmlElement.NamespaceUri();
+            if NamespaceURI <> Namespace then
+                Error(IncorrectNamespaceErr, NamespaceURI, Namespace);
+        end;
+    end;
+
     procedure GetPath(TableId: Integer; FieldId: Integer): Text
     var
         DataExchFieldMapping: Record "Data Exch. Field Mapping";

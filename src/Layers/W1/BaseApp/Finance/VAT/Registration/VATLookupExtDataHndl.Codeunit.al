@@ -6,12 +6,10 @@ namespace Microsoft.Finance.VAT.Registration;
 
 using Microsoft.CRM.Contact;
 using Microsoft.Sales.Customer;
-using System;
 using System.Integration;
 using System.Reflection;
 using System.Telemetry;
 using System.Utilities;
-using System.Xml;
 
 /// <summary>
 /// Handles VAT registration number lookup and validation through external web services (VIES).
@@ -123,13 +121,12 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     var
         Customer: Record Customer;
         VATRegNoSrvTemplate: Record "VAT Reg. No. Srv. Template";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         RecordRef: RecordRef;
         BodyContentInputStream: InStream;
         BodyContentOutputStream: OutStream;
-        BodyContentXmlDoc: DotNet XmlDocument;
-        EnvelopeXmlNode: DotNet XmlNode;
-        CreatedXmlNode: DotNet XmlNode;
+        BodyContentXmlDoc: XmlDocument;
+        EnvelopeXmlElement: XmlElement;
+        BodyContentText: Text;
         AccountName: Text;
         AccountStreet: Text;
         AccountCity: Text;
@@ -142,15 +139,14 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
             exit;
 
         TempBlob.CreateInStream(BodyContentInputStream);
-        BodyContentXmlDoc := BodyContentXmlDoc.XmlDocument();
+        BodyContentXmlDoc := XmlDocument.Create();
+        EnvelopeXmlElement := XmlElement.Create('checkVatApprox', NamespaceTxt);
+        BodyContentXmlDoc.Add(EnvelopeXmlElement);
 
-        XMLDOMMgt.AddRootElementWithPrefix(BodyContentXmlDoc, 'checkVatApprox', '', NamespaceTxt, EnvelopeXmlNode);
-        XMLDOMMgt.AddElement(EnvelopeXmlNode, 'countryCode', VATRegistrationLog.GetCountryCode(), NamespaceTxt, CreatedXmlNode);
-        XMLDOMMgt.AddElement(EnvelopeXmlNode, 'vatNumber', VATRegistrationLog.GetVATRegNo(), NamespaceTxt, CreatedXmlNode);
-        XMLDOMMgt.AddElement(
-          EnvelopeXmlNode, 'requesterCountryCode', VATRegistrationLog.GetCountryCode(), NamespaceTxt, CreatedXmlNode);
-        XMLDOMMgt.AddElement(
-          EnvelopeXmlNode, 'requesterVatNumber', VATRegistrationLog.GetVATRegNo(), NamespaceTxt, CreatedXmlNode);
+        AddElement(EnvelopeXmlElement, 'countryCode', VATRegistrationLog.GetCountryCode());
+        AddElement(EnvelopeXmlElement, 'vatNumber', VATRegistrationLog.GetVATRegNo());
+        AddElement(EnvelopeXmlElement, 'requesterCountryCode', VATRegistrationLog.GetCountryCode());
+        AddElement(EnvelopeXmlElement, 'requesterVatNumber', VATRegistrationLog.GetVATRegNo());
 
         InitializeVATRegistrationLog(VATRegistrationLog);
 
@@ -165,17 +161,27 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
         VATRegistrationLog.CheckGetTemplate(VATRegNoSrvTemplate);
         if VATRegNoSrvTemplate."Validate Name" then
-            XMLDOMMgt.AddElement(EnvelopeXmlNode, 'traderName', AccountName, NamespaceTxt, CreatedXmlNode);
+            AddElement(EnvelopeXmlElement, 'traderName', AccountName);
         if VATRegNoSrvTemplate."Validate Street" then
-            XMLDOMMgt.AddElement(EnvelopeXmlNode, 'traderStreet', AccountStreet, NamespaceTxt, CreatedXmlNode);
+            AddElement(EnvelopeXmlElement, 'traderStreet', AccountStreet);
         if VATRegNoSrvTemplate."Validate City" then
-            XMLDOMMgt.AddElement(EnvelopeXmlNode, 'traderCity', AccountCity, NamespaceTxt, CreatedXmlNode);
+            AddElement(EnvelopeXmlElement, 'traderCity', AccountCity);
         if VATRegNoSrvTemplate."Validate Post Code" then
-            XMLDOMMgt.AddElement(EnvelopeXmlNode, 'traderPostcode', AccountPostCode, NamespaceTxt, CreatedXmlNode);
+            AddElement(EnvelopeXmlElement, 'traderPostcode', AccountPostCode);
 
+        // Write the body without an XML declaration, as XmlDocument.WriteTo always adds one.
+        EnvelopeXmlElement.WriteTo(BodyContentText);
         Clear(TempBlob);
-        TempBlob.CreateOutStream(BodyContentOutputStream);
-        BodyContentXmlDoc.Save(BodyContentOutputStream);
+        TempBlob.CreateOutStream(BodyContentOutputStream, TextEncoding::UTF8);
+        BodyContentOutputStream.WriteText(BodyContentText);
+    end;
+
+    local procedure AddElement(var ParentXmlElement: XmlElement; Name: Text; Content: Text)
+    begin
+        if Content = '' then
+            ParentXmlElement.Add(XmlElement.Create(Name, NamespaceTxt))
+        else
+            ParentXmlElement.Add(XmlElement.Create(Name, NamespaceTxt, Content));
     end;
 
     local procedure InitializeVATRegistrationLog(var VATRegistrationLog: Record "VAT Registration Log")
@@ -191,12 +197,12 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
     local procedure InsertLogEntry(TempBlobRequestBody: Codeunit "Temp Blob")
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDocOut: DotNet XmlDocument;
+        XMLDocOut: XmlDocument;
         InStream: InStream;
     begin
         TempBlobRequestBody.CreateInStream(InStream);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStream, XMLDocOut);
+        if not XmlDocument.ReadFrom(InStream, XMLDocOut) then
+            XMLDocOut := XmlDocument.Create();
 
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, XMLDocOut, NamespaceTxt);
     end;

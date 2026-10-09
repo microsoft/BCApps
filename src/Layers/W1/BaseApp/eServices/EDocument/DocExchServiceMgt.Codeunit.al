@@ -15,7 +15,6 @@ using System.Security.Authentication;
 using System.Telemetry;
 using System.Text;
 using System.Utilities;
-using System.Xml;
 
 codeunit 1410 "Doc. Exch. Service Mgt."
 {
@@ -29,7 +28,6 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     var
         TempBlobResponse: Codeunit "Temp Blob";
         DocExchLinks: Codeunit "Doc. Exch. Links";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         EnvironmentInfo: Codeunit "Environment Information";
         GLBHttpRequestMessage: HttpRequestMessage;
         GLBHttpResponseMessage: HttpResponseMessage;
@@ -1207,7 +1205,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     begin
         if not XmlDoc.GetRoot(RootElement) then
             exit;
-        if not XMLDOMMgt.FindNodesWithNamespace(RootElement.AsXmlNode(), GetEmbeddedDocXPath(), GetPrefix(), GetCBCNamespace(), NodeList) then
+        if not FindNodesWithNamespace(RootElement.AsXmlNode(), GetEmbeddedDocXPath(), GetPrefix(), GetCBCNamespace(), NodeList) then
             exit;
         foreach Node in NodeList do
             ExtractAdditionalAttachment(IncomingDocument, Node);
@@ -1223,7 +1221,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         AttachmentOutStream: OutStream;
         FileName: Text;
     begin
-        FileName := XMLDOMMgt.GetAttributeValue(Node, 'filename');
+        FileName := GetAttributeValue(Node, 'filename');
         if FileName = '' then
             exit;
 
@@ -1469,7 +1467,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     var
         FoundNode: XmlNode;
     begin
-        if not XMLDOMMgt.FindNodeWithNamespace(Node, NodePath, Prefix, NameSpace, FoundNode) then
+        if not FindNodeWithNamespace(Node, NodePath, Prefix, NameSpace, FoundNode) then
             exit('');
         exit(GetNodeInnerText(FoundNode));
     end;
@@ -1485,6 +1483,45 @@ codeunit 1410 "Doc. Exch. Service Mgt."
                 exit(Node.AsXmlText().Value());
         end;
         exit('');
+    end;
+
+    local procedure FindNodeWithNamespace(RootXmlNode: XmlNode; NodePath: Text; Prefix: Text; Namespace: Text; var FoundXmlNode: XmlNode): Boolean
+    var
+        XmlNamespaceManager: XmlNamespaceManager;
+    begin
+        CreateNamespaceManager(RootXmlNode, Prefix, Namespace, XmlNamespaceManager);
+        exit(RootXmlNode.SelectSingleNode(NodePath, XmlNamespaceManager, FoundXmlNode));
+    end;
+
+    local procedure FindNodesWithNamespace(RootXmlNode: XmlNode; XPath: Text; Prefix: Text; Namespace: Text; var FoundXmlNodeList: XmlNodeList): Boolean
+    var
+        XmlNamespaceManager: XmlNamespaceManager;
+    begin
+        CreateNamespaceManager(RootXmlNode, Prefix, Namespace, XmlNamespaceManager);
+        if not RootXmlNode.SelectNodes(XPath, XmlNamespaceManager, FoundXmlNodeList) then
+            exit(false);
+        exit(FoundXmlNodeList.Count() <> 0);
+    end;
+
+    local procedure CreateNamespaceManager(RootXmlNode: XmlNode; Prefix: Text; Namespace: Text; var XmlNamespaceManager: XmlNamespaceManager)
+    var
+        RootXmlDocument: XmlDocument;
+    begin
+        if RootXmlNode.IsXmlDocument() then
+            XmlNamespaceManager.NameTable(RootXmlNode.AsXmlDocument().NameTable())
+        else begin
+            RootXmlNode.GetDocument(RootXmlDocument);
+            XmlNamespaceManager.NameTable(RootXmlDocument.NameTable());
+        end;
+        XmlNamespaceManager.AddNamespace(Prefix, Namespace);
+    end;
+
+    local procedure GetAttributeValue(Node: XmlNode; AttributeName: Text): Text
+    var
+        FoundXmlAttribute: XmlAttribute;
+    begin
+        if Node.AsXmlElement().Attributes().Get(AttributeName, FoundXmlAttribute) then
+            exit(FoundXmlAttribute.Value());
     end;
 
     local procedure GetResponseHeaderValue(HeaderName: Text): Text
@@ -1803,9 +1840,9 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         SrchNode: XmlNode;
     begin
         Description := '';
-        if not XMLDOMMgt.FindNodeWithNamespace(Node, GetDocumentTypeXPath(), GetPrefix(), GetPublicNamespace(), SrchNode) then
+        if not FindNodeWithNamespace(Node, GetDocumentTypeXPath(), GetPrefix(), GetPublicNamespace(), SrchNode) then
             exit;
-        Description := MapDocumentType(XMLDOMMgt.GetAttributeValue(SrchNode, 'type'));
+        Description := MapDocumentType(GetAttributeValue(SrchNode, 'type'));
         Description += ' ' + FindNodeTextWithNamespace(Node, GetDocumentIDForDescriptionXPath(), GetPrefix(), GetPublicNamespace());
     end;
 
