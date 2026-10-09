@@ -86,15 +86,18 @@ Describe 'Bounded expanded diagnostic plan' {
         $workflow | Should -Match 'workflow_dispatch:'
         $workflow | Should -Not -Match '(?m)^\s+(push|pull_request|schedule):'
         $workflow | Should -Not -Match 'CICD\.yaml|SqlApiComparisonBatch'
-        $workflow | Should -Match 'CompileApps@91b96c2'
+        $workflow | Should -Not -Match 'CompileApps@'
+        $workflow | Should -Match 'Adopt\.ps1'
         $workflow | Should -Match 'default: HOLD'
         $workflow | Should -Match 'max-parallel: 2'
         $workflow | Should -Match 'if: always\(\)'
     }
     It 'keeps the pinned AL-Go test-project marker to prevent an empty-repository no-op' {
         $configure = Get-Content (Join-Path $PSScriptRoot 'Configure.ps1') -Raw
-        $configure | Should -Match '\$settings\.projectsToTest = @\("build/projects/Apps '
-        $configure | Should -Not -Match '\$settings\.projectsToTest = @\(\)'
+        $configure | Should -Match 'Set-ExpandedProjectSettings'
+        $settings = Get-Content (Join-Path $PSScriptRoot 'Settings.psm1') -Raw
+        $settings | Should -Match '\$settings\.projectsToTest = @\("build/projects/Apps '
+        $settings | Should -Not -Match '\$settings\.projectsToTest = @\(\)'
         $lane = Get-Content (Join-Path $PSScriptRoot '..\..\..\.github\workflows\_ExpandedApiLane.yaml') -Raw
         $lane | Should -Match 'installTestAppsJson: \$\{\{ steps.packages.outputs.TestApps \}\}'
         $lane | Should -Not -Match 'DownloadProjectDependencies|CompileApps'
@@ -141,7 +144,7 @@ Describe 'Manual diagnostic identity' {
         $script:savedEnvironment = @{}
         $identity = @{
             GITHUB_REPOSITORY = 'microsoft/BCApps'
-            GITHUB_REF = 'refs/heads/features/653393-expanded-api-helper-scope'
+            GITHUB_REF = 'refs/heads/features/653393-expanded-api-reuse-successor'
             GITHUB_EVENT_NAME = 'workflow_dispatch'
             GITHUB_RUN_ATTEMPT = '1'
             GITHUB_RUN_ID = '999'

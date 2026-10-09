@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'Context.psm1')
 Import-Module (Join-Path $PSScriptRoot 'Contract.psm1')
+Import-Module (Join-Path $PSScriptRoot 'Reuse.psm1')
 $context = Get-ExpandedContext
 $ownershipPath = Join-Path $context.output 'ownership.json'
 $cleanupVerified = $false
@@ -28,6 +29,27 @@ if (Test-Path $ownershipPath) {
             ConvertTo-Json | Set-Content (Join-Path $context.output 'cleanup.json')
         Write-ExpandedPhase -Name cleanup -StartedTicks $cleanupStart -StartedUtc $cleanupUtc -Completed $cleanupVerified -Directory $context.output
     }
+}
+$required = @('clock.json', 'phases.jsonl', 'reset-timeline.jsonl', 'lane-outcome.json',
+    'resource-status.json', 'setup-resource.json', 'container-setup-resource.json',
+    'runner-inventory.json', 'docker.json', 'template.json', 'transport-proof.json',
+    'original-attempts.jsonl', 'packages.json')
+$missing = @($required | Where-Object { -not (Test-Path -LiteralPath (Join-Path $context.output $_) -PathType Leaf) })
+if ($missing.Count) {
+    $null = New-Item -ItemType Directory -Path $context.output -Force
+    @{
+        qualified = $false; setupInvalid = $true
+        runId = $env:GITHUB_RUN_ID; sourceHead = $env:GITHUB_SHA
+        identity = $context.cell.identity; lane = $context.lane.id
+        executionState = $(if ($env:BC_EXPANDED_PIPELINE_OUTCOME -ceq 'skipped') { 'execution-not-started' } else { 'execution-evidence-incomplete' })
+        pipelineOutcome = $env:BC_EXPANDED_PIPELINE_OUTCOME
+        missingEvidence = $missing
+        ownershipReceiptPresent = (Test-Path -LiteralPath $ownershipPath)
+        ownedCleanupVerified = $(if (Test-Path -LiteralPath $ownershipPath) { $cleanupVerified } else { $null })
+        containerAbsenceVerified = $(if (Test-Path -LiteralPath $ownershipPath) { $cleanupVerified } else { $null })
+        evidence = $null
+    } | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $context.output 'lane-evidence.json') -Encoding UTF8
+    throw "Setup invalid: execution evidence missing ($($missing -join ', ')); original setup failure remains in pipeline logs."
 }
 $clock = Get-Content (Join-Path $context.output 'clock.json') -Raw | ConvertFrom-Json
 $ended = [Diagnostics.Stopwatch]::GetTimestamp()
@@ -97,6 +119,7 @@ $evidence = @{
         $resetEnds[0].plan.Tenant -eq 'default' -and
         @($resetEnds | Where-Object { $_.plan.TemplateIdentity -ne $template.serviceBrokerGuid }).Count -eq 0)
     lanes = @($outcome); registryId = $transport.registryId; registrySha256 = $transport.registrySha256
+    adoption = $transport.adoption
     packageManifest = (Get-Content (Join-Path $context.output 'packages.json') -Raw | ConvertFrom-Json)
     installation = $runtime.installation
 }
@@ -104,6 +127,7 @@ $singleLaneCell = @{ identity = $context.cell.identity; country = $context.cell.
     configuration = $context.cell.configuration; lanes = @($context.lane) }
 $qualified = $false
 try {
+    Assert-ExpandedAdoptionReceipt -Receipt $transport.adoption
     if (-not $outcome.completed -or -not $outcome.passed -or -not $docker.genericLayerPrefixVerified) { throw 'Original lane execution did not qualify.' }
     Assert-ExpandedApiEvidence -Evidence $evidence -Cell $singleLaneCell
     $qualified = $true

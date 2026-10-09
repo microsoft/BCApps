@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'Contract.psm1')
 Import-Module (Join-Path $PSScriptRoot 'Artifacts.psm1')
+Import-Module (Join-Path $PSScriptRoot 'Reuse.psm1')
 Assert-ExpandedApiDispatch
 $plan = Get-ExpandedApiPlan -InventoryPath (Join-Path $PSScriptRoot 'routing-inventory.json')
 $all = @()
@@ -25,6 +26,18 @@ foreach ($cell in $plan.cells) {
             $report = Get-Content (Join-Path $directory 'lane-evidence.json') -Raw | ConvertFrom-Json
             $classification = if ($report.evidence.originalFailures -gt 0) { 'original-test-failure' } else { 'setup-reset-resource-or-cohort-invalid' }
             if (-not $report.qualified) { throw 'Original lane did not qualify.' }
+            Assert-ExpandedAdoptionReceipt -Receipt $report.evidence.adoption
+            $policy = Get-ExpandedReusePolicy
+            if ([string]$report.evidence.registryId -cne $policy.registryId -or
+                $report.evidence.registrySha256 -cne $policy.registryDigest -or
+                $report.evidence.packageManifest.runId -cne $policy.runId -or
+                $report.evidence.packageManifest.sourceHead -cne $policy.sourceHead -or
+                $report.evidence.packageManifest.attempt -ne 1 -or
+                $report.evidence.packageManifest.country -cne $cell.country -or
+                $report.evidence.packageManifest.sourceTree -cne $policy.sourceTree -or
+                $report.evidence.packageManifest.overlaySha256 -cne $policy.overlaySha256) {
+                throw 'Lane did not preserve approved producer provenance.'
+            }
             Assert-ExpandedApiEvidence -Evidence $report.evidence -Cell @{
                 identity = $cell.identity; country = $cell.country; configuration = $cell.configuration; lanes = @($lane)
             }
@@ -65,11 +78,16 @@ $cells = @(foreach ($cell in $plan.cells) {
         note = 'Sum of sequential lane assigned-runner totals, excluding inter-lane queues and uploads; not end-to-end workflow wall time.' }
 })
 @{ run = $env:GITHUB_RUN_ID; head = $env:GITHUB_SHA; results = $results; errors = $errors
-    buildResult = $env:BC_EXPANDED_BUILD_RESULT; registryResult = $env:BC_EXPANDED_REGISTRY_RESULT
+    compiledThisRun = $false; producer = (Get-ExpandedReusePolicy)
+    mode = 'sealed-producer-reuse'; registryResult = $env:BC_EXPANDED_REGISTRY_RESULT
     trialsResult = $env:BC_EXPANDED_TRIALS_RESULT
-    setupInvalid = ($env:BC_EXPANDED_BUILD_RESULT -ne 'success' -or $env:BC_EXPANDED_REGISTRY_RESULT -ne 'success')
-    complete = ($errors.Count -eq 0); uncoveredVariants = $plan.uncoveredVariants
+    setupInvalid = ($env:BC_EXPANDED_REGISTRY_RESULT -ne 'success' -or
+        @($errors | Where-Object classification -NE 'original-test-failure').Count -gt 0)
+    complete = ($errors.Count -eq 0 -and $env:BC_EXPANDED_REGISTRY_RESULT -eq 'success' -and $env:BC_EXPANDED_TRIALS_RESULT -eq 'success')
+    uncoveredVariants = $plan.uncoveredVariants
     cells = $cells
     allCountriesTested = $false; repetitions = 1; statisticalStabilityEstablished = $false } |
     ConvertTo-Json -Depth 30 | Set-Content 'expanded-audit\comparison.json'
-if ($errors.Count) { throw "$($errors.Count) expanded diagnostic lanes failed qualification; originals remain failures." }
+if ($errors.Count -or $env:BC_EXPANDED_REGISTRY_RESULT -ne 'success' -or $env:BC_EXPANDED_TRIALS_RESULT -ne 'success') {
+    throw "$($errors.Count) expanded diagnostic lanes failed qualification or adoption/trials failed; originals remain failures."
+}

@@ -45,7 +45,7 @@ function Get-ExpandedApiPinSet {
 
 function Assert-ExpandedApiDispatch {
     if ($env:GITHUB_REPOSITORY -cne 'microsoft/BCApps' -or
-        $env:GITHUB_REF -cne 'refs/heads/features/653393-expanded-api-helper-scope' -or
+        $env:GITHUB_REF -cne 'refs/heads/features/653393-expanded-api-reuse-successor' -or
         $env:GITHUB_EVENT_NAME -cne 'workflow_dispatch' -or
         $env:GITHUB_RUN_ATTEMPT -cne '1' -or $env:GITHUB_RUN_ID -notmatch '^\d{1,20}$') {
         throw 'Expanded API diagnostics require their exact opt-in branch, manual event and original attempt.'

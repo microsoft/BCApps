@@ -31,14 +31,14 @@ jobs:
   # honored on opened/synchronize/reopened, whether draft or ready. It is not a
   # general opt-out and does not exempt merge_group: this diagnostic must not merge.
   PregateCheck:
-    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-helper-scope') && (github.event.pull_request.base.repo.full_name != github.event.pull_request.head.repo.full_name) && (github.event_name != 'pull_request')
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-reuse-successor') && (github.event.pull_request.base.repo.full_name != github.event.pull_request.head.repo.full_name) && (github.event_name != 'pull_request')
     runs-on: windows-latest
     steps:
       - uses: microsoft/AL-Go/Actions/VerifyPRChanges@88faf7e7845be73f3f531a58ba4289319387990c
 
   Initialization:
     needs: [ PregateCheck ]
-    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-helper-scope') && (!failure() && !cancelled())
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-reuse-successor') && (!failure() && !cancelled())
     runs-on: [ windows-latest ]
     outputs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}
@@ -96,7 +96,7 @@ jobs:
 
   Build1:
     needs: [ Initialization, CustomJob-VerifyAppChanges ]
-    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-helper-scope') && (!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-reuse-successor') && (!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0
     strategy:
       matrix:
         include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[0].buildDimensions }}
@@ -122,7 +122,7 @@ jobs:
 
   Build:
     needs: [ Initialization, Build1, CustomJob-VerifyAppChanges ]
-    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-helper-scope') && (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-reuse-successor') && (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
     strategy:
       matrix:
         include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[1].buildDimensions }}
@@ -148,7 +148,7 @@ jobs:
 
   CodeAnalysisUpload:
     needs: [ Initialization, Build ]
-    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-helper-scope') && (!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGitHub == 'True') && (github.event_name != 'merge_group')
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-reuse-successor') && (!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGitHub == 'True') && (github.event_name != 'merge_group')
     runs-on: [ windows-latest ]
     name: Code Analysis Processing
     steps:
@@ -185,7 +185,7 @@ jobs:
 
   StatusCheck:
     needs: [ Initialization, Build ]
-    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-helper-scope') && (!cancelled())
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-reuse-successor') && (!cancelled())
     runs-on: [ windows-latest ]
     name: Pull Request Status Check
     steps:
@@ -210,7 +210,7 @@ jobs:
 
   CustomJob-VerifyAppChanges:
     needs: [ PregateCheck ]
-    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-helper-scope') && (!failure() && !cancelled())
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-reuse-successor') && (!failure() && !cancelled())
     runs-on: windows-latest
     name: Verify App Changes
     steps:

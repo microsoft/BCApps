@@ -2,6 +2,7 @@ param([ValidateSet('Build', 'Lane')][string]$Kind)
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'Contract.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'Context.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'Settings.psm1') -Force
 Assert-ExpandedApiDispatch
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -ne 7) { throw 'Diagnostic requires the baseline PowerShell7 host.' }
 $pins = Get-ExpandedApiPinSet
@@ -21,19 +22,13 @@ Get-SqlTenantResourceSample -Phase setup-start | ConvertTo-Json -Depth 12 |
     Set-Content (Join-Path $output 'source-receipt.json')
 
 $repoPath = Join-Path $env:GITHUB_WORKSPACE '.github\AL-Go-Settings.json'
-$repo = Get-Content $repoPath -Raw | ConvertFrom-Json -AsHashtable
-$repo.bcContainerHelperVersion = $pins.helper
-$repo.artifact = "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/$($pins.application)/$($env:BC_EXPANDED_COUNTRY.ToLowerInvariant())"
-$repo.maxTestAppReruns = 0
-$repo.workspaceCompilation = @{ enabled = ($Kind -eq 'Build'); parallelism = 2 }
-$repo.incrementalBuilds = @{ onPush = $false; onPull_Request = $false; onSchedule = $false; retentionDays = 14; mode = 'modifiedApps' }
-$repo.skipUpgrade = $true
-$repo | ConvertTo-Json -Depth 30 | Set-Content $repoPath
+$repo = Set-ExpandedRepoSettings -Path $repoPath -Kind $Kind -Country $env:BC_EXPANDED_COUNTRY
 $packagesPath = Join-Path $env:GITHUB_WORKSPACE 'build\Packages.json'
 $packages = Get-Content $packagesPath -Raw | ConvertFrom-Json -AsHashtable
 $packages.BCPlatform.Version = $pins.platform
 $packages | ConvertTo-Json -Depth 20 | Set-Content $packagesPath
 
+$context = $null
 if ($Kind -eq 'Build') {
     $sourceProject = "build\projects\Apps $($env:BC_EXPANDED_COUNTRY)"
     $project = "build\projects\Expanded Build $($env:BC_EXPANDED_COUNTRY)"
@@ -45,44 +40,14 @@ if ($Kind -eq 'Build') {
 if (Test-Path $project) { throw 'Generated project already exists.' }
 Copy-Item -LiteralPath $sourceProject -Destination $project -Recurse
 $settingsPath = Join-Path $project '.AL-Go\settings.json'
-$settings = Get-Content $settingsPath -Raw | ConvertFrom-Json -AsHashtable
-$settings.projectName = "Expanded $Kind $($env:BC_EXPANDED_COUNTRY)"
-$settings.country = $env:BC_EXPANDED_COUNTRY.ToLowerInvariant()
-$settings.bcContainerHelperVersion = $pins.helper
-$settings.artifact = $repo.artifact
-$settings.skipUpgrade = $true
-$settings.incrementalBuilds = @{ onPush = $false; onPull_Request = $false; onSchedule = $false; retentionDays = 14; mode = 'modifiedApps' }
-$settings.maxTestAppReruns = 0
+Set-ExpandedProjectSettings -Path $settingsPath -Kind $Kind -Country $env:BC_EXPANDED_COUNTRY -Artifact $repo.artifact -Context $context
 if ($Kind -eq 'Build') {
-    $settings.doNotRunTests = $true
-    $settings.doNotPublishApps = $true
-    $settings.useCompilerFolder = $true
-    $settings.workspaceCompilation = @{ enabled = $true; parallelism = 2 }
     $hook = @'
 param([hashtable]$parameters)
 & (Join-Path $PSScriptRoot '../../../scripts/ExpandedApiDiagnostic/Compiler.ps1') -Phase Before -Parameters $parameters
 '@
     Set-Content (Join-Path $project '.AL-Go\PreNewBcCompilerFolder.ps1') $hook
 } else {
-    $settings.conditionalSettings = @()
-    $settings.appFolders = @()
-    $settings.testFolders = @()
-    # AL-Go91b96 treats empty folders without this marker as an empty repository
-    # and exits before reading installTestAppsJson. No dependency downloader is
-    # called: the actual packages still come exclusively from the sealed registry.
-    $settings.projectsToTest = @("build/projects/Apps $($env:BC_EXPANDED_COUNTRY)")
-    $settings.doNotRunTests = $false
-    $settings.doNotPublishApps = $false
-    $settings.runTestsInAllInstalledTestApps = $true
-    $settings.workspaceCompilation = @{ enabled = $false; parallelism = 2 }
-    $settings.enableCleanTestCodeunitExecution = $true
-    $settings.useCompilerFolder = $false
-    $settings.numberOfTenantsForTesting = $context.cell.configuration.mounts.Count
-    $settings.testType = $context.lane.settings.testType
-    $settings.companyName = $context.lane.settings.company
-    $settings.enableTaskScheduler = $context.lane.settings.taskScheduler
-    $settings.additionalDemoDataTypes = @()
-    if ($context.lane.id -eq 'LegacyTestsBucket1') { $settings.additionalDemoDataTypes = @('Standard', 'Evaluation') }
     foreach ($pair in @(
         @('NewBcContainer', 'NewContainer'), @('RunTestsInBcContainer', 'RunLane')
     )) {
@@ -107,7 +72,6 @@ param([hashtable]$parameters)
 . (Join-Path $PSScriptRoot '../../../scripts/ExpandedApiImportTestData.ps1') -parameters $parameters
 '@
 }
-$settings | ConvertTo-Json -Depth 30 | Set-Content $settingsPath
 Set-Content (Join-Path $project '.AL-Go\BuildInitialize.ps1') @'
 param([hashtable]$parameters)
 DownloadAndImportBcContainerHelper

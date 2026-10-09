@@ -1,4 +1,4 @@
-name: 'DRAFT expanded API comparison - DO NOT MERGE'
+name: 'DRAFT expanded API sealed reuse comparison - DO NOT MERGE'
 on:
   workflow_call:
     inputs:
@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   Plan:
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-helper-scope' && github.run_attempt == 1 && inputs.authorization == 'reviewed-originals'
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-reuse-successor' && github.run_attempt == 1 && inputs.authorization == 'reviewed-originals'
     runs-on: windows-latest
     timeout-minutes: 10
     outputs:
@@ -42,127 +42,30 @@ jobs:
           path: expanded-api-plan/*.json
           if-no-files-found: error
           retention-days: 14
-  Build:
+  Registry:
     needs: Plan
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        country: [W1, DE, CA, US, IT]
-    runs-on: GitHub-BCAppsPL
-    timeout-minutes: 180
-    defaults:
-      run:
-        shell: pwsh
-    env:
-      ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
-      ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
-      BC_EXPANDED_COUNTRY: ${{ matrix.country }}
-      GH_TOKEN: ${{ github.token }}
+    runs-on: windows-latest
+    timeout-minutes: 30
+    outputs:
+      id: ${{ steps.adopt.outputs.id }}
+      digest: ${{ steps.adopt.outputs.digest }}
     steps:
-      - name: Start assigned-runner clock
-        run: |
-          "BC_EXPANDED_STARTED_UTC=$([DateTime]::UtcNow.ToString('o'))" | Add-Content $env:GITHUB_ENV
-          "BC_EXPANDED_STARTED_TICKS=$([Diagnostics.Stopwatch]::GetTimestamp())" | Add-Content $env:GITHUB_ENV
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           lfs: true
           fetch-depth: 0
-      - name: Stage pinned diagnostic source and full dependency build
-        id: configure
-        run: .\build\scripts\ExpandedApiDiagnostic\Configure.ps1 -Kind Build
-      - uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
-        with:
-          shell: pwsh
-          project: ${{ steps.configure.outputs.project }}
-          buildMode: Default
-      - id: secrets
-        uses: microsoft/AL-Go/Actions/ReadSecrets@91b96c2b294be6f823277dafe6f03350abfb9d23
-        with:
-          shell: pwsh
-          gitHubSecrets: ${{ toJson(secrets) }}
-          getSecrets: 'licenseFileUrl,gitHubPackagesContext,applicationInsightsConnectionString,appDependencySecrets'
-      - name: Load exact helper and validate warm API surface without replacing AL-Go configuration
-        uses: microsoft/AL-Go/Actions/RunHook@91b96c2b294be6f823277dafe6f03350abfb9d23
-        with:
-          shell: pwsh
-          project: ${{ steps.configure.outputs.project }}
-          hookName: BuildInitialize
-      - name: Validate cold consumer API surface before compilation
-        run: .\build\scripts\ExpandedApiDiagnostic\HelperPreflight.ps1 -Boundary Cold
-      - name: Compile all country app and test dependencies once
-        uses: microsoft/AL-Go/Actions/CompileApps@91b96c2b294be6f823277dafe6f03350abfb9d23
-        env:
-          Secrets: '${{ steps.secrets.outputs.Secrets }}'
-          BuildMode: Default
-        with:
-          shell: pwsh
-          project: ${{ steps.configure.outputs.project }}
-          artifact: ${{ steps.configure.outputs.artifact }}
-          buildMode: Default
-          baselineWorkflowRunId: '0'
-      - id: apps
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: expanded-Apps-${{ matrix.country }}-${{ github.run_id }}
-          path: ${{ steps.configure.outputs.project }}/.buildartifacts/Apps/*.app
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 14
-      - id: tests
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: expanded-TestApps-${{ matrix.country }}-${{ github.run_id }}
-          path: ${{ steps.configure.outputs.project }}/.buildartifacts/TestApps/*.app
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 14
-      - name: Seal actual artifact IDs, transport digests and compiled package metadata
-        run: .\build\scripts\ExpandedApiDiagnostic\SealBuild.ps1 -AppsId '${{ steps.apps.outputs.artifact-id }}' -AppsDigest '${{ steps.apps.outputs.artifact-digest }}' -TestsId '${{ steps.tests.outputs.artifact-id }}' -TestsDigest '${{ steps.tests.outputs.artifact-digest }}'
-      - name: Remove only owned compiler folder
-        if: always()
-        run: .\build\scripts\ExpandedApiDiagnostic\Compiler.ps1 -Phase Cleanup
-      - name: Publish sealed country manifest after compiler cleanup
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: expanded-manifest-${{ matrix.country }}-${{ github.run_id }}
-          path: |
-            expanded-api-output/packages.json
-            expanded-api-output/compiler-cleanup.json
-          if-no-files-found: error
-          retention-days: 14
-      - name: Preserve build diagnostics including original compilation failures
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: expanded-build-evidence-${{ matrix.country }}-${{ github.run_id }}
-          path: |
-            expanded-api-output/**
-            build/projects/Expanded Build ${{ matrix.country }}/BuildOutput.txt
-            build/projects/Expanded Build ${{ matrix.country }}/.buildartifacts/**/*.log
-            build/projects/Expanded Build ${{ matrix.country }}/.buildartifacts/**/*.json
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 14
-  Registry:
-    needs: Build
-    runs-on: windows-latest
-    timeout-minutes: 15
-    outputs:
-      id: ${{ steps.registry.outputs.artifact-id }}
-      digest: ${{ steps.registry.outputs.artifact-digest }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: Seal common country registry
+      - name: Adopt exact terminal producer registry without compiling or relabeling packages
+        id: adopt
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: .\build\scripts\ExpandedApiDiagnostic\Registry.ps1
-      - id: registry
+        run: .\build\scripts\ExpandedApiDiagnostic\Adopt.ps1
+      - name: Preserve consumer adoption and unchanged producer manifests
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: expanded-registry-${{ github.run_id }}
-          path: expanded-registry/registry.json
+          name: expanded-adoption-${{ github.run_id }}
+          path: expanded-adoption/**
           if-no-files-found: error
           retention-days: 14
   Trials:
@@ -180,7 +83,7 @@ jobs:
       registryId: ${{ needs.Registry.outputs.id }}
       registryDigest: ${{ needs.Registry.outputs.digest }}
   Audit:
-    needs: [Plan, Build, Registry, Trials]
+    needs: [Plan, Registry, Trials]
     if: always() && needs.Plan.result == 'success'
     runs-on: windows-latest
     timeout-minutes: 60
@@ -190,7 +93,6 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          BC_EXPANDED_BUILD_RESULT: ${{ needs.Build.result }}
           BC_EXPANDED_REGISTRY_RESULT: ${{ needs.Registry.result }}
           BC_EXPANDED_TRIALS_RESULT: ${{ needs.Trials.result }}
         run: .\build\scripts\ExpandedApiDiagnostic\Audit.ps1

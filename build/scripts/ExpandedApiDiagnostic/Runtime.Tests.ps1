@@ -55,7 +55,7 @@ Export-ModuleMember -Function *
         $environment[$key] = [Environment]::GetEnvironmentVariable($key)
     }
     $env:GITHUB_WORKSPACE=$fixture; $env:GITHUB_REPOSITORY='microsoft/BCApps'
-    $env:GITHUB_REF='refs/heads/features/653393-expanded-api-helper-scope';$env:GITHUB_EVENT_NAME='workflow_dispatch'
+    $env:GITHUB_REF='refs/heads/features/653393-expanded-api-reuse-successor';$env:GITHUB_EVENT_NAME='workflow_dispatch'
     $env:GITHUB_RUN_ATTEMPT='1';$env:GITHUB_RUN_ID='999';$env:GITHUB_SHA='a'*40
     $env:BC_EXPANDED_COUNTRY='CA';$env:BC_EXPANDED_CONFIG='m2w2';$env:BC_EXPANDED_LANE='UncategorizedTests'
     $env:BcContainerHelperPath=$helperPath
@@ -73,6 +73,7 @@ Describe 'Real orchestration with fake external services' {
         Remove-Module Producer,Lifecycle,TenantCount,BcContainerHelper -ErrorAction SilentlyContinue
         Import-Module (Join-Path $root 'Producer.psm1') -Force
         Import-Module (Join-Path $root 'Context.psm1') -Force
+        Import-Module (Join-Path $root 'Reuse.psm1') -Force
         $script:context=Get-ExpandedContext
         $output=$context.output
         if(Test-Path $output){Remove-Item $output -Recurse -Force}
@@ -91,8 +92,11 @@ Describe 'Real orchestration with fake external services' {
             @{path='Apps\Microsoft_Library - No Transactions_30.0.1.0.app';appId='fixture-no-transactions';appName='Library - No Transactions';version='30.0.1.0'},
             @{path='Apps\Microsoft_Prevent Metadata Updates Library_30.0.1.0.app';appId='fixture-prevent-metadata';appName='Prevent Metadata Updates Library';version='30.0.1.0'}
         )} | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $output 'packages.json')
-        @{transportVerified=$true;packageFilesVerified=$true;registryId='123';registrySha256=('b'*64)} |
-            ConvertTo-Json | Set-Content (Join-Path $output 'transport-proof.json')
+        $policy=Get-ExpandedReusePolicy
+        $adoption=New-ExpandedAdoptionReceipt -Source @{runId='999';sourceHead=('a'*40);attempt=1;compiled=$false
+            sourceTree=$policy.sourceTree;overlaySha256=$policy.overlaySha256}
+        @{transportVerified=$true;packageFilesVerified=$true;registryId=$policy.registryId;registrySha256=$policy.registryDigest;adoption=$adoption} |
+            ConvertTo-Json -Depth 12 | Set-Content (Join-Path $output 'transport-proof.json')
         @{verifiedGenericImage=$context.pins.image;actualContainerImageId='fixture-image';memoryBytes=$context.pins.memoryBytes;genericLayerPrefixVerified=$true} |
             ConvertTo-Json | Set-Content (Join-Path $output 'docker.json')
         @{host=@{cpuLoadPercent=1};errors=@()}|ConvertTo-Json -Depth 4|Set-Content (Join-Path $output 'setup-resource.json')

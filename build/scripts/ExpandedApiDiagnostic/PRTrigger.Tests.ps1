@@ -1,7 +1,7 @@
 BeforeAll {
     $script:workflowPath = Join-Path $PSScriptRoot '..\..\..\.github\workflows\PullRequestHandler.yaml'
     $script:workflow = Get-Content $workflowPath -Raw
-    $script:prefix = "(github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-helper-scope') && "
+    $script:prefix = "(github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != 'microsoft/BCApps' || github.event.pull_request.head.ref != 'features/653393-expanded-api-reuse-successor') && "
     $script:conditions = @{}
     $job = $null
     $inJobs = $false
@@ -40,16 +40,17 @@ Describe 'Exact diagnostic PR head opts out of ordinary jobs' {
         @{action='synchronize';draft=$true}, @{action='synchronize';draft=$false},
         @{action='reopened';draft=$true}, @{action='reopened';draft=$false}
     ) {
-        $payload = @{name='pull_request';repository='microsoft/BCApps';head='features/653393-expanded-api-helper-scope';action=$action;draft=$draft}
+        $payload = @{name='pull_request';repository='microsoft/BCApps';head='features/653393-expanded-api-reuse-successor';action=$action;draft=$draft}
         foreach ($condition in $conditions.Values) { Test-OrdinaryPRGate -Condition $condition -Payload $payload | Should -BeFalse }
     }
     It 'does not exempt other heads, forks with the same branch name or merge queues' -ForEach @(
-        @{eventName='pull_request';repo='microsoft/BCApps';head='features/653393-expanded-api-helper-scope-other'},
+        @{eventName='pull_request';repo='microsoft/BCApps';head='features/653393-expanded-api-reuse-successor-other'},
+        @{eventName='pull_request';repo='microsoft/BCApps';head='features/653393-expanded-api-helper-scope'},
         @{eventName='pull_request';repo='microsoft/BCApps';head='features/653393-expanded-api-diagnostic'},
         @{eventName='pull_request';repo='microsoft/BCApps';head='features/646383-sql-api-tenant-count-comparison'},
         @{eventName='pull_request';repo='microsoft/BCApps';head='feature/ordinary'},
-        @{eventName='pull_request';repo='another/BCApps';head='features/653393-expanded-api-helper-scope'},
-        @{eventName='merge_group';repo='microsoft/BCApps';head='features/653393-expanded-api-helper-scope'}
+        @{eventName='pull_request';repo='another/BCApps';head='features/653393-expanded-api-reuse-successor'},
+        @{eventName='merge_group';repo='microsoft/BCApps';head='features/653393-expanded-api-reuse-successor'}
     ) {
         $payload = @{name=$eventName;repository=$repo;head=$head}
         foreach ($condition in $conditions.Values) { Test-OrdinaryPRGate -Condition $condition -Payload $payload | Should -BeTrue }

@@ -23,7 +23,7 @@ Export-ModuleMember -Function Get-AppJsonFromAppFile,New-BcCompilerFolder,Remove
     $env:BcContainerHelperPath=$helper
     $env:GITHUB_WORKSPACE=$fixture
     $env:GITHUB_REPOSITORY='microsoft/BCApps'
-    $env:GITHUB_REF='refs/heads/features/653393-expanded-api-helper-scope'
+    $env:GITHUB_REF='refs/heads/features/653393-expanded-api-reuse-successor'
     $env:GITHUB_EVENT_NAME='workflow_dispatch'
     $env:GITHUB_RUN_ATTEMPT='1'
     $env:GITHUB_RUN_ID='999'

@@ -8,7 +8,7 @@ BeforeAll {
         'GITHUB_WORKSPACE','BC_EXPANDED_COUNTRY','BC_EXPANDED_PROJECT','BC_EXPANDED_ARTIFACT_FIXTURE','BcContainerHelperPath')){
         $saved[$key]=[Environment]::GetEnvironmentVariable($key)
     }
-    $env:GITHUB_REPOSITORY='microsoft/BCApps';$env:GITHUB_REF='refs/heads/features/653393-expanded-api-helper-scope'
+    $env:GITHUB_REPOSITORY='microsoft/BCApps';$env:GITHUB_REF='refs/heads/features/653393-expanded-api-reuse-successor'
     $env:GITHUB_EVENT_NAME='workflow_dispatch';$env:GITHUB_RUN_ATTEMPT='1';$env:GITHUB_RUN_ID='999';$env:GITHUB_SHA='a'*40
     $env:GITHUB_WORKSPACE=$fixture;$env:BC_EXPANDED_COUNTRY='CA';$env:BC_EXPANDED_PROJECT='build\projects\Expanded Build CA'
     $env:BC_EXPANDED_ARTIFACT_FIXTURE=Join-Path $fixture 'service.json'

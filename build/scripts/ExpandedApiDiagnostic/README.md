@@ -11,7 +11,7 @@ test is claimed. The investigation remains open.
 
 The registered `CICD.yaml` dispatch entry bridges to
 `SqlApiExpandedDiagnostic.yaml` **only** on
-`features/653393-expanded-api-helper-scope`, manual event, attempt1, with
+`features/653393-expanded-api-reuse-successor`, manual event, attempt1, with
 `authorization=reviewed-originals`. Default authorization is **HOLD**.
 The bridge avoids depending on a newly introduced workflow already being registered
 on the default branch. Ordinary CI job bodies/push triggers remain unchanged;
@@ -23,7 +23,7 @@ branches, protocols, dispatch definitions and concurrency groups are untouched.
 that `pull_request` executes in the PR merge context; the branch-local workflow
 gate is therefore honored. Every job in that handler excludes only an event with
 `pull_request.head.repo.full_name == microsoft/BCApps` and
-`pull_request.head.ref == features/653393-expanded-api-helper-scope`. Opened,
+`pull_request.head.ref == features/653393-expanded-api-reuse-successor`. Opened,
 synchronize and reopened events are covered regardless of draft/ready status.
 Other heads, forks and merge-group behavior are unchanged. Other PR workflows
 (for example hosted PowerShell validation, labels and reviews) may still run;
@@ -33,12 +33,57 @@ uses the same `pull_request` trigger. Future trigger/gate changes need re-review
 The immutable diagnostic source remains based on `97c2f034…`, not latest main.
 
 A PR is **not required** to run the manual diagnostic after parent authorization:
-`gh workflow run CICD.yaml --repo microsoft/BCApps --ref features/653393-expanded-api-helper-scope -f authorization=reviewed-originals`.
+`gh workflow run CICD.yaml --repo microsoft/BCApps --ref features/653393-expanded-api-reuse-successor -f authorization=reviewed-originals`.
 The input name is `authorization`; the exact value is `reviewed-originals`.
 
-## Isolated helper-scope successor
+## Isolated reuse-only successor
 
-This branch starts at immutable `1d4e69dd94ac4faee5ec0a05b0338abb301530b2`.
+This successor starts at immutable `bd763f0b489277dc3696bb352396456d625ab63c`.
+It does not modify PR12598, PR12587, their branches or their raw evidence.
+Producer run **37896636913**, attempt1, compiled all five countries successfully.
+The parent audited **1,296** packages; all39 runtime lanes then failed before
+pipeline/container creation because generated JSON contained both
+`ConditionalSettings` and `conditionalSettings`. That failed setup remains
+history, not an original API test failure or a successful comparison.
+
+`Settings.psm1` is the actual generator used by Configure. It rejects ambiguous
+JSON keys (including identical duplicates), removes the existing conditional key
+using its actual spelling, emits exactly one canonical `conditionalSettings`,
+and validates every generated AL-Go settings document with plain
+`ConvertFrom-Json` before writing it. Explicit Legacy bucket numbers survive
+removal of inherited conditional settings.
+
+There are **no compile jobs and no rebuild fallback** in this workflow.
+`Adopt.ps1` adopts only registry **11613371849**:
+
+- Producer head `bd763f0b489277dc3696bb352396456d625ab63c`, run37896636913/attempt1.
+- Registry ZIP SHA256 `f42092163c96cbeb2187547125030cbd39d0a12d2ad5d93a5f5f241645f7617e`.
+- Original registry.json SHA256 `2dbb7aef561c583323b895d02704d88f2e2909b2ada58a88c153234b80148828`.
+- Country manifests W1 **11604275431**, DE **11604341329**, CA **11609651143**,
+  US **11608823958**, IT **11613585211**, with exact digests in `Reuse.psm1`.
+- Both sides must have staged source subtree
+  `6605c0616ac6578d561435d0f03a7ebfb19e36d9` and overlay SHA256
+  `aec92cd14f5b9a6ca9b3504e6fd9c3ab48926ddee6a95c48596b40101430ae37`.
+
+Adoption rechecks terminal producer identity/attempt, registry ZIP and inner file,
+five manifests, their compiler cleanup proofs and live package artifact identities.
+Every lane independently rechecks those gates and all actual package bytes before
+provisioning. Expired/missing/mixed artifacts fail closed. The producer's
+`freshCompilation=true`, manifests and binary Source/Build metadata remain
+unchanged; a separate receipt explicitly records **compiledThisRun=false**.
+Runtime artifacts, ownership, lane results and audit belong to the new consumer
+run/head. Artifact download defaults remain consumer-bound; only package/adoption
+callers pass the approved producer explicitly. No environment identity spoofing.
+
+If setup prevents execution, finalization lists missing evidence and reports
+setup-invalid. A skipped pipeline records `execution-not-started`; an attempted
+pipeline with incomplete evidence records `execution-evidence-incomplete`.
+Neither creates fake phases/performance nor treats a missing ownership receipt
+as proof of container absence. Existing owned cleanup still precedes assessment.
+
+## Preserved helper-scope correction
+
+The helper-scope predecessor started at `1d4e69dd94ac4faee5ec0a05b0338abb301530b2`.
 The predecessor branch/PR12587 and run37873706046 are not edited or replayed.
 Parent terminal evidence records all five country compilations successful but
 the separate sealing and cleanup processes failed command resolution; registry/
@@ -48,9 +93,11 @@ trials never ran. This was our **CI setup bug**, not evidence of a SQL platform 
 scope. The exact pinned helper really exports the reader and cleanup APIs.
 It now publishes that exact instance to global session scope and checks version,
 provider path, exports and required parameters. Warm instances are re-exported
-without Force, preserving AL-Go configuration. Both build and lane workflows run
-a pinned AL-Go BuildInitialize hook to load/verify the warm helper, followed by
-a separate cold PowerShell API/signature check **before** compilation/provisioning.
+without Force, preserving AL-Go configuration. The producer build workflow and
+current lane workflow use a pinned AL-Go BuildInitialize hook to load/verify the
+warm helper, followed by a separate cold PowerShell API/signature check **before**
+compilation/provisioning respectively. This reuse successor invokes only the lane
+preflights; no compiler path is executed.
 The finalizer, producer and new-container callbacks also check their required
 surface. Worker and sampler children already import directly in their own session.
 
@@ -78,19 +125,20 @@ The independent literal concurrency group is
 `sql-api-653393-expanded-api-diagnostic`, cancellation disabled.
 
 1. Plan declares all cells and exact source routes.
-2. **Five shared country builds**, max-parallel2, compile all application and test
-   dependencies once from the diagnostic source overlay.
-3. Registry verifies actual country artifact IDs/digests and compiler cleanup.
+2. Hosted adoption stages the unchanged source overlay and verifies the approved
+   five-country producer registry. No compiler or BC container is started.
+3. Registry outputs the **original producer** registry ID/digest, not a resealed
+   consumer build.
 4. **Fifteen configuration/country cells**, max-parallel2, each run their lanes
    sequentially through `_ExpandedApiCell.yaml` / `_ExpandedApiLane.yaml`.
    Every lane has a separate owned container, project, cache, company and template.
 5. Always-run audit validates every original lane and compares exact packages,
    compiled selectors, methods and skip states across all three topologies.
 
-Builds finish before trials start. Each active cell has at most one provisioning/
-test job, so at most **two BC allocations** exist in either phase. Plan, registry
+Adoption finishes before trials start. Each active cell has at most one provisioning/
+test job, so at most **two BC allocations** exist. Plan, registry
 and audit use hosted control-plane runners, not BC container allocations.
-Builds have180-minute and lanes360-minute bounds. There are39 lane executions,
+Lanes have360-minute bounds. There are39 lane executions,
 one original per cell/lane; no automatic repetitions, replacements or reruns.
 Runner loss without cleanup proof is invalid and still requires parent orphan
 auditing; scheduler limits alone cannot prove physical cleanup.
@@ -169,10 +217,11 @@ runtime or VSIX override is accepted. Compiler creation checks its exact artifac
 owns a unique run-scoped folder, and is cleaned even after compilation failure.
 All incremental event flags are disabled and baselineWorkflowRunId is0.
 
-The compile action builds all folders/dependencies; artifact upload precedes
+In the approved producer, the compile action built all folders/dependencies; artifact upload preceded
 sealing actual Apps/TestApps IDs, service archive digests, source head/subtree,
 overlay hash, per-package SHA256/size/id/name/version/dependencies and compiler
-settings. Compiler cleanup is mandatory before registry publication.
+settings. Compiler cleanup was mandatory before producer registry publication
+and its sealed proof is required again for adoption.
 Every topology receives the same sealed registry and country manifest.
 Downloads verify service provenance, transport SHA, path safety, exact package
 bytes and file inventory. Old PR2/253-prefix snapshots cannot be substituted.
@@ -180,7 +229,7 @@ bytes and file inventory. Old PR2/253-prefix snapshots cannot be substituted.
 The original test-project marker (`projectsToTest`) is retained: pinned AL-Go
 otherwise exits as an empty repository before reading installTestAppsJson.
 There is **no** upstream dependency download or recompilation in a lane; only
-the sealed new packages are supplied to RunPipeline.
+the unchanged sealed producer packages are supplied to RunPipeline.
 
 ## Runtime producer and original evidence
 
@@ -269,6 +318,25 @@ database recreation resets I/O identities and host activity may include other wo
 ## Local validation boundary
 
 Pester6.1 runs project-local fixtures with TestDrive/TestRegistry disabled.
+Use `TestOffline.ps1` in a fresh PowerShell7 process:
+
+```powershell
+.\build\scripts\ExpandedApiDiagnostic\TestOffline.ps1 `
+  -PinnedALGoSource $PinnedALGoCheckout `
+  -RegistryFile $VerifiedRegistryJson `
+  -RegistryArchive $VerifiedRegistryZip `
+  -ResultPath $WorkspaceLocalResultJson
+```
+
+The AL-Go checkout must be clean at exactly
+`91b96c2b294be6f823277dafe6f03350abfb9d23`; it is imported read-only, not
+vendored or modified. The real generator feeds all39 combinations through its
+real `ReadSettings` and nested `GetSettingsObject`, including negative duplicate
+fixtures. The already-audited producer registry/archive and sibling `build-W1`
+archives supply transport fixtures; the real receiver verifies all248 W1
+package files locally. No test downloads dependencies. The harness blocks
+unmocked HTTP calls locally and fails even if a negative test catches that error.
+These are actual settings/byte-consumption tests, not AL runtime tests.
 Tests exercise real orchestration, transcripts and worker processes with **fake
 external services**, including all topologies, original failure, discovery failure
 and cleanup/resource rejection. Artifact tests exercise transport hashing/path
@@ -277,8 +345,10 @@ Parser/PSScriptAnalyzer, workflow dependency/capacity/ordinary-CI equivalence an
 isolated-index source-overlay checks complement those tests.
 
 No actual compiler/NST/SQL/Docker/GitHub dispatch is run by these local tests.
-Real package IDs, runtime case totals and empirical expanded results will exist
-only after the parent's reviewed, authorized CI execution.
+Real producer package IDs already exist and remain immutable. Runtime case totals
+and empirical expanded results still require the parent's reviewed, authorized
+consumer execution. All15 cells/39 lanes, two-slot capacity, original runner
+semantics, two publication exclusions, pins, auth and intentional skips remain.
 
 Prior empirical gate: run37758493320/SHA94989d1c43, each candidate10/10 fully
 audited originals (5W1+5DE), zero relevant original failures and20 verified cleanups.

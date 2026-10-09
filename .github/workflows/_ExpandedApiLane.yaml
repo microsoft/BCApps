@@ -19,7 +19,7 @@ on:
         required: true
 jobs:
   Lane:
-    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-helper-scope' && github.run_attempt == 1
+    if: github.repository == 'microsoft/BCApps' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/features/653393-expanded-api-reuse-successor' && github.run_attempt == 1
     runs-on: GitHub-BCAppsPL
     timeout-minutes: 360
     defaults:
@@ -45,7 +45,7 @@ jobs:
       - name: Stage exact shared source and distinct lane project
         id: configure
         run: .\build\scripts\ExpandedApiDiagnostic\Configure.ps1 -Kind Lane
-      - name: Verify exact registry, artifact archives and new compiled package bytes
+      - name: Verify approved producer registry, artifact archives and unchanged compiled package bytes
         id: packages
         run: .\build\scripts\ExpandedApiDiagnostic\ReceivePackages.ps1 -RegistryId '${{ inputs.registryId }}' -RegistryDigest '${{ inputs.registryDigest }}'
       - uses: microsoft/AL-Go/Actions/ReadSettings@91b96c2b294be6f823277dafe6f03350abfb9d23
@@ -68,6 +68,7 @@ jobs:
       - name: Verify cold finalizer and worker API surface before provisioning
         run: .\build\scripts\ExpandedApiDiagnostic\HelperPreflight.ps1 -Boundary Cold
       - name: Provision and execute original lane with dedicated test override
+        id: pipeline
         uses: microsoft/AL-Go/Actions/RunPipeline@91b96c2b294be6f823277dafe6f03350abfb9d23
         env:
           Secrets: '${{ steps.secrets.outputs.Secrets }}'
@@ -84,6 +85,8 @@ jobs:
         run: .\build\scripts\ExpandedApiDiagnostic\ExportPipeline.ps1
       - name: Preserve originals, remove only owned container and qualify evidence
         if: always()
+        env:
+          BC_EXPANDED_PIPELINE_OUTCOME: ${{ steps.pipeline.outcome }}
         run: .\build\scripts\ExpandedApiDiagnostic\Finalize.ps1
       - name: Preserve raw original evidence including incomplete and failed lanes
         if: always()
