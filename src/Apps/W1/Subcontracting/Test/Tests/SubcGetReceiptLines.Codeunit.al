@@ -48,6 +48,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
+        UnexpectedMessageErr: Label 'Unexpected Message: %1', Comment = '%1 = Message text';
 
     local procedure Initialize()
     begin
@@ -679,7 +680,7 @@ codeunit 149927 "Subc. Get Receipt Lines"
             exit;
         if Message.Contains('successfully posted and is now deleted') then
             exit;
-        Error('Unexpected Message: %1', Message);
+        Error(UnexpectedMessageErr, Message);
     end;
 
     [ConfirmHandler]

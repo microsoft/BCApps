@@ -148,6 +148,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
+        PurchRcptLine.SetLoadFields("No.", "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.");
         if not PurchRcptLine.Get(ToPurchLine."Receipt No.", ToPurchLine."Receipt Line No.") then
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) then
@@ -183,6 +184,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
+        PurchRcptLine.SetLoadFields("Order No.", "Order Line No.", "Operation No.");
         if PurchRcptLine.Get(PurchLine."Receipt No.", PurchLine."Receipt Line No.") then
             SetSubcontractingPurchaseIdentity(ItemJnlLine, PurchRcptLine)
         else begin
