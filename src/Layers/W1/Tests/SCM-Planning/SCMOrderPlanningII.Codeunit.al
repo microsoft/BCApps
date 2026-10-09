@@ -2,6 +2,7 @@ codeunit 137087 "SCM Order Planning - II"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -14,6 +15,7 @@ codeunit 137087 "SCM Order Planning - II"
         LocationBlue: Record Location;
         LocationBlue2: Record Location;
         LocationIntransit: Record Location;
+        RequisitionLineOnCheckBlockedItem: Record "Requisition Line";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -30,6 +32,9 @@ codeunit 137087 "SCM Order Planning - II"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
+        CheckBlockedItemItemNo: Code[20];
+        CheckBlockedItemEventCount: Integer;
+        HandleCheckBlockedItem: Boolean;
         DemandTypeGlobal: Option Sales,Production;
         IsInitialized: Boolean;
         ValidationError: Label '%1  must be %2 in %3.';
@@ -38,6 +43,7 @@ codeunit 137087 "SCM Order Planning - II"
         QuantityError: Label 'Available Quantity must match.';
         RequisitionLineMustNotExist: Label 'Requisition Line must not exist for Item %1.';
         PostDateOutOfRangeErr: Label 'Posting Date is not within your range of allowed posting dates in Warehouse Shipment Header No.=';
+        OnBeforeCheckBlockedItemCountErr: Label 'OnBeforeCheckBlockedItem must be raised exactly once for the blocked item.';
 
     [Test]
     [HandlerFunctions('MakeSupplyOrdersPageHandler')]
@@ -1343,6 +1349,153 @@ codeunit 137087 "SCM Order Planning - II"
         Assert.RecordIsEmpty(RequisitionLine);
     end;
 
+    [Test]
+    procedure PlanningNotStoppedWhenItemIsBlocked()
+    var
+        Item: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
+        Quantity: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 651525] The valid item should produce a planning result even though another demand item is blocked.
+        Initialize();
+        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
+
+        Quantity := LibraryRandom.RandIntInRange(50, 100);
+
+        // [GIVEN] Create two items with Reordering Policy = "Lot-for-Lot".
+        for i := 1 to 2 do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Item[i].Validate("Reordering Policy", Item[i]."Reordering Policy"::"Lot-for-Lot");
+            Item[i].Modify(true);
+        end;
+
+        // [GIVEN] Create Sales Orders for the two items.
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', Item[1]."No.", Quantity, '', WorkDate());
+        CreateSalesLine(SalesHeader, Item[2]."No.", '', Quantity, Quantity);
+
+        // [GIVEN] Block the first item.
+        Item[1].Get(Item[1]."No.");
+        Item[1].Validate(Blocked, true);
+        Item[1].Modify(true);
+
+        // [WHEN] Calculate Order Plan for Sales.
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+
+        // [THEN] Verify that the requisition line exists for the second item.
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[2]."No.", '');
+
+        // [THEN] Verify that no requisition line exists for the blocked first item.
+        RequisitionLine.SetRange("No.", Item[1]."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // Tear Down.
+        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
+    end;
+
+    [Test]
+    procedure DemandHeaderNotCreatedWhenAllItemsOfDocumentAreBlocked()
+    var
+        Item: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: array[2] of Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
+        Quantity: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 651525] Order Planning does not keep a demand header for a document whose only demand item is blocked.
+        Initialize();
+        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
+
+        Quantity := LibraryRandom.RandIntInRange(50, 100);
+
+        // [GIVEN] Two items with Reordering Policy = "Lot-for-Lot" and a sales order for each item.
+        for i := 1 to 2 do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Item[i].Validate("Reordering Policy", Item[i]."Reordering Policy"::"Lot-for-Lot");
+            Item[i].Modify(true);
+            LibrarySales.CreateSalesDocumentWithItem(
+              SalesHeader[i], SalesLine, SalesHeader[i]."Document Type"::Order, '', Item[i]."No.", Quantity, '', WorkDate());
+        end;
+
+        // [GIVEN] Block the item of the first sales order.
+        Item[1].Get(Item[1]."No.");
+        Item[1].Validate(Blocked, true);
+        Item[1].Modify(true);
+
+        // [WHEN] Calculate Order Plan for Sales.
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+
+        // [THEN] The second sales order is planned.
+        FindRequisitionLine(RequisitionLine, SalesHeader[2]."No.", Item[2]."No.", '');
+
+        // [THEN] Neither a demand header nor a demand line exists for the first sales order.
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("Demand Order No.", SalesHeader[1]."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // Tear Down.
+        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
+    end;
+
+    [Test]
+    procedure CheckBlockedItemEventRaisedOnceWhenBlockedItemIsSkipped()
+    var
+        Item: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 651525] When no subscriber handles OnBeforeCheckBlockedItem, the event is raised once at its regular place and the blocked item is skipped by Order Planning.
+        Initialize();
+        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
+
+        Quantity := LibraryRandom.RandIntInRange(50, 100);
+
+        // [GIVEN] Items "I1" and "I2" with Reordering Policy = "Lot-for-Lot".
+        // [GIVEN] Sales order with a line for "I1" on location "L" and a line for "I2".
+        CreateTwoLotForLotItemsAndSalesOrder(Item, SalesHeader, SalesLine, LocationBlue.Code, Quantity);
+
+        // [GIVEN] Item "I1" is blocked.
+        BlockItem(Item[1]);
+
+        // [GIVEN] Subscriber to OnBeforeCheckBlockedItem only tracks calls for item "I1" and does not set IsHandled.
+        CheckBlockedItemItemNo := Item[1]."No.";
+        HandleCheckBlockedItem := false;
+        BindSubscription(this);
+
+        // [WHEN] Calculate Order Plan for Sales.
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+        UnbindSubscription(this);
+
+        // [THEN] OnBeforeCheckBlockedItem is raised exactly once for item "I1".
+        Assert.AreEqual(1, CheckBlockedItemEventCount, OnBeforeCheckBlockedItemCountErr);
+
+        // [THEN] At the time of the event, the requisition line is initialized for order planning and populated from the demand.
+        VerifyRequisitionLineOnCheckBlockedItem(Item[1]."No.", LocationBlue.Code);
+
+        // [THEN] No requisition line exists for the blocked item "I1".
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", Item[1]."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] Requisition line exists for item "I2".
+        RequisitionLine.Reset();
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item[2]."No.", '');
+        RequisitionLine.TestField(Quantity, Quantity);
+
+        // Tear Down.
+        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1371,6 +1524,10 @@ codeunit 137087 "SCM Order Planning - II"
     begin
         Clear(DemandTypeGlobal);
         Clear(ExpectedQuantity);
+        Clear(RequisitionLineOnCheckBlockedItem);
+        Clear(CheckBlockedItemItemNo);
+        Clear(CheckBlockedItemEventCount);
+        Clear(HandleCheckBlockedItem);
         RequisitionLine.DeleteAll();
         ClearManufacturingUserTemplate();
     end;
@@ -1796,6 +1953,37 @@ codeunit 137087 "SCM Order Planning - II"
         RequisitionLine.SetRange("No.", No);
         RequisitionLine.SetRange("Location Code", LocationCode);
         RequisitionLine.FindFirst();
+    end;
+
+    local procedure CreateTwoLotForLotItemsAndSalesOrder(var Item: array[2] of Record Item; var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; FirstItemLocationCode: Code[10]; Quantity: Decimal)
+    var
+        i: Integer;
+    begin
+        for i := 1 to 2 do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Item[i].Validate("Reordering Policy", Item[i]."Reordering Policy"::"Lot-for-Lot");
+            Item[i].Modify(true);
+        end;
+
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', Item[1]."No.", Quantity, FirstItemLocationCode, WorkDate());
+        CreateSalesLine(SalesHeader, Item[2]."No.", '', Quantity, Quantity);
+    end;
+
+    local procedure BlockItem(var Item: Record Item)
+    begin
+        Item.Get(Item."No.");
+        Item.Validate(Blocked, true);
+        Item.Modify(true);
+    end;
+
+    local procedure VerifyRequisitionLineOnCheckBlockedItem(ItemNo: Code[20]; LocationCode: Code[10])
+    begin
+        RequisitionLineOnCheckBlockedItem.TestField(Type, RequisitionLineOnCheckBlockedItem.Type::Item);
+        RequisitionLineOnCheckBlockedItem.TestField("No.", ItemNo);
+        RequisitionLineOnCheckBlockedItem.TestField("Location Code", LocationCode);
+        RequisitionLineOnCheckBlockedItem.TestField("Planning Line Origin", RequisitionLineOnCheckBlockedItem."Planning Line Origin"::"Order Planning");
+        RequisitionLineOnCheckBlockedItem.TestField("Journal Batch Name", RequisitionLineOnCheckBlockedItem.GetJnlBatchNameForOrderPlanning());
     end;
 
     local procedure FindProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; ProdOrderNo: Code[20]; ItemNo: Code[20])
@@ -2233,5 +2421,16 @@ codeunit 137087 "SCM Order Planning - II"
     begin
         Reply := true;
     end;
-}
 
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnBeforeCheckBlockedItem', '', false, false)]
+    local procedure OnBeforeCheckBlockedItemHandler(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
+    begin
+        if RequisitionLine."No." <> CheckBlockedItemItemNo then
+            exit;
+
+        CheckBlockedItemEventCount += 1;
+        RequisitionLineOnCheckBlockedItem := RequisitionLine;
+        if HandleCheckBlockedItem then
+            IsHandled := true;
+    end;
+}
