@@ -49,44 +49,25 @@ Key Vault password lookup. Container and test-session credentials are still
 required to provision and connect to the NST; they are not handed to API requests.
 
 On-premises **NavUserPassword** requests use the current user's web service key.
-The standard AL test runner prepares a missing key in `OnBeforeTestRun`, whose
-transaction finishes before the test method starts. This also supports read-only
-API tests using `AutoCommit` or `AutoRollback`, which start a write transaction
-even without fixture writes. Preparation applies to the current test user when
-`Tests-TestLibraries` is installed, including non-API tests; it does not select
-credentials for individual requests or rotate an existing key. No key is
-provisioned by the pipeline or extension installation.
+The provider reads the key and expiry for each request, reuses a valid key
+(including one without an expiry), and creates a key with a 24-hour expiry when
+the key is missing or expired. Credentials are not cached or logged.
 
-An existing valid key is read on each request without a credential cache. If no
-key exists, a read-only caller raises an internal isolated event. Its subscriber
-locks and rechecks the current user, then creates a key with a 24-hour expiry.
-The platform commits this separate key transaction before returning; the provider
-then rereads the key rather than trusting an event output that could survive a
-rollback. The lock and recheck prevent competing test sessions for the same
-tenant/user from replacing each other's newly created key.
-
-If the key is missing and the caller has uncommitted writes, authentication fails
-explicitly **without committing fixture data**. Initialize authentication before
-fixture writes or use the test's existing committed fixture boundary; do not add
-a request-side commit to hide an incomplete fixture. Existing valid keys remain
-read-only even when the caller has writes. Expired keys fail explicitly rather
-than silently rotating credentials used by other clients.
-
-Isolated events have different semantics during extension install/upgrade; API
-test requests belong in normal test execution, not installation/upgrade triggers.
-First-use visibility to the separate HTTP session, rollback, and concurrent first
-use still require target-server validation; source-contract tests alone do not
-establish those runtime results.
+There are no authentication event subscribers, test-runner dependencies, or
+pipeline key-provisioning steps. The provider does not call `Commit()`.
+`Identity Management` may create the key in the caller's existing transaction;
+the independent HTTP session requires committed credentials, just as it requires
+committed fixture data. First-use visibility at the test's transaction boundary
+must therefore be verified on the target server. Concurrent creation by separate
+sessions for the same tenant/user is not serialized by this provider.
 
 Windows, SaaS, and other authentication modes retain ambient authentication.
-Custom enum providers and `SetAuthenticationProvider` remain supported. Explicit
-`Enum::"API Test Authentication"::None` still opts out, including on the first
-request. The final `OnAfterInitializeWebRequestWithURL` event still runs after the
-provider. Event-only custom authentication that must avoid default key acquisition
-should explicitly select `None` before creating the request.
-This request-level opt-out does not undo the standard runner's test-user key
-preparation. Custom runners can prepare the key before starting test transactions,
-or use the read-only first-request path.
+`API Test Authentication` uses the Microsoft provider as its
+`DefaultImplementation`; value zero is `Default`. The explicit
+`Microsoft Test Environment` value retains ordinal one. The previous `None`
+value and no-op provider are removed. Custom enum providers and
+`SetAuthenticationProvider` remain supported, and the final
+`OnAfterInitializeWebRequestWithURL` event still runs after the provider.
 
 API fixture initializers reapply the existing test-license-compatible work date
 (November 15 of the current year) before creating date-sensitive data, including

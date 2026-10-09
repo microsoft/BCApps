@@ -33,8 +33,7 @@ codeunit 130618 "Library - Graph Mgt"
 
     /// <summary>
     /// Sets the authentication provider used by this library instance.
-    /// Without an explicit selection, the Microsoft test provider is used.
-    /// Select None to retain only ambient credentials and the final request event.
+    /// Without an explicit selection, the enum's default implementation is used.
     /// Selecting the same provider preserves its cached state.
     /// </summary>
     /// <param name="NewAuthentication">The authentication provider to use for subsequent API test requests.</param>
@@ -195,7 +194,6 @@ codeunit 130618 "Library - Graph Mgt"
     local procedure GetAuthenticationProvider(): Interface "API Test Auth Provider"
     begin
         if not AuthenticationProviderResolved then begin
-            Authentication := Authentication::"Microsoft Test Environment";
             AuthenticationProvider := Authentication;
             AuthenticationProviderResolved := true;
         end;

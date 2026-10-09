@@ -11,12 +11,11 @@
 enum 131023 "API Test Authentication" implements "API Test Auth Provider"
 {
     Extensible = true;
-    DefaultImplementation = "API Test Auth Provider" = "No API Test Auth Provider";
+    DefaultImplementation = "API Test Auth Provider" = "Microsoft Test Auth Provider";
 
-    value(0; None)
+    value(0; Default)
     {
-        Caption = 'None';
-        Implementation = "API Test Auth Provider" = "No API Test Auth Provider";
+        Caption = 'Default';
     }
     value(1; "Microsoft Test Environment")
     {
