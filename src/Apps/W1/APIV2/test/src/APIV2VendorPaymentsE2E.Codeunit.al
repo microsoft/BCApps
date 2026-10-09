@@ -888,9 +888,8 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Vendor Payments E2E");
 
-        if not isInitialized then begin
+        if not isInitialized then
             isInitialized := true;
-        end;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"APIV2 - Vendor Payments E2E");
     end;

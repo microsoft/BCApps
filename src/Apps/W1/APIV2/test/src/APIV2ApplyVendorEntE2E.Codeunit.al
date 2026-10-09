@@ -175,9 +175,8 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Apply Vendor Ent. E2E");
 
-        if not isInitialized then begin
+        if not isInitialized then
             isInitialized := true;
-        end;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"APIV2 - Apply Vendor Ent. E2E");
     end;

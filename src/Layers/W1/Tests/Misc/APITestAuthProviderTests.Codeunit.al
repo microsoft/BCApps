@@ -5,9 +5,6 @@
 
 #pragma warning disable AA0247
 
-using System.Environment;
-using System.Security.AccessControl;
-
 codeunit 139494 "API Test Auth Provider Tests"
 {
     EventSubscriberInstance = Manual;

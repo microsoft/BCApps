@@ -773,9 +773,8 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV1 - Customer Payments E2E");
 
-        if not isInitialized then begin
+        if not isInitialized then
             isInitialized := true;
-        end;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"APIV1 - Customer Payments E2E");
     end;
