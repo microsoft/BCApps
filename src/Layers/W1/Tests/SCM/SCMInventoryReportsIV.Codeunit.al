@@ -2428,6 +2428,8 @@ codeunit 137351 "SCM Inventory Reports - IV"
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Inventory Reports - IV");
         LibraryVariableStorage.Clear();
+        // RunReportAndLoad switches the dataset schema type, which breaks later LoadDataSetFile calls.
+        Clear(LibraryReportDataset);
 
         // Lazy Setup.
         if isInitialized then
