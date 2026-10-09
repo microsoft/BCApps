@@ -376,7 +376,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnAfterReverseGLEntry(GLEntry);
     end;
 
-    local procedure ReverseCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; NewEntryNo: Integer; Correction: Boolean; SourceCode: Code[10]; var NextDtldCustLedgEntryEntryNo: Integer)
+    local procedure ReverseCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; NewEntryNo: BigInteger; Correction: Boolean; SourceCode: Code[10]; var NextDtldCustLedgEntryEntryNo: BigInteger)
     var
         NewCustLedgerEntry: Record "Cust. Ledger Entry";
         ReversedCustLedgerEntry: Record "Cust. Ledger Entry";

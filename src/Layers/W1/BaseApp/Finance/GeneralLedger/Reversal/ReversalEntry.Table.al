@@ -475,7 +475,7 @@ table 179 "Reversal Entry"
 
     protected procedure InsertReversalEntry(Number: BigInteger; RevType: Option Transaction,Register)
     var
-        TempTransactionNoInteger: Record "BigInteger" temporary;
+        TempTransactionNoInteger: Record "Integer" temporary;
         NextLineNo: Integer;
         IsHandled: Boolean;
     begin
@@ -1744,7 +1744,7 @@ table 179 "Reversal Entry"
         OnAfterCopyFromEmplLedgEntry(Rec, EmployeeLedgerEntry);
     end;
 
-    local procedure InsertCustTempRevertTransNo(var TempTransactionNoInteger: Record "BigInteger" temporary; CustLedgEntryNo: BigInteger)
+    local procedure InsertCustTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; CustLedgEntryNo: BigInteger)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         IsHandled: Boolean;
@@ -1761,7 +1761,7 @@ table 179 "Reversal Entry"
         end;
     end;
 
-    local procedure InsertVendTempRevertTransNo(var TempTransactionNoInteger: Record "BigInteger" temporary; VendLedgEntryNo: BigInteger)
+    local procedure InsertVendTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; VendLedgEntryNo: BigInteger)
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         IsHandled: Boolean;
@@ -1778,7 +1778,7 @@ table 179 "Reversal Entry"
         end;
     end;
 
-    local procedure InsertEmplTempRevertTransNo(var TempTransactionNoInteger: Record "BigInteger" temporary; EmployeeLedgEntryNo: BigInteger)
+    local procedure InsertEmplTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; EmployeeLedgEntryNo: BigInteger)
     var
         DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
     begin
@@ -1789,7 +1789,7 @@ table 179 "Reversal Entry"
         end;
     end;
 
-    local procedure InsertTempRevertTransactionNoUnappliedEmployeeEntries(var TempTransactionNoInteger: Record "BigInteger" temporary; var DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
+    local procedure InsertTempRevertTransactionNoUnappliedEmployeeEntries(var TempTransactionNoInteger: Record "Integer" temporary; var DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
     begin
         DetailedEmployeeLedgerEntry.SetRange(Unapplied, true);
         if DetailedEmployeeLedgerEntry.FindSet() then
@@ -2297,7 +2297,7 @@ table 179 "Reversal Entry"
     /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record</param>
     /// <param name="ReversalEntry">Current reversal entry context</param>
     [IntegrationEvent(false, false)]
-    local procedure OnInsertFromGLEntryOnBeforeTempReversalEntryInsert(var TempReversalEntry: Record "Reversal Entry" temporary; GLEntry: Record "G/L Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "BigInteger" temporary; ReversalEntry: Record "Reversal Entry");
+    local procedure OnInsertFromGLEntryOnBeforeTempReversalEntryInsert(var TempReversalEntry: Record "Reversal Entry" temporary; GLEntry: Record "G/L Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; ReversalEntry: Record "Reversal Entry");
     begin
     end;
 
@@ -2492,7 +2492,7 @@ table 179 "Reversal Entry"
     /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
     /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record</param>
     [IntegrationEvent(false, false)]
-    local procedure OnInsertFromVATEntryOnAfterVATEntrySetRange(var VATEntry: Record "VAT Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "BigInteger" temporary)
+    local procedure OnInsertFromVATEntryOnAfterVATEntrySetRange(var VATEntry: Record "VAT Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "Integer" temporary)
     begin
     end;
 
@@ -2512,7 +2512,7 @@ table 179 "Reversal Entry"
     /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
     /// <param name="TempRevertTransactionNo">Temporary transaction number record</param>
     [IntegrationEvent(false, false)]
-    local procedure OnInsertFromVATEntryOnBeforeTempReversalEntryInsert(var TempReversalEntry: Record "Reversal Entry" temporary; RevType: Option Transaction,Register; var TempRevertTransactionNo: Record "BigInteger" temporary)
+    local procedure OnInsertFromVATEntryOnBeforeTempReversalEntryInsert(var TempReversalEntry: Record "Reversal Entry" temporary; RevType: Option Transaction,Register; var TempRevertTransactionNo: Record "Integer" temporary)
     begin
     end;
 
@@ -2523,7 +2523,7 @@ table 179 "Reversal Entry"
     /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
     /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record</param>
     [IntegrationEvent(false, false)]
-    local procedure OnInsertFromGLEntryOnAfterGLEntrySetRange(var GLEntry: Record "G/L Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "BigInteger" temporary)
+    local procedure OnInsertFromGLEntryOnAfterGLEntrySetRange(var GLEntry: Record "G/L Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "Integer" temporary)
     begin
     end;
 
@@ -2534,7 +2534,7 @@ table 179 "Reversal Entry"
     /// <param name="CustLedgEntryNo">Customer ledger entry number for transaction tracking</param>
     /// <param name="IsHandled">Set to true to skip standard insertion logic</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertCustTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "BigInteger" temporary; CustLedgEntryNo: BigInteger; var IsHandled: Boolean)
+    local procedure OnBeforeInsertCustTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; CustLedgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -2545,7 +2545,7 @@ table 179 "Reversal Entry"
     /// <param name="VendLedgEntryNo">Vendor ledger entry number for transaction tracking</param>
     /// <param name="IsHandled">Set to true to skip standard insertion logic</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertVendTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "BigInteger" temporary; VendLedgEntryNo: BigInteger; var IsHandled: Boolean)
+    local procedure OnBeforeInsertVendTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; VendLedgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

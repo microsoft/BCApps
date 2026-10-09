@@ -95,7 +95,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         VATEntry: Record "VAT Entry";
         FALedgerEntry: Record "FA Ledger Entry";
         MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
-        TempTransactionNoInteger: Record "BigInteger" temporary;
+        TempTransactionNoInteger: Record "Integer" temporary;
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         UpdateAnalysisView: Codeunit "Update Analysis View";
         NextDtldCustLedgEntryEntryNo: BigInteger;
@@ -1365,7 +1365,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="ReversalEntry2">Working copy of reversal entries</param>
     /// <param name="TempIntegerAsRevertTransactionNo">Temporary integer record for transaction numbers</param>
     [IntegrationEvent(false, false)]
-    local procedure OnReverseOnBeforeGetTransactionKey(var ReversalEntry2: Record "Reversal Entry"; var TempIntegerAsRevertTransactionNo: Record "BigInteger" temporary)
+    local procedure OnReverseOnBeforeGetTransactionKey(var ReversalEntry2: Record "Reversal Entry"; var TempIntegerAsRevertTransactionNo: Record "Integer" temporary)
     begin
     end;
 
