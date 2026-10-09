@@ -41,11 +41,7 @@ codeunit 148104 "Test Initialize Handler CZL"
                     TryBindSuppConfVATEntUpdate();
                     UpdateUserSetup();
                 end;
-            137161, // SCM Warehouse Orders
-            139989: // Sub. Subcontracting Test
-                DisableVATDateUsage();
         end;
-
         if not (CallerCodeunitID in [134008, 134045, 134088, 134992]) then
             TryUnbindSuppConfVATEntUpdate();
     end;
@@ -94,15 +90,6 @@ codeunit 148104 "Test Initialize Handler CZL"
         end;
         UserSetup."Allow VAT Date Changing CZL" := true;
         UserSetup.Modify();
-    end;
-
-    local procedure DisableVATDateUsage()
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-    begin
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
-        GeneralLedgerSetup.Modify();
     end;
 
     local procedure TryBindSuppConfVATEntUpdate(): Boolean

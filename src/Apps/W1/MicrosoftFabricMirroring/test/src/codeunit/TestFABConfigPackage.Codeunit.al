@@ -535,9 +535,10 @@ codeunit 140011 "Test FAB Config Package"
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] The platform table is already at its maximum capacity
+        // IDs beyond any real table are not validated, so existing virtual or external tables cannot reject the insert.
         for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
             TenantFabricTables.Init();
-            TenantFabricTables."Table ID" := i;
+            TenantFabricTables."Table ID" := 900000000 + i;
             TenantFabricTables.Insert(false);
         end;
         //[GIVEN] A registered package with two tables not yet selected
