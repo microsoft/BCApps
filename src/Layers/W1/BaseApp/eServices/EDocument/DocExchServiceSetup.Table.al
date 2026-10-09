@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument;
 
-using System.Integration;
 using System.Privacy;
 using System.Security.Encryption;
 using System.Telemetry;

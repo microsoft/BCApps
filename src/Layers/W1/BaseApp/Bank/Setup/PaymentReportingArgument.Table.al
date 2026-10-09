@@ -5,7 +5,6 @@
 namespace Microsoft.Bank.Setup;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using System.Integration;
 using System.Utilities;
 
 /// <summary>

@@ -3,7 +3,6 @@
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Integration;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;

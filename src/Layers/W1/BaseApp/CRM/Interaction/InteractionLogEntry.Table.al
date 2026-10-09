@@ -21,7 +21,6 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
 using Microsoft.Utilities;
 using System.Globalization;
-using System.Integration;
 using System.Security.AccessControl;
 using System.Utilities;
 

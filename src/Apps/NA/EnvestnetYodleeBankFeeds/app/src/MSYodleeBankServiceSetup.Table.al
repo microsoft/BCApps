@@ -4,7 +4,6 @@ namespace Microsoft.Bank.StatementImport.Yodlee;
 
 using Microsoft.Bank.Setup;
 using Microsoft.Foundation.Company;
-using System.Integration;
 using System.Privacy;
 using System.Security.Encryption;
 using System.Telemetry;

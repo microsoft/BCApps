@@ -1,7 +1,6 @@
 namespace System.Security.Authentication;
 
 using Microsoft.Foundation.Enums;
-using System.Integration;
 using System.Security.AccessControl;
 using System.Utilities;
 

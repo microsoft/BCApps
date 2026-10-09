@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Currency;
 
-using System.Integration;
 using System.IO;
 using System.Privacy;
 using System.Telemetry;

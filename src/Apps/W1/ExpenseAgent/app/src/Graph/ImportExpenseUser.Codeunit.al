@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.HumanResources.Employee;
-using System.Integration;
 using System.Telemetry;
 using System.Utilities;
 

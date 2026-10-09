@@ -5,7 +5,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 #if not CLEAN28
-using System.Integration;
 using System.Privacy;
 using System.Telemetry;
 using System.Utilities;

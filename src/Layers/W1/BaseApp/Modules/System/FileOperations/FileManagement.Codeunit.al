@@ -3,7 +3,6 @@
 using Microsoft.Utilities;
 using System;
 using System.Environment;
-using System.Integration;
 using System.Utilities;
 
 codeunit 419 "File Management"

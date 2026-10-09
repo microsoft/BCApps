@@ -9,7 +9,6 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using System.Environment;
-using System.Integration;
 using System.Telemetry;
 using System.Utilities;
 

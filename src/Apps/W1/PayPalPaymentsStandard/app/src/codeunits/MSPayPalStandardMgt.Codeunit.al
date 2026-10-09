@@ -10,7 +10,6 @@ using Microsoft.Utilities;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
-using System.Integration;
 using System.Reflection;
 using System.Telemetry;
 using System.Utilities;

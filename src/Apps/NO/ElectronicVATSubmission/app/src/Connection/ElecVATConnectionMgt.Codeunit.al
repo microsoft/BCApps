@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Utilities;
-using System.Integration;
 using System.Security.AccessControl;
 using System.Security.Authentication;
 using System.Utilities;
