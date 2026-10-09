@@ -13,7 +13,6 @@ codeunit 139010 "ADCS Tests"
         LoginNoInputNodeErrorInputTxt: Label '<ADCS><Header UseCaseCode="LOGIN" RunReturn="0"/></ADCS>', Locked = true;
         LoginNoInputNodeErrorOutputTxt: Label '<ADCS><Header UseCaseCode="LOGIN" RunReturn="0"><Comment>No input Node found.</Comment></Header></ADCS>', Locked = true;
         IncorrectValueReturnedErr: Label 'Incorrect value returned.';
-        LoginErrorWithDeclarationInputTxt: Label '<?xml version="1.0" encoding="utf-8"?><ADCS><Header UseCaseCode="LOGIN" RunReturn="0" Custom="a&amp;b&lt;c&gt;d&quot;e''f"><Comment>Old</Comment></Header></ADCS>', Locked = true;
         LoginErrorWithDeclarationOutputTxt: Label '<?xml version="1.0" encoding="utf-8"?><ADCS><Header UseCaseCode="LOGIN" RunReturn="0" Custom="a&amp;b&lt;c&gt;d&quot;e''f"><Comment>No input Node found.</Comment></Header></ADCS>', Locked = true;
         HelloWithCustomAttributeInputTxt: Label '<?xml version="1.0" encoding="utf-8"?><ADCS><Header UseCaseCode="HELLO" Custom="a&amp;b&lt;c&gt;d&quot;e''f" /></ADCS>', Locked = true;
         LoginWithCustomAttributeOutputTxt: Label '<ADCS><Header UseCaseCode="LOGIN" Custom="a&amp;b&lt;c&gt;d&quot;e''f" StackCode="" RunReturn="0" FormTypeOpt="Card" NoOfLines="4" InputIsHidden="0"><Comment /><Functions><Function>ESC</Function></Functions></Header><Lines><Header><Field Type="Text" MaxLen="7">Welcome</Field></Header><Body><Field FieldID="1" Type="Input" MaxLen="20" Descrip="User ID" /><Field FieldID="2" Type="OutPut" MaxLen="30" Descrip="Password" /></Body></Lines></ADCS>', Locked = true;
@@ -205,8 +204,8 @@ codeunit 139010 "ADCS Tests"
         ADCSWS: Codeunit "ADCS WS";
         WideIn: Text;
     begin
-        // [SCENARIO] The error response is returned to the handheld exactly as before: the XML declaration of the request is kept and special characters stay escaped
-        WideIn := LoginErrorWithDeclarationInputTxt;
+        // [SCENARIO] The error response is returned to the handheld exactly as before: the XML declaration of the request is kept, indentation is dropped and special characters stay escaped
+        WideIn := LoginErrorWithDeclarationIndentedInputText();
 
         ADCSWS.ProcessDocument(WideIn);
 
@@ -312,6 +311,21 @@ codeunit 139010 "ADCS Tests"
 
         // Values are localized, we only verify that they are there
         exit((Expected.AsXmlText().Value() = '') = (Actual.AsXmlText().Value() = ''));
+    end;
+
+    local procedure LoginErrorWithDeclarationIndentedInputText(): Text
+    var
+        CRLF: Text[2];
+    begin
+        CRLF[1] := 13;
+        CRLF[2] := 10;
+        exit(
+          '<?xml version=''1.0'' encoding="utf-8" ?>' + CRLF +
+          '<ADCS>' + CRLF +
+          '  <Header UseCaseCode="LOGIN" RunReturn="0" Custom="a&amp;b&lt;c&gt;d&quot;e''f">' + CRLF +
+          '    <Comment>Old</Comment>' + CRLF +
+          '  </Header>' + CRLF +
+          '</ADCS>');
     end;
 
     local procedure HelloInputText(): Text

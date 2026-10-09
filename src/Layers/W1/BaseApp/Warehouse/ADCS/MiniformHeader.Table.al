@@ -120,19 +120,23 @@ table 7700 "Miniform Header"
     [Scope('OnPrem')]
     procedure SaveXMLin(DOMxmlin: XmlDocument)
     var
+        XmlWriteOptions: XmlWriteOptions;
         OutStrm: OutStream;
     begin
         XMLin.CreateOutStream(OutStrm);
-        DOMxmlin.WriteTo(OutStrm);
+        XmlWriteOptions.PreserveWhitespace(true);
+        DOMxmlin.WriteTo(XmlWriteOptions, OutStrm);
     end;
 
     [Scope('OnPrem')]
     procedure LoadXMLin(var DOMxmlin: XmlDocument)
     var
+        XmlReadOptions: XmlReadOptions;
         InStrm: InStream;
     begin
         XMLin.CreateInStream(InStrm);
-        XmlDocument.ReadFrom(InStrm, DOMxmlin);
+        XmlReadOptions.PreserveWhitespace(true);
+        XmlDocument.ReadFrom(InStrm, XmlReadOptions, DOMxmlin);
     end;
 
 #if not CLEAN30
