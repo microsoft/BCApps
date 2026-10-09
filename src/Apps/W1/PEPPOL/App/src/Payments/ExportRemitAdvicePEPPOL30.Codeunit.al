@@ -16,7 +16,6 @@ using System.Xml;
 codeunit 37208 "Export Remit. Advice PEPPOL30"
 {
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         PEPPOL30PurchaseFormat: Enum "PEPPOL 3.0 Purchase";
         RemittanceAdviceXml: XmlDocument;
         RootNode: XmlNode;
@@ -85,8 +84,8 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
         RootElement := XmlElement.Create('RemittanceAdvice', this.UblNamespaceTok);
         this.RootNode := RootElement.AsXmlNode();
         this.RemittanceAdviceXml.Add(this.RootNode);
-        this.XMLDOMManagement.AddNamespaceDeclaration(this.RootNode, 'cac', this.CacNamespaceTok);
-        this.XMLDOMManagement.AddNamespaceDeclaration(this.RootNode, 'cbc', this.CbcNamespaceTok);
+        this.RootNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration('cac', this.CacNamespaceTok));
+        this.RootNode.AsXmlElement().Add(XmlAttribute.CreateNamespaceDeclaration('cbc', this.CbcNamespaceTok));
     end;
 
     local procedure AddHeaderElements(HeaderBuffer: Record "Remit. Advice Buffer" temporary; LineCount: Integer)
@@ -198,7 +197,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
 
         this.AddCbcElement(PartyNode, 'EndpointID', EndpointID, ChildNode);
         if SchemeID <> '' then
-            this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', SchemeID);
+            this.AddAttribute(ChildNode, 'schemeID', SchemeID);
     end;
 
     local procedure AddPartyName(PartyNode: XmlNode; PartyNameValue: Text)
@@ -253,7 +252,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
             exit;
         this.AddCbcElement(LegalEntityNode, 'CompanyID', CompanyID, ChildNode);
         if SchemeID <> '' then
-            this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', SchemeID);
+            this.AddAttribute(ChildNode, 'schemeID', SchemeID);
     end;
 
     local procedure AddPaymentMeans(HeaderBuffer: Record "Remit. Advice Buffer" temporary)
@@ -345,7 +344,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
 
     local procedure AddCbcElement(ParentNode: XmlNode; NodeName: Text; NodeValue: Text; var ChildNode: XmlNode)
     begin
-        this.XMLDOMManagement.AddElement(ParentNode, NodeName, NodeValue, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(ParentNode, NodeName, NodeValue, this.CbcNamespaceTok, ChildNode);
     end;
 
     local procedure AddNonEmptyCbcElement(ParentNode: XmlNode; NodeName: Text; NodeValue: Text; var ChildNode: XmlNode)
@@ -356,12 +355,23 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
 
     local procedure AddCacElement(ParentNode: XmlNode; NodeName: Text; var ChildNode: XmlNode)
     begin
-        this.XMLDOMManagement.AddElement(ParentNode, NodeName, '', this.CacNamespaceTok, ChildNode);
+        this.AddElement(ParentNode, NodeName, '', this.CacNamespaceTok, ChildNode);
     end;
 
     local procedure AddMoneyElement(ParentNode: XmlNode; NodeName: Text; Amount: Decimal; CurrencyCode: Code[10]; var ChildNode: XmlNode)
     begin
         this.AddCbcElement(ParentNode, NodeName, this.FormatAmount(Amount), ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', CurrencyCode);
+        this.AddAttribute(ChildNode, 'currencyID', CurrencyCode);
+    end;
+
+    local procedure AddElement(ParentXmlNode: XmlNode; NodeName: Text; NodeText: Text; Namespace: Text; var CreatedXmlNode: XmlNode)
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, Namespace, NodeText).AsXmlNode();
+        ParentXmlNode.AsXmlElement().Add(CreatedXmlNode);
+    end;
+
+    local procedure AddAttribute(ParentXmlNode: XmlNode; Name: Text; Value: Text)
+    begin
+        ParentXmlNode.AsXmlElement().SetAttribute(Name, Value);
     end;
 }

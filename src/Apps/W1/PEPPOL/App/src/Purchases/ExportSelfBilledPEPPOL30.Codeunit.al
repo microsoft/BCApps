@@ -19,7 +19,6 @@ using System.Xml;
 codeunit 37230 "Export Self-Billed PEPPOL30"
 {
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         PEPPOL30: Codeunit "PEPPOL30";
         PEPPOL30Common: Codeunit "PEPPOL30 Common";
         PostedDocumentHeaderRecRef: RecordRef;
@@ -99,16 +98,16 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         PEPPOLDocumentInfo.GetGeneralInfoBIS(PurchaseHeader, ID, SalesOrderID, IssueDate, OrderTypeCode, Note, this.DocumentCurrencyCode, AccountingCost, CustomerReference);
 
         this.InitializeXMLDocument();
-        this.XMLDOMManagement.AddElement(this.RootNode, 'CustomizationID', this.SelfBilledCustomizationIDTok, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(this.RootNode, 'ProfileID', this.SelfBilledInvoiceProfileIDTok, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(this.RootNode, 'ID', ID, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(this.RootNode, 'IssueDate', IssueDate, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(this.RootNode, 'CustomizationID', this.SelfBilledCustomizationIDTok, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(this.RootNode, 'ProfileID', this.SelfBilledInvoiceProfileIDTok, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(this.RootNode, 'ID', ID, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(this.RootNode, 'IssueDate', IssueDate, this.CbcNamespaceTok, ChildNode);
         if this.IsCreditMemo then
-            this.XMLDOMManagement.AddElement(this.RootNode, 'CreditNoteTypeCode', this.GetSelfBilledCreditNoteTypeCode(), this.CbcNamespaceTok, ChildNode)
+            this.AddElement(this.RootNode, 'CreditNoteTypeCode', this.GetSelfBilledCreditNoteTypeCode(), this.CbcNamespaceTok, ChildNode)
         else
-            this.XMLDOMManagement.AddElement(this.RootNode, 'InvoiceTypeCode', this.GetSelfBilledInvoiceTypeCode(), this.CbcNamespaceTok, ChildNode);
+            this.AddElement(this.RootNode, 'InvoiceTypeCode', this.GetSelfBilledInvoiceTypeCode(), this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(this.RootNode, 'Note', Note, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(this.RootNode, 'DocumentCurrencyCode', this.DocumentCurrencyCode, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(this.RootNode, 'DocumentCurrencyCode', this.DocumentCurrencyCode, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(this.RootNode, 'AccountingCost', AccountingCost, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(this.RootNode, 'BuyerReference', CustomerReference, this.CbcNamespaceTok, ChildNode);
 
@@ -186,44 +185,44 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         ContactTelefax: Text;
         ContactEmail: Text;
     begin
-        this.XMLDOMManagement.AddElement(this.RootNode, 'AccountingSupplierParty', '', this.CacNamespaceTok, SupplierNode);
-        this.XMLDOMManagement.AddElement(SupplierNode, 'Party', '', this.CacNamespaceTok, PartyNode);
+        this.AddElement(this.RootNode, 'AccountingSupplierParty', '', this.CacNamespaceTok, SupplierNode);
+        this.AddElement(SupplierNode, 'Party', '', this.CacNamespaceTok, PartyNode);
 
         PEPPOLPartyInfo := this.GetFormat();
         this.PEPPOL30.GetSelfBilledSellerSupplierPartyInfo(PurchaseHeader, EndpointId, SchemeID, SupplierName);
 
-        this.XMLDOMManagement.AddElement(PartyNode, 'EndpointID', EndpointId, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', SchemeID);
-        this.XMLDOMManagement.AddElement(PartyNode, 'PartyIdentification', '', this.CacNamespaceTok, PartyIdentificationNode);
-        this.XMLDOMManagement.AddElement(PartyIdentificationNode, 'ID', PurchaseHeader."Buy-from Vendor No.", this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(PartyNode, 'PartyName', '', this.CacNamespaceTok, PartyNameNode);
-        this.XMLDOMManagement.AddElement(PartyNameNode, 'Name', SupplierName, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PartyNode, 'EndpointID', EndpointId, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'schemeID', SchemeID);
+        this.AddElement(PartyNode, 'PartyIdentification', '', this.CacNamespaceTok, PartyIdentificationNode);
+        this.AddElement(PartyIdentificationNode, 'ID', PurchaseHeader."Buy-from Vendor No.", this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PartyNode, 'PartyName', '', this.CacNamespaceTok, PartyNameNode);
+        this.AddElement(PartyNameNode, 'Name', SupplierName, this.CbcNamespaceTok, ChildNode);
 
         PEPPOLPartyInfo.GetSellerSupplierPartyPostalAddr(PurchaseHeader, StreetName, AdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
 
-        this.XMLDOMManagement.AddElement(PartyNode, 'PostalAddress', '', this.CacNamespaceTok, PostalAddressNode);
+        this.AddElement(PartyNode, 'PostalAddress', '', this.CacNamespaceTok, PostalAddressNode);
         this.AddNonEmptyNode(PostalAddressNode, 'StreetName', StreetName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'AdditionalStreetName', AdditionalStreetName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'CityName', CityName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'PostalZone', PostalZone, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'CountrySubentity', CountrySubentity, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(PostalAddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);
-        this.XMLDOMManagement.AddElement(CountryNode, 'IdentificationCode', IdentificationCode, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PostalAddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);
+        this.AddElement(CountryNode, 'IdentificationCode', IdentificationCode, this.CbcNamespaceTok, ChildNode);
 
         this.PEPPOL30.GetSellerSupplierPartyTaxScheme(PurchaseHeader, CompanyID, CompanyIDSchemeID, TaxSchemeID);
         if CompanyID <> '' then begin
-            this.XMLDOMManagement.AddElement(PartyNode, 'PartyTaxScheme', '', this.CacNamespaceTok, PartyTaxSchemeNode);
-            this.XMLDOMManagement.AddElement(PartyTaxSchemeNode, 'CompanyID', CompanyID, this.CbcNamespaceTok, ChildNode);
-            this.XMLDOMManagement.AddElement(PartyTaxSchemeNode, 'TaxScheme', '', this.CacNamespaceTok, TaxSchemeNode);
-            this.XMLDOMManagement.AddElement(TaxSchemeNode, 'ID', TaxSchemeID, this.CbcNamespaceTok, ChildNode);
+            this.AddElement(PartyNode, 'PartyTaxScheme', '', this.CacNamespaceTok, PartyTaxSchemeNode);
+            this.AddElement(PartyTaxSchemeNode, 'CompanyID', CompanyID, this.CbcNamespaceTok, ChildNode);
+            this.AddElement(PartyTaxSchemeNode, 'TaxScheme', '', this.CacNamespaceTok, TaxSchemeNode);
+            this.AddElement(TaxSchemeNode, 'ID', TaxSchemeID, this.CbcNamespaceTok, ChildNode);
         end;
 
-        this.XMLDOMManagement.AddElement(PartyNode, 'PartyLegalEntity', '', this.CacNamespaceTok, PartyLegalEntityNode);
-        this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'RegistrationName', SupplierName, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PartyNode, 'PartyLegalEntity', '', this.CacNamespaceTok, PartyLegalEntityNode);
+        this.AddElement(PartyLegalEntityNode, 'RegistrationName', SupplierName, this.CbcNamespaceTok, ChildNode);
 
         PEPPOLPartyInfo.GetSellerSupplierPartyContact(PurchaseHeader, ContactName, ContactPhone, ContactTelefax, ContactEmail);
         if (ContactName <> '') or (ContactPhone <> '') or (ContactTelefax <> '') or (ContactEmail <> '') then begin
-            this.XMLDOMManagement.AddElement(PartyNode, 'Contact', '', this.CacNamespaceTok, ContactNode);
+            this.AddElement(PartyNode, 'Contact', '', this.CacNamespaceTok, ContactNode);
             this.AddNonEmptyNode(ContactNode, 'Name', ContactName, this.CbcNamespaceTok, ChildNode);
             this.AddNonEmptyNode(ContactNode, 'Telephone', ContactPhone, this.CbcNamespaceTok, ChildNode);
             this.AddNonEmptyNode(ContactNode, 'Telefax', ContactTelefax, this.CbcNamespaceTok, ChildNode);
@@ -274,51 +273,51 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         ContactPhone: Text;
         ContactEmail: Text;
     begin
-        this.XMLDOMManagement.AddElement(this.RootNode, 'AccountingCustomerParty', '', this.CacNamespaceTok, CustomerNode);
-        this.XMLDOMManagement.AddElement(CustomerNode, 'Party', '', this.CacNamespaceTok, PartyNode);
+        this.AddElement(this.RootNode, 'AccountingCustomerParty', '', this.CacNamespaceTok, CustomerNode);
+        this.AddElement(CustomerNode, 'Party', '', this.CacNamespaceTok, PartyNode);
 
         PEPPOLPartyInfo := this.GetFormat();
         PEPPOLPartyInfo.GetAccountingSupplierPartyInfoBIS(EndpointId, SchemeID, CompanyName);
 
-        this.XMLDOMManagement.AddElement(PartyNode, 'EndpointID', EndpointId, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', SchemeID);
-        this.XMLDOMManagement.AddElement(PartyNode, 'PartyIdentification', '', this.CacNamespaceTok, PartyIdentificationNode);
-        this.XMLDOMManagement.AddElement(PartyIdentificationNode, 'ID', EndpointId, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(PartyNode, 'PartyName', '', this.CacNamespaceTok, PartyNameNode);
-        this.XMLDOMManagement.AddElement(PartyNameNode, 'Name', CompanyName, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PartyNode, 'EndpointID', EndpointId, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'schemeID', SchemeID);
+        this.AddElement(PartyNode, 'PartyIdentification', '', this.CacNamespaceTok, PartyIdentificationNode);
+        this.AddElement(PartyIdentificationNode, 'ID', EndpointId, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PartyNode, 'PartyName', '', this.CacNamespaceTok, PartyNameNode);
+        this.AddElement(PartyNameNode, 'Name', CompanyName, this.CbcNamespaceTok, ChildNode);
 
         PEPPOLPartyInfo.GetBuyerCustomerPartyPostalAddr(PurchaseHeader, StreetName, AdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
 
-        this.XMLDOMManagement.AddElement(PartyNode, 'PostalAddress', '', this.CacNamespaceTok, PostalAddressNode);
+        this.AddElement(PartyNode, 'PostalAddress', '', this.CacNamespaceTok, PostalAddressNode);
         this.AddNonEmptyNode(PostalAddressNode, 'StreetName', StreetName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'AdditionalStreetName', AdditionalStreetName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'CityName', CityName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'PostalZone', PostalZone, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'CountrySubentity', CountrySubentity, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(PostalAddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);
-        this.XMLDOMManagement.AddElement(CountryNode, 'IdentificationCode', IdentificationCode, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PostalAddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);
+        this.AddElement(CountryNode, 'IdentificationCode', IdentificationCode, this.CbcNamespaceTok, ChildNode);
 
         PEPPOLPartyInfo.GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
         if CompanyID <> '' then begin
-            this.XMLDOMManagement.AddElement(PartyNode, 'PartyTaxScheme', '', this.CacNamespaceTok, PartyTaxSchemeNode);
-            this.XMLDOMManagement.AddElement(PartyTaxSchemeNode, 'CompanyID', CompanyID, this.CbcNamespaceTok, ChildNode);
-            this.XMLDOMManagement.AddElement(PartyTaxSchemeNode, 'TaxScheme', '', this.CacNamespaceTok, TaxSchemeNode);
-            this.XMLDOMManagement.AddElement(TaxSchemeNode, 'ID', TaxSchemeID, this.CbcNamespaceTok, ChildNode);
+            this.AddElement(PartyNode, 'PartyTaxScheme', '', this.CacNamespaceTok, PartyTaxSchemeNode);
+            this.AddElement(PartyTaxSchemeNode, 'CompanyID', CompanyID, this.CbcNamespaceTok, ChildNode);
+            this.AddElement(PartyTaxSchemeNode, 'TaxScheme', '', this.CacNamespaceTok, TaxSchemeNode);
+            this.AddElement(TaxSchemeNode, 'ID', TaxSchemeID, this.CbcNamespaceTok, ChildNode);
         end;
 
         PEPPOLPartyInfo.GetAccountingSupplierPartyLegalEntityBIS(PartyLegalEntityRegName, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID, RegAddrCityName, RegAddrCountryIdCode, RegAddrCountryIdListId);
 
-        this.XMLDOMManagement.AddElement(PartyNode, 'PartyLegalEntity', '', this.CacNamespaceTok, PartyLegalEntityNode);
-        this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'RegistrationName', PartyLegalEntityRegName, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'CompanyID', PartyLegalEntityCompanyID, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'RegistrationAddress', '', this.CacNamespaceTok, RegistrationAddressNode);
+        this.AddElement(PartyNode, 'PartyLegalEntity', '', this.CacNamespaceTok, PartyLegalEntityNode);
+        this.AddElement(PartyLegalEntityNode, 'RegistrationName', PartyLegalEntityRegName, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PartyLegalEntityNode, 'CompanyID', PartyLegalEntityCompanyID, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(PartyLegalEntityNode, 'RegistrationAddress', '', this.CacNamespaceTok, RegistrationAddressNode);
         this.AddNonEmptyNode(RegistrationAddressNode, 'CityName', RegAddrCityName, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(RegistrationAddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);
-        this.XMLDOMManagement.AddElement(CountryNode, 'IdentificationCode', RegAddrCountryIdCode, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(RegistrationAddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);
+        this.AddElement(CountryNode, 'IdentificationCode', RegAddrCountryIdCode, this.CbcNamespaceTok, ChildNode);
 
         PEPPOLPartyInfo.GetBuyerCustomerPartyContact(PurchaseHeader, ContactName, ContactPhone, ContactEmail);
         if (ContactName <> '') or (ContactPhone <> '') or (ContactEmail <> '') then begin
-            this.XMLDOMManagement.AddElement(PartyNode, 'Contact', '', this.CacNamespaceTok, ContactNode);
+            this.AddElement(PartyNode, 'Contact', '', this.CacNamespaceTok, ContactNode);
             this.AddNonEmptyNode(ContactNode, 'Name', ContactName, this.CbcNamespaceTok, ChildNode);
             this.AddNonEmptyNode(ContactNode, 'Telephone', ContactPhone, this.CbcNamespaceTok, ChildNode);
             this.AddNonEmptyNode(ContactNode, 'ElectronicMail', ContactEmail, this.CbcNamespaceTok, ChildNode);
@@ -344,16 +343,16 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         PEPPOLDeliveryInfo := this.GetFormat();
         PEPPOLDeliveryInfo.GetDeliveryAddress(PurchaseHeader, StreetName, AdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
 
-        this.XMLDOMManagement.AddElement(this.RootNode, 'Delivery', '', this.CacNamespaceTok, DeliveryNode);
-        this.XMLDOMManagement.AddElement(DeliveryNode, 'DeliveryLocation', '', this.CacNamespaceTok, DeliveryLocationNode);
-        this.XMLDOMManagement.AddElement(DeliveryLocationNode, 'Address', '', this.CacNamespaceTok, AddressNode);
+        this.AddElement(this.RootNode, 'Delivery', '', this.CacNamespaceTok, DeliveryNode);
+        this.AddElement(DeliveryNode, 'DeliveryLocation', '', this.CacNamespaceTok, DeliveryLocationNode);
+        this.AddElement(DeliveryLocationNode, 'Address', '', this.CacNamespaceTok, AddressNode);
         this.AddNonEmptyNode(AddressNode, 'StreetName', StreetName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(AddressNode, 'AdditionalStreetName', AdditionalStreetName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(AddressNode, 'CityName', CityName, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(AddressNode, 'PostalZone', PostalZone, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(AddressNode, 'CountrySubentity', CountrySubentity, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(AddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);
-        this.XMLDOMManagement.AddElement(CountryNode, 'IdentificationCode', IdentificationCode, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(AddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);
+        this.AddElement(CountryNode, 'IdentificationCode', IdentificationCode, this.CbcNamespaceTok, ChildNode);
     end;
 
     local procedure AddPaymentTerms(PurchaseHeader: Record "Purchase Header")
@@ -369,7 +368,7 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         if PaymentTermsNote = '' then
             exit;
 
-        this.XMLDOMManagement.AddElement(this.RootNode, 'PaymentTerms', '', this.CacNamespaceTok, PaymentTermsNode);
+        this.AddElement(this.RootNode, 'PaymentTerms', '', this.CacNamespaceTok, PaymentTermsNode);
         this.AddNonEmptyNode(PaymentTermsNode, 'Note', PaymentTermsNote, this.CbcNamespaceTok, ChildNode);
     end;
 
@@ -415,31 +414,31 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         this.PEPPOL30Common.GetTotals(this.PostedDocumentHeaderRecRef, PurchaseLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, this.GetFormat());
 
         this.PEPPOL30.GetTaxTotalInfo(PurchaseHeader, TempVATAmtLine, TaxAmount, TaxTotalCurrencyID);
-        this.XMLDOMManagement.AddElement(this.RootNode, 'TaxTotal', '', this.CacNamespaceTok, TaxTotalNode);
-        this.XMLDOMManagement.AddElement(TaxTotalNode, 'TaxAmount', TaxAmount, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', TaxTotalCurrencyID);
+        this.AddElement(this.RootNode, 'TaxTotal', '', this.CacNamespaceTok, TaxTotalNode);
+        this.AddElement(TaxTotalNode, 'TaxAmount', TaxAmount, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'currencyID', TaxTotalCurrencyID);
 
         TempVATAmtLine.Reset();
         if TempVATAmtLine.FindSet() then
             repeat
                 this.PEPPOL30.GetTaxSubtotalInfo(TempVATAmtLine, PurchaseHeader, TaxableAmount, TaxAmountCurrencyID, SubtotalTaxAmount, TaxSubtotalCurrencyID, TransactionCurrencyTaxAmount, TransCurrTaxAmtCurrencyID, TaxTotalTaxCategoryID, SchemeID, TaxCategoryPercent, TaxTotalTaxSchemeID);
 
-                this.XMLDOMManagement.AddElement(TaxTotalNode, 'TaxSubtotal', '', this.CacNamespaceTok, TaxSubtotalNode);
-                this.XMLDOMManagement.AddElement(TaxSubtotalNode, 'TaxableAmount', TaxableAmount, this.CbcNamespaceTok, ChildNode);
-                this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', TaxAmountCurrencyID);
-                this.XMLDOMManagement.AddElement(TaxSubtotalNode, 'TaxAmount', SubtotalTaxAmount, this.CbcNamespaceTok, ChildNode);
-                this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', TaxSubtotalCurrencyID);
-                this.XMLDOMManagement.AddElement(TaxSubtotalNode, 'TaxCategory', '', this.CacNamespaceTok, TaxCategoryNode);
-                this.XMLDOMManagement.AddElement(TaxCategoryNode, 'ID', TaxTotalTaxCategoryID, this.CbcNamespaceTok, ChildNode);
+                this.AddElement(TaxTotalNode, 'TaxSubtotal', '', this.CacNamespaceTok, TaxSubtotalNode);
+                this.AddElement(TaxSubtotalNode, 'TaxableAmount', TaxableAmount, this.CbcNamespaceTok, ChildNode);
+                this.AddAttribute(ChildNode, 'currencyID', TaxAmountCurrencyID);
+                this.AddElement(TaxSubtotalNode, 'TaxAmount', SubtotalTaxAmount, this.CbcNamespaceTok, ChildNode);
+                this.AddAttribute(ChildNode, 'currencyID', TaxSubtotalCurrencyID);
+                this.AddElement(TaxSubtotalNode, 'TaxCategory', '', this.CacNamespaceTok, TaxCategoryNode);
+                this.AddElement(TaxCategoryNode, 'ID', TaxTotalTaxCategoryID, this.CbcNamespaceTok, ChildNode);
                 if SchemeID <> '' then
-                    this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', SchemeID);
-                this.XMLDOMManagement.AddElement(TaxCategoryNode, 'Percent', TaxCategoryPercent, this.CbcNamespaceTok, ChildNode);
+                    this.AddAttribute(ChildNode, 'schemeID', SchemeID);
+                this.AddElement(TaxCategoryNode, 'Percent', TaxCategoryPercent, this.CbcNamespaceTok, ChildNode);
 
                 this.PEPPOL30.GetTaxExemptionReason(TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
                 this.AddNonEmptyNode(TaxCategoryNode, 'TaxExemptionReason', TaxExemptionReason, this.CbcNamespaceTok, ChildNode);
 
-                this.XMLDOMManagement.AddElement(TaxCategoryNode, 'TaxScheme', '', this.CacNamespaceTok, TaxSchemeNode);
-                this.XMLDOMManagement.AddElement(TaxSchemeNode, 'ID', TaxTotalTaxSchemeID, this.CbcNamespaceTok, ChildNode);
+                this.AddElement(TaxCategoryNode, 'TaxScheme', '', this.CacNamespaceTok, TaxSchemeNode);
+                this.AddElement(TaxSchemeNode, 'ID', TaxTotalTaxSchemeID, this.CbcNamespaceTok, ChildNode);
             until TempVATAmtLine.Next() = 0;
     end;
 
@@ -475,15 +474,15 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         this.PEPPOL30Common.GetTotals(this.PostedDocumentHeaderRecRef, PurchaseLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, this.GetFormat());
         PEPPOLMonetaryInfo.GetLegalMonetaryInfo(PurchaseHeader, TempPurchaseLine, TempVATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID, TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID, AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID, PrepaidAmount, PrepaidCurrencyID, PayableRoundingAmount, PayableRndingAmountCurrencyID, PayableAmount, PayableAmountCurrencyID);
 
-        this.XMLDOMManagement.AddElement(this.RootNode, 'LegalMonetaryTotal', '', this.CacNamespaceTok, MonetaryTotalNode);
-        this.XMLDOMManagement.AddElement(MonetaryTotalNode, 'LineExtensionAmount', LineExtensionAmount, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', this.DocumentCurrencyCode);
-        this.XMLDOMManagement.AddElement(MonetaryTotalNode, 'TaxExclusiveAmount', TaxExclusiveAmount, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', this.DocumentCurrencyCode);
-        this.XMLDOMManagement.AddElement(MonetaryTotalNode, 'TaxInclusiveAmount', TaxInclusiveAmount, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', this.DocumentCurrencyCode);
-        this.XMLDOMManagement.AddElement(MonetaryTotalNode, 'PayableAmount', PayableAmount, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', this.DocumentCurrencyCode);
+        this.AddElement(this.RootNode, 'LegalMonetaryTotal', '', this.CacNamespaceTok, MonetaryTotalNode);
+        this.AddElement(MonetaryTotalNode, 'LineExtensionAmount', LineExtensionAmount, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'currencyID', this.DocumentCurrencyCode);
+        this.AddElement(MonetaryTotalNode, 'TaxExclusiveAmount', TaxExclusiveAmount, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'currencyID', this.DocumentCurrencyCode);
+        this.AddElement(MonetaryTotalNode, 'TaxInclusiveAmount', TaxInclusiveAmount, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'currencyID', this.DocumentCurrencyCode);
+        this.AddElement(MonetaryTotalNode, 'PayableAmount', PayableAmount, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'currencyID', this.DocumentCurrencyCode);
     end;
 
     local procedure AddInvoiceLineToXML(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
@@ -532,42 +531,42 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
             QuantityElementName := 'InvoicedQuantity';
         end;
 
-        this.XMLDOMManagement.AddElement(this.RootNode, LineContainerName, '', this.CacNamespaceTok, LineNode);
-        this.XMLDOMManagement.AddElement(LineNode, 'ID', LineID, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(LineNode, QuantityElementName, InvoicedQuantity, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(this.RootNode, LineContainerName, '', this.CacNamespaceTok, LineNode);
+        this.AddElement(LineNode, 'ID', LineID, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(LineNode, QuantityElementName, InvoicedQuantity, this.CbcNamespaceTok, ChildNode);
 
         PEPPOLLineInfo.GetLinePriceInfo(PurchaseLine, PurchaseHeader, PriceAmount, PriceAmountCurrencyID, BaseQuantity, UnitCode);
 
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'unitCode', UnitCode);
-        this.XMLDOMManagement.AddElement(LineNode, 'LineExtensionAmount', LineExtensionAmount, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', LineExtensionAmountCurrencyID);
+        this.AddAttribute(ChildNode, 'unitCode', UnitCode);
+        this.AddElement(LineNode, 'LineExtensionAmount', LineExtensionAmount, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'currencyID', LineExtensionAmountCurrencyID);
 
         PEPPOLLineInfo.GetLineItemInfo(PurchaseLine, Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID, OriginCountryIdCode, OriginCountryIdCodeListID);
 
-        this.XMLDOMManagement.AddElement(LineNode, 'Item', '', this.CacNamespaceTok, ItemNode);
+        this.AddElement(LineNode, 'Item', '', this.CacNamespaceTok, ItemNode);
         this.AddNonEmptyNode(ItemNode, 'Description', Description, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(ItemNode, 'Name', Name, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(ItemNode, 'Name', Name, this.CbcNamespaceTok, ChildNode);
         if SellersItemIdentificationID <> '' then begin
-            this.XMLDOMManagement.AddElement(ItemNode, 'SellersItemIdentification', '', this.CacNamespaceTok, SellersItemIdNode);
-            this.XMLDOMManagement.AddElement(SellersItemIdNode, 'ID', SellersItemIdentificationID, this.CbcNamespaceTok, ChildNode);
+            this.AddElement(ItemNode, 'SellersItemIdentification', '', this.CacNamespaceTok, SellersItemIdNode);
+            this.AddElement(SellersItemIdNode, 'ID', SellersItemIdentificationID, this.CbcNamespaceTok, ChildNode);
         end;
         if StandardItemIdentificationID <> '' then begin
-            this.XMLDOMManagement.AddElement(ItemNode, 'StandardItemIdentification', '', this.CacNamespaceTok, StandardItemIdNode);
-            this.XMLDOMManagement.AddElement(StandardItemIdNode, 'ID', StandardItemIdentificationID, this.CbcNamespaceTok, ChildNode);
-            this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', StdItemIdIDSchemeID);
+            this.AddElement(ItemNode, 'StandardItemIdentification', '', this.CacNamespaceTok, StandardItemIdNode);
+            this.AddElement(StandardItemIdNode, 'ID', StandardItemIdentificationID, this.CbcNamespaceTok, ChildNode);
+            this.AddAttribute(ChildNode, 'schemeID', StdItemIdIDSchemeID);
         end;
 
         PEPPOLLineInfo.GetLineItemClassifiedTaxCategory(PurchaseLine, ClassifiedTaxCategoryID, ItemSchemeID, LineTaxPercent, ClassifiedTaxCategorySchemeID);
 
-        this.XMLDOMManagement.AddElement(ItemNode, 'ClassifiedTaxCategory', '', this.CacNamespaceTok, ClassifiedTaxCategoryNode);
-        this.XMLDOMManagement.AddElement(ClassifiedTaxCategoryNode, 'ID', ClassifiedTaxCategoryID, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(ClassifiedTaxCategoryNode, 'Percent', LineTaxPercent, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(ClassifiedTaxCategoryNode, 'TaxScheme', '', this.CacNamespaceTok, TaxSchemeNode);
-        this.XMLDOMManagement.AddElement(TaxSchemeNode, 'ID', ClassifiedTaxCategorySchemeID, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(ItemNode, 'ClassifiedTaxCategory', '', this.CacNamespaceTok, ClassifiedTaxCategoryNode);
+        this.AddElement(ClassifiedTaxCategoryNode, 'ID', ClassifiedTaxCategoryID, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(ClassifiedTaxCategoryNode, 'Percent', LineTaxPercent, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(ClassifiedTaxCategoryNode, 'TaxScheme', '', this.CacNamespaceTok, TaxSchemeNode);
+        this.AddElement(TaxSchemeNode, 'ID', ClassifiedTaxCategorySchemeID, this.CbcNamespaceTok, ChildNode);
 
-        this.XMLDOMManagement.AddElement(LineNode, 'Price', '', this.CacNamespaceTok, PriceNode);
-        this.XMLDOMManagement.AddElement(PriceNode, 'PriceAmount', PriceAmount, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', PriceAmountCurrencyID);
+        this.AddElement(LineNode, 'Price', '', this.CacNamespaceTok, PriceNode);
+        this.AddElement(PriceNode, 'PriceAmount', PriceAmount, this.CbcNamespaceTok, ChildNode);
+        this.AddAttribute(ChildNode, 'currencyID', PriceAmountCurrencyID);
     end;
 
     local procedure AddAdditionalDocumentReference(PurchaseHeader: Record "Purchase Header")
@@ -589,18 +588,18 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         if EmbeddedDocumentBinaryObject = '' then
             exit;
 
-        this.XMLDOMManagement.AddElement(this.RootNode, 'AdditionalDocumentReference', '', this.CacNamespaceTok, AdditionalDocRefNode);
-        this.XMLDOMManagement.AddElement(AdditionalDocRefNode, 'ID', AdditionalDocumentReferenceID, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(AdditionalDocRefNode, 'Attachment', '', this.CacNamespaceTok, AttachmentNode);
-        this.XMLDOMManagement.AddElement(AttachmentNode, 'EmbeddedDocumentBinaryObject', EmbeddedDocumentBinaryObject, this.CbcNamespaceTok, EmbeddedDocNode);
-        this.XMLDOMManagement.AddAttribute(EmbeddedDocNode, 'filename', Filename);
-        this.XMLDOMManagement.AddAttribute(EmbeddedDocNode, 'mimeCode', MimeCode);
+        this.AddElement(this.RootNode, 'AdditionalDocumentReference', '', this.CacNamespaceTok, AdditionalDocRefNode);
+        this.AddElement(AdditionalDocRefNode, 'ID', AdditionalDocumentReferenceID, this.CbcNamespaceTok, ChildNode);
+        this.AddElement(AdditionalDocRefNode, 'Attachment', '', this.CacNamespaceTok, AttachmentNode);
+        this.AddElement(AttachmentNode, 'EmbeddedDocumentBinaryObject', EmbeddedDocumentBinaryObject, this.CbcNamespaceTok, EmbeddedDocNode);
+        this.AddAttribute(EmbeddedDocNode, 'filename', Filename);
+        this.AddAttribute(EmbeddedDocNode, 'mimeCode', MimeCode);
     end;
 
     local procedure AddNonEmptyNode(Node: XmlNode; NodeName: Text; NodeValue: Text; Namespace: Text; var ChildNode: XmlNode)
     begin
         if NodeValue <> '' then
-            this.XMLDOMManagement.AddElement(Node, NodeName, NodeValue, Namespace, ChildNode);
+            this.AddElement(Node, NodeName, NodeValue, Namespace, ChildNode);
     end;
 
     local procedure GetFormat(): Enum "PEPPOL 3.0 Purchase"
@@ -651,5 +650,16 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
     begin
         this.PEPPOL30PurchaseFormat := Format;
         this.IsFormatSet := true;
+    end;
+
+    local procedure AddElement(ParentXmlNode: XmlNode; NodeName: Text; NodeText: Text; Namespace: Text; var CreatedXmlNode: XmlNode)
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, Namespace, NodeText).AsXmlNode();
+        ParentXmlNode.AsXmlElement().Add(CreatedXmlNode);
+    end;
+
+    local procedure AddAttribute(ParentXmlNode: XmlNode; Name: Text; Value: Text)
+    begin
+        ParentXmlNode.AsXmlElement().SetAttribute(Name, Value);
     end;
 }
