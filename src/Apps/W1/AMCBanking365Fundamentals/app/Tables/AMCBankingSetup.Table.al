@@ -8,6 +8,7 @@ namespace Microsoft.Bank.Payment;
 using System.Integration;
 using System.Privacy;
 using System.Telemetry;
+using System.Utilities;
 #endif
 table 20101 "AMC Banking Setup"
 {
@@ -53,10 +54,14 @@ table 20101 "AMC Banking Setup"
 #if not CLEAN28
             trigger OnValidate()
             var
-                WebRequestHelper: Codeunit "Web Request Helper";
+                Uri: Codeunit Uri;
             begin
                 if "Service URL" <> '' then begin
-                    WebRequestHelper.IsSecureHttpUrl("Service URL");
+                    if not Uri.IsValidUri("Service URL") then
+                        Error(InvalidUriErr);
+                    Uri.Init("Service URL");
+                    if Uri.GetScheme() <> 'https' then
+                        Error(NonSecureUriErr);
                     ClearCredentials();
                 end;
             end;
@@ -133,6 +138,8 @@ table 20101 "AMC Banking Setup"
     var
         DemoUserNameTxt: Label 'demouser', Locked = true;
         DemoPasswordTxt: Label 'Demo Password', Locked = true;
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
 
     internal procedure SavePassword(PasswordText: SecretText)
     begin

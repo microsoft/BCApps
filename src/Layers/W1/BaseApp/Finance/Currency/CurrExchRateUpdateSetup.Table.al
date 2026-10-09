@@ -9,6 +9,7 @@ using System.IO;
 using System.Privacy;
 using System.Telemetry;
 using System.Threading;
+using System.Utilities;
 
 /// <summary>
 /// Manages configuration for automated currency exchange rate update services.
@@ -171,6 +172,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
         TelemetryCategoryTok: Label 'AL Exchange Rate Service', Locked = true;
         JobQueueEntryDescriptionTxt: Label '%1 - recurring update of exchange rates', Comment = '%1 - the code of the exchange rate setup';
         UnableToSetupCurrExchangeRateServiceTxt: Label 'An error has occured when trying to setup Currency Exchange Service. Error %1, Callstack %2', Comment = '%1 - Error Message, %2 - Callstack', Locked = true;
+        InvalidUriErr: Label 'The URI is not valid.';
 
     /// <summary>
     /// Retrieves the web service URL from BLOB storage with extensibility for URL transformation.
@@ -210,7 +212,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
 
     local procedure EnsureURLIsHttpAndValidUri(ServiceURL: Text)
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Uri: Codeunit Uri;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -218,8 +220,11 @@ table 1650 "Curr. Exch. Rate Update Setup"
         if IsHandled then
             exit;
 
-        WebRequestHelper.IsValidUri(ServiceURL);
-        WebRequestHelper.IsHttpUrl(ServiceURL);
+        if not Uri.IsValidUri(ServiceURL) then
+            Error(InvalidUriErr);
+        Uri.Init(ServiceURL);
+        if not (Uri.GetScheme() in ['http', 'https']) then
+            Error(InvalidUriErr);
     end;
 
     local procedure SuggestDataExchangeCode() NewDataExchCode: Code[20]

@@ -9,6 +9,7 @@ using System.Privacy;
 using System.Security.Encryption;
 using System.Telemetry;
 using System.Threading;
+using System.Utilities;
 
 table 1275 "Doc. Exch. Service Setup"
 {
@@ -29,11 +30,9 @@ table 1275 "Doc. Exch. Service Setup"
             ExtendedDatatype = URL;
 
             trigger OnValidate()
-            var
-                WebRequestHelper: Codeunit "Web Request Helper";
             begin
                 if "Sign-up URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Sign-up URL");
+                    CheckSecureHttpUrl("Sign-up URL");
             end;
         }
         field(5; "Service URL"; Text[250])
@@ -43,11 +42,9 @@ table 1275 "Doc. Exch. Service Setup"
             ExtendedDatatype = URL;
 
             trigger OnValidate()
-            var
-                WebRequestHelper: Codeunit "Web Request Helper";
             begin
                 if "Service URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Service URL");
+                    CheckSecureHttpUrl("Service URL");
             end;
         }
         field(6; "Sign-in URL"; Text[250])
@@ -57,11 +54,9 @@ table 1275 "Doc. Exch. Service Setup"
             ExtendedDatatype = URL;
 
             trigger OnValidate()
-            var
-                WebRequestHelper: Codeunit "Web Request Helper";
             begin
                 if "Sign-in URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Sign-in URL");
+                    CheckSecureHttpUrl("Sign-in URL");
             end;
         }
 #if not CLEANSCHEMA26
@@ -132,11 +127,9 @@ table 1275 "Doc. Exch. Service Setup"
             DataClassification = OrganizationIdentifiableInformation;
 
             trigger OnValidate()
-            var
-                WebRequestHelper: Codeunit "Web Request Helper";
             begin
                 if "Redirect URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Redirect URL");
+                    CheckSecureHttpUrl("Redirect URL");
             end;
         }
         field(16; "Auth URL"; Text[250])
@@ -147,11 +140,9 @@ table 1275 "Doc. Exch. Service Setup"
             DataClassification = OrganizationIdentifiableInformation;
 
             trigger OnValidate()
-            var
-                WebRequestHelper: Codeunit "Web Request Helper";
             begin
                 if "Auth URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Auth URL");
+                    CheckSecureHttpUrl("Auth URL");
             end;
         }
         field(17; "Token URL"; Text[250])
@@ -162,11 +153,9 @@ table 1275 "Doc. Exch. Service Setup"
             DataClassification = OrganizationIdentifiableInformation;
 
             trigger OnValidate()
-            var
-                WebRequestHelper: Codeunit "Web Request Helper";
             begin
                 if "Token URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Token URL");
+                    CheckSecureHttpUrl("Token URL");
             end;
         }
         field(18; "Access Token Key"; Guid)
@@ -282,6 +271,19 @@ table 1275 "Doc. Exch. Service Setup"
         DocExchServiceEnabledTxt: Label 'The user enabled document exchange service.', Locked = true;
         DocExchServiceDisabledTxt: Label 'The user disabled document exchange service.', Locked = true;
         TelemetryCategoryTok: Label 'AL Document Exchange Service', Locked = true;
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
+
+    local procedure CheckSecureHttpUrl(Url: Text)
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(Url) then
+            Error(InvalidUriErr);
+        Uri.Init(Url);
+        if Uri.GetScheme() <> 'https' then
+            Error(NonSecureUriErr);
+    end;
 
     [Scope('OnPrem')]
     procedure SetClientSecret(ClientSecretText: SecretText)

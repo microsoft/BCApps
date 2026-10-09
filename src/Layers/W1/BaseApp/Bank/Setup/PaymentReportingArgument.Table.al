@@ -6,6 +6,7 @@ namespace Microsoft.Bank.Setup;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Integration;
+using System.Utilities;
 
 /// <summary>
 /// Temporary table for passing payment service arguments and configuration data.
@@ -107,6 +108,7 @@ table 1062 "Payment Reporting Argument"
 
     var
         PaymentServiceID: Option ,PayPal,"MS Wallet",WorldPay;
+        InvalidUriErr: Label 'The URI is not valid.';
 
     /// <summary>
     /// Retrieves the target URL from the BLOB field as a text string.
@@ -131,11 +133,14 @@ table 1062 "Payment Reporting Argument"
     /// <param name="ServiceURL">The payment service URL to store</param>
     procedure SetTargetURL(ServiceURL: Text)
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Uri: Codeunit Uri;
         OutStream: OutStream;
     begin
-        WebRequestHelper.IsValidUri(ServiceURL);
-        WebRequestHelper.IsHttpUrl(ServiceURL);
+        if not Uri.IsValidUri(ServiceURL) then
+            Error(InvalidUriErr);
+        Uri.Init(ServiceURL);
+        if not (Uri.GetScheme() in ['http', 'https']) then
+            Error(InvalidUriErr);
 
         "Target URL".CreateOutStream(OutStream);
         OutStream.Write(ServiceURL);

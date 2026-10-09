@@ -63,11 +63,12 @@ codeunit 10687 "Elec. VAT Connection Mgt."
         ElecVATServiceNameTxt: Label 'Electronic VAT Submission NO', Locked = true;
         SecurityAuditVATReturnAcceptedTxt: Label 'VAT Return %1 was accepted by Skatteetaten (Instance %2).', Locked = true, Comment = '%1 - VAT Report No., %2 - Altinn instance URL';
         SecurityAuditVATReturnRejectedTxt: Label 'VAT Return %1 was rejected by Skatteetaten (Instance %2).', Locked = true, Comment = '%1 - VAT Report No., %2 - Altinn instance URL';
+        InvalidUriErr: Label 'The URI is not valid.';
 
     procedure SubmitVATReturn(var VATReportHeader: Record "VAT Report Header")
     var
         User: Record User;
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Uri: Codeunit Uri;
         ProcessDialog: Dialog;
         BaseUrl: Text;
         InstanceUrl: Text[250];
@@ -79,7 +80,8 @@ codeunit 10687 "Elec. VAT Connection Mgt."
         ElecVATSetup.TestField("Submission App URL");
         ElecVATLoggingMgt.RemoveResponseDocAttachments(VATReportHeader);
         BaseUrl := ElecVATSetup."Submission Environment URL" + ElecVATSetup."Submission App URL";
-        WebRequestHelper.IsValidUri(BaseUrl);
+        if not Uri.IsValidUri(BaseUrl) then
+            Error(InvalidUriErr);
         If GuiAllowed() then begin
             ProcessDialog.Open('#1#######');
             ProcessDialog.Update(1, ValidatingVATReturnTxt);

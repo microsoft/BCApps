@@ -694,10 +694,9 @@ codeunit 419 "File Management"
     procedure IsAllowedPath(Path: Text; SkipError: Boolean): Boolean
     var
         EnvironmentInformation: Codeunit "Environment Information";
-        WebRequestHelper: Codeunit "Web Request Helper";
     begin
         if EnvironmentInformation.IsSaaS() then
-            if not WebRequestHelper.IsHttpUrl(Path) then begin
+            if not IsHttpUrl(Path) then begin
                 ClearLastError();
                 if not FILE.IsPathTemporary(Path) then begin
                     if SkipError then
@@ -706,6 +705,16 @@ codeunit 419 "File Management"
                 end;
             end;
         exit(true);
+    end;
+
+    local procedure IsHttpUrl(Url: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(Url) then
+            exit(false);
+        Uri.Init(Url);
+        exit(Uri.GetScheme() in ['http', 'https']);
     end;
 
     procedure AppendFileNameWithIndex(OriginalFileName: Text; AppendIndex: Integer): Text

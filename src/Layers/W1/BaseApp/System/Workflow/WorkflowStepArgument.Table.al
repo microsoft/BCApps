@@ -7,6 +7,7 @@ using System.Integration;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
+using System.Utilities;
 
 table 1523 "Workflow Step Argument"
 {
@@ -81,10 +82,11 @@ table 1523 "Workflow Step Argument"
 
             trigger OnValidate()
             var
-                WebRequestHelper: Codeunit "Web Request Helper";
+                Uri: Codeunit Uri;
             begin
                 if "Custom Link" <> '' then
-                    WebRequestHelper.IsValidUri("Custom Link");
+                    if not Uri.IsValidUri("Custom Link") then
+                        Error(InvalidUriErr);
             end;
         }
         field(11; "Event Conditions"; BLOB)
@@ -228,6 +230,7 @@ table 1523 "Workflow Step Argument"
         NoNegValuesErr: Label '%1 must be a positive value.';
 #pragma warning restore AA0470
         SenderTok: Label '<Sender>';
+        InvalidUriErr: Label 'The URI is not valid.';
 
     procedure Clone(): Guid
     var

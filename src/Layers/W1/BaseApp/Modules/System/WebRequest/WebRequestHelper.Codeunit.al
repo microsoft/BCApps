@@ -15,52 +15,64 @@ codeunit 1299 "Web Request Helper"
         FileSchemeNotAllowedErr: Label 'The file scheme is not allowed.';
         InvalidEncodingErr: Label 'The text encoding is not specified or is not valid.';
         InvalidUriErr: Label 'The URI is not valid.';
+#if not CLEAN30
         NonSecureUriErr: Label 'The URI is not secure.';
+#endif
         ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
 #pragma warning disable AA0470
         ServiceURLTxt: Label '\\Service URL: %1.', Comment = 'Example: ServiceURL: http://www.contoso.com/';
 #pragma warning restore AA0470
         GlobalHttpWebResponseError: DotNet HttpWebResponse;
 
+#if not CLEAN30
     [TryFunction]
+    [Obsolete('Use the IsValidUri procedure in codeunit Uri (System.Utilities) instead.', '30.0')]
     procedure IsValidUri(Url: Text)
-    var
-        ResultUri: DotNet Uri;
-        Uri: DotNet Uri;
-        UriKind: DotNet UriKind;
     begin
-        if not Uri.IsWellFormedUriString(Url, UriKind.Absolute) then
-            if not Uri.TryCreate(Url, UriKind.Absolute, ResultUri) then
-                Error(InvalidUriErr);
+        CheckValidUri(Url);
     end;
 
     [TryFunction]
+    [Obsolete('Use the IsValidUri procedure in codeunit Uri (System.Utilities) instead, for example by also checking the URL prefixed with http://.', '30.0')]
     procedure IsValidUriWithoutProtocol(Url: Text)
+    var
+        Uri: Codeunit Uri;
     begin
-        if not IsValidUri(Url) then
-            if not IsValidUri('http://' + Url) then
+        if not Uri.IsValidUri(Url) then
+            if not Uri.IsValidUri('http://' + Url) then
                 Error(InvalidUriErr);
     end;
 
     [TryFunction]
+    [Obsolete('Use the IsValidUri, Init and GetScheme procedures in codeunit Uri (System.Utilities) instead.', '30.0')]
     procedure IsSecureHttpUrl(Url: Text)
     var
-        Uri: DotNet Uri;
+        Uri: Codeunit Uri;
     begin
-        IsValidUri(Url);
-        Uri := Uri.Uri(Url);
-        if Uri.Scheme <> 'https' then
+        CheckValidUri(Url);
+        Uri.Init(Url);
+        if Uri.GetScheme() <> 'https' then
             Error(NonSecureUriErr);
     end;
 
     [TryFunction]
+    [Obsolete('Use the IsValidUri, Init and GetScheme procedures in codeunit Uri (System.Utilities) instead.', '30.0')]
     procedure IsHttpUrl(Url: Text)
     var
-        Uri: DotNet Uri;
+        Uri: Codeunit Uri;
     begin
-        IsValidUri(Url);
-        Uri := Uri.Uri(Url);
-        if (Uri.Scheme <> 'http') and (Uri.Scheme <> 'https') then
+        CheckValidUri(Url);
+        Uri.Init(Url);
+        if not (Uri.GetScheme() in ['http', 'https']) then
+            Error(InvalidUriErr);
+    end;
+#endif
+
+    local procedure CheckValidUri(Url: Text)
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(Url) then
             Error(InvalidUriErr);
     end;
 
@@ -138,7 +150,7 @@ codeunit 1299 "Web Request Helper"
         TextEncodingVar: TextEncoding;
         ChunkText: Text;
     begin
-        IsValidUri(Url);
+        CheckValidUri(Url);
         Uri := Uri.Uri(Url);
         if Uri.Scheme = 'file' then
             Error(FileSchemeNotAllowedErr);
@@ -196,14 +208,17 @@ codeunit 1299 "Web Request Helper"
         end;
     end;
 
+#if not CLEAN30
+    [Obsolete('Use the IsValidUri, Init and GetHost procedures in codeunit Uri (System.Utilities) instead.', '30.0')]
     procedure GetHostNameFromUrl(Url: Text): Text
     var
-        Uri: DotNet Uri;
+        Uri: Codeunit Uri;
     begin
-        IsValidUri(Url);
-        Uri := Uri.Uri(Url);
-        exit(Uri.Host);
+        CheckValidUri(Url);
+        Uri.Init(Url);
+        exit(Uri.GetHost());
     end;
+#endif
 
     procedure IsFailureStatusCode(TextStatusCode: Text): Boolean
     var
