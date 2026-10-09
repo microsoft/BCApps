@@ -1,0 +1,56 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.DemoData.FixedAsset;
+
+using Microsoft.DemoData.Finance;
+#if not CLEAN30
+using Microsoft.FixedAssets.Depreciation;
+#endif
+using Microsoft.FixedAssets.FixedAsset;
+
+codeunit 13487 "Create Depr. Diff. FA Post Grp"
+{
+    Access = Internal;
+    SingleInstance = true;
+    EventSubscriberInstance = Manual;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    [EventSubscriber(ObjectType::Table, Database::"FA Posting Group", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure OnBeforeInsertFAPostingGroups(var Rec: Record "FA Posting Group")
+    var
+        CreateFAPostingGrp: Codeunit "Create FA Posting Group";
+        CreateGLAccountFI: Codeunit "Create FI GL Accounts";
+    begin
+        case Rec.Code of
+            CreateFAPostingGrp.Equipment(),
+            CreateFAPostingGrp.Goodwill(),
+            CreateFAPostingGrp.Plant(),
+            CreateFAPostingGrp.Property(),
+            CreateFAPostingGrp.Vehicles():
+                ValidateRecordFields(Rec, CreateGLAccountFI.Changeindepreciationreserve4(), CreateGLAccountFI.Depreciationdifference3());
+        end;
+    end;
+
+    local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
+#if not CLEAN30
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+#endif
+    begin
+#if not CLEAN30
+        if not DepreciationDifferencesFIFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+            FAPostingGroup.Validate("Depr. Difference Acc.", DeprDifferenceAcc);
+            FAPostingGroup.Validate("Depr. Difference Bal. Acc.", DeprDifferenceBalAcc);
+#pragma warning restore AL0432
+            exit;
+        end;
+#endif
+        FAPostingGroup.Validate("Deprec. Difference Account", DeprDifferenceAcc);
+        FAPostingGroup.Validate("Deprec. Difference Bal Acct", DeprDifferenceBalAcc);
+    end;
+}
