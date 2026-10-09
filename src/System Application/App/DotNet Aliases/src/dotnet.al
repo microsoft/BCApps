@@ -1890,6 +1890,10 @@ dotnet
         {
         }
 
+        type("System.Xml.XmlResolver"; "XmlResolver")
+        {
+        }
+
         type("System.Xml.XmlTextReader"; "XmlTextReader")
         {
         }
