@@ -42,7 +42,6 @@ codeunit 6940 "EA Retrieve Emails"
         Processed: Integer;
         ProcessLimit: Integer;
         TelemetryDimensions: Dictionary of [Text, Text];
-        StartDateTime: DateTime;
     begin
         ProcessLimit := EAAgentScheduler.GetProcessLimitPerDay(EASetup);
         Processed := EAMailSetup.GetEmailCountProcessedWithin24hrs();
@@ -63,6 +62,7 @@ codeunit 6940 "EA Retrieve Emails"
         TempFilters."Folder Id" := EASetup."Email Folder Id";
         TempFilters."Earliest Email" := ExpenseAgentStatus."Earliest Sync At";
         TempFilters.Insert();
+        Commit();
 
         Email.RetrieveEmails(EASetup."Email Account ID", EASetup."Email Connector", EmailInbox, TempFilters);
 
@@ -80,15 +80,9 @@ codeunit 6940 "EA Retrieve Emails"
         if not EAEmail.FindSet() then
             exit;
 
-        StartDateTime := CurrentDateTime();
         repeat
             AddEmailToAgentTask(EASetup, EAEmail);
             EmailsProcessedCount += 1;
-            // Prevent locks from being held for too long
-            if CurrentDateTime() - StartDateTime > 25000 then begin
-                Commit();
-                StartDateTime := CurrentDateTime();
-            end;
 
             Processed += 1;
             if Processed >= ProcessLimit then begin
@@ -163,8 +157,10 @@ codeunit 6940 "EA Retrieve Emails"
             EAEmail."Sent DateTime" := EmailInbox."Sent DateTime";
             EAEmail."Received DateTime" := EmailInbox."Received DateTime";
 
-            if EAEmail.Insert() then
+            if EAEmail.Insert() then begin
+                Commit();
                 Email.MarkAsRead(EASetup."Email Account ID", EASetup."Email Connector", EmailInbox."External Message Id");
+            end;
         until EmailInbox.Next() = 0;
     end;
 
@@ -186,6 +182,8 @@ codeunit 6940 "EA Retrieve Emails"
 
         // Prepare request data
         ConversationId := Format(CreateGuid());
+        // Do not carry locks from the preceding email across the service request.
+        Commit();
 
         // Send email to expense agent with attachments
         IsSuccess := EAHttpClient.SubmitExpenseWithAttachments(
@@ -208,8 +206,13 @@ codeunit 6940 "EA Retrieve Emails"
         OutStream: OutStream;
         FileMIMEType: Text[100];
         FileName: Text[250];
+        IsHandled: Boolean;
         IsFileMimeTypeSupported: Boolean;
     begin
+        OnGetEmailAttachments(TempAttachment, IsHandled);
+        if IsHandled then
+            exit;
+
         if not EmailMessage.Attachments_First() then
             exit;
 
@@ -231,6 +234,11 @@ codeunit 6940 "EA Retrieve Emails"
                 TempAttachment.Insert(true);
             end;
         until EmailMessage.Attachments_Next() = 0;
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnGetEmailAttachments(var TempAttachment: Record "EA Email Attachment" temporary; var IsHandled: Boolean)
+    begin
     end;
 
     [InternalEvent(false, true)]
