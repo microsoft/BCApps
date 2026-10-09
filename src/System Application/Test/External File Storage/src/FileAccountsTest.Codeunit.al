@@ -470,8 +470,8 @@ codeunit 134750 "File Accounts Test"
     [Test]
     procedure OptInMockStoragePreservesBytesAndAccountIsolation()
     var
-        FirstAccount: Record "File Account" temporary;
-        SecondAccount: Record "File Account" temporary;
+        TempFirstAccount: Record "File Account" temporary;
+        TempSecondAccount: Record "File Account" temporary;
         FileConnectorMock: Codeunit "File Connector Mock";
         ExternalFileStorage: Codeunit "External File Storage";
         TempBlob: Codeunit "Temp Blob";
@@ -482,22 +482,22 @@ codeunit 134750 "File Accounts Test"
     begin
         // [SCENARIO] Opt-in storage returns the uploaded binary bytes only within the original account/path.
         FileConnectorMock.Initialize();
-        FileConnectorMock.AddAccount(FirstAccount);
-        FileConnectorMock.AddAccount(SecondAccount);
+        FileConnectorMock.AddAccount(TempFirstAccount);
+        FileConnectorMock.AddAccount(TempSecondAccount);
         FileConnectorMock.SetStoreFileContent(true);
         ExpectedBytes := 'AAECA/8Q';
         Base64Convert.FromBase64(ExpectedBytes, TempBlob.CreateOutStream());
         TempBlob.CreateInStream(UploadStream);
-        ExternalFileStorage.Initialize(FirstAccount);
+        ExternalFileStorage.Initialize(TempFirstAccount);
         Assert.IsTrue(ExternalFileStorage.CreateFile('roundtrip.bin', UploadStream), 'The mock upload must store actual bytes');
         Assert.IsTrue(ExternalFileStorage.GetFile('roundtrip.bin', DownloadStream), 'The stored file must be retrievable');
         Assert.AreEqual(ExpectedBytes, Base64Convert.ToBase64(DownloadStream), 'The returned stream must preserve every uploaded byte');
 
-        ExternalFileStorage.Initialize(SecondAccount);
+        ExternalFileStorage.Initialize(TempSecondAccount);
         Assert.IsFalse(ExternalFileStorage.FileExists('roundtrip.bin'), 'A different account must not see the first account file');
         Assert.IsFalse(ExternalFileStorage.GetFile('roundtrip.bin', DownloadStream), 'An unknown account/path must fail, not synthesize content');
 
-        ExternalFileStorage.Initialize(FirstAccount);
+        ExternalFileStorage.Initialize(TempFirstAccount);
         FileConnectorMock.SetStoreFileContent(true);
         Assert.IsFalse(ExternalFileStorage.FileExists('roundtrip.bin'), 'Every opt-in reset must clear previous file state');
         Assert.IsFalse(ExternalFileStorage.GetFile('roundtrip.bin', DownloadStream), 'A cleared file must not be returned');
@@ -507,7 +507,7 @@ codeunit 134750 "File Accounts Test"
     [Test]
     procedure MockStorageDefaultAndFailureFlagsRemainCompatible()
     var
-        FileAccount: Record "File Account" temporary;
+        TempFileAccount: Record "File Account" temporary;
         FileConnectorMock: Codeunit "File Connector Mock";
         ExternalFileStorage: Codeunit "External File Storage";
         TempBlob: Codeunit "Temp Blob";
@@ -517,11 +517,11 @@ codeunit 134750 "File Accounts Test"
     begin
         // [SCENARIO] Default callbacks remain no-op; failures are honored and Initialize clears opt-in state.
         FileConnectorMock.Initialize();
-        FileConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.AddAccount(TempFileAccount);
         TempBlob.CreateOutStream(UploadOutStream);
         UploadOutStream.WriteText('mock content');
         TempBlob.CreateInStream(UploadStream);
-        ExternalFileStorage.Initialize(FileAccount);
+        ExternalFileStorage.Initialize(TempFileAccount);
         FileConnectorMock.FailOnSend(true);
         Assert.IsTrue(ExternalFileStorage.CreateFile('default.txt', UploadStream), 'Default CreateFile must remain a no-op regardless of opt-in send failure');
         Assert.IsFalse(ExternalFileStorage.FileExists('default.txt'), 'Default mode must not advertise stored bytes');

@@ -153,9 +153,10 @@ codeunit 135810 "File Connector Mock"
     end;
 
     /// <summary>
-    /// Enables real in-memory file bytes for round-trip tests, or restores the default no-op behavior.
-    /// Every call clears previously stored files.
+    /// Enables in-memory file uploads and downloads, and clears previously stored files.
+    /// When enabled, FailOnSend controls whether uploads fail.
     /// </summary>
+    /// <param name="StoreFileContent">True to retain uploaded file content for subsequent downloads.</param>
     procedure SetStoreFileContent(StoreFileContent: Boolean)
     var
         TestFileStorageConnector: Codeunit "Test File Storage Connector";

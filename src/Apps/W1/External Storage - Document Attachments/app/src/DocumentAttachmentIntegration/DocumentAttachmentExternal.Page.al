@@ -275,9 +275,9 @@ page 8751 "Document Attachment - External"
 
     var
         RetireExternalReferencesQst: Label 'Retire the selected local external references after confirming internal content? Remote files will not be deleted.';
-        ReferencesRetiredMsg: Label '%1 external reference(s) retired locally; remote files were retained. %2 reference(s) could not be retired. %3', Comment = '%1 = Retired reference count, %2 = Blocked reference count, %3 = First blocked reason';
         DeleteFilesFromIntStorageQst: Label 'Are you sure you want to delete the selected file(s) from internal storage?';
         FilesCopiedMsg: Label '%1 file(s) copied successfully to internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        ReferencesRetiredMsg: Label '%1 external reference(s) retired locally; remote files were retained. %2 reference(s) could not be retired. %3', Comment = '%1 = Retired reference count, %2 = Blocked reference count, %3 = First blocked reason';
         FilesDeletedIntStorageMsg: Label '%1 file(s) deleted successfully from internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesDownloadedMsg: Label '%1 file(s) downloaded successfully. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesUploadedMsg: Label '%1 file(s) uploaded successfully to external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';

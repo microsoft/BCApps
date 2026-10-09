@@ -137,7 +137,7 @@ From **External Storage Synchronize** report:
 - **To External Storage**: Upload multiple files to external storage
 - **From External Storage**: Download multiple files from external storage
 - **Copy to Internal Storage**: Restore content and keep both references
-- **Move to Internal Storage**: Restore content and retire the local external reference while retaining remote bytes
+- **Move to Internal Storage**: Restore bytes when needed, then retire verified local external references. Already-internal attachments can retire without contacting the provider. The summary distinguishes retained remote files, retired local references, and blocked retirements.
 
 ### File Access and Compatibility
 - Files uploaded to external storage remain fully accessible through standard Business Central functionality
@@ -145,6 +145,15 @@ From **External Storage Synchronize** report:
 - Files deleted internally are automatically retrieved from external storage when accessed
 - Upload, read and internal restore remain available; retirement messages identify local metadata retirement and retained remote bytes, never completed physical deletion
 - Cross-environment and cross-company access is handled automatically
+
+### Filename Migration and Synchronization Diagnostics
+- Generated storage filenames and filenames passed to media import omit `"`, `'`, `<`, `>`, `/`, `\`, and `|`. The attachment's displayed File Name and File Extension remain unchanged.
+- Uploads retain a GUID suffix, so names that sanitize to the same value still use separate files. Downloads use the saved External File Path without regenerating or decoding it.
+- Each synchronization step runs in its own transaction. A successful copy is committed before source cleanup; a runtime failure rolls back that step and processing continues with the next attachment.
+- Every failed attachment is recorded in the **Error Message Register** with its original filename and reason. Interactive runs also show the **Error Messages** page; background runs register failures without raising an attachment error or opening dialogs.
+- If an upload creates an external file but its attachment update fails, the external file is retained, not automatically deleted. The registered error includes the created logical path for recovery. Verify the actual storage account and file before taking any manual action; the current account mapping is not proof of ownership.
+- **Maximum Records to Process** limits a run when nonzero. Subsequent runs exclude successfully uploaded attachments; failed attachments remain eligible for retry.
+- This change does not rename existing external files or remove provider-specific folder-name restrictions, including trailing-dot folder names.
 
 ## Important Notes
 
