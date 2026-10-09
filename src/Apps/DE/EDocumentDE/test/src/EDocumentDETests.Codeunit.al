@@ -9,6 +9,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
@@ -554,6 +555,71 @@ codeunit 13926 "E-Document DE Tests"
     end;
 
     #endregion
+
+    #region ShipToAddress
+
+    [Test]
+    procedure SalesCrMemoWithoutShipToAddressPassesDEValidation()
+    var
+        PEPPOLEDocumentService: Record "E-Document Service";
+        SalesHeader: Record "Sales Header";
+        EDocPEPPOLBIS30DE: Codeunit "EDoc PEPPOL BIS 3.0 DE";
+        SourceDocumentHeader: RecordRef;
+    begin
+        // [SCENARIO 9815] A sales credit memo without a deliver-to address passes the German PEPPOL validation on release
+        Initialize();
+
+        // [GIVEN] Company information with the bank details the validation requires
+        SetCompanyBankDetails();
+        PEPPOLEDocumentService.Get(LibraryEdocument.CreateService("E-Document Format"::"PEPPOL BIS 3.0 DE", "Service Integration"::"No Integration"));
+
+        // [GIVEN] Sales Credit Memo with all ship-to address fields empty
+        CreateSalesCrMemoWithoutShipToAddress(SalesHeader);
+
+        // [WHEN] Check the Sales Credit Memo for release
+        SourceDocumentHeader.GetTable(SalesHeader);
+        EDocPEPPOLBIS30DE.Check(SourceDocumentHeader, PEPPOLEDocumentService, "E-Document Processing Phase"::Release);
+
+        // [THEN] No error
+    end;
+
+    #endregion
+
+    local procedure CreateSalesCrMemoWithoutShipToAddress(var SalesHeader: Record "Sales Header")
+    var
+        Customer: Record Customer;
+        PostCode: Record "Post Code";
+    begin
+        CompanyInformation.Get();
+        CreateCustomerWithRoutingNo(Customer, LibraryEDocDE.CreateValidRoutingNo());
+        Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
+        Customer.Modify(true);
+
+        LibraryERM.FindPostCode(PostCode);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", Customer."No.");
+        SalesHeader.Validate("Bill-to Address", LibraryUtility.GenerateGUID());
+        SalesHeader.Validate("Bill-to City", PostCode.City);
+        SalesHeader.Validate("Payment Terms Code", LibraryERM.FindPaymentTermsCode());
+        SalesHeader."Ship-to Code" := '';
+        SalesHeader."Ship-to Address" := '';
+        SalesHeader."Ship-to Address 2" := '';
+        SalesHeader."Ship-to City" := '';
+        SalesHeader."Ship-to Post Code" := '';
+        SalesHeader."Ship-to County" := '';
+        SalesHeader."Ship-to Country/Region Code" := '';
+        SalesHeader.Modify(true);
+    end;
+
+    local procedure SetCompanyBankDetails()
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
+        if CompanyInformation."Bank Branch No." = '' then
+            CompanyInformation."Bank Branch No." := LibraryUtility.GenerateGUID();
+        CompanyInformation.Modify();
+    end;
 
     local procedure CreateCustomerWithRoutingNo(var Customer: Record Customer; RoutingNo: Text[50])
     begin

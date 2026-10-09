@@ -160,4 +160,20 @@ codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation"
         PEPPOL30SalesValidationImpl.EnsureSingleOutsideScopeVATBreakdown(SalesLine);
     end;
     #endregion Non-Interface Methods
+
+    internal procedure RunOnBeforeCheckShipToAddress(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+        OnBeforeCheckShipToAddress(SalesHeader, IsHandled);
+    end;
+
+    /// <summary>
+    /// Raised before validating the ship-to address of a sales document.
+    /// Also raised for service documents: their header is transferred into a sales header before it is validated.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record to validate.</param>
+    /// <param name="IsHandled">Set to true to skip the default ship-to address validation.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckShipToAddress(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
 }
