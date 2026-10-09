@@ -69,7 +69,7 @@ permissionset 2909 "D365 PURCH DOC, POST"
                   tabledata "No. Series Line" = RIMD,
                   tabledata "Post Value Entry to G/L" = I,
                   tabledata "Posted Document Signature" = RI,
-                  tabledata "Posted Matched Order Line" = Rimd,	  
+                  tabledata "Posted Matched Order Line" = Rimd,
                   tabledata "Price Asset" = RIMD,
                   tabledata "Price Calculation Buffer" = RIMD,
                   tabledata "Price Calculation Setup" = RIMD,

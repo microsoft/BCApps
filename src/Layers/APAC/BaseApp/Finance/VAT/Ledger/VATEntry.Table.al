@@ -1038,6 +1038,18 @@ table 254 "VAT Entry"
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
     /// <summary>
+    /// Retrieves the next entry number from the VAT Entry table.
+    /// </summary>
+    /// <returns>Next VAT entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"VAT Entry"));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
+    /// <summary>
     /// Retrieves the highest entry number from the VAT Entry table.
     /// </summary>
     /// <returns>Last VAT entry number used in the system</returns>
