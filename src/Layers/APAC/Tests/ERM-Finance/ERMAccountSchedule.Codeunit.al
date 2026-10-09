@@ -7658,7 +7658,7 @@ codeunit 134902 "ERM Account Schedule"
                 ColumnLayoutName.Delete(true);
         end;
 
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
     end;
 
     local procedure UpdateGLAccountWithDefaultDimension(GLAccountNo: Code[20]): Code[20]

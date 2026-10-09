@@ -1845,7 +1845,7 @@ codeunit 136606 "ERM RS Wizard & Worksheet"
         FindFirstConfigLine(ConfigLine);
         ConfigPackageMgt.AssignPackage(ConfigLine, ConfigPackage.Code);
 
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
 
         ConfigLine.SetRange("Package Code", '');
         Assert.IsTrue(ConfigLine.Count > 0, PackageCodeReserErr);
@@ -3329,7 +3329,7 @@ codeunit 136606 "ERM RS Wizard & Worksheet"
         ConfigXMLExchange.ExportPackageXML(ConfigPackageTable, FilePath);
         if not Overwrite then
             CleanupData(ConfigPackage.Code, DeleteConfigLines);
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
     end;
 
     local procedure ExportImportPackageWithCleanup(ConfigPackage: Record "Config. Package"; DeleteConfigLines: Boolean)
