@@ -114,10 +114,8 @@ codeunit 6935 "EA Agent Scheduler"
         Limit := CreateDateTime(CalcDate('<-1D>', DT2Date(CurrentDateTime())), 0T);
 
         EASchedulerTask.SetFilter(SystemCreatedAt, '<%1', Limit);
-        if not EASchedulerTask.FindSet() then
+        if EASchedulerTask.IsEmpty() then
             exit;
-
         EASchedulerTask.DeleteAll();
-        Commit();
     end;
 }
