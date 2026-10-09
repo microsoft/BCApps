@@ -24,7 +24,7 @@
   "conditionalSettings": [
     {
       "branches": [
-        "features/646383-api-webkey-default-single-pr"
+        "features/646383-api-combined-fix-validation"
       ],
       "triggers": [
         "workflow_dispatch"
