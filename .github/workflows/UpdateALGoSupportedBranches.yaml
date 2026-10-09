@@ -39,7 +39,7 @@ jobs:
       - name: Update AL-Go Supported Branches
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        uses: microsoft/BCApps/.github/actions/RunAutomation@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
         with:
           automations: UpdateSystemFilesSchedule
           targetBranch: main
