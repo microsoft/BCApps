@@ -9,7 +9,6 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using System.Environment;
-using System.Integration;
 using System.Telemetry;
 using System.Utilities;
 
@@ -278,7 +277,7 @@ page 20105 "AMC Bank Assisted Setup"
                                 trigger OnValidate();
                                 begin
                                     if SignupURLText <> '' then
-                                        WebRequestHelper.IsSecureHttpUrl(SignupURLText);
+                                        CheckSecureHttpUrl(SignupURLText);
 
                                     URLSChanged := true;
                                 end;
@@ -298,7 +297,7 @@ page 20105 "AMC Bank Assisted Setup"
                                 trigger OnValidate();
                                 begin
                                     if ServiceURLText <> '' then
-                                        WebRequestHelper.IsSecureHttpUrl(ServiceURLText);
+                                        CheckSecureHttpUrl(ServiceURLText);
 
                                     URLSChanged := true;
                                 end;
@@ -318,7 +317,7 @@ page 20105 "AMC Bank Assisted Setup"
                                 trigger OnValidate();
                                 begin
                                     if SupportURLText <> '' then
-                                        WebRequestHelper.IsSecureHttpUrl(SupportURLText);
+                                        CheckSecureHttpUrl(SupportURLText);
 
                                     URLSChanged := true;
                                 end;
@@ -664,7 +663,6 @@ page 20105 "AMC Bank Assisted Setup"
         AMCBankAssistedMgt: Codeunit "AMC Bank Assisted Mgt.";
         ClientTypeManagement: Codeunit "Client Type Management";
         AMCBankingMgt: Codeunit "AMC Banking Mgt.";
-        WebRequestHelper: Codeunit "Web Request Helper";
         Step: Option Intro,"Chose updates","Update URLs","Update Banks","Update Data Exch. Def.","Update PayMethods","Update Bank Clear Std","Update Bank Accounts",Done;
         BackEnabled: Boolean;
         NextEnabled: Boolean;
@@ -706,6 +704,19 @@ page 20105 "AMC Bank Assisted Setup"
         SupportURLText: Text[250];
         BasisSetupRanOK: Boolean;
         ButtonVisible: Boolean;
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
+
+    local procedure CheckSecureHttpUrl(Url: Text)
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(Url) then
+            Error(InvalidUriErr);
+        Uri.Init(Url);
+        if Uri.GetScheme() <> 'https' then
+            Error(NonSecureUriErr);
+    end;
 
     local procedure LoadTopBanners();
     begin

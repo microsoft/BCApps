@@ -24,12 +24,14 @@ codeunit 31031 "SOAP WS Request Management CZL"
         SecurityExtensionNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd', Locked = true;
         SoapNamespaceTxt: Label 'http://schemas.xmlsoap.org/soap/envelope/', Locked = true;
         UsernameTokenNamepsaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText', Locked = true;
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
 
     [TryFunction]
     procedure SendRequestToWebService(ServiceUrl: Text; RequestContentInStream: InStream)
     var
         RequestTempBlob: Codeunit "Temp Blob";
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Uri: Codeunit Uri;
         WSHttpClient: HttpClient;
         RequestHttpContent: HttpContent;
         RequestContentHttpHeaders: HttpHeaders;
@@ -46,10 +48,14 @@ codeunit 31031 "SOAP WS Request Management CZL"
         RequestTempBlob.CreateInStream(RequestInStream);
         RequestTempBlob.CreateOutStream(RequestOutStream);
 
-        if GlobalSkipCheckHttps then
-            WebRequestHelper.IsValidUri(ServiceUrl)
-        else
-            WebRequestHelper.IsSecureHttpUrl(ServiceUrl);
+        if not Uri.IsValidUri(ServiceUrl) then
+            Error(InvalidUriErr);
+
+        if not GlobalSkipCheckHttps then begin
+            Uri.Init(ServiceUrl);
+            if Uri.GetScheme() <> 'https' then
+                Error(NonSecureUriErr);
+        end;
 
         RequestHttpRequestMessage.Method := 'POST';
         RequestHttpRequestMessage.SetRequestUri := ServiceUrl;

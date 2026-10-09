@@ -4,10 +4,10 @@ namespace Microsoft.Bank.StatementImport.Yodlee;
 
 using Microsoft.Bank.Setup;
 using Microsoft.Foundation.Company;
-using System.Integration;
 using System.Privacy;
 using System.Security.Encryption;
 using System.Telemetry;
+using System.Utilities;
 table 1450 "MS - Yodlee Bank Service Setup"
 {
     Access = Internal;
@@ -25,12 +25,11 @@ table 1450 "MS - Yodlee Bank Service Setup"
 
             trigger OnValidate();
             var
-                WebRequestHelper: Codeunit "Web Request Helper";
                 MSYodleeServiceMgt: Codeunit "MS - Yodlee Service Mgt.";
                 YodleeServiceUrlValue: Text;
             begin
                 if "Service URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Service URL");
+                    CheckSecureHttpUrl("Service URL");
 
                 // If we have a service URL in our AKV
                 // it must match otherwise we will not use our built in cobrand.
@@ -47,11 +46,9 @@ table 1450 "MS - Yodlee Bank Service Setup"
             ExtendedDatatype = URL;
 
             trigger OnValidate();
-            var
-                WebRequestHelper: Codeunit "Web Request Helper";
             begin
                 if "Bank Acc. Linking URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Bank Acc. Linking URL");
+                    CheckSecureHttpUrl("Bank Acc. Linking URL");
             end;
         }
         field(12; "Cobrand Environment Name"; Guid)
@@ -153,6 +150,19 @@ table 1450 "MS - Yodlee Bank Service Setup"
         MSYodleeServiceMgt: Codeunit "MS - Yodlee Service Mgt.";
         CobrandMustBeSpecifiedMsg: Label 'By modifying the Service URL you must specify your own Cobrand credentials.';
         EncryptionIsNotActivatedQst: Label 'Data encryption is not activated. It is recommended that you encrypt data. \Do you want to open the Data Encryption Management window?';
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
+
+    local procedure CheckSecureHttpUrl(Url: Text)
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(Url) then
+            Error(InvalidUriErr);
+        Uri.Init(Url);
+        if Uri.GetScheme() <> 'https' then
+            Error(NonSecureUriErr);
+    end;
 
     procedure GetCobrandEnvironmentName(NameKey: Guid): Text;
     var

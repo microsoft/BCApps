@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Integration;
 using System.Reflection;
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 1070 "MS - PayPal Standard Mgt."
 {
@@ -395,12 +396,13 @@ codeunit 1070 "MS - PayPal Standard Mgt."
 
     procedure IsValidAndSecureURL(URL: Text): Boolean;
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Uri: Codeunit Uri;
     begin
-        if WebRequestHelper.IsValidUri(URL) then
-            if WebRequestHelper.IsHttpUrl(URL) then
-                if WebRequestHelper.IsSecureHttpUrl(URL) then
-                    exit(true);
+        if Uri.IsValidUri(URL) then begin
+            Uri.Init(URL);
+            if Uri.GetScheme() = 'https' then
+                exit(true);
+        end;
         exit(false);
     end;
 

@@ -12,7 +12,6 @@ using System.Azure.Identity;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Integration;
 using System.IO;
 using System.Reflection;
 using System.Utilities;
@@ -209,12 +208,14 @@ page 1803 "Assisted Company Setup Wizard"
 
                         trigger OnValidate()
                         var
-                            WebRequestHelper: Codeunit "Web Request Helper";
+                            Uri: Codeunit Uri;
                         begin
                             if Rec."Home Page" = '' then
                                 exit;
 
-                            WebRequestHelper.IsValidUriWithoutProtocol(Rec."Home Page");
+                            if not Uri.IsValidUri(Rec."Home Page") then
+                                if not Uri.IsValidUri('http://' + Rec."Home Page") then
+                                    Error(InvalidUriErr);
                         end;
                     }
                 }
@@ -411,6 +412,7 @@ page 1803 "Assisted Company Setup Wizard"
         LogoPositionOnDocumentsShown: Boolean;
         ShowBankAccountCreationWarning: Boolean;
         InvalidPhoneNumberErr: Label 'The phone number is invalid.';
+        InvalidUriErr: Label 'The URI is not valid.';
         BankAccountLinkingFailedMsg: Label 'Linking the company bank account failed with the following message:\''%1''\Link the company bank account from the Bank Accounts page.', Comment = '%1 - an error message';
         GraphURLEndpointLbl: Label '%1v1.0/organization', Locked = true;
         ResourceNameTxt: Label 'Azure Service', Locked = true;

@@ -1,8 +1,8 @@
 namespace System.Security.Authentication;
 
 using Microsoft.Foundation.Enums;
-using System.Integration;
 using System.Security.AccessControl;
+using System.Utilities;
 
 table 1140 "OAuth 2.0 Setup"
 {
@@ -26,11 +26,9 @@ table 1140 "OAuth 2.0 Setup"
             Caption = 'Service URL';
 
             trigger OnValidate()
-            var
-                WebRequestHelper: Codeunit "Web Request Helper";
             begin
                 if "Service URL" <> '' then
-                    WebRequestHelper.IsSecureHttpUrl("Service URL");
+                    CheckSecureHttpUrl("Service URL");
             end;
         }
         field(4; "Redirect URL"; Text[250])
@@ -174,6 +172,19 @@ table 1140 "OAuth 2.0 Setup"
 
     var
         OAuth20Mgt: Codeunit "OAuth 2.0 Mgt.";
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
+
+    local procedure CheckSecureHttpUrl(Url: Text)
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(Url) then
+            Error(InvalidUriErr);
+        Uri.Init(Url);
+        if Uri.GetScheme() <> 'https' then
+            Error(NonSecureUriErr);
+    end;
 
     local procedure CheckAndAppendURLPath(var value: Text)
     begin

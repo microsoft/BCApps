@@ -51,6 +51,8 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         UsernameTokenNamepsaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText', Locked = true;
         InternalErr: Label 'The remote service has returned the following error message:\\';
         InvalidTokenFormatErr: Label 'The token must be in JWS or JWE Compact Serialization Format.';
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
 
     [TryFunction]
     procedure SendRequestToWebService()
@@ -282,7 +284,7 @@ codeunit 1290 "SOAP Web Service Request Mgt."
 
     local procedure CheckGlobals()
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Uri: Codeunit Uri;
     begin
         if GlobalRequestBodyInStream.EOS then
             Error(NoRequestBodyErr);
@@ -290,10 +292,14 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         if GlobalURL = '' then
             Error(NoServiceAddressErr);
 
-        if GlobalSkipCheckHttps then
-            WebRequestHelper.IsValidUri(GlobalURL)
-        else
-            WebRequestHelper.IsSecureHttpUrl(GlobalURL);
+        if not Uri.IsValidUri(GlobalURL) then
+            Error(InvalidUriErr);
+
+        if not GlobalSkipCheckHttps then begin
+            Uri.Init(GlobalURL);
+            if Uri.GetScheme() <> 'https' then
+                Error(NonSecureUriErr);
+        end;
     end;
 
     local procedure TraceLogStreamToTempFile(var ToLogInStream: InStream; Name: Text; var TempBlobTraceLog: Codeunit "Temp Blob")

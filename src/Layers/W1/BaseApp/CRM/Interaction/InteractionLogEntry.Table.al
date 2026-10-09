@@ -21,8 +21,8 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
 using Microsoft.Utilities;
 using System.Globalization;
-using System.Integration;
 using System.Security.AccessControl;
+using System.Utilities;
 
 table 5065 "Interaction Log Entry"
 {
@@ -501,7 +501,6 @@ table 5065 "Interaction Log Entry"
     var
         Attachment: Record Attachment;
         SegmentLine: Record "Segment Line";
-        WebRequestHelper: Codeunit "Web Request Helper";
         InStream: InStream;
         EmailMessageUrl: Text;
         IsHandled: Boolean;
@@ -534,7 +533,7 @@ table 5065 "Interaction Log Entry"
             if Attachment."Email Message Url".HasValue() then begin
                 Attachment."Email Message Url".CreateInStream(InStream);
                 InStream.Read(EmailMessageUrl);
-                if WebRequestHelper.IsHttpUrl(EmailMessageUrl) then begin
+                if IsHttpUrl(EmailMessageUrl) then begin
                     if Confirm(OpenMessageQst, true) then
                         HyperLink(EmailMessageUrl);
                     exit;
@@ -543,6 +542,16 @@ table 5065 "Interaction Log Entry"
         end;
 
         OnAfterOpenAttachment(Rec, Attachment, SegmentLine);
+    end;
+
+    local procedure IsHttpUrl(Url: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(Url) then
+            exit(false);
+        Uri.Init(Url);
+        exit(Uri.GetScheme() in ['http', 'https']);
     end;
 
     procedure ToggleCanceledCheckmark()
