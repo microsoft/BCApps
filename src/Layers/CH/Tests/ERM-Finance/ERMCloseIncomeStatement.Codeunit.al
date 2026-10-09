@@ -24,7 +24,6 @@ codeunit 134228 "ERM Close Income Statement"
         IsInitialized: Boolean;
         PostToRetainedEarningsAcc: Option Balance,Details;
         ExpectedMessageMsg: Label 'The journal lines have successfully been created.';
-        GenJnlLineExistErr: Label 'There should be no %1 with %2=%3,%4=%5', Comment = '%1=Gen. Journal Line;%2=Account Type;%3=Account Type Value;%4=Account No.;%5=Account No. Value.';
         CannotDeleteGLAccGLEntryFoundErr: Label 'You cannot delete G/L account %1 because it has ledger entries in a fiscal year that has not been closed yet.';
         CannotDeleteGLAccGLBudgetEntryFoundErr: Label 'You cannot delete G/L account %1 because it contains budget ledger entries after %2 for G/L budget name %3.';
         ConfirmCloseAccPeriodQst: Label 'This function closes the fiscal year from %1 to %2. Once the fiscal year is closed it cannot be opened again, and the periods in the fiscal year cannot be changed.\\Do you want to close the fiscal year?';
@@ -107,9 +106,10 @@ codeunit 134228 "ERM Close Income Statement"
         GLAccount: Record "G/L Account";
         GenJournalLine: Record "Gen. Journal Line";
         AdditionalReportingCurrency: Code[10];
+        CloseIncomeDocumentNo: Code[20];
         Amount: Decimal;
     begin
-        // [SCENARIO 287733] Check that no one general journal line with zero amount has been created
+        // [SCENARIO 287733] Check that the closing journal line is created when the additional-currency amount is nonzero
 
         Initialize();
         // [GIVEN] New Fiscal Year
@@ -131,17 +131,18 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalLine.Reset();
         GenJournalLine.Init();
         GenJournalLine."Document No." := LibraryUtility.GenerateGUID();
+        CloseIncomeDocumentNo := IncStr(GenJournalLine."Document No.");
         // [WHEN] Run "Close Income Statement"
-        CloseIncomeStatement(GenJournalLine, IncStr(GenJournalLine."Document No."));
+        CloseIncomeStatement(GenJournalLine, CloseIncomeDocumentNo);
 
-        // [THEN] General journal line with GLAccountNo does not exist (because of zero amount)
+        // [THEN] General journal line with zero LCY amount and nonzero additional-currency amount exists
         GenJournalLine.SetRange("Account Type", GenJournalLine."Account Type"::"G/L Account");
         GenJournalLine.SetRange("Account No.", GLAccount."No.");
-        Assert.IsTrue(GenJournalLine.IsEmpty,
-          StrSubstNo(GenJnlLineExistErr,
-            GenJournalLine.TableCaption(),
-            GenJournalLine.FieldCaption("Account Type"), Format(GenJournalLine."Account Type"::"G/L Account"),
-            GenJournalLine.FieldCaption("Account No."), GLAccount."No."));
+        GenJournalLine.SetRange("Document No.", CloseIncomeDocumentNo);
+        Assert.RecordCount(GenJournalLine, 1);
+        GenJournalLine.FindFirst();
+        Assert.AreEqual(0, GenJournalLine.Amount, 'Incorrect closing amount.');
+        Assert.AreNotEqual(0, GenJournalLine."Source Currency Amount", 'Incorrect additional-currency amount.');
 
         // Cleanup: Update General Ledger Setup.
         UpdateCurOnGeneralLedgerSetup(AdditionalReportingCurrency);
