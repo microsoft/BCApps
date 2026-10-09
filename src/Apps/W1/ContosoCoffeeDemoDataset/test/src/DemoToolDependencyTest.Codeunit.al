@@ -1,6 +1,9 @@
 namespace Microsoft.Test.DemoTool;
 
+using Microsoft.DemoData.Common;
 using Microsoft.DemoTool;
+using Microsoft.DemoTool.Helpers;
+using Microsoft.Finance.GeneralLedger.Account;
 
 codeunit 148048 "DemoTool Dependency Test"
 {
@@ -49,5 +52,57 @@ codeunit 148048 "DemoTool Dependency Test"
 
         // [THEN] Expect a circular dependency error
         Assert.ExpectedError(StrSubstNo(CircularDependencyErr, Enum::"Contoso Demo Data Module"::"Contoso Test 1", Enum::"Contoso Demo Data Module"::"Contoso Test 2"));
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    procedure ManufacturingSetupRefreshesCommonGLAccounts()
+    var
+        ContosoDemoDataModule: Record "Contoso Demo Data Module";
+        CommonDemoDataModule: Record "Contoso Demo Data Module";
+        GLAccount: Record "G/L Account";
+        CommonGLAccount: Codeunit "Create Common GL Account";
+        ContosoDemoTool: Codeunit "Contoso Demo Tool";
+        ContosoGLAccount: Codeunit "Contoso GL Account";
+        ExpectedAccountNo: Code[20];
+        ExistingAccountId: Guid;
+    begin
+        // [SCENARIO] Manufacturing refreshes Common mappings even when its dependency is already generated.
+        ContosoDemoTool.RefreshModules();
+        ContosoDemoDataModule.SetRange(Module, Enum::"Contoso Demo Data Module"::"Manufacturing Module");
+        ContosoDemoDataModule.FindFirst();
+        ContosoDemoDataModule."Data Level" := Enum::"Contoso Demo Data Level"::" ";
+        ContosoDemoDataModule.Modify();
+        ContosoDemoTool.CreateDemoData(ContosoDemoDataModule, Enum::"Contoso Demo Data Level"::"Setup Data");
+
+        // [GIVEN] Common setup is persisted, and the localized raw-material account is customized.
+        CommonDemoDataModule.Get(Enum::"Contoso Demo Data Module"::"Common Module");
+        Assert.IsTrue(CommonDemoDataModule."Data Level".AsInteger() >= Enum::"Contoso Demo Data Level"::"Setup Data".AsInteger(), 'Common setup must already be generated.');
+        ExpectedAccountNo := CommonGLAccount.RawMaterials();
+        if ExpectedAccountNo <> '' then begin
+            GLAccount.Get(ExpectedAccountNo);
+            GLAccount.Name := 'Keep existing raw materials';
+            GLAccount.Modify();
+            ExistingAccountId := GLAccount.SystemId;
+        end;
+
+        // [GIVEN] A stale session mapping cannot be used by Manufacturing.
+        ContosoGLAccount.AddAccountForLocalization(CommonGLAccount.RawMaterialsName(), 'STALE-635852');
+        ContosoDemoDataModule.FindFirst();
+        ContosoDemoDataModule."Data Level" := Enum::"Contoso Demo Data Level"::" ";
+        ContosoDemoDataModule.Modify();
+
+        // [WHEN] Manufacturing setup runs again through the normal localized generation flow.
+        ContosoDemoTool.CreateDemoData(ContosoDemoDataModule, Enum::"Contoso Demo Data Level"::"Setup Data");
+
+        // [THEN] The mapping is refreshed, including localizations which deliberately use no account.
+        Assert.AreEqual(ExpectedAccountNo, CommonGLAccount.RawMaterials(), 'Manufacturing must refresh the Common account mapping.');
+        ContosoDemoDataModule.FindFirst();
+        ContosoDemoDataModule.TestField("Data Level", Enum::"Contoso Demo Data Level"::"Setup Data");
+        if ExpectedAccountNo <> '' then begin
+            GLAccount.Get(ExpectedAccountNo);
+            Assert.AreEqual(ExistingAccountId, GLAccount.SystemId, 'The existing account must not be replaced.');
+            GLAccount.TestField(Name, 'Keep existing raw materials');
+        end;
     end;
 }
