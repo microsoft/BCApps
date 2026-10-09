@@ -193,29 +193,27 @@ page 1178 "Doc. Attachment List Factbox"
     var
         SelectedDocumentAttachment: Record "Document Attachment";
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-        DeleteConfirmed: Boolean;
     begin
-        // OnDeleteRecord runs once per selected record. The answer given for the first record is remembered
-        // for the other records of the same selection, so the user is asked only once per delete operation.
-        if DeleteFromUnfilteredListDecisions.Get(Rec.SystemId, DeleteConfirmed) then begin
-            DeleteFromUnfilteredListDecisions.Remove(Rec.SystemId);
-            exit(DeleteConfirmed);
-        end;
-        Clear(DeleteFromUnfilteredListDecisions);
+        // OnDeleteRecord runs once per selected record and there is no trigger at the end of the delete operation.
+        // The answer given for the first record is reused for the remaining records of the same selection, so the user
+        // is asked only once. A record that is not pending means a new delete operation, so leftovers are discarded.
+        if PendingUnfilteredDeleteIds.Remove(Rec.SystemId) then
+            exit(UnfilteredDeleteConfirmed);
+        Clear(PendingUnfilteredDeleteIds);
 
         if not GuiAllowed then
             exit(true);
         if not DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(Rec) then
             exit(true);
 
-        DeleteConfirmed := DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList();
+        UnfilteredDeleteConfirmed := DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList();
         CurrPage.SetSelectionFilter(SelectedDocumentAttachment);
         if SelectedDocumentAttachment.FindSet() then
             repeat
                 if SelectedDocumentAttachment.SystemId <> Rec.SystemId then
-                    DeleteFromUnfilteredListDecisions.Set(SelectedDocumentAttachment.SystemId, DeleteConfirmed);
+                    PendingUnfilteredDeleteIds.Add(SelectedDocumentAttachment.SystemId);
             until SelectedDocumentAttachment.Next() = 0;
-        exit(DeleteConfirmed);
+        exit(UnfilteredDeleteConfirmed);
     end;
 
     local procedure LoadAndRunDocumentAttachmentDetail()
@@ -294,7 +292,8 @@ page 1178 "Doc. Attachment List Factbox"
         IsMultiSelect: Boolean;
         IsOfficeAddIn: Boolean;
         EmailHasAttachments: Boolean;
-        DeleteFromUnfilteredListDecisions: Dictionary of [Guid, Boolean];
+        UnfilteredDeleteConfirmed: Boolean;
+        PendingUnfilteredDeleteIds: List of [Guid];
         CannotDownloadOrViewFileWithEmptyNameErr: Label 'The file must have a name.';
 
     [IntegrationEvent(true, false)]
