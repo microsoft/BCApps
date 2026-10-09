@@ -101,7 +101,8 @@ codeunit 1290 "SOAP Web Service Request Mgt."
     begin
         HttpRequestMessage.Method('POST');
         HttpRequestMessage.SetRequestUri(ServiceUrl);
-        if GlobalUseDefaultCredentials then
+        // Explicit Basic credentials take precedence over the service account's default credentials.
+        if GlobalUseDefaultCredentials and (GlobalBasicUsername = '') then
             HttpClient.UseDefaultNetworkWindowsAuthentication();
         if GlobalContentType = '' then
             GlobalContentType := ContentTypeTxt;
