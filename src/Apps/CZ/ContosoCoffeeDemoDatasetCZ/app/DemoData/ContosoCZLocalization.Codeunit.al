@@ -24,7 +24,6 @@ codeunit 31215 "Contoso CZ Localization"
     local procedure GenerateDemoDataCZOnBeforeGeneratingDemoData(Module: Enum "Contoso Demo Data Module"; ContosoDemoDataLevel: Enum "Contoso Demo Data Level")
     begin
         BindSubscriptions(Module, ContosoDemoDataLevel);
-
         case Module of
             Enum::"Contoso Demo Data Module"::Finance:
                 FinanceModuleBefore(ContosoDemoDataLevel);
@@ -111,7 +110,6 @@ codeunit 31215 "Contoso CZ Localization"
         CreateStatRepSetupCZ: Codeunit "Create Stat. Rep. Setup CZ";
     begin
         UnbindSubscription(CreateCZGLAccounts);
-
         case ContosoDemoDataLevel of
             Enum::"Contoso Demo Data Level"::"Setup Data":
                 begin
@@ -137,15 +135,15 @@ codeunit 31215 "Contoso CZ Localization"
                     Codeunit.Run(Codeunit::"Create Financial Report CZ");
                     CreateNoSeriesCZ.DeleteNoSeries();
                     CreateVatPostingGroupsCZ.DeleteVATProductPostingGroups();
-                end;
-            Enum::"Contoso Demo Data Level"::"Master Data":
-                begin
 #if not CLEAN28
 #pragma warning disable AL0432
                     Codeunit.Run(Codeunit::"Create VAT Period CZ");
 #pragma warning restore AL0432
 #endif
                     Codeunit.Run(Codeunit::"Create VAT Return Period CZ");
+                end;
+            Enum::"Contoso Demo Data Level"::"Master Data":
+                begin
                     CreateStatRepSetupCZ.CreateFinanceStatutoryReportingSetup();
                     Codeunit.Run(Codeunit::"Create Currency Ex. Rate CZ");
                     CreateCurrencyExRateCZ.DeleteLocalCurrencyExchangeRate();

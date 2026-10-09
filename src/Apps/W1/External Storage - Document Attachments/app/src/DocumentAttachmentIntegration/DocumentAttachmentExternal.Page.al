@@ -190,35 +190,38 @@ page 8751 "Document Attachment - External"
             action("Delete from External")
             {
                 Enabled = Rec."Stored Internally" and Rec."Stored Externally";
-                Caption = 'Delete from External';
-                ToolTip = 'Delete the selected file(s) from external storage.';
+                Caption = 'Retire External Reference';
+                ToolTip = 'Retire only the local external reference after confirming nonempty internal file content. Remote files are retained and no remote cleanup is scheduled.';
                 Image = Delete;
 
                 trigger OnAction()
                 var
                     DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
-                    SuccessCount: Integer;
-                    FailedCount: Integer;
+                    RetiredCount: Integer;
+                    BlockedCount: Integer;
+                    FailureReason: Text;
+                    FirstFailureReason: Text;
                 begin
-                    if not Confirm(DeleteFilesFromExternalStorageQst) then
+                    if not Confirm(RetireExternalReferencesQst) then
                         exit;
 
                     CurrPage.SetSelectionFilter(DocumentAttachment);
-                    DocumentAttachment.SetRange("Stored Internally", true);
                     DocumentAttachment.SetRange("Stored Externally", true);
-                    SuccessCount := 0;
-                    FailedCount := 0;
                     if DocumentAttachment.FindSet() then
                         repeat
-                            if ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment) then
-                                SuccessCount += 1
-                            else
-                                FailedCount += 1;
+                            if ExternalStorageImpl.RetireExternalReference(DocumentAttachment, FailureReason) then
+                                RetiredCount += 1
+                            else begin
+                                BlockedCount += 1;
+                                if FirstFailureReason = '' then
+                                    FirstFailureReason := FailureReason;
+                            end;
                         until DocumentAttachment.Next() = 0;
 
-                    if SuccessCount + FailedCount > 0 then
-                        Message(FilesDeletedExternalStorageMsg, SuccessCount, FailedCount);
+                    Message(ReferencesRetiredMsg, RetiredCount, BlockedCount, FirstFailureReason);
+                    UpdateExternalStorageStats();
+                    CurrPage.Update(false);
                 end;
             }
             action("Delete from Internal")
@@ -281,10 +284,10 @@ page 8751 "Document Attachment - External"
     }
 
     var
-        DeleteFilesFromExternalStorageQst: Label 'Are you sure you want to delete the selected file(s) from external storage?';
+        RetireExternalReferencesQst: Label 'Retire the selected local external references after confirming internal content? Remote files will not be deleted.';
         DeleteFilesFromIntStorageQst: Label 'Internal cleanup is unavailable. Record blocked requests for the selected files? All internal references and content will remain, and no database storage will be reclaimed.';
         FilesCopiedMsg: Label '%1 file(s) copied successfully to internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
-        FilesDeletedExternalStorageMsg: Label '%1 file(s) deleted successfully from external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        ReferencesRetiredMsg: Label '%1 external reference(s) retired locally; remote files were retained. %2 reference(s) could not be retired. %3', Comment = '%1 = Retired reference count, %2 = Blocked reference count, %3 = First blocked reason';
         FilesBlockedIntStorageMsg: Label '%1 internal cleanup request(s) blocked. %2', Comment = '%1 = Blocked requests, %2 = Reason explaining retained content and no storage reclamation';
         FilesDownloadedMsg: Label '%1 file(s) downloaded successfully. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
         FilesUploadedMsg: Label '%1 file(s) uploaded successfully to external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';

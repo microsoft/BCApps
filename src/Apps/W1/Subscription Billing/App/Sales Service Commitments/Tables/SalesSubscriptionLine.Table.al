@@ -612,12 +612,7 @@ table 8068 "Sales Subscription Line"
     var
         SalesServiceCommitment: Record "Sales Subscription Line";
         SalesTaxCalculate: Codeunit "Sales Tax Calculate";
-        BasePeriodCount: Integer;
-        RhythmPeriodCount: Integer;
     begin
-        BasePeriodCount := 1;
-        RhythmPeriodCount := 1;
-
         if SalesHeader."Currency Code" = '' then
             Currency.InitRoundingPrecision()
         else
@@ -630,7 +625,7 @@ table 8068 "Sales Subscription Line"
         SalesServiceCommitment.SetRange("Invoicing via", SalesServiceCommitment."Invoicing via"::Contract);
         if SalesServiceCommitment.FindSet() then
             repeat
-                CreateTempSalesServiceCommitmentBuffForSalesServiceCommitment(SalesServiceCommitment, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary, BasePeriodCount, RhythmPeriodCount);
+                CreateTempSalesServiceCommitmentBuffForSalesServiceCommitment(SalesServiceCommitment, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
             until SalesServiceCommitment.Next() = 0;
 
         if TempSalesServiceCommitmentBuff.Find('-') then
@@ -693,9 +688,7 @@ table 8068 "Sales Subscription Line"
 
     local procedure CreateTempSalesServiceCommitmentBuffForSalesServiceCommitment(SalesServiceCommitment: Record "Sales Subscription Line";
                                                                  var TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
-                                                                 var UniqueRhythmDictionary: Dictionary of [Code[20], Text];
-                                                                 var BasePeriodCount: Integer;
-                                                                 var RhythmPeriodCount: Integer)
+                                                                 var UniqueRhythmDictionary: Dictionary of [Code[20], Text])
     var
         SalesLineVAT: Record "Sales Line";
         ContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";
@@ -703,6 +696,8 @@ table 8068 "Sales Subscription Line"
         RhythmIdentifier: Code[20];
         ContractRenewalPriceCalculationRatio: Decimal;
         VatPercent: Decimal;
+        BasePeriodCount: Integer;
+        RhythmPeriodCount: Integer;
         DateFormulaType: Enum "Date Formula Type";
         ContractRenewalLbl: Label 'Contract Renewal';
         RhythmTextLbl: Label '%1 %2', Comment = '%1 = Billing Rhythm Period Count,%2 = Billing Rhythm Text';
@@ -713,15 +708,17 @@ table 8068 "Sales Subscription Line"
             exit;
 
         GetSalesLine(SalesServiceCommitment, SalesLineVAT);
-        // Get Rhythm and Base period count
+        // Get Rhythm and Base period count. The Amount is stated per Billing Base Period and has to be converted to the Billing Rhythm.
+        // An empty or complex Billing Base Period or Billing Rhythm leaves the count at 1, so the Amount is then taken as it is.
+        BasePeriodCount := 1;
+        RhythmPeriodCount := 1;
+        DateFormulaType := DateFormulaManagement.FindDateFormulaTypeForComparison(SalesServiceCommitment."Billing Rhythm", RhythmPeriodCount);
+        DateFormulaManagement.FindDateFormulaTypeForComparison(SalesServiceCommitment."Billing Base Period", BasePeriodCount);
         if SalesLineVAT.IsContractRenewal() then begin
             ContractRenewalPriceCalculationRatio := DateFormulaManagement.CalculateRenewalTermRatioByBillingRhythm(SalesServiceCommitment."Agreed Sub. Line Start Date", SalesServiceCommitment."Initial Term", SalesServiceCommitment."Billing Rhythm");
             RhythmIdentifier := ContractRenewalMgt.GetContractRenewalIdentifierLabel();
             RhythmText := ContractRenewalLbl;
         end else begin
-            DateFormulaType := DateFormulaManagement.FindDateFormulaTypeForComparison(SalesServiceCommitment."Billing Rhythm", RhythmPeriodCount);
-            DateFormulaManagement.FindDateFormulaTypeForComparison(SalesServiceCommitment."Billing Base Period", BasePeriodCount);
-
             if (DateFormulaType = DateFormulaType::Quarter) or (DateFormulaType = DateFormulaType::Year) then
                 DateFormulaType := DateFormulaType::Month;
             RhythmIdentifier := Format(RhythmPeriodCount) + Format(DateFormulaType);
@@ -762,7 +759,7 @@ table 8068 "Sales Subscription Line"
             TempSalesServiceCommitmentBuff.Reset();
             TempSalesServiceCommitmentBuff.Quantity += SalesLineVAT."Quantity (Base)";
             if SalesLineVAT.IsContractRenewal() then
-                TempSalesServiceCommitmentBuff."Line Amount" += SalesServiceCommitment.Amount * ContractRenewalPriceCalculationRatio
+                TempSalesServiceCommitmentBuff."Line Amount" += SalesServiceCommitment.Amount / BasePeriodCount * RhythmPeriodCount * ContractRenewalPriceCalculationRatio
             else
                 TempSalesServiceCommitmentBuff."Line Amount" += SalesServiceCommitment.Amount / BasePeriodCount * RhythmPeriodCount;
             TempSalesServiceCommitmentBuff.Modify(false);

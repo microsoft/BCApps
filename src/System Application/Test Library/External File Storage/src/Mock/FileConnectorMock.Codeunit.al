@@ -33,6 +33,7 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector.ResetFileExistsCallCount();
         TestFileStorageConnector.SetFailOnGetFile(false);
         TestFileStorageConnector.ResetReadback();
+        TestFileStorageConnector.SetStoreFileContent(false);
     end;
 
     procedure GetAccounts(var FileAccount: Record "File Account")
@@ -192,5 +193,17 @@ codeunit 135810 "File Connector Mock"
         Connector: Codeunit "Test File Storage Connector";
     begin
         exit(Connector.GetLastReadPath());
+    end;
+
+    /// <summary>
+    /// Enables in-memory file uploads and downloads, and clears previously stored files.
+    /// When enabled, FailOnSend controls whether uploads fail.
+    /// </summary>
+    /// <param name="StoreFileContent">True to retain uploaded file content for subsequent downloads.</param>
+    procedure SetStoreFileContent(StoreFileContent: Boolean)
+    var
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
+    begin
+        TestFileStorageConnector.SetStoreFileContent(StoreFileContent);
     end;
 }

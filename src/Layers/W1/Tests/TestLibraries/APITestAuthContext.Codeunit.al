@@ -30,10 +30,18 @@ codeunit 131023 "API Test Auth Context"
     /// <summary>
     /// Applies the configured authentication to the API test request.
     /// </summary>
-    /// <param name="HttpWebRequestMgt">The request to authenticate.</param>
-    internal procedure Apply(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    /// <param name="HttpRequestMessage">The request to authenticate.</param>
+    internal procedure Apply(var HttpRequestMessage: HttpRequestMessage)
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        RequestHeaders: HttpHeaders;
     begin
-        if BasicAuthenticationConfigured then
-            HttpWebRequestMgt.AddBasicAuthentication(BasicUserName, BasicPassword);
+        if not BasicAuthenticationConfigured then
+            exit;
+
+        HttpRequestMessage.GetHeaders(RequestHeaders);
+        if RequestHeaders.Contains('Authorization') or RequestHeaders.ContainsSecret('Authorization') then
+            RequestHeaders.Remove('Authorization');
+        RequestHeaders.Add('Authorization', SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', BasicUserName, BasicPassword))));
     end;
 }

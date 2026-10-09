@@ -48,7 +48,9 @@ codeunit 8759 "DA Internal Cleanup Mgt."
         Telemetry: Codeunit "DA Feature Telemetry";
         Reason: Text;
     begin
-        if DocumentAttachment.IsTemporary() or IsNullGuid(DocumentAttachment.SystemId) then
+        if DocumentAttachment.IsTemporary() or IsNullGuid(DocumentAttachment.SystemId) or
+           (DocumentAttachment.CurrentCompany() <> CompanyName())
+        then
             exit(false);
         if Origin = Origin::Copy then
             exit(false);
@@ -96,7 +98,7 @@ codeunit 8759 "DA Internal Cleanup Mgt."
     begin
         Entry.Status := Entry.Status::Blocked;
         Entry.Outcome := 'InternalReleaseUnsupported';
-        Entry."Last Error" := GetInternalReleaseBlockedReason();
+        Entry."Last Error" := CopyStr(GetInternalReleaseBlockedReason(), 1, MaxStrLen(Entry."Last Error"));
         Clear(Entry."Lease Token");
         Clear(Entry."Lease Expires At");
         Clear(Entry."Next Attempt At");
@@ -111,19 +113,30 @@ codeunit 8759 "DA Internal Cleanup Mgt."
 
     procedure CancelCleanup(AttachmentSystemId: Guid)
     begin
-        CancelEntry(AttachmentSystemId, false);
+        CancelCleanup(AttachmentSystemId, CompanyName());
+    end;
+
+    procedure CancelCleanup(AttachmentSystemId: Guid; AttachmentCompany: Text)
+    begin
+        CancelEntry(AttachmentSystemId, false, AttachmentCompany);
     end;
 
     procedure InvalidateProvenance(AttachmentSystemId: Guid)
     begin
-        CancelEntry(AttachmentSystemId, true);
+        InvalidateProvenance(AttachmentSystemId, CompanyName());
     end;
 
-    local procedure CancelEntry(AttachmentSystemId: Guid; InvalidateUpload: Boolean)
+    procedure InvalidateProvenance(AttachmentSystemId: Guid; AttachmentCompany: Text)
+    begin
+        CancelEntry(AttachmentSystemId, true, AttachmentCompany);
+    end;
+
+    local procedure CancelEntry(AttachmentSystemId: Guid; InvalidateUpload: Boolean; AttachmentCompany: Text)
     var
         Entry: Record "DA Internal Cleanup Entry";
         Telemetry: Codeunit "DA Feature Telemetry";
     begin
+        Entry.ChangeCompany(AttachmentCompany);
         Entry.ReadIsolation(IsolationLevel::UpdLock);
         if not Entry.Get(AttachmentSystemId) then
             exit;
