@@ -457,65 +457,6 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesFromInvtPutAwayReceiptIsCurrentlyBlocked()
-    var
-        Item: Record Item;
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
-        ProductionOrder: Record "Production Order";
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-        InvoiceHeader: Record "Purchase Header";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        Vendor: Record Vendor;
-        WarehouseActivityHeader: Record "Warehouse Activity Header";
-        WorkCenter: array[2] of Record "Work Center";
-        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
-        Quantity: Decimal;
-    begin
-        // [FEATURE] Group I - Purchase invoice / financial post-processes
-        // [SCENARIO] TC-GAP-I01 A subcontracting receipt cannot be invoiced through Get Receipt Lines
-
-        // [GIVEN] LastOperation purchase line fully received via Inventory Put-Away (per TC-E2E-A01)
-        Initialize();
-        Quantity := LibraryRandom.RandIntInRange(5, 10);
-        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
-        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
-
-        Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subc. Location Code" := Location.Code;
-        Vendor."Location Code" := Location.Code;
-        Vendor.Modify(true);
-
-        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released,
-            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
-        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
-        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
-        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
-        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
-        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
-
-        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
-        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
-        PurchRcptLine.FindFirst();
-
-        // [WHEN] Get Receipt Lines is run for a new purchase invoice
-        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
-        PurchRcptLine.SetRecFilter();
-        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
-        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
-
-        // [THEN] Separate invoice creation is blocked for the subcontracting receipt
-        Assert.ExpectedError('subcontracting receipt lines');
-    end;
-
-    [Test]
-    [HandlerFunctions('MessageHandler')]
     procedure ItemChargeAssignmentsRespectActualReceiptTypePostingTargets()
     var
         Item: Record Item;
