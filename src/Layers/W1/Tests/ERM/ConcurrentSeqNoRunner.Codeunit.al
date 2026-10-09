@@ -2,6 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.Test;
+
+using Microsoft.Finance.GeneralLedger.Ledger;
 
 codeunit 134085 "Concurrent Seq. No. Runner"
 {
@@ -26,7 +29,6 @@ codeunit 134085 "Concurrent Seq. No. Runner"
             Sleep(100);
         if ConcurrentSeqTestBuffer.Count() < 2 then
             Error('The concurrent sequence allocation barrier timed out.');
-
         for AllocationIndex := 1 to Rec.GetNoOfAllocationsPerSession() do begin
             ConcurrentSeqTestBuffer.Init();
             ConcurrentSeqTestBuffer."Run ID" := Rec."Run ID";

@@ -2,6 +2,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.HumanResources.Payables;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 
 codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 {
@@ -44,7 +58,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] "Use Concurrent Posting" is enabled
         EnableConcurrentPosting(true);
-
         if GLEntry.FindLast() then
             LastGLEntryNo := GLEntry."Entry No.";
         if GLRegister.FindLast() then
@@ -84,7 +97,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] "Use Concurrent Posting" is disabled (legacy)
         EnableConcurrentPosting(false);
-
         if GLEntry.FindLast() then
             LastGLEntryNo := GLEntry."Entry No.";
         if GLRegister.FindLast() then
@@ -124,7 +136,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] "Use Concurrent Posting" is enabled
         EnableConcurrentPosting(true);
-
         if GLEntry.FindLast() then
             LastGLEntryNo := GLEntry."Entry No.";
         if DetailedCustLedgEntry.FindLast() then
@@ -170,7 +181,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] "Use Concurrent Posting" is enabled
         EnableConcurrentPosting(true);
-
         if GLEntry.FindLast() then
             LastGLEntryNo := GLEntry."Entry No.";
         if DetailedVendorLedgEntry.FindLast() then
@@ -387,7 +397,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] "Use Concurrent Posting" is enabled
         EnableConcurrentPosting(true);
-
         if GLEntry.FindLast() then
             LastGLEntryNo := GLEntry."Entry No.";
         if VATEntry.FindLast() then
@@ -450,7 +459,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] "Use Concurrent Posting" is enabled
         EnableConcurrentPosting(true);
-
         if GLEntry.FindLast() then
             LastGLEntryNo := GLEntry."Entry No.";
         if GLRegister.FindLast() then
@@ -491,7 +499,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
-
         if IsInitialized then
             exit;
 

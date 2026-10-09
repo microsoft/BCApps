@@ -2,6 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.Test;
+
+using Microsoft.HumanResources.Employee;
+using Microsoft.HumanResources.Payables;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 
 codeunit 134081 "ERM Concurrent Apply Unapply"
 {
@@ -385,7 +397,6 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         // [SCENARIO] Unapplying a customer payment with concurrent posting creates new Detailed Cust. Ledg. entries
         // (the unapplication records) beyond the last entry number that existed before the unapply.
         Initialize();
-
         if DetailedCustLedgEntry.FindLast() then
             LastDtldEntryNo := DetailedCustLedgEntry."Entry No.";
 
@@ -400,7 +411,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
 
         // [THEN] New Detailed Cust. Ledg. entries were created for the unapplication
         DetailedCustLedgEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);
-        Assert.IsTrue(DetailedCustLedgEntry.FindFirst(), 'New Detailed Cust. Ledg. entries must be created by the unapplication');
+        Assert.IsTrue(not DetailedCustLedgEntry.IsEmpty(), 'New Detailed Cust. Ledg. entries must be created by the unapplication');
     end;
 
     [Test]
@@ -418,7 +429,6 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         // [FEATURE] [Vendor] [Concurrent Posting]
         // [SCENARIO] Unapplying a vendor payment with concurrent posting creates new Detailed Vendor Ledg. entries.
         Initialize();
-
         if DetailedVendorLedgEntry.FindLast() then
             LastDtldEntryNo := DetailedVendorLedgEntry."Entry No.";
 
@@ -440,7 +450,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
 
         // [THEN] New Detailed Vendor Ledg. entries were created for the unapplication
         DetailedVendorLedgEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);
-        Assert.IsTrue(DetailedVendorLedgEntry.FindFirst(), 'New Detailed Vendor Ledg. entries must be created by the unapplication');
+        Assert.IsTrue(not DetailedVendorLedgEntry.IsEmpty(), 'New Detailed Vendor Ledg. entries must be created by the unapplication');
     end;
 
     [Test]
@@ -459,7 +469,6 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         // [SCENARIO] Unapplying an employee payment with concurrent posting creates new Detailed Employee Ledger entries.
         Initialize();
         LibraryLowerPermissions.SetOutsideO365Scope();
-
         if DetailedEmployeeLedgerEntry.FindLast() then
             LastDtldEntryNo := DetailedEmployeeLedgerEntry."Entry No.";
 
@@ -481,7 +490,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
 
         // [THEN] New Detailed Employee Ledger entries were created for the unapplication
         DetailedEmployeeLedgerEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);
-        Assert.IsTrue(DetailedEmployeeLedgerEntry.FindFirst(), 'New Detailed Employee Ledger entries must be created by the unapplication');
+        Assert.IsTrue(not DetailedEmployeeLedgerEntry.IsEmpty(), 'New Detailed Employee Ledger entries must be created by the unapplication');
     end;
 
     // -------------------------------------------------------------------------
@@ -655,7 +664,6 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         EmployeePostingGroup.DeleteAll();
         Employee.DeleteAll();
         CreateEmployeePostingGroup(LibraryERM.CreateGLAccountNoWithDirectPosting());
-
         if IsInitialized then begin
             EnableConcurrentPosting(true);
             exit;
