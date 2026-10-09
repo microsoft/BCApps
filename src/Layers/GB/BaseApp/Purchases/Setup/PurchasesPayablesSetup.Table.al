@@ -347,13 +347,7 @@ table 312 "Purchases & Payables Setup"
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on purchase lines.';
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
-<<<<<<< HEAD
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-=======
             ObsoleteTag = '30.0';
->>>>>>> 51f102ecbe8ce53fdcd472abd390056ee459600d
         }
 #endif        
         field(58; "Copy Vendor Name to Entries"; Boolean)
@@ -567,11 +561,13 @@ table 312 "Purchases & Payables Setup"
             ObsoleteTag = '30.0';
         }
 #endif
+#pragma warning disable AS0005
         field(11320; "Check Doc. Total Amounts"; Boolean)
         {
             Caption = 'Check Doc. Total Amounts';
             ToolTip = 'Specifies if you want the Doc. Amount Incl. VAT field in Purchase Invoice and Purchase Credit Memo to be compared to the sum of the VAT amounts fields in the purchase lines. If the amounts are not the same, you will be notified when posting the document. The totals will always be checked for invoices received from e-documents.';
         }
+#pragma warning restore AS0005
     }
 
     keys
