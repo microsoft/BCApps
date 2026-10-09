@@ -185,6 +185,7 @@ jobs:
     needs: [ Initialization ]
     if: (!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0
     strategy:
+      max-parallel: ${{ github.ref_name == 'features/646383-api-webkey-default-single-pr' && 6 || 256 }}
       matrix:
         include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[0].buildDimensions }}
       fail-fast: false
@@ -210,6 +211,7 @@ jobs:
     needs: [ Initialization, Build1 ]
     if: (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
     strategy:
+      max-parallel: ${{ github.ref_name == 'features/646383-api-webkey-default-single-pr' && 6 || 256 }}
       matrix:
         include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[1].buildDimensions }}
       fail-fast: false

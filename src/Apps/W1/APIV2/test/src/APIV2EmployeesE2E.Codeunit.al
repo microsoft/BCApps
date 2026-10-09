@@ -25,6 +25,8 @@ codeunit 139822 "APIV2 - Employees E2E"
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         LibraryApplicationArea.EnableBasicHRSetup();
 
         // Lazy Setup.
@@ -205,7 +207,6 @@ codeunit 139822 "APIV2 - Employees E2E"
         EmployeeJSON := LibraryGraphMgt.AddPropertytoJSON(EmployeeJSON, 'iban', Employee."IBAN");
     end;
 }
-
 
 
 

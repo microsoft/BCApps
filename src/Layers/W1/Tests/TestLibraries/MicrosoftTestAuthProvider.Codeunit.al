@@ -5,92 +5,80 @@
 
 namespace Microsoft.TestLibraries.ERP;
 
-using System;
-using System.Azure.KeyVault;
 using System.Environment;
 using System.Security.AccessControl;
-using System.Test.Library;
 
 /// <summary>
-/// Provides authentication for API tests running in Microsoft test environments.
+/// Provides API test authentication using the current user's web service key.
 /// </summary>
 codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provider"
 {
     Access = Internal;
 
     var
-        ApiTestPasswordFileTok: Label 'C:\Run\my\ApiTestPassword', Locked = true;
-        NavServerUserPasswordKeyTok: Label 'NavServerUserPassword', Locked = true;
-        CachedAuthenticationPassword: SecretText;
-        ContainerPasswordReadErr: Label 'The API test password could not be read from %1.', Comment = '%1 - Password file path';
-        KeyVaultPasswordReadErr: Label 'The API test password could not be retrieved from the %1 secret.', Comment = '%1 - Azure Key Vault secret name';
-        PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.';
+        KeyRetrievalFailedErr: Label 'The API test web service key could not be retrieved. Check the current user permissions.';
+        EmptyKeyErr: Label 'An empty API test web service key was returned.';
 
     /// <summary>
-    /// Configures authentication for API test requests, preserving ambient authentication on Windows and SaaS.
+    /// Uses the current user's web service key only with NavUserPassword authentication on-premises.
+    /// Preserves ambient authentication for Windows, SaaS, and other authentication modes.
+    /// Valid keys are reused; missing or expired keys are created with a 24-hour expiry.
     /// </summary>
     /// <param name="Authentication">The authentication context to configure.</param>
     procedure ConfigureAuthentication(var Authentication: Codeunit "API Test Auth Context")
     var
         EnvironmentInfo: Codeunit "Environment Information";
-        SecurityGroup: Codeunit "Security Group";
+        IdentityManagement: Codeunit "Identity Management";
     begin
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit;
-        if SecurityGroup.IsWindowsAuthentication() then
+        if not IdentityManagement.IsUserNamePasswordAuthentication() then
             exit;
 
-        Authentication.SetBasicAuthentication(UserId(), GetAuthenticationPassword());
+        Authentication.SetBasicAuthentication(UserId(), GetWebServiceKey());
     end;
 
-    local procedure GetAuthenticationPassword(): SecretText
-    var
-        Password: SecretText;
-    begin
-        if not CachedAuthenticationPassword.IsEmpty() then
-            exit(CachedAuthenticationPassword);
-
-        if ContainerPasswordFileExists() then begin
-            if not TryGetContainerPassword(Password) then
-                Error(ContainerPasswordReadErr, ApiTestPasswordFileTok);
-        end else
-            if not TryGetNavEnlistmentPassword(Password) then
-                Error(KeyVaultPasswordReadErr, NavServerUserPasswordKeyTok);
-
-        CachedAuthenticationPassword := Password;
-        exit(CachedAuthenticationPassword);
-    end;
-
-    [Scope('OnPrem')]
-    local procedure ContainerPasswordFileExists(): Boolean
-    var
-        File: DotNet File;
-    begin
-        exit(File.Exists(ApiTestPasswordFileTok));
-    end;
-
-    [TryFunction]
     [NonDebuggable]
-    local procedure TryGetContainerPassword(var Password: SecretText)
+    local procedure GetWebServiceKey(): SecretText
     var
-        MockAzureKeyvaultSecretProvider: DotNet MockAzureKeyVaultSecretProvider;
+        IdentityManagement: Codeunit "Identity Management";
+        WebServiceKey: SecretText;
+        ExpiryDate: DateTime;
     begin
-        // Read through a private provider without replacing the session's Azure Key Vault provider or cache.
-        MockAzureKeyvaultSecretProvider := MockAzureKeyvaultSecretProvider.MockAzureKeyVaultSecretProvider();
-        MockAzureKeyvaultSecretProvider.AddSecretMappingFromFile(NavServerUserPasswordKeyTok, ApiTestPasswordFileTok);
-        Password := MockAzureKeyvaultSecretProvider.GetSecret(NavServerUserPasswordKeyTok);
-        if Password.IsEmpty() then
-            Error(PasswordRetrievalFailedErr);
+        WebServiceKey := ReadWebServiceKey(ExpiryDate);
+        if WebServiceKey.IsEmpty() or ((ExpiryDate <> 0DT) and (ExpiryDate <= CurrentDateTime())) then begin
+            ExpiryDate := CurrentDateTime() + 24 * 60 * 60 * 1000;
+            WebServiceKey := IdentityManagement.CreateWebServicesKey(UserSecurityId(), ExpiryDate);
+        end;
+        if WebServiceKey.IsEmpty() then
+            Error(EmptyKeyErr);
+        exit(WebServiceKey);
     end;
 
-    [TryFunction]
-    local procedure TryGetNavEnlistmentPassword(var Password: SecretText)
+    [NonDebuggable]
+    local procedure ReadWebServiceKey(var ExpiryDate: DateTime): SecretText
     var
-        AzureKeyVault: Codeunit "Azure Key Vault";
+        IdentityManagement: Codeunit "Identity Management";
+        WebServiceKey: Text[80];
+        SecretWebServiceKey: SecretText;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(NavServerUserPasswordKeyTok, Password) then
-            Error(PasswordRetrievalFailedErr);
-        if Password.IsEmpty() then
-            Error(PasswordRetrievalFailedErr);
+        // Identity Management substitutes error text on failure. Check fresh error state, not key format.
+        ClearLastError();
+        WebServiceKey := IdentityManagement.GetWebServicesKey(UserSecurityId());
+        if GetLastErrorText() <> '' then begin
+            Clear(WebServiceKey);
+            Error(KeyRetrievalFailedErr);
+        end;
+        SecretWebServiceKey := WebServiceKey;
+        Clear(WebServiceKey);
+
+        // The expiry getter also substitutes a value on failure.
+        ClearLastError();
+        ExpiryDate := IdentityManagement.GetWebServiceExpiryDate(UserSecurityId());
+        if GetLastErrorText() <> '' then begin
+            Clear(SecretWebServiceKey);
+            Error(KeyRetrievalFailedErr);
+        end;
+        exit(SecretWebServiceKey);
     end;
 }

@@ -21,6 +21,8 @@ codeunit 139919 "APIV2 PstdApprovalEntries E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Check that posted approval entries can be retrieved via API
 
         // [GIVEN] a Sales order exists
@@ -60,4 +62,8 @@ codeunit 139919 "APIV2 PstdApprovalEntries E2E"
         PostedApprovalEntry.Insert();
     end;
 
+
+    local procedure Initialize()
+    begin
+    end;
 }

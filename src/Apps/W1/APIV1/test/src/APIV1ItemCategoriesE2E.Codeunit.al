@@ -155,6 +155,7 @@ codeunit 139707 "APIV1 - Item Categories E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

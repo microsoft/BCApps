@@ -26,6 +26,8 @@ codeunit 139806 "APIV2 - Company Info. E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

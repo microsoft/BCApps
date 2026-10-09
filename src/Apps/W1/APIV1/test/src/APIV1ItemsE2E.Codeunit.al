@@ -33,6 +33,7 @@ codeunit 139700 "APIV1 - Items E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

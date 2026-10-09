@@ -62,6 +62,8 @@ codeunit 139816 "APIV2 - Income Statement E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 
@@ -80,7 +82,6 @@ codeunit 139816 "APIV2 - Income Statement E2E"
         IncomeStatementJSON := LibraryGraphMgt.AddPropertytoJSON(IncomeStatementJSON, 'display', AccScheduleLineEntity.Description);
     end;
 }
-
 
 
 

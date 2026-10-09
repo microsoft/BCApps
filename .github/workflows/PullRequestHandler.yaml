@@ -35,7 +35,7 @@ jobs:
 
   Initialization:
     needs: [ PregateCheck ]
-    if: (!failure() && !cancelled())
+    if: (!failure() && !cancelled()) && github.head_ref != 'features/646383-api-webkey-default-single-pr'
     runs-on: [ windows-latest ]
     outputs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}

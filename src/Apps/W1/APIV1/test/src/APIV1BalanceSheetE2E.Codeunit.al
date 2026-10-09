@@ -62,6 +62,7 @@ codeunit 139715 "APIV1 - Balance Sheet E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 
