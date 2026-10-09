@@ -5,10 +5,14 @@
 
 #pragma warning disable AA0247
 
+using System.Environment;
+using System.Security.AccessControl;
+
 codeunit 139494 "API Test Auth Provider Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -23,6 +27,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryUtility: Codeunit "Library - Utility";
         WebServiceManagement: Codeunit "Web Service Management";
+        IdentityManagement: Codeunit "Identity Management";
         SecondLibraryGraphMgt: Codeunit "Library - Graph Mgt";
         FirstHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
@@ -31,14 +36,138 @@ codeunit 139494 "API Test Auth Provider Tests"
         ProviderCallTok: Label 'Provider|%1', Locked = true, Comment = '%1 - Provider invocation number';
         EventCallTok: Label 'Event', Locked = true;
         UnexpectedCallErr: Label 'Unexpected authentication call.';
+        ForcedRollbackErr: Label 'Roll back the API authentication fixture.';
 
     [Test]
-    procedure DefaultAuthenticationDoesNotConfigureRequest()
+    [NonDebuggable]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure MissingKeyIsCommittedBeforeHttpRequest()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
     begin
-        // [SCENARIO] The default API test authentication does not configure the request
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] First-use authentication creates a key visible to the independent HTTP session
         Initialize();
 
-        // [GIVEN] A Graph library instance without an explicitly selected provider
+        // [GIVEN] The disposable test user's key is missing at a committed fixture boundary
+        IdentityManagement.ClearWebServicesKey(UserSecurityId());
+        Commit();
+        TargetURL := GetUrl(ClientType::ODataV4);
+
+        // [WHEN] A request uses the default provider without explicit selection
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] The request authenticates and only NavUserPassword requires a generated key
+        VerifyKeyPresenceForServerMode();
+        VerifyNextCall(EventCallTok);
+        VerifyNoRemainingCalls();
+    end;
+
+    [Test]
+    [NonDebuggable]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ExistingKeySurvivesLibraryReset()
+    var
+        ExistingKey: Text[80];
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A committed non-expiring key is reused across Graph library instances
+        Initialize();
+
+        // [GIVEN] The disposable test user has a committed key without an expiry
+        ExistingKey := IdentityManagement.CreateWebServicesKeyNoExpiry(UserSecurityId());
+        Commit();
+        TargetURL := GetUrl(ClientType::ODataV4);
+
+        // [WHEN] Two independently initialized library instances authenticate
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Clear(LibraryGraphMgt);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] Neither the key nor its expiry is changed
+        VerifyExistingKey(ExistingKey);
+        Clear(ExistingKey);
+        VerifyNextCall(EventCallTok);
+        VerifyNextCall(EventCallTok);
+        VerifyNoRemainingCalls();
+    end;
+
+    [Test]
+    [NonDebuggable]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure MissingKeyDoesNotCommitFixture()
+    var
+        CurrentUser: Record User;
+        OriginalFullName: Text[80];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Missing-key authentication cannot commit unrelated changes to user U
+        Initialize();
+
+        // [GIVEN] User U has no key and an uncommitted fixture change
+        IdentityManagement.ClearWebServicesKey(UserSecurityId());
+        Commit();
+        CurrentUser.Get(UserSecurityId());
+        OriginalFullName := CurrentUser."Full Name";
+        CurrentUser."Full Name" := 'API authentication rollback fixture';
+        CurrentUser.Modify();
+
+        // [WHEN] Authentication rejects unsafe first use, or ambient authentication reaches the forced rollback
+        asserterror InitializeRequestAndFail();
+
+        // [THEN] The expected error leaves neither a committed fixture nor a newly created key
+        Assert.ExpectedError(GetExpectedFixtureError());
+        Assert.ExpectedErrorCode('Dialog');
+        CurrentUser.Get(UserSecurityId());
+        Assert.IsTrue(CurrentUser."Full Name" = OriginalFullName, 'Authentication must not commit the user fixture.');
+        Assert.IsTrue(GetCurrentWebServiceKey() = '', 'Unsafe first use must not create a key.');
+        VerifyFixtureRequestCalls();
+        VerifyNoRemainingCalls();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::None)]
+    procedure DefaultAuthenticationRespectsServerAuthMode()
+    var
+        EnvironmentInfo: Codeunit "Environment Information";
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Default authentication uses the current user's committed key or ambient Windows credentials
+        Initialize();
+
+        // [GIVEN] An OnPrem service and a read-only test method with no fixture transaction to commit
+        Assert.IsFalse(EnvironmentInfo.IsSaaSInfrastructure(), 'This HTTP scenario requires an OnPrem test environment.');
+        TargetURL := GetUrl(ClientType::ODataV4);
+
+        // [WHEN] The default provider sends a request without explicit provider selection
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] Authentication completes before the independent HTTP session reads the key
+        VerifyNextCall(EventCallTok);
+
+        // [WHEN] A fresh library instance sends another request
+        Clear(LibraryGraphMgt);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] Authentication does not depend on an instance-local credential cache
+        VerifyNextCall(EventCallTok);
+        VerifyNoRemainingCalls();
+    end;
+
+    [Test]
+    procedure ExplicitNoneDoesNotConfigureRequest()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Explicit None retains ambient authentication without resolving the default provider
+        Initialize();
+
+        // [GIVEN] A Graph library instance with authentication explicitly disabled
+        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::None);
 
         // [WHEN] A web request is initialized
         LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
@@ -95,8 +224,9 @@ codeunit 139494 "API Test Auth Provider Tests"
         // [SCENARIO] Authentication provider selection is scoped to a Graph library instance
         Initialize();
 
-        // [GIVEN] Two Graph library instances where only the first uses the mock provider
+        // [GIVEN] Two Graph library instances with different explicit providers
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
+        SecondLibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::None);
 
         // [WHEN] Each Graph library instance initializes a web request
         LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
@@ -273,6 +403,51 @@ codeunit 139494 "API Test Auth Provider Tests"
         WebServiceManagement.CreateTenantWebService(
             TenantWebService."Object Type"::Page, Page::"Customer List", LibraryUtility.GenerateGUID(), true);
         exit(LibraryGraphMgt.CreateTargetURL('', Page::"Customer List", ''));
+    end;
+
+    [NonDebuggable]
+    local procedure GetCurrentWebServiceKey(): Text[80]
+    var
+        WebServiceKey: Text[80];
+    begin
+        ClearLastError();
+        WebServiceKey := IdentityManagement.GetWebServicesKey(UserSecurityId());
+        Assert.IsTrue(GetLastErrorText() = '', 'The current user key must be readable.');
+        exit(WebServiceKey);
+    end;
+
+    [NonDebuggable]
+    local procedure VerifyKeyPresenceForServerMode()
+    begin
+        Assert.AreEqual(
+            IdentityManagement.IsUserNamePasswordAuthentication(), GetCurrentWebServiceKey() <> '',
+            'Only NavUserPassword authentication should provision a key for the request.');
+    end;
+
+    [NonDebuggable]
+    local procedure VerifyExistingKey(ExistingKey: Text[80])
+    begin
+        Assert.IsTrue(ExistingKey = GetCurrentWebServiceKey(), 'Authentication must not rotate an existing key.');
+        Assert.AreEqual(0DT, IdentityManagement.GetWebServiceExpiryDate(UserSecurityId()), 'A non-expiring key must stay non-expiring.');
+    end;
+
+    local procedure InitializeRequestAndFail()
+    begin
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
+        Error(ForcedRollbackErr);
+    end;
+
+    local procedure GetExpectedFixtureError(): Text
+    begin
+        if IdentityManagement.IsUserNamePasswordAuthentication() then
+            exit('The API test web service key is missing and cannot be created while the caller has uncommitted writes.');
+        exit(ForcedRollbackErr);
+    end;
+
+    local procedure VerifyFixtureRequestCalls()
+    begin
+        if not IdentityManagement.IsUserNamePasswordAuthentication() then
+            VerifyNextCall(EventCallTok);
     end;
 
     local procedure VerifyNextCall(ExpectedCall: Text)

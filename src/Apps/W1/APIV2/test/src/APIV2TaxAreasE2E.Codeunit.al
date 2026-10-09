@@ -24,6 +24,8 @@ codeunit 139826 "APIV2 - Tax Areas E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 
@@ -269,7 +271,6 @@ codeunit 139826 "APIV2 - Tax Areas E2E"
         exit(LowerCase(LibraryGraphMgt.StripBrackets(Value)));
     end;
 }
-
 
 
 

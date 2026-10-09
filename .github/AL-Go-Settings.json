@@ -23,6 +23,29 @@
   },
   "conditionalSettings": [
     {
+      "branches": [
+        "features/646383-api-webkey-default-single-pr"
+      ],
+      "triggers": [
+        "workflow_dispatch"
+      ],
+      "settings": {
+        "projects": [
+          "build/projects/Apps W1",
+          "build/projects/Apps DE",
+          "build/projects/Apps CA",
+          "build/projects/Apps US",
+          "build/projects/Apps IT",
+          "build/projects/Test Apps W1",
+          "build/projects/Test Apps DE",
+          "build/projects/Test Apps CA",
+          "build/projects/Test Apps US",
+          "build/projects/Test Apps IT"
+        ],
+        "maxTestAppReruns": 0
+      }
+    },
+    {
       "buildModes": [
         "Clean"
       ],

@@ -3,6 +3,7 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -30,6 +31,8 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 
@@ -1291,8 +1294,6 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
-
 
 
 

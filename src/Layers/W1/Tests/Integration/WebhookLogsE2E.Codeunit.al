@@ -153,4 +153,3 @@ codeunit 135547 "Webhook Logs E2E"
         ActivityLog.DeleteAll();
     end;
 }
-

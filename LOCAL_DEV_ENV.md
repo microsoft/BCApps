@@ -41,6 +41,58 @@ Running the above will
 * Set up launch.jsons and settings.jsons in your VSCode
 * Compile and publish all AL apps that match `.\src\System Application\`
 
+## API test authentication
+
+`Library - Graph Mgt` uses the Microsoft test authentication provider by default.
+API tests do not need a `SetAuthenticationProvider` call, a password file, or a
+Key Vault password lookup. Container and test-session credentials are still
+required to provision and connect to the NST; they are not handed to API requests.
+
+On-premises **NavUserPassword** requests use the current user's web service key.
+The standard AL test runner prepares a missing key in `OnBeforeTestRun`, whose
+transaction finishes before the test method starts. This also supports read-only
+API tests using `AutoCommit` or `AutoRollback`, which start a write transaction
+even without fixture writes. Preparation applies to the current test user when
+`Tests-TestLibraries` is installed, including non-API tests; it does not select
+credentials for individual requests or rotate an existing key. No key is
+provisioned by the pipeline or extension installation.
+
+An existing valid key is read on each request without a credential cache. If no
+key exists, a read-only caller raises an internal isolated event. Its subscriber
+locks and rechecks the current user, then creates a key with a 24-hour expiry.
+The platform commits this separate key transaction before returning; the provider
+then rereads the key rather than trusting an event output that could survive a
+rollback. The lock and recheck prevent competing test sessions for the same
+tenant/user from replacing each other's newly created key.
+
+If the key is missing and the caller has uncommitted writes, authentication fails
+explicitly **without committing fixture data**. Initialize authentication before
+fixture writes or use the test's existing committed fixture boundary; do not add
+a request-side commit to hide an incomplete fixture. Existing valid keys remain
+read-only even when the caller has writes. Expired keys fail explicitly rather
+than silently rotating credentials used by other clients.
+
+Isolated events have different semantics during extension install/upgrade; API
+test requests belong in normal test execution, not installation/upgrade triggers.
+First-use visibility to the separate HTTP session, rollback, and concurrent first
+use still require target-server validation; source-contract tests alone do not
+establish those runtime results.
+
+Windows, SaaS, and other authentication modes retain ambient authentication.
+Custom enum providers and `SetAuthenticationProvider` remain supported. Explicit
+`Enum::"API Test Authentication"::None` still opts out, including on the first
+request. The final `OnAfterInitializeWebRequestWithURL` event still runs after the
+provider. Event-only custom authentication that must avoid default key acquisition
+should explicitly select `None` before creating the request.
+This request-level opt-out does not undo the standard runner's test-user key
+preparation. Custom runners can prepare the key before starting test transactions,
+or use the read-only first-request path.
+
+API fixture initializers reapply the existing test-license-compatible work date
+(November 15 of the current year) before creating date-sensitive data, including
+after an initialization guard has previously been set. This controls fixture
+dates, not license enforcement or the authentication key's real-time expiry.
+
 ## GDL development (layers and views)
 
 Anything that ships in multiple localizations (the **Base Application** and the application layers) lives under `src/Layers`, organized by country/region. Each country's app is composed by overlapping multiple **layers** in order: a `W1` ("worldwide") base, optional regional layers, and the country layer. For example, the `US` app is composed of `W1` + `NA` + `US`, where each layer either introduces new objects or replaces objects from a base layer.

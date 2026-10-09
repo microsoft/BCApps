@@ -1,249 +1,117 @@
-Describe 'API test credential materialization' {
+Describe 'API test authentication source contracts' {
     BeforeAll {
-        Import-Module (Join-Path $PSScriptRoot '..\ApiTestCredential.psm1') -Force
-        $script:previousGitHubEnv = $env:GITHUB_ENV
-        $script:previousPasswordPath = $env:BCAppsApiTestPasswordPath
-        $script:previousPasswordContainer = $env:BCAppsApiTestPasswordContainer
-        $script:previousExitCode = Get-Variable LASTEXITCODE -Scope Global -ValueOnly -ErrorAction SilentlyContinue
-        $script:createdMountStub = -not (Get-Command Get-BcContainerSharedFolders -ListImported -ErrorAction SilentlyContinue)
-        if ($script:createdMountStub) {
-            function global:Get-BcContainerSharedFolders {
-                param([string]$containerName)
-                $null = $containerName
-                throw 'Container mount lookup must be mocked.'
-            }
-        }
-        $script:createdDockerStub = -not (Get-Command docker -ErrorAction SilentlyContinue)
-        if ($script:createdDockerStub) {
-            function global:docker {
-                param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
-                $null = $Arguments
-                throw 'Docker must be mocked.'
-            }
-        }
-        $script:fixturePassword = [System.Security.SecureString]::new()
-        foreach ($character in 'synthetic-fixture-only'.ToCharArray()) {
-            $script:fixturePassword.AppendChar($character)
-        }
-        $script:fixturePassword.MakeReadOnly()
-        $script:credential = [PSCredential]::new('unit-test', $script:fixturePassword)
-        $script:mount = Join-Path $PSScriptRoot 'unused-mount'
+        $script:root = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+        $libraryRoot = Join-Path $script:root 'src\Layers\W1\Tests\TestLibraries'
+        $script:provider = Get-Content (Join-Path $libraryRoot 'MicrosoftTestAuthProvider.Codeunit.al') -Raw
+        $script:graph = Get-Content (Join-Path $libraryRoot 'LibraryGraphMgt.Codeunit.al') -Raw
+        $script:authentication = Get-Content (Join-Path $libraryRoot 'APITestAuthentication.Enum.al') -Raw
+        $script:context = Get-Content (Join-Path $libraryRoot 'APITestAuthContext.Codeunit.al') -Raw
+        $script:container = Get-Content (Join-Path $script:root 'build\scripts\NewBcContainer.ps1') -Raw
     }
 
-    AfterAll {
-        $script:fixturePassword.Dispose()
-        $env:GITHUB_ENV = $script:previousGitHubEnv
-        $env:BCAppsApiTestPasswordPath = $script:previousPasswordPath
-        $env:BCAppsApiTestPasswordContainer = $script:previousPasswordContainer
-        $global:LASTEXITCODE = $script:previousExitCode
-        if ($script:createdMountStub) { Remove-Item function:global:Get-BcContainerSharedFolders }
-        if ($script:createdDockerStub) { Remove-Item function:global:docker }
+    It 'defaults only unresolved library instances to Microsoft authentication' {
+        $script:graph | Should -Match '(?s)local procedure GetAuthenticationProvider\(\).*?if not AuthenticationProviderResolved then begin\s+Authentication := Authentication::"Microsoft Test Environment";'
+        $script:graph | Should -Match '(?s)procedure SetAuthenticationProvider\(.*?Authentication := NewAuthentication;\s+AuthenticationProvider := Authentication;\s+AuthenticationProviderResolved := true;'
     }
 
-    BeforeEach {
-        $env:GITHUB_ENV = Join-Path $PSScriptRoot 'unused-github-env'
-        $env:BCAppsApiTestPasswordPath = $null
-        $env:BCAppsApiTestPasswordContainer = $null
-        $script:events = [System.Collections.Generic.List[string]]::new()
-        $script:stream = [PSCustomObject]@{
-            Events = $script:events
-            Buffer = $null
-            Written = $null
-            FailWrite = $false
-            FailDispose = $false
-        }
-        $script:stream | Add-Member ScriptMethod Write {
-            param($buffer, $offset, $count)
-            $this.Events.Add('write')
-            $this.Buffer = $buffer
-            $this.Written = [System.Text.Encoding]::UTF8.GetString($buffer, $offset, $count)
-            if ($this.FailWrite) { throw 'Synthetic write failure' }
-        }
-        $script:stream | Add-Member ScriptMethod Dispose {
-            $this.Events.Add('dispose')
-            if ($this.FailDispose) { throw 'Synthetic flush failure' }
-        }
-        Mock -ModuleName ApiTestCredential Get-BcContainerSharedFolders { @{ $script:mount = 'c:\run\my\' } }
-        Mock -ModuleName ApiTestCredential Add-Content { $script:events.Add('register') }
-        Mock -ModuleName ApiTestCredential New-ApiTestPasswordFileStream {
-            $env:BCAppsApiTestPasswordPath | Should -Be (Join-Path $script:mount 'ApiTestPassword')
-            $env:BCAppsApiTestPasswordContainer | Should -Be 'unit-test'
-            $script:events.Add('create')
-            $script:stream
-        }
-        Mock -ModuleName ApiTestCredential Test-Path { $true }
-        Mock -ModuleName ApiTestCredential docker {
-            $global:LASTEXITCODE = 0
-            if ($args[0] -eq 'container') { 'synthetic-container-id' }
-            else { $script:events.Add('stop') }
-        }
-        Mock -ModuleName ApiTestCredential Remove-Item { $script:events.Add('delete') }
+    It 'preserves explicit None and unknown enum fallback semantics' {
+        $script:authentication | Should -Match '(?s)value\(0; None\).*?Implementation = "API Test Auth Provider" = "No API Test Auth Provider";'
+        $script:authentication | Should -Match 'DefaultImplementation = "API Test Auth Provider" = "No API Test Auth Provider";'
+        $script:authentication | Should -Match 'Extensible = true;'
     }
 
-    It 'registers cleanup and creates the secured backing file before the first secret write' {
-        Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential
-
-        ($script:events -join ',') | Should -Be 'register,create,write,dispose'
-        $script:stream.Written | Should -Be 'synthetic-fixture-only'
-        @($script:stream.Buffer | Where-Object { $_ -ne 0 }).Count | Should -Be 0
-        Should -Invoke -ModuleName ApiTestCredential New-ApiTestPasswordFileStream -Times 1 -Exactly -ParameterFilter {
-            $FilePath -eq (Join-Path $script:mount 'ApiTestPassword')
-        }
-        Should -Invoke -ModuleName ApiTestCredential Add-Content -Times 1 -Exactly -ParameterFilter {
-            $LiteralPath -eq $env:GITHUB_ENV -and $ErrorAction -eq 'Stop' -and
-            $Value.Count -eq 2 -and
-            $Value -contains "BCAppsApiTestPasswordPath=$(Join-Path $script:mount 'ApiTestPassword')" -and
-            $Value -contains 'BCAppsApiTestPasswordContainer=unit-test'
-        }
-        Should -Invoke -ModuleName ApiTestCredential docker -Times 0
+    It 'preserves custom provider instance state on repeated selection' {
+        $script:graph | Should -Match '(?s)if AuthenticationProviderResolved and \(Authentication = NewAuthentication\) then\s+exit;'
     }
 
-    It 'uses the same secured mount locally without workflow registration' {
-        $env:GITHUB_ENV = ''
-        Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential
-
-        ($script:events -join ',') | Should -Be 'create,write,dispose'
-        Should -Invoke -ModuleName ApiTestCredential Get-BcContainerSharedFolders -Times 1 -Exactly
-        Should -Invoke -ModuleName ApiTestCredential Add-Content -Times 0
+    It 'retains ambient credentials and the final customization event after authentication' {
+        $script:graph | Should -Match '(?s)SetUseDefaultCredentials\(true\);\s+ApplyAuthentication\(HttpWebRequestMgt\);\s+OnAfterInitializeWebRequestWithURL\(HttpWebRequestMgt\);'
     }
 
-    It 'preserves Unicode passwords while clearing the written byte buffer' {
-        $characters = [char[]]@(0x0061, 0x00E9, 0xD83D, 0xDD10)
-        $password = [System.Security.SecureString]::new()
-        try {
-            foreach ($character in $characters) { $password.AppendChar($character) }
-            $password.MakeReadOnly()
-            $credential = [PSCredential]::new('unit-test', $password)
-
-            Write-ApiTestPassword -ContainerName 'unit-test' -Credential $credential
-
-            $script:stream.Written | Should -Be (-join $characters)
-            @($script:stream.Buffer | Where-Object { $_ -ne 0 }).Count | Should -Be 0
-        }
-        finally {
-            $password.Dispose()
-        }
+    It 'configures keys only on premises with exact username-password authentication' {
+        $script:provider | Should -Match '(?s)if EnvironmentInfo.IsSaaSInfrastructure\(\) then\s+exit;\s+if not IdentityManagement.IsUserNamePasswordAuthentication\(\) then\s+exit;\s+Authentication.SetBasicAuthentication\(UserId\(\), GetWebServiceKey\(\)\);'
     }
 
-    It 'does not materialize an immutable plaintext password string in the writer' {
-        $source = Get-Content (Join-Path $PSScriptRoot '..\ApiTestCredential.psm1') -Raw
-        $source | Should -Not -Match 'GetNetworkCredential|PtrToString'
-        $source | Should -Match 'SecureStringToBSTR'
-        $source | Should -Match 'ZeroFreeBSTR'
+    It 'reuses current-user keys and serializes missing-key creation with a recheck' {
+        $script:provider | Should -Match '(?s)local procedure EnsureWebServiceKey.*?CurrentUser.LockTable\(\);\s+CurrentUser.Get\(UserSecurityId\(\)\);\s+WebServiceKey := ReadWebServiceKey\(ExpiryDate\);\s+if WebServiceKey.IsEmpty\(\) then begin'
+        $script:provider | Should -Match 'CreateWebServicesKey\(UserSecurityId\(\), ExpiryDate\)'
+        $script:provider | Should -Not -Match 'CreateWebServicesKeyNoExpiry|ClearWebServicesKey'
     }
 
-    It 'fails closed on an unresolved mount in CI and locally' {
-        Mock -ModuleName ApiTestCredential Get-BcContainerSharedFolders { @{} }
-        foreach ($environmentPath in @('unused-github-env', '')) {
-            $env:GITHUB_ENV = $environmentPath
-            { Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential } | Should -Throw '*Cannot resolve*'
-        }
-        Should -Invoke -ModuleName ApiTestCredential New-ApiTestPasswordFileStream -Times 0
-        Should -Invoke -ModuleName ApiTestCredential Add-Content -Times 0
+    It 'prepares the current test user in the independent runner transaction before fixtures' {
+        $script:provider | Should -Match '\[EventSubscriber\(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", ''OnBeforeTestMethodRun'''
+        $script:provider | Should -Match '(?s)local procedure PrepareTestUserWebServiceKey.*?if Skip or EnvironmentInfo.IsSaaSInfrastructure\(\) then\s+exit;.*?if not IdentityManagement.IsUserNamePasswordAuthentication\(\) then\s+exit;.*?EnsureWebServiceKey\(\);'
+        $script:provider | Should -Match 'using System.TestTools.TestRunner;'
+        $manifest = Get-Content (Join-Path $script:root 'src\Layers\W1\Tests\TestLibraries\app.json') -Raw | ConvertFrom-Json
+        @($manifest.dependencies | Where-Object id -eq '23de40a6-dfe8-4f80-80db-d70f83ce8caf').Count | Should -Be 1
     }
 
-    It 'fails closed on ambiguous mounts' {
-        Mock -ModuleName ApiTestCredential Get-BcContainerSharedFolders { @{ 'C:\first' = 'C:\Run\my'; 'C:\second' = 'c:\run\my' } }
-        { Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential } | Should -Throw '*Cannot resolve*'
-        Should -Invoke -ModuleName ApiTestCredential New-ApiTestPasswordFileStream -Times 0
+    It 'rejects missing-key creation during caller writes before entering isolation' {
+        $script:provider | Should -Match '(?s)WebServiceKey := ReadWebServiceKey\(ExpiryDate\);\s+if WebServiceKey.IsEmpty\(\) then begin\s+if Database.IsInWriteTransaction\(\) then\s+Error\(KeyCreationInWriteTransactionErr\);.*?OnCreateWebServiceKey\(KeyCreationSucceeded\);'
+        $requestPath = [regex]::Match($script:provider, '(?s)local procedure GetWebServiceKey\(\).*?(?=\s+\[InternalEvent)').Value
+        $requestPath | Should -Not -Match 'LockTable|CreateWebServicesKey\('
     }
 
-    It 'does not materialize credentials if workflow cleanup registration fails' {
-        Mock -ModuleName ApiTestCredential Add-Content { throw 'Synthetic registration failure' }
-        { Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential } | Should -Throw '*Synthetic registration failure*'
-        Should -Invoke -ModuleName ApiTestCredential New-ApiTestPasswordFileStream -Times 0
+    It 'uses a platform-owned isolated subscriber transaction without explicit commits' {
+        $script:provider | Should -Match '(?s)\[InternalEvent\(false, true\)\]\s+local procedure OnCreateWebServiceKey'
+        $script:provider | Should -Match '\[EventSubscriber\(ObjectType::Codeunit, Codeunit::"Microsoft Test Auth Provider", ''OnCreateWebServiceKey'''
+        $script:provider | Should -Match '(?s)\[CommitBehavior\(CommitBehavior::Error\)\]\s+local procedure CreateWebServiceKeyIsolated'
     }
 
-    It 'does not write or delete an existing file when secured creation fails' {
-        Mock -ModuleName ApiTestCredential New-ApiTestPasswordFileStream { throw 'Synthetic ACL or create failure' }
-        { Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential } | Should -Throw '*Synthetic ACL or create failure*'
-        ($script:events -join ',') | Should -Be 'register'
-        Should -Invoke -ModuleName ApiTestCredential Remove-Item -Times 0
+    It 'rereads persisted credentials after isolation instead of trusting rollback-surviving event output' {
+        $script:provider | Should -Match '(?s)OnCreateWebServiceKey\(KeyCreationSucceeded\);\s+if not KeyCreationSucceeded then\s+Error\(KeyCreationFailedErr\);.*?WebServiceKey := ReadWebServiceKey\(ExpiryDate\);'
+        $script:provider | Should -Match 'local procedure OnCreateWebServiceKey\(var Succeeded: Boolean\)'
+        $script:provider | Should -Not -Match 'OnCreateWebServiceKey\([^)]*SecretText'
     }
 
-    It 'closes the failed writer and stops consumers before deleting a partial file' {
-        $script:stream.FailWrite = $true
-        { Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential } | Should -Throw '*Synthetic write failure*'
-
-        ($script:events -join ',') | Should -Be 'register,create,write,dispose,stop,delete'
-        @($script:stream.Buffer | Where-Object { $_ -ne 0 }).Count | Should -Be 0
+    It 'creates bounded keys and rejects expired or empty credentials' {
+        $script:provider | Should -Match 'ExpiryDate := CurrentDateTime\(\) \+ 24 \* 60 \* 60 \* 1000;'
+        $script:provider | Should -Match '(?s)if WebServiceKey.IsEmpty\(\) then\s+Error\(EmptyKeyErr\);'
+        $script:provider | Should -Match '(?s)if \(ExpiryDate <> 0DT\) and \(ExpiryDate <= CurrentDateTime\(\)\) then\s+Error\(ExpiredKeyErr\);'
     }
 
-    It 'also cleans up after a flush failure without reporting success' {
-        $script:stream.FailDispose = $true
-        { Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential } | Should -Throw '*Synthetic flush failure*'
-        ($script:events -join ',') | Should -Be 'register,create,write,dispose,stop,delete'
+    It 'checks fresh error state for both value-returning identity getters' {
+        $script:provider | Should -Match '(?s)ClearLastError\(\);\s+WebServiceKey := IdentityManagement.GetWebServicesKey\(UserSecurityId\(\)\);\s+if GetLastErrorText\(\) <>'
+        $script:provider | Should -Match '(?s)ClearLastError\(\);\s+ExpiryDate := IdentityManagement.GetWebServiceExpiryDate\(UserSecurityId\(\)\);\s+if GetLastErrorText\(\) <>'
     }
 
-    It 'preserves the setup error and credential when consumers cannot be stopped' {
-        $script:stream.FailWrite = $true
-        Mock -ModuleName ApiTestCredential docker { $global:LASTEXITCODE = 1 } -ParameterFilter { $args[0] -eq 'stop' }
-        Mock -ModuleName ApiTestCredential Write-Warning {}
-
-        { Write-ApiTestPassword -ContainerName 'unit-test' -Credential $script:credential } | Should -Throw '*Synthetic write failure*'
-        Should -Invoke -ModuleName ApiTestCredential Remove-Item -Times 0
-        Should -Invoke -ModuleName ApiTestCredential Write-Warning -Times 1 -Exactly
-    }
-}
-
-Describe 'API test credential atomic Windows ACL' {
-    BeforeAll {
-        Import-Module (Join-Path $PSScriptRoot '..\ApiTestCredential.psm1') -Force
-        $script:aclRoot = Join-Path $PSScriptRoot ("acl-fixture-" + [guid]::NewGuid().ToString('N'))
-        New-Item -ItemType Directory -Path $script:aclRoot | Out-Null
+    It 'does not cache, log, or hand off plaintext credentials' {
+        $script:provider | Should -Not -Match 'Cached|ApiTestPassword|KeyVault|PasswordFile|Message\(|LogMessage\(|Session.Log'
+        $script:provider | Should -Match '(?s)\[NonDebuggable\]\s+local procedure ReadWebServiceKey'
+        $script:provider | Should -Match 'SecretWebServiceKey: SecretText;'
+        $script:provider | Should -Match 'Clear\(WebServiceKey\);'
+        $script:context | Should -Match 'BasicPassword: SecretText;'
     }
 
-    AfterAll {
-        Remove-Item -LiteralPath $script:aclRoot -Recurse -Force
+    It 'does not commit the caller transaction while configuring a request' {
+        $script:provider | Should -Not -Match '(?i)\bCommit\s*\('
+        $requestPath = [regex]::Match($script:graph, '(?s)procedure InitializeWebRequestWithURL\(.*?(?=    procedure PatchToWebServiceAndCheckResponseCode)').Value
+        $requestPath | Should -Not -BeNullOrEmpty
+        $requestPath | Should -Not -Match '(?i)\bCommit\s*\('
     }
 
-    It 'has only required explicit SIDs on an empty file before writing synthetic bytes' {
-        $path = Join-Path $script:aclRoot 'ApiTestPassword'
-        $stream = $null
-        try {
-            $stream = & (Get-Module ApiTestCredential) { param($path) New-ApiTestPasswordFileStream -FilePath $path } $path
-            $stream.Length | Should -Be 0
-            $acl = Get-Acl -LiteralPath $path
-            $acl.AreAccessRulesProtected | Should -BeTrue
-            $rules = @($acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier]))
-            @($rules | Where-Object IsInherited).Count | Should -Be 0
-            $writerSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-            $expectedSids = @('S-1-5-18', 'S-1-5-20', 'S-1-5-32-544', $writerSid) | Select-Object -Unique
-            ($rules.IdentityReference.Value | Sort-Object) | Should -Be ($expectedSids | Sort-Object)
-            foreach ($sid in @('S-1-5-18', 'S-1-5-32-544')) {
-                ($rules | Where-Object { $_.IdentityReference.Value -eq $sid }).FileSystemRights |
-                    Should -Be ([System.Security.AccessControl.FileSystemRights]::FullControl)
-            }
-            $networkServiceRights = [System.Security.AccessControl.FileSystemRights]'Read, Synchronize'
-            if ($writerSid -eq 'S-1-5-20') {
-                $networkServiceRights = $networkServiceRights -bor [System.Security.AccessControl.FileSystemRights]'Write, Delete'
-            }
-            ($rules | Where-Object { $_.IdentityReference.Value -eq 'S-1-5-20' }).FileSystemRights |
-                Should -Be $networkServiceRights
-            if ($writerSid -notin @('S-1-5-18', 'S-1-5-20', 'S-1-5-32-544')) {
-                ($rules | Where-Object { $_.IdentityReference.Value -eq $writerSid }).FileSystemRights |
-                    Should -Be ([System.Security.AccessControl.FileSystemRights]'Write, Delete, Synchronize')
-            }
-            $stream.WriteByte(65)
-            $stream.Length | Should -Be 1
-        }
-        finally {
-            if ($stream) { $stream.Dispose() }
-            Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
-        }
+    It 'retains container credentials for NST provisioning without an API password file' {
+        $script:container | Should -Match 'New-BcContainer @parameters'
+        $script:container | Should -Not -Match 'ApiTestCredential|ApiTestPassword'
+        Test-Path (Join-Path $script:root 'build\scripts\ApiTestCredential.psm1') | Should -BeFalse
+        Test-Path (Join-Path $script:root 'build\scripts\Remove-ApiTestPassword.ps1') | Should -BeFalse
+        Test-Path (Join-Path $script:root 'build\scripts\PipelineFinalize.ps1') | Should -BeFalse
+        @(Get-ChildItem (Join-Path $script:root 'build\projects') -Filter PipelineFinalize.ps1 -Recurse).Count | Should -Be 0
     }
 
-    It 'refuses to overwrite an existing file or change its ACL' {
-        $path = Join-Path $script:aclRoot 'ApiTestPassword'
-        [System.IO.File]::WriteAllText($path, 'synthetic-existing-fixture')
-        $before = (Get-Acl -LiteralPath $path).Sddl
-        try {
-            { & (Get-Module ApiTestCredential) { param($path) New-ApiTestPasswordFileStream -FilePath $path } $path } | Should -Throw
-            [System.IO.File]::ReadAllText($path) | Should -Be 'synthetic-existing-fixture'
-            (Get-Acl -LiteralPath $path).Sddl | Should -Be $before
-        }
-        finally {
-            Remove-Item -LiteralPath $path -Force
-        }
+    It 'keeps HTTP regression coverage on the default and instance-reset paths without explicit uptake' {
+        $tests = Get-Content (Join-Path $script:root 'src\Layers\W1\Tests\Misc\APITestAuthProviderTests.Codeunit.al') -Raw
+        $tests | Should -Match 'procedure DefaultAuthenticationRespectsServerAuthMode'
+        $tests | Should -Match '(?s)\[TransactionModel\(TransactionModel::None\)\]\s+procedure DefaultAuthenticationRespectsServerAuthMode'
+        $tests | Should -Match 'Clear\(LibraryGraphMgt\);'
+        $tests | Should -Not -Match '"Microsoft Test Environment"'
+        $tests | Should -Match 'SetAuthenticationProvider\(Enum::"API Test Authentication"::None\)'
+        $tests | Should -Match 'RequiredTestIsolation = Disabled;'
+        Test-Path (Join-Path $script:root 'src\Layers\W1\Tests\Misc\APITestAuthHTTPTests.Codeunit.al') | Should -BeFalse
+    }
+
+    It 'retains a per-test license-safe date helper independent of authentication' {
+        $script:graph | Should -Match '(?s)procedure SetLicenseSafeWorkDate\(\)\s+begin\s+WorkDate := DMY2Date\(15, 11, Date2DMY\(Today, 3\)\);'
+        $script:provider | Should -Not -Match 'WorkDate|SetLicenseSafeWorkDate'
     }
 }
