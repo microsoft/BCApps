@@ -1945,12 +1945,13 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
-    procedure TimeBasedSubcontractorPriceEnforcesMinimumAmountAfterTimeFactor()
+    procedure TimeBasedMinimumAmountMatchesStandardAndPurchaseCost()
     var
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
+        RoutingLine: Record "Routing Line";
         SubcontractorPrice: Record "Subcontractor Price";
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
@@ -1958,8 +1959,9 @@ codeunit 139982 "Subc. Pricing Test"
         ExpectedDirectUnitCost: Decimal;
         Price: Decimal;
         RunTime: Decimal;
+        StandardCost: Decimal;
     begin
-        // [SCENARIO 653252] The Minimum Amount floor is evaluated against the time-adjusted price, not multiplied by the time factor
+        // [SCENARIO 653252] Standard costing and purchase pricing apply the Minimum Amount before the time factor
         Initialize();
 
         // [GIVEN] A time-based operation with Run Time 2, price 100 and a Minimum Amount of 150
@@ -1973,8 +1975,16 @@ codeunit 139982 "Subc. Pricing Test"
         SubcontractorPrice.Validate("Minimum Amount", 150);
         SubcontractorPrice.Modify(true);
 
-        // [GIVEN] The time-adjusted price (100 * 2 = 200) already exceeds the Minimum Amount
-        ExpectedDirectUnitCost := Price * RunTime;
+        // [GIVEN] The Minimum Amount is applied before the time factor, resulting in 150 * 2 = 300
+        ExpectedDirectUnitCost := SubcontractorPrice."Minimum Amount" * RunTime;
+
+        // [WHEN] Standard cost is calculated for the item
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.FindFirst();
+        SubcPriceManagement.CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine, 1, Item, WorkDate(), StandardCost);
+
+        // [THEN] Standard costing applies the Minimum Amount before the time factor
+        Assert.AreEqual(ExpectedDirectUnitCost, StandardCost, TimeBasedMinimumAmountErr);
 
         CreateReleasedProdOrderAndFindRoutingLine(ProductionOrder, ProdOrderRoutingLine, Item, WorkCenter."No.");
 
@@ -1988,9 +1998,9 @@ codeunit 139982 "Subc. Pricing Test"
         PurchaseLine."Direct Unit Cost" := 0;
         SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
 
-        // [THEN] The Minimum Amount does not inflate the cost (it is not multiplied by Run Time)
+        // [THEN] Purchase pricing uses the same ordering and cost as standard costing
         Assert.AreEqual(
-            ExpectedDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            StandardCost, PurchaseLine."Direct Unit Cost",
             TimeBasedMinimumAmountErr);
     end;
 
@@ -2286,7 +2296,7 @@ codeunit 139982 "Subc. Pricing Test"
         CarriedOutPurchaseLineDirectUnitCostErr: Label 'The carried-out purchase line Direct Unit Cost must include Run Time for a time-based subcontractor price.';
         AutomaticPurchaseLineRepricingErr: Label 'Automatic purchase-line repricing must include Run Time for a time-based subcontractor price.';
         DirectlyCreatedPurchaseLineDirectUnitCostErr: Label 'The directly created purchase line Direct Unit Cost must include Run Time for a time-based subcontractor price.';
-        TimeBasedMinimumAmountErr: Label 'The Minimum Amount must be enforced against the time-adjusted price, not multiplied by the time factor.';
+        TimeBasedMinimumAmountErr: Label 'Standard costing and purchase pricing must apply the Minimum Amount before the time factor.';
         TimeBasedCurrencyRoundingErr: Label 'The time-based Direct Unit Cost must be rounded with the purchase-line currency precision.';
         TimeBasedProdLineScrapErr: Label 'The time-based Direct Unit Cost must include production-line scrap.';
 }
