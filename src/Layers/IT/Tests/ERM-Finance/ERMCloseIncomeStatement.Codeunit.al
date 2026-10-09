@@ -557,6 +557,50 @@ codeunit 134228 "ERM Close Income Statement"
             GLAccountNo, TempDimensionSetEntry."Dimension Value Code", Currency.Code, GenJournalBatch, DocumentNo);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementPostsSourceVATOnlyGroupWithAdditionalReportingCurrency()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLAccountNo: Code[20];
+        SourceCurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        PostingDate: Date;
+    begin
+        // [SCENARIO] A source-VAT-only group is posted when Additional Reporting Currency is enabled.
+        Initialize();
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+
+        UpdateCurOnGeneralLedgerSetup(CreateCurrency());
+        SourceCurrencyCode := CreateCurrency();
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Customer, '', 0);
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+        InsertGLEntryForCloseIncome(
+            PostingDate, GLAccountNo, 0, 0, SourceCurrencyCode, 0, 3);
+
+        LibraryFiscalYear.CloseFiscalYear();
+        PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+        DocumentNo := LibraryUtility.GenerateGUID();
+        RunCloseIncomeStatement(
+            GenJournalLine, PostingDate, PostToRetainedEarningsAcc::Balance, false, false, DocumentNo);
+
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        Assert.AreEqual(0, GLEntry.Amount, 'Incorrect closing amount.');
+        Assert.AreEqual(-3, GLEntry."Source Currency VAT Amount", 'Incorrect closing source currency VAT amount.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -622,6 +666,22 @@ codeunit 134228 "ERM Close Income Statement"
         // Create Exchange Rate.
         LibraryERM.CreateRandomExchangeRate(Currency.Code);
         exit(Currency.Code);
+    end;
+
+    local procedure InsertGLEntryForCloseIncome(PostingDate: Date; GLAccountNo: Code[20]; Amount: Decimal; AdditionalCurrencyAmount: Decimal; SourceCurrencyCode: Code[10]; SourceCurrencyAmount: Decimal; SourceCurrencyVATAmount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.Init();
+        GLEntry."Entry No." := LibraryUtility.GetNewRecNo(GLEntry, GLEntry.FieldNo("Entry No."));
+        GLEntry."G/L Account No." := GLAccountNo;
+        GLEntry."Posting Date" := PostingDate;
+        GLEntry.Amount := Amount;
+        GLEntry."Additional-Currency Amount" := AdditionalCurrencyAmount;
+        GLEntry."Source Currency Code" := SourceCurrencyCode;
+        GLEntry."Source Currency Amount" := SourceCurrencyAmount;
+        GLEntry."Source Currency VAT Amount" := SourceCurrencyVATAmount;
+        GLEntry.Insert();
     end;
 
     local procedure CreateDimensionSet(var DimSetEntry: Record "Dimension Set Entry")

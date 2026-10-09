@@ -629,7 +629,7 @@ report 94 "Close Income Statement"
                 GenJnlLine.Validate(Amount, GenJnlLine."Source Currency Amount");
                 GenJnlLine."Source Currency Amount" := 0;
             end;
-            if GenJnlLine.Amount <> 0 then
+            if (GenJnlLine.Amount <> 0) or (GenJnlLine."Source Curr. VAT Amount" <> 0) then
                 if not ((GenJnlLine.Amount = 0) and (GenJnlLine."Source Currency Amount" <> 0)) then
                     GenJnlLine.Insert();
         end else

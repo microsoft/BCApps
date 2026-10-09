@@ -718,6 +718,51 @@ codeunit 134228 "ERM Close Income Statement"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementPostsSourceVATOnlyGroupWithAdditionalReportingCurrency()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLAccountNo: Code[20];
+        SourceCurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        PostingDate: Date;
+    begin
+        // [SCENARIO] A source-VAT-only group is posted when Additional Reporting Currency is enabled.
+        Initialize();
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+
+        UpdateCurOnGeneralLedgerSetup(CreateCurrency());
+        SourceCurrencyCode := CreateCurrency();
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Customer, '', 0);
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+        InsertGLEntryForCloseIncome(
+            PostingDate, GLAccountNo, 0, 0, SourceCurrencyCode, 0, 3, 0, '', '', '');
+
+        LibraryFiscalYear.CloseFiscalYear();
+        PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+        DocumentNo := LibraryUtility.GenerateGUID();
+        RunCloseIncomeStatement(
+            GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
+            PostToRetainedEarningsAcc::Balance, false, false, DocumentNo);
+
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        Assert.AreEqual(0, GLEntry.Amount, 'Incorrect closing amount.');
+        Assert.AreEqual(-3, GLEntry."Source Currency VAT Amount", 'Incorrect closing source currency VAT amount.');
+    end;
+
+    [Test]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler,DimensionSelectionGlobalDim2ModalPageHandler')]
     [Scope('OnPrem')]
     procedure CloseIncomeStatementGroupsGlobalDimension2WithBusinessUnit()
@@ -1225,6 +1270,7 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalLine.SetRange("Business Unit Code", BusinessUnitCode);
         GenJournalLine.SetRange("Source Currency Code", SourceCurrencyCode);
 #pragma warning restore AA0210
+        Assert.RecordCount(GenJournalLine, 1);
         GenJournalLine.FindFirst();
 
         Assert.AreEqual(ExpectedAmount, GenJournalLine.Amount, 'Incorrect closing amount.');
