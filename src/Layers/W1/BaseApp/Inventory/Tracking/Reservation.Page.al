@@ -297,7 +297,7 @@ page 498 Reservation
                     begin
                         RemainingQtyToReserveBase := QtyToReserveBase - QtyReservedBase;
                         if RemainingQtyToReserveBase = 0 then
-                            Error(Text000);
+                            ValidateReservationApplicable();
                         QtyReservedBefore := QtyReservedBase;
                         if HandleItemTracking then
                             ReservMgt.SetItemTrackingHandling(2);
@@ -687,6 +687,17 @@ page 498 Reservation
         Rec.SetRange("Non-specific Reserved Qty.");
     end;
 
+    local procedure ValidateReservationApplicable()
+    var
+        IsHandled: Boolean;
+    begin
+        OnBeforeValidateReservationApplicable(ReservEntry, IsHandled);
+        if IsHandled then
+            exit;
+
+        Error(Text000);
+    end;
+
     procedure AutoReserve()
     var
         IsHandled: Boolean;
@@ -695,7 +706,7 @@ page 498 Reservation
             ReservEntry, FullAutoReservation, QtyToReserve, QtyReserved, QtyToReserveBase, QtyReservedBase, IsHandled);
         if not IsHandled then begin
             if Abs(QtyToReserveBase) - Abs(QtyReservedBase) = 0 then
-                Error(Text000);
+                ValidateReservationApplicable();
             ReservMgt.AutoReserve(
                 FullAutoReservation, ReservEntry.Description,
                 ReservEntry."Shipment Date", QtyToReserve - QtyReserved, QtyToReserveBase - QtyReservedBase);
@@ -738,20 +749,13 @@ page 498 Reservation
     begin
     end;
 
-
-
-
-
-
-
-
-
-
-
-
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAutoReserve(ReservEntry: Record "Reservation Entry"; var FullAutoReservation: Boolean; QtyToReserve: Decimal; QtyReserved: Decimal; QtyToReserveBase: Decimal; QtyReservedBase: Decimal; var IsHandled: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateReservationApplicable(ReservEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 

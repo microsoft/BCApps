@@ -35,6 +35,7 @@ codeunit 99000836 "Transfer Line-Reserve"
         Text002Err: Label 'must be filled in when a quantity is reserved';
         Text003Err: Label 'must not be changed when a quantity is reserved';
         Text006Err: Label 'Outbound,Inbound';
+        InboundQtyErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
         TransferTxt: Label 'Transfer';
         SummaryTypeTxt: Label '%1, %2', Locked = true;
         SourceDoc3Txt: Label '%1 %2 %3', Locked = true;
@@ -757,6 +758,27 @@ codeunit 99000836 "Transfer Line-Reserve"
     begin
         if MatchThisTable(SourceRecRef.Number) then
             SetReservSourceFor(SourceRecRef, ReservEntry, CaptionText, Enum::"Transfer Direction".FromInteger(Direction));
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnBeforeValidateReservationApplicable', '', false, false)]
+    local procedure ReservationOnBeforeValidateReservationApplicable(ReservEntry: Record "Reservation Entry"; var IsHandled: Boolean)
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        if not MatchThisTable(ReservEntry."Source Type") then
+            exit;
+
+        if ReservEntry.GetTransferDirection() <> Enum::"Transfer Direction"::Inbound then
+            exit;
+
+        if not TransferLine.Get(ReservEntry."Source ID", ReservEntry."Source Ref. No.") then
+            exit;
+
+        if TransferLine."Qty. in Transit (Base)" = 0 then
+            exit;
+
+        IsHandled := true;
+        Error(InboundQtyErr);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnDrillDownTotalQuantity', '', false, false)]
