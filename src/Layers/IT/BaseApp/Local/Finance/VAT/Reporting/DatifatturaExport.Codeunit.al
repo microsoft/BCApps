@@ -620,7 +620,9 @@ codeunit 12182 "Datifattura Export"
     var
         VATPostingSetup: Record "VAT Posting Setup";
 #if not CLEAN30
+#pragma warning disable AL0432
         XMLDOMManagement: Codeunit "XML DOM Management";
+#pragma warning restore AL0432
 #endif
         DatiRiepilogoXmlNode: XmlElement;
         DatiIVAXmlNode: XmlElement;
