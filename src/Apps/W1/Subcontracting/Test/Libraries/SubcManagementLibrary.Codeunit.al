@@ -29,8 +29,6 @@ codeunit 139983 "Subc. Management Library"
 
     var
         LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         UseWithFilterOnlyErr: Label 'Prod. Order Routing Line must have filter to be used in this method.';
         NoJournalSelectedErr: Label 'No Journal Batch is selected.';
@@ -67,6 +65,9 @@ codeunit 139983 "Subc. Management Library"
     end;
 
     procedure CreatePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
+    var
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         TransferShipmentHeader.Init();
         TransferShipmentHeader."No." :=
