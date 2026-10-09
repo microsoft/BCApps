@@ -554,6 +554,31 @@ page 104 "Account Schedule"
         GetDescriptions();
     end;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    var
+        PrecedingAccScheduleLine: Record "Acc. Schedule Line";
+    begin
+        if not GetPrecedingAccScheduleLine(BelowxRec, PrecedingAccScheduleLine) then
+            exit;
+        Rec."Row Type" := PrecedingAccScheduleLine."Row Type";
+        Rec."Totaling Type" := PrecedingAccScheduleLine."Totaling Type";
+        Rec."Amount Type" := PrecedingAccScheduleLine."Amount Type";
+    end;
+
+    local procedure GetPrecedingAccScheduleLine(BelowxRec: Boolean; var PrecedingAccScheduleLine: Record "Acc. Schedule Line"): Boolean
+    begin
+        // A new line inherits its type settings from the line that precedes it in the list.
+        // When inserting below xRec, xRec is that preceding line; when inserting above xRec,
+        // the preceding line is the record immediately before xRec.
+        if xRec."Line No." = 0 then
+            exit(false);
+        PrecedingAccScheduleLine := xRec;
+        PrecedingAccScheduleLine.SetRange("Schedule Name", xRec."Schedule Name");
+        if BelowxRec then
+            exit(true);
+        exit(PrecedingAccScheduleLine.Next(-1) <> 0);
+    end;
+
     var
         AccSchedManagement: Codeunit AccSchedManagement;
         CurrentSchedName: Code[10];
