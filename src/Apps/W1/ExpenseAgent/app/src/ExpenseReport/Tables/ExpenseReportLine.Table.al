@@ -1466,13 +1466,14 @@ table 6907 "Expense Report Line"
         ExpenseReportLineItemization: Record "Expense Report Line Item";
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
     begin
+        ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
+        ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
+        if not ExpenseReportLineItemization.IsEmpty() then
+            exit(true);
+
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
-                begin
-                    ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
-                    ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
-                    exit(not ExpenseReportLineItemization.IsEmpty());
-                end;
+                exit(false);
             Rec."Expense Detail Required"::Participants:
                 begin
                     ExpenseReportLineParticip.SetRange("Expense Report No.", Rec."Document No.");
@@ -2374,6 +2375,27 @@ table 6907 "Expense Report Line"
             end;
 
         Rec := NewLine;
+    end;
+
+    internal procedure IsItemizationRequired(): Boolean
+    begin
+        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+            exit(true);
+
+        exit(Rec.IsEnforcedItemizationRequired());
+    end;
+
+    internal procedure IsEnforcedItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or (Rec."Expense Category" = '') then
+            exit(false);
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 
     internal procedure GetNextExpenseReportLineNo(ExpenseReportNo: Code[20]): Integer
