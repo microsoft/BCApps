@@ -416,10 +416,7 @@ page 9883 "Permissions Overview"
         InitialRoleIDFilter: Text[30];
         InitialObjTypeFilter: Option None,"Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
         InitialObjIDFilter: Text;
-        ReadFilter: Option " ",No,Yes,Indirect;
-        InsertFilter: Option " ",No,Yes,Indirect;
-        ModifyFilter: Option " ",No,Yes,Indirect;
-        DeleteFilter: Option " ",No,Yes,Indirect;
+        ReadFilter, InsertFilter, ModifyFilter, DeleteFilter : Enum "Permission Filter";
 
 
     local procedure AddInherentPermissions(ForObjectType: Option; MetadataTableId: Integer; ObjectIdFieldId: Integer; InherentPermissionFieldId: Integer)
@@ -693,24 +690,24 @@ page 9883 "Permissions Overview"
         end;
     end;
 
-    local procedure GetPermFieldFilter(PageFilter: Integer): Text
+    local procedure GetPermFieldFilter(PageFilter: Enum "Permission Filter"): Text
     begin
-        if PageFilter = 0 then
+        if PageFilter = PageFilter::" " then
             exit('');
 
-        exit(Format(PageFilter - 1));
+        exit(Format(PageFilter.AsInteger() - 1));
     end;
 
-    local procedure SetPermFieldFilter(FldRef: FieldRef; var PageFilter: Option)
+    local procedure SetPermFieldFilter(FldRef: FieldRef; var PageFilter: Enum "Permission Filter")
     begin
         if FldRef.GetFilter() <> '' then
             if FldRef.GetRangeMin() = FldRef.GetRangeMax() then begin
                 PageFilter := FldRef.GetRangeMin();
-                PageFilter += 1;
+                PageFilter := "Permission Filter".FromInteger(PageFilter.AsInteger() + 1);
                 exit;
             end;
 
-        PageFilter := 0;
+        PageFilter := "Permission Filter"::" ";
     end;
 
     /// <summary>
