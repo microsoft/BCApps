@@ -1096,7 +1096,7 @@ codeunit 134658 "Edit Posted Documents"
         VendorLedgerEntries.GoToRecord(VendorLedgerEntry);
 
         // [WHEN] Set a new dispute status value on the vendor ledger entry and close the page.
-        DisputeStatus := CreateDisPuteStatusCode();
+        DisputeStatus := CreateDisputeStatusCode();
         VendorLedgerEntries."Dispute Status".SetValue(DisputeStatus);
         VendorLedgerEntries.Close();
         PurchInvHeader.Get(PurchInvHeader."No.");
@@ -1128,7 +1128,7 @@ codeunit 134658 "Edit Posted Documents"
         FindVendorLedgerEntry(VendorLedgerEntry, PurchInvHeader."Pay-to Vendor No.", PurchInvHeader."No.", PurchInvHeader."Vendor Ledger Entry No.");
 
         // [WHEN] Set a new dispute status and description on the unrelated vendor ledger entry.
-        DisputeStatus := CreateDisPuteStatusCode();
+        DisputeStatus := CreateDisputeStatusCode();
         VendorLedgerEntry."Dispute Status" := DisputeStatus;
         VendorLedgerEntry.Description := LibraryUtility.GenerateGUID();
         Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
@@ -1276,7 +1276,7 @@ codeunit 134658 "Edit Posted Documents"
         PurchInvHeader."Creditor No." := LibraryUtility.GenerateGUID();
         PurchInvHeader."Ship-to Code" := ShipToAddress.Code;
         PurchInvHeader."Posting Description" := LibraryRandom.RandText(25);
-        PurchInvHeader."Dispute Status" := CreateDisPuteStatusCode();
+        PurchInvHeader."Dispute Status" := CreateDisputeStatusCode();
 
         LibraryVariableStorage.Enqueue(PurchInvHeader."Payment Reference");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Payment Method Code");
@@ -1402,7 +1402,7 @@ codeunit 134658 "Edit Posted Documents"
         GLAccount.Modify(true);
     end;
 
-    local procedure CreateDisPuteStatusCode(): Code[10]
+    local procedure CreateDisputeStatusCode(): Code[10]
     var
         DisputeStatus: Record "Dispute Status";
     begin
