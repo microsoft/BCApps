@@ -430,14 +430,13 @@ page 6910 "Expense Report"
                         ProcessApprovalAction(RefActionType::Approve);
                     end;
                 }
-                action(ApproveInExpenseApp)
+                action(ViewInExpenseApp)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Approve in Expense app';
-                    Enabled = ApprovalActionsEnabled;
+                    Caption = 'View in Expense App';
                     Image = LinkWeb;
-                    Visible = ApprovalActionsEnabled and (ExpenseReportUrl <> '');
-                    ToolTip = 'Opens the expense report for approval in the Expense app.';
+                    Visible = AgentEnabled and (ExpenseReportUrl <> '');
+                    ToolTip = 'Opens the expense report in the Expense App.';
 
                     trigger OnAction()
                     begin
@@ -676,7 +675,7 @@ page 6910 "Expense Report"
                 actionref(Approve_Promoted; Approve)
                 {
                 }
-                actionref(ApproveInExpenseApp_Promoted; ApproveInExpenseApp)
+                actionref(ViewInExpenseApp_Promoted; ViewInExpenseApp)
                 {
                 }
                 actionref(Reject_Promoted; Reject)
