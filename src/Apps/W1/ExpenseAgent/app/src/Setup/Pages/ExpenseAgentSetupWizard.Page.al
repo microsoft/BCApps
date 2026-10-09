@@ -172,6 +172,15 @@ page 6991 "Expense Agent Setup Wizard"
                                         end;
                             end;
                         }
+                        field("Allow Interim Approvers"; Rec."Allow Interim Approvers")
+                        {
+                            ToolTip = 'Specifies whether users can assign interim approvers to expense reports.';
+
+                            trigger OnValidate()
+                            begin
+                                ConfigUpdated();
+                            end;
+                        }
                     }
                 }
             }
