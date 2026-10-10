@@ -795,6 +795,7 @@ table 5409 "Prod. Order Routing Line"
             AutoFormatType = 0;
             Caption = 'Quantity Ready to Start';
             DecimalPlaces = 0 : 5;
+            Editable = false;
             InitValue = 0;
             ToolTip = 'Specifies the quantity that is ready to start on the operation based on posted output on the immediate previous operations.';
         }
@@ -1989,6 +1990,7 @@ table 5409 "Prod. Order Routing Line"
         PostedOutputQuantity: Decimal;
         RequiredOutputQuantity: Decimal;
         QuantityReadyToStart: Decimal;
+        HasQuantityReadyToStart: Boolean;
     begin
         LookupProdOrderRoutingLine.SetRange(Status, CurrentProdOrderRoutingLine.Status);
         LookupProdOrderRoutingLine.SetRange("Prod. Order No.", CurrentProdOrderRoutingLine."Prod. Order No.");
@@ -2006,8 +2008,10 @@ table 5409 "Prod. Order Routing Line"
                 RequiredOutputQuantity := LookupProdOrderRoutingLine."Input Quantity";
             if PostedOutputQuantity < RequiredOutputQuantity then
                 exit(0);
-            if (QuantityReadyToStart = 0) or (PostedOutputQuantity < QuantityReadyToStart) then
+            if (not HasQuantityReadyToStart) or (PostedOutputQuantity < QuantityReadyToStart) then begin
                 QuantityReadyToStart := PostedOutputQuantity;
+                HasQuantityReadyToStart := true;
+            end;
         until LookupProdOrderRoutingLine.Next() = 0;
 
         exit(QuantityReadyToStart);

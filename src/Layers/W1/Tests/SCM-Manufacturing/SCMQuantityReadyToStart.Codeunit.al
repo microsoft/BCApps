@@ -82,6 +82,30 @@ codeunit 137141 "SCM Quantity Ready to Start"
 
     [Test]
     [Scope('OnPrem')]
+    procedure QuantityReadyToStartUsesMinimumAcrossImmediatePredecessorsIncludingZero()
+    var
+        FirstRoutingLine: Record "Prod. Order Routing Line";
+        SecondRoutingLine: Record "Prod. Order Routing Line";
+        ThirdRoutingLine: Record "Prod. Order Routing Line";
+        ProdOrderNo: Code[20];
+    begin
+        // First predecessor requires zero output (Input Quantity = 0, Send-Ahead Quantity = 0) and has posted
+        // zero output, so it is itself ready with a genuine Quantity Ready to Start of 0 - not "unset".
+        ProdOrderNo := GetNewProdOrderNo();
+        CreateProdOrderRoutingLine(FirstRoutingLine, FirstRoutingLine.Status::Released, ProdOrderNo, 'R4', 0, '10', '', '30', 0, 0);
+        CreateProdOrderRoutingLine(SecondRoutingLine, SecondRoutingLine.Status::Released, ProdOrderNo, 'R4', 0, '20', '', '30', 10, 0);
+        CreateProdOrderRoutingLine(ThirdRoutingLine, ThirdRoutingLine.Status::Released, ProdOrderNo, 'R4', 0, '30', '10', '', 10, 0);
+
+        AddCapacityLedgerOutput(ProdOrderNo, 0, 'R4', '20', 10);
+        SecondRoutingLine.Modify(true);
+
+        // The true minimum across predecessors (0 and 10) is 0 and must not be overwritten by the later,
+        // larger predecessor value.
+        AssertQuantityReadyToStart(ThirdRoutingLine, 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure InsertingNewFirstOperationRecalculatesQuantityReadyToStart()
     var
         OriginalFirstRoutingLine: Record "Prod. Order Routing Line";

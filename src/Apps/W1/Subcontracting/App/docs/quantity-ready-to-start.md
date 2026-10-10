@@ -18,7 +18,7 @@ Subcontracting surfaces the new value in the factbox and in report 20505's reque
 | Codeunit | 99000822 `Mfg. Item Jnl.-Post Line` | Recalculates routing readiness after output posting and logs `QRTS-0001`. |
 | Codeunit | 5407 `Prod. Order Status Management` | Added reopen subscriber that recalculates readiness on transferred reopened routing lines. |
 | Codeunit | 104062 `Mfg. Upgrade BaseApp` | Added per-company upgrade recalculation for open production orders and logs `QRTS-0002`. |
-| Codeunit | 9998 `Upgrade Tag Definitions` | Registered `QRTS-QuantityReadyToStartUpgradeTag-20261010` for the upgrade step. |
+| Codeunit | 9998 `Upgrade Tag Definitions` | Defined and registered `QRTS-QuantityReadyToStartUpgradeTag-20261010` in `RegisterPerCompanyTags` for the upgrade step. |
 | Page | 20502 `Subc. Routing Info Factbox` | Added visible factbox field that reads `Quantity Ready to Start` via `RecordRef`/`FieldRef`. |
 | Report | 20505 `Subc. Calculate Subcontracts` | Added `Only Ready Operations` request-page toggle, skip logic for zero-readiness lines, and `QRTS-0003` telemetry. |
 | Test codeunit | 137141 `SCM Quantity Ready to Start` | Added manufacturing tests for field creation, posting thresholds, join/min behavior, and routing-edit recalculation. |
@@ -45,4 +45,21 @@ Subcontracting surfaces the new value in the factbox and in report 20505's reque
 - `subc-calc-subcontracts-readiness-toggle` — tests `Subc. Quantity Ready Test:CalculateSubcontractsKeepsZeroReadinessLinesWhenToggleDisabled`, `Subc. Quantity Ready Test:CalculateSubcontractsSkipsZeroReadinessLinesWhenToggleEnabled`, and `Subc. Quantity Ready Test:CalculateSubcontractsKeepsReadyLinesWhenToggleEnabled`; evidence: `C:\Repos\FeatureBuilderState\quantity-ready-to-start\artifacts\build\quantity-ready-to-start-subc-tests-results-v3\ALTest_20261010_204111.xml`.
 
 ## 6. Known Limitations / Follow-ups
-No blocked deliverables were recorded in `backlog.md`; there are no remaining follow-ups from this phase.
+No blocked deliverables were recorded in `backlog.md`. One round of Good Sense Reviewer feedback
+(review-gh-pr) was addressed before merge-readiness:
+- Fixed a join-operation minimum-across-predecessors calculation bug where a legitimate zero
+  readiness value from one predecessor could be overwritten by a later, larger predecessor value
+  (the `0` sentinel was ambiguous with "not yet set"). Added a dedicated regression test
+  (`QuantityReadyToStartUsesMinimumAcrossImmediatePredecessorsIncludingZero`).
+- Registered the new per-company upgrade tag in `RegisterPerCompanyTags` so new companies are
+  correctly bypassed by the standard upgrade-tag framework instead of relying on the upgrade
+  codeunit's own `IsEmpty` check.
+- Marked field 7308 `Quantity Ready to Start` `Editable = false` since it is a derived/computed
+  value, consistent with sibling accumulated fields on the same table.
+
+Remaining suggestions from that review round (moderate/minor severity, not blocking) are tracked
+for a future iteration: clarifying that the posting/routing-edit/upgrade/reopen recomputation runs
+unconditionally for all manufacturing customers regardless of the Subcontracting toggle; centralizing
+the hardcoded field number `7308` used via `RecordRef`/`FieldRef` in the Subcontracting app;
+aggregating the `QRTS-0003` telemetry event per report run instead of per skipped line; and aligning
+the new upgrade tag's naming convention with the `MS-<workitem>-...` pattern used by sibling tags.

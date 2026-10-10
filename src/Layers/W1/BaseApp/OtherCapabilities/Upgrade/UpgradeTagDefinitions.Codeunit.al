@@ -185,6 +185,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetQuantityReadyToStartUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
