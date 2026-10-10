@@ -18,7 +18,7 @@ codeunit 10035 "Helper IRIS"
 
     var
         IRSFormsFacade: Codeunit "IRS Forms Facade";
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        XMLUtilities: Codeunit "XML Utilities";
         TypeHelper: Codeunit "Type Helper";
         XMLDoc: XmlDocument;
         CurrXMLElement: array[100] of XmlElement;
@@ -71,7 +71,7 @@ codeunit 10035 "Helper IRIS"
         Clear(CurrXMLElement);
         Depth := 0;
 
-        UTF8BOMSymbols := XMLDOMManagement.GetUTF8BOMSymbols();
+        UTF8BOMSymbols := XMLUtilities.GetUtf8BomSymbols();
 
         XMLDoc := XmlDocument.Create();
         XMLDoc.SetDeclaration(XmlDeclaration.Create('1.0', 'UTF-8', 'yes'));
@@ -232,7 +232,7 @@ codeunit 10035 "Helper IRIS"
         Content: Text;
     begin
         TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
-        XMLDOMManagement.TryGetXMLAsText(BlobInStream, Content);
+        XMLUtilities.TryGetXmlAsText(BlobInStream, Content);
         exit(Content);
     end;
 
