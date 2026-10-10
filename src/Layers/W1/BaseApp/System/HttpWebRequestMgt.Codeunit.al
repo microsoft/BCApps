@@ -1,3 +1,4 @@
+#if not CLEAN30
 namespace System.Integration;
 
 using System;
@@ -10,6 +11,10 @@ using System.Xml;
 
 codeunit 1297 "Http Web Request Mgt."
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Http Web Request Mgt. relies on the .NET HttpWebRequest type and is being phased out. Use the native HttpClient, HttpRequestMessage and HttpResponseMessage data types instead.';
+    ObsoleteTag = '30.0';
+
     var
         [NonDebuggable]
         HttpWebRequest: DotNet HttpWebRequest;
@@ -571,3 +576,5 @@ codeunit 1297 "Http Web Request Mgt."
         end;
     end;
 }
+
+#endif
