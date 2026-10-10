@@ -82,19 +82,11 @@ codeunit 131300 "Library - ERM"
 
     procedure CheckPreview(PaymentJournal: TestPage "Payment Journal"): Text
     var
-#if not CLEAN27
-        CheckPreviewPage: TestPage "Check Preview GB";
-#else
         CheckPreviewPage: TestPage "Check Preview";
-#endif
     begin
         CheckPreviewPage.Trap();
         PaymentJournal.PreviewCheck.Invoke();
-#if not CLEAN27
-        exit(CheckPreviewPage.AmountInText.Value);
-#else
         exit(CheckPreviewPage.AmountText.Value);
-#endif
     end;
 
     procedure ClearGenJournalLines(GenJournalBatch: Record "Gen. Journal Batch")
