@@ -486,7 +486,7 @@ codeunit 1371 "Sales Batch Post Mgt."
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Raised to customize the intercompany batch file name.
     /// </summary>
@@ -496,7 +496,7 @@ codeunit 1371 "Sales Batch Post Mgt."
         OnGetICBatchFileName(Result);
     end;
 
-    [Obsolete('Moved to IC Sales Batch Processing Mgt.', '29.0')]
+    [Obsolete('Moved to IC Sales Batch Processing Mgt.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnGetICBatchFileName(var Result: Text)
     begin

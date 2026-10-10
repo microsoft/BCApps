@@ -2764,12 +2764,12 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "WHT Posting Setup";
                     }
                 }
-#if not CLEAN29
+#if not CLEAN30
                 group("Group62")
                 {
                     ObsoleteReason = 'Not used anymore';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 group("Group63")
@@ -2794,12 +2794,12 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "BAS XML Field Setup Names";
                     }
                 }
-#if not CLEAN29
+#if not CLEAN30
                 group("Group64")
                 {
                     ObsoleteReason = 'Not used anymore';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
             }

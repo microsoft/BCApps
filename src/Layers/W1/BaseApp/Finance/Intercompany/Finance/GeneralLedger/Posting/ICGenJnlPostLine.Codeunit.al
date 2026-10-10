@@ -28,7 +28,7 @@ codeunit 8411 "IC Gen. Jnl.-Post Line"
     begin
         IsHandled := false;
         OnBeforePostICPartner(GenJnlLine, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         GenJnlPostLine.RunOnBeforePostICPartner(GenJnlLine, IsHandled);
 #endif
         if IsHandled then
@@ -46,7 +46,7 @@ codeunit 8411 "IC Gen. Jnl.-Post Line"
 
         IsHandled := false;
         OnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, GenJnlPostLine, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         GenJnlPostLine.RunOnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, GenJnlPostLine.GetNextEntryNo(), IsHandled);
 #endif
         if not IsHandled then

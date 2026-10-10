@@ -26,7 +26,7 @@ codeunit 8505 "IC Sales-Post"
 
     var
         TempICGenJnlLine: Record "Gen. Journal Line" temporary;
-#if not CLEAN29
+#if not CLEAN30
         SalesPost: Codeunit "Sales-Post";
 #endif
         SalesTaxICOutboxAmt: Dictionary of [Integer, Decimal];
@@ -112,7 +112,7 @@ codeunit 8505 "IC Sales-Post"
     begin
         IsHandled := false;
         OnBeforeInsertICGenJnlLine(TempICGenJnlLine, SalesHeader, SalesLine, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         SalesPost.RunOnBeforeInsertICGenJnlLine(TempICGenJnlLine, SalesHeader, SalesLine, IsHandled);
 #endif
         if IsHandled then
@@ -225,7 +225,7 @@ codeunit 8505 "IC Sales-Post"
     begin
         IsHandled := false;
         OnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLine, SalesLine, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         SalesPost.RunOnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLine, SalesLine, IsHandled);
 #endif
         if IsHandled then
@@ -382,7 +382,7 @@ codeunit 8505 "IC Sales-Post"
     begin
         IsHandled := false;
         OnBeforeSendICDocument(SalesHeader, ModifyHeader, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         SalesPost.RunOnBeforeSendICDocument(SalesHeader, ModifyHeader, IsHandled);
 #endif
         if IsHandled then
@@ -396,7 +396,7 @@ codeunit 8505 "IC Sales-Post"
             SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
             IsHandled := false;
             OnSendICDocumentOnBeforeSetICStatus(SalesHeader, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
             SalesPost.RunOnSendICDocumentOnBeforeSetICStatus(SalesHeader, IsHandled);
 #endif
             if not IsHandled then
@@ -413,7 +413,7 @@ codeunit 8505 "IC Sales-Post"
     begin
         IsHandled := false;
         OnBeforeUpdateHandledICInboxTransaction(SalesHeader, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
         SalesPost.RunOnBeforeUpdateHandledICInboxTransaction(SalesHeader, IsHandled);
 #endif
         if IsHandled then

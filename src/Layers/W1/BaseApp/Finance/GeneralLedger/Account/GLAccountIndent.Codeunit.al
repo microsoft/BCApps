@@ -93,12 +93,12 @@ codeunit 3 "G/L Account-Indent"
         OnAfterIndent();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Runs the indentation process for Intercompany G/L Accounts with user confirmation.
     /// Updates the indentation levels based on account hierarchy structure.
     /// </summary>
-    [Obsolete('Moved to codeunit ICGLAccountIndent', '29.0')]
+    [Obsolete('Moved to codeunit ICGLAccountIndent', '30.0')]
     procedure RunICAccountIndent()
     var
         ICGLAccountIndent: Codeunit "IC G/L Account-Indent";
@@ -127,7 +127,7 @@ codeunit 3 "G/L Account-Indent"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeIndentICAccount(var GLAcc: Record "G/L Account"; var IsHandled: Boolean)
     begin
         OnBeforeIndentICAccount(GLAcc, IsHandled);
@@ -139,7 +139,7 @@ codeunit 3 "G/L Account-Indent"
     /// </summary>
     /// <param name="GLAcc">Intercompany general ledger account being processed</param>
     /// <param name="IsHandled">Set to true to skip default intercompany indentation logic</param>
-    [Obsolete('Moved to codeunit 8432 "IC G/L Account-Indent"', '29.0')]
+    [Obsolete('Moved to codeunit 8432 "IC G/L Account-Indent"', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIndentICAccount(var GLAcc: Record "G/L Account"; var IsHandled: Boolean)
     begin

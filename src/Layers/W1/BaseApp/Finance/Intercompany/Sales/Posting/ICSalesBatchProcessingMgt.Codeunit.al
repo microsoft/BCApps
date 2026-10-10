@@ -25,7 +25,7 @@ codeunit 8507 "IC Sales Batch Processing Mgt."
     end;
 
     local procedure GetICBatchFileName() Result: Text
-#if not CLEAN29
+#if not CLEAN30
     var
         SalesBatchPostMgt: Codeunit "Sales Batch Post Mgt.";
 #endif
@@ -33,7 +33,7 @@ codeunit 8507 "IC Sales Batch Processing Mgt."
         Result := StrSubstNo(InterCompanyZipFileNamePatternTok, Format(WorkDate(), 10, '<Year4>-<Month,2>-<Day,2>'));
 
         OnGetICBatchFileName(Result);
-#if not CLEAN29
+#if not CLEAN30
         SalesBatchPostMgt.RunOnGetICBatchFileName(Result);
 #endif
     end;

@@ -2815,12 +2815,12 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the VAT Product Posting Groups page.';
                     }
                 }
-#if not CLEAN29
+#if not CLEAN30
                 group("Group62")
                 {
                     ObsoleteReason = 'This group not used anymore.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
 
                 }
 #endif

@@ -364,13 +364,13 @@ codeunit 1372 "Purchase Batch Post Mgt."
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnGetICBatchFileName(var Result: Text)
     begin
         OnGetICBatchFileName(Result);
     end;
 
-    [Obsolete('Moved to ICPurchPost.Codeunit', '29.0')]
+    [Obsolete('Moved to ICPurchPost.Codeunit', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnGetICBatchFileName(var Result: Text)
     begin

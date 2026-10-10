@@ -9767,7 +9767,7 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Raised before inserting an intercompany general journal line.
     /// </summary>
@@ -9780,7 +9780,7 @@ codeunit 80 "Sales-Post"
         OnBeforeInsertICGenJnlLine(ICGenJournalLine, SalesHeader, SalesLine, CommitIsSuppressed);
     end;
 
-    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
+    [Obsolete('Moved to codeunit IC Sales-Post', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertICGenJnlLine(var ICGenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean)
     begin
@@ -10571,7 +10571,7 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Raised before checking G/L account direct posting settings.
     /// </summary>
@@ -10582,7 +10582,7 @@ codeunit 80 "Sales-Post"
         OnBeforeCheckGLAccountDirectPosting(SalesLine, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
+    [Obsolete('Moved to codeunit IC Sales-Post', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLAccountDirectPosting(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -11020,7 +11020,7 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Raised before sending the intercompany document.
     /// </summary>
@@ -11032,7 +11032,7 @@ codeunit 80 "Sales-Post"
         OnBeforeSendICDocument(SalesHeader, ModifyHeader, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
+    [Obsolete('Moved to codeunit IC Sales-Post', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
@@ -11213,7 +11213,7 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     /// <summary>
     /// Raised before updating the handled intercompany inbox transaction.
     /// </summary>
@@ -11224,7 +11224,7 @@ codeunit 80 "Sales-Post"
         OnBeforeUpdateHandledICInboxTransaction(SalesHeader, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
+    [Obsolete('Moved to codeunit IC Sales-Post', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateHandledICInboxTransaction(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -13039,13 +13039,13 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnSendICDocumentOnBeforeSetICStatus(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
         OnSendICDocumentOnBeforeSetICStatus(SalesHeader, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
+    [Obsolete('Moved to codeunit IC Sales-Post', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnSendICDocumentOnBeforeSetICStatus(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -13267,13 +13267,13 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLineParam: Record "Gen. Journal Line" temporary; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
         OnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLineParam, SalesLine, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit IC Sales-Post', '29.0')]
+    [Obsolete('Moved to codeunit IC Sales-Post', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLine: Record "Gen. Journal Line" temporary; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin

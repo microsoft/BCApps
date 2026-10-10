@@ -223,7 +223,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradePurchasesPayablesAndSalesReceivablesSetups();
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
-#if not CLEAN29
+#if not CLEAN30
         UpgradeDirectTransferPostingToEnum();
 #endif
         UpgradeDirectTransferOnTransferRoute();
