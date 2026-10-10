@@ -9,6 +9,7 @@ codeunit 1530 "Request Page Parameters Helper"
     var
         DataItemPathTxt: Label '/ReportParameters/DataItems/DataItem', Locked = true;
         OptionPathTxt: Label '/ReportParameters/Options/Field', Locked = true;
+        DataItemTableNameTxt: Label 'Table%1', Comment = '%1 = table number', Locked = true;
 #pragma warning disable AA0470
         XmlNodesNotFoundErr: Label 'The XML Nodes at %1 cannot be found in the XML Document %2.';
 #pragma warning restore AA0470
@@ -382,7 +383,7 @@ codeunit 1530 "Request Page Parameters Helper"
             TableView := TableFilter.Value;
             if TableView <> '' then
                 DataItemXmlElement.Add(XmlText.Create(TableView));
-            DataItemXmlElement.SetAttribute('name', StrSubstNo('Table%1', TableFilter.Key));
+            DataItemXmlElement.SetAttribute('name', StrSubstNo(DataItemTableNameTxt, TableFilter.Key));
             DataItemsXmlElement.Add(DataItemXmlElement);
         end;
 
