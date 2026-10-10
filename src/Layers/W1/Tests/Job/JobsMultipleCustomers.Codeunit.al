@@ -35,6 +35,7 @@ codeunit 136323 "Jobs - Multiple Customers"
         PostedJournalLinesMsg: Label 'The journal lines were successfully posted.';
         UpdateBillToCustMsg: Label 'You have changed a customer. Prices and costs needs to be updated on a related lines.\\Do you want to update related lines?';
         MultipleInvoiceCreatedMsg: Label '%1 invoices are created.', Comment = '%1= Invoice count';
+        CustomerBlockedErr: Label 'You cannot create this type of document when Customer %1 is blocked with type %2', Comment = '%1 - Customer No, %2 - Blocked Type';
 
     [Test]
     procedure DefaultTaskBillingMethodIsPulledOnNewProject()
@@ -1704,6 +1705,40 @@ codeunit 136323 "Jobs - Multiple Customers"
 
         // [THEN] Verify results
         Assert.ExpectedError(StrSubstNo(AssociatedEntriesExistErr, JobTask.FieldCaption("Bill-to Customer No."), JobTask.TableCaption()));
+    end;
+
+    [Test]
+    procedure CheckBlockedBillToCustomerOnJobTask()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        SellToCustomer: Record Customer;
+        BlockedCustomer: Record Customer;
+    begin
+        // [SCENARIO 9559] A blocked customer cannot be set as Bill-to Customer on a Project Task
+        Initialize();
+
+        // [GIVEN] Set Multiple Customers on Project Setup
+        SetMultiupleCustomersOnProjectSetup();
+
+        // [GIVEN] Create a Customer that is not blocked and a Customer blocked with type All
+        LibrarySales.CreateCustomer(SellToCustomer);
+        LibrarySales.CreateCustomer(BlockedCustomer);
+        BlockedCustomer.Validate(Blocked, BlockedCustomer.Blocked::All);
+        BlockedCustomer.Modify(true);
+
+        // [GIVEN] Create new Project with the Customer that is not blocked
+        LibraryJob.CreateJob(Job, SellToCustomer."No.");
+
+        // [GIVEN] Create new Project Task
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [WHEN] Update Bill-to Customer on Project Task
+        JobTask.SetHideValidationDialog(true);
+        asserterror JobTask.Validate("Bill-to Customer No.", BlockedCustomer."No.");
+
+        // [THEN] Verify results
+        Assert.ExpectedError(StrSubstNo(CustomerBlockedErr, BlockedCustomer."No.", BlockedCustomer.Blocked));
     end;
 
     [Test]
