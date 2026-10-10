@@ -1,0 +1,435 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Sales.SalesFR;
+
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
+#if CLEAN30
+using System.Reflection;
+#endif
+using System.TestLibraries.Utilities;
+
+codeunit 148004 "ERM Sales Report"
+{
+    Subtype = Test;
+    TestType = IntegrationTest;
+    TestPermissions = Disabled;
+
+    trigger OnRun()
+    begin
+        // [FEATURE] [Sales] [Report]
+        isInitialized := false;
+    end;
+
+    var
+        CompanyInformation: Record "Company Information";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+#if CLEAN30
+        Assert: Codeunit Assert;
+#endif
+        isInitialized: Boolean;
+#if CLEAN30
+        SalesFRAppIdTok: Label '8df591a3-d767-4475-8bff-44b8b5527477', Locked = true;
+#endif
+
+    [Test]
+    [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
+    procedure StandardSalesInvoice_HasSirenNo()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+    begin
+        // [FEATURE] [Sales Invoice]
+        // [SCENARIO 467032] Test Report "Standard Sales - Invoice" with Customer having SIREN No.
+        Initialize();
+
+        // [GIVEN] A Customer with a Siren No.
+        CreateCustomerWithSirenNo(Customer);
+
+        // [GIVEN] A Sales Invoice for this Customer
+        LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, Customer."No.");
+
+        // [GIVEN] Posted Sales Invoice
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] Run report "Standard Sales - Invoice" for Posted Sales Invoice
+        LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
+        Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
+
+        // [THEN] Report DataSet contains Customer."SIREN No." with caption
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('CustomerSirenNo', Customer.GetSIRENNoWithCaptionFR());
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
+    procedure StandardSalesDraftInvoice_HasSirenNo()
+    var
+        SalesHeader: Record "Sales Header";
+        Customer: Record Customer;
+    begin
+        // [FEATURE] [Sales Draft Invoice]
+        // [SCENARIO 467032] Test Report "Standard Sales - Draft Invoice" with Customer having SIREN No.
+        Initialize();
+
+        // [GIVEN] A Customer with a Siren No.
+        CreateCustomerWithSirenNo(Customer);
+
+        // [GIVEN] A Sales Invoice for this Customer
+        LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, Customer."No.");
+        SalesHeader.SetRecFilter();
+        Commit();
+
+        // [WHEN] Run report "Standard Sales - Draft Invoice" for Sales Invoice
+        LibraryVariableStorage.Enqueue(true); // request page opened expectation
+        Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
+
+        // [THEN] Report DataSet contains Customer."SIREN No." with caption
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('CustomerSirenNo', Customer.GetSIRENNoWithCaptionFR());
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('StdSalesCrMemoRequestPageHandler')]
+    procedure StandardSalesCreditMemo_HasSirenNo()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        Customer: Record Customer;
+    begin
+        // [FEATURE] [Sales Credit Memo]
+        // [SCENARIO 467032] Test Report "Standard Sales - Credit Memo" with Customer having SIREN No.
+        Initialize();
+
+        // [GIVEN] A Customer with a Siren No.
+        CreateCustomerWithSirenNo(Customer);
+
+        // [GIVEN] A Credit Memo for this Customer
+        LibrarySales.CreateSalesCreditMemoForCustomerNo(SalesHeader, Customer."No.");
+
+        // [GIVEN] Posted Sales Credit Memo
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesCrMemoHeader.SetRecFilter();
+
+        // [WHEN] Run report "Standard Sales - Credit Memo" for Posted Sales Invoice
+        LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
+        Report.Run(Report::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
+
+        // [THEN] Report DataSet contains Customer."SIREN No." with caption
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('CustomerSirenNo', Customer.GetSIRENNoWithCaptionFR());
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
+    procedure StandardSalesInvoice_VATPaidOnDebitsTrue()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [FEATURE] [Sales Invoice]
+        // [SCENARIO 467032] Test Report "Standard Sales - Invoice" with "VAT Paid on Debits" = true.
+        Initialize();
+
+        // [GIVEN] Create a Sales Invoice with "VAT Paid on Debits" = true
+        CreateSalesInvoiceWithVATPaidOnDebits(SalesHeader, true);
+
+        // [GIVEN] Posted Sales Invoice
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] Run report "Standard Sales - Invoice" for Posted Sales Invoice
+        LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
+        Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
+
+        // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', SalesInvoiceHeader.FieldCaption("VAT Paid on Debits FR"));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
+    procedure StandardSalesInvoice_VATPaidOnDebitsFalse()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [FEATURE] [Sales Invoice]
+        // [SCENARIO 467032] Test Report "Standard Sales - Invoice" with "VAT Paid on Debits" = false.
+        Initialize();
+
+        // [GIVEN] Create a Sales Invoice with "VAT Paid on Debits" = false
+        CreateSalesInvoiceWithVATPaidOnDebits(SalesHeader, false);
+
+        // [GIVEN] Posted Sales Invoice
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] Run report "Standard Sales - Invoice" for Posted Sales Invoice
+        LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
+        Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
+
+        // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
+    procedure StandardSalesDraftInvoice_VATPaidOnDebitsTrue()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [Sales Draft Invoice]
+        // [SCENARIO 467032] Test Report "Standard Sales - Draft Invoice" with "VAT Paid on Debits" = true.
+        Initialize();
+
+        // [GIVEN] Create a Sales Invoice with "VAT Paid on Debits" = true
+        CreateSalesInvoiceWithVATPaidOnDebits(SalesHeader, true);
+        SalesHeader.SetRecFilter();
+        Commit();
+
+        // [WHEN] Run report "Standard Sales - Draft Invoice" for Sales Invoice
+        LibraryVariableStorage.Enqueue(true); // request page opened expectation
+        Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
+
+        // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', SalesHeader.FieldCaption("VAT Paid on Debits FR"));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
+    procedure StandardSalesDraftInvoice_VATPaidOnDebitsFalse()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [Sales Draft Invoice]
+        // [SCENARIO 467032] Test Report "Standard Sales - Draft Invoice" with "VAT Paid on Debits" = false.
+        Initialize();
+
+        // [GIVEN] Create a Sales Invoice with "VAT Paid on Debits" = false
+        CreateSalesInvoiceWithVATPaidOnDebits(SalesHeader, false);
+        SalesHeader.SetRecFilter();
+        Commit();
+
+        // [WHEN] Run report "Standard Sales - Draft Invoice" for Sales Invoice
+        LibraryVariableStorage.Enqueue(true); // request page opened expectation
+        Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
+
+        // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('StdSalesCrMemoRequestPageHandler')]
+    procedure StandardSalesCreditMemo_VATPaidOnDebitsTrue()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+    begin
+        // [FEATURE] [Sales Credit Memo]
+        // [SCENARIO 467032] Test Report "Standard Sales - Credit Memo" with "VAT Paid on Debits" = true.
+        Initialize();
+
+        // [GIVEN] Create a Sales Credit Memo with "VAT Paid on Debits" = true
+        CreateSalesCreditMemoWithVATPaidOnDebits(SalesHeader, true);
+
+        // [GIVEN] Posted Sales Credit Memo
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesCrMemoHeader.SetRecFilter();
+
+        // [WHEN] Run report "Standard Sales - Credit Memo" for Posted Sales Credit Memo
+        LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
+        REPORT.Run(REPORT::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
+
+        // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', SalesCrMemoHeader.FieldCaption("VAT Paid on Debits FR"));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('StdSalesCrMemoRequestPageHandler')]
+    procedure StandardSalesCreditMemo_VATPaidOnDebitsFalse()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+    begin
+        // [FEATURE] [Sales Credit Memo]
+        // [SCENARIO 467032] Test Report "Standard Sales - Credit Memo" with "VAT Paid on Debits" = false.
+        Initialize();
+
+        // [GIVEN] Create a Sales Credit Memo with "VAT Paid on Debits" = false
+        CreateSalesCreditMemoWithVATPaidOnDebits(SalesHeader, false);
+
+        // [GIVEN] Posted Sales Credit Memo
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesCrMemoHeader.SetRecFilter();
+
+        // [WHEN] Run report "Standard Sales - Credit Memo" for Posted Sales Credit Memo
+        LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
+        REPORT.Run(REPORT::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
+
+        // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+#if CLEAN30
+    [Test]
+    procedure FRLayoutsAreRegisteredOnW1Reports()
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        // [SCENARIO] The FR layouts are published as layouts of the W1 reports, not of a copied report.
+        Initialize();
+
+        // [THEN] Each W1 report has the FR Word layout registered by the Sales FR app
+        ReportLayoutList.SetRange("Application ID", SalesFRAppIdTok);
+
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Invoice");
+        ReportLayoutList.SetRange(Name, 'StandardSalesInvoiceFR.docx');
+        Assert.RecordIsNotEmpty(ReportLayoutList);
+
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Credit Memo");
+        ReportLayoutList.SetRange(Name, 'StandardSalesCreditMemoFR.docx');
+        Assert.RecordIsNotEmpty(ReportLayoutList);
+
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Draft Invoice");
+        ReportLayoutList.SetRange(Name, 'StandardSalesDraftInvoiceFR.docx');
+        Assert.RecordIsNotEmpty(ReportLayoutList);
+    end;
+
+#endif
+    local procedure Initialize()
+    begin
+        InitializeCompanyInformation();
+        LibraryApplicationArea.DisableApplicationAreaSetup();
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Sales Report");
+        LibrarySetupStorage.Restore();
+        LibraryVariableStorage.Clear();
+
+        // Lazy Setup.
+        if isInitialized then
+            exit;
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ERM Sales Report");
+
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibrarySales.SetInvoiceRounding(false);
+
+        isInitialized := true;
+        Commit();
+
+        LibrarySetupStorage.Save(Database::"General Ledger Setup");
+        LibrarySetupStorage.Save(Database::"Sales & Receivables Setup");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ERM Sales Report");
+    end;
+
+    local procedure CreateCustomerWithSirenNo(var Customer: Record Customer)
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("SIREN No. FR", CopyStr(LibraryUtility.GenerateRandomNumericText(9), 1, MaxStrLen(Customer."SIREN No. FR")));
+#if not CLEAN30
+#pragma warning disable AL0432
+        // Default builds still read the legacy BaseApp fields.
+        Customer.Validate("SIREN No.", Customer."SIREN No. FR");
+#pragma warning restore AL0432
+#endif
+        Customer.Modify(true);
+    end;
+
+    local procedure CreateSalesInvoiceWithVATPaidOnDebits(var SalesHeader: Record "Sales Header"; VATPaidOnDebits: Boolean)
+    begin
+        LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
+        SalesHeader.Validate("VAT Paid on Debits FR", VATPaidOnDebits);
+#if not CLEAN30
+#pragma warning disable AL0432
+        SalesHeader.Validate("VAT Paid on Debits", VATPaidOnDebits);
+#pragma warning restore AL0432
+#endif
+        SalesHeader.Modify();
+    end;
+
+    local procedure CreateSalesCreditMemoWithVATPaidOnDebits(var SalesHeader: Record "Sales Header"; VATPaidOnDebits: Boolean)
+    begin
+        LibrarySales.CreateSalesCreditMemoForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
+        SalesHeader.Validate("VAT Paid on Debits FR", VATPaidOnDebits);
+#if not CLEAN30
+#pragma warning disable AL0432
+        SalesHeader.Validate("VAT Paid on Debits", VATPaidOnDebits);
+#pragma warning restore AL0432
+#endif
+        SalesHeader.Modify();
+    end;
+
+    local procedure IsPaymentInfoAvailbleInCompanyInformation(): Boolean
+    begin
+        exit(
+          ((CompanyInformation."Giro No." + CompanyInformation.IBAN + CompanyInformation."Bank Name" + CompanyInformation."Bank Branch No." + CompanyInformation."Bank Account No." + CompanyInformation."SWIFT Code") <> '') or
+          CompanyInformation."Allow Blank Payment Info.");
+    end;
+
+    local procedure InitializeCompanyInformation()
+    begin
+        CompanyInformation.Get();
+        if not IsPaymentInfoAvailbleInCompanyInformation() then begin
+            CompanyInformation."Giro No." := '888-9999';
+            CompanyInformation.IBAN := 'GB 12 CPBK 08929965044991';
+            CompanyInformation."Bank Branch No." := 'BG99999';
+            CompanyInformation."Bank Account No." := '99-99-888';
+            CompanyInformation.Modify(false);
+        end;
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
+    begin
+        StandardSalesInvoice.DisplayShipmentInformation.SetValue(LibraryVariableStorage.DequeueBoolean());
+        StandardSalesInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure DraftSalesInvoiceRequestPageHandler(var StandardSalesDraftInvoice: TestRequestPage "Standard Sales - Draft Invoice")
+    begin
+        // Consume the queued expectation so the test can assert the request page was opened exactly once.
+        LibraryVariableStorage.DequeueBoolean();
+        StandardSalesDraftInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure StdSalesCrMemoRequestPageHandler(var StandardSalesCreditMemo: TestRequestPage "Standard Sales - Credit Memo")
+    begin
+        if StandardSalesCreditMemo.Editable then;
+        StandardSalesCreditMemo.DisplayShipmentInformation.SetValue(LibraryVariableStorage.DequeueBoolean());
+        StandardSalesCreditMemo.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        Sleep(200);
+    end;
+}

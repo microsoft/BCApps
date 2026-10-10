@@ -946,10 +946,20 @@ table 5050 Contact
             Caption = 'Stock Capital';
             OptimizeForTextSearch = true;
         }
+#if not CLEANSCHEMA33
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -1321,7 +1331,11 @@ table 5050 Contact
 
         if "No." <> '' then
             if IsUpdateNeeded(ContactBeforeModify) then
+#if not CLEAN30
                 UpdateRelatedRecordsPreservingCustomerSIREN();
+#else
+                UpdateCustVendBank.Run(Rec);
+#endif
 
         if Type = Type::Company then begin
             RMSetup.Get();
@@ -3621,6 +3635,7 @@ table 5050 Contact
           WarningMessage);
     end;
 
+#if not CLEAN30
     local procedure UpdateRelatedRecordsPreservingCustomerSIREN()
     var
         Customer: Record Customer;
@@ -3653,6 +3668,7 @@ table 5050 Contact
         Customer."SIREN No." := SIRENNo;
         Customer.Modify();
     end;
+#endif
 
     internal procedure LookupNewVendorTemplate(): Code[20]
     var
