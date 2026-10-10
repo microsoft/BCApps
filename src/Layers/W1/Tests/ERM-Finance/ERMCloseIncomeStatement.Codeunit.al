@@ -724,7 +724,7 @@ codeunit 134228 "ERM Close Income Statement"
     procedure CloseIncomeStatementPostsSourceVATOnlyGroupWithAdditionalReportingCurrency()
     begin
         // [SCENARIO] A source-VAT-only group is posted when Additional Reporting Currency is enabled.
-        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(true);
+        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(true, 0, PostToRetainedEarningsAcc::Balance);
     end;
 
     [Test]
@@ -733,16 +733,35 @@ codeunit 134228 "ERM Close Income Statement"
     procedure CloseIncomeStatementPostsSourceVATOnlyGroupWithoutAdditionalReportingCurrency()
     begin
         // [SCENARIO] Posting the closing journal preserves source VAT when Additional Reporting Currency is disabled.
-        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(false);
+        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(false, 0, PostToRetainedEarningsAcc::Balance);
     end;
 
-    local procedure VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(UseAdditionalReportingCurrency: Boolean)
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementDoesNotCopySourceVATToRetainedEarnings()
+    begin
+        // [SCENARIO] A nonzero closing balance does not copy source VAT to retained earnings.
+        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(false, 10, PostToRetainedEarningsAcc::Balance);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementDoesNotCopySourceVATToDetailedRetainedEarnings()
+    begin
+        // [SCENARIO] Detailed closing preserves source VAT only on the income account.
+        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(false, 10, PostToRetainedEarningsAcc::Details);
+    end;
+
+    local procedure VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(UseAdditionalReportingCurrency: Boolean; ClosingAmount: Decimal; RetainedEarningsPosting: Option)
     var
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         GLAccountNo: Code[20];
+        RetainedEarningsAccountNo: Code[20];
         SourceCurrencyCode: Code[10];
         DocumentNo: Code[20];
         PostingDate: Date;
@@ -755,8 +774,9 @@ codeunit 134228 "ERM Close Income Statement"
             UpdateCurOnGeneralLedgerSetup(CreateCurrency())
         else
             UpdateCurOnGeneralLedgerSetup('');
-        if not VATPostingSetup.Get('', '') then
-            LibraryERM.CreateVATPostingSetup(VATPostingSetup, '', '');
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", '');
+        VATPostingSetup.SetRange("VAT Prod. Posting Group", '');
+        VATPostingSetup.DeleteAll();
         SourceCurrencyCode := CreateCurrency();
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
         LibraryERM.ClearGenJournalLines(GenJournalBatch);
@@ -766,24 +786,49 @@ codeunit 134228 "ERM Close Income Statement"
         GLAccountNo := LibraryERM.CreateGLAccountNo();
         PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
         InsertGLEntryForCloseIncome(
-            PostingDate, GLAccountNo, 0, 0, SourceCurrencyCode, 0, 3, 0, '', '', '');
+            PostingDate, GLAccountNo, ClosingAmount, 0, SourceCurrencyCode, 0, 3, 0, '', '', '');
 
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         DocumentNo := LibraryUtility.GenerateGUID();
         RunCloseIncomeStatement(
             GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
-            PostToRetainedEarningsAcc::Balance, false, false, DocumentNo);
+            RetainedEarningsPosting, false, false, DocumentNo);
 
-        if not UseAdditionalReportingCurrency then
+        if not UseAdditionalReportingCurrency then begin
+            if ClosingAmount <> 0 then begin
+                GenJournalLine.SetRange("Document No.", DocumentNo);
+                if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then begin
+                    GenJournalLine.SetFilter("Account No.", '<>%1', GLAccountNo);
+                    GenJournalLine.SetRange(Amount, ClosingAmount);
+                end else
+                    GenJournalLine.SetRange("Account No.", GLAccountNo);
+                Assert.RecordCount(GenJournalLine, 1);
+                GenJournalLine.FindFirst();
+                if RetainedEarningsPosting = PostToRetainedEarningsAcc::Balance then begin
+                    RetainedEarningsAccountNo := GenJournalLine."Account No.";
+                    Assert.AreEqual(0, GenJournalLine."Source Curr. VAT Amount", 'Incorrect retained earnings source currency VAT amount.');
+                end else
+                    RetainedEarningsAccountNo := GenJournalLine."Bal. Account No.";
+                GenJournalLine.Reset();
+            end;
             LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        end;
 
         GLEntry.SetRange("Document No.", DocumentNo);
         GLEntry.SetRange("G/L Account No.", GLAccountNo);
         Assert.RecordCount(GLEntry, 1);
         GLEntry.FindFirst();
-        Assert.AreEqual(0, GLEntry.Amount, 'Incorrect closing amount.');
+        Assert.AreEqual(-ClosingAmount, GLEntry.Amount, 'Incorrect closing amount.');
         Assert.AreEqual(-3, GLEntry."Source Currency VAT Amount", 'Incorrect closing source currency VAT amount.');
+
+        if RetainedEarningsAccountNo <> '' then begin
+            GLEntry.SetRange("G/L Account No.", RetainedEarningsAccountNo);
+            Assert.RecordCount(GLEntry, 1);
+            GLEntry.FindFirst();
+            Assert.AreEqual(ClosingAmount, GLEntry.Amount, 'Incorrect retained earnings amount.');
+            Assert.AreEqual(0, GLEntry."Source Currency VAT Amount", 'Incorrect retained earnings source currency VAT amount.');
+        end;
     end;
 
     [Test]

@@ -231,6 +231,7 @@ report 94 "Close Income Statement"
                       GenJnlLine."Additional-Currency Posting"::None;
                     GenJnlLine.Validate(Amount, TotalAmount);
                     GenJnlLine."Source Currency Amount" := TotalAmountAddCurr;
+                    GenJnlLine."Source Curr. VAT Amount" := 0;
                     if GenJnlLine.Amount < 0 then
                         GenJnlLine."Account No." := NetProfitAccount."No."
                     else
