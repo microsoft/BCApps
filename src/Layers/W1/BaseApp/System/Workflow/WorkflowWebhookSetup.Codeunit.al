@@ -26,6 +26,7 @@ codeunit 1540 "Workflow Webhook Setup"
         RequisitionWkshBatchApprovalDescriptionTxt: Label 'Requisition Worksheet Batch Approval Workflow', Locked = true;
         InventoryCategoryTxt: Label 'INV', Locked = true;
         ItemJournalBatchApprovalDescriptionTxt: Label 'Item Journal Batch Approval Workflow', Locked = true;
+        FAJournalBatchApprovalDescriptionTxt: Label 'Fixed Asset Journal Batch Approval Workflow', Locked = true;
 
     [Scope('OnPrem')]
     procedure CreateWorkflowDefinition(EventCode: Code[128]; Name: Text[100]; EventConditions: Text; ResponseUserID: Code[50]): Code[20]
@@ -45,6 +46,8 @@ codeunit 1540 "Workflow Webhook Setup"
                 exit(CreateItemJournalBatchApprovalWorkflow(Name, EventConditions, ResponseUserID));
             WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode():
                 exit(CreateRequisitionWkshBatchApprovalWorkflow(Name, EventConditions, ResponseUserID));
+            WorkflowEventHandling.RunWorkflowOnSendFAJournalBatchForApprovalCode():
+                exit(CreateFAJournalBatchApprovalWorkflow(Name, EventConditions, ResponseUserID));
             WorkflowEventHandling.RunWorkflowOnSendPurchaseDocForApprovalCode():
                 exit(CreatePurchaseDocumentApprovalWorkflow(Name, EventConditions, ResponseUserID));
             WorkflowEventHandling.RunWorkflowOnSendSalesDocForApprovalCode():
@@ -230,6 +233,26 @@ codeunit 1540 "Workflow Webhook Setup"
         ParentStepID := StepID;
 
         CreateRequisitionWkshWorkflowNotificationSteps(WorkflowCode, ParentStepID);
+    end;
+
+    local procedure CreateFAJournalBatchApprovalWorkflowSteps(WorkflowCode: Code[20]; Name: Text[100]; Category: Code[20]; EventCode: Code[128]; EventConditions: Text; ResponseUserID: Code[50])
+    var
+        WorkflowResponseHandling: Codeunit "Workflow Response Handling";
+        WorkflowWebhookResponses: Codeunit "Workflow Webhook Responses";
+        EmptyUserID: Code[50];
+        ParentStepID: Integer;
+        StepID: Integer;
+    begin
+        EmptyUserID := '';
+
+        InitializeWorkflow(WorkflowCode, Name, Category);
+
+        StepID := CreateEventStep(WorkflowCode, true, 0, EventCode, 1, EventConditions);
+        StepID := CreateResponseStep(WorkflowCode, StepID, WorkflowResponseHandling.RestrictRecordUsageCode(), 0, EmptyUserID);
+        StepID := CreateResponseStep(WorkflowCode, StepID, WorkflowWebhookResponses.SendNotificationToWebhookCode(), 0, ResponseUserID);
+        ParentStepID := StepID;
+
+        CreateFAJournalWorkflowNotificationSteps(WorkflowCode, ParentStepID);
     end;
 
     local procedure CreateArgumentForEvent(EventConditions: Text): Guid
@@ -471,6 +494,45 @@ codeunit 1540 "Workflow Webhook Setup"
             Name := RequisitionWkshBatchApprovalDescriptionTxt;
 
         CreateRequisitionWkshBatchApprovalWorkflowSteps(WorkflowCode, Name, PurchPayCategoryTxt, WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode(), EventConditions, ResponseUserID);
+
+        exit(WorkflowCode);
+    end;
+
+    local procedure CreateFAJournalWorkflowNotificationSteps(WorkflowCode: Code[20]; ParentStepId: Integer)
+    var
+        DummyWorkflowWebhookEntry: Record "Workflow Webhook Entry";
+        WorkflowResponseHandling: Codeunit "Workflow Response Handling";
+        WorkflowWebhookEvents: Codeunit "Workflow Webhook Events";
+        EmptyUserID: Code[50];
+        NotificationEventConditions: Text;
+        StepID: Integer;
+    begin
+        EmptyUserID := '';
+
+        NotificationEventConditions := CreateEventCondition(DummyWorkflowWebhookEntry.Response::Continue);
+        StepID := CreateEventStep(WorkflowCode, false, ParentStepId, WorkflowWebhookEvents.WorkflowWebhookResponseReceivedEventCode(), 2, NotificationEventConditions);
+        StepID := CreateResponseStep(WorkflowCode, StepID, WorkflowResponseHandling.AllowRecordUsageCode(), 0, EmptyUserID);
+
+        NotificationEventConditions := CreateEventCondition(DummyWorkflowWebhookEntry.Response::Reject);
+        StepID := CreateEventStep(WorkflowCode, false, ParentStepId, WorkflowWebhookEvents.WorkflowWebhookResponseReceivedEventCode(), 3, NotificationEventConditions);
+
+        NotificationEventConditions := CreateEventCondition(DummyWorkflowWebhookEntry.Response::Cancel);
+        StepID := CreateEventStep(WorkflowCode, false, ParentStepId, WorkflowWebhookEvents.WorkflowWebhookResponseReceivedEventCode(), 4, NotificationEventConditions);
+    end;
+
+    local procedure CreateFAJournalBatchApprovalWorkflow(Name: Text[100]; EventConditions: Text; ResponseUserID: Code[50]) WorkflowCode: Code[20]
+    var
+        Workflow: Record Workflow;
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+    begin
+        WorkflowCode := 'MS-FAJBAW-WH-01';
+        while Workflow.Get(WorkflowCode) do
+            WorkflowCode := IncStr(WorkflowCode);
+
+        if Name = '' then
+            Name := FAJournalBatchApprovalDescriptionTxt;
+
+        CreateFAJournalBatchApprovalWorkflowSteps(WorkflowCode, Name, FinCategoryTxt, WorkflowEventHandling.RunWorkflowOnSendFAJournalBatchForApprovalCode(), EventConditions, ResponseUserID);
 
         exit(WorkflowCode);
     end;
