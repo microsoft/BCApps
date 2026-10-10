@@ -46,7 +46,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
                 Processed := true;
             until ItemLedgerEntry.Next() = 0;
 
-        OnReverseProdItemLedgerEntryOnAfterProcessItemLedgerEntries(ItemLedgerEntry);
+        OnReverseProdItemLedgerEntryOnAfterProcessItemLedgerEntries(ItemLedgerEntry, Processed, HideDialog);
 
         if Processed and not HideDialog then
             Message(PostedSuccessfullyMsg);
@@ -66,6 +66,8 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
                 OnReverseCapacityLedgerEntryOnAfterReverseOutputCapacityLedgerEntry(CapacityLedgEntry);
                 Processed := true;
             until CapacityLedgEntry.Next() = 0;
+
+        OnReverseCapacityLedgerEntryOnAfterReverseOutputCapacityLedgerEntries(CapacityLedgEntry, Processed, HideDialog);
 
         if Processed and not HideDialog then
             Message(PostedSuccessfullyMsg);
@@ -340,6 +342,10 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         if not GuiAllowed() then
             exit(true);
 
+        OnCanPostReversalOnBeforeConfirm(HideDialog);
+        if HideDialog then
+            exit(true);
+
         QuestionTxt := ReverseEntriesMsg + '\' + ReverseEntriesQst;
         exit(Confirm(QuestionTxt));
     end;
@@ -537,6 +543,16 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnReverseCapacityLedgerEntryOnAfterReverseOutputCapacityLedgerEntries(var CapacityLedgerEntry: Record "Capacity Ledger Entry"; var Processed: Boolean; var HideDialog: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCanPostReversalOnBeforeConfirm(var HideDialog: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterValidateProdOrder(ItemLedgerEntry: Record "Item Ledger Entry"; ProdOrderLine: Record "Prod. Order Line")
     begin
     end;
@@ -547,7 +563,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnReverseProdItemLedgerEntryOnAfterProcessItemLedgerEntries(var ItemLedgerEntry: Record "Item Ledger Entry")
+    local procedure OnReverseProdItemLedgerEntryOnAfterProcessItemLedgerEntries(var ItemLedgerEntry: Record "Item Ledger Entry"; var Processed: Boolean; var HideDialog: Boolean)
     begin
     end;
 
