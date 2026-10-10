@@ -185,6 +185,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetQuantityReadyToStartUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
@@ -1220,6 +1221,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetManufacturingFlushingMethodActivateManualWithoutPickUpgradeTag(): Code[250]
     begin
         exit('MS-356273-ManufacturingFlushingMethodActivateManualWithoutPickUpgradeTag-20250401');
+    end;
+
+    internal procedure GetQuantityReadyToStartUpgradeTag(): Code[250]
+    begin
+        exit('QRTS-QuantityReadyToStartUpgradeTag-20261010');
     end;
 
     internal procedure GetInventoryPlanningSetupUpgradeTag(): Code[250]
