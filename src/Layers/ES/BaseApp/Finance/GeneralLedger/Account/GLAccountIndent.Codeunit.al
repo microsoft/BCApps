@@ -1,10 +1,9 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
-using Microsoft.Intercompany.GLAccount;
 
 /// <summary>
 /// Manages hierarchical indentation of general ledger accounts in the chart of accounts structure.
@@ -143,11 +142,15 @@ codeunit 3 "G/L Account-Indent"
         OnAfterIndent();
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Runs the indentation process for Intercompany G/L Accounts with user confirmation.
     /// Updates the indentation levels based on account hierarchy structure.
     /// </summary>
+    [Obsolete('Moved to codeunit ICGLAccountIndent', '30.0')]
     procedure RunICAccountIndent()
+    var
+        ICGLAccountIndent: Codeunit "IC G/L Account-Indent";
     begin
         if not
           Confirm(
@@ -160,74 +163,9 @@ codeunit 3 "G/L Account-Indent"
         then
             exit;
 
-        IndentICAccount();
+        ICGLAccountIndent.RunICAccountIndent();
     end;
-
-    local procedure IndentICAccount()
-    var
-        ICGLAcc: Record "IC G/L Account";
-        LineCounter: Integer;
-        NoOfRecords: Integer;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeIndentICAccount(GLAcc, IsHandled);
-        if IsHandled then
-            exit;
-
-        Window.Open(Text1100006);
-
-        ICGLAcc.Reset();
-        LineCounter := 0;
-        NoOfRecords := ICGLAcc.Count;
-        if NoOfRecords <> 0 then
-            if ICGLAcc.Find('-') then
-                repeat
-                    Window.Update(1, ICGLAcc."No.");
-
-                    ICGLAcc.TestField(Name);
-
-                    if StrLen(ICGLAcc."No.") > 5 then
-                        ICGLAcc."Account Type" := ICGLAcc."Account Type"::Posting
-                    else
-                        ICGLAcc."Account Type" := ICGLAcc."Account Type"::Heading;
-
-                    if ICGLAcc."Account Type" = ICGLAcc."Account Type"::Heading then begin
-                        //The length of a heading account cannot be greater than 9
-                        if StrLen(ICGLAcc."No.") > 8 then
-                            Error(Text1100007, ICGLAcc."No.");
-                        //a heading account must exist at the previous higher level
-                        if StrLen(ICGLAcc."No.") > 1 then
-                            if not FindAcc.Get(CopyStr(ICGLAcc."No.", 1, StrLen(ICGLAcc."No.") - 1)) then
-                                Error(Text1100008, CopyStr(ICGLAcc."No.", 1, StrLen(ICGLAcc."No.") - 1), ICGLAcc."No.");
-                        ICGLAcc.Validate(Indentation, StrLen(ICGLAcc."No.") - 1);
-                    end else begin
-                        //the corresponding heading account must exist
-                        if not FindAcc.Get(CopyStr(ICGLAcc."No.", 1, 3)) then
-                            Error(Text1100010, CopyStr(ICGLAcc."No.", 1, 3), ICGLAcc."No.");
-                        //a posting account must be the same length as the next
-                        FindAcc := GLAcc;
-                        if FindAcc.Next() <> 0 then
-                            if (FindAcc."Account Type" = FindAcc."Account Type"::Posting) and
-                               (StrLen(ICGLAcc."No.") <> StrLen(FindAcc."No.")) then
-                                Error(Text1100011, ICGLAcc."No.");
-
-                        if CopyStr(ICGLAcc."No.", 1, 1) in ['6', '7'] then
-                            ICGLAcc."Income/Balance" := ICGLAcc."Income/Balance"::"Income Statement"
-                        else
-                            ICGLAcc."Income/Balance" := ICGLAcc."Income/Balance"::"Balance Sheet";
-                        ICGLAcc.Indentation := 4;
-                    end;
-
-                    ICGLAcc.Modify();
-                    LineCounter := LineCounter + 1;
-                    Window.Update(2, Round(LineCounter / NoOfRecords * 10000, 1));
-                until ICGLAcc.Next() = 0;
-
-        Window.Close();
-        if not HidePrintDialog then
-            Message(Text1100012);
-    end;
+#endif
 
     procedure SetHidePrintDialog(NewHidePrintDialog: Boolean)
     begin
@@ -254,15 +192,23 @@ codeunit 3 "G/L Account-Indent"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforeIndentICAccount(var GLAcc: Record "G/L Account"; var IsHandled: Boolean)
+    begin
+        OnBeforeIndentICAccount(GLAcc, IsHandled);
+    end;
+
     /// <summary>
     /// Integration event raised before indenting intercompany accounts during the indentation process.
     /// Allows extensions to customize intercompany account indentation behavior.
     /// </summary>
     /// <param name="GLAcc">Intercompany general ledger account being processed</param>
     /// <param name="IsHandled">Set to true to skip default intercompany indentation logic</param>
+    [Obsolete('Moved to codeunit 8432 "IC G/L Account-Indent"', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIndentICAccount(var GLAcc: Record "G/L Account"; var IsHandled: Boolean)
     begin
     end;
+#endif
 }
 

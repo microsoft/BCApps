@@ -135,7 +135,7 @@ page 6086 "Filed Service Contract Lines"
                 Image = Line;
                 action("Show Document")
                 {
-                    ApplicationArea = Intercompany;
+                    ApplicationArea = Service;
                     Caption = 'Show Document';
                     Image = View;
                     ShortCutKey = 'Shift+F7';

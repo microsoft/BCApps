@@ -19,7 +19,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.FinanceCharge;
@@ -807,7 +806,6 @@ table 21 "Cust. Ledger Entry"
         field(85; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
             ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
         }
         /// <summary>
@@ -1153,32 +1151,23 @@ table 21 "Cust. Ledger Entry"
         key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
-        key(Key18; "Customer No.", "Document Date", "BAS Adjustment")
-        {
-        }
-        key(Key19; "Customer No.", Positive, "Applies-to Doc. Type", "Applies-to Doc. No.", "Due Date")
-        {
-        }
-        key(Key20; "Document No.", "Document Type", "Customer No.")
-        {
-        }
-        key(Key21; "Document Type", "Posting Date")
+        key(Key18; "Document Type", "Posting Date")
         {
             SumIndexFields = "Sales (LCY)";
         }
-        key(Key22; "Document Type", "Customer No.", Open, "Due Date")
+        key(Key19; "Document Type", "Customer No.", Open, "Due Date")
         {
         }
-        key(Key23; "Customer Posting Group")
+        key(Key20; "Customer Posting Group")
         {
         }
-        key(Key24; "Document Type", Open, "Posting Date", "Closed at Date")
+        key(Key21; "Document Type", Open, "Posting Date", "Closed at Date")
         {
         }
-        key(Key25; "Salesperson Code")
+        key(Key22; "Salesperson Code")
         {
         }
-        key(Key26; SystemModifiedAt)
+        key(Key23; SystemModifiedAt)
         {
         }
         key(Key35; "Customer No.", "Posting Date", "Applies-to ID")
@@ -1192,6 +1181,15 @@ table 21 "Cust. Ledger Entry"
         key(Key37; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
+        }
+        key(Key38; "Customer No.", "Document Date", "BAS Adjustment")
+        {
+        }
+        key(Key39; "Customer No.", Positive, "Applies-to Doc. Type", "Applies-to Doc. No.", "Due Date")
+        {
+        }
+        key(Key40; "Document No.", "Document Type", "Customer No.")
+        {
         }
     }
 
@@ -1530,7 +1528,6 @@ table 21 "Cust. Ledger Entry"
         "Bal. Account Type" := GenJnlLine."Bal. Account Type";
         "Bal. Account No." := GenJnlLine."Bal. Account No.";
         "No. Series" := GenJnlLine."Posting No. Series";
-        "IC Partner Code" := GenJnlLine."IC Partner Code";
         Prepayment := GenJnlLine.Prepayment;
         "Recipient Bank Account" := GenJnlLine."Recipient Bank Account";
         "Message to Recipient" := GenJnlLine."Message to Recipient";

@@ -106,12 +106,6 @@ page 20 "General Ledger Entries"
                     ToolTip = 'Specifies the agreement number associated with the general ledger entry.';
                     Visible = false;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Editable = false;
-                    Visible = false;
-                }
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Basic, Suite;

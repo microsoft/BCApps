@@ -11,7 +11,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Journal;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Counting.Journal;
 using Microsoft.Inventory.Journal;
@@ -367,6 +366,7 @@ codeunit 700 "Page Management"
     var
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalTemplate: Record "Gen. Journal Template";
+        CardPageID: Integer;
     begin
         RecRef.SetTable(GenJournalLine);
         GenJournalTemplate.Get(GenJournalLine."Journal Template Name");
@@ -387,10 +387,12 @@ codeunit 700 "Page Management"
                 exit(PAGE::"Cash Receipt Journal");
             GenJournalTemplate.Type::Payments:
                 exit(PAGE::"Payment Journal");
-            GenJournalTemplate.Type::Intercompany:
-                exit(PAGE::"IC General Journal");
             GenJournalTemplate.Type::Jobs:
                 exit(PAGE::"Job G/L Journal");
+            else begin
+                OnGetGenJournalLinePageIDOnType(GenJournalTemplate, CardPageID);
+                exit(CardPageID);
+            end;
         end;
     end;
 
@@ -715,6 +717,11 @@ codeunit 700 "Page Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnGetReqWkshTemplatePageID(ReqWkshTemplate: Record "Req. Wksh. Template"; RecordRef: RecordRef; var CardPageID: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetGenJournalLinePageIDOnType(GenJournalTemplate: Record "Gen. Journal Template"; var CardPageID: Integer)
     begin
     end;
 }

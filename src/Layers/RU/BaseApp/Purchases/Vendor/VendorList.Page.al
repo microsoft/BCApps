@@ -106,11 +106,6 @@ page 27 "Vendor List"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;

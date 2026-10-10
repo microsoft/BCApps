@@ -148,27 +148,6 @@ page 1310 "O365 Activities"
                     ToolTip = 'Specifies the number of payments to vendors that are due next week.';
                 }
             }
-            cuegroup(Intercompany)
-            {
-                Caption = 'Intercompany';
-                Visible = ShowIntercompanyActivities;
-                field("IC Inbox Transactions"; Rec."IC Inbox Transactions")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Pending Inbox Transactions';
-                    Tooltip = 'Specifies the number of pending incoming intercompany transactions.';
-                    DrillDownPageID = "IC Inbox Transactions";
-                    Visible = Rec."IC Inbox Transactions" <> 0;
-                }
-                field("IC Outbox Transactions"; Rec."IC Outbox Transactions")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Pending Outbox Transactions';
-                    ToolTip = 'Specifies the number of pending outgoing intercompany transactions.';
-                    DrillDownPageID = "IC Outbox Transactions";
-                    Visible = Rec."IC Outbox Transactions" <> 0;
-                }
-            }
             cuegroup(Payments)
             {
                 Caption = 'Payments';

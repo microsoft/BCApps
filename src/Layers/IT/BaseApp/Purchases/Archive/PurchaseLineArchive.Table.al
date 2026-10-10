@@ -20,7 +20,6 @@ using Microsoft.FixedAssets.Posting;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -514,14 +513,6 @@ table 5110 "Purchase Line Archive"
         {
             Caption = 'VAT Identifier';
         }
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
-        {
-            Caption = 'IC Partner Ref. Type';
-        }
-        field(108; "IC Partner Reference"; Code[20])
-        {
-            Caption = 'IC Partner Reference';
-        }
         field(109; "Prepayment %"; Decimal)
         {
             AutoFormatType = 0;
@@ -626,16 +617,6 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 1;
             Caption = 'Prepmt. Amount Inv. Incl. VAT';
             Editable = false;
-        }
-        field(130; "IC Partner Code"; Code[20])
-        {
-            Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
-        }
-        field(138; "IC Item Reference No."; Code[50])
-        {
-            AccessByPermission = TableData "Item Reference" = R;
-            Caption = 'IC Item Reference No.';
         }
         field(145; "Pmt. Discount Amount"; Decimal)
         {

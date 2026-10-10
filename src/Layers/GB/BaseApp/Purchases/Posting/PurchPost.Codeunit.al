@@ -27,11 +27,6 @@ using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -71,7 +66,6 @@ using System.Environment.Configuration;
 using System.Telemetry;
 #endif
 using System.Utilities;
-
 
 codeunit 90 "Purch.-Post"
 {
@@ -188,10 +182,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     /// <param name="TempDropShptPostBuffer">Accumulates drop-shipment buffer records during posting.</param>
     /// <param name="EverythingInvoiced">Set to false during posting if any line is partially invoiced.</param>
-    local procedure ProcessPosting(
-        var PurchHeader: Record "Purchase Header";
-        var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
-        var EverythingInvoiced: Boolean)
+    local procedure ProcessPosting(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean)
     var
         IgnoreCommit: Boolean;
     begin
@@ -239,7 +230,6 @@ codeunit 90 "Purch.-Post"
         ErrorContextElementProcessLines: Codeunit "Error Context Element";
         ErrorContextElementPostLine: Codeunit "Error Context Element";
         ZeroPurchLineRecID: RecordId;
-        ICGenJnlLineNo: Integer;
         BiggestLineNo: Integer;
         IsHandled: Boolean;
     begin
@@ -284,7 +274,7 @@ codeunit 90 "Purch.-Post"
 
                     PostPurchLine(
                       PurchHeader, TempPurchLineGlobal, TempVATAmountLine, TempVATAmountLineRemainder,
-                      TempDropShptPostBuffer, EverythingInvoiced, ICGenJnlLineNo);
+                      TempDropShptPostBuffer, EverythingInvoiced);
                     OnRunOnAfterPostPurchLine(TempPurchLineGlobal, PurchInvHeader, PurchCrMemoHeader, PurchRcptHeader, ReturnShptHeader);
                 end;
 
@@ -326,8 +316,6 @@ codeunit 90 "Purch.-Post"
 
         OnRunOnAfterPostInvoice(PurchHeader, PurchRcptHeader, ReturnShptHeader, PurchInvHeader, PurchCrMemoHeader, PreviewMode, Window, SrcCode, GenJnlLineDocType, GenJnlLineDocNo, GenJnlPostLine);
 
-        if ICGenJnlLineNo > 0 then
-            PostICGenJnl();
         IsHandled := false;
         OnRunOnBeforeMakeInventoryAdjustment(PurchHeader, GenJnlPostLine, ItemJnlPostLine, PreviewMode, PurchRcptHeader, PurchInvHeader, IsHandled);
         if not IsHandled then
@@ -404,7 +392,6 @@ codeunit 90 "Purch.-Post"
         TempWhseSplitSpecification: Record "Tracking Specification" temporary;
         TempValueEntryRelation: Record "Value Entry Relation" temporary;
         Job: Record Job;
-        TempICGenJnlLine: Record "Gen. Journal Line" temporary;
         TempPrepmtDeductLCYPurchLine: Record "Purchase Line" temporary;
         TempSKU: Record "Stockkeeping Unit" temporary;
         TempDeferralHeader: Record "Deferral Header" temporary;
@@ -477,14 +464,6 @@ codeunit 90 "Purch.-Post"
         DocumentIsReadyToBeChecked: Boolean;
         PrepAmountToDeductToBigErr: Label 'The total %1 cannot be more than %2.', Comment = '%1 = Prepmt Amt to Deduct, %2 = Max Amount';
         PrepAmountToDeductToSmallErr: Label 'The total %1 must be at least %2.', Comment = '%1 = Prepmt Amt to Deduct, %2 = Max Amount';
-        UnpostedInvoiceDuplicateQst: Label 'An unposted invoice for order %1 exists. To avoid duplicate postings, delete order %1 or invoice %2.\Do you still want to post order %1?', Comment = '%1 = Order No.,%2 = Invoice No.';
-#pragma warning disable AA0470
-        InvoiceDuplicateInboxQst: Label 'An invoice for order %1 exists in the IC inbox. To avoid duplicate postings, cancel invoice %2 in the IC inbox.\Do you still want to post order %1?', Comment = '%1 = Order No.';
-#pragma warning restore AA0470
-        PostedInvoiceDuplicateQst: Label 'Posted invoice %1 already exists for order %2. To avoid duplicate postings, do not post order %2.\Do you still want to post order %2?', Comment = '%1 = Invoice No., %2 = Order No.';
-        OrderFromSameTransactionQst: Label 'Order %1 originates from the same IC transaction as invoice %2. To avoid duplicate postings, delete order %1 or invoice %2.\Do you still want to post invoice %2?', Comment = '%1 = Order No., %2 = Invoice No.';
-        DocumentFromSameTransactionQst: Label 'A document originating from the same IC transaction as document %1 exists in the IC inbox. To avoid duplicate postings, cancel document %2 in the IC inbox.\Do you still want to post document %1?', Comment = '%1 and %2 = Document No.';
-        PostedInvoiceFromSameTransactionQst: Label 'Posted invoice %1 originates from the same IC transaction as invoice %2. To avoid duplicate postings, do not post invoice %2.\Do you still want to post invoice %2?', Comment = '%1 and %2 = Invoice No.';
         MustAssignItemChargeErr: Label 'You must assign item charge %1 if you want to invoice it.', Comment = '%1 = Item Charge No.';
         CannotInvoiceItemChargeErr: Label 'You can not invoice item charge %1 because there is no item ledger entry to assign it to.', Comment = '%1 = Item Charge No.';
         PurchaseLinesProcessed: Boolean;
@@ -799,12 +778,10 @@ codeunit 90 "Purch.-Post"
 
         HandleArchiveUnpostedOrder(PurchHeader);
 
-        CheckICPartnerBlocked(PurchHeader);
-        SendICDocument(PurchHeader, ModifyHeader);
-        UpdateHandledICInboxTransaction(PurchHeader);
-
         if PurchHeader.Invoice then
             CheckDocumentTotalAmounts(PurchHeader);
+
+        OnCheckAndUpdateOnBeforeLockTables(PurchHeader, ModifyHeader);
 
         LockTables(PurchHeader);
 
@@ -888,9 +865,7 @@ codeunit 90 "Purch.-Post"
             CheckFAPostingPossibility(PurchHeader);
 
         CheckPostRestrictions(PurchHeader);
-
-        if ((PurchHeader."Buy-from IC Partner Code" <> '') or (PurchHeader."Pay-to IC Partner Code" <> '')) then
-            CheckICDocumentDuplicatePosting(PurchHeader);
+        OnAfterCheckPostRestrictions(PurchHeader);
 
         if PurchHeader.Invoice then
             PurchHeader.Invoice := CalcInvoice(PurchHeader);
@@ -1059,7 +1034,7 @@ codeunit 90 "Purch.-Post"
         PurchaseHeader.Invoice := true;
     end;
 
-    local procedure PostPurchLine(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean; var ICGenJnlLineNo: Integer)
+    local procedure PostPurchLine(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean)
     var
         PurchInvLine: Record "Purch. Inv. Line";
         SearchPurchInvLine: Record "Purch. Inv. Line";
@@ -1128,7 +1103,9 @@ codeunit 90 "Purch.-Post"
         OnPostPurchLineOnBeforePostByType(PurchHeader, PurchInvHeader, PurchCrMemoHeader, PurchLine, PurchLineACY, SrcCode);
         case PurchLine.Type of
             PurchLine.Type::"G/L Account":
-                PostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo);
+                OnPostPurchLineOnGLAccount(
+                    PurchHeader, PurchLine, xPurchLine, PurchLineACY, PurchInvHeader, PurchCrMemoHeader,
+                    InvoicePostingInterface, InvoicePostingParameters, SuppressCommit);
             PurchLine.Type::Item:
                 PostItemLine(PurchHeader, PurchLine, TempDropShptPostBuffer);
             PurchLine.Type::Resource:
@@ -1318,48 +1295,6 @@ codeunit 90 "Purch.-Post"
         end;
 
         OnAfterPostInvoice(PurchHeader, GenJnlPostLine, TotalPurchLine, TotalPurchLineLCY, SuppressCommit, VendLedgEntry);
-    end;
-
-    local procedure PostGLAccICLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer)
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforePostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);
-        if IsHandled then
-            exit;
-
-        if (PurchLine."No." <> '') and not PurchLine."System-Created Entry" then begin
-            CheckGLAccDirectPosting(PurchLine);
-            if (PurchLine."Job No." <> '') and (PurchLine."Qty. to Invoice" <> 0) then begin
-                IsHandled := false;
-                OnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchLine, IsHandled);
-                if not IsHandled then begin
-                    CreateJobPurchLine(JobPurchLine, PurchLine, PurchHeader."Prices Including VAT");
-                    OnPostGLAccICLineOnAfterCreateJobPurchLine(PurchHeader);
-                    InvoicePostingInterface.PrepareJobLine(PurchHeader, JobPurchLine, PurchLineACY);
-                end;
-            end;
-            OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchHeader, PurchLine, xPurchLine, ICGenJnlLineNo);
-            if (PurchLine."IC Partner Code" <> '') and PurchHeader.Invoice then
-                InsertICGenJnlLine(PurchHeader, xPurchLine, ICGenJnlLineNo);
-
-            OnAfterPostAccICLine(PurchLine, SuppressCommit, PurchHeader, PurchInvHeader, PurchCrMemoHeader);
-        end;
-    end;
-
-    local procedure CheckGLAccDirectPosting(PurchaseLine: Record "Purchase Line")
-    var
-        GLAccount: Record "G/L Account";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeCheckGLAccDirectPosting(PurchaseLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        GLAccount.Get(PurchaseLine."No.");
-        GLAccount.TestField("Direct Posting");
     end;
 
     local procedure PostItemLine(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
@@ -5726,124 +5661,6 @@ codeunit 90 "Purch.-Post"
         exit(0);
     end;
 
-    local procedure InsertICGenJnlLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer)
-    var
-        ICGLAccount: Record "IC G/L Account";
-        Currency: Record Currency;
-        ICPartner: Record "IC Partner";
-        GenJnlLine: Record "Gen. Journal Line";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeInsertICGenJnlLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);
-        if IsHandled then
-            exit;
-
-        PurchHeader.TestField("Buy-from IC Partner Code", '');
-        PurchHeader.TestField("Pay-to IC Partner Code", '');
-        PurchLine.TestField("IC Partner Ref. Type", PurchLine."IC Partner Ref. Type"::"G/L Account");
-        ICGLAccount.Get(PurchLine."IC Partner Reference");
-        ICGenJnlLineNo := ICGenJnlLineNo + 1;
-
-        TempICGenJnlLine.InitNewLine(
-            PurchHeader."Posting Date", PurchHeader."Document Date", PurchHeader."VAT Reporting Date", PurchHeader."Posting Description",
-            PurchLine."Shortcut Dimension 1 Code", PurchLine."Shortcut Dimension 2 Code", PurchLine."Dimension Set ID",
-            PurchHeader."Reason Code");
-        TempICGenJnlLine."Line No." := ICGenJnlLineNo;
-
-        TempICGenJnlLine.CopyDocumentFields(GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo, SrcCode, PurchHeader."Posting No. Series");
-        OnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchHeader, PurchLine, TempICGenJnlLine);
-
-        TempICGenJnlLine."Account Type" := TempICGenJnlLine."Account Type"::"IC Partner";
-        TempICGenJnlLine.Validate("Account No.", PurchLine."IC Partner Code");
-        TempICGenJnlLine."Source Currency Code" := PurchHeader."Currency Code";
-        TempICGenJnlLine."Source Currency Amount" := TempICGenJnlLine.Amount;
-        TempICGenJnlLine.Correction := PurchHeader.Correction;
-        TempICGenJnlLine."Country/Region Code" := PurchHeader."VAT Country/Region Code";
-        TempICGenJnlLine."Source Type" := GenJnlLine."Source Type"::Vendor;
-        TempICGenJnlLine."Source No." := PurchHeader."Pay-to Vendor No.";
-        TempICGenJnlLine."Source Line No." := PurchLine."Line No.";
-        TempICGenJnlLine.Validate("Bal. Account Type", TempICGenJnlLine."Bal. Account Type"::"G/L Account");
-        TempICGenJnlLine.Validate("Bal. Account No.", PurchLine."No.");
-        TempICGenJnlLine."Shortcut Dimension 1 Code" := PurchLine."Shortcut Dimension 1 Code";
-        TempICGenJnlLine."Shortcut Dimension 2 Code" := PurchLine."Shortcut Dimension 2 Code";
-        TempICGenJnlLine."Dimension Set ID" := PurchLine."Dimension Set ID";
-
-        ValidateICPartnerBusPostingGroups(PurchLine);
-        TempICGenJnlLine.Validate("Bal. VAT Prod. Posting Group", PurchLine."VAT Prod. Posting Group");
-        TempICGenJnlLine."IC Partner Code" := PurchLine."IC Partner Code";
-        TempICGenJnlLine."IC Account Type" := TempICGenJnlLine."IC Account Type"::"G/L Account";
-        TempICGenJnlLine."IC Account No." := PurchLine."IC Partner Reference";
-        TempICGenJnlLine."IC Direction" := TempICGenJnlLine."IC Direction"::Outgoing;
-        ICPartner.Get(PurchLine."IC Partner Code");
-        if ICPartner."Cost Distribution in LCY" and (PurchLine."Currency Code" <> '') then begin
-            TempICGenJnlLine."Currency Code" := '';
-            TempICGenJnlLine."Currency Factor" := 0;
-            Currency.Get(PurchLine."Currency Code");
-            if PurchHeader.IsCreditDocType() then
-                TempICGenJnlLine.Amount :=
-                  -Round(
-                    CurrExchRate.ExchangeAmtFCYToLCY(
-                      PurchHeader."Posting Date", PurchLine."Currency Code",
-                      PurchLine.Amount, PurchHeader."Currency Factor"))
-            else
-                TempICGenJnlLine.Amount :=
-                  Round(
-                    CurrExchRate.ExchangeAmtFCYToLCY(
-                      PurchHeader."Posting Date", PurchLine."Currency Code",
-                      PurchLine.Amount, PurchHeader."Currency Factor"));
-        end else begin
-            Currency.InitRoundingPrecision();
-            TempICGenJnlLine."Currency Code" := PurchHeader."Currency Code";
-            TempICGenJnlLine."Currency Factor" := PurchHeader."Currency Factor";
-            if PurchHeader.IsCreditDocType() then
-                TempICGenJnlLine.Amount := -PurchLine.Amount
-            else
-                TempICGenJnlLine.Amount := PurchLine.Amount;
-        end;
-        if TempICGenJnlLine."Bal. VAT %" <> 0 then
-            TempICGenJnlLine.Amount := Round(TempICGenJnlLine.Amount * (1 + TempICGenJnlLine."Bal. VAT %" / 100), Currency."Amount Rounding Precision");
-        TempICGenJnlLine.Validate(Amount);
-        TempICGenJnlLine."Journal Template Name" := PurchLine.GetJnlTemplateName();
-        OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(TempICGenJnlLine, PurchHeader, PurchLine, SuppressCommit);
-        TempICGenJnlLine.Insert();
-    end;
-
-    local procedure ValidateICPartnerBusPostingGroups(var PurchaseLine: Record "Purchase Line")
-    var
-        Customer: Record Customer;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLine, PurchaseLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        Customer.SetCurrentKey("IC Partner Code");
-        Customer.SetRange("IC Partner Code", PurchaseLine."IC Partner Code");
-        if Customer.FindFirst() then begin
-            TempICGenJnlLine.Validate("Bal. Gen. Bus. Posting Group", Customer."Gen. Bus. Posting Group");
-            TempICGenJnlLine.Validate("Bal. VAT Bus. Posting Group", Customer."VAT Bus. Posting Group");
-        end;
-    end;
-
-    local procedure PostICGenJnl()
-    var
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-        ICOutboxExport: Codeunit "IC Outbox Export";
-        ICTransactionNo: Integer;
-    begin
-        TempICGenJnlLine.Reset();
-        if TempICGenJnlLine.Find('-') then
-            repeat
-                ICTransactionNo := ICInboxOutboxMgt.CreateOutboxJnlTransaction(TempICGenJnlLine, false);
-                ICInboxOutboxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, TempICGenJnlLine);
-                ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
-                if TempICGenJnlLine.Amount <> 0 then
-                    GenJnlPostLine.RunWithCheck(TempICGenJnlLine);
-            until TempICGenJnlLine.Next() = 0;
-    end;
-
     local procedure TestGetRcptPPmtAmtToDeduct()
     var
         TempPurchLine: Record "Purchase Line" temporary;
@@ -6183,6 +6000,7 @@ codeunit 90 "Purch.-Post"
         exit(number2);
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Recalculates and updates Direct Unit Cost of the purchase line related to a job
     /// </summary>
@@ -6193,6 +6011,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="JobPurchLine2">Return Value: Record to store information of purchase line related to a job</param>
     /// <param name="PurchLine2">The purchase line of the document that is being posted.</param>
     /// <param name="PricesIncludingVAT">Specifies if the purchase document that is being posted has prices with VAT</param>
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     procedure CreateJobPurchLine(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PricesIncludingVAT: Boolean)
     begin
         JobPurchLine2 := PurchLine2;
@@ -6204,6 +6023,7 @@ codeunit 90 "Purch.-Post"
 
         OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
     end;
+#endif
 
     local procedure RevertWarehouseEntry(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; JobNo: Code[20]; PostJobConsumptionBeforePurch: Boolean): Boolean
     var
@@ -7089,165 +6909,6 @@ codeunit 90 "Purch.-Post"
             exit(1);
 
         exit(-1);
-    end;
-
-    local procedure CheckICDocumentDuplicatePosting(PurchHeader: Record "Purchase Header")
-    var
-        PurchHeader2: Record "Purchase Header";
-        ICInboxPurchHeader: Record "IC Inbox Purchase Header";
-        PurchInvHeader2: Record "Purch. Inv. Header";
-        ConfirmManagement: Codeunit "Confirm Management";
-        IsHandled: Boolean;
-        ShouldCheckPosted: Boolean;
-        ShouldCheckUnposted: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeCheckICDocumentDuplicatePosting(PurchHeader, IsHandled);
-        if IsHandled then
-            exit;
-
-        if not PurchHeader.Invoice then
-            exit;
-
-        ShouldCheckPosted := PurchHeader."IC Direction" = PurchHeader."IC Direction"::Outgoing;
-        OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader, ShouldCheckPosted);
-        if ShouldCheckPosted then begin
-            PurchInvHeader2.SetRange("Your Reference", PurchHeader."No.");
-            PurchInvHeader2.SetRange("Buy-from Vendor No.", PurchHeader."Buy-from Vendor No.");
-            PurchInvHeader2.SetRange("Pay-to Vendor No.", PurchHeader."Pay-to Vendor No.");
-            if PurchInvHeader2.FindFirst() then
-                if not ConfirmManagement.GetResponseOrDefault(
-                     StrSubstNo(PostedInvoiceDuplicateQst, PurchInvHeader2."No.", PurchHeader."No."), true)
-                then
-                    Error('');
-        end;
-
-        ShouldCheckUnposted := PurchHeader."IC Direction" = PurchHeader."IC Direction"::Incoming;
-        OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader, ShouldCheckUnposted);
-        if ShouldCheckUnposted then begin
-            if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
-                PurchHeader2.SetRange("Document Type", PurchHeader."Document Type"::Invoice);
-                PurchHeader2.SetRange("Vendor Order No.", PurchHeader."Vendor Order No.");
-                if PurchHeader2.FindFirst() then
-                    if not ConfirmManagement.GetResponseOrDefault(
-                         StrSubstNo(UnpostedInvoiceDuplicateQst, PurchHeader."No.", PurchHeader2."No."), true)
-                    then
-                        Error('');
-                ICInboxPurchHeader.SetRange("Document Type", PurchHeader."Document Type"::Invoice);
-                ICInboxPurchHeader.SetRange("Vendor Order No.", PurchHeader."Vendor Order No.");
-                if ICInboxPurchHeader.FindFirst() then
-                    if not ConfirmManagement.GetResponseOrDefault(
-                         StrSubstNo(InvoiceDuplicateInboxQst, PurchHeader."No.", ICInboxPurchHeader."No."), true)
-                    then
-                        Error('');
-                PurchInvHeader2.SetRange("Vendor Order No.", PurchHeader."Vendor Order No.");
-                if PurchInvHeader2.FindFirst() then
-                    if not ConfirmManagement.GetResponseOrDefault(
-                         StrSubstNo(PostedInvoiceDuplicateQst, PurchInvHeader2."No.", PurchHeader."No."), true)
-                    then
-                        Error('');
-            end;
-            if (PurchHeader."Document Type" = PurchHeader."Document Type"::Invoice) and (PurchHeader."Vendor Order No." <> '') then begin
-                PurchHeader2.SetRange("Document Type", PurchHeader."Document Type"::Order);
-                PurchHeader2.SetRange("Vendor Order No.", PurchHeader."Vendor Order No.");
-                if PurchHeader2.FindFirst() then
-                    if not ConfirmManagement.GetResponseOrDefault(
-                         StrSubstNo(OrderFromSameTransactionQst, PurchHeader2."No.", PurchHeader."No."), true)
-                    then
-                        Error('');
-                ICInboxPurchHeader.SetRange("Document Type", PurchHeader."Document Type"::Order);
-                ICInboxPurchHeader.SetRange("Vendor Order No.", PurchHeader."Vendor Order No.");
-                if ICInboxPurchHeader.FindFirst() then
-                    if not ConfirmManagement.GetResponseOrDefault(
-                         StrSubstNo(DocumentFromSameTransactionQst, PurchHeader."No.", ICInboxPurchHeader."No."), true)
-                    then
-                        Error('');
-                PurchInvHeader2.SetRange("Vendor Order No.", PurchHeader."Vendor Order No.");
-                if PurchInvHeader2.FindFirst() then
-                    if not ConfirmManagement.GetResponseOrDefault(
-                         StrSubstNo(PostedInvoiceFromSameTransactionQst, PurchInvHeader2."No.", PurchHeader."No."), true)
-                    then
-                        Error('');
-                if (PurchHeader."Your Reference" <> '') and (StrLen(PurchHeader."Your Reference") <= MaxStrLen(PurchInvHeader2."Order No.")) then begin
-                    PurchInvHeader2.Reset();
-                    PurchInvHeader2.SetRange("Order No.", PurchHeader."Your Reference");
-                    PurchInvHeader2.SetRange("Buy-from Vendor No.", PurchHeader."Buy-from Vendor No.");
-                    PurchInvHeader2.SetRange("Pay-to Vendor No.", PurchHeader."Pay-to Vendor No.");
-                    if PurchInvHeader2.FindFirst() then
-                        if not ConfirmManagement.GetResponseOrDefault(
-                             StrSubstNo(PostedInvoiceFromSameTransactionQst, PurchInvHeader2."No.", PurchHeader."No."), true)
-                        then
-                            Error('');
-                end;
-            end;
-        end;
-    end;
-
-    local procedure CheckICPartnerBlocked(PurchHeader: Record "Purchase Header")
-    var
-        ICPartner: Record "IC Partner";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeCheckICPartnerBlocked(PurchHeader, IsHandled);
-        if IsHandled then
-            exit;
-
-        if PurchHeader."Buy-from IC Partner Code" <> '' then
-            if ICPartner.Get(PurchHeader."Buy-from IC Partner Code") then
-                ICPartner.TestField(Blocked, false);
-        if PurchHeader."Pay-to IC Partner Code" <> '' then
-            if ICPartner.Get(PurchHeader."Pay-to IC Partner Code") then
-                ICPartner.TestField(Blocked, false);
-    end;
-
-    local procedure SendICDocument(var PurchHeader: Record "Purchase Header"; var ModifyHeader: Boolean)
-    var
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-        IsHandled: Boolean;
-    begin
-        OnBeforeSendICDocument(PurchHeader, ModifyHeader, IsHandled);
-        if IsHandled then
-            exit;
-
-        if PurchHeader."Send IC Document" and (PurchHeader."IC Status" = PurchHeader."IC Status"::New) and (PurchHeader."IC Direction" = PurchHeader."IC Direction"::Outgoing) and
-            (PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::"Return Order"])
-        then begin
-            ICInboxOutboxMgt.SendPurchDoc(PurchHeader, true);
-            PurchHeader."IC Status" := PurchHeader."IC Status"::Pending;
-            ModifyHeader := true;
-        end;
-    end;
-
-    local procedure UpdateHandledICInboxTransaction(PurchHeader: Record "Purchase Header")
-    var
-        HandledICInboxTrans: Record "Handled IC Inbox Trans.";
-        Vendor: Record Vendor;
-        IsHandled: Boolean;
-    begin
-        OnBeforeUpdateHandledICInboxTransaction(PurchHeader, IsHandled);
-        if IsHandled then
-            exit;
-
-        if PurchHeader."IC Direction" = PurchHeader."IC Direction"::Incoming then begin
-            case PurchHeader."Document Type" of
-                PurchHeader."Document Type"::Invoice:
-                    HandledICInboxTrans.SetRange("Document No.", PurchHeader."Vendor Invoice No.");
-                PurchHeader."Document Type"::Order:
-                    HandledICInboxTrans.SetRange("Document No.", PurchHeader."Vendor Order No.");
-                PurchHeader."Document Type"::"Credit Memo":
-                    HandledICInboxTrans.SetRange("Document No.", PurchHeader."Vendor Cr. Memo No.");
-                PurchHeader."Document Type"::"Return Order":
-                    HandledICInboxTrans.SetRange("Document No.", PurchHeader."Vendor Order No.");
-            end;
-            Vendor.Get(PurchHeader."Buy-from Vendor No.");
-            HandledICInboxTrans.SetRange("IC Partner Code", Vendor."IC Partner Code");
-            HandledICInboxTrans.LockTable();
-            if HandledICInboxTrans.FindFirst() then begin
-                HandledICInboxTrans.Status := HandledICInboxTrans.Status::Posted;
-                HandledICInboxTrans.Modify();
-            end;
-        end;
     end;
 
     local procedure MakeInventoryAdjustment()
@@ -8442,12 +8103,13 @@ codeunit 90 "Purch.-Post"
         TempTrackingSpecificationInv.DeleteAll();
         TempWhseSplitSpecification.DeleteAll();
         TempValueEntryRelation.DeleteAll();
-        TempICGenJnlLine.DeleteAll();
         TempPrepmtDeductLCYPurchLine.DeleteAll();
         TempSKU.DeleteAll();
         TempDeferralHeader.DeleteAll();
         TempDeferralLine.DeleteAll();
         OrderArchived := false;
+
+        OnAfterClearAllVariables();
     end;
 
     /// <summary>
@@ -9078,11 +8740,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnAfterCreateJobPurchLine(var JobPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line")
+    begin
+        OnAfterCreateJobPurchLine(JobPurchaseLine, PurchaseLine);
+    end;
+
+    [Obsolete('Moved to ICPurchPost.Codeunit', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateJobPurchLine(var JobPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line")
     begin
     end;
-
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateWhseJnlLine(PurchaseLine: Record "Purchase Line"; var TempWhseJnlLine: record "Warehouse Journal Line" temporary)
@@ -9290,10 +8959,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnAfterPostAccICLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
+    begin
+        OnAfterPostAccICLine(PurchaseLine, CommitIsSupressed, PurchaseHeader, PurchInvHeader, PurchCrMemoHdr);
+    end;
+
+    [Obsolete('Moved to ICPurchPost.Codeunit', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostAccICLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
     end;
+#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostItemLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; PurchaseHeader: Record "Purchase Header"; RemQtyToBeInvoiced: Decimal; RemQtyToBeInvoicedBase: Decimal; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
@@ -9501,15 +9178,31 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforeCheckGLAccDirectPosting(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+        OnBeforeCheckGLAccDirectPosting(PurchaseLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLAccDirectPosting(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
+#if not CLEAN30
+    internal procedure RunOnBeforeCheckICDocumentDuplicatePosting(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+        OnBeforeCheckICDocumentDuplicatePosting(PurchaseHeader, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICDocumentDuplicatePosting(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckIfInvPutawayExists(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
@@ -9642,17 +9335,23 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInvoiceRoundingAmount(PurchHeader: Record "Purchase Header"; TotalAmountIncludingVAT: Decimal; UseTempData: Boolean; var InvoiceRoundingAmount: Decimal; CommitIsSupressed: Boolean; var PurchaseLine: Record "Purchase Line")
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforeInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
+    begin
+        OnBeforeInsertICGenJnlLine(PurchaseHeader, PurchaseLine, ICGenJnlLineNo, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPostedHeaders(var PurchaseHeader: Record "Purchase Header"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var IsHandled: Boolean)
@@ -9730,10 +9429,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforePostGLAccICLine(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
+    begin
+        OnBeforePostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostGLAccICLine(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerSalesShpt(var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
@@ -9831,14 +9538,10 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-
-
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostCombineSalesOrderShipment(var PurchaseHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var SalesShipmentHeader: Record "Sales Shipment Header"; var ItemLedgShptEntryNo: Integer; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
     end;
-
-
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLine(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var QtyToBeReceived: Decimal; var QtyToBeReceivedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: Integer; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; CommitIsSupressed: Boolean; var IsHandled: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: Integer; var WarehouseReceiptHeader: Record "Warehouse Receipt Header")
@@ -9930,10 +9633,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforeSendICDocument(var PurchHeader: Record "Purchase Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
+    begin
+        OnBeforeSendICDocument(PurchHeader, ModifyHeader, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendICDocument(var PurchHeader: Record "Purchase Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforeSumPurchLines2(QtyType: Option; var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var VATAmountLine: Record "VAT Amount Line"; InsertPurchLine: Boolean; var IsHandled: Boolean)
@@ -10060,10 +9771,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforeUpdateHandledICInboxTransaction(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+        OnBeforeUpdateHandledICInboxTransaction(PurchaseHeader, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateHandledICInboxTransaction(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePostingAndDocumentDate(var PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
@@ -10216,11 +9935,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-
-
-
-
-
     [IntegrationEvent(false, false)]
     local procedure OnGetItemChargeLineOnAfterGet(var ItemChargePurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header")
     begin
@@ -10231,20 +9945,36 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var TempICGenJournalLine: Record "Gen. Journal Line")
+    begin
+        OnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchaseHeader, PurchaseLine, TempICGenJournalLine);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var TempICGenJournalLine: Record "Gen. Journal Line")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertAssocOrderChargeOnBeforeInsert(TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)"; var NewItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)")
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(var TempICGenJournalLine: Record "Gen. Journal Line" temporary; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; CommitIsSuppressed: Boolean)
+    begin
+        OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(TempICGenJournalLine, PurchaseHeader, PurchaseLine, CommitIsSuppressed);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(var TempICGenJournalLine: Record "Gen. Journal Line" temporary; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; CommitIsSuppressed: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertReceiptLineOnAfterGetWhseRcptLine(var WhseRcptLine: Record "Warehouse Receipt Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
@@ -10876,15 +10606,29 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line"; ICGenJnlLineNo: Integer)
+    begin
+        OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchaseHeader, PurchaseLine, xPurchaseLine, ICGenJnlLineNo);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line"; ICGenJnlLineNo: Integer)
     begin
     end;
 
+    internal procedure RunOnPostGLAccICLineOnAfterCreateJobPurchLine(var PurchaseHeader: Record "Purchase Header")
+    begin
+        OnPostGLAccICLineOnAfterCreateJobPurchLine(PurchaseHeader);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPostGLAccICLineOnAfterCreateJobPurchLine(var PurchaseHeader: Record "Purchase Header")
     begin
     end;
+#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnPostItemJnlLineTrackingOnBeforeTempHandlingSpecificationFind(PurchLine: Record "Purchase Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary)
@@ -10912,9 +10656,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-
-
-
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeCommit(PreviewMode: Boolean; var IsHandled: Boolean)
     begin
@@ -10934,7 +10675,6 @@ codeunit 90 "Purch.-Post"
     local procedure OnInsertReceiptLineOnBeforeProcessWhseShptRcpt(var PurchLine: Record "Purchase Line"; var IsHandled: Boolean; var CostBaseAmount: Decimal; PurchRcptLine: Record "Purch. Rcpt. Line")
     begin
     end;
-
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeArchiveUnpostedOrder(var PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; var IsHandled: Boolean)
@@ -11062,10 +10802,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLine: Record "Gen. Journal Line" temporary; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+        OnBeforeValidateICPartnerBusPostingGroups(TempICGenJnlLine, PurchaseLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLine: Record "Gen. Journal Line" temporary; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCurrency(CurrencyCode: Code[10]; var Currency: Record Currency)
@@ -11152,15 +10900,29 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader: Record "Purchase Header"; var ShouldCheckPosted: Boolean)
+    begin
+        OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader, ShouldCheckPosted);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader: Record "Purchase Header"; var ShouldCheckPosted: Boolean)
     begin
     end;
 
+    internal procedure RunOnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader: Record "Purchase Header"; var ShouldCheckUnposted: Boolean)
+    begin
+        OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader, ShouldCheckUnposted);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader: Record "Purchase Header"; var ShouldCheckUnposted: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyToTempLines(var TempPurchLine: Record "Purchase Line" temporary; var PurchaseHeader: Record "Purchase Header")
@@ -11177,10 +10939,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnPostGLAccICLineOnBeforeCreateJobPurchLine(var PurchHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+        OnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchaseLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPostGLAccICLineOnBeforeCreateJobPurchLine(var PurchHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsItemChargeLineWithQuantityToInvoice(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var Result: Boolean; var IsHandled: Boolean)
@@ -11287,10 +11057,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforeCheckICPartnerBlocked(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+        OnBeforeCheckICPartnerBlocked(PurchaseHeader, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ICPurchPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICPartnerBlocked(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostInvoiceOnAfterPostLines(var PurchaseHeader: Record "Purchase Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line"; var TempPurchLineGlobal: Record "Purchase Line" temporary; TotalAmount: Decimal)
@@ -11428,7 +11206,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAfterPosting(var PurchaseHeader: Record "Purchase Header"; SuppressCommit: Boolean; var IsHandled: Boolean)
     begin
@@ -11556,6 +11333,25 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
+    begin
+    end;
+}
+    local procedure OnAfterClearAllVariables()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckAndUpdateOnBeforeLockTables(var PurchHeader: Record "Purchase Header"; var ModifyHeader: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckPostrestrictions(var PurchHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostPurchLineOnGLAccount(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; xPurchLine: Record "Purchase Line"; var PurchLineACY: Record "Purchase Line"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var InvoicePostingInterface: Interface "Invoice Posting"; var InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
     begin
     end;
 }

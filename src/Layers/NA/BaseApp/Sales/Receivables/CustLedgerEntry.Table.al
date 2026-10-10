@@ -19,7 +19,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.FinanceCharge;
@@ -808,7 +807,6 @@ table 21 "Cust. Ledger Entry"
         field(85; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
             ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
         }
         /// <summary>
@@ -1595,7 +1593,6 @@ table 21 "Cust. Ledger Entry"
         "Bal. Account Type" := GenJnlLine."Bal. Account Type";
         "Bal. Account No." := GenJnlLine."Bal. Account No.";
         "No. Series" := GenJnlLine."Posting No. Series";
-        "IC Partner Code" := GenJnlLine."IC Partner Code";
         Prepayment := GenJnlLine.Prepayment;
         "Recipient Bank Account" := GenJnlLine."Recipient Bank Account";
         "Message to Recipient" := GenJnlLine."Message to Recipient";
@@ -1725,7 +1722,6 @@ table 21 "Cust. Ledger Entry"
 
         exit(Math.Sign(Amount1) <> Math.Sign(Amount2));
     end;
-
 
     procedure GetDocumentVATPostingSetup(var TempVATPostingSetup: Record "VAT Posting Setup"; GenJnlLine: Record "Gen. Journal Line")
     begin

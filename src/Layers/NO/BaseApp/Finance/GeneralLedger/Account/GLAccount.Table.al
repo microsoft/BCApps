@@ -22,7 +22,6 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.ExtendedText;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Projects.Project.Planning;
@@ -915,15 +914,6 @@ table 15 "G/L Account"
             FieldClass = FlowField;
         }
         /// <summary>
-        /// Default intercompany partner general ledger account for automatic intercompany transactions.
-        /// </summary>
-        field(66; "Default IC Partner G/L Acc. No"; Code[20])
-        {
-            Caption = 'Default IC Partner G/L Acc. No';
-            ToolTip = 'Specifies accounts that you often enter in the Bal. Account No. field on intercompany journal or document lines.';
-            TableRelation = "IC G/L Account"."No.";
-        }
-        /// <summary>
         /// Excludes default account name description from journal entries when posting transactions.
         /// </summary>
         field(70; "Omit Default Descr. in Jnl."; Boolean)
@@ -1147,7 +1137,6 @@ table 15 "G/L Account"
         AnalysisViewEntry: Record "Analysis View Entry";
         AnalysisViewBudgetEntry: Record "Analysis View Budget Entry";
         MyAccount: Record "My Account";
-        ICGLAccount: Record "IC G/L Account";
         MoveEntries: Codeunit MoveEntries;
         IsHandled: Boolean;
     begin
@@ -1178,10 +1167,6 @@ table 15 "G/L Account"
 
         MyAccount.SetRange("Account No.", "No.");
         MyAccount.DeleteAll();
-
-        ICGLAccount.SetRange("Map-to G/L Acc. No.", Rec."No.");
-        if not ICGLAccount.IsEmpty() then
-            ICGLAccount.ModifyAll("Map-to G/L Acc. No.", '');
 
         DimMgt.DeleteDefaultDim(DATABASE::"G/L Account", "No.");
     end;

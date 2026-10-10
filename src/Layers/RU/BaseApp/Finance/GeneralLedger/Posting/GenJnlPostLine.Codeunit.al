@@ -34,7 +34,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Posting;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
@@ -451,8 +450,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 PostBankAcc(GenJnlLine, Balancing);
             GenJnlLine."Account Type"::"Fixed Asset":
                 PostFixedAsset(GenJnlLine);
-            GenJnlLine."Account Type"::"IC Partner":
-                PostICPartner(GenJnlLine);
         end;
 
         OnAfterPostGenJnlLine(GenJnlLine, Balancing);
@@ -2275,35 +2272,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         // Wrapper procedure for exetrrnal call of PostFixedAsset
         PostFixedAsset(GenJnlLine);
-    end;
-
-    local procedure PostICPartner(GenJnlLine: Record "Gen. Journal Line")
-    var
-        ICPartner: Record "IC Partner";
-        AccountNo: Code[20];
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforePostICPartner(GenJnlLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        if GenJnlLine."Account No." <> ICPartner.Code then
-            ICPartner.Get(GenJnlLine."Account No.");
-        if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") xor (GenJnlLine.Amount > 0) then begin
-            ICPartner.TestField("Receivables Account");
-            AccountNo := ICPartner."Receivables Account";
-        end else begin
-            ICPartner.TestField("Payables Account");
-            AccountNo := ICPartner."Payables Account";
-        end;
-
-        IsHandled := false;
-        OnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, NextEntryNo, IsHandled);
-        if not IsHandled then
-            CreateGLEntryBalAcc(
-              GenJnlLine, AccountNo, GenJnlLine."Amount (LCY)", GenJnlLine."Source Currency Amount",
-              GenJnlLine."Bal. Account Type", GenJnlLine."Bal. Account No.");
     end;
 
     local procedure FindJobLineSign(GenJnlLine: Record "Gen. Journal Line")
@@ -13067,10 +13035,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnBeforePostICPartner(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        OnBeforePostICPartner(GenJnlLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostICPartner(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterStartPosting(GenJnlLine: Record "Gen. Journal Line")
@@ -13117,10 +13093,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
+#if not CLEAN30
+    internal procedure RunOnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: Integer; var IsHandled: Boolean)
+    begin
+        OnPostICPartnerOnBeforeCreateGLEntryBalAcc(GenJnlLine, NextEntryNo, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit IC Gen. Jnl.-Post Line', '30.0')]
     [IntegrationEvent(true, false)]
     local procedure OnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertGlEntry(var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var IsHandled: Boolean)

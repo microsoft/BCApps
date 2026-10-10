@@ -18,7 +18,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -773,20 +772,6 @@ table 5108 "Sales Line Archive"
             Caption = 'VAT Identifier';
         }
         /// <summary>
-        /// Specifies the type of reference used for intercompany transactions.
-        /// </summary>
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
-        {
-            Caption = 'IC Partner Ref. Type';
-        }
-        /// <summary>
-        /// Specifies the item or account reference used by the intercompany partner.
-        /// </summary>
-        field(108; "IC Partner Reference"; Code[20])
-        {
-            Caption = 'IC Partner Reference';
-        }
-        /// <summary>
         /// Specifies the prepayment percentage required for this line.
         /// </summary>
         field(109; "Prepayment %"; Decimal)
@@ -938,22 +923,6 @@ table 5108 "Sales Line Archive"
             AutoFormatType = 1;
             Caption = 'Prepmt. Amount Inv. Incl. VAT';
             Editable = false;
-        }
-        /// <summary>
-        /// Specifies the intercompany partner code for cross-company transactions.
-        /// </summary>
-        field(130; "IC Partner Code"; Code[20])
-        {
-            Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
-        }
-        /// <summary>
-        /// Specifies the item reference number used by the intercompany partner.
-        /// </summary>
-        field(138; "IC Item Reference No."; Code[50])
-        {
-            AccessByPermission = TableData "Item Reference" = R;
-            Caption = 'IC Item Reference No.';
         }
         /// <summary>
         /// Specifies the payment discount amount applicable to this line.

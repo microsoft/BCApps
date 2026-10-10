@@ -45,11 +45,6 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
 using Microsoft.HumanResources.Setup;
 using Microsoft.Integration.Entity;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Planning;
@@ -122,11 +117,7 @@ table 81 "Gen. Journal Line"
 
             trigger OnValidate()
             begin
-                if ("Account Type" in ["Account Type"::Customer, "Account Type"::Vendor, "Account Type"::"Fixed Asset",
-                                       "Account Type"::"IC Partner", "Account Type"::Employee]) and
-                   ("Bal. Account Type" in ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor, "Bal. Account Type"::"Fixed Asset",
-                                            "Bal. Account Type"::"IC Partner", "Bal. Account Type"::Employee])
-                then
+                if IsNotGLOrBankAccountType("Account Type") and IsNotGLOrBankAccountType("Bal. Account Type") then
                     Error(
                       Text000,
                       FieldCaption("Account Type"), FieldCaption("Bal. Account Type"));
@@ -135,7 +126,7 @@ table 81 "Gen. Journal Line"
                 OnValidateAccountTypeOnBeforeCheckKeepDescription(Rec, xRec, CurrFieldNo);
                 if not "Keep Description" then
                     Validate(Description, '');
-                Validate("IC Account No.", '');
+                OnSetICAccountNoBlank(Rec);
                 if "Account Type" in ["Account Type"::Customer, "Account Type"::Vendor, "Account Type"::"Bank Account", "Account Type"::Employee] then begin
                     Validate("Gen. Posting Type", "Gen. Posting Type"::" ");
                     Validate("Gen. Bus. Posting Group", '');
@@ -162,12 +153,7 @@ table 81 "Gen. Journal Line"
                     "VAT Registration No." := '';
                 end;
 
-                if "Journal Template Name" <> '' then
-                    if "Account Type" = "Account Type"::"IC Partner" then begin
-                        GetTemplate();
-                        if GenJnlTemplate.Type <> GenJnlTemplate.Type::Intercompany then
-                            FieldError("Account Type");
-                    end;
+                OnValidateAccountTypeOnBeforeCheckTemplateType(Rec, xRec);
 
                 Validate("Deferral Code", '');
             end;
@@ -190,8 +176,6 @@ table 81 "Gen. Journal Line"
             else
             if ("Account Type" = const("Fixed Asset")) "Fixed Asset"
             else
-            if ("Account Type" = const("IC Partner")) "IC Partner"
-            else
             if ("Account Type" = const("Allocation Account")) "Allocation Account"
             else
             if ("Account Type" = const(Employee)) Employee;
@@ -205,9 +189,7 @@ table 81 "Gen. Journal Line"
                     ClearApplication("Account Type");
                     BlankJobNo(FieldNo("Account No."));
                 end;
-
-                if xRec."Account Type" in ["Account Type"::Customer, "Account Type"::Vendor, "Account Type"::"IC Partner"] then
-                    "IC Partner Code" := '';
+                OnSetICPartnerCodeBlank(Rec, xRec."Account Type");
 
                 if "Account No." = '' then begin
                     CleanLine();
@@ -229,8 +211,6 @@ table 81 "Gen. Journal Line"
                         GetBankAccount();
                     "Account Type"::"Fixed Asset":
                         GetFAAccount();
-                    "Account Type"::"IC Partner":
-                        GetICPartnerAccount();
                     "Account Type"::"Allocation Account":
                         GetAllocationAccount();
                 end;
@@ -248,9 +228,7 @@ table 81 "Gen. Journal Line"
                     exit;
 
                 CreateDimFromDefaultDim(FieldNo("Account No."));
-
-                if (Rec."IC Account Type" = Rec."IC Account Type"::"G/L Account") then
-                    Validate("IC Account No.", GetDefaultICPartnerGLAccNo());
+                OnUpdateICAccountNo(Rec);
                 ValidateApplyRequirements(Rec);
 
                 case "Account Type" of
@@ -442,8 +420,6 @@ table 81 "Gen. Journal Line"
             else
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset"
             else
-            if ("Bal. Account Type" = const("IC Partner")) "IC Partner"
-            else
             if ("Bal. Account Type" = const("Allocation Account")) "Allocation Account"
             else
             if ("Bal. Account Type" = const(Employee)) Employee;
@@ -454,11 +430,7 @@ table 81 "Gen. Journal Line"
                     ClearApplication("Bal. Account Type");
                     BlankJobNo(FieldNo("Bal. Account No."));
                 end;
-
-                if xRec."Bal. Account Type" in ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor,
-                                                "Bal. Account Type"::"IC Partner"]
-                then
-                    "IC Partner Code" := '';
+                OnSetICPartnerCodeBlank(Rec, xRec."Bal. Account Type");
 
                 if "Bal. Account No." = '' then begin
                     UpdateLineBalance();
@@ -497,8 +469,6 @@ table 81 "Gen. Journal Line"
                         GetBankBalAccount();
                     "Bal. Account Type"::"Fixed Asset":
                         GetFABalAccount();
-                    "Bal. Account Type"::"IC Partner":
-                        GetICPartnerBalAccount();
                 end;
 
                 OnValidateBalAccountNoOnAfterAssignValue(Rec, xRec);
@@ -509,8 +479,7 @@ table 81 "Gen. Journal Line"
                 UpdateSource();
                 CreateDimFromDefaultDim(FieldNo("Bal. Account No."));
                 UpdateBalanceAccountId();
-                if (Rec."IC Account Type" = Rec."IC Account Type"::"G/L Account") then
-                    Validate("IC Account No.", GetDefaultICPartnerGLAccNo());
+                OnUpdateICAccountNo(Rec);
                 ValidateApplyRequirements(Rec);
             end;
         }
@@ -1460,11 +1429,7 @@ table 81 "Gen. Journal Line"
 
             trigger OnValidate()
             begin
-                if ("Account Type" in ["Account Type"::Customer, "Account Type"::Vendor, "Account Type"::"Fixed Asset",
-                                       "Account Type"::"IC Partner", "Account Type"::Employee]) and
-                   ("Bal. Account Type" in ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor, "Bal. Account Type"::"Fixed Asset",
-                                            "Bal. Account Type"::"IC Partner", "Bal. Account Type"::Employee])
-                then
+                if IsNotGLOrBankAccountType("Account Type") and IsNotGLOrBankAccountType("Bal. Account Type") then
                     Error(
                       Text000,
                       FieldCaption("Account Type"), FieldCaption("Bal. Account Type"));
@@ -1477,7 +1442,7 @@ table 81 "Gen. Journal Line"
                 OnValidateBalAccountTypeOnBeforeSetBalAccountNo(Rec, xRec);
 
                 Validate("Bal. Account No.", '');
-                Validate("IC Account No.", '');
+                OnSetICAccountNoBlank(Rec);
                 if "Bal. Account Type" in
                    ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor, "Bal. Account Type"::"Bank Account", "Bal. Account Type"::Employee]
                 then begin
@@ -1512,11 +1477,7 @@ table 81 "Gen. Journal Line"
                 then
                     Validate("Payment Terms Code", '');
 
-                if "Bal. Account Type" = "Bal. Account Type"::"IC Partner" then begin
-                    GetTemplate();
-                    if GenJnlTemplate.Type <> GenJnlTemplate.Type::Intercompany then
-                        FieldError("Bal. Account Type");
-                end;
+                OnValidateBalAccountTypeOnBeforeCheckTemplateType(Rec, xRec);
             end;
         }
         /// <summary>
@@ -2376,22 +2337,6 @@ table 81 "Gen. Journal Line"
             ToolTip = 'Specifies the difference between the calculate VAT amount and the VAT amount that you have entered manually.';
             Editable = false;
         }
-        /// <summary>
-        /// Intercompany partner code for IC transactions enabling cross-company business workflows and eliminations.
-        /// </summary>
-        field(113; "IC Partner Code"; Code[20])
-        {
-            Caption = 'IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        /// <summary>
-        /// Intercompany direction indicating whether the transaction is inbound or outbound for IC processing workflows.
-        /// </summary>
-        field(114; "IC Direction"; Enum "IC Direction Type")
-        {
-            Caption = 'IC Direction';
-        }
 #if not CLEANSCHEMA25
         /// <summary>
         /// Obsolete field replaced by IC Account No. for intercompany G/L account references.
@@ -2399,20 +2344,11 @@ table 81 "Gen. Journal Line"
         field(116; "IC Partner G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
             ObsoleteReason = 'Replaced by IC Account No.';
             ObsoleteState = Removed;
             ObsoleteTag = '25.0';
         }
 #endif
-        /// <summary>
-        /// Intercompany transaction number for tracking and matching IC transactions across partner companies.
-        /// </summary>
-        field(117; "IC Partner Transaction No."; Integer)
-        {
-            Caption = 'IC Partner Transaction No.';
-            Editable = false;
-        }
         /// <summary>
         /// Sell-to customer number or buy-from vendor number for document reference and customer/vendor tracking.
         /// </summary>
@@ -2531,36 +2467,6 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Zero Source Currency Amount';
             Editable = false;
-        }
-        /// <summary>
-        /// Intercompany account type for IC transactions determining posting account classification.
-        /// </summary>
-        field(130; "IC Account Type"; Enum "IC Journal Account Type")
-        {
-            Caption = 'IC Account Type';
-            ToolTip = 'Specifies the type of the account that you want to use for the transaction with your IC partner.';
-        }
-        /// <summary>
-        /// Intercompany account number for posting IC transactions to partner company accounts.
-        /// </summary>
-        field(131; "IC Account No."; Code[20])
-        {
-            Caption = 'IC Account No.';
-            ToolTip = 'Specifies the number of the general ledger or bank account that the IC transaction is posted to.';
-            TableRelation =
-            if ("IC Account Type" = const("G/L Account")) "IC G/L Account" where("Account Type" = const(Posting), Blocked = const(false))
-            else
-            if ("Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Account No."), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
         }
         /// <summary>
         /// Specifies the spend request that this journal line relates to.
@@ -4803,19 +4709,6 @@ table 81 "Gen. Journal Line"
         OnAfterCheckGLAcc(Rec, GLAcc);
     end;
 
-    protected procedure CheckICPartner(ICPartnerCode: Code[20]; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
-    var
-        ICPartner: Record "IC Partner";
-    begin
-        if ICPartnerCode <> '' then begin
-            if GenJnlTemplate.Get("Journal Template Name") then;
-            if (ICPartnerCode <> '') and ICPartner.Get(ICPartnerCode) then begin
-                ICPartner.CheckICPartnerIndirect(Format(AccountType), AccountNo);
-                "IC Partner Code" := ICPartnerCode;
-            end;
-        end;
-    end;
-
     local procedure CheckDirectPosting(var GLAccount: Record "G/L Account")
     var
         IsHandled: Boolean;
@@ -5905,21 +5798,6 @@ table 81 "Gen. Journal Line"
         HideValidationDialog := NewHideValidationDialog;
     end;
 
-    local procedure GetDefaultICPartnerGLAccNo(): Code[20]
-    var
-        GLAcc: Record "G/L Account";
-        GLAccNo: Code[20];
-    begin
-        if "IC Partner Code" <> '' then begin
-            if "Account Type" = "Account Type"::"G/L Account" then
-                GLAccNo := "Account No."
-            else
-                GLAccNo := "Bal. Account No.";
-            if GLAcc.Get(GLAccNo) then
-                exit(GLAcc."Default IC Partner G/L Acc. No")
-        end;
-    end;
-
     local procedure GetDeferralPostDate() DeferralPostDate: Date
     var
         IsHandled: Boolean;
@@ -6398,7 +6276,6 @@ table 81 "Gen. Journal Line"
         Vendor: Record Vendor;
         BankAccount: Record "Bank Account";
         FixedAsset: Record "Fixed Asset";
-        ICPartner: Record "IC Partner";
         Employee: Record Employee;
         IsHandled: Boolean;
     begin
@@ -6426,10 +6303,14 @@ table 81 "Gen. Journal Line"
                 exit(BankAccount.Get(xRec."Account No.") and (BankAccount.Name <> Description));
             xRec."Account Type"::"Fixed Asset":
                 exit(FixedAsset.Get(xRec."Account No.") and (FixedAsset.Description <> Description));
-            xRec."Account Type"::"IC Partner":
-                exit(ICPartner.Get(xRec."Account No.") and (ICPartner.Name <> Description));
             xRec."Account Type"::Employee:
                 exit(Employee.Get(xRec."Account No.") and (Employee.FullName() <> Description));
+            else begin
+                IsHandled := false;
+                OnIsAdHocDescriptionElseCase(Rec, xRec, Result, IsHandled);
+                if IsHandled then
+                    exit(Result);
+            end;
         end;
         exit(false);
     end;
@@ -6793,23 +6674,6 @@ table 81 "Gen. Journal Line"
         OnAfterReplaceDescription(GenJnlBatch, Result);
     end;
 
-    local procedure AddCustVendIC(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]): Boolean
-    begin
-        SetRange("Account Type", AccountType);
-        SetRange("Account No.", AccountNo);
-        if not IsEmpty() then
-            exit(false);
-
-        Reset();
-        if FindLast() then;
-        "Line No." += 10000;
-
-        "Account Type" := AccountType;
-        "Account No." := AccountNo;
-        Insert();
-        exit(true);
-    end;
-
     local procedure AssignJobCurrencyCode()
     var
         IsHandled: Boolean;
@@ -6824,28 +6688,9 @@ table 81 "Gen. Journal Line"
         Rec."Job Currency Code" := Job."Currency Code";
     end;
 
-    procedure IsCustVendICAdded(GenJournalLine: Record "Gen. Journal Line"): Boolean
-    var
-        IsHandled: Boolean;
+    procedure IsCustVendICAdded(GenJournalLine: Record "Gen. Journal Line") Result: Boolean
     begin
-        IsHandled := false;
-        OnBeforeIsCustVendICAdded(GenJournalLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        if (GenJournalLine."Account No." <> '') and
-           (GenJournalLine."Account Type" in ["Account Type"::Customer, "Account Type"::Vendor, "Account Type"::"IC Partner"])
-        then
-            exit(AddCustVendIC(GenJournalLine."Account Type", GenJournalLine."Account No."));
-
-        if (GenJournalLine."Bal. Account No." <> '') and
-           (GenJournalLine."Bal. Account Type" in ["Bal. Account Type"::Customer,
-                                                   "Bal. Account Type"::Vendor,
-                                                   "Bal. Account Type"::"IC Partner"])
-        then
-            exit(AddCustVendIC(GenJournalLine."Bal. Account Type", GenJournalLine."Bal. Account No."));
-
-        exit(false);
+        OnIsCustVendICAdded(GenJournalLine, Rec, Result);
     end;
 
     procedure IsExportedToPaymentFile(): Boolean
@@ -7241,7 +7086,6 @@ table 81 "Gen. Journal Line"
         "Source Type" := "Source Type"::Vendor;
         "Source No." := PurchHeader."Pay-to Vendor No.";
         "Posting No. Series" := PurchHeader."Posting No. Series";
-        "IC Partner Code" := PurchHeader."Pay-to IC Partner Code";
         "Ship-to/Order Address Code" := PurchHeader."Order Address Code";
         "Salespers./Purch. Code" := PurchHeader."Purchaser Code";
         "On Hold" := PurchHeader."On Hold";
@@ -7268,7 +7112,6 @@ table 81 "Gen. Journal Line"
         "VAT Registration No." := PurchHeader."VAT Registration No.";
         "Source Type" := "Source Type"::Vendor;
         "Source No." := PurchHeader."Pay-to Vendor No.";
-        "IC Partner Code" := PurchHeader."Buy-from IC Partner Code";
         "VAT Posting" := "VAT Posting"::"Manual VAT Entry";
         "System-Created Entry" := true;
         Prepayment := true;
@@ -7289,7 +7132,6 @@ table 81 "Gen. Journal Line"
         "Salespers./Purch. Code" := PurchHeader."Purchaser Code";
         "Source Type" := "Source Type"::Customer;
         "Source No." := PurchHeader."Pay-to Vendor No.";
-        "IC Partner Code" := PurchHeader."Buy-from IC Partner Code";
         "System-Created Entry" := true;
         Prepayment := true;
         "Due Date" := PurchHeader."Prepayment Due Date";
@@ -7357,7 +7199,6 @@ table 81 "Gen. Journal Line"
         "Source No." := SalesHeader."Bill-to Customer No.";
         "Posting No. Series" := SalesHeader."Posting No. Series";
         "Ship-to/Order Address Code" := SalesHeader."Ship-to Code";
-        "IC Partner Code" := SalesHeader."Bill-to IC Partner Code";
         "Salespers./Purch. Code" := SalesHeader."Salesperson Code";
         "Your Reference" := SalesHeader."Your Reference";
         "On Hold" := SalesHeader."On Hold";
@@ -7380,7 +7221,6 @@ table 81 "Gen. Journal Line"
         "VAT Registration No." := SalesHeader."VAT Registration No.";
         "Source Type" := "Source Type"::Customer;
         "Source No." := SalesHeader."Bill-to Customer No.";
-        "IC Partner Code" := SalesHeader."Sell-to IC Partner Code";
         "VAT Posting" := "VAT Posting"::"Manual VAT Entry";
         "System-Created Entry" := true;
         Prepayment := true;
@@ -7399,7 +7239,6 @@ table 81 "Gen. Journal Line"
         "Salespers./Purch. Code" := SalesHeader."Salesperson Code";
         "Source Type" := "Source Type"::Customer;
         "Source No." := SalesHeader."Bill-to Customer No.";
-        "IC Partner Code" := SalesHeader."Sell-to IC Partner Code";
         "System-Created Entry" := true;
         Prepayment := true;
         "Due Date" := SalesHeader."Prepayment Due Date";
@@ -7435,9 +7274,6 @@ table 81 "Gen. Journal Line"
 
         OnAfterCopyGenJnlLineFromSalesHeaderPayment(SalesHeader, Rec);
     end;
-
-
-
 
     procedure CopyFromPaymentCustLedgEntry(CustLedgEntry: Record "Cust. Ledger Entry")
     begin
@@ -7844,7 +7680,7 @@ table 81 "Gen. Journal Line"
         Cust.Get("Account No.");
         OnGetCustomerAccountOnAfterCustGet(Rec, Cust, CurrFieldNo);
         Cust.CheckBlockedCustOnJnls(Cust, "Document Type", false);
-        CheckICPartner(Cust."IC Partner Code", "Account Type", "Account No.");
+        OnCheckCustomerPartner(Rec, Cust, "Account Type", "Account No.");
         UpdateDescription(Cust.Name);
         "Payment Method Code" := Cust."Payment Method Code";
         Validate("Recipient Bank Account", Cust."Preferred Bank Account Code");
@@ -7890,7 +7726,7 @@ table 81 "Gen. Journal Line"
         Cust.Get("Bal. Account No.");
         OnGetCustomerBalAccountOnAfterCustGet(Rec, Cust, CurrFieldNo);
         Cust.CheckBlockedCustOnJnls(Cust, "Document Type", false);
-        CheckICPartner(Cust."IC Partner Code", "Bal. Account Type", "Bal. Account No.");
+        OnCheckCustomerPartner(Rec, Cust, "Bal. Account Type", "Bal. Account No.");
         UpdateDescriptionFromBalAccount(Cust.Name);
         "Payment Method Code" := Cust."Payment Method Code";
         Validate("Recipient Bank Account", Cust."Preferred Bank Account Code");
@@ -7929,7 +7765,7 @@ table 81 "Gen. Journal Line"
     begin
         Vend.Get("Account No.");
         Vend.CheckBlockedVendOnJnls(Vend, "Document Type", false);
-        CheckICPartner(Vend."IC Partner Code", "Account Type", "Account No.");
+        OnCheckVendorPartner(Rec, Vend, "Account Type", "Account No.");
         UpdateDescription(Vend.Name);
         "Payment Method Code" := Vend."Payment Method Code";
         "Creditor No." := Vend."Creditor No.";
@@ -8003,7 +7839,7 @@ table 81 "Gen. Journal Line"
     begin
         Vend.Get("Bal. Account No.");
         Vend.CheckBlockedVendOnJnls(Vend, "Document Type", false);
-        CheckICPartner(Vend."IC Partner Code", "Bal. Account Type", "Bal. Account No.");
+        OnCheckVendorPartner(Rec, Vend, "Bal. Account Type", "Bal. Account No.");
         UpdateDescriptionFromBalAccount(Vend.Name);
         "Payment Method Code" := Vend."Payment Method Code";
         Validate("Recipient Bank Account", Vend."Preferred Bank Account Code");
@@ -8155,46 +7991,12 @@ table 81 "Gen. Journal Line"
         OnAfterAccountNoOnValidateGetFABalAccount(Rec, FA);
     end;
 
-    local procedure GetICPartnerAccount()
-    var
-        ICPartner: Record "IC Partner";
-    begin
-        ICPartner.Get("Account No.");
-        ICPartner.CheckICPartner();
-        UpdateDescription(ICPartner.Name);
-        if ("Bal. Account No." = '') or ("Bal. Account Type" = "Bal. Account Type"::"G/L Account") then
-            "Currency Code" := ICPartner."Currency Code";
-        if ("Bal. Account Type" = "Bal. Account Type"::"Bank Account") and ("Currency Code" = '') then
-            "Currency Code" := ICPartner."Currency Code";
-        ClearPostingGroups();
-        "IC Partner Code" := "Account No.";
-
-        OnAfterAccountNoOnValidateGetICPartnerAccount(Rec, ICPartner);
-    end;
-
     local procedure GetAllocationAccount()
     var
         AllocationAccount: Record "Allocation Account";
     begin
         AllocationAccount.Get("Account No.");
         UpdateDescription(AllocationAccount.Name);
-    end;
-
-    local procedure GetICPartnerBalAccount()
-    var
-        ICPartner: Record "IC Partner";
-    begin
-        ICPartner.Get("Bal. Account No.");
-        UpdateDescriptionFromBalAccount(ICPartner.Name);
-
-        if ("Account No." = '') or ("Account Type" = "Account Type"::"G/L Account") then
-            "Currency Code" := ICPartner."Currency Code";
-        if ("Account Type" = "Account Type"::"Bank Account") and ("Currency Code" = '') then
-            "Currency Code" := ICPartner."Currency Code";
-        ClearBalancePostingGroups();
-        "IC Partner Code" := "Bal. Account No.";
-
-        OnAfterAccountNoOnValidateGetICPartnerBalAccount(Rec, ICPartner);
     end;
 
     procedure CreateFAAcquisitionLines(var FAGenJournalLine: Record "Gen. Journal Line")
@@ -8520,7 +8322,6 @@ table 81 "Gen. Journal Line"
         Vendor: Record Vendor;
         Employee: Record Employee;
         BankAccount: Record "Bank Account";
-        ICPartner: Record "IC Partner";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -8552,11 +8353,8 @@ table 81 "Gen. Journal Line"
                     BankAccount.Get("Account No.");
                     CurrencyCode := BankAccount."Currency Code";
                 end;
-            "Account Type"::"IC Partner":
-                begin
-                    ICPartner.Get("Account No.");
-                    CurrencyCode := ICPartner."Currency Code";
-                end;
+            else
+                OnGetAccCurrencyCodeCaseElse(Rec, CurrencyCode);
         end;
 
         exit(CurrencyCode);
@@ -9246,40 +9044,6 @@ table 81 "Gen. Journal Line"
     end;
 
     /// <summary>
-    /// Event triggered after retrieving an intercompany partner record for the general journal line.
-    /// Subscribing to this event allows developers to extend or customize the behavior
-    /// when processing intercompany partner account data. This can be useful for implementing additional logic,
-    /// validations, or handling specific business rules related to intercompany partner accounts.
-    /// </summary>
-    /// <param name="GenJournalLine">
-    /// The general journal line record for which the intercompany partner account is being processed.
-    /// </param>
-    /// <param name="ICPartner">
-    /// The intercompany partner record that has been retrieved and processed.
-    /// </param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterAccountNoOnValidateGetICPartnerAccount(var GenJournalLine: Record "Gen. Journal Line"; var ICPartner: Record "IC Partner")
-    begin
-    end;
-
-    /// <summary>
-    /// Event triggered after retrieving an intercompany partner record for the balancing account in the general journal line.
-    /// Subscribing to this event allows developers to extend or customize the behavior
-    /// when processing intercompany partner data for the balancing account. This can be useful for implementing additional logic,
-    /// validations, or handling specific business rules related to balancing intercompany partner accounts.
-    /// </summary>
-    /// <param name="GenJournalLine">
-    /// The general journal line record for which the balancing intercompany partner account is being processed.
-    /// </param>
-    /// <param name="ICPartner">
-    /// The intercompany partner record that has been retrieved and processed as the balancing account.
-    /// </param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterAccountNoOnValidateGetICPartnerBalAccount(var GenJournalLine: Record "Gen. Journal Line"; var ICPartner: Record "IC Partner")
-    begin
-    end;
-
-    /// <summary>
     /// Event triggered after the temporary Job Journal Line has been created.
     /// This event allows developers to add custom logic or modify the temporary Job Journal Line after it has been created.
     /// </summary>
@@ -9919,17 +9683,6 @@ table 81 "Gen. Journal Line"
     /// <param name="IsHandled">A boolean variable that, if set to true, skips the default logic and uses the value of Result variable.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEmptyLine(GenJournalLine: Record "Gen. Journal Line"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Event triggered before determining if a Customer, Vendor, or IC Partner is added based on the General Journal Line.
-    /// This event allows developers to add custom logic or skip the default logic for checking the addition of Customer, Vendor, or IC Partner.
-    /// </summary>
-    /// <param name="GenJournalLine">The General Journal Line record being processed.</param>
-    /// <param name="IsHandled">A boolean variable that, if set to true, skips the default logic for determining if a Customer, Vendor, or IC Partner is added.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeIsCustVendICAdded(GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
@@ -11603,6 +11356,13 @@ table 81 "Gen. Journal Line"
         exit(HasNoMultipleLine());
     end;
 
+    local procedure IsNotGLOrBankAccountType(AccountType: Enum "Gen. Journal Account Type"): Boolean
+    begin
+        exit(
+            AccountType in [AccountType::Customer, AccountType::Vendor, AccountType::"Fixed Asset",
+                            AccountType::"IC Partner", AccountType::Employee]);
+    end;
+
     /// <summary>
     /// Event triggered after initializing default dimension sources for the general journal line.
     /// Subscribing to this event allows developers to extend or customize the behavior
@@ -12836,6 +12596,56 @@ table 81 "Gen. Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetAccCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; var CurrencyCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateAccountTypeOnBeforeCheckTemplateType(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateBalAccountTypeOnBeforeCheckTemplateType(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateICAccountNo(var Rec: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetAccCurrencyCodeCaseElse(var Rec: Record "Gen. Journal Line"; var CurrencyCode: Code[10])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnIsAdHocDescriptionElseCase(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line"; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetICAccountNoBlank(var Rec: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetICPartnerCodeBlank(var Rec: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnIsCustVendICAdded(var GenJournalLine: Record "Gen. Journal Line"; var Rec: Record "Gen. Journal Line"; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckCustomerPartner(var GenJournalLine: Record "Gen. Journal Line"; var Cust: Record Customer; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckVendorPartner(var GenJournalLine: Record "Gen. Journal Line"; var Vend: Record Vendor; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
     begin
     end;
 }

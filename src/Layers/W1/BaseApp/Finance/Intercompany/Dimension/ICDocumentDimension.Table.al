@@ -70,8 +70,8 @@ table 442 "IC Document Dimension"
 
             trigger OnValidate()
             begin
-                if not DimMgt.CheckICDim("Dimension Code") then
-                    Error(DimMgt.GetDimErr());
+                if not ICDimMgt.CheckICDim("Dimension Code") then
+                    Error(ICDimMgt.GetDimErr());
                 "Dimension Value Code" := '';
             end;
         }
@@ -86,8 +86,8 @@ table 442 "IC Document Dimension"
 
             trigger OnValidate()
             begin
-                if not DimMgt.CheckICDimValue("Dimension Code", "Dimension Value Code") then
-                    Error(DimMgt.GetDimErr());
+                if not ICDimMgt.CheckICDimValue("Dimension Code", "Dimension Value Code") then
+                    Error(ICDimMgt.GetDimErr());
             end;
         }
     }
@@ -105,7 +105,7 @@ table 442 "IC Document Dimension"
     }
 
     var
-        DimMgt: Codeunit DimensionManagement;
+        ICDimMgt: Codeunit "IC Dimension Management";
 
     /// <summary>
     /// Opens the IC Document Dimensions page to view dimensions for a specific intercompany transaction.

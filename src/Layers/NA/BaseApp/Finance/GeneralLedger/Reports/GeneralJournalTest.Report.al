@@ -23,9 +23,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
@@ -870,7 +867,6 @@ report 2 "General Journal - Test"
         VATPostingSetup: Record "VAT Posting Setup";
         NoSeries: Record "No. Series";
         FA: Record "Fixed Asset";
-        ICPartner: Record "IC Partner";
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         FASetup: Record "FA Setup";
@@ -976,10 +972,6 @@ report 2 "General Journal - Test"
         Text062: Label '%1 must not be 0.';
         Text064: Label '%1 %2 is already used in line %3 (%4 %5).';
         Text065: Label '%1 must not be blocked with type %2 when %3 is %4.';
-        Text066: Label 'You cannot enter G/L Account or Bank Account in both %1 and %2.';
-        Text067: Label '%1 %2 is linked to %3 %4.';
-        Text069: Label '%1 must not be specified when %2 is %3.';
-        Text070: Label '%1 must not be specified when the document is not an intercompany transaction.';
         Text071: Label '%1 %2 does not exist.';
         Text072: Label '%1 must not be %2 for %3 %4.';
         Text073: Label '%1 %2 already exists.';
@@ -1374,28 +1366,7 @@ report 2 "General Journal - Test"
                       StrSubstNo(
                         Text038,
                         GenJnlLine."Currency Code"));
-            if (Cust."IC Partner Code" <> '') and (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) then
-                if ICPartner.Get(Cust."IC Partner Code") then begin
-                    if ICPartner.Blocked then
-                        AddError(
-                          StrSubstNo(
-                            '%1 %2',
-                            StrSubstNo(
-                              Text067,
-                              Cust.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), GenJnlLine."IC Partner Code"),
-                            StrSubstNo(
-                              Text032,
-                              ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), Cust."IC Partner Code")));
-                end else
-                    AddError(
-                      StrSubstNo(
-                        '%1 %2',
-                        StrSubstNo(
-                          Text067,
-                          Cust.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), Cust."IC Partner Code"),
-                        StrSubstNo(
-                          Text031,
-                          ICPartner.TableCaption(), Cust."IC Partner Code")));
+            OnAfterCheckCustOnBeforeCustPosting(GenJnlLine, Cust, GenJnlTemplate, ErrorCounter, ErrorText);
             CustPosting := true;
             TestPostingType();
 
@@ -1464,29 +1435,7 @@ report 2 "General Journal - Test"
                       StrSubstNo(
                         Text038,
                         GenJnlLine."Currency Code"));
-
-            if (Vend."IC Partner Code" <> '') and (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) then
-                if ICPartner.Get(Vend."IC Partner Code") then begin
-                    if ICPartner.Blocked then
-                        AddError(
-                          StrSubstNo(
-                            '%1 %2',
-                            StrSubstNo(
-                              Text067,
-                              Vend.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), Vend."IC Partner Code"),
-                            StrSubstNo(
-                              Text032,
-                              ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), Vend."IC Partner Code")));
-                end else
-                    AddError(
-                      StrSubstNo(
-                        '%1 %2',
-                        StrSubstNo(
-                          Text067,
-                          Vend.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), GenJnlLine."IC Partner Code"),
-                        StrSubstNo(
-                          Text031,
-                          ICPartner.TableCaption(), Vend."IC Partner Code")));
+            OnAfterCheckVendOnBeforeVendPosting(GenJnlLine, Vend, GenJnlTemplate, ErrorCounter, ErrorText);
             VendPosting := true;
             TestPostingType();
 
@@ -1620,23 +1569,6 @@ report 2 "General Journal - Test"
                   StrSubstNo(
                     Text036,
                     FADeprBook.TableCaption(), FA."No.", GenJnlLine."Depreciation Book Code"));
-        end;
-    end;
-
-    local procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100])
-    begin
-        if not ICPartner.Get(GenJnlLine."Account No.") then
-            AddError(
-              StrSubstNo(
-                Text031,
-                ICPartner.TableCaption(), GenJnlLine."Account No."))
-        else begin
-            AccName := ICPartner.Name;
-            if ICPartner.Blocked then
-                AddError(
-                  StrSubstNo(
-                    Text032,
-                    ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), GenJnlLine."Account No."));
         end;
     end;
 
@@ -1989,24 +1921,8 @@ report 2 "General Journal - Test"
     end;
 
     local procedure CheckICDocument()
-    var
-        GenJnlLine4: Record "Gen. Journal Line";
     begin
-        if GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany then begin
-            if ("Gen. Journal Line"."Posting Date" <> LastDate) or ("Gen. Journal Line"."Document Type" <> LastDocType) or ("Gen. Journal Line"."Document No." <> LastDocNo) then begin
-                GenJnlLine4.SetCurrentKey("Journal Template Name", "Journal Batch Name", "Posting Date", "Document No.");
-                GenJnlLine4.SetRange("Journal Template Name", "Gen. Journal Line"."Journal Template Name");
-                GenJnlLine4.SetRange("Journal Batch Name", "Gen. Journal Line"."Journal Batch Name");
-                GenJnlLine4.SetRange("Posting Date", "Gen. Journal Line"."Posting Date");
-                GenJnlLine4.SetRange("Document No.", "Gen. Journal Line"."Document No.");
-                GenJnlLine4.SetFilter("IC Partner Code", '<>%1', '');
-                if GenJnlLine4.FindFirst() then
-                    CurrentICPartner := GenJnlLine4."IC Partner Code"
-                else
-                    CurrentICPartner := '';
-            end;
-            CheckICAccountNo();
-        end;
+        OnCheckICDocument("Gen. Journal Line", GenJnlTemplate, LastDate, LastDocType, LastDocNo, CurrentICPartner, ErrorCounter, ErrorText);
     end;
 
     local procedure TestJobFields(var GenJnlLine: Record "Gen. Journal Line")
@@ -2130,11 +2046,12 @@ report 2 "General Journal - Test"
                 CheckBankAcc("Gen. Journal Line", Name);
             AccountType::"Fixed Asset":
                 CheckFixedAsset("Gen. Journal Line", Name);
-            AccountType::"IC Partner":
-                CheckICPartner("Gen. Journal Line", Name);
             AccountType::Employee:
                 CheckEmployee("Gen. Journal Line", Name);
         end;
+
+        if AccountType = AccountType::"IC Partner" then
+            OnCheckAccountTypesOnAccountTypeICPartner("Gen. Journal Line", Name, ErrorCounter, ErrorText);
     end;
 
     local procedure GetLastEnteredDocumentNo(var FromGenJournalLine: Record "Gen. Journal Line"): Code[20]
@@ -2161,52 +2078,28 @@ report 2 "General Journal - Test"
         exit(GenJournalLine.IsEmpty);
     end;
 
-    local procedure CheckICAccountNo()
-    var
-        ICGLAccount: Record "IC G/L Account";
-        ICBankAccount: Record "IC Bank Account";
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAssignDimTableID(GenJournalLine: Record "Gen. Journal Line"; var TableID: array[10] of Integer; var No: array[10] of Code[20]; var SkipCheck: Boolean)
     begin
-        if (CurrentICPartner <> '') and ("Gen. Journal Line"."IC Direction" = "Gen. Journal Line"."IC Direction"::Outgoing) then begin
-            if ("Gen. Journal Line"."Account Type" in ["Gen. Journal Line"."Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-               ("Gen. Journal Line"."Bal. Account Type" in ["Gen. Journal Line"."Bal. Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-               ("Gen. Journal Line"."Account No." <> '') and
-               ("Gen. Journal Line"."Bal. Account No." <> '')
-            then
-                AddError(StrSubstNo(Text066, "Gen. Journal Line".FieldCaption("Account No."), "Gen. Journal Line".FieldCaption("Bal. Account No.")))
-            else
-                if (("Gen. Journal Line"."Account Type" in ["Gen. Journal Line"."Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and ("Gen. Journal Line"."Account No." <> '')) xor
-                   (("Gen. Journal Line"."Bal. Account Type" in ["Gen. Journal Line"."Bal. Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-                    ("Gen. Journal Line"."Bal. Account No." <> ''))
-                then
-                    if "Gen. Journal Line"."IC Account No." = '' then
-                        AddError(StrSubstNo(Text002, "Gen. Journal Line".FieldCaption("IC Account No.")))
-                    else begin
-                        if "Gen. Journal Line"."IC Account Type" = "Gen. Journal Line"."IC Account Type"::"G/L Account" then
-                            if ICGLAccount.Get("Gen. Journal Line"."IC Account No.") then
-                                if ICGLAccount.Blocked then
-                                    AddError(StrSubstNo(Text032, ICGLAccount.FieldCaption(Blocked), false,
-                                        "Gen. Journal Line".FieldCaption("IC Account No."), "Gen. Journal Line"."IC Account No."));
-
-                        if "Gen. Journal Line"."IC Account Type" = "Gen. Journal Line"."IC Account Type"::"Bank Account" then
-                            if ICBankAccount.Get("Gen. Journal Line"."IC Account No.", CurrentICPartner) then
-                                if ICBankAccount.Blocked then
-                                    AddError(StrSubstNo(Text032, ICGLAccount.FieldCaption(Blocked), false,
-                                        "Gen. Journal Line".FieldCaption("IC Account No."), "Gen. Journal Line"."IC Account No."));
-                    end
-                else
-                    if "Gen. Journal Line"."IC Account No." <> '' then
-                        AddError(StrSubstNo(Text009, "Gen. Journal Line".FieldCaption("IC Account No.")));
-        end else
-            if "Gen. Journal Line"."IC Account No." <> '' then begin
-                if "Gen. Journal Line"."IC Direction" = "Gen. Journal Line"."IC Direction"::Incoming then
-                    AddError(StrSubstNo(Text069, "Gen. Journal Line".FieldCaption("IC Account No."), "Gen. Journal Line".FieldCaption("IC Direction"), Format("Gen. Journal Line"."IC Direction")));
-                if CurrentICPartner = '' then
-                    AddError(StrSubstNo(Text070, "Gen. Journal Line".FieldCaption("IC Account No.")));
-            end;
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterAssignDimTableID(GenJournalLine: Record "Gen. Journal Line"; var TableID: array[10] of Integer; var No: array[10] of Code[20]; var SkipCheck: Boolean)
+    local procedure OnAfterCheckCustOnBeforeCustPosting(var GenJournalLine: Record "Gen. Journal Line"; Customer: Record Customer; GenJournalTemplate: Record "Gen. Journal Template"; var ErrorCounter: Integer; var ErrorText: array[50] of Text[250])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckVendOnBeforeVendPosting(var GenJournalLine: Record "Gen. Journal Line"; Vendor: Record Vendor; GenJournalTemplate: Record "Gen. Journal Template"; var ErrorCounter: Integer; var ErrorText: array[50] of Text[250])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckAccountTypesOnAccountTypeICPartner(var GenJournalLine: Record "Gen. Journal Line"; var Name: Text[100]; var ErrorCounter: Integer; var ErrorText: array[50] of Text[250])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckICDocument(var GenJournalLine: Record "Gen. Journal Line"; GenJournalTemplate: Record "Gen. Journal Template"; LastDate: Date; LastDocType: Enum "Gen. Journal Document Type"; LastDocNo: Code[20]; var CurrentICPartner: Code[20]; var ErrorCounter: Integer; var ErrorText: array[50] of Text[250])
     begin
     end;
 

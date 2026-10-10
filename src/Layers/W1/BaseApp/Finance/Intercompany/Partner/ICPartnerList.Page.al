@@ -184,10 +184,10 @@ page 608 "IC Partner List"
     procedure GetSelectionFilter(): Text
     var
         Partner: Record "IC Partner";
-        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+        ICSelectionFilterMgt: Codeunit "IC Selection Filter Mgt.";
     begin
         CurrPage.SetSelectionFilter(Partner);
-        exit(SelectionFilterManagement.GetSelectionFilterForICPartner(Partner));
+        exit(ICSelectionFilterMgt.GetSelectionFilterForICPartner(Partner));
     end;
 }
 

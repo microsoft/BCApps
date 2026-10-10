@@ -60,14 +60,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Reports;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Counting.Journal;
@@ -237,7 +229,7 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
-                group("Group3")
+                group("WHT")
                 {
                     Caption = 'WHT';
                     action("WHT E-Filing")
@@ -255,58 +247,13 @@ page 8901 "Finance Manager Role Center"
                 }
                 group("Group4")
                 {
-                    Caption = 'Intercompany';
-                    action("General Journals")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany General Journal';
-                        RunObject = page "IC General Journal";
-                        Tooltip = 'Open the Intercompany General Journal page.';
-                    }
-                    action("Inbox Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Inbox Transactions';
-                        RunObject = page "IC Inbox Transactions";
-                        Tooltip = 'Open the Intercompany Inbox Transactions page.';
-                    }
-                    action("Outbox Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Outbox Transactions';
-                        RunObject = page "IC Outbox Transactions";
-                        Tooltip = 'Open the Intercompany Outbox Transactions page.';
-                    }
-                    action("Handled Inbox Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Handled Intercompany Inbox Transactions';
-                        RunObject = page "Handled IC Inbox Transactions";
-                        Tooltip = 'Open the Handled Intercompany Inbox Transactions page.';
-                    }
-                    action("Handled Outbox Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Handled Intercompany Outbox Transactions';
-                        RunObject = page "Handled IC Outbox Transactions";
-                        Tooltip = 'Open the Handled Intercompany Outbox Transactions page.';
-                    }
-                    action("Intercompany Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'IC Transaction';
-                        RunObject = report "IC Transactions";
-                        Tooltip = 'Run the IC Transaction report.';
-                    }
-                }
-                group("Group5")
-                {
                     Caption = 'Consolidation';
                     action("Business Units")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Business Units';
                         RunObject = page "Business Unit List";
+                        Tooltip = 'Open the Business Units page.';
                     }
                     action("BAS Business Units")
                     {
@@ -329,7 +276,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the G/L Consolidation Eliminations report.';
                     }
                 }
-                group("Group6")
+                group("BAS")
                 {
                     Caption = 'Business Activity Statement';
                     action("BAS Setup Names")
@@ -351,7 +298,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "BAS ATO Receipt";
                     }
                 }
-                group("Group7")
+                group("Group5")
                 {
                     Caption = 'Journals';
                     action("General Journals1")
@@ -368,15 +315,8 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Recurring General Journal";
                         Tooltip = 'Open the Recurring General Journals page.';
                     }
-                    action("General Journals2")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany General Journal';
-                        RunObject = page "IC General Journal";
-                        Tooltip = 'Open the Intercompany General Journal page.';
-                    }
                 }
-                group("Group8")
+                group("Group6")
                 {
                     Caption = 'Register/Entries';
                     action("G/L Registers")
@@ -436,12 +376,6 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Item Budget Entries";
                         Tooltip = 'Open the Item Budget Entries page.';
                     }
-                    // action("Simulation Register")
-                    // {
-                    //     ApplicationArea = Basic, Suite;
-                    //     Caption = 'Simulation Register';
-                    //     RunObject = page 28160;
-                    // }
                     action("GST Purchase Entries")
                     {
                         ApplicationArea = Basic, Suite;
@@ -455,10 +389,10 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "GST Sales Entries";
                     }
                 }
-                group("Group9")
+                group("Group7")
                 {
                     Caption = 'Reports';
-                    group("Group10")
+                    group("Group8")
                     {
                         Caption = 'Entries';
                         action("G/L Register")
@@ -466,6 +400,7 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Register';
                             RunObject = report "G/L Register";
+                            Tooltip = 'Run the G/L Register report.';
                         }
                         action("G/L Journal")
                         {
@@ -520,7 +455,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = Report "Withholding Summary";
                         }
                     }
-                    group("Group11")
+                    group("Group9")
                     {
                         Caption = 'Financial Statement';
                         action("Account Schedule")
@@ -601,7 +536,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Budget";
                             Tooltip = 'Run the Budget report.';
                         }
-                        action("Journals")
+                        action("Journals1")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Journals';
@@ -711,7 +646,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = Report "WHT Certificate TH - Copy";
                         }
                     }
-                    group("Group12")
+                    group("Group10")
                     {
                         Caption = 'Miscellaneous';
                         action("Foreign Currency Balance")
@@ -736,7 +671,7 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the G/L Deferral Summary report.';
                         }
                     }
-                    group("Group13")
+                    group("Group11")
                     {
                         Caption = 'Setup List';
                         action("Chart of Accounts1")
@@ -755,7 +690,7 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
-                group("Group14")
+                group("Group12")
                 {
                     Caption = 'Setup';
                     action("General Ledger Setup")
@@ -796,7 +731,7 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
-            group("Group15")
+            group("Group13")
             {
                 Caption = 'Cash Management';
                 action("Bank Accounts")
@@ -818,18 +753,7 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payment Registration';
                     RunObject = page "Payment Registration";
-                }
-                action("Deposit")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bank Deposits';
-                    RunObject = codeunit "Open Deposits Page";
-                }
-                action("Posted Bank Deposit")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Bank Deposits';
-                    RunObject = codeunit "Open P. Bank Deposits L. Page";
+                    Tooltip = 'Open the Payment Registration page.';
                 }
                 action("Post Dated Checks - Sales")
                 {
@@ -843,7 +767,19 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Post Dated Checks-Purchases';
                     RunObject = page "Post Dated Checks-Purchases";
                 }
-                group("Group16")
+                action("Deposit")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Bank Deposits';
+                    RunObject = codeunit "Open Deposits Page";
+                }
+                action("Posted Bank Deposit")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Posted Bank Deposits';
+                    RunObject = codeunit "Open P. Bank Deposits L. Page";
+                }
+                group("Group14")
                 {
                     Caption = 'Cash Flow';
                     action("Cash Flow Forecasts")
@@ -882,7 +818,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Cash Flow Worksheet page.';
                     }
                 }
-                group("Group17")
+                group("Group15")
                 {
                     Caption = 'Reconciliation';
                     action("Bank Account Reconciliations")
@@ -907,7 +843,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Payment Reconciliation Journals page.';
                     }
                 }
-                group("Group18")
+                group("Group16")
                 {
                     Caption = 'Journals';
                     action("Cash Receipt Journal")
@@ -932,7 +868,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Payment Reconciliation Journals page.';
                     }
                 }
-                group("Group19")
+                group("Group17")
                 {
                     Caption = 'Ledger Entries';
                     action("Bank Account Ledger Entries")
@@ -957,7 +893,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Cash Flow Ledger Entries page.';
                     }
                 }
-                group("Group20")
+                group("Group18")
                 {
                     Caption = 'Reports';
                     action("Register")
@@ -1035,7 +971,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = Report "Deposit Slip";
                     }
                 }
-                group("Group21")
+                group("Group19")
                 {
                     Caption = 'Setup';
                     action("Payment Application Rules")
@@ -1089,7 +1025,7 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
-            group("Group22")
+            group("Group20")
             {
                 Caption = 'Cost Accounting';
                 action("Chart of Cost Centers")
@@ -1134,7 +1070,7 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Cost Journal";
                     Tooltip = 'Open the Cost Journals page.';
                 }
-                group("Group23")
+                group("Group21")
                 {
                     Caption = 'Registers';
                     action("Registers")
@@ -1152,10 +1088,10 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Cost Budget Registers page.';
                     }
                 }
-                group("Group24")
+                group("Group22")
                 {
                     Caption = 'Reports';
-                    group("Group25")
+                    group("Group23")
                     {
                         Caption = 'Setup Information';
                         action("Allocations1")
@@ -1165,7 +1101,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Cost Allocations";
                         }
                     }
-                    group("Group26")
+                    group("Group24")
                     {
                         Caption = 'Entries';
                         action("Cost Journal1")
@@ -1181,7 +1117,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Cost Types Details";
                         }
                     }
-                    group("Group27")
+                    group("Group25")
                     {
                         Caption = 'Cost & Revenue';
                         action("P/L Statement")
@@ -1203,7 +1139,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Cost Acctg. Analysis";
                         }
                     }
-                    group("Group28")
+                    group("Group26")
                     {
                         Caption = 'Cost Budget';
                         action("P/L Statement with Budget")
@@ -1220,7 +1156,7 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
-                group("Group29")
+                group("Group27")
                 {
                     Caption = 'Setup';
                     action("Cost Accounting Setup")
@@ -1239,7 +1175,7 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
-            group("Group30")
+            group("Group28")
             {
                 Caption = 'Receivables';
                 action("Customers")
@@ -1282,7 +1218,7 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Post Dated Checks (Sales)';
                     RunObject = page "Post Dated Checks List";
                 }
-                group("Group31")
+                group("Group29")
                 {
                     Caption = 'Combine';
                     action("Combined Shipments")
@@ -1298,7 +1234,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = report "Combine Return Receipts";
                     }
                 }
-                group("Group32")
+                group("Group30")
                 {
                     Caption = 'Reminder/Fin. Charge Memos';
                     action("Reminders")
@@ -1330,10 +1266,10 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Issued Finance Charge Memos page.';
                     }
                 }
-                group("Group33")
+                group("Group31")
                 {
                     Caption = 'Journals';
-                    action("Journals1")
+                    action("Journals")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Sales Journals';
@@ -1348,7 +1284,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Cash Receipt Journals page.';
                     }
                 }
-                group("Group34")
+                group("Group32")
                 {
                     Caption = 'Posted Documents';
                     action("Posted Invoices")
@@ -1398,7 +1334,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "GST Sales Entries";
                     }
                 }
-                group("Group35")
+                group("Group33")
                 {
                     Caption = 'Registers/Entries';
                     action("G/L Registers1")
@@ -1430,7 +1366,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Detailed Customer Ledger Entries page.';
                     }
                 }
-                group("Group36")
+                group("Group34")
                 {
                     Caption = 'Reports';
                     action("Customer Detailed Aging")
@@ -1444,6 +1380,13 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Statement';
                         RunObject = codeunit "Customer Layout - Statement";
+                        Tooltip = 'Run the Customer Statement codeunit.';
+                    }
+                    action("AU/NZ Statement")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'AU/NZ Statement';
+                        RunObject = Report "AU/NZ Statement";
                     }
                     action("Customer Register")
                     {
@@ -1517,12 +1460,6 @@ page 8901 "Finance Manager Role Center"
                         ObsoleteTag = '28.0';
                     }
 #endif
-                    action("AU/NZ Statement")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'AU/NZ Statement';
-                        RunObject = Report "AU/NZ Statement";
-                    }
 #if not CLEAN28
                     action("Sales Statistics")
                     {
@@ -1608,7 +1545,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = Report "Pending Sales Tax Invoice";
                     }
                 }
-                group("Group37")
+                group("Group35")
                 {
                     Caption = 'Setup';
                     action("Sales & Receivables Setup")
@@ -1647,7 +1584,7 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
-            group("Group38")
+            group("Group36")
             {
                 Caption = 'Payables';
                 action("Vendors")
@@ -1684,7 +1621,7 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Post Dated Checks (Purchase)';
                     RunObject = page "Post Dated Checks-Purchases";
                 }
-                group("Group39")
+                group("Group37")
                 {
                     Caption = 'Journals';
                     action("Purchase Journals")
@@ -1700,6 +1637,101 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Payment Journals';
                         RunObject = page "Payment Journal";
                         Tooltip = 'Open the Payment Journals page.';
+                    }
+                }
+                group("Group38")
+                {
+                    Caption = 'Posted Documents';
+                    action("Posted Credit Memos1")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Posted Purchase Credit Memos';
+                        RunObject = page "Posted Purchase Credit Memos";
+                        Tooltip = 'Open the Posted Purchase Credit Memos page.';
+                    }
+                    action("Posted Purchase Invoices")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Posted Purchase Invoices';
+                        RunObject = page "Posted Purchase Invoices";
+                        Tooltip = 'Open the Posted Purchase Invoices page.';
+                    }
+                    action("Posted Purchase Receipts")
+                    {
+                        ApplicationArea = Suite;
+                        Caption = 'Posted Purchase Receipts';
+                        RunObject = page "Posted Purchase Receipts";
+                        Tooltip = 'Open the Posted Purchase Receipts page.';
+                    }
+                    action("Posted Return Shipments")
+                    {
+                        ApplicationArea = PurchReturnOrder;
+                        Caption = 'Posted Purchase Return Shipments';
+                        RunObject = page "Posted Return Shipments";
+                        Tooltip = 'Open the Posted Purchase Return Shipments page.';
+                    }
+                    action("Posted Purchase Tax Invoice")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Posted Purchase Tax Invoice';
+                        RunObject = page "Posted Purchase Tax Invoice";
+                    }
+                    action("Posted Purch. Tax  Credit Memo")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Posted Purch. Tax  Credit Memo';
+                        RunObject = page "Posted Purch. Tax  Credit Memo";
+                    }
+                }
+                group("Group39")
+                {
+                    Caption = 'Registers/Entries';
+                    action("G/L Registers2")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'G/L Registers';
+                        RunObject = page "G/L Registers";
+                        Tooltip = 'Open the G/L Registers page.';
+                    }
+                    action("Vendor Ledger Entries")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Vendor Ledger Entries';
+                        RunObject = page "Vendor Ledger Entries";
+                        Tooltip = 'Open the Vendor Ledger Entries page.';
+                    }
+                    action("Detailed Cust. Ledg. Entries1")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Detailed Vendor Ledger Entries';
+                        RunObject = page "Detailed Vendor Ledg. Entries";
+                        Tooltip = 'Open the Detailed Vendor Ledger Entries page.';
+                    }
+                    action("Credit Transfer Registers")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Credit Transfer Registers';
+                        RunObject = page "Credit Transfer Registers";
+                        Tooltip = 'Open the Credit Transfer Registers page.';
+                    }
+                    action("Employee Ledger Entries")
+                    {
+                        Caption = 'Employee Ledger Entries';
+                        RunObject = page "Employee Ledger Entries";
+                        Tooltip = 'Open the Employee Ledger Entries page.';
+                    }
+                    action("Detailed Employee Ledger Entries")
+                    {
+                        ApplicationArea = BasicHR;
+                        Caption = 'Detailed Employee Ledger Entries';
+                        RunObject = page "Detailed Empl. Ledger Entries";
+                        Tooltip = 'Open the Detailed Employee Ledger Entries page.';
+                    }
+                    action("EFT Registers")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'EFT Registers';
+                        RunObject = page "EFT Register";
                     }
                 }
                 group("Group40")
@@ -1850,101 +1882,6 @@ page 8901 "Finance Manager Role Center"
                 }
                 group("Group41")
                 {
-                    Caption = 'Registers/Entries';
-                    action("G/L Registers2")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'G/L Registers';
-                        RunObject = page "G/L Registers";
-                        Tooltip = 'Open the G/L Registers page.';
-                    }
-                    action("Vendor Ledger Entries")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Vendor Ledger Entries';
-                        RunObject = page "Vendor Ledger Entries";
-                        Tooltip = 'Open the Vendor Ledger Entries page.';
-                    }
-                    action("Detailed Cust. Ledg. Entries1")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Detailed Vendor Ledger Entries';
-                        RunObject = page "Detailed Vendor Ledg. Entries";
-                        Tooltip = 'Open the Detailed Vendor Ledger Entries page.';
-                    }
-                    action("Credit Transfer Registers")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Credit Transfer Registers';
-                        RunObject = page "Credit Transfer Registers";
-                        Tooltip = 'Open the Credit Transfer Registers page.';
-                    }
-                    action("Employee Ledger Entries")
-                    {
-                        Caption = 'Employee Ledger Entries';
-                        RunObject = page "Employee Ledger Entries";
-                        Tooltip = 'Open the Employee Ledger Entries page.';
-                    }
-                    action("Detailed Employee Ledger Entries")
-                    {
-                        ApplicationArea = BasicHR;
-                        Caption = 'Detailed Employee Ledger Entries';
-                        RunObject = page "Detailed Empl. Ledger Entries";
-                        Tooltip = 'Open the Detailed Employee Ledger Entries page.';
-                    }
-                    action("EFT Registers")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'EFT Registers';
-                        RunObject = page "EFT Register";
-                    }
-                }
-                group("Group42")
-                {
-                    Caption = 'Posted Documents';
-                    action("Posted Credit Memos1")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Purchase Credit Memos';
-                        RunObject = page "Posted Purchase Credit Memos";
-                        Tooltip = 'Open the Posted Purchase Credit Memos page.';
-                    }
-                    action("Posted Purchase Invoices")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Purchase Invoices';
-                        RunObject = page "Posted Purchase Invoices";
-                        Tooltip = 'Open the Posted Purchase Invoices page.';
-                    }
-                    action("Posted Purchase Receipts")
-                    {
-                        ApplicationArea = Suite;
-                        Caption = 'Posted Purchase Receipts';
-                        RunObject = page "Posted Purchase Receipts";
-                        Tooltip = 'Open the Posted Purchase Receipts page.';
-                    }
-                    action("Posted Return Shipments")
-                    {
-                        ApplicationArea = PurchReturnOrder;
-                        Caption = 'Posted Purchase Return Shipments';
-                        RunObject = page "Posted Return Shipments";
-                        Tooltip = 'Open the Posted Purchase Return Shipments page.';
-                    }
-                    action("Posted Purchase Tax Invoice")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Purchase Tax Invoice';
-                        RunObject = page "Posted Purchase Tax Invoice";
-                    }
-                    action("Posted Purch. Tax  Credit Memo")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Purch. Tax  Credit Memo';
-                        RunObject = page "Posted Purch. Tax  Credit Memo";
-                    }
-                }
-                group("Group43")
-                {
                     Caption = 'Setup';
                     action("Purchases & Payables Setup")
                     {
@@ -1955,7 +1892,7 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
-            group("Group44")
+            group("Group42")
             {
                 Caption = 'Fixed Assets';
                 action("Fixed Assets")
@@ -1993,7 +1930,7 @@ page 8901 "Finance Manager Role Center"
                     RunObject = report "Index Insurance";
                     Tooltip = 'Run the Index Insurance report.';
                 }
-                group("Group45")
+                group("Group43")
                 {
                     Caption = 'Journals';
                     action("G/L Journals")
@@ -2039,10 +1976,10 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Recurring Fixed Asset Journals page.';
                     }
                 }
-                group("Group46")
+                group("Group44")
                 {
                     Caption = 'Reports';
-                    group("Group47")
+                    group("Group45")
                     {
                         Caption = 'Fixed Assets';
                         action("FixedAssetsAnalysis")
@@ -2139,7 +2076,7 @@ page 8901 "Finance Manager Role Center"
                         }
 #endif
                     }
-                    group("Group48")
+                    group("Group46")
                     {
                         Caption = 'Insurance';
                         action("Uninsured FAs")
@@ -2185,7 +2122,7 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the FA Total Value Insured report.';
                         }
                     }
-                    group("Group49")
+                    group("Group47")
                     {
                         Caption = 'Maintenance';
                         action("Register3")
@@ -2218,7 +2155,7 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
-                group("Group50")
+                group("Group48")
                 {
                     Caption = 'Registers/Entries';
                     action("FA Registers")
@@ -2257,7 +2194,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Insurance Coverage Ledger Entries page.';
                     }
                 }
-                group("Group51")
+                group("Group49")
                 {
                     Caption = 'Setup';
                     action("FA Setup")
@@ -2339,7 +2276,7 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
-            group("Group52")
+            group("Group50")
             {
                 Caption = 'Inventory';
                 action("Inventory Periods")
@@ -2363,7 +2300,7 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Application Worksheet";
                     Tooltip = 'Open the Application Worksheet page.';
                 }
-                group("Group53")
+                group("Group51")
                 {
                     Caption = 'Costing';
                     action("Adjust Item Costs/Prices")
@@ -2388,7 +2325,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Post Inventory Cost to G/L report.';
                     }
                 }
-                group("Group54")
+                group("Group52")
                 {
                     Caption = 'Journals';
                     action("Item Journal")
@@ -2420,7 +2357,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Revaluation Journals page.';
                     }
                 }
-                group("Group55")
+                group("Group53")
                 {
                     Caption = 'Reports';
                     action("Inventory by Location")
@@ -2524,7 +2461,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = Report "Stock Card";
                     }
                 }
-                group("Group56")
+                group("Group54")
                 {
                     Caption = 'Setup';
                     action("Inventory Posting Setup")
@@ -2600,7 +2537,7 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
-            group("Group57")
+            group("Group55")
             {
                 Caption = 'Setup';
                 action("General Posting Setup")
@@ -2638,7 +2575,7 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "No. Series";
                     Tooltip = 'Open the No. Series page.';
                 }
-                group("Group58")
+                group("Group56")
                 {
                     Caption = 'VAT';
                     action("Posting Setup")
@@ -2676,39 +2613,10 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the VAT Reports Configuration page.';
                     }
                 }
-                group("Group60")
+                group("Group57")
                 {
-                    Caption = 'Intercompany';
-                    action("Intercompany Setup")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Setup';
-                        RunObject = page "Intercompany Setup";
-                        Tooltip = 'Open the Intercompany Setup page.';
-                    }
-                    action("Partner Code")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Partners';
-                        RunObject = page "IC Partner List";
-                        Tooltip = 'Open the Intercompany Partners page.';
-                    }
-                    action("Chart of Accounts2")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Chart of Accounts';
-                        RunObject = page "IC Chart of Accounts";
-                        Tooltip = 'Open the Intercompany Chart of Accounts page.';
-                    }
-                    action("Dimensions")
-                    {
-                        ApplicationArea = Dimensions;
-                        Caption = 'Intercompany Dimensions';
-                        RunObject = page "IC Dimensions";
-                        Tooltip = 'Open the Intercompany Dimensions page.';
-                    }
                 }
-                group("Group61")
+                group("Group59")
                 {
                     Caption = 'Dimensions';
                     action("Dimensions1")
@@ -2740,7 +2648,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Default Dimension Priorities page.';
                     }
                 }
-                group("Group62")
+                group("Group60")
                 {
                     Caption = 'Trail Codes';
                     action("Source Codes")
@@ -2765,29 +2673,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Source Code Setup page.';
                     }
                 }
-                group("Group63")
-                {
-                    Caption = 'Business Activity Statement';
-                    action("BAS Setup Names1")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'BAS Setup Names';
-                        RunObject = page "BAS Setup Names";
-                    }
-                    action("BAS - XML Field IDs")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'BAS - XML Field IDs';
-                        RunObject = page "BAS - XML Field IDs";
-                    }
-                    action("BAS XML Field Setup Names")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'BAS XML Field Setup Names';
-                        RunObject = page "BAS XML Field Setup Names";
-                    }
-                }
-                group("Group64")
+                group("Group61")
                 {
                     Caption = 'Posting Groups';
                     action("General Business")
@@ -2878,6 +2764,44 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "WHT Posting Setup";
                     }
                 }
+#if not CLEAN30
+                group("Group62")
+                {
+                    ObsoleteReason = 'Not used anymore';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                group("Group63")
+                {
+                    Caption = 'Business Activity Statement';
+                    action("BAS Setup Names1")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'BAS Setup Names';
+                        RunObject = page "BAS Setup Names";
+                    }
+                    action("BAS - XML Field IDs")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'BAS - XML Field IDs';
+                        RunObject = page "BAS - XML Field IDs";
+                    }
+                    action("BAS XML Field Setup Names")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'BAS XML Field Setup Names';
+                        RunObject = page "BAS XML Field Setup Names";
+                    }
+                }
+#if not CLEAN30
+                group("Group64")
+                {
+                    ObsoleteReason = 'Not used anymore';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
             }
         }
     }

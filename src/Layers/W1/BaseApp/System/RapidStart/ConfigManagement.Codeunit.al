@@ -459,8 +459,6 @@ codeunit 8616 "Config. Management"
                 exit(Page::Microsoft.CashFlow.Setup."Cash Flow Manual Expenses");
             Database::Microsoft.CashFlow.Setup."Cash Flow Manual Revenue":
                 exit(Page::Microsoft.CashFlow.Setup."Cash Flow Manual Revenues");
-            Database::Microsoft.Intercompany.Partner."IC Partner":
-                exit(Page::Microsoft.Intercompany.Partner."IC Partner List");
             Database::Microsoft.Foundation.Calendar."Base Calendar":
                 exit(Page::Microsoft.Foundation.Calendar."Base Calendar List");
             Database::Microsoft.Sales.FinanceCharge."Finance Charge Text":
