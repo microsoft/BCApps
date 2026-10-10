@@ -263,7 +263,7 @@ codeunit 6108 "E-Document Processing"
                 exit(GetDocSendingProfileForCustVend('', RecRef.Field(VendorLedgerEntry.FieldNo("Vendor No.")).Value));
             else
                 IsHandled := false;
-                OnGetDocSendingProfileForDocRef(RecRef, DocumentSendingProfile, IsHandled);
+                OnGetDocSendingProfileForDocRefOnCaseElse(RecRef, DocumentSendingProfile, IsHandled);
                 if IsHandled then
                     exit(DocumentSendingProfile);
         end;
@@ -347,7 +347,7 @@ codeunit 6108 "E-Document Processing"
                 end;
             else
                 IsHandled := false;
-                OnGetLines(EDocument, SourceDocumentLines, IsHandled);
+                OnGetLinesOnCaseElse(EDocument, SourceDocumentLines, IsHandled);
         end;
     end;
 
@@ -563,6 +563,12 @@ codeunit 6108 "E-Document Processing"
         exit(EDocTok);
     end;
 
+    /// <summary>
+    /// Gets the document sending profile for a customer, or vendor (when the customer number is not provided). If there is no specific profile for the customer or vendor, the default profile is retrieved instead.
+    /// </summary>
+    /// <param name="CustomerNo">Specifies a customer number. If empty, the vendor profile is retrieved instead.</param>
+    /// <param name="VendorNo">Specifies a vendor number.</param>
+    /// <returns>Found document sending profile as a record.</returns>
     procedure GetDocSendingProfileForCustVend(CustomerNo: Code[20]; VendorNo: Code[20]) DocumentSendingProfile: Record "Document Sending Profile";
     var
         Customer: Record Customer;
@@ -582,7 +588,7 @@ codeunit 6108 "E-Document Processing"
             Clear(DocumentSendingProfile);
     end;
 
-    procedure GetDocSendingProfileForCust(CustomerNo: Code[20]; var DocumentSendingProfile: Record "Document Sending Profile"): Boolean
+    internal procedure GetDocSendingProfileForCust(CustomerNo: Code[20]; var DocumentSendingProfile: Record "Document Sending Profile"): Boolean
     var
         Customer: Record Customer;
     begin
@@ -828,12 +834,12 @@ codeunit 6108 "E-Document Processing"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetDocSendingProfileForDocRef(var RecRef: RecordRef; var DocumentSendingProfile: Record "Document Sending Profile"; var IsHandled: Boolean)
+    local procedure OnGetDocSendingProfileForDocRefOnCaseElse(var RecRef: RecordRef; var DocumentSendingProfile: Record "Document Sending Profile"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetLines(EDocument: Record "E-Document"; var SourceDocumentLines: RecordRef; var IsHandled: Boolean)
+    local procedure OnGetLinesOnCaseElse(EDocument: Record "E-Document"; var SourceDocumentLines: RecordRef; var IsHandled: Boolean)
     begin
     end;
 }

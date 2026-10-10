@@ -458,7 +458,7 @@ codeunit 6102 "E-Doc. Export"
                     PopulateRemittanceAdviceEDocument(EDocument, SourceDocumentHeader);
             else
                 IsHandled := false;
-                OnPopulateEDocument(EDocument, SourceDocumentHeader, IsHandled);
+                OnPopulateEDocumentOnCaseElse(EDocument, SourceDocumentHeader, IsHandled);
         end;
 
     end;
@@ -647,7 +647,7 @@ codeunit 6102 "E-Doc. Export"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPopulateEDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var IsHandled: Boolean)
+    local procedure OnPopulateEDocumentOnCaseElse(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var IsHandled: Boolean)
     begin
     end;
 }

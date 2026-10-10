@@ -66,7 +66,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnConvertPostedHeaderToSalesHeader(PostedRecRef, SalesHeader, IsHandled);
+                OnConvertPostedHeaderToSalesHeaderOnCaseElse(PostedRecRef, SalesHeader, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -116,7 +116,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnConvertPostedLineToSalesLine(PostedLineRecRef, SalesLine, IsHandled);
+                OnConvertPostedLineToSalesLineOnCaseElse(PostedLineRecRef, SalesLine, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -207,7 +207,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnGetTotals(PostedDocHeaderRecRef, PostedDocLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, PEPPOLFormat, IsHandled);
+                OnGetTotalsOnCaseElse(PostedDocHeaderRecRef, PostedDocLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, PEPPOLFormat, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -247,7 +247,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnGetPurchaseTotals(PurchaseHeaderRecRef, PurchaseLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, PEPPOLPurchaseFormat, IsHandled);
+                OnGetPurchaseTotalsOnCaseElse(PurchaseHeaderRecRef, PurchaseLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, PEPPOLPurchaseFormat, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -294,7 +294,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnSetDocumentAttachmentFilters(PostedDocHeaderRecRef, DocumentAttachments, IsHandled);
+                OnSetDocumentAttachmentFiltersOnCaseElse(PostedDocHeaderRecRef, DocumentAttachments, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -374,7 +374,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnGetInvoiceRoundingLine(PostedDocHeaderRecRef, TempSalesLineRounding, PEPPOLFormat, IsHandled);
+                OnGetInvoiceRoundingLineOnCaseElse(PostedDocHeaderRecRef, TempSalesLineRounding, PEPPOLFormat, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -409,7 +409,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnGetPurchaseInvoiceRoundingLine(PurchaseHeaderRecRef, TempPurchaseLineRounding, PEPPOLPurchaseFormat, IsHandled);
+                OnGetPurchaseInvoiceRoundingLineOnCaseElse(PurchaseHeaderRecRef, TempPurchaseLineRounding, PEPPOLPurchaseFormat, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -474,7 +474,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnSetFilters(PostedDocHeaderRecRef, PostedDocLineRecRef, TempSalesLineRounding, IsHandled);
+                OnSetFiltersOnCaseElse(PostedDocHeaderRecRef, PostedDocLineRecRef, TempSalesLineRounding, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -507,7 +507,7 @@ codeunit 37218 "PEPPOL30 Common"
                 end;
             else begin
                 IsHandled := false;
-                OnSetPurchaseFilters(PurchaseHeaderRecRef, PurchaseLineRecRef, TempPurchaseLineRounding, IsHandled);
+                OnSetPurchaseFiltersOnCaseElse(PurchaseHeaderRecRef, PurchaseLineRecRef, TempPurchaseLineRounding, IsHandled);
                 if not IsHandled then
                     Error(UnsupportedDocumentErr);
             end;
@@ -515,47 +515,47 @@ codeunit 37218 "PEPPOL30 Common"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnConvertPostedHeaderToSalesHeader(var PostedRecRef: RecordRef; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    local procedure OnConvertPostedHeaderToSalesHeaderOnCaseElse(var PostedRecRef: RecordRef; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnConvertPostedLineToSalesLine(var PostedDocLineRecRef: RecordRef; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    local procedure OnConvertPostedLineToSalesLineOnCaseElse(var PostedDocLineRecRef: RecordRef; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetTotals(var PostedDocHeaderRecRef: RecordRef; var PostedDocLineRecRef: RecordRef; var VATAmountLine: Record "VAT Amount Line"; var VATProductPostingGroup: Record "VAT Product Posting Group"; PEPPOLFormat: Enum "PEPPOL 3.0 Format"; var IsHandled: Boolean)
+    local procedure OnGetTotalsOnCaseElse(var PostedDocHeaderRecRef: RecordRef; var PostedDocLineRecRef: RecordRef; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; PEPPOLFormat: Enum "PEPPOL 3.0 Format"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetPurchaseTotals(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; var VATAmountLine: Record "VAT Amount Line"; var VATProductPostingGroup: Record "VAT Product Posting Group"; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase"; var IsHandled: Boolean)
+    local procedure OnGetPurchaseTotalsOnCaseElse(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSetDocumentAttachmentFilters(var PostedDocHeaderRecRef: RecordRef; var DocumentAttachments: Record "Document Attachment"; var IsHandled: Boolean)
+    local procedure OnSetDocumentAttachmentFiltersOnCaseElse(var PostedDocHeaderRecRef: RecordRef; var DocumentAttachments: Record "Document Attachment"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetInvoiceRoundingLine(PostedDocHeaderRecRef: RecordRef; var SalesLineRounding: Record "Sales Line"; PEPPOLFormat: Enum "PEPPOL 3.0 Format"; var IsHandled: Boolean)
+    local procedure OnGetInvoiceRoundingLineOnCaseElse(PostedDocHeaderRecRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; PEPPOLFormat: Enum "PEPPOL 3.0 Format"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetPurchaseInvoiceRoundingLine(PurchaseHeaderRecRef: RecordRef; var PurchaseLineRounding: Record "Purchase Line"; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase"; var IsHandled: Boolean)
+    local procedure OnGetPurchaseInvoiceRoundingLineOnCaseElse(PurchaseHeaderRecRef: RecordRef; var TempPurchaseLineRounding: Record "Purchase Line" temporary; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSetFilters(var PostedDocHeaderRecRef: RecordRef; var PostedDocLineRecRef: RecordRef; SalesLineRounding: Record "Sales Line"; var IsHandled: Boolean)
+    local procedure OnSetFiltersOnCaseElse(var PostedDocHeaderRecRef: RecordRef; var PostedDocLineRecRef: RecordRef; TempSalesLineRounding: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSetPurchaseFilters(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; PurchaseLineRounding: Record "Purchase Line"; var IsHandled: Boolean)
+    local procedure OnSetPurchaseFiltersOnCaseElse(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; TempPurchaseLineRounding: Record "Purchase Line" temporary; var IsHandled: Boolean)
     begin
     end;
 }
