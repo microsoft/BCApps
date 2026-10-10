@@ -2958,11 +2958,8 @@ codeunit 22 "Item Jnl.-Post Line"
             else
                 ValueEntry."Item Ledger Entry Quantity" := 0;
             RecalculateCostPerUnit(ValueEntry, ItemLedgEntry);
-            IsHandled := false;
-            OnInsertValueEntryOnBeforeUpdateItemLedgerEntry(ValueEntry, ItemLedgEntry, ItemJnlLine, IsHandled);
-            if not IsHandled then
-                if UpdateItemLedgEntry(ValueEntry, ItemLedgEntry) then
-                    ItemLedgEntry.Modify();
+            if UpdateItemLedgEntry(ValueEntry, ItemLedgEntry) then
+                ItemLedgEntry.Modify();
         end;
 
         IsHandled := false;
@@ -8580,11 +8577,6 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertValueEntryOnBeforeShouldCalcExpectedCost(var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntry: Record "Value Entry"; TransferItem: Boolean; var ShouldCalcExpectedCost: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnInsertValueEntryOnBeforeUpdateItemLedgerEntry(var ValueEntry: Record "Value Entry"; var ItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
