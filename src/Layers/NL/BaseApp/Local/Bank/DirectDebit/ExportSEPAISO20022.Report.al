@@ -228,197 +228,197 @@ report 11000011 "Export SEPA ISO20022"
         UnstructuredRemitInfo: Text[250];
         TempUnstructuredRemitInfo: Text[250];
         BreakRemitInfoLoop: Boolean;
+        PaymentLinesFound: Boolean;
     begin
-        if not PaymentHistoryLine.Find('-') then
-            exit(false);
+        PaymentLinesFound := PaymentHistoryLine.Find('-');
+        if PaymentLinesFound then
+            repeat
+                XMLPaymentInformation := XmlElement.Create('PmtInf', XMLNameSpaceTxt);
+                XMLNodeCurr := XMLPaymentInformation;
 
-        repeat
-            XMLPaymentInformation := XmlElement.Create('PmtInf', XMLNameSpaceTxt);
-            XMLNodeCurr := XMLPaymentInformation;
+                PaymentInformationId := PaymentHistoryLine."Our Bank" + PaymentHistoryLine."Run No." + Format(PaymentHistoryLine."Line No.");
+                if StrLen(PaymentInformationId) > 35 then
+                    PaymentInformationId := CopyStr(PaymentInformationId, StrLen(PaymentInformationId) - 34);
 
-            PaymentInformationId := PaymentHistoryLine."Our Bank" + PaymentHistoryLine."Run No." + Format(PaymentHistoryLine."Line No.");
-            if StrLen(PaymentInformationId) > 35 then
-                PaymentInformationId := CopyStr(PaymentInformationId, StrLen(PaymentInformationId) - 34);
-
-            AddElement(XMLNodeCurr, 'PmtInfId', PaymentInformationId, XMLNewChild);
-            AddElement(XMLNodeCurr, 'PmtMtd', 'TRF', XMLNewChild);
-            AddElement(XMLNodeCurr, 'PmtTpInf', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            if PaymentHistoryLine.Urgent then
-                AddElement(XMLNodeCurr, 'InstrPrty', 'HIGH', XMLNewChild)
-            else
-                AddElement(XMLNodeCurr, 'InstrPrty', 'NORM', XMLNewChild);
-
-            AddElement(XMLNodeCurr, 'SvcLvl', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'Cd', 'SEPA', XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'CtgyPurp', 'SUPP', XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'ReqdExctnDt', Format(PaymentHistoryLine.Date, 0, 9), XMLNewChild);
-            AddElement(XMLNodeCurr, 'Dbtr', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, XMLNewChild);
-            AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddressLine1 := DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>');
-            AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine1, 1, 70), XMLNewChild);
-            AddressLine2 := DelChr(CompanyInfo."Post Code", '<>') + ' ' + DelChr(CompanyInfo.City, '<>');
-            AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 70), XMLNewChild);
-            AddElement(XMLNodeCurr, 'Ctry', CopyStr(CompanyInfo."Country/Region Code", 1, 2), XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'DbtrAcct', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'Id', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            BankAcc.Get(PaymentHistoryLine."Our Bank");
-            AddElement(XMLNodeCurr, 'IBAN', CopyStr(BankAcc.IBAN, 1, 34), XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'Tp', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-            AddElement(XMLNodeCurr, 'Cd', 'CASH', XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'DbtrAgt', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'FinInstnId', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'BIC', CopyStr(BankAcc."SWIFT Code", 1, 11), XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'ChrgBr', 'SLEV', XMLNewChild);
-            AddElement(XMLNodeCurr, 'CdtTrfTxInf', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'PmtId', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'EndToEndId', CopyStr(PaymentHistoryLine.Identification, 1, 35), XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'Amt', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-            AddElement(XMLNodeCurr, 'InstdAmt', Format(PaymentHistoryLine.Amount, 0, 9), XMLNewChild);
-            XMLNewChild.SetAttribute('Ccy', 'EUR');
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'CdtrAgt', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'FinInstnId', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'BIC', CopyStr(PaymentHistoryLine."SWIFT Code", 1, 11), XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'Cdtr', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'Nm', PaymentHistoryLine."Account Holder Name", XMLNewChild);
-            AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'AdrLine', PaymentHistoryLine."Account Holder Address", XMLNewChild);
-            AddressLine2 := DelChr(PaymentHistoryLine."Account Holder Post Code", '<>') + ' ' +
-              DelChr(PaymentHistoryLine."Account Holder City", '<>');
-            AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 70), XMLNewChild);
-            AddElement(XMLNodeCurr, 'Ctry', CopyStr(PaymentHistoryLine."Acc. Hold. Country/Region Code", 1, 2), XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            AddElement(XMLNodeCurr, 'CdtrAcct', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'Id', '', XMLNewChild);
-            XMLNodeCurr := XMLNewChild;
-
-            AddElement(XMLNodeCurr, 'IBAN', CopyStr(PaymentHistoryLine.IBAN, 1, 34), XMLNewChild);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-
-            Clear(UnstructuredRemitInfo);
-            Clear(TempUnstructuredRemitInfo);
-            BreakRemitInfoLoop := false;
-            DetailLine.SetCurrentKey("Our Bank", Status, "Connect Batches", "Connect Lines", Date);
-            DetailLine.SetRange("Our Bank", PaymentHistoryLine."Our Bank");
-            DetailLine.SetFilter(
-              Status, '%1|%2|%3', DetailLine.Status::"In process", DetailLine.Status::Posted, DetailLine.Status::Correction);
-            DetailLine.SetRange("Connect Batches", PaymentHistoryLine."Run No.");
-            DetailLine.SetRange("Connect Lines", PaymentHistoryLine."Line No.");
-            if DetailLine.Find('-') then
-                repeat
-                    TempUnstructuredRemitInfo := UnstructuredRemitInfo;
-                    case DetailLine."Account Type" of
-                        DetailLine."Account Type"::Vendor:
-                            if VendLedgEntry.Get(DetailLine."Serial No. (Entry)") then begin
-                                if TempUnstructuredRemitInfo = '' then
-                                    TempUnstructuredRemitInfo := VendLedgEntry."External Document No."
-                                else
-                                    TempUnstructuredRemitInfo := TempUnstructuredRemitInfo + ', ' + VendLedgEntry."External Document No.";
-                                if StrLen(TempUnstructuredRemitInfo) <= 140 then
-                                    UnstructuredRemitInfo := TempUnstructuredRemitInfo
-                                else
-                                    BreakRemitInfoLoop := true;
-                            end;
-                        DetailLine."Account Type"::Customer:
-                            if CustLedgEntry.Get(DetailLine."Serial No. (Entry)") then begin
-                                if TempUnstructuredRemitInfo = '' then
-                                    TempUnstructuredRemitInfo := CustLedgEntry."Document No."
-                                else
-                                    TempUnstructuredRemitInfo := TempUnstructuredRemitInfo + ', ' + CustLedgEntry."Document No.";
-                                if StrLen(TempUnstructuredRemitInfo) <= 140 then
-                                    UnstructuredRemitInfo := TempUnstructuredRemitInfo
-                                else
-                                    BreakRemitInfoLoop := true;
-                            end;
-                        DetailLine."Account Type"::Employee:
-                            if EmplLedgEntry.Get(DetailLine."Serial No. (Entry)") then begin
-                                if TempUnstructuredRemitInfo = '' then
-                                    TempUnstructuredRemitInfo := EmplLedgEntry."Document No."
-                                else
-                                    TempUnstructuredRemitInfo := TempUnstructuredRemitInfo + ', ' + EmplLedgEntry."Document No.";
-                                if StrLen(TempUnstructuredRemitInfo) <= 140 then
-                                    UnstructuredRemitInfo := TempUnstructuredRemitInfo
-                                else
-                                    BreakRemitInfoLoop := true;
-                            end;
-                    end;
-                until BreakRemitInfoLoop or (DetailLine.Next() = 0);
-
-            if UnstructuredRemitInfo <> '' then begin
-                AddElement(XMLNodeCurr, 'RmtInf', '', XMLNewChild);
+                AddElement(XMLNodeCurr, 'PmtInfId', PaymentInformationId, XMLNewChild);
+                AddElement(XMLNodeCurr, 'PmtMtd', 'TRF', XMLNewChild);
+                AddElement(XMLNodeCurr, 'PmtTpInf', '', XMLNewChild);
                 XMLNodeCurr := XMLNewChild;
-                AddElement(XMLNodeCurr, 'Ustrd', UnstructuredRemitInfo, XMLNewChild);
+
+                if PaymentHistoryLine.Urgent then
+                    AddElement(XMLNodeCurr, 'InstrPrty', 'HIGH', XMLNewChild)
+                else
+                    AddElement(XMLNodeCurr, 'InstrPrty', 'NORM', XMLNewChild);
+
+                AddElement(XMLNodeCurr, 'SvcLvl', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'Cd', 'SEPA', XMLNewChild);
                 XMLNodeCurr.GetParent(XMLNodeCurr);
-            end else
-                if PaymentHistoryLine."Description 1" <> '' then begin
+
+                AddElement(XMLNodeCurr, 'CtgyPurp', 'SUPP', XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'ReqdExctnDt', Format(PaymentHistoryLine.Date, 0, 9), XMLNewChild);
+                AddElement(XMLNodeCurr, 'Dbtr', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, XMLNewChild);
+                AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddressLine1 := DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>');
+                AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine1, 1, 70), XMLNewChild);
+                AddressLine2 := DelChr(CompanyInfo."Post Code", '<>') + ' ' + DelChr(CompanyInfo.City, '<>');
+                AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 70), XMLNewChild);
+                AddElement(XMLNodeCurr, 'Ctry', CopyStr(CompanyInfo."Country/Region Code", 1, 2), XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'DbtrAcct', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'Id', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                BankAcc.Get(PaymentHistoryLine."Our Bank");
+                AddElement(XMLNodeCurr, 'IBAN', CopyStr(BankAcc.IBAN, 1, 34), XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'Tp', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+                AddElement(XMLNodeCurr, 'Cd', 'CASH', XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'DbtrAgt', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'FinInstnId', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'BIC', CopyStr(BankAcc."SWIFT Code", 1, 11), XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'ChrgBr', 'SLEV', XMLNewChild);
+                AddElement(XMLNodeCurr, 'CdtTrfTxInf', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'PmtId', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'EndToEndId', CopyStr(PaymentHistoryLine.Identification, 1, 35), XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'Amt', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+                AddElement(XMLNodeCurr, 'InstdAmt', Format(PaymentHistoryLine.Amount, 0, 9), XMLNewChild);
+                XMLNewChild.SetAttribute('Ccy', 'EUR');
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'CdtrAgt', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'FinInstnId', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'BIC', CopyStr(PaymentHistoryLine."SWIFT Code", 1, 11), XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'Cdtr', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'Nm', PaymentHistoryLine."Account Holder Name", XMLNewChild);
+                AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'AdrLine', PaymentHistoryLine."Account Holder Address", XMLNewChild);
+                AddressLine2 := DelChr(PaymentHistoryLine."Account Holder Post Code", '<>') + ' ' +
+                  DelChr(PaymentHistoryLine."Account Holder City", '<>');
+                AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 70), XMLNewChild);
+                AddElement(XMLNodeCurr, 'Ctry', CopyStr(PaymentHistoryLine."Acc. Hold. Country/Region Code", 1, 2), XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                AddElement(XMLNodeCurr, 'CdtrAcct', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'Id', '', XMLNewChild);
+                XMLNodeCurr := XMLNewChild;
+
+                AddElement(XMLNodeCurr, 'IBAN', CopyStr(PaymentHistoryLine.IBAN, 1, 34), XMLNewChild);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+
+                Clear(UnstructuredRemitInfo);
+                Clear(TempUnstructuredRemitInfo);
+                BreakRemitInfoLoop := false;
+                DetailLine.SetCurrentKey("Our Bank", Status, "Connect Batches", "Connect Lines", Date);
+                DetailLine.SetRange("Our Bank", PaymentHistoryLine."Our Bank");
+                DetailLine.SetFilter(
+                  Status, '%1|%2|%3', DetailLine.Status::"In process", DetailLine.Status::Posted, DetailLine.Status::Correction);
+                DetailLine.SetRange("Connect Batches", PaymentHistoryLine."Run No.");
+                DetailLine.SetRange("Connect Lines", PaymentHistoryLine."Line No.");
+                if DetailLine.Find('-') then
+                    repeat
+                        TempUnstructuredRemitInfo := UnstructuredRemitInfo;
+                        case DetailLine."Account Type" of
+                            DetailLine."Account Type"::Vendor:
+                                if VendLedgEntry.Get(DetailLine."Serial No. (Entry)") then begin
+                                    if TempUnstructuredRemitInfo = '' then
+                                        TempUnstructuredRemitInfo := VendLedgEntry."External Document No."
+                                    else
+                                        TempUnstructuredRemitInfo := TempUnstructuredRemitInfo + ', ' + VendLedgEntry."External Document No.";
+                                    if StrLen(TempUnstructuredRemitInfo) <= 140 then
+                                        UnstructuredRemitInfo := TempUnstructuredRemitInfo
+                                    else
+                                        BreakRemitInfoLoop := true;
+                                end;
+                            DetailLine."Account Type"::Customer:
+                                if CustLedgEntry.Get(DetailLine."Serial No. (Entry)") then begin
+                                    if TempUnstructuredRemitInfo = '' then
+                                        TempUnstructuredRemitInfo := CustLedgEntry."Document No."
+                                    else
+                                        TempUnstructuredRemitInfo := TempUnstructuredRemitInfo + ', ' + CustLedgEntry."Document No.";
+                                    if StrLen(TempUnstructuredRemitInfo) <= 140 then
+                                        UnstructuredRemitInfo := TempUnstructuredRemitInfo
+                                    else
+                                        BreakRemitInfoLoop := true;
+                                end;
+                            DetailLine."Account Type"::Employee:
+                                if EmplLedgEntry.Get(DetailLine."Serial No. (Entry)") then begin
+                                    if TempUnstructuredRemitInfo = '' then
+                                        TempUnstructuredRemitInfo := EmplLedgEntry."Document No."
+                                    else
+                                        TempUnstructuredRemitInfo := TempUnstructuredRemitInfo + ', ' + EmplLedgEntry."Document No.";
+                                    if StrLen(TempUnstructuredRemitInfo) <= 140 then
+                                        UnstructuredRemitInfo := TempUnstructuredRemitInfo
+                                    else
+                                        BreakRemitInfoLoop := true;
+                                end;
+                        end;
+                    until BreakRemitInfoLoop or (DetailLine.Next() = 0);
+
+                if UnstructuredRemitInfo <> '' then begin
                     AddElement(XMLNodeCurr, 'RmtInf', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
-                    AddElement(XMLNodeCurr, 'Unstrd', CopyStr(PaymentHistoryLine."Description 1", 1, 140), XMLNewChild);
+                    AddElement(XMLNodeCurr, 'Ustrd', UnstructuredRemitInfo, XMLNewChild);
                     XMLNodeCurr.GetParent(XMLNodeCurr);
-                end;
+                end else
+                    if PaymentHistoryLine."Description 1" <> '' then begin
+                        AddElement(XMLNodeCurr, 'RmtInf', '', XMLNewChild);
+                        XMLNodeCurr := XMLNewChild;
+                        AddElement(XMLNodeCurr, 'Unstrd', CopyStr(PaymentHistoryLine."Description 1", 1, 140), XMLNewChild);
+                        XMLNodeCurr.GetParent(XMLNodeCurr);
+                    end;
 
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-            XMLNodeCurr.GetParent(XMLNodeCurr);
-        until PaymentHistoryLine.Next() = 0;
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+                XMLNodeCurr.GetParent(XMLNodeCurr);
+            until PaymentHistoryLine.Next() = 0;
 
-        exit(true);
+        exit(PaymentLinesFound);
     end;
 
     local procedure AddElement(var ParentXmlElement: XmlElement; NodeName: Text; NodeText: Text; var CreatedXmlElement: XmlElement)
