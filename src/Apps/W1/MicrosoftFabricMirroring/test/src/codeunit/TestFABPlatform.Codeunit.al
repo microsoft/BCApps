@@ -96,10 +96,10 @@ codeunit 140012 "Test FAB Platform"
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         i: Integer;
     begin
-        //[SCENARIO] The 500-table platform limit is enforced (Story 2)
+        //[SCENARIO] The 1000-table platform limit is enforced (Story 2)
         //[GIVEN] Initialize
         Initialize();
-        //[GIVEN] 500 table rows already exist
+        //[GIVEN] 1000 table rows already exist
         // IDs beyond any real table are not validated, so existing virtual or external tables cannot reject the insert.
         for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
             TenantFabricTables.Init();

@@ -89,7 +89,6 @@ codeunit 48521 "Fabric Config Package Mgt"
 
         LogPackageEvent('0000VN3', 'Config package deactivated.', Pkg."Code");
         Telemetry.LogAudit('0000VN4', StrSubstNo(PackageDeactivatedAuditMsg, Pkg."Code"));
-
         if GuiAllowed() and (KeptTableCount > 0) then
             Message(TablesKeptByOtherPackageMsg, KeptTableCount);
     end;
@@ -175,7 +174,6 @@ codeunit 48521 "Fabric Config Package Mgt"
             Pkg.Insert(true);
             exit(true);
         end;
-
         if Pkg.Version = Version then
             exit(false);
 
@@ -201,7 +199,6 @@ codeunit 48521 "Fabric Config Package Mgt"
                     RemovedTableIds.Add(PackageLine."Table ID");
             until PackageLine.Next() = 0;
         PackageLine.DeleteAll(false);
-
         foreach TableId in TableIds do
             if AllObj.Get(AllObj."Object Type"::Table, TableId) then begin
                 PackageLine.Init();
@@ -212,7 +209,7 @@ codeunit 48521 "Fabric Config Package Mgt"
                 LogSkippedTableWarning(PackageCode, TableId);
     end;
 
-    // Reapply can fail (e.g. 500-table cap) — that must not abort install/upgrade.
+    // Reapply can fail (e.g. 1000-table cap) — that must not abort install/upgrade.
     // TryFunction can't be used here: AL disallows database writes (Insert/Modify/Delete)
     // inside a TryFunction's call tree, and Reapply/ClaimTable write to Tenant Fabric Tables.
     // So the capacity is checked up front instead of catching the error from Reapply.
@@ -233,7 +230,6 @@ codeunit 48521 "Fabric Config Package Mgt"
                 if not TenantFabricTables.Get(PackageLine."Table ID") then
                     NewTableCount += 1;
             until PackageLine.Next() = 0;
-
         if FabricPlatformMgt.SelectedTableCount() + NewTableCount > FabricPlatformMgt.MaxTableCount() then begin
             LogReapplySkipped(PackageCode, StrSubstNo(PackageReapplyCapacityErr, FabricPlatformMgt.MaxTableCount()));
             exit;
