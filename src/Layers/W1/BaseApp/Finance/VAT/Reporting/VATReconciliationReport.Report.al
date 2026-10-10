@@ -194,7 +194,7 @@ report 743 "VAT Reconciliation Report"
         BaseAmountPurchVAT: Decimal;
         PurchVAT: Decimal;
 
-    local procedure SetVATValueFromVATEntry(VATEntryNo: Integer)
+    local procedure SetVATValueFromVATEntry(VATEntryNo: BigInteger)
     var
         VATEntry: Record "VAT Entry";
         NonDeductibleVATBase: Decimal;

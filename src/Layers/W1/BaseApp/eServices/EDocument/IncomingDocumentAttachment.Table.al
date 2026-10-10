@@ -23,12 +23,12 @@ table 133 "Incoming Document Attachment"
 
     fields
     {
-        field(1; "Incoming Document Entry No."; Integer)
+        field(1; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";
         }
-        field(2; "Line No."; Integer)
+        field(2; "Line No."; BigInteger)
         {
             Caption = 'Line No.';
         }
@@ -272,7 +272,8 @@ table 133 "Incoming Document Attachment"
           PurchaseHeader."No.");
     end;
 
-    procedure NewAttachmentFromDocument(EntryNo: Integer; TableID: Integer; DocumentType: Option; DocumentNo: Code[20])
+#pragma warning disable AS0024
+    procedure NewAttachmentFromDocument(EntryNo: BigInteger; TableID: Integer; DocumentType: Option; DocumentNo: Code[20])
     begin
         ApplyFiltersForDocument(EntryNo, TableID, DocumentType, DocumentNo);
         NewAttachment();
@@ -290,7 +291,7 @@ table 133 "Incoming Document Attachment"
           TempBlob);
     end;
 
-    procedure NewAttachmentFromDocument(EntryNo: Integer; TableID: Integer; DocumentType: Option; DocumentNo: Code[20]; FileName: Text[250]; var TempBlob: Codeunit "Temp Blob")
+    procedure NewAttachmentFromDocument(EntryNo: BigInteger; TableID: Integer; DocumentType: Option; DocumentNo: Code[20]; FileName: Text[250]; var TempBlob: Codeunit "Temp Blob")
     var
         ImportAttachmentIncDoc: Codeunit "Import Attachment - Inc. Doc.";
     begin
@@ -299,8 +300,9 @@ table 133 "Incoming Document Attachment"
         if GuiAllowed() then
             SendNotifActionCompleted();
     end;
+#pragma warning restore AS0024
 
-    local procedure ApplyFiltersForDocument(EntryNo: Integer; TableID: Integer; DocumentType: Option; DocumentNo: Code[20])
+    local procedure ApplyFiltersForDocument(EntryNo: BigInteger; TableID: Integer; DocumentType: Option; DocumentNo: Code[20])
     begin
         Rec.SetRange("Incoming Document Entry No.", EntryNo);
         Rec.SetRange("Document Table No. Filter", TableID);
@@ -449,7 +451,7 @@ table 133 "Incoming Document Attachment"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnGetBinaryContent(var TempBlob: Codeunit "Temp Blob"; IncomingDocumentEntryNo: Integer)
+    local procedure OnGetBinaryContent(var TempBlob: Codeunit "Temp Blob"; IncomingDocumentEntryNo: BigInteger)
     begin
     end;
 

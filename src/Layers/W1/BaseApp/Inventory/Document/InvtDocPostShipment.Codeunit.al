@@ -257,7 +257,7 @@ codeunit 5851 "Invt. Doc.-Post Shipment"
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
         DimMgt: Codeunit DimensionManagement;
         ReserveInvtDocLine: Codeunit "Invt. Doc. Line-Reserve";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         HideValidationDialog: Boolean;

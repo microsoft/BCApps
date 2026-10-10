@@ -61,7 +61,7 @@ codeunit 1328 "Top Customers By Sales Job"
         CustomerCounter: Integer;
         OtherCustomersSalesLCY: Decimal;
         DTUpdated: DateTime;
-        LastCustomerLedgerEntryNo: Integer;
+        LastCustomerLedgerEntryNo: BigInteger;
     begin
         if ChartManagement.TopCustomerListUpdatedRecently(LastCustomerLedgerEntryNo) then
             exit;
@@ -100,7 +100,7 @@ codeunit 1328 "Top Customers By Sales Job"
         end;
     end;
 
-    local procedure InsertRow(var TempTopCustomersBySalesBuffer: Record "Top Customers By Sales Buffer" temporary; Ranking: Integer; CustomerNo: Code[20]; CustomerName: Text[100]; SalesLCY: Decimal; LastCustLedgEntryNo: Integer; DTUpdated: DateTime)
+    local procedure InsertRow(var TempTopCustomersBySalesBuffer: Record "Top Customers By Sales Buffer" temporary; Ranking: Integer; CustomerNo: Code[20]; CustomerName: Text[100]; SalesLCY: Decimal; LastCustLedgEntryNo: BigInteger; DTUpdated: DateTime)
     begin
         TempTopCustomersBySalesBuffer.Ranking := Ranking;
         TempTopCustomersBySalesBuffer.CustomerNo := CustomerNo;

@@ -312,7 +312,7 @@ codeunit 1201 "Process Data Exch."
         exit(Format(DataExchDef.Type));
     end;
 
-    local procedure GetFileName(DataExchEntryNo: Integer): Text
+    local procedure GetFileName(DataExchEntryNo: BigInteger): Text
     var
         DataExch: Record "Data Exch.";
     begin

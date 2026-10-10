@@ -149,7 +149,7 @@ table 5339 "Integration Synch. Job Errors"
         LocalRecordRef: RecordRef;
         LocalRecordId: RecordId;
         LocalSystemId: Guid;
-        RecordCount: Integer;
+        RecordCount: BigInteger;
         RecordIdDictionary: Dictionary of [RecordId, Boolean];
     begin
         if not IntegrationSynchJobErrors.FindSet() then

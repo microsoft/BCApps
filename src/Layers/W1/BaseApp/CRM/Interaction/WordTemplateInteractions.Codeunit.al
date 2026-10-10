@@ -431,7 +431,7 @@ codeunit 5069 "Word Template Interactions"
         exit(LowerCase(FileExtension) in ['doc', 'docx', '.doc', '.docx']);
     end;
 
-    local procedure GetMergeSourceText(var Attachment: Record Attachment; EntryNo: Integer; CorrespondenceType: Option ,"Hard Copy",Email,Fax): Text
+    local procedure GetMergeSourceText(var Attachment: Record Attachment; EntryNo: BigInteger; CorrespondenceType: Option ,"Hard Copy",Email,Fax): Text
     var
         InteractLogEntry: Record "Interaction Log Entry";
         MergeSourceInStream: InStream;

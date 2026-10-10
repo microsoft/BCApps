@@ -415,7 +415,7 @@ codeunit 1218 "Map Incoming Doc to Purch Doc"
         CorrelateCreatedPurchLineWithRecordNo(RecRef, ComposeKeyForCreatedPurchLine(ParentRecNo, RecordNo));
     end;
 
-    local procedure CreateInvoiceChargePurchaseLine(EntryNo: Integer; RecordNo: Integer; var PurchaseHeader: Record "Purchase Header"; InvoiceChargeReason: Text[100]; InvoiceChargeAmount: Decimal)
+    local procedure CreateInvoiceChargePurchaseLine(EntryNo: BigInteger; RecordNo: Integer; var PurchaseHeader: Record "Purchase Header"; InvoiceChargeReason: Text[100]; InvoiceChargeAmount: Decimal)
     var
         PurchaseLine: Record "Purchase Line";
         PreMapIncomingPurchDoc: Codeunit "Pre-map Incoming Purch. Doc";
@@ -618,7 +618,7 @@ codeunit 1218 "Map Incoming Doc to Purch Doc"
           InvoiceChargeHasNoReasonErr);
     end;
 
-    local procedure LogMessage(EntryNo: Integer; RelatedRec: Variant; FieldNo: Integer; MessageType: Option; ProcessingMessage: Text)
+    local procedure LogMessage(EntryNo: BigInteger; RelatedRec: Variant; FieldNo: Integer; MessageType: Option; ProcessingMessage: Text)
     var
         DataExch: Record "Data Exch.";
         ErrorMessage: Record "Error Message";

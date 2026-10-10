@@ -248,7 +248,7 @@ codeunit 395 "FinChrgMemo-Issue"
         DimMgt: Codeunit DimensionManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocNo: Code[20];
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         ReplacePostingDate: Boolean;
         PostingDate: Date;
         SrcCode: Code[10];
@@ -498,7 +498,7 @@ codeunit 395 "FinChrgMemo-Issue"
         OnAfterSetDimensionsProcedure(GenJnlLine, FinanceChargeMemoHeader, DefaultDimSource, SrcCode);
     end;
 
-    local procedure UpdateCustLedgEntriesCalculateInterest(EntryNo: Integer; DocumentDate: Date)
+    local procedure UpdateCustLedgEntriesCalculateInterest(EntryNo: BigInteger; DocumentDate: Date)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         CustLedgerEntry2: Record "Cust. Ledger Entry";
@@ -757,7 +757,7 @@ codeunit 395 "FinChrgMemo-Issue"
     /// <param name="DocumentDate">Specifies the document date for the calculation.</param>
     /// <param name="IsHandled">Set to true to skip the default update process.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateCustLedgEntriesCalculateInterest(EntryNo: Integer; DocumentDate: Date; var IsHandled: Boolean)
+    local procedure OnBeforeUpdateCustLedgEntriesCalculateInterest(EntryNo: BigInteger; DocumentDate: Date; var IsHandled: Boolean)
     begin
     end;
 }

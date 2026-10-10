@@ -369,7 +369,7 @@ codeunit 925 "Assembly Header-Reserve"
         exit(Enum::"Reservation Summary Type"::"Assembly Quote Header".AsInteger());
     end;
 
-    local procedure MatchThisEntry(EntryNo: Integer): Boolean
+    local procedure MatchThisEntry(EntryNo: BigInteger): Boolean
     begin
         exit(EntryNo in [Enum::"Reservation Summary Type"::"Assembly Quote Header".AsInteger(),
                          Enum::"Reservation Summary Type"::"Assembly Order Header".AsInteger()]);
@@ -573,7 +573,7 @@ codeunit 925 "Assembly Header-Reserve"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAfterAutoReserveOneLine', '', false, false)]
-    local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean; var sender: Codeunit "Reservation Management")
+    local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean; var sender: Codeunit "Reservation Management")
     begin
         if MatchThisEntry(ReservSummEntryNo) then
             AutoReserveAssemblyHeader(
@@ -581,7 +581,7 @@ codeunit 925 "Assembly Header-Reserve"
                 Description, AvailabilityDate, Search, NextStep, Positive);
     end;
 
-    local procedure AutoReserveAssemblyHeader(var CalcReservEntry: Record "Reservation Entry"; var sender: Codeunit "Reservation Management"; ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; Positive: Boolean)
+    local procedure AutoReserveAssemblyHeader(var CalcReservEntry: Record "Reservation Entry"; var sender: Codeunit "Reservation Management"; ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; Positive: Boolean)
     var
         CallTrackingSpecification: Record "Tracking Specification";
         AssemblyHeader: Record "Assembly Header";
@@ -649,7 +649,7 @@ codeunit 925 "Assembly Header-Reserve"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAutoReserveAssemblyHeader(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; var IsReserved: Boolean; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry")
+    local procedure OnBeforeAutoReserveAssemblyHeader(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; var IsReserved: Boolean; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry")
     begin
     end;
 

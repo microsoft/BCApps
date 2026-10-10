@@ -116,7 +116,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         SalesLine: Record "Sales Line";
         WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line";
         WindowDialog: Dialog;
-        ItemShptEntryNo: Integer;
+        ItemShptEntryNo: BigInteger;
         DocLineNo: Integer;
         PostedWhseShptLineFound: Boolean;
         IsHandled: Boolean;
@@ -242,7 +242,7 @@ codeunit 5815 "Undo Sales Shipment Line"
     local procedure UnApplyDropShipment(ItemLedgerEntry: Record "Item Ledger Entry"; NewSalesShptLine: Record "Sales Shipment Line"; SalesShptLine: Record "Sales Shipment Line")
     var
         ItemApplicationEntry: Record "Item Application Entry";
-        RelevantUndoShipmentLedgerEntryNo: Integer;
+        RelevantUndoShipmentLedgerEntryNo: BigInteger;
     begin
         RelevantUndoShipmentLedgerEntryNo := FindRelevantNewSalesShptLedgerEntryNo(SalesShptLine, NewSalesShptLine, ItemLedgerEntry);
 
@@ -276,7 +276,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         exit(0);
     end;
 
-    local procedure UndoPurchaseReceiptLineForDropShipment(ReceiptItemLedgerEntryNo: Integer)
+    local procedure UndoPurchaseReceiptLineForDropShipment(ReceiptItemLedgerEntryNo: BigInteger)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
@@ -378,7 +378,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         SourceCodeSetup: Record "Source Code Setup";
         TempApplyToItemLedgerEntry: Record "Item Ledger Entry" temporary;
         ItemLedgerEntryNotInvoiced: Record "Item Ledger Entry";
-        ItemLedgEntryNo: Integer;
+        ItemLedgEntryNo: BigInteger;
         RemQtyBase: Decimal;
         IsHandled: Boolean;
     begin
@@ -454,7 +454,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         exit(0); // "Item Shpt. Entry No."
     end;
 
-    local procedure InsertNewShipmentLine(OldSalesShipmentLine: Record "Sales Shipment Line"; ItemShptEntryNo: Integer; DocLineNo: Integer)
+    local procedure InsertNewShipmentLine(OldSalesShipmentLine: Record "Sales Shipment Line"; ItemShptEntryNo: BigInteger; DocLineNo: Integer)
     var
         NewSalesShipmentLine: Record "Sales Shipment Line";
     begin
@@ -776,7 +776,7 @@ codeunit 5815 "Undo Sales Shipment Line"
     /// <param name="TempGlobalItemEntryRelation">Temporary item entry relation.</param>
     /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyItemJnlLineFromSalesShpt(var ItemJournalLine: Record "Item Journal Line"; SalesShipmentHeader: Record "Sales Shipment Header"; SalesShipmentLine: Record "Sales Shipment Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var WhseUndoQty: Codeunit "Whse. Undo Quantity"; var ItemLedgEntryNo: Integer; var NextLineNo: Integer; var TempGlobalItemLedgerEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
+    local procedure OnAfterCopyItemJnlLineFromSalesShpt(var ItemJournalLine: Record "Item Journal Line"; SalesShipmentHeader: Record "Sales Shipment Header"; SalesShipmentLine: Record "Sales Shipment Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var WhseUndoQty: Codeunit "Whse. Undo Quantity"; var ItemLedgEntryNo: BigInteger; var NextLineNo: Integer; var TempGlobalItemLedgerEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
     begin
     end;
 
@@ -874,7 +874,7 @@ codeunit 5815 "Undo Sales Shipment Line"
     /// <param name="DocLineNo">The correction document line number.</param>
     /// <param name="ItemShptEntryNo">The item shipment entry number.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertNewShipmentLine(var SalesShipmentLine: Record "Sales Shipment Line"; var PostedWhseShipmentLine: Record "Posted Whse. Shipment Line"; var PostedWhseShptLineFound: Boolean; DocLineNo: Integer; ItemShptEntryNo: Integer)
+    local procedure OnAfterInsertNewShipmentLine(var SalesShipmentLine: Record "Sales Shipment Line"; var PostedWhseShipmentLine: Record "Posted Whse. Shipment Line"; var PostedWhseShptLineFound: Boolean; DocLineNo: Integer; ItemShptEntryNo: BigInteger)
     begin
     end;
 
@@ -912,7 +912,7 @@ codeunit 5815 "Undo Sales Shipment Line"
     /// <param name="TempWhseJnlLine">Temporary warehouse journal line.</param>
     /// <param name="NextLineNo">The next line number.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJnlLine(var SalesShipmentLine: Record "Sales Shipment Line"; var DocLineNo: Integer; var ItemLedgEntryNo: Integer; var IsHandled: Boolean; var TempGlobalItemLedgEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var NextLineNo: Integer)
+    local procedure OnBeforePostItemJnlLine(var SalesShipmentLine: Record "Sales Shipment Line"; var DocLineNo: Integer; var ItemLedgEntryNo: BigInteger; var IsHandled: Boolean; var TempGlobalItemLedgEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var NextLineNo: Integer)
     begin
     end;
 
@@ -1102,7 +1102,7 @@ codeunit 5815 "Undo Sales Shipment Line"
     /// <param name="SalesShipmentLine">The sales shipment line being processed.</param>
     /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnBeforeProcessItemShptEntry(var ItemShptEntryNo: Integer; var DocLineNo: Integer; var SalesShipmentLine: Record "Sales Shipment Line"; var IsHandled: Boolean)
+    local procedure OnCodeOnBeforeProcessItemShptEntry(var ItemShptEntryNo: BigInteger; var DocLineNo: Integer; var SalesShipmentLine: Record "Sales Shipment Line"; var IsHandled: Boolean)
     begin
     end;
 

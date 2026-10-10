@@ -935,7 +935,7 @@ table 210 "Job Journal Line"
         {
             Caption = 'Ledger Entry Type';
         }
-        field(1018; "Ledger Entry No."; Integer)
+        field(1018; "Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Ledger Entry No.';

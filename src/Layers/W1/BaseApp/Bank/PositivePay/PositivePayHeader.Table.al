@@ -26,7 +26,7 @@ table 1240 "Positive Pay Header"
         /// <summary>
         /// Links this header record to the associated data exchange entry for tracking and processing.
         /// </summary>
-        field(1; "Data Exch. Entry No."; Integer)
+        field(1; "Data Exch. Entry No."; BigInteger)
         {
             Caption = 'Data Exch. Entry No.';
             TableRelation = "Data Exch."."Entry No.";

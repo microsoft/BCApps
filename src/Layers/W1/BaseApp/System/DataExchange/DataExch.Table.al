@@ -40,7 +40,7 @@ table 1220 "Data Exch."
         {
             Caption = 'Table Filters';
         }
-        field(10; "Incoming Entry No."; Integer)
+        field(10; "Incoming Entry No."; BigInteger)
         {
             Caption = 'Incoming Entry No.';
             TableRelation = "Incoming Document";

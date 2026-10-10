@@ -418,7 +418,7 @@ page 1131 "Cost Budget per Period Matrix"
         Text001: Label '%1 or %2 must not be blank.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
-        CurrRegNo: Integer;
+        CurrRegNo: BigInteger;
 
     local procedure SetDateFilter(MATRIX_ColumnOrdinal: Integer)
     begin
@@ -519,7 +519,7 @@ page 1131 "Cost Budget per Period Matrix"
         OnAfterSetRecordFilters(Rec);
     end;
 
-    local procedure InsertMatrixCostBudgetEntry(var RegNo: Integer; ColumnID: Integer)
+    local procedure InsertMatrixCostBudgetEntry(var RegNo: BigInteger; ColumnID: Integer)
     var
         MatrixCostBudgetEntry: Record "Cost Budget Entry";
     begin

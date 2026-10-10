@@ -16,7 +16,7 @@ table 719 "Availability Plan Buffer"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

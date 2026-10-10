@@ -21,7 +21,7 @@ table 5842 "Cost Adjmt. Action Message"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';

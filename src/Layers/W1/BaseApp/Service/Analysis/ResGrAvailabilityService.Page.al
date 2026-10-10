@@ -144,7 +144,7 @@ page 6010 "Res.Gr. Availability (Service)"
         FilterTokens: Codeunit "Filter Tokens";
         CurrentDocumentType: Integer;
         CurrentDocumentNo: Code[20];
-        CurrentEntryNo: Integer;
+        CurrentEntryNo: BigInteger;
         PeriodType: Enum "Analysis Period Type";
         DateFilter: Text;
         PKFirstRecInCurrSet: Text[1024];
@@ -152,7 +152,7 @@ page 6010 "Res.Gr. Availability (Service)"
         ColumnsSet: Text[1024];
         CurrSetLength: Integer;
 
-    procedure SetData(DocumentType: Integer; DocumentNo: Code[20]; EntryNo: Integer)
+    procedure SetData(DocumentType: Integer; DocumentNo: Code[20]; EntryNo: BigInteger)
     begin
         CurrentDocumentType := DocumentType;
         CurrentDocumentNo := DocumentNo;

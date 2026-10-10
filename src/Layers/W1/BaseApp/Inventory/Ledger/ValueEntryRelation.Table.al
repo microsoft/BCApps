@@ -11,7 +11,7 @@ table 6508 "Value Entry Relation"
 
     fields
     {
-        field(1; "Value Entry No."; Integer)
+        field(1; "Value Entry No."; BigInteger)
         {
             Caption = 'Value Entry No.';
             TableRelation = "Value Entry";

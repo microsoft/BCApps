@@ -32,7 +32,7 @@ table 981 "Payment Registration Buffer"
         /// <summary>
         /// Customer ledger entry number that this buffer record represents.
         /// </summary>
-        field(1; "Ledger Entry No."; Integer)
+        field(1; "Ledger Entry No."; BigInteger)
         {
             Caption = 'Ledger Entry No.';
         }

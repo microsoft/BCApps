@@ -33,7 +33,7 @@ table 5430 "Planning Error Log"
             Caption = 'Journal Batch Name';
             TableRelation = "Requisition Wksh. Name".Name where("Worksheet Template Name" = field("Worksheet Template Name"));
         }
-        field(3; "Entry No."; Integer)
+        field(3; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -126,7 +126,7 @@ table 5430 "Planning Error Log"
     /// <returns>True if there are errors, otherwise false.</returns>
     procedure GetErrors(var PlanningErrorLog: Record "Planning Error Log"): Boolean
     var
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
     begin
         if not Rec.FindSet() then
             exit(false);

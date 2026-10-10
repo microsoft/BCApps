@@ -1219,7 +1219,7 @@ page 6510 "Item Tracking Lines"
         Inbound: Boolean;
         InsertIsBlocked: Boolean;
         IsDirectTransfer: Boolean;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         QtyPerUOM: Decimal;
         QtyRoundingPerBase: Decimal;
         UndefinedQtyArray: array[3] of Decimal;
@@ -2188,7 +2188,7 @@ page 6510 "Item Tracking Lines"
     var
         Window: Dialog;
         ChangeType: Option Insert,Modify,Delete;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         NoOfLines: Integer;
         i: Integer;
         ModifyLoop: Integer;
@@ -2796,7 +2796,7 @@ page 6510 "Item Tracking Lines"
     protected procedure AssignSerialNoBatch(QtyToCreate: Integer; CreateLotNo: Boolean; CreatePackageNo: Boolean; CreateSNInfo: Boolean)
     var
         i: Integer;
-        CheckTillEntryNo: Integer;
+        CheckTillEntryNo: BigInteger;
     begin
         if QtyToCreate <= 0 then
             Error(Text009);
@@ -2905,7 +2905,7 @@ page 6510 "Item Tracking Lines"
     var
         TempSelectedTrackingSpecification: Record "Tracking Specification" temporary;
         AssignedLotNo: Code[50];
-        CurrRecEntryNo: Integer;
+        CurrRecEntryNo: BigInteger;
     begin
         if Rec."Entry No." = 0 then
             exit(false);
@@ -3019,7 +3019,7 @@ page 6510 "Item Tracking Lines"
     var
         TempSelectedTrackingSpecification: Record "Tracking Specification" temporary;
         AssignedPackageNo: Code[50];
-        CurrRecEntryNo: Integer;
+        CurrRecEntryNo: BigInteger;
     begin
         if Rec."Entry No." = 0 then
             exit(false);
@@ -3120,7 +3120,7 @@ page 6510 "Item Tracking Lines"
     var
         i: Integer;
         Counter: Integer;
-        CheckTillEntryNo: Integer;
+        CheckTillEntryNo: BigInteger;
     begin
         if IncStr(CustomizedSN) = '' then
             Error(UnincrementableStringErr, CustomizedSN);
@@ -3180,7 +3180,7 @@ page 6510 "Item Tracking Lines"
         exit(TestTempSpecificationExists(-1));
     end;
 
-    local procedure TestTempSpecificationExists(CheckTillEntryNo: Integer) Exists: Boolean
+    local procedure TestTempSpecificationExists(CheckTillEntryNo: BigInteger) Exists: Boolean
     var
         TrackingSpecification: Record "Tracking Specification";
     begin

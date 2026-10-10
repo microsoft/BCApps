@@ -462,7 +462,7 @@ codeunit 1339 "Cancel Posted Sales Cr. Memo"
         DetailedCustLedgEntry.FindFirst();
     end;
 
-    local procedure AnyDtldCustLedgEntriesExceptInitialAndApplicaltionExists(CustLedgEntryNo: Integer): Boolean
+    local procedure AnyDtldCustLedgEntriesExceptInitialAndApplicaltionExists(CustLedgEntryNo: BigInteger): Boolean
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
@@ -472,7 +472,7 @@ codeunit 1339 "Cancel Posted Sales Cr. Memo"
         exit(not DetailedCustLedgEntry.IsEmpty);
     end;
 
-    local procedure CalcDtldCustLedgEntryCount(EntryType: Enum "Detailed CV Ledger Entry Type"; CustLedgEntryNo: Integer): Integer
+    local procedure CalcDtldCustLedgEntryCount(EntryType: Enum "Detailed CV Ledger Entry Type"; CustLedgEntryNo: BigInteger): Integer
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin

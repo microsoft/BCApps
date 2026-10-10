@@ -766,7 +766,7 @@ codeunit 1000 "Job Calculate WIP"
     var
         JobWIPEntry: Record "Job WIP Entry";
         JobWIPMethod: Record "Job WIP Method";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         CreateEntry: Boolean;
     begin
         NextEntryNo := JobWIPEntry.GetLastEntryNo() + 1;
@@ -828,7 +828,7 @@ codeunit 1000 "Job Calculate WIP"
         JobWIPTotal: Record "Job WIP Total";
         JobLedgerEntry: Record "Job Ledger Entry";
         JobTask: Record "Job Task";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         NextTransactionNo: Integer;
     begin
         JobWIPGLEntry.LockTable();

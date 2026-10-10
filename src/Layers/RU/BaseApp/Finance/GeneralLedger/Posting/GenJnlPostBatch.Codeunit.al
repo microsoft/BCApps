@@ -170,7 +170,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         ICOutboxMgt: Codeunit ICInboxOutboxMgt;
         PostingSetupMgt: Codeunit PostingSetupManagement;
         Window: Dialog;
-        GLRegNo: Integer;
+        GLRegNo: BigInteger;
         StartLineNo: Integer;
         StartLineNoReverse: Integer;
         LastDate: Date;
@@ -392,7 +392,10 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                 GLRegNo := 0;
 
         GenJnlLine.Init();
-        GenJnlLine."Line No." := GLRegNo;
+        if GLRegNo <= 2147483647 then
+            GenJnlLine."Line No." := GLRegNo
+        else
+            GenJnlLine."Line No." := 2147483647;
 
         OnProcessLinesOnAfterAssignGLNegNo(GenJnlLine, GLReg, GLRegNo);
 
@@ -2527,7 +2530,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     /// <param name="GenJournalLine">General journal line being committed</param>
     /// <param name="GenJnlPostLine">Posting codeunit handling the commit operation</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCommit(GLRegNo: Integer; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnBeforeCommit(GLRegNo: BigInteger; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
@@ -2583,7 +2586,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeThrowPreviewError(var GenJournalLine: Record "Gen. Journal Line"; GLRegNo: Integer)
+    local procedure OnBeforeThrowPreviewError(var GenJournalLine: Record "Gen. Journal Line"; GLRegNo: BigInteger)
     begin
     end;
 
@@ -2678,17 +2681,17 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnProcessLinesOnAfterAssignGLNegNo(var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; GLRegNo: Integer)
+    local procedure OnProcessLinesOnAfterAssignGLNegNo(var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; GLRegNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnProcessLinesOnAfterPostGenJnlLines(var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var GLRegNo: Integer; PreviewMode: Boolean)
+    local procedure OnProcessLinesOnAfterPostGenJnlLines(var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var GLRegNo: BigInteger; PreviewMode: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnProcessLinesOnBeforeSetGLRegNoToZero(var GenJournalLine: Record "Gen. Journal Line"; var GLRegNo: Integer; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnProcessLinesOnBeforeSetGLRegNoToZero(var GenJournalLine: Record "Gen. Journal Line"; var GLRegNo: BigInteger; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
@@ -2748,7 +2751,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostGenJournalLineOnBeforeCheckDocumentNo(var GenJnlLine: Record "Gen. Journal Line"; GLRegNo: Integer)
+    local procedure OnPostGenJournalLineOnBeforeCheckDocumentNo(var GenJnlLine: Record "Gen. Journal Line"; GLRegNo: BigInteger)
     begin
     end;
 
@@ -2843,7 +2846,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindNextGLRegisterNo(var GLRegister: Record "G/L Register"; var GLRegNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeFindNextGLRegisterNo(var GLRegister: Record "G/L Register"; var GLRegNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

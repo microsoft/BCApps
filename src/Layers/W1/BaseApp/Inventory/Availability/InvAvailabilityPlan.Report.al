@@ -273,7 +273,7 @@ report 719 "Inv. Availability Plan"
         ProjAvBalance: array[8] of Decimal;
         GrossReq: array[8] of Decimal;
         Print: Boolean;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         UseStockkeepingUnit: Boolean;
         Period1Text: Text;
         Period2Text: Text;

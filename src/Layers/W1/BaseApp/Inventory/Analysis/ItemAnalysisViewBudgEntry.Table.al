@@ -88,7 +88,7 @@ table 7156 "Item Analysis View Budg. Entry"
             Caption = 'Posting Date';
             ToolTip = 'Specifies the date on which the item budget entries in an analysis view budget entry were posted.';
         }
-        field(13; "Entry No."; Integer)
+        field(13; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

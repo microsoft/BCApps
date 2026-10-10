@@ -600,7 +600,7 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
         PropertyJsonToken: JsonToken;
         DimJsonToken: JsonToken;
         DimPropertyJsonToken: JsonToken;
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
     begin
         JsonArray := GetGLEntries(DateFilter, AccountNoFilter);
 

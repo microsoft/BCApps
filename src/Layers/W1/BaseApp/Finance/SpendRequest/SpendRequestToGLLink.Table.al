@@ -29,7 +29,7 @@ table 6845 "Spend Request To G/L Link"
             Caption = 'Spend Request Detail No.';
             ToolTip = 'Specifies the spend request line no. that this link points to.';
         }
-        field(3; "G/L Entry No."; Integer)
+        field(3; "G/L Entry No."; BigInteger)
         {
             Caption = 'G/L Entry No.';
             ToolTip = 'Specifies the spend g/l entry no. that this link points to.';

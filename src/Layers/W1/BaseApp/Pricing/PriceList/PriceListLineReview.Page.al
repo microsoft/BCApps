@@ -519,7 +519,7 @@ page 7005 "Price List Line Review"
     local procedure SetDataCaptionExpr(PriceAssetList: Codeunit "Price Asset List")
     var
         TempPriceAsset: Record "Price Asset" temporary;
-        FirstEntryNo: Integer;
+        FirstEntryNo: BigInteger;
     begin
         if PriceAssetList.GetList(TempPriceAsset) then begin
             FirstEntryNo := TempPriceAsset."Entry No.";
@@ -536,7 +536,7 @@ page 7005 "Price List Line Review"
     local procedure SetDataCaptionExpr(PriceSource: Record "Price Source"; PriceAssetList: Codeunit "Price Asset List")
     var
         TempPriceAsset: Record "Price Asset" temporary;
-        FirstEntryNo: Integer;
+        FirstEntryNo: BigInteger;
     begin
         if PriceSource."Source No." <> '' then
             if PriceAssetList.GetList(TempPriceAsset) then begin
@@ -556,7 +556,7 @@ page 7005 "Price List Line Review"
     local procedure SetDataCaptionExpr(PriceSourceList: Codeunit "Price Source List")
     var
         TempPriceSource: Record "Price Source" temporary;
-        FirstEntryNo: Integer;
+        FirstEntryNo: BigInteger;
     begin
         if PriceSourceList.GetList(TempPriceSource) then begin
             FirstEntryNo := TempPriceSource."Entry No.";

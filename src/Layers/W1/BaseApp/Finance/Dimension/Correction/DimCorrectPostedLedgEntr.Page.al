@@ -340,7 +340,7 @@ page 2584 "Dim Correct Posted Ledg Entr"
     /// Sets the dimension correction entry number for displaying posted G/L entries with corrected dimensions.
     /// </summary>
     /// <param name="NewDimensionCorrectionEntryNo">The dimension correction entry number to filter posted entries</param>
-    procedure SetDimensionCorrectionEntryNo(NewDimensionCorrectionEntryNo: Integer)
+    procedure SetDimensionCorrectionEntryNo(NewDimensionCorrectionEntryNo: BigInteger)
     begin
         if NewDimensionCorrectionEntryNo <> DimensionCorrectionEntryNo then begin
             DimensionCorrectionEntryNo := NewDimensionCorrectionEntryNo;
@@ -361,7 +361,7 @@ page 2584 "Dim Correct Posted Ledg Entr"
 
     var
         DimensionCorrectManagement: Codeunit "Dimension Correction Mgt";
-        DimensionCorrectionEntryNo: Integer;
+        DimensionCorrectionEntryNo: BigInteger;
         RecordsLoaded: Boolean;
         RecordCount: Integer;
         PreviewDisabled: Boolean;

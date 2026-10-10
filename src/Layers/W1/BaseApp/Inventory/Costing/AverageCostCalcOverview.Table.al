@@ -15,7 +15,7 @@ table 5847 "Average Cost Calc. Overview"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -54,7 +54,7 @@ table 5847 "Average Cost Calc. Overview"
             Caption = 'Cost is Adjusted';
             ToolTip = 'Specifies whether the cost is adjusted for the entry.';
         }
-        field(11; "Attached to Entry No."; Integer)
+        field(11; "Attached to Entry No."; BigInteger)
         {
             Caption = 'Attached to Entry No.';
             TableRelation = "Item Ledger Entry";
@@ -67,7 +67,7 @@ table 5847 "Average Cost Calc. Overview"
         {
             Caption = 'Level';
         }
-        field(21; "Item Ledger Entry No."; Integer)
+        field(21; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry that this entry is linked to.';

@@ -20,18 +20,18 @@ table 46 "Item Register"
 
     fields
     {
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
-        field(2; "From Entry No."; Integer)
+        field(2; "From Entry No."; BigInteger)
         {
             Caption = 'From Entry No.';
             ToolTip = 'Specifies the first item entry number in the register.';
             TableRelation = "Item Ledger Entry";
         }
-        field(3; "To Entry No."; Integer)
+        field(3; "To Entry No."; BigInteger)
         {
             Caption = 'To Entry No.';
             ToolTip = 'Specifies the last item entry number in the register.';
@@ -66,37 +66,37 @@ table 46 "Item Register"
             Caption = 'Creation Time';
             ToolTip = 'Specifies the time when the entries in the register were posted.';
         }
-        field(10; "From Phys. Inventory Entry No."; Integer)
+        field(10; "From Phys. Inventory Entry No."; BigInteger)
         {
             Caption = 'From Phys. Inventory Entry No.';
             ToolTip = 'Specifies the first physical inventory ledger entry number in the register.';
             TableRelation = "Phys. Inventory Ledger Entry";
         }
-        field(11; "To Phys. Inventory Entry No."; Integer)
+        field(11; "To Phys. Inventory Entry No."; BigInteger)
         {
             Caption = 'To Phys. Inventory Entry No.';
             ToolTip = 'Specifies the last physical inventory ledger entry number in the register.';
             TableRelation = "Phys. Inventory Ledger Entry";
         }
-        field(5800; "From Value Entry No."; Integer)
+        field(5800; "From Value Entry No."; BigInteger)
         {
             Caption = 'From Value Entry No.';
             ToolTip = 'Specifies the first value entry number in the register.';
             TableRelation = "Value Entry";
         }
-        field(5801; "To Value Entry No."; Integer)
+        field(5801; "To Value Entry No."; BigInteger)
         {
             Caption = 'To Value Entry No.';
             ToolTip = 'Specifies the last value entry number in this register.';
             TableRelation = "Value Entry";
         }
-        field(5831; "From Capacity Entry No."; Integer)
+        field(5831; "From Capacity Entry No."; BigInteger)
         {
             Caption = 'From Capacity Entry No.';
             ToolTip = 'Specifies the first capacity entry number in the register.';
             TableRelation = Microsoft.Manufacturing.Capacity."Capacity Ledger Entry";
         }
-        field(5832; "To Capacity Entry No."; Integer)
+        field(5832; "To Capacity Entry No."; BigInteger)
         {
             Caption = 'To Capacity Entry No.';
             ToolTip = 'Specifies the last capacity ledger entry number in this register.';
@@ -134,7 +134,8 @@ table 46 "Item Register"
         }
     }
 
-    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+#pragma warning disable AS0024
+    procedure GetNextEntryNo(UseLegacyPosting: Boolean): BigInteger
     begin
         if not UseLegacyPosting then
             exit(GetNextEntryNo());
@@ -143,15 +144,16 @@ table 46 "Item Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Register", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Item Register"));
     end;
+#pragma warning restore AS0024
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Register", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

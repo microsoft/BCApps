@@ -29,7 +29,7 @@ table 5645 "FA Date Type"
         {
             Caption = 'G/L Entry';
         }
-        field(5; "Entry No."; Integer)
+        field(5; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -151,7 +151,7 @@ table 5645 "FA Date Type"
         OnAfterCreateTypes(Rec);
     end;
 
-    procedure InsertRec(FAEntryNo: Integer; FADateTypeNo: Integer; FADateTypeName: Text)
+    procedure InsertRec(FAEntryNo: BigInteger; FADateTypeNo: Integer; FADateTypeName: Text)
     begin
         "Entry No." := FAEntryNo;
         "FA Date Type No." := FADateTypeNo;

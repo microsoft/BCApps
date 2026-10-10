@@ -544,7 +544,7 @@ report 94 "Close Income Statement"
         ColumnDim: Text[250];
         NoOfAccounts: Integer;
         ThisAccountNo: Integer;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         GroupEntryNos: Dictionary of [Text, Integer];
         EntryNoDimensionIds: Dictionary of [Text, Integer];
 #pragma warning disable AA0074
@@ -572,7 +572,7 @@ report 94 "Close Income Statement"
         Text020: Label 'The following G/L Accounts have mandatory dimension codes that have not been selected:';
         Text021: Label '\\In order to post to these accounts you must also select these dimensions:';
 #pragma warning restore AA0074
-        MaxEntry: Integer;
+        MaxEntry: BigInteger;
         EntryCount: Integer;
         LastWindowUpdateDateTime: DateTime;
         Text1130004: Label 'Please enter Balancing Account No.';
@@ -713,7 +713,7 @@ report 94 "Close Income Statement"
     /// <param name="EntryNo">Entry number to retrieve dimensions for</param>
     /// <param name="DimBuf">Dimension buffer record to populate</param>
     /// <param name="DimensionSetID">Dimension set ID to filter by</param>
-    local procedure GetGLEntryDimensions(EntryNo: Integer; var DimBuf: Record "Dimension Buffer"; DimensionSetID: Integer)
+    local procedure GetGLEntryDimensions(EntryNo: BigInteger; var DimBuf: Record "Dimension Buffer"; DimensionSetID: Integer)
     var
         DimSetEntry: Record "Dimension Set Entry";
     begin
@@ -826,7 +826,7 @@ report 94 "Close Income Statement"
     local procedure GetEntryNo(DimensionBufferID: Integer; BusinessUnitCode: Code[20]; SourceCurrencyCode: Code[10]): Integer
     var
         GroupKey: Text;
-        AssignedEntryNo: Integer;
+        AssignedEntryNo: BigInteger;
     begin
         // Closing entries are grouped per business unit, per selected dimension combination and per source
         // currency. The dimension buffer ID alone cannot carry the source currency, so when one dimension
@@ -847,7 +847,7 @@ report 94 "Close Income Statement"
         exit(AssignedEntryNo);
     end;
 
-    local procedure GetDimensionBufferID(BusinessUnitCode: Code[20]; BufferEntryNo: Integer): Integer
+    local procedure GetDimensionBufferID(BusinessUnitCode: Code[20]; BufferEntryNo: BigInteger): Integer
     var
         DimensionBufferID: Integer;
     begin

@@ -45,7 +45,7 @@ codeunit 7304 "Whse. Jnl.-Register Batch"
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         UOMMgt: Codeunit "Unit of Measure Management";
         Window: Dialog;
-        WhseRegNo: Integer;
+        WhseRegNo: BigInteger;
         StartLineNo: Integer;
         NoOfRecords: Integer;
         LineCount: Integer;
@@ -344,7 +344,7 @@ codeunit 7304 "Whse. Jnl.-Register Batch"
         WhseItemTrkgLine.CalcSums("Qty. to Handle (Base)");
 
         if WhseItemTrkgLine."Qty. to Handle (Base)" <> Abs(WhseJnlLine."Qty. (Absolute, Base)") then
-            Error(Text005, WhseJnlLine."Line No.", WhseJnlLine."Item No.", WhseJnlLine."Location Code", WhseJnlLine."From Bin Code", 
+            Error(Text005, WhseJnlLine."Line No.", WhseJnlLine."Item No.", WhseJnlLine."Location Code", WhseJnlLine."From Bin Code",
                   Abs(WhseJnlLine."Qty. (Absolute, Base)"), WhseItemTrkgLine."Qty. to Handle (Base)");
 
         if WhseItemTrkgLine.Find('-') then
@@ -363,7 +363,7 @@ codeunit 7304 "Whse. Jnl.-Register Batch"
                     BinContent.SetTrackingFilterFromWhseItemTrackingLine(WhseItemTrkgLine);
                     BinContent.CalcFields("Quantity (Base)");
                     if WhseItemTrkgLine."Quantity (Base)" > BinContent."Quantity (Base)" then
-                        Error(Text006, WhseJnlLine."Line No.", WhseJnlLine."Item No.", WhseJnlLine."Location Code", WhseJnlLine."From Bin Code", 
+                        Error(Text006, WhseJnlLine."Line No.", WhseJnlLine."Item No.", WhseJnlLine."Location Code", WhseJnlLine."From Bin Code",
                               WhseItemTrkgLine."Quantity (Base)", BinContent."Quantity (Base)");
                 until WhseItemTrkgLine.Next() = 0;
 

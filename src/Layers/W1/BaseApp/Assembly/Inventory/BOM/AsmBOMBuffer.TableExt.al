@@ -9,7 +9,7 @@ using Microsoft.Inventory.Item;
 
 tableextension 958 "Asm. BOM Buffer" extends "BOM Buffer"
 {
-    procedure TransferFromAsmHeader(var EntryNo: Integer; AsmHeader: Record "Assembly Header")
+    procedure TransferFromAsmHeader(var EntryNo: BigInteger; AsmHeader: Record "Assembly Header")
     var
         BOMItem: Record Item;
     begin
@@ -33,7 +33,7 @@ tableextension 958 "Asm. BOM Buffer" extends "BOM Buffer"
         Insert(true);
     end;
 
-    procedure TransferFromAsmLine(var EntryNo: Integer; AsmLine: Record "Assembly Line")
+    procedure TransferFromAsmLine(var EntryNo: BigInteger; AsmLine: Record "Assembly Line")
     var
         BOMItem: Record Item;
     begin

@@ -12,7 +12,7 @@ codeunit 123 "Calc. Running FA Balance"
         FALedgerEntry2: Record "FA Ledger Entry";
         ClientTypeManagement: Codeunit System.Environment."Client Type Management";
         DayTotals: Dictionary of [Date, Decimal];
-        EntryValues: Dictionary of [Integer, Decimal];
+        EntryValues: Dictionary of [BigInteger, Decimal];
         PrevAccNo: Code[20];
         PrevDebrBook: Code[10];
 

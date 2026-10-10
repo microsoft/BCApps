@@ -1049,7 +1049,7 @@ table 370 "Excel Buffer"
         ExcelBuffer.Validate("Column No.", ColumnNo);
 
         case true of
-            Value.IsDecimal or Value.IsInteger:
+            Value.IsDecimal or Value.IsInteger or Value.IsBigInteger:
                 ExcelBuffer.Validate("Cell Type", ExcelBuffer."Cell Type"::Number);
             Value.IsDate:
                 ExcelBuffer.Validate("Cell Type", ExcelBuffer."Cell Type"::Date);

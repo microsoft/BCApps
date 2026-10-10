@@ -59,7 +59,7 @@ codeunit 9089 "Top Vendors By Purchases Job"
         VendorCounter: Integer;
         OtherVendorsPurchasesLCY: Decimal;
         DTUpdated: DateTime;
-        LastVendorLedgerEntryNo: Integer;
+        LastVendorLedgerEntryNo: BigInteger;
     begin
         if PayablePerformance.TopVendorListUpdatedRecently(LastVendorLedgerEntryNo) then
             exit;
@@ -98,7 +98,7 @@ codeunit 9089 "Top Vendors By Purchases Job"
         end;
     end;
 
-    local procedure InsertRow(var TempTopVendorsByPurchases: Record "Top Vendors By Purchase" temporary; Ranking: Integer; VendorNo: Code[20]; VendorName: Text[100]; PurchasesLCY: Decimal; LastVendLedgEntryNo: Integer; DTUpdated: DateTime)
+    local procedure InsertRow(var TempTopVendorsByPurchases: Record "Top Vendors By Purchase" temporary; Ranking: Integer; VendorNo: Code[20]; VendorName: Text[100]; PurchasesLCY: Decimal; LastVendLedgEntryNo: BigInteger; DTUpdated: DateTime)
     begin
         TempTopVendorsByPurchases.Ranking := Ranking;
         TempTopVendorsByPurchases.VendorNo := VendorNo;

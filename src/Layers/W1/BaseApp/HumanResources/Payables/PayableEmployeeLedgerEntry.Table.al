@@ -19,11 +19,11 @@ table 5224 "Payable Employee Ledger Entry"
             Caption = 'Employee No.';
             TableRelation = Employee;
         }
-        field(3; "Entry No."; Integer)
+        field(3; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
-        field(4; "Employee Ledg. Entry No."; Integer)
+        field(4; "Employee Ledg. Entry No."; BigInteger)
         {
             Caption = 'Employee Ledg. Entry No.';
             TableRelation = "Employee Ledger Entry";
