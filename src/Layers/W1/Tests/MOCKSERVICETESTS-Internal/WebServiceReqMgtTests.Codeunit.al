@@ -35,13 +35,13 @@ codeunit 132581 WebServiceReqMgtTests
     var
         TempBlob: Codeunit "Temp Blob";
         SOAPWebServiceRequestMgt: Codeunit "SOAP Web Service Request Mgt.";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ResponseInStream: InStream;
         BlobInStream: InStream;
         BlobOutStream: OutStream;
-        XmlDoc: DotNet XmlDocument;
-        XmlNodeList: DotNet XmlNodeList;
-        XMLNsMgr: DotNet XmlNamespaceManager;
+        XmlDoc: XmlDocument;
+        XmlNodeList: XmlNodeList;
+        FoundXmlNode: XmlNode;
+        XMLNsMgr: XmlNamespaceManager;
         Username: Text;
         Password: Text;
         Data: Text;
@@ -71,24 +71,27 @@ codeunit 132581 WebServiceReqMgtTests
 
         SOAPWebServiceRequestMgt.GetResponseContent(ResponseInStream);
 
-        XMLDOMManagement.LoadXMLDocumentFromInStream(ResponseInStream, XmlDoc);
+        XmlDocument.ReadFrom(ResponseInStream, XmlDoc);
 
-        XMLNsMgr := XMLNsMgr.XmlNamespaceManager(XmlDoc.NameTable);
+        XMLNsMgr.NameTable(XmlDoc.NameTable());
         XMLNsMgr.AddNamespace('ns0', 'http://schemas.xmlsoap.org/soap/envelope/');
         XMLNsMgr.AddNamespace('ns1', 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd');
         XMLNsMgr.AddNamespace('ns2', 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd');
 
-        XmlNodeList := XmlDoc.SelectNodes('//ns0:Envelope/ns0:Body', XMLNsMgr);
-        Assert.AreEqual(1, XmlNodeList.Count, 'Unexpected number of nodes');
-        Assert.AreEqual(Data, XmlNodeList.Item(0).InnerXml, WrongBodyErr);
+        XmlDoc.SelectNodes('//ns0:Envelope/ns0:Body', XMLNsMgr, XmlNodeList);
+        Assert.AreEqual(1, XmlNodeList.Count(), 'Unexpected number of nodes');
+        XmlNodeList.Get(1, FoundXmlNode);
+        Assert.AreEqual(Data, FoundXmlNode.AsXmlElement().InnerXml(), WrongBodyErr);
 
-        XmlNodeList := XmlDoc.SelectNodes('//ns0:Envelope/ns0:Header/ns1:Security/ns1:UsernameToken/ns1:Username', XMLNsMgr);
-        Assert.AreEqual(1, XmlNodeList.Count, 'Unexpected number of nodes');
-        Assert.AreEqual(Username, XmlNodeList.Item(0).InnerText, WrongContentErr);
+        XmlDoc.SelectNodes('//ns0:Envelope/ns0:Header/ns1:Security/ns1:UsernameToken/ns1:Username', XMLNsMgr, XmlNodeList);
+        Assert.AreEqual(1, XmlNodeList.Count(), 'Unexpected number of nodes');
+        XmlNodeList.Get(1, FoundXmlNode);
+        Assert.AreEqual(Username, FoundXmlNode.AsXmlElement().InnerText(), WrongContentErr);
 
-        XmlNodeList := XmlDoc.SelectNodes('//ns0:Envelope/ns0:Header/ns1:Security/ns1:UsernameToken/ns1:Password', XMLNsMgr);
-        Assert.AreEqual(1, XmlNodeList.Count, 'Unexpected number of nodes');
-        Assert.AreEqual(Password, XmlNodeList.Item(0).InnerText, WrongContentErr);
+        XmlDoc.SelectNodes('//ns0:Envelope/ns0:Header/ns1:Security/ns1:UsernameToken/ns1:Password', XMLNsMgr, XmlNodeList);
+        Assert.AreEqual(1, XmlNodeList.Count(), 'Unexpected number of nodes');
+        XmlNodeList.Get(1, FoundXmlNode);
+        Assert.AreEqual(Password, FoundXmlNode.AsXmlElement().InnerText(), WrongContentErr);
     end;
 
     [Test]
