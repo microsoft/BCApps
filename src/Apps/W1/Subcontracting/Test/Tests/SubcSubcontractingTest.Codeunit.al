@@ -3388,9 +3388,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferHeader.Get(
             CreateProductionOrderWithSubcTransferOrder(
                 Item, WorkCenter, ProductionLocation.Code, true, ProductionOrder));
-        Assert.AreEqual(
-            'A purchase order was created.\\Do you want to view it?', LibraryVariableStorage.DequeueText(),
-            'Expected the subcontracting purchase order creation confirmation.');
+        VerifySubcontractingPurchaseOrderCreationConfirmation();
 
         Assert.AreEqual(
             Vendor."Country/Region Code", TransferHeader."Trsf.-to Country/Region Code",
@@ -5865,6 +5863,21 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
         TransferShipmentLine.FindFirst();
         Assert.AreEqual('', TransferShipmentLine."Subc. Prod. Order No.", 'An ordinary shipment must not expose a production order number.');
+    end;
+
+    local procedure VerifySubcontractingPurchaseOrderCreationConfirmation()
+    var
+        ConfirmationQuestion: Text;
+    begin
+        ConfirmationQuestion := LibraryVariableStorage.DequeueText();
+        if ConfirmationQuestion.Contains('Do you really want to change Inventory Account although value entries exist?') or
+           ConfirmationQuestion.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?')
+        then
+            ConfirmationQuestion := LibraryVariableStorage.DequeueText();
+
+        Assert.AreEqual(
+            'A purchase order was created.\\Do you want to view it?', ConfirmationQuestion,
+            'Expected the subcontracting purchase order creation confirmation.');
     end;
 
     local procedure VerifySubcontractingTransferShipmentReport(TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line"; PurchaseOrderNo: Code[20]; PostedVendorName: Text[100])
