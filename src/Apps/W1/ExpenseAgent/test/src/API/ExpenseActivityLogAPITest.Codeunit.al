@@ -5,6 +5,8 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
 codeunit 148343 "Expense Activity Log API Test"
@@ -19,11 +21,13 @@ codeunit 148343 "Expense Activity Log API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseActivityLogEntries', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
+        TravelRequestsServiceNameTok: Label 'travelRequests', Locked = true;
+        TravelCurrencyCodeTok: Label 'TRCUR', Locked = true;
         TestDescriptionPrefixLbl: Label 'ACTIVITY API TEST ', Locked = true;
         SubmitterCommentPropertyTxt: Label '"submitterComment":"%1"', Locked = true;
         MethodNotAllowedResponseErr: Label 'Response code is 405', Locked = true;
@@ -215,7 +219,7 @@ codeunit 148343 "Expense Activity Log API Test"
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
 
         // [THEN] The endpoint explains that a source or Expense User scope is required.
-        Assert.ExpectedError('Activity log entries must be requested through an expense report, posted expense report, or expense user.');
+        Assert.ExpectedError('Activity log entries must be requested through an expense report, posted expense report, travel request, or expense user.');
         CompleteTest();
     end;
 
@@ -429,6 +433,202 @@ codeunit 148343 "Expense Activity Log API Test"
         CompleteTest();
     end;
 
+    [Test]
+    procedure StandardSubmissionExposesPolicySnapshot()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        RequestBody: JsonObject;
+        RequestText: Text;
+        ResponseText: Text;
+        ReportURL: Text;
+        HistoryURL: Text;
+        RunToken: Code[8];
+    begin
+        // [SCENARIO] The existing submission action exposes an immutable policy summary through the read-only activity API.
+        Initialize();
+
+        // [GIVEN] A report with a current failed policy result.
+        RunToken := CreateRunToken();
+        CreateE2ESetup(SubmitterExpenseUser, ApproverExpenseUser, ExpenseCategory, ExpensePaymentMethod, RunToken);
+        ExpenseCategory.Description := TestDescriptionPrefixLbl + 'Meals "and" travel \ expenses';
+        ExpenseCategory.Modify(false);
+        ExpenseCategory.Rename('MEALS"\' + RunToken);
+        CreateE2EReport(ExpenseReportHeader, SubmitterExpenseUser, ExpenseCategory, ExpensePaymentMethod, RunToken);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Evaluate Policies" := true;
+        ExpenseAgentSetup.Modify(false);
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'API policy history test');
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        LibraryExpense.CreateExpensePolicyEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Flagged', false);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        RequestBody := CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", '');
+        RequestBody.WriteTo(RequestText);
+        ReportURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(SubmitterExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ExpenseReportsServiceNameTok);
+        ReportURL := LibraryGraphMgt.AppendPathToTargetURL(
+            ReportURL, '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)) + ')');
+        Commit();
+
+        // [WHEN] The standard submission action is requested through the submitting user.
+        Clear(ResponseText);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            LibraryGraphMgt.AppendPathToTargetURL(ReportURL, '/' + SubmitWithCommentActionTok), RequestText, ResponseText, 200);
+
+        // [THEN] Exactly one structured snapshot is visible without a new callback or capability.
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::PolicyEvaluated);
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
+        Clear(ResponseText);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText, LibraryGraphMgt.AppendPathToTargetURL(ReportURL, '/' + ServiceNameTok), 200);
+        VerifyPolicyCategoryCode(ResponseText, ExpenseCategory.Code);
+        ResponseText := LowerCase(ResponseText);
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"eventtype":"policyevaluated"'), 'The event type must identify the policy snapshot.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"policystatus":"flagged"'), 'The failed result must not be mapped to cleared.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"failedpolicycount":1'), 'The pair count must be exposed.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"passedpolicycount":0'), 'Passed pairs must be exposed separately.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"flaggedcategories"'), 'The category array text must be exposed.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"occurredat"'), 'The history event time must be exposed.');
+
+        // [WHEN] Submitter and approver participation history is requested.
+        HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(SubmitterExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
+        Clear(ResponseText);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(HistoryURL, '$filter=historyActorRole eq ''Submitter'''), 200);
+
+        // [THEN] The real submitter sees the agent snapshot in the complete timeline.
+        Assert.AreNotEqual(0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)))), 'The submitter timeline must contain the snapshot.');
+
+        // [WHEN] The assigned approver has not acted on the report.
+        HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(ApproverExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
+        Clear(ResponseText);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(HistoryURL, '$filter=historyActorRole eq ''Approver'''), 200);
+
+        // [THEN] The agent event must not grant approver participation.
+        Assert.AreEqual(0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)))), 'The agent snapshot must not grant approver history access.');
+        ExpensePolicy.Delete(true);
+        LibrarySetupStorage.Restore();
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure TravelRequestSubmissionExposesTotalExpectedAmounts()
+    var
+        ExpenseUser: Record "Expense User";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        SpendRequest: Record "Spend Request";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        Response: JsonObject;
+        Entries: JsonToken;
+        Entry: JsonToken;
+        ResponseText: Text;
+        TargetURL: Text;
+        TotalExpectedAmount: Decimal;
+        TotalExpectedAmountLCY: Decimal;
+    begin
+        // [SCENARIO] A travel request submission exposes the total expected amount in its currency and in LCY.
+        Initialize();
+
+        // [GIVEN] A Submitted entry for a travel request with a foreign currency total expected amount.
+        CreateTestExpenseUser(ExpenseUser);
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        SpendRequest.Purpose := CopyStr(TestDescriptionPrefixLbl + Format(CreateGuid()), 1, MaxStrLen(SpendRequest.Purpose));
+        SpendRequest.Modify(false);
+        TotalExpectedAmount := 100;
+        TotalExpectedAmountLCY := 74.5;
+        SpendRequest."Currency Code" := TravelCurrencyCodeTok;
+        SpendRequest."Total Expected Amount" := TotalExpectedAmount;
+        SpendRequest."Total Expected Amount (LCY)" := TotalExpectedAmountLCY;
+        ExpenseActivityLogMgt.LogTravelRequestEvent(
+            SpendRequest,
+            Enum::"Expense Activity Event Type"::Submitted,
+            Enum::"Expense Activity Actor Role"::Submitter,
+            ExpenseUser."No.",
+            '');
+        Commit();
+
+        // [WHEN] The travel request activity log is requested.
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(SpendRequest.SystemId),
+            Page::"Travel Requests API",
+            TravelRequestsServiceNameTok,
+            ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] The total expected amount is exposed in the travel request currency, and its LCY value through amountLCY and currencyLCY.
+        GeneralLedgerSetup.Get();
+        Response.ReadFrom(ResponseText);
+        Response.Get('value', Entries);
+        Assert.AreEqual(1, Entries.AsArray().Count(), 'The travel request must have one activity entry. Response: ' + ResponseText);
+        Entries.AsArray().Get(0, Entry);
+        Assert.AreEqual(TravelCurrencyCodeTok, GetJsonText(Entry, 'totalExpectedAmountCurrencyCode'), 'The total expected amount currency must be exposed.');
+        Assert.AreEqual(TotalExpectedAmount, GetJsonDecimal(Entry, 'totalExpectedAmount'), 'The total expected amount must be exposed.');
+        Assert.AreEqual(TotalExpectedAmountLCY, GetJsonDecimal(Entry, 'amountLCY'), 'The total expected amount (LCY) must be exposed as amountLCY.');
+        Assert.AreEqual(GeneralLedgerSetup."LCY Code", GetJsonText(Entry, 'currencyLCY'), 'The LCY code must be exposed as currencyLCY.');
+        Assert.AreEqual('', GetJsonText(Entry, 'reimbursementCurrencyCode'), 'Travel request activity must not expose a reimbursement currency.');
+        SpendRequest.Delete(true);
+        CompleteTest();
+    end;
+
+    local procedure GetJsonText(Entry: JsonToken; PropertyName: Text): Text
+    var
+        Value: JsonToken;
+    begin
+        Assert.IsTrue(Entry.AsObject().Get(PropertyName, Value), 'The response must contain ' + PropertyName + '.');
+        exit(Value.AsValue().AsText());
+    end;
+
+    local procedure GetJsonDecimal(Entry: JsonToken; PropertyName: Text): Decimal
+    var
+        Value: JsonToken;
+    begin
+        Assert.IsTrue(Entry.AsObject().Get(PropertyName, Value), 'The response must contain ' + PropertyName + '.');
+        exit(Value.AsValue().AsDecimal());
+    end;
+
+    local procedure VerifyPolicyCategoryCode(ResponseText: Text; ExpectedCategoryCode: Code[20])
+    var
+        Response: JsonObject;
+        EntriesToken: JsonToken;
+        EntryToken: JsonToken;
+        EventTypeToken: JsonToken;
+        CategoriesToken: JsonToken;
+        CategoryToken: JsonToken;
+        EntryObject: JsonObject;
+        Categories: JsonArray;
+        SnapshotCount: Integer;
+    begin
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The API response must be valid JSON.');
+        Response.Get('value', EntriesToken);
+        foreach EntryToken in EntriesToken.AsArray() do begin
+            EntryObject := EntryToken.AsObject();
+            EntryObject.Get('eventType', EventTypeToken);
+            if EventTypeToken.AsValue().AsText() = 'PolicyEvaluated' then begin
+                SnapshotCount += 1;
+                EntryObject.Get('flaggedCategories', CategoriesToken);
+                Assert.IsTrue(Categories.ReadFrom(CategoriesToken.AsValue().AsText()), 'The category text must decode as a JSON array.');
+                Assert.AreEqual(1, Categories.Count(), 'The snapshot must expose one category code.');
+                Categories.Get(0, CategoryToken);
+                Assert.AreEqual(ExpectedCategoryCode, CategoryToken.AsValue().AsText(), 'The API must expose the captured category code, not its description.');
+            end;
+        end;
+        Assert.AreEqual(1, SnapshotCount, 'The response must contain exactly one policy snapshot.');
+    end;
+
     local procedure CreateE2ESetup(
         var SubmitterExpenseUser: Record "Expense User";
         var ApproverExpenseUser: Record "Expense User";
@@ -446,6 +646,7 @@ codeunit 148343 "Expense Activity Log API Test"
 
         CreateTestExpenseUser(ApproverExpenseUser);
         ApproverExpenseUser."Can Approve" := true;
+        ApproverExpenseUser.Validate("Unlimited Approval", true);
         ApproverExpenseUser."User Id For Approvals" :=
             CopyStr('APPROVER-' + RunToken, 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
         ApproverExpenseUser.Modify();
@@ -602,11 +803,14 @@ codeunit 148343 "Expense Activity Log API Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log API Test");
+        LibrarySetupStorage.Restore();
         CleanupTestData();
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         if not ExpenseAgentSetup.Get() then begin
@@ -619,6 +823,7 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseAgentSetup.Modify();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
+        LibrarySetupStorage.Save(Database::"Expense Agent Setup");
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");

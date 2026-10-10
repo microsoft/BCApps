@@ -181,6 +181,14 @@ codeunit 134714 "Shpfy TMA Test Library"
                 if ElementExists then
                     Evaluate(TaxJurisdiction."Country/Region", JurisdictionInput.Element('Country/Region Code').ValueAsText());
 
+                JurisdictionInput.ElementExists('Created by Agent', ElementExists);
+                if ElementExists then
+                    TaxJurisdiction."Shpfy Created by Agent" := JurisdictionInput.Element('Created by Agent').ValueAsBoolean();
+
+                JurisdictionInput.ElementExists('Verified', ElementExists);
+                if ElementExists then
+                    TaxJurisdiction."Shpfy Verified" := JurisdictionInput.Element('Verified').ValueAsBoolean();
+
                 TaxJurisdiction.Insert(true);
             end;
         end;
