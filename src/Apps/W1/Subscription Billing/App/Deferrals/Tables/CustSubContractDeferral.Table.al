@@ -192,8 +192,6 @@ table 8066 "Cust. Sub. Contract Deferral"
                     Sign := -1;
                 end;
         end;
-        if (SalesLine.Quantity < 0) and (not SalesLine."Discount") then
-            Sign := Sign * -1;
         Rec."Customer No." := SalesLine."Sell-to Customer No.";
         Rec."Dimension Set ID" := SalesLine."Dimension Set ID";
         Rec."Discount %" := SalesLine."Line Discount %";

@@ -11,10 +11,12 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -1181,6 +1183,21 @@ codeunit 139685 "Contract Test Library"
         VendSubContractDeferral."Subscription Contract No." := VendorContractNo;
         VendSubContractDeferral."Subscription Contract Line No." := VendorContractLineNo;
         VendSubContractDeferral.Insert(false);
+    end;
+
+    procedure ResetPostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        PurchasesPayablesSetup.Get();
+        NoSeriesLine.SetFilter(
+            "Series Code", '%1|%2|%3|%4',
+            SalesReceivablesSetup."Posted Invoice Nos.", SalesReceivablesSetup."Posted Credit Memo Nos.",
+            PurchasesPayablesSetup."Posted Invoice Nos.", PurchasesPayablesSetup."Posted Credit Memo Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
     end;
 
     procedure SetAutomaticDimensions(NewValue: Boolean)

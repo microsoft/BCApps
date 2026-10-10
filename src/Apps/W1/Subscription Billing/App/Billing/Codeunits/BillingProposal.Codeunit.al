@@ -574,7 +574,7 @@ codeunit 8062 "Billing Proposal"
         BillingLine.Discount := ServiceCommitment.Discount;
         ServiceObject.SetLoadFields(Quantity);
         ServiceObject.Get(ServiceCommitment."Subscription Header No.");
-        BillingLine."Service Object Quantity" := BillingLine.GetSign() * ServiceObject.Quantity;
+        BillingLine."Service Object Quantity" := BillingLine.GetSign(false) * ServiceObject.Quantity;
         OnAfterUpdateBillingLineFromSubscriptionLine(BillingLine, ServiceCommitment);
     end;
 
