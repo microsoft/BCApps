@@ -11,7 +11,6 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     var
         Assert: Codeunit Assert;
         AddinManifestManagement: Codeunit "Add-in Manifest Management";
-        XMLDomManagement: Codeunit "XML DOM Management";
         HyperlinkManifest: Codeunit "Hyperlink Manifest";
         NoRuleFoundErr: Label 'Rule missing for %1, expected %2 in regex %3.', Locked = true;
         RuleFoundErr: Label 'Rule missing for %1, expected %2 to be missing from regex %3.';
@@ -179,9 +178,9 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     procedure UpdateServerInformation()
     var
         OfficeAddin: Record "Office Add-in";
-        XMLDomManagement: Codeunit "XML DOM Management";
-        OldManifestXML: DotNet XmlNode;
-        NewManifestXML: DotNet XmlNode;
+        OldManifestXML: XmlElement;
+        NewManifestXML: XmlElement;
+        XMLNamespaceMgr: XmlNamespaceManager;
     begin
         // When generating a manifest, the default manifest template is unchanged.
 
@@ -189,15 +188,15 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         Initialize();
         InitializeHyperLinkNoSeries5Prefix();
         AddinManifestManagement.GetAddin(OfficeAddin, CODEUNIT::"Hyperlink Manifest");
-        XMLDomManagement.LoadXMLNodeFromText(OfficeAddin.GetDefaultManifestText(), OldManifestXML);
+        LoadManifestFromText(OfficeAddin.GetDefaultManifestText(), OldManifestXML, XMLNamespaceMgr);
 
         // Exercise
         AddinManifestManagement.SetTestMode(true);
         AddinManifestManagement.SaveManifestToServer(OfficeAddin);
 
         // Validate
-        XMLDomManagement.LoadXMLNodeFromText(OfficeAddin.GetDefaultManifestText(), NewManifestXML);
-        VerifySameServerInformation(OldManifestXML, NewManifestXML);
+        LoadManifestFromText(OfficeAddin.GetDefaultManifestText(), NewManifestXML, XMLNamespaceMgr);
+        VerifySameServerInformation(OldManifestXML, NewManifestXML, XMLNamespaceMgr);
     end;
 
     [Test]
@@ -277,10 +276,9 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     procedure EnvironmentInfoGetsDetailsFromManifest()
     var
         OfficeAddin: Record "Office Add-in";
-        XMLDomManagement: Codeunit "XML DOM Management";
-        XMLRootNode: DotNet XmlNode;
-        XMLFoundNodes: DotNet XmlNodeList;
-        XMLNamespaceMgr: DotNet XmlNamespaceManager;
+        XMLRootNode: XmlElement;
+        XMLFoundNodes: XmlNodeList;
+        XMLNamespaceMgr: XmlNamespaceManager;
         Description: Text[250];
         Id: Guid;
         Name: Text[50];
@@ -293,19 +291,16 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         AddinManifestManagement.GetAddin(OfficeAddin, CODEUNIT::"Hyperlink Manifest");
         ManifestText := OfficeAddin.GetDefaultManifestText();
 
-        XMLDomManagement.LoadXMLNodeFromText(ManifestText, XMLRootNode);
-        XMLDomManagement.AddNamespaces(XMLNamespaceMgr, XMLRootNode.OwnerDocument);
-        XMLNamespaceMgr.AddNamespace('x', XMLNamespaceMgr.DefaultNamespace);
+        LoadManifestFromText(ManifestText, XMLRootNode, XMLNamespaceMgr);
 
         // Exercise
-        XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode, 'x:DisplayName', XMLNamespaceMgr, XMLFoundNodes);
-        Name := XMLFoundNodes.Item(0).Attributes.ItemOf('DefaultValue').Value();
+        FindNodes(XMLRootNode, 'x:DisplayName', XMLNamespaceMgr, XMLFoundNodes);
+        Name := CopyStr(GetFirstNodeAttributeValue(XMLFoundNodes, 'DefaultValue'), 1, MaxStrLen(Name));
 
-        XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode, 'x:Description', XMLNamespaceMgr, XMLFoundNodes);
-        Description := XMLFoundNodes.Item(0).Attributes.ItemOf('DefaultValue').Value();
+        FindNodes(XMLRootNode, 'x:Description', XMLNamespaceMgr, XMLFoundNodes);
+        Description := CopyStr(GetFirstNodeAttributeValue(XMLFoundNodes, 'DefaultValue'), 1, MaxStrLen(Description));
 
-        XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode, 'x:Id', XMLNamespaceMgr, XMLFoundNodes);
-        Id := XMLFoundNodes.Item(0).InnerText;
+        Evaluate(Id, FindNodeText(XMLRootNode, 'x:Id', XMLNamespaceMgr));
 
         // Verify
         Assert.AreEqual(Name, AddinManifestManagement.GetAppName(ManifestText),
@@ -893,22 +888,20 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
 
     [Normal]
     [Scope('OnPrem')]
-    procedure ValidateUnchangedXML(OldXML: DotNet XmlNode; NewXML: DotNet XmlNode; NodeLocation: Text; XMLNamespaceMgr: DotNet XmlNamespaceManager)
+    procedure ValidateUnchangedXML(OldXML: XmlElement; NewXML: XmlElement; NodeLocation: Text; XMLNamespaceMgr: XmlNamespaceManager)
     var
-        OldXMLFoundNodes: DotNet XmlNodeList;
-        NewXMLFoundNodes: DotNet XmlNodeList;
+        OldXMLFoundNodes: XmlNodeList;
+        NewXMLFoundNodes: XmlNodeList;
         OldValue: Text;
         NewValue: Text;
         i: Integer;
     begin
-        XMLDomManagement.FindNodesWithNamespaceManager(
-          OldXML, NodeLocation, XMLNamespaceMgr, OldXMLFoundNodes);
-        XMLDomManagement.FindNodesWithNamespaceManager(
-          NewXML, NodeLocation, XMLNamespaceMgr, NewXMLFoundNodes);
+        FindNodes(OldXML, NodeLocation, XMLNamespaceMgr, OldXMLFoundNodes);
+        FindNodes(NewXML, NodeLocation, XMLNamespaceMgr, NewXMLFoundNodes);
         Assert.AreEqual(OldXMLFoundNodes.Count, NewXMLFoundNodes.Count, 'Difference in number of found XML nodes for DesktopSettings');
         for i := 0 to OldXMLFoundNodes.Count - 1 do begin
-            OldValue := XMLDomManagement.GetAttributeValue(OldXMLFoundNodes.Item(0), 'DefaultValue');
-            NewValue := XMLDomManagement.GetAttributeValue(NewXMLFoundNodes.Item(0), 'DefaultValue');
+            OldValue := GetFirstNodeAttributeValue(OldXMLFoundNodes, 'DefaultValue');
+            NewValue := GetFirstNodeAttributeValue(NewXMLFoundNodes, 'DefaultValue');
             Assert.AreEqual(OldValue, NewValue, 'XML value did not change.');
         end;
     end;
@@ -1118,44 +1111,39 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     var
         TempBlob: Codeunit "Temp Blob";
         FileManagement: Codeunit "File Management";
-        XMLDomManagement: Codeunit "XML DOM Management";
         ManifestStream: InStream;
-        XMLRootNode: DotNet XmlNode;
-        XMLFoundNodes: DotNet XmlNodeList;
-        XMLNamespaceMgr: DotNet XmlNamespaceManager;
+        XMLRootNode: XmlElement;
+        XMLFoundNodes: XmlNodeList;
+        XMLNamespaceMgr: XmlNamespaceManager;
         NodeText: Text;
     begin
         VerifyCommonManifestItems(FileName);
         FileManagement.BLOBImportFromServerFile(TempBlob, FileName);
         TempBlob.CreateInStream(ManifestStream);
 
-        XMLDomManagement.LoadXMLNodeFromInStream(ManifestStream, XMLRootNode);
-        XMLDomManagement.AddNamespaces(XMLNamespaceMgr, XMLRootNode.OwnerDocument);
-
-        // Need to add the default with a 'dummy' prefix - xpath doesn't like default namespaces
-        XMLNamespaceMgr.AddNamespace('x', 'http://schemas.microsoft.com/office/appforoffice/1.1');
+        LoadManifestFromInStream(ManifestStream, XMLRootNode, XMLNamespaceMgr);
 
         // Validate that the regex has the first trigger
-        XMLDomManagement.FindNodesWithNamespaceManager(
+        FindNodes(
           XMLRootNode,
           'x:Rule[@xsi:type="RuleCollection"]/x:Rule[@xsi:type="RuleCollection"]/x:Rule[@xsi:type="ItemHasRegularExpressionMatch"]',
           XMLNamespaceMgr, XMLFoundNodes);
         Assert.IsTrue(XMLFoundNodes.Count > 0, 'Missing triggers in XML');
 
         // Validate URLs
-        XMLDomManagement.FindNodesWithNamespaceManager(
+        FindNodes(
           XMLRootNode, 'x:FormSettings/x:Form[@xsi:type="ItemRead"]/x:DesktopSettings/x:SourceLocation', XMLNamespaceMgr, XMLFoundNodes);
-        NodeText := XMLDomManagement.GetAttributeValue(XMLFoundNodes.Item(0), 'DefaultValue');
+        NodeText := GetFirstNodeAttributeValue(XMLFoundNodes, 'DefaultValue');
         Assert.IsTrue(NodeText <> '', 'SourceLocation is empty for DesktopSettings');
 
-        XMLDomManagement.FindNodesWithNamespaceManager(
+        FindNodes(
           XMLRootNode, 'x:FormSettings/x:Form[@xsi:type="ItemRead"]/x:PhoneSettings/x:SourceLocation', XMLNamespaceMgr, XMLFoundNodes);
-        NodeText := XMLDomManagement.GetAttributeValue(XMLFoundNodes.Item(0), 'DefaultValue');
+        NodeText := GetFirstNodeAttributeValue(XMLFoundNodes, 'DefaultValue');
         Assert.IsTrue(NodeText <> '', 'SourceLocation is empty for PhoneSettings');
 
-        XMLDomManagement.FindNodesWithNamespaceManager(
+        FindNodes(
           XMLRootNode, 'x:FormSettings/x:Form[@xsi:type="ItemRead"]/x:TabletSettings/x:SourceLocation', XMLNamespaceMgr, XMLFoundNodes);
-        NodeText := XMLDomManagement.GetAttributeValue(XMLFoundNodes.Item(0), 'DefaultValue');
+        NodeText := GetFirstNodeAttributeValue(XMLFoundNodes, 'DefaultValue');
         Assert.IsTrue(NodeText <> '', 'SourceLocation is empty for TabletSettings');
     end;
 
@@ -1165,22 +1153,17 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     var
         TempBlob: Codeunit "Temp Blob";
         FileManagement: Codeunit "File Management";
-        XMLDomManagement: Codeunit "XML DOM Management";
         ManifestStream: InStream;
-        XMLRootNode: DotNet XmlNode;
-        XMLFoundNodes: DotNet XmlNodeList;
-        XMLNamespaceMgr: DotNet XmlNamespaceManager;
+        XMLRootNode: XmlElement;
+        XMLFoundNodes: XmlNodeList;
+        XMLNamespaceMgr: XmlNamespaceManager;
         NodeText: Text;
         BaseUrl: Text;
     begin
         FileManagement.BLOBImportFromServerFile(TempBlob, FileName);
         TempBlob.CreateInStream(ManifestStream);
 
-        XMLDomManagement.LoadXMLNodeFromInStream(ManifestStream, XMLRootNode);
-        XMLDomManagement.AddNamespaces(XMLNamespaceMgr, XMLRootNode.OwnerDocument);
-
-        // Need to add the default with a 'dummy' prefix - xpath doesn't like default namespaces
-        XMLNamespaceMgr.AddNamespace('x', 'http://schemas.microsoft.com/office/appforoffice/1.1');
+        LoadManifestFromInStream(ManifestStream, XMLRootNode, XMLNamespaceMgr);
 
         // Validate some of the basic configuration values
         // Make sure that URLs appear in necessary areas
@@ -1190,18 +1173,18 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
             BaseUrl := CopyStr(BaseUrl, 1, StrPos(BaseUrl, '?') - 1);
 
         Assert.AreNotEqual(
-          '', XMLDomManagement.FindNodeTextNs(XMLRootNode, 'x:DefaultLocale', XMLNamespaceMgr),
+          '', FindNodeText(XMLRootNode, 'x:DefaultLocale', XMLNamespaceMgr),
           'Did not find DefaultLocale node in generated manifest.');
         Assert.IsTrue(
-          0 <> StrPos(XMLDomManagement.FindNodeTextNs(XMLRootNode, 'x:AppDomains/x:AppDomain', XMLNamespaceMgr), BaseUrl),
+          0 <> StrPos(FindNodeText(XMLRootNode, 'x:AppDomains/x:AppDomain', XMLNamespaceMgr), BaseUrl),
           'Did not find URL in AppDomain node in generated manifest.');
 
-        XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode, 'x:IconUrl', XMLNamespaceMgr, XMLFoundNodes);
-        NodeText := XMLDomManagement.GetAttributeValue(XMLFoundNodes.Item(0), 'DefaultValue');
+        FindNodes(XMLRootNode, 'x:IconUrl', XMLNamespaceMgr, XMLFoundNodes);
+        NodeText := GetFirstNodeAttributeValue(XMLFoundNodes, 'DefaultValue');
         Assert.IsTrue(StrPos(NodeText, BaseUrl) <> 0, 'IconUrl does not contain web server URL.');
 
-        XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode, 'x:HighResolutionIconUrl', XMLNamespaceMgr, XMLFoundNodes);
-        NodeText := XMLDomManagement.GetAttributeValue(XMLFoundNodes.Item(0), 'DefaultValue');
+        FindNodes(XMLRootNode, 'x:HighResolutionIconUrl', XMLNamespaceMgr, XMLFoundNodes);
+        NodeText := GetFirstNodeAttributeValue(XMLFoundNodes, 'DefaultValue');
         Assert.IsTrue(StrPos(NodeText, BaseUrl) <> 0, 'HighResolutionIconUrl does not contain web server URL.');
     end;
 
@@ -1211,30 +1194,25 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     var
         TempBlob: Codeunit "Temp Blob";
         FileManagement: Codeunit "File Management";
-        XMLDomManagement: Codeunit "XML DOM Management";
         ManifestStream: InStream;
-        XMLRootNode: DotNet XmlNode;
-        XMLFoundNodes: DotNet XmlNodeList;
-        XMLNamespaceMgr: DotNet XmlNamespaceManager;
+        XMLRootNode: XmlElement;
+        XMLFoundNodes: XmlNodeList;
+        XMLNamespaceMgr: XmlNamespaceManager;
         NodeText: Text;
     begin
         FileManagement.BLOBImportFromServerFile(TempBlob, FileName);
         TempBlob.CreateInStream(ManifestStream);
 
-        XMLDomManagement.LoadXMLNodeFromInStream(ManifestStream, XMLRootNode);
-        XMLDomManagement.AddNamespaces(XMLNamespaceMgr, XMLRootNode.OwnerDocument);
-
-        // Need to add the default with a 'dummy' prefix - xpath doesn't like default namespaces
-        XMLNamespaceMgr.AddNamespace('x', 'http://schemas.microsoft.com/office/appforoffice/1.1');
+        LoadManifestFromInStream(ManifestStream, XMLRootNode, XMLNamespaceMgr);
 
         // Validate that the number series is associated with the appropriate doc type and that the doc types exist in the generated manifest
-        XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode,
+        FindNodes(XMLRootNode,
           'x:Rule/x:Rule[@xsi:type="RuleCollection"]/x:Rule[@xsi:type="ItemHasRegularExpressionMatch" and @RegExName="No.Series"]',
           XMLNamespaceMgr, XMLFoundNodes);
 
         Assert.IsTrue(XMLFoundNodes.Count > 0, 'Could not find No. Series regex match in manifest.');
 
-        NodeText := XMLDomManagement.GetAttributeValue(XMLFoundNodes.Item(0), 'RegExValue');
+        NodeText := GetFirstNodeAttributeValue(XMLFoundNodes, 'RegExValue');
 
         VerifyNoSeriesRegex5PrefixPurchases(NodeText);
         VerifyNoSeriesRegex5PrefixSales(NodeText);
@@ -1266,30 +1244,25 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     var
         TempBlob: Codeunit "Temp Blob";
         FileManagement: Codeunit "File Management";
-        XMLDomManagement: Codeunit "XML DOM Management";
         ManifestStream: InStream;
-        XMLRootNode: DotNet XmlNode;
-        XMLFoundNodes: DotNet XmlNodeList;
-        XMLNamespaceMgr: DotNet XmlNamespaceManager;
+        XMLRootNode: XmlElement;
+        XMLFoundNodes: XmlNodeList;
+        XMLNamespaceMgr: XmlNamespaceManager;
         NodeText: Text;
     begin
         FileManagement.BLOBImportFromServerFile(TempBlob, FileName);
         TempBlob.CreateInStream(ManifestStream);
 
-        XMLDomManagement.LoadXMLNodeFromInStream(ManifestStream, XMLRootNode);
-        XMLDomManagement.AddNamespaces(XMLNamespaceMgr, XMLRootNode.OwnerDocument);
-
-        // Need to add the default with a 'dummy' prefix - xpath doesn't like default namespaces
-        XMLNamespaceMgr.AddNamespace('x', 'http://schemas.microsoft.com/office/appforoffice/1.1');
+        LoadManifestFromInStream(ManifestStream, XMLRootNode, XMLNamespaceMgr);
 
         // Validate that the number series is associated with the appropriate doc type and that the doc types exist in the generated manifest
-        XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode,
+        FindNodes(XMLRootNode,
           'x:Rule/x:Rule[@xsi:type="RuleCollection"]/x:Rule[@xsi:type="ItemHasRegularExpressionMatch" and @RegExName="No.Series"]',
           XMLNamespaceMgr, XMLFoundNodes);
 
         Assert.IsTrue(XMLFoundNodes.Count > 0, 'Could not find No. Series regex match in manifest.');
 
-        NodeText := XMLDomManagement.GetAttributeValue(XMLFoundNodes.Item(0), 'RegExValue');
+        NodeText := GetFirstNodeAttributeValue(XMLFoundNodes, 'RegExValue');
 
         VerifyNoSeriesRegex1PrefixPurchases(NodeText);
         VerifyNoSeriesRegex1PrefixSales(NodeText);
@@ -1316,14 +1289,8 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     end;
 
     [Normal]
-    local procedure VerifySameServerInformation(OldXML: DotNet XmlNode; NewXML: DotNet XmlNode)
-    var
-        XMLNamespaceMgr: DotNet XmlNamespaceManager;
+    local procedure VerifySameServerInformation(OldXML: XmlElement; NewXML: XmlElement; XMLNamespaceMgr: XmlNamespaceManager)
     begin
-        XMLDomManagement.AddNamespaces(XMLNamespaceMgr, OldXML.OwnerDocument);
-
-        // Need to add the default with a 'dummy' prefix - xpath doesn't like default namespaces
-        XMLNamespaceMgr.AddNamespace('x', 'http://schemas.microsoft.com/office/appforoffice/1.1');
 
         ValidateUnchangedXML(OldXML, NewXML, 'x:FormSettings/x:Form/x:DesktopSettings/x:SourceLocation', XMLNamespaceMgr);
         ValidateUnchangedXML(OldXML, NewXML, 'x:FormSettings/x:Form/x:PhoneSettings/x:SourceLocation', XMLNamespaceMgr);
@@ -1350,5 +1317,62 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     begin
         PrivacyNotice.Accept.Invoke();
     end;
-}
 
+    local procedure LoadManifestFromText(ManifestText: Text; var XMLRootNode: XmlElement; var XMLNamespaceMgr: XmlNamespaceManager)
+    var
+        ManifestXmlDocument: XmlDocument;
+    begin
+        XmlDocument.ReadFrom(ManifestText, ManifestXmlDocument);
+        InitializeManifestNamespaceManager(ManifestXmlDocument, XMLRootNode, XMLNamespaceMgr);
+    end;
+
+    local procedure LoadManifestFromInStream(ManifestStream: InStream; var XMLRootNode: XmlElement; var XMLNamespaceMgr: XmlNamespaceManager)
+    var
+        ManifestXmlDocument: XmlDocument;
+    begin
+        XmlDocument.ReadFrom(ManifestStream, ManifestXmlDocument);
+        InitializeManifestNamespaceManager(ManifestXmlDocument, XMLRootNode, XMLNamespaceMgr);
+    end;
+
+    local procedure InitializeManifestNamespaceManager(ManifestXmlDocument: XmlDocument; var XMLRootNode: XmlElement; var XMLNamespaceMgr: XmlNamespaceManager)
+    var
+        NamespaceAttribute: XmlAttribute;
+    begin
+        ManifestXmlDocument.GetRoot(XMLRootNode);
+        Clear(XMLNamespaceMgr);
+        XMLNamespaceMgr.NameTable(ManifestXmlDocument.NameTable());
+        foreach NamespaceAttribute in XMLRootNode.Attributes() do
+            if NamespaceAttribute.IsNamespaceDeclaration() and (NamespaceAttribute.NamespaceUri() <> '') then
+                XMLNamespaceMgr.AddNamespace(NamespaceAttribute.LocalName(), NamespaceAttribute.Value());
+
+        // Need to add the default with a 'dummy' prefix - xpath doesn't like default namespaces
+        XMLNamespaceMgr.AddNamespace('x', 'http://schemas.microsoft.com/office/appforoffice/1.1');
+    end;
+
+    local procedure FindNodes(XMLRootNode: XmlElement; XPath: Text; XMLNamespaceMgr: XmlNamespaceManager; var XMLFoundNodes: XmlNodeList): Boolean
+    begin
+        if not XMLRootNode.SelectNodes(XPath, XMLNamespaceMgr, XMLFoundNodes) then
+            exit(false);
+        exit(XMLFoundNodes.Count() > 0);
+    end;
+
+    local procedure FindNodeText(XMLRootNode: XmlElement; XPath: Text; XMLNamespaceMgr: XmlNamespaceManager): Text
+    var
+        XMLFoundNode: XmlNode;
+    begin
+        if not XMLRootNode.SelectSingleNode(XPath, XMLNamespaceMgr, XMLFoundNode) then
+            exit('');
+        exit(XMLFoundNode.AsXmlElement().InnerText());
+    end;
+
+    local procedure GetFirstNodeAttributeValue(XMLFoundNodes: XmlNodeList; AttributeName: Text): Text
+    var
+        XMLFoundNode: XmlNode;
+        XMLFoundAttribute: XmlAttribute;
+    begin
+        XMLFoundNodes.Get(1, XMLFoundNode);
+        if not XMLFoundNode.AsXmlElement().Attributes().Get(AttributeName, XMLFoundAttribute) then
+            exit('');
+        exit(XMLFoundAttribute.Value());
+    end;
+}
