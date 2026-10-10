@@ -116,7 +116,6 @@ codeunit 90 "Purch.-Post"
         SavedPreviewMode: Boolean;
         SavedSuppressCommit: Boolean;
         SavedCalledBy: Integer;
-        BiggestLineNo: Integer;
         SavedHideProgressWindow: Boolean;
         IsHandled: Boolean;
     begin
@@ -183,10 +182,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     /// <param name="TempDropShptPostBuffer">Accumulates drop-shipment buffer records during posting.</param>
     /// <param name="EverythingInvoiced">Set to false during posting if any line is partially invoiced.</param>
-    local procedure ProcessPosting(
-        var PurchHeader: Record "Purchase Header";
-        var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
-        var EverythingInvoiced: Boolean)
+    local procedure ProcessPosting(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean)
     var
         IgnoreCommit: Boolean;
     begin
@@ -236,7 +232,6 @@ codeunit 90 "Purch.-Post"
         ErrorContextElementProcessLines: Codeunit "Error Context Element";
         ErrorContextElementPostLine: Codeunit "Error Context Element";
         ZeroPurchLineRecID: RecordId;
-        ICGenJnlLineNo: Integer;
         BiggestLineNo: Integer;
         IsHandled: Boolean;
     begin
