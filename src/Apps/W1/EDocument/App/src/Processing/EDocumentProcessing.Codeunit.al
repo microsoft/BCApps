@@ -247,9 +247,11 @@ codeunit 6108 "E-Document Processing"
         PurchaseHeader: Record "Purchase Header";
         FinChargeMemoHeader: Record "Finance Charge Memo Header";
         TransferHeader: Record "Transfer Header";
+        DocumentSendingProfile: Record "Document Sending Profile";
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         AccountType: Enum "Gen. Journal Account Type";
+        IsHandled: Boolean;
     begin
         case RecRef.Number of
             Database::"Sales Header", Database::"Sales Invoice Header", Database::"Sales Cr.Memo Header",
@@ -276,12 +278,18 @@ codeunit 6108 "E-Document Processing"
 
             Database::"Vendor Ledger Entry":
                 exit(GetDocSendingProfileForCustVend('', RecRef.Field(VendorLedgerEntry.FieldNo("Vendor No.")).Value));
+            else
+                IsHandled := false;
+                OnGetDocSendingProfileForDocRefOnCaseElse(RecRef, DocumentSendingProfile, IsHandled);
+                if IsHandled then
+                    exit(DocumentSendingProfile);
         end;
     end;
 
     procedure GetLines(EDocument: Record "E-Document"; var SourceDocumentLines: RecordRef)
     var
         PurchaseLine: Record "Purchase Line";
+        IsHandled: Boolean;
     begin
         case EDocument."Document Type" of
             EDocument."Document Type"::"Sales Order":
@@ -354,6 +362,9 @@ codeunit 6108 "E-Document Processing"
                     SourceDocumentLines := EDocument."Document Record ID".GetRecord();
                     SourceDocumentLines.SetRecFilter();
                 end;
+            else
+                IsHandled := false;
+                OnGetLinesOnCaseElse(EDocument, SourceDocumentLines, IsHandled);
         end;
     end;
 
@@ -569,7 +580,13 @@ codeunit 6108 "E-Document Processing"
         exit(EDocTok);
     end;
 
-    local procedure GetDocSendingProfileForCustVend(CustomerNo: Code[20]; VendorNo: Code[20]) DocumentSendingProfile: Record "Document Sending Profile";
+    /// <summary>
+    /// Gets the document sending profile for a customer, or vendor (when the customer number is not provided). If there is no specific profile for the customer or vendor, the default profile is retrieved instead.
+    /// </summary>
+    /// <param name="CustomerNo">Specifies a customer number. If empty, the vendor profile is retrieved instead.</param>
+    /// <param name="VendorNo">Specifies a vendor number.</param>
+    /// <returns>Found document sending profile as a record.</returns>
+    procedure GetDocSendingProfileForCustVend(CustomerNo: Code[20]; VendorNo: Code[20]) DocumentSendingProfile: Record "Document Sending Profile";
     var
         Customer: Record Customer;
         Vendor: Record Vendor;
@@ -830,6 +847,16 @@ codeunit 6108 "E-Document Processing"
 
     [InternalEvent(false, false)]
     local procedure OnAfterModifyServiceStatus(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var EDocumentServiceStatus: Record "E-Document Service Status")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetDocSendingProfileForDocRefOnCaseElse(var RecRef: RecordRef; var DocumentSendingProfile: Record "Document Sending Profile"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetLinesOnCaseElse(EDocument: Record "E-Document"; var SourceDocumentLines: RecordRef; var IsHandled: Boolean)
     begin
     end;
 }

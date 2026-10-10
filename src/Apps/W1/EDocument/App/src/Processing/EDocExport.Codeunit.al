@@ -364,6 +364,7 @@ codeunit 6102 "E-Doc. Export"
         SalesDocumentType: Enum "Sales Document Type";
         PurchDocumentType: Enum "Purchase Document Type";
         RemainingAmount, InterestAmount, AdditionalFee, VATAmount : Decimal;
+        IsHandled: Boolean;
     begin
         EDocument.Validate("Document Record ID", SourceDocumentHeader.RecordId);
         EDocument.Validate(Status, EDocument.Status::"In Progress");
@@ -508,6 +509,9 @@ codeunit 6102 "E-Doc. Export"
             Database::"Gen. Journal Line", Database::"Vendor Ledger Entry":
                 if EDocument."Document Type" = EDocument."Document Type"::"Remittance Advice" then
                     PopulateRemittanceAdviceEDocument(EDocument, SourceDocumentHeader);
+            else
+                IsHandled := false;
+                OnPopulateEDocumentOnCaseElse(EDocument, SourceDocumentHeader, IsHandled);
         end;
 
     end;
@@ -754,6 +758,11 @@ codeunit 6102 "E-Doc. Export"
 
     [IntegrationEvent(false, false)]
     local procedure OnExportEDocumentAfterCreateEDocument(EDocumentService: Record "E-Document Service"; EDocument: Record "E-Document"; SourceDocumentHeaderMapped: RecordRef; SourceDocumentLineMapped: RecordRef; var TempBlob: Codeunit "Temp Blob"; Success: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateEDocumentOnCaseElse(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var IsHandled: Boolean)
     begin
     end;
 }
