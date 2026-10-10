@@ -585,10 +585,16 @@ codeunit 9610 "XSD Parser"
     end;
 
     local procedure GetNodeName(XMLNode: XmlNode): Text
+    var
+        NodeName: Text;
     begin
-        if XMLNode.IsXmlElement() then
-            exit(XMLNode.AsXmlElement().Name());
-        exit('');
+        if not XMLNode.IsXmlElement() then
+            exit('');
+        // Name() returns ":LocalName" for an element in a default namespace; the qualified name has no prefix then
+        NodeName := XMLNode.AsXmlElement().Name();
+        if CopyStr(NodeName, 1, 1) = ':' then
+            exit(CopyStr(NodeName, 2));
+        exit(NodeName);
     end;
 
     local procedure FindNodes(RootXmlNode: XmlNode; XPath: Text; NamespaceMgr: XmlNamespaceManager; var FoundXmlNodeList: XmlNodeList): Boolean

@@ -184,31 +184,40 @@ codeunit 1652 "Add-in Manifest Management"
         if CopyStr(ManifestText, 1, 1) = ByteOrderMark then
             ManifestText := CopyStr(ManifestText, 2);
         XmlDocument.ReadFrom(ManifestText, ManifestXmlDocument);
+        RemoveWhitespaceNodes(ManifestXmlDocument);
         ManifestXmlDocument.GetRoot(XMLRootElement);
-        RemoveWhitespaceNodes(XMLRootElement);
         GetManifestNamespaceManager(ManifestXmlDocument, XMLRootElement, XMLNamespaceMgr);
+    end;
+
+    local procedure RemoveWhitespaceNodes(ManifestXmlDocument: XmlDocument)
+    begin
+        RemoveWhitespaceNodes(ManifestXmlDocument.GetChildNodes());
     end;
 
     local procedure RemoveWhitespaceNodes(ParentXmlElement: XmlElement)
     var
-        ChildNodes: XmlNodeList;
-        ChildNode: XmlNode;
         XmlSpaceAttribute: XmlAttribute;
+    begin
+        // Like the .NET XmlDocument with PreserveWhitespace = false, drop insignificant whitespace unless xml:space="preserve"
+        if ParentXmlElement.Attributes().Get('space', 'http://www.w3.org/XML/1998/namespace', XmlSpaceAttribute) then
+            if XmlSpaceAttribute.Value() = 'preserve' then
+                exit;
+        RemoveWhitespaceNodes(ParentXmlElement.GetChildNodes());
+    end;
+
+    local procedure RemoveWhitespaceNodes(ChildNodes: XmlNodeList)
+    var
+        ChildNode: XmlNode;
         Whitespace: Text;
         Tab: Char;
         LineFeed: Char;
         CarriageReturn: Char;
         i: Integer;
     begin
-        // Like the .NET XmlDocument with PreserveWhitespace = false, drop insignificant whitespace unless xml:space="preserve"
-        if ParentXmlElement.Attributes().Get('space', 'http://www.w3.org/XML/1998/namespace', XmlSpaceAttribute) then
-            if XmlSpaceAttribute.Value() = 'preserve' then
-                exit;
         Tab := 9;
         LineFeed := 10;
         CarriageReturn := 13;
         Whitespace := ' ' + Format(Tab) + Format(LineFeed) + Format(CarriageReturn);
-        ChildNodes := ParentXmlElement.GetChildNodes();
         for i := ChildNodes.Count() downto 1 do begin
             ChildNodes.Get(i, ChildNode);
             if ChildNode.IsXmlText() then begin
@@ -488,7 +497,7 @@ codeunit 1652 "Add-in Manifest Management"
         XMLFoundNode: XmlNode;
     begin
         GetFirstXmlNode(ManifestText, XMLFoundNode, 'x:DisplayName');
-        exit(GetDefaultValueAttribute(XMLFoundNode))
+        exit(CopyStr(GetDefaultValueAttribute(XMLFoundNode), 1, 50))
     end;
 
     [Scope('OnPrem')]
@@ -497,7 +506,7 @@ codeunit 1652 "Add-in Manifest Management"
         XMLFoundNode: XmlNode;
     begin
         GetFirstXmlNode(ManifestText, XMLFoundNode, 'x:Description');
-        exit(GetDefaultValueAttribute(XMLFoundNode))
+        exit(CopyStr(GetDefaultValueAttribute(XMLFoundNode), 1, 250))
     end;
 
     [Scope('OnPrem')]
@@ -506,7 +515,7 @@ codeunit 1652 "Add-in Manifest Management"
         XMLFoundNode: XmlNode;
     begin
         GetFirstXmlNode(ManifestText, XMLFoundNode, 'x:Version');
-        exit(XMLFoundNode.AsXmlElement().InnerText())
+        exit(CopyStr(XMLFoundNode.AsXmlElement().InnerText(), 1, 20))
     end;
 
     local procedure GetFirstXmlNode(ManifestText: Text; var XMLFoundNode: XmlNode; NodeName: Text)

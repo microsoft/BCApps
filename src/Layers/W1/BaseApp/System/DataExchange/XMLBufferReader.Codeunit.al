@@ -57,23 +57,29 @@ codeunit 1239 "XML Buffer Reader"
         XmlDocument.ReadFrom(Header, XmlDoc);
         XmlDoc.GetRoot(RootElement);
 
-        SaveChildElements(TempXMLBuffer, RootElement);
+        SaveChildElements(TempXMLBuffer, RootElement, DefaultNamespace);
+
 
         TempBlob.CreateOutStream(OutStr);
         XmlDoc.WriteTo(OutStr);
     end;
 
-    local procedure SaveChildElements(var TempParentElementXMLBuffer: Record "XML Buffer" temporary; XMLCurrElement: XmlElement)
+    local procedure SaveChildElements(var TempParentElementXMLBuffer: Record "XML Buffer" temporary; XMLCurrElement: XmlElement; ParentDefaultNamespace: Text)
     var
         TempElementXMLBuffer: Record "XML Buffer" temporary;
         ChildElement: XmlElement;
         NamespaceURI: Text;
+        ElementDefaultNamespace: Text;
         ElementValue: Text;
     begin
         if TempParentElementXMLBuffer.FindChildElements(TempElementXMLBuffer) then
             repeat
+                // An xmlns attribute on the element itself sets the default namespace for the element and its children
+                ElementDefaultNamespace := TempElementXMLBuffer.GetAttributeValueAsText('xmlns');
+                if ElementDefaultNamespace = '' then
+                    ElementDefaultNamespace := ParentDefaultNamespace;
                 if TempElementXMLBuffer.Namespace = '' then
-                    NamespaceURI := DefaultNamespace
+                    NamespaceURI := ElementDefaultNamespace
                 else
                     NamespaceURI := TempParentElementXMLBuffer.GetNamespaceUriByPrefixAsText(TempElementXMLBuffer.Namespace);
                 ChildElement := XmlElement.Create(TempElementXMLBuffer.Name, NamespaceURI);
@@ -83,7 +89,7 @@ codeunit 1239 "XML Buffer Reader"
                 XMLCurrElement.Add(ChildElement);
                 SaveProcessingInstructions(TempElementXMLBuffer, ChildElement);
                 SaveAttributes(TempElementXMLBuffer, ChildElement);
-                SaveChildElements(TempElementXMLBuffer, ChildElement);
+                SaveChildElements(TempElementXMLBuffer, ChildElement, ElementDefaultNamespace);
             until TempElementXMLBuffer.Next() = 0;
     end;
 
@@ -126,7 +132,7 @@ codeunit 1239 "XML Buffer Reader"
                 ColonPosition := StrPos(AttributeName, ':');
                 case true of
                     AttributeName = 'xmlns':
-                        XMLCurrElement.Add(XmlAttribute.CreateNamespaceDeclaration('', TempAttributeXMLBuffer.GetValue()));
+                        XMLCurrElement.Add(XmlAttribute.Create(AttributeName, TempAttributeXMLBuffer.GetValue()));
                     ColonPosition = 0:
                         if NamespaceURI <> '' then
                             XMLCurrElement.SetAttribute(AttributeName, NamespaceURI, TempAttributeXMLBuffer.GetValue())
@@ -135,12 +141,14 @@ codeunit 1239 "XML Buffer Reader"
                     CopyStr(AttributeName, 1, ColonPosition - 1) = 'xmlns':
                         XMLCurrElement.Add(
                           XmlAttribute.CreateNamespaceDeclaration(CopyStr(AttributeName, ColonPosition + 1), TempAttributeXMLBuffer.GetValue()));
-                    else
-                        // A prefixed name, like xsi:type, is resolved through the namespace declarations in the buffer
+                    NamespaceURI <> '':
+                        XMLCurrElement.SetAttribute(CopyStr(AttributeName, ColonPosition + 1), NamespaceURI, TempAttributeXMLBuffer.GetValue());
+                    CopyStr(AttributeName, 1, ColonPosition - 1) = 'xml':
                         XMLCurrElement.SetAttribute(
-                          CopyStr(AttributeName, ColonPosition + 1),
-                          TempParentElementXMLBuffer.GetNamespaceUriByPrefixAsText(CopyStr(AttributeName, 1, ColonPosition - 1)),
-                          TempAttributeXMLBuffer.GetValue());
+                          CopyStr(AttributeName, ColonPosition + 1), 'http://www.w3.org/XML/1998/namespace', TempAttributeXMLBuffer.GetValue());
+                    else
+                        // Without a namespace URI the prefix cannot be kept, which is also how the attribute was saved before
+                        XMLCurrElement.SetAttribute(CopyStr(AttributeName, ColonPosition + 1), TempAttributeXMLBuffer.GetValue());
                 end;
             until TempAttributeXMLBuffer.Next() = 0;
     end;

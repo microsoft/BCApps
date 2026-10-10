@@ -194,7 +194,7 @@ codeunit 1203 "Import XML File to Data Exch."
     begin
         case true of
             XmlNode.IsXmlElement():
-                exit(XmlNode.AsXmlElement().Name());
+                exit(GetElementName(XmlNode.AsXmlElement()));
             XmlNode.IsXmlAttribute():
                 exit(XmlNode.AsXmlAttribute().Name());
             XmlNode.IsXmlText():
@@ -203,6 +203,17 @@ codeunit 1203 "Import XML File to Data Exch."
                 exit('#cdata-section');
         end;
         exit('');
+    end;
+
+    local procedure GetElementName(CurrentXmlElement: XmlElement): Text
+    var
+        ElementName: Text;
+    begin
+        // Name() returns ":LocalName" for an element in a default namespace; the qualified name has no prefix then
+        ElementName := CurrentXmlElement.Name();
+        if CopyStr(ElementName, 1, 1) = ':' then
+            exit(CopyStr(ElementName, 2));
+        exit(ElementName);
     end;
 
     local procedure GetNodeInnerText(XmlNode: XmlNode): Text
