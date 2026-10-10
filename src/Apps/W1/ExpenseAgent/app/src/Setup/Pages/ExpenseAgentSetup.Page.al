@@ -226,6 +226,26 @@ page 6996 "Expense Agent Setup"
                 }
             }
 #endif
+            group("Corporate Card")
+            {
+                Caption = 'Corporate Card';
+
+                field("Corp Card Default Provider"; Rec."Corp Card Default Provider")
+                {
+                }
+                field("Corp Card Create Mode"; Rec."Corp Card Create Mode")
+                {
+                }
+                field("Corp Card Auto Create Draft"; Rec."Corp Card Auto Create Draft")
+                {
+                }
+                field("Corp Card Date Match Window"; Rec."Corp Card Date Match Window")
+                {
+                }
+                field("Corp Card Amount Tolerance"; Rec."Corp Card Amount Tolerance")
+                {
+                }
+            }
             group("Rule & Controls")
             {
                 field("Receipt No. Mandatory"; Rec."Receipt No. Mandatory")
@@ -521,6 +541,38 @@ page 6996 "Expense Agent Setup"
                         Rec.CreateDefaultSettings();
                     end;
                 }
+                action("Apply Corp Card Default Settings")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Apply corp card default settings';
+                    Image = SetupPayment;
+                    ToolTip = 'Applies corporate card defaults, including provider setup, data exchange mapping, user card links, the corporate card settlement bank account, and corporate card setup values.';
+
+                    trigger OnAction()
+                    var
+                        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+                    begin
+                        CreateCorpCardSetup.CreateDefaults();
+                    end;
+                }
+                action("Create Corp Card CSV Sample Scenario")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Create corp card CSV sample scenario';
+                    Image = Import;
+                    ToolTip = 'Imports the 60 sample CSV transactions, creates and posts their expense reports, and creates and posts the settlement between CORPCARD and a local-currency bank account with a configured posting group.';
+
+                    trigger OnAction()
+                    var
+                        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+                    begin
+                        if not Confirm(CreateCorpCardCsvSampleScenarioQst, false) then
+                            exit;
+
+                        CreateCorpCardSetup.CreateCsvSampleScenario();
+                        Message(CorpCardCsvSampleScenarioCreatedMsg);
+                    end;
+                }
             }
             action("Agent Consumption")
             {
@@ -581,6 +633,8 @@ page 6996 "Expense Agent Setup"
 
     var
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
+        CreateCorpCardCsvSampleScenarioQst: Label 'This action imports and posts the corporate card CSV sample transactions, expense reports, and bank settlement. Do you want to continue?';
+        CorpCardCsvSampleScenarioCreatedMsg: Label 'The corporate card CSV sample scenario was created and posted.';
 #if not CLEAN30
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
 #endif

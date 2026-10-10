@@ -30,6 +30,7 @@ codeunit 117566 "Add Employee"
 
     procedure InsertRec(Fld1: Text[250]; Fld2: Text[250]; Fld4: Text[250]; Fld5: Text[250]; Fld6: Text[250]; Fld7: Text[250]; Fld8: Text[250]; Fld11: Text[250]; Fld13: Text[250]; Fld14: Text[250]; Fld15: Text[250]; Fld16: Text[250]; Fld21: Text[250]; Fld22: Text[250]; Fld23: Text[250]; Fld24: Text[250]; Fld27: Text[250]; Fld28: Text[250])
     var
+        EmployeePostingGroupCode: Record "Employee Posting Group";
         CreatePostCode: Codeunit "Create Post Code";
     begin
         Clear(NewRec);
@@ -54,7 +55,8 @@ codeunit 117566 "Add Employee"
         Evaluate(NewRec.Gender, Fld24);
         Evaluate(NewRec."Emplymt. Contract Code", Fld27);
         Evaluate(NewRec."Statistics Group Code", Fld28);
-        NewRec.UpdateNamesFromOldFields();
+        if EmployeePostingGroupCode.FindFirst() then
+            NewRec.Validate("Employee Posting Group", EmployeePostingGroupCode.Code);
         NewRec.Insert();
     end;
 

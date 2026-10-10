@@ -64,7 +64,7 @@ codeunit 101600 "Create Employee"
         XDodds: Label 'Dodds';
         XTDODDS: Label 'TDODDS';
         X66BJamesRoad: Label '66B James Road';
-        XEmplExpTok: Label 'EMPLEXP', Locked = true;
+        XEmplExpTxt: Label 'EMPLEXP';
         XEmployeesPayableTok: Label 'Employees Payable';
 
     procedure InsertGeneral("No.": Code[20]; "First Name": Text[30]; "Middle Name": Text[30]; "Last Name": Text[30]; Initials: Text[30]; Address: Text[30]; "Post Code": Code[20]; Title: Text[30]; Sex: Enum "Employee Gender")
@@ -222,7 +222,7 @@ codeunit 101600 "Create Employee"
         if not GLAccount.FindFirst() then
             exit;
 
-        EmployeePostingGroup.Code := XEmplExpTok;
+        EmployeePostingGroup.Code := XEmplExpTxt;
         EmployeePostingGroup."Payables Account" := GLAccount."No.";
         RoundingGLAccount."No." := CreateCustPostGroup.GetRoundingAccount();
 
@@ -252,7 +252,7 @@ codeunit 101600 "Create Employee"
 
     procedure EmployeePostingGroupCode(): Code[20]
     begin
-        exit(XEmplExpTok);
+        exit(XEmplExpTxt);
     end;
 }
 

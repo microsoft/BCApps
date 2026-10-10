@@ -9,7 +9,8 @@ permissionset 6905 "Expense Mgmt. Admin"
     Assignable = true;
     Caption = 'Expense Management - Admin';
 
-    IncludedPermissionSets = "Expense Mgmt. Edit";
+    IncludedPermissionSets = "Expense Mgmt. Edit",
+                             EACorpCardAdmin;
 
     Permissions =
         tabledata "Expense Agent Access Control" = RIMD,
