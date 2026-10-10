@@ -132,9 +132,9 @@ codeunit 10674 "SAF-T XML Helper"
 
     local procedure PrepareNodeTextForXML(var RawXmlText: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        XmlUtilities: Codeunit "XML Utilities";
     begin
-        XMLDOMManagement.ClearUTF8BOMSymbols(RawXmlText);
-        RawXmlText := XMLDOMManagement.XMLEscape(RawXmlText);
+        XmlUtilities.ClearUtf8BomSymbols(RawXmlText);
+        RawXmlText := XmlUtilities.XmlEscape(RawXmlText);
     end;
 }
