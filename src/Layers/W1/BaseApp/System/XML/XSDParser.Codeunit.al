@@ -21,6 +21,7 @@ codeunit 9610 "XSD Parser"
         ReferenceElementTypeTok: Label 'Reference', Locked = true;
         ExtensionElementTypeTok: Label 'Extension', Locked = true;
         XMLSchemaNamespaceTxt: Label 'http://www.w3.org/2001/XMLSchema', Locked = true;
+        AttributeNodeNameTxt: Label '%1:attribute', Locked = true, Comment = '%1 = XSD schema prefix';
         UnnamedXSDSchemaPrefixTxt: Label 'unamedXSDSchemaNamespace', Locked = true;
         CouldNotFindRelatedSchema: Boolean;
 
@@ -68,6 +69,7 @@ codeunit 9610 "XSD Parser"
     local procedure LoadSchemaXML(var XMLSchema: Record "XML Schema"; var NamespaceMgr: XmlNamespaceManager; var "Schema": XmlDocument; var SchemaPrefix: Text)
     var
         NamespacePrefixes: List of [Text];
+        TargetNamespace: Text;
         InStr: InStream;
     begin
         XMLSchema.TestField(Code);
@@ -82,7 +84,9 @@ codeunit 9610 "XSD Parser"
         NamespacePrefixes.Add('');
         NamespacePrefixes.Add('xmlns');
         NamespacePrefixes.Add('xml');
-        PopulateNamespaceManager(NamespaceMgr, NamespacePrefixes, Schema, XMLSchema."Target Namespace", SchemaPrefix);
+        TargetNamespace := XMLSchema."Target Namespace";
+        PopulateNamespaceManager(NamespaceMgr, NamespacePrefixes, Schema, TargetNamespace, SchemaPrefix);
+        XMLSchema."Target Namespace" := CopyStr(TargetNamespace, 1, MaxStrLen(XMLSchema."Target Namespace"));
         UpdateTargetNamespaceAliases(XMLSchema, NamespaceMgr, NamespacePrefixes);
     end;
 
@@ -320,7 +324,7 @@ codeunit 9610 "XSD Parser"
             exit;
 
         // Attributes are parsed before the other child nodes
-        AttributeNodeName := StrSubstNo('%1:attribute', SchemaPrefix);
+        AttributeNodeName := StrSubstNo(AttributeNodeNameTxt, SchemaPrefix);
         foreach XMLNode in ChildNodes do
             if GetNodeName(XMLNode) = AttributeNodeName then
                 ParseXMLNode(XMLNode, SchemaPrefix, ParentXMLSchemaElement, XMLSchema, NamespaceMgr, NestingLevel, CurrentID);
