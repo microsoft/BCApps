@@ -605,7 +605,7 @@ table 32 "Item Ledger Entry"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA30
+#if not CLEANSCHEMA31
         field(12180; "Subcontr. Purch. Order No."; Code[20])
         {
             Caption = 'Subcontr. Purch. Order No.';

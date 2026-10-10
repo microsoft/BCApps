@@ -1090,7 +1090,7 @@ table 15 "G/L Account"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA27
         field(3010536; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';

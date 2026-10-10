@@ -32,7 +32,7 @@ table 3303 "Payables Agent Setup"
         {
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA31
 #pragma warning disable AS0072
         field(4; "Agent User Security Id"; Guid)
         {
