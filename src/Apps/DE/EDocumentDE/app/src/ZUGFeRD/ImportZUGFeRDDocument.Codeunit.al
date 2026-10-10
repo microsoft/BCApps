@@ -29,29 +29,37 @@ codeunit 13919 "Import ZUGFeRD Document"
     procedure ParseBasicInfo(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     var
         TempXMLBuffer: Record "XML Buffer" temporary;
-        PDFDocument: Codeunit "PDF Document";
+        EDocumentDEInboundValidator: Codeunit "E-Doc. DE Inbound Validator";
+        CIIDocument: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
         DocumentType: Text;
         DocumentNamespace: Text;
         PDFInStream: InStream;
         PdfAttachmentStream: InStream;
+        ValidationStream: InStream;
         BasicInfoParsed: Boolean;
+        RsmNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100', Locked = true;
+        RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;
+        UdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100', Locked = true;
         DocumentElementLbl: Label '%1:%2', Comment = '%1 = Namespace, %2 = Document', Locked = true;
-        NoXMLFileErr: Label 'No invoice attachment found in the PDF file. Please check the PDF file.';
         CrossIndustryInvoiceLbl: Label 'CrossIndustryInvoice', Locked = true;
         UnsupportedDocumentTypeErr: Label 'Unsupported document type: %1', Comment = '%1 = Document type';
     begin
         FeatureTelemetry.LogUsage('0000ESH', FeatureNameTok, StartEventNameTok);
         TempXMLBuffer.DeleteAll();
-        TempBlob.CreateInStream(PdfInStream);
-        Clear(TempBlob);
-        if not PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob) then
-            Error(NoXMLFileErr);
-
+        NormalizeCIIInput(TempBlob, PdfInStream);
         TempBlob.CreateInStream(PdfAttachmentStream);
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
         EDocument.Direction := EDocument.Direction::Incoming;
         DocumentNamespace := GetNamespace(TempXMLBuffer);
         DocumentType := GetDocumentType(TempXMLBuffer, DocumentNamespace);
+
+        TempBlob.CreateInStream(ValidationStream);
+        XmlDocument.ReadFrom(ValidationStream, CIIDocument);
+        XmlNamespaces.AddNamespace('rsm', RsmNamespaceTok);
+        XmlNamespaces.AddNamespace('ram', RamNamespaceTok);
+        XmlNamespaces.AddNamespace('udt', UdtNamespaceTok);
+        EDocumentDEInboundValidator.ValidateCII(EDocument, CIIDocument, XmlNamespaces);
 
         BasicInfoParsed := false;
         OnParseBasicInfoOnBeforeDocumentTypeCheck(DocumentType, EDocument, TempXMLBuffer, DocumentNamespace, CrossIndustryInvoiceLbl, PdfInStream, BasicInfoParsed);
@@ -72,6 +80,25 @@ codeunit 13919 "Import ZUGFeRD Document"
                     Error(UnsupportedDocumentTypeErr, DocumentType);
                 end;
             end;
+    end;
+
+    local procedure NormalizeCIIInput(var TempBlob: Codeunit "Temp Blob"; var PDFInStream: InStream)
+    var
+        PDFDocument: Codeunit "PDF Document";
+        SourceStream: InStream;
+        SourceXml: XmlDocument;
+        NoXMLFileErr: Label 'No invoice attachment found in the PDF file. Please check the PDF file.';
+    begin
+        TempBlob.CreateInStream(SourceStream);
+        if XmlDocument.ReadFrom(SourceStream, SourceXml) then begin
+            Clear(PDFInStream);
+            exit;
+        end;
+
+        TempBlob.CreateInStream(PDFInStream);
+        Clear(TempBlob);
+        if not PDFDocument.GetDocumentAttachmentStream(PDFInStream, TempBlob) then
+            Error(NoXMLFileErr);
     end;
 
     procedure ParseCompleteInfo(var EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: Record "Purchase Line" temporary; var TempBlob: Codeunit "Temp Blob")

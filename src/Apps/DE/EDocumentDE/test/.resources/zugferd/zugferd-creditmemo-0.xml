@@ -47,6 +47,8 @@
         <ram:PostalTradeAddress>
           <ram:LineOne>Hauptstrasse 1</ram:LineOne>
           <ram:CityName>Berlin</ram:CityName>
+          <ram:PostcodeCode>10115</ram:PostcodeCode>
+          <ram:CountryID>DE</ram:CountryID>
         </ram:PostalTradeAddress>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">DE123456789</ram:ID>
@@ -57,12 +59,21 @@
         <ram:PostalTradeAddress>
           <ram:LineOne>Marktplatz 5</ram:LineOne>
           <ram:CityName>Munich</ram:CityName>
+          <ram:PostcodeCode>80331</ram:PostcodeCode>
+          <ram:CountryID>DE</ram:CountryID>
         </ram:PostalTradeAddress>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
     <ram:ApplicableHeaderTradeDelivery />
     <ram:ApplicableHeaderTradeSettlement>
       <ram:InvoiceCurrencyCode>XYZ</ram:InvoiceCurrencyCode>
+      <ram:ApplicableTradeTax>
+        <ram:CalculatedAmount>9.50</ram:CalculatedAmount>
+        <ram:TypeCode>VAT</ram:TypeCode>
+        <ram:BasisAmount>50.00</ram:BasisAmount>
+        <ram:CategoryCode>S</ram:CategoryCode>
+        <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
+      </ram:ApplicableTradeTax>
       <ram:InvoiceReferencedDocument>
         <ram:IssuerAssignedID>ZF-INV-1001</ram:IssuerAssignedID>
       </ram:InvoiceReferencedDocument>
