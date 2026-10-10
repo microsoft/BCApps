@@ -31,6 +31,7 @@ page 99000800 "Prod. BOM Version List"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
+                    StyleExpr = StatusStyleTxt;
                     ToolTip = 'Specifies the status of the production BOM version.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
@@ -71,6 +72,26 @@ page 99000800 "Prod. BOM Version List"
     actions
     {
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        SetStatusStyle();
+    end;
+
+    var
+        StatusStyleTxt: Text;
+
+    local procedure SetStatusStyle()
+    begin
+        case Rec.Status of
+            Rec.Status::Certified:
+                StatusStyleTxt := 'Strong';
+            Rec.Status::New, Rec.Status::"Under Development":
+                StatusStyleTxt := 'Favorable';
+            else
+                StatusStyleTxt := '';
+        end;
+    end;
 
     local procedure StartingDateOnAfterValidate()
     begin
