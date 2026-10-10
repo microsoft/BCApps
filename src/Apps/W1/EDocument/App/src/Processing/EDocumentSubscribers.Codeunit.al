@@ -1064,10 +1064,8 @@ codeunit 6103 "E-Document Subscribers"
     var
         EDocument: Record "E-Document";
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
-        ResponseBlob: Codeunit "Temp Blob";
         SalesHeaderRef: RecordRef;
         IResponseProvider: Interface IEDocResponseProvider;
-        IMessageBuilder: Interface IEDocMessageBuilder;
         MessageType: Enum "E-Document Message Type";
     begin
         if PreviewMode then
@@ -1081,8 +1079,7 @@ codeunit 6103 "E-Document Subscribers"
         MessageType := IResponseProvider.GetResponseMessageType(EDocument);
         if MessageType = "E-Document Message Type"::Unknown then
             exit;
-        IMessageBuilder := MessageType;
-        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
-        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Accepted, ResponseBlob);
+
+        EDocMessageMgt.CreateResponseMessage(EDocument, MessageType, "E-Doc. Response Type"::Accepted);
     end;
 }

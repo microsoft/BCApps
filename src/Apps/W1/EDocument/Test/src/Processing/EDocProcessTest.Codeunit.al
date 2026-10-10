@@ -1490,6 +1490,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure FinishDraftSalesOrder_AnyOrderTypeCodeCreatesSalesOrder()
     var
         EDocument: Record "E-Document";
+        EDocumentMessage: Record "E-Document Message";
         EDocSalesHeader: Record "E-Document Sales Header";
         EDocSalesLine: Record "E-Document Sales Line";
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
@@ -1506,6 +1507,12 @@ codeunit 139883 "E-Doc Process Test"
         TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
         LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-typecode-221.xml', TempEDocImportParameters);
         EDocument.Get(EDocument."Entry No");
+
+        // [THEN] Reading the order into draft acknowledged it to the seller endpoint the order was addressed to
+        EDocumentMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentMessage.SetRange(Direction, "E-Document Direction"::Outgoing);
+        EDocumentMessage.SetRange("Response Type", "E-Doc. Response Type"::Acknowledged);
+        Assert.IsFalse(EDocumentMessage.IsEmpty(), 'Reading the order into draft should create an outgoing acknowledgement.');
 
         // [GIVEN] BC-resolved fields are set (customer + item), simulating what PrepareDraft would do
         LibraryEDoc.GetGenericItem(Item);

@@ -197,6 +197,12 @@ procedure ShouldExport(EDocumentService, SourceDocumentHeader, DocumentType): Bo
 procedure BuildMessage(EDocument, ResponseType, var TempBlob)
 ```
 
+- `IEDocResponseMessageBuilder` (in `Processing/Interfaces/IEDocResponseMessageBuilder.Interface.al`) -- optional, implemented on the same codeunit as `IEDocMessageBuilder` when the response type is only known while building (e.g. Accepted becomes Conditionally Accepted because the seller changed the order). The returned type is stored on the message:
+
+```
+procedure BuildResponseMessage(EDocument, RequestedResponseType, var TempBlob): Enum "E-Doc. Response Type"
+```
+
 - `IEDocResponseProvider` (in `Processing/Interfaces/IEDocResponseProvider.Interface.al`) -- lets a document format declare which message type (if any) to emit as a response:
 
 ```
@@ -208,11 +214,11 @@ procedure GetResponseMessageType(EDocument): Enum "E-Document Message Type"
 To ship a new message format, your app (depending only on E-Document Core):
 
 1. Extend `"E-Document Message Type"` with a value bound to your `IEDocMessageBuilder` implementation.
-2. Optionally extend `"E-Doc. Response Type"` (`enum 6427`) if your format has response semantics beyond Acknowledged/Accepted/Rejected.
+2. Optionally extend `"E-Doc. Response Type"` (`enum 6427`) if your format has response semantics beyond Acknowledged/Accepted/Conditionally Accepted/Rejected.
 3. Implement `IEDocResponseProvider` on your `"E-Document Format"` value, returning your message type for the documents that should get a response.
-4. The framework builds the payload via your builder and persists it with `"E-Doc. Message Mgt.".CreateMessage()`, linked to the E-Document and visible in the message FactBox.
+4. The framework builds the payload via your builder and persists it with `"E-Doc. Message Mgt.".CreateResponseMessage()`, linked to the E-Document and visible in the message FactBox. If your builder also implements `IEDocResponseMessageBuilder`, the response type it returns is stored; otherwise the requested one.
 
-The built-in `"PEPPOL Order Response"` value follows the same pattern: it binds to `"E-Doc. PEPPOL Msg. Builder"` (Core-hosted), which delegates XML construction to the PEPPOL app's pure builder.
+The built-in `"PEPPOL Order Response"` value follows the same pattern: it binds to `"E-Doc. PEPPOL Msg. Builder"` (Core-hosted), which implements both builder interfaces and delegates XML construction to the PEPPOL app's pure builder.
 
 ## AI tools
 

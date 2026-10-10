@@ -55,7 +55,7 @@ Key decision points in the flow:
 
 ## E-Document message responses
 
-*Updated: 2026-07-29 -- documented PEPPOL Order Response handling and response message storage.*
+*Updated: 2026-09-30 -- PEPPOL Order Response follows BIS 28 (T76): endpoints, order lines, conditional acceptance and response type refinement.*
 
 Processing stores lifecycle messages separately from the parent E-Document. The first built-in message type is `"PEPPOL Order Response"`, used when an inbound order becomes a sales order and BC needs to send an acceptance or rejection response back through the service flow.
 
@@ -65,25 +65,40 @@ flowchart TD
     B --> C{Draft process creates which BC document?}
     C -- Sales Order --> D[Sales Header linked to E-Document]
     C -- Purchase document or journal --> X[Handled by Import docs]
+    B -- Read into draft --> R[ImportEDocumentProcess: Acknowledged]
     D --> E{Sales Order released?}
-    E -- Yes --> F[EDocumentSubscribers.OnAfterReleaseSalesDoc]
-    E -- User rejects inbound order --> G[EDocumentProcessing.SendOrderRejection]
-    F --> H[Ask document format through IEDocResponseProvider]
+    E -- Yes --> F[EDocumentSubscribers.OnAfterReleaseSalesDoc: Accepted]
+    E -- User rejects inbound order --> G[EDocumentProcessing.SendOrderRejection: Rejected]
+    R --> H[Ask document format through IEDocResponseProvider]
+    F --> H
     G --> H
     H --> I{Response message type returned?}
     I -- Unknown --> Z[No message]
-    I -- PEPPOL Order Response --> J[IEDocMessageBuilder.BuildMessage]
-    J --> K[E-Doc. PEPPOL Msg. Builder delegates XML to PEPPOL app]
-    K --> L[E-Doc. Message Mgt. creates E-Document Message + Data Storage]
+    I -- PEPPOL Order Response --> M[E-Doc. Message Mgt. CreateResponseMessage]
+    M --> J{Builder implements IEDocResponseMessageBuilder?}
+    J -- Yes --> K[BuildResponseMessage returns the built type, e.g. Conditionally Accepted]
+    J -- No --> N[IEDocMessageBuilder.BuildMessage keeps the requested type]
+    K --> L[E-Document Message + Data Storage with that response type]
+    N --> L
 ```
 
 Key points:
 
 - `IEDocResponseProvider` is implemented by the document format enum value, so a format can decide whether the current E-Document should emit a response message. The PEPPOL handler returns the PEPPOL Order Response message type for applicable inbound sales orders.
 
-- `IEDocMessageBuilder` is implemented by the message type enum value. Core's PEPPOL builder reads the E-Document sales draft header and passes only primitive values to the standalone PEPPOL app's `PEPPOL Order Resp. Builder`.
+- `IEDocMessageBuilder` is implemented by the message type enum value. Core's PEPPOL builder (`E-Doc. PEPPOL Msg. Builder`, which also implements `IEDocResponseMessageBuilder`) reads the E-Document sales draft header and lines, the linked sales order and the draft-to-sales-line links, and passes only primitive values to the standalone PEPPOL app's `PEPPOL Order Resp. Builder`.
 
 - Accepted responses are created automatically after the linked sales order is released. Rejected responses are created by the E-Document page's Reject Order action through `SendOrderRejection()`.
+
+- The response follows PEPPOL BIS 28 Ordering (T76): both parties carry `cbc:EndpointID` with `schemeID` (echoed from the inbound order; otherwise the same GLN or VAT registration no. identification `PEPPOL30` uses for BC's own Peppol documents, and when neither exists the standard missing-identification error is raised, as is an error when a VAT registration no. has no scheme because the country's VAT Scheme is not set up, instead of producing a response the Access Point would reject), `cbc:ID`/`cbc:SalesOrderID` are the sales order number once one exists, and `cac:OrderReference` only carries the buyer's order number (PEPPOL-T76-B01202).
+
+- On release, the builder compares every draft line received as `cac:OrderLine` with its linked sales line (`E-Doc. Record Link`). The sales order lines and the links are read once into memory, so the comparison runs without per-line queries. If nothing changed the response code is `AP`. Otherwise the code is `CA` and each line is reported with `LineStatusCode` 5 (accepted, with its quantity), 3 (changed, with the confirmed quantity, promised delivery period and changed net price) or 7 (deleted or quantity 0). Quantities and prices are compared and reported in the buyer's ordered unit: a different unit of measure on the sales line is converted through the base quantity, and only reported in the current unit (as a change) when it cannot be converted. A line counts as changed when its quantity or unit differs, when its net unit price (line amount after line discount, excluding VAT) differs from the ordered net price, when the promised or requested delivery date differs from the buyer's requested date, or when the shipment or planned delivery date moved from what BC calculated at creation (snapshotted on the draft line as `Created Shipment Date` / `Created Planned Delivery Date`). With Shipping Advice = Partial, a `Qty. to Ship` below the quantity is reported as `Quantity` = Qty. to Ship plus `MaximumBackorderQuantity` = the remainder; a reduced line without backorder states `MaximumBackorderQuantity` 0.
+
+- Sales lines the seller added (not created from an order line; text and attached lines excluded) make the response `CA`. T76 has no free-standing added line, so an added line of an ordered item is reported as a split with `LineStatusCode` 1 and a new unique response line id, referencing the nearest order line above it with that item (otherwise the first one with it), e.g. part delivered later; a reduced line whose remainder such a split delivers does not state `MaximumBackorderQuantity` 0. Any other added line (an item that was not ordered, a freight or charge line) has no order line to belong to, so it is listed in the header `cbc:Note`, which clarifies the seller's decision.
+
+- Without draft-to-sales-line links (e.g. a sales order created by a custom `IEDocumentCreateSalesOrder`) the per-line decision is unknown: order lines are answered as ordered (status 5), so a changed header delivery date still gives a valid `CA` with lines (PEPPOL-T76-R007). `CA` is never sent for an order without order lines.
+
+- Every line carries the mandatory `cac:Item/cbc:Name`, plus the buyer/seller item ids when known, and the header always states `cbc:DocumentCurrencyCode` (the sales order currency, blank meaning the local currency). The PEPPOL app's `PEPPOL Order Resp. Builder` resets itself after `Build`, so one instance can build several responses. Callers go through `E-Doc. Message Mgt.`.`CreateResponseMessage`: when the builder also implements the optional `IEDocResponseMessageBuilder` interface, the response type it returns is stored, so the message record is Accepted for `AP` and Conditionally Accepted for `CA`; other builders keep the requested type. `IEDocMessageBuilder` itself is unchanged. Inbound responses map `CA` to Conditionally Accepted.
 
 - Messages are child records. `E-Document Message` stores message type, direction, response type, service, status, and a pointer to the XML blob in `E-Doc. Data Storage`; the messages factbox lets users download the raw XML.
 
